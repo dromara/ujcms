@@ -1,0 +1,22 @@
+[#ftl output_format="XML"]
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <title>${site.name}</title>
+    <description>${site.name}</description>
+    <link>${site.url}</link>
+    <copyright>Copyright ${.now?string('yyyy')} ${site.domain}. All Rights Reserved.</copyright>
+    <language>zh-cn</language>
+    [@ArticleList limit='100';list]
+      [#list list as article]
+        <item>
+          <title>${article.title}</title>
+          <link>${article.url}</link>
+          <pubDate>${format(article.publishDate, 'yyyy-MM-dd HH:mm:ss')}</pubDate>
+          <description><![CDATA[${article.description}]]></description>
+          <author>${article.site.domain}</author>
+        </item>
+      [/#list]
+    [/@ArticleList]
+  </channel>
+</rss>

@@ -1,0 +1,83 @@
+@import "bootstrap/variables";
+
+.cm-navbar {
+  .navbar-nav {
+    .nav-link {
+      font-size: 18px;
+      padding-left: 16px;
+      padding-right: 16px;
+      color: $body-color;
+    }
+
+    .nav-link.active {
+      color: $primary;
+    }
+  }
+}
+
+.navbar-nav-scroll {
+  max-width: 100%;
+  height: 2.5rem;
+  /*margin-top: .25rem;*/
+  overflow: hidden;
+}
+
+.navbar-nav-scroll .navbar-nav {
+  /*padding-bottom: 2rem;*/
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cm-hidden {
+  display: none;
+}
+
+.cm-pointer {
+  cursor: pointer;
+}
+
+.cm-ff-yh {
+  font-family: "Microsoft YaHei", 微软雅黑, "MicrosoftJhengHei", serif;
+}
+
+.cm-block-head-bottom {
+  border-bottom: solid 2px;
+  border-color: $primary;
+  display: inline-block;
+  padding-bottom: 0.3rem;
+}
+
+.cm-trans-bottom {
+  width: 100%;
+  bottom: 0;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.cm-media-img {
+  max-width:180px;
+  max-height:120px;
+}
+
+@media screen and (max-width: 767px) {
+  .cm-media-img {
+    max-width: 120px;
+    max-height: 80px;
+  }
+}
+
+.cm-link {
+  color: $body-color;
+
+  &:hover {
+    color: darken($primary, 10%);
+  }
+}
+
+.es-highlight em {
+  color: $danger;
+  font-style: normal;
+}

@@ -1,0 +1,38 @@
+<nav>
+  <ul class="pagination">
+	  [#if pagedList.hasPrevious()]
+      <li class="page-item">
+        <a class="page-link" href="${paging(page-1)}" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+    [#else]
+      <li class="page-item disabled">
+        <span class="page-link" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </span>
+      </li>
+    [/#if]
+
+    [#assign start=page-2/][#if start<1][#assign start=1/][/#if]
+    [#assign end=start+4/][#if end>pagedList.totalPages][#assign end=pagedList.totalPages/][/#if][#if end<1][#assign end=1/][/#if]
+    [#if end-start<4][#assign start=end-4/][/#if][#if start<1][#assign start=1/][/#if]
+    [#list start..end as p]
+    <li class="page-item[#if page==p] active[/#if]"><a class="page-link" href="${paging(p)}">${p}</a></li>
+    [/#list]
+
+    [#if pagedList.hasNext()]
+      <li class="page-item">
+        <a class="page-link" href="${paging(page+1)}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    [#else]
+      <li class="page-item disabled">
+        <span class="page-link" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </span>
+      </li>
+    [/#if]
+  </ul>
+</nav>

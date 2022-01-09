@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.UserRoleMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.UserRole">
+    <id column="user_id_" jdbcType="INTEGER" property="userId" />
+    <id column="role_id_" jdbcType="INTEGER" property="roleId" />
+    <result column="order_" jdbcType="SMALLINT" property="order" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.UserRole" />
+    <delete id="deleteByUserId" parameterType="int">
+        delete
+        from ujcms_user_role
+        where user_id_ = #{userId,jdbcType=INTEGER}
+    </delete>
+    <select id="select" parameterType="map" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_user_role t
+        where t.user_id_ = #{userId,jdbcType=INTEGER}
+        and t.role_id_ = #{roleId,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="map">
+        delete
+        from ujcms_user_role
+        where user_id_ = #{userId,jdbcType=INTEGER}
+          and role_id_ = #{roleId,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.core.domain.UserRole">
+    update ujcms_user_role
+    set order_ = #{order,jdbcType=SMALLINT}
+    where user_id_ = #{userId,jdbcType=INTEGER}
+      and role_id_ = #{roleId,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.core.domain.UserRole">
+    insert into ujcms_user_role (user_id_, role_id_, order_)
+    values (#{userId,jdbcType=INTEGER}, #{roleId,jdbcType=INTEGER}, #{order,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.user_id_, t.role_id_, t.order_
+  </sql></mapper>

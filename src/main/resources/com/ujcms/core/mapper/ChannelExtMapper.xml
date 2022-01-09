@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.ChannelExtMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.ChannelExt">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="seo_title_" jdbcType="VARCHAR" property="seoTitle" />
+    <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
+    <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
+    <result column="article_template_" jdbcType="VARCHAR" property="articleTemplate" />
+    <result column="channel_template_" jdbcType="VARCHAR" property="channelTemplate" />
+    <result column="page_size_" jdbcType="SMALLINT" property="pageSize" />
+    <result column="image_" jdbcType="VARCHAR" property="image" />
+    <result column="link_url_" jdbcType="VARCHAR" property="linkUrl" />
+    <result column="target_blank_" jdbcType="BIT" property="targetBlank" />
+    <result column="allow_comment_" jdbcType="BIT" property="allowComment" />
+    <result column="allow_contribute_" jdbcType="BIT" property="allowContribute" />
+    <result column="allow_search_" jdbcType="BIT" property="allowSearch" />
+    <result column="static_file_" jdbcType="VARCHAR" property="staticFile" />
+    <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile" />
+    <result column="text_" jdbcType="CLOB" property="text" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.ChannelExt" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_channel_ext" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_channel_ext t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_channel_ext
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.core.domain.ChannelExt">
+    update ujcms_channel_ext
+    set seo_title_ = #{seoTitle,jdbcType=VARCHAR},
+      seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
+      seo_description_ = #{seoDescription,jdbcType=VARCHAR},
+      article_template_ = #{articleTemplate,jdbcType=VARCHAR},
+      channel_template_ = #{channelTemplate,jdbcType=VARCHAR},
+      page_size_ = #{pageSize,jdbcType=SMALLINT},
+      image_ = #{image,jdbcType=VARCHAR},
+      link_url_ = #{linkUrl,jdbcType=VARCHAR},
+      target_blank_ = #{targetBlank,jdbcType=BIT},
+      allow_comment_ = #{allowComment,jdbcType=BIT},
+      allow_contribute_ = #{allowContribute,jdbcType=BIT},
+      allow_search_ = #{allowSearch,jdbcType=BIT},
+      static_file_ = #{staticFile,jdbcType=VARCHAR},
+      mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
+      text_ = #{text,jdbcType=CLOB}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.core.domain.ChannelExt">
+    insert into ujcms_channel_ext (id_, seo_title_, seo_keywords_, seo_description_, article_template_, channel_template_, page_size_, image_, link_url_, target_blank_, allow_comment_, allow_contribute_, allow_search_, static_file_, mobile_static_file_, text_)
+    values (#{id,jdbcType=INTEGER}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{articleTemplate,jdbcType=VARCHAR}, #{channelTemplate,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{image,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{targetBlank,jdbcType=BIT}, #{allowComment,jdbcType=BIT}, #{allowContribute,jdbcType=BIT}, #{allowSearch,jdbcType=BIT}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{text,jdbcType=CLOB})
+  </insert><sql id="Column_List">
+    t.id_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.article_template_, t.channel_template_, t.page_size_, t.image_, t.link_url_, t.target_blank_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.static_file_, t.mobile_static_file_, t.text_
+  </sql></mapper>

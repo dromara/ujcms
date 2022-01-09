@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.ArticleImageMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.ArticleImage">
+    <result column="article_id_" jdbcType="INTEGER" property="articleId" />
+    <result column="url_" jdbcType="VARCHAR" property="url" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="order_" jdbcType="SMALLINT" property="order" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.ArticleImage" />
+    <select id="listByArticleId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_article_image t
+        where t.article_id_ = #{articleId,jdbcType=INTEGER}
+        order by t.order_
+    </select>
+    <delete id="deleteByArticleId" parameterType="int">
+        delete
+        from ujcms_article_image
+        where article_id_ = #{article_id_,jdbcType=INTEGER}
+    </delete>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_article_image" />
+        </include>
+    </select><insert id="insert" parameterType="com.ujcms.core.domain.ArticleImage">
+    insert into ujcms_article_image (article_id_, url_, description_, order_)
+    values (#{articleId,jdbcType=INTEGER}, #{url,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{order,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.article_id_, t.url_, t.description_, t.order_
+  </sql></mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.SiteTreeMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.SiteTree">
+    <id column="ancestor_id_" jdbcType="INTEGER" property="ancestorId" />
+    <id column="descendant_id_" jdbcType="INTEGER" property="descendantId" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.SiteTree" />
+    <insert id="add">
+        insert into ujcms_site_tree (ancestor_id_, descendant_id_)
+        select t.ancestor_id_, #{id,jdbcType=INTEGER}
+        from ujcms_site_tree t
+        where t.descendant_id_ = #{parentId,jdbcType=INTEGER}
+    </insert>
+    <delete id="move">
+        delete
+        from ujcms_site_tree
+        where descendant_id_ in
+              (select t1.descendant_id_ from (select descendant_id_ from ujcms_site_tree where ancestor_id_ = #{id,jdbcType=INTEGER}) t1)
+          and ancestor_id_ in
+              (select t2.ancestor_id_
+               from (select ancestor_id_ from ujcms_site_tree where descendant_id_ = #{id,jdbcType=INTEGER} and ancestor_id_ != descendant_id_) t2)
+    </delete>
+    <insert id="append">
+        insert into ujcms_site_tree (ancestor_id_, descendant_id_)
+        select supertree.ancestor_id_, subtree.descendant_id_
+        from ujcms_site_tree supertree
+             cross join ujcms_site_tree subtree
+        where supertree.descendant_id_ = #{parentId,jdbcType=INTEGER}
+          and subtree.ancestor_id_ = #{id,jdbcType=INTEGER}
+    </insert>
+    <delete id="deleteById" parameterType="map">
+        delete
+        from ujcms_site_tree
+        where descendant_id_ in
+              (select tt.descendant_id_ from (select t.descendant_id_ from ujcms_site_tree t where t.ancestor_id_ = #{id,jdbcType=INTEGER}) tt)
+    </delete>
+    <delete id="delete" parameterType="map">
+        delete
+        from ujcms_site_tree
+        where ancestor_id_ = #{ancestorId,jdbcType=INTEGER}
+          and descendant_id_ = #{descendantId,jdbcType=INTEGER}
+    </delete><insert id="insert" parameterType="com.ujcms.core.domain.SiteTree">
+    insert into ujcms_site_tree (ancestor_id_, descendant_id_)
+    values (#{ancestorId,jdbcType=INTEGER}, #{descendantId,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.ancestor_id_, t.descendant_id_
+  </sql></mapper>

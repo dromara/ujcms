@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${site.title}</title>
+  <meta name="keywords" content="${site.seoKeywords!}">
+  <meta name="description" content="${site.seoDescription!}">
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'includes_header.html'/]
+<div class="container mt-4">
+  <div class="row">
+    <div class="col col-lg-8">
+      [@BlockItemList blockAlias='focus' limit='5'; beans]
+        <div id="carouselCaptions" class="carousel slide" data-ride="carousel">
+          <ol class="carousel-indicators">
+            [#list beans as bean]
+              <li data-target="#carouselCaptions" data-slide-to="${bean_index}" class="[#if bean_index==0]active[/#if]"></li>
+            [/#list]
+          </ol>
+          <div class="carousel-inner rounded-sm">
+            [#list beans as bean]
+              <div class="carousel-item[#if bean_index==0] active[/#if]">
+                <a href="${bean.url}" class="text-reset text-decoration-none">
+                  <img src="${bean.image}" class="d-block w-100" alt="...">
+                  <div class="carousel-caption d-none d-md-block">
+                    <p>${bean.title}</p>
+                  </div>
+                </a>
+              </div>
+            [/#list]
+          </div>
+          <a class="carousel-control-prev" href="#carouselCaptions" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#carouselCaptions" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+        <script>$('.carousel').carousel();</script>
+      [/@BlockItemList]
+
+      <script>var lastArticleDate = null;</script>
+      <div class="mt-4 h4">最新文章</div>
+      [@ArticleList channel='news' isIncludeSubChannel='true' limit=pageSize!10 orderBy='publishDate_desc'; list]
+        <ul id="articleList" class="list-unstyled mt-4">
+          [#include 'part_article_items.html'/]
+        </ul>
+      [/@ArticleList]
+      <div class="text-center">
+        <button id="appendArticlesButton" type="button" class="btn btn-outline-primary btn-sm" onclick="appendArticles()">点击加载更多</button>
+      </div>
+      <script>
+        function appendArticles() {
+          var $button = $('#appendArticlesButton');
+          var buttonText = $button.text();
+          $button.text('加载中...');
+          axios.get('${dy}/app/articles', {params: {lastArticleDate}}).then(function (response) {
+            if (response.data) {
+              $('#articleList').append(response.data);
+              $button.text(buttonText);
+            } else {
+              $button.text('没有更多了').attr('disabled', true);
+            }
+          });
+        }
+      </script>
+    </div>
+    [#include 'includes_right.html'/]
+  </div>
+</div>
+[#include 'includes_footer.html'/]
+<script>axios.post('${ctx}/api/site/view/${site.id}');</script>
+</body>
+</html>

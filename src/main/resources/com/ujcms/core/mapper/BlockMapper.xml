@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.BlockMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.Block">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="alias_" jdbcType="VARCHAR" property="alias" />
+    <result column="scope_" jdbcType="TINYINT" property="scope" />
+    <result column="with_description_" jdbcType="BIT" property="withDescription" />
+    <result column="with_image_" jdbcType="BIT" property="withImage" />
+    <result column="image_width_" jdbcType="INTEGER" property="imageWidth" />
+    <result column="image_height_" jdbcType="INTEGER" property="imageHeight" />
+    <result column="with_mobile_image_" jdbcType="BIT" property="withMobileImage" />
+    <result column="mobile_image_width_" jdbcType="INTEGER" property="mobileImageWidth" />
+    <result column="mobile_image_height_" jdbcType="INTEGER" property="mobileImageHeight" />
+    <result column="enabled_" jdbcType="BIT" property="enabled" />
+    <result column="order_" jdbcType="SMALLINT" property="order" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Block" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_block" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_block t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_block
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.core.domain.Block">
+    update ujcms_block
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      scope_ = #{scope,jdbcType=TINYINT},
+      with_description_ = #{withDescription,jdbcType=BIT},
+      with_image_ = #{withImage,jdbcType=BIT},
+      image_width_ = #{imageWidth,jdbcType=INTEGER},
+      image_height_ = #{imageHeight,jdbcType=INTEGER},
+      with_mobile_image_ = #{withMobileImage,jdbcType=BIT},
+      mobile_image_width_ = #{mobileImageWidth,jdbcType=INTEGER},
+      mobile_image_height_ = #{mobileImageHeight,jdbcType=INTEGER},
+      enabled_ = #{enabled,jdbcType=BIT},
+      order_ = #{order,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.core.domain.Block">
+    insert into ujcms_block (id_, site_id_, name_, alias_, scope_, with_description_, with_image_, image_width_, image_height_, with_mobile_image_, mobile_image_width_, mobile_image_height_, enabled_, order_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{scope,jdbcType=TINYINT}, #{withDescription,jdbcType=BIT}, #{withImage,jdbcType=BIT}, #{imageWidth,jdbcType=INTEGER}, #{imageHeight,jdbcType=INTEGER}, #{withMobileImage,jdbcType=BIT}, #{mobileImageWidth,jdbcType=INTEGER}, #{mobileImageHeight,jdbcType=INTEGER}, #{enabled,jdbcType=BIT}, #{order,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.alias_, t.scope_, t.with_description_, t.with_image_, t.image_width_, t.image_height_, t.with_mobile_image_, t.mobile_image_width_, t.mobile_image_height_, t.enabled_, t.order_
+  </sql></mapper>

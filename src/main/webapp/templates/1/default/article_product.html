@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${article.title}</title>
+  <meta name="keywords" content="${article.seoKeywords!}">
+  <meta name="description" content="${article.seoDescription!}">
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+</head>
+<body>
+[#include 'includes_header.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        [#list channel.paths as c]
+          <li class="list-inline-item">/</li>
+          <li class="list-inline-item"><a href="${c.url}">${c.name}</a></li>
+        [/#list]
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-4 mt-2">
+      <img class="img-fluid" src="${article.image}">
+    </div>
+    <div class="col-md-8 mt-2">
+      <h5 class="cm-ff-yh">${article.title}</h5>
+      <div class="mt-3 pb-3 border-bottom text-muted">
+        <span>${format(article.publishDate, 'yyyy-MM-dd HH:mm')}</span>
+        <i class="ml-2 far fa-eye"></i> <span id="views"></span>
+        <script>
+          axios.post('${ctx}/api/article/view/${article.id}').then(function (response) {
+            $('#views').text(response.data);
+          });
+        </script>
+      </div>
+      <div class="mt-3">
+        <div class="mt-3"><span class="text-muted mr-2">优惠价</span><span class="text-danger">￥<span class="h3">${article.customs['price']}</span></span></div>
+        <div class="mt-3"><span class="text-muted mr-2">厂商指导价</span><span>￥${article.customs['guidePrice']}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <h5 class="border-bottom mt-4"><span class="cm-block-head-bottom">商品介绍</span></h5>
+      <div class="article-content mt-3">${article.text?no_esc}</div>
+      <h5 class="border-bottom mt-4"><span class="cm-block-head-bottom">规格参数</span></h5>
+      <div class="article-content mt-3">${article.customs['specifications']?no_esc}</div>
+      <script>$('.article-content img').addClass('img-fluid');</script>
+      <ul class="mt-4 pt-2 list-unstyled border-top">
+        [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+          <li class="text-truncate mt-2">
+            <strong>上一条：</strong>[#if bean??]<a href="${bean.url}" class="cm-link">${bean.title}</a>[#else]没有了[/#if]
+          </li>
+        [/@ArticleNext]
+        [@ArticlePrev id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+          <li class="text-truncate mt-2">
+            <strong>下一条：</strong>[#if bean??]<a href="${bean.url}" class="cm-link">${bean.title}</a>[#else]没有了[/#if]
+          </li>
+        [/@ArticlePrev]
+      </ul>
+
+      <h5 class="mt-4 border-bottom"><span class="cm-block-head-bottom">相关新闻</span></h5>
+      [@EsArticleList q=article.title excludeId=article.id limit=5; list]
+        <ul class="list-unstyled mt-3">
+          [#list list as bean]
+            <li class="text-truncate mt-2"><a href="${bean.url}" class="cm-link" title="${bean.title}">${bean.title}</a></li>
+          [/#list]
+        </ul>
+      [/@EsArticleList]
+    </div>
+  </div>
+</div>
+[#include 'includes_footer.html'/]
+</body>
+</html>

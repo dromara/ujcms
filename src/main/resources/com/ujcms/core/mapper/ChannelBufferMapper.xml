@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.ChannelBufferMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.ChannelBuffer">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="views_" jdbcType="BIGINT" property="views" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.ChannelBuffer" />
+
+    <update id="updateViews">
+        update ujcms_channel_buffer
+        set views_ = views_ + #{viewsToPlus}
+        where id_ = #{id,jdbcType=INTEGER}
+    </update>
+
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_channel_buffer" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_channel_buffer t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_channel_buffer
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.core.domain.ChannelBuffer">
+    update ujcms_channel_buffer
+    set views_ = #{views,jdbcType=BIGINT}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.core.domain.ChannelBuffer">
+    insert into ujcms_channel_buffer (id_, views_)
+    values (#{id,jdbcType=INTEGER}, #{views,jdbcType=BIGINT})
+  </insert><sql id="Column_List">
+    t.id_, t.views_
+  </sql></mapper>

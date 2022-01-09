@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.UserExtMapper">
+    <resultMap id="BaseResultMap" type="com.ujcms.core.domain.UserExt">
+        <id column="id_" jdbcType="INTEGER" property="id"/>
+        <result column="real_name_" jdbcType="VARCHAR" property="realName"/>
+        <result column="gender_" jdbcType="CHAR" property="gender"/>
+        <result column="birthday_" jdbcType="TIMESTAMP" property="birthday"/>
+        <result column="location_" jdbcType="VARCHAR" property="location"/>
+        <result column="bio_" jdbcType="VARCHAR" property="bio"/>
+        <result column="created_" jdbcType="TIMESTAMP" property="created"/>
+        <result column="login_date_" jdbcType="TIMESTAMP" property="loginDate"/>
+        <result column="login_ip_" jdbcType="VARCHAR" property="loginIp"/>
+        <result column="login_count_" jdbcType="INTEGER" property="loginCount"/>
+        <result column="error_date_" jdbcType="TIMESTAMP" property="errorDate"/>
+        <result column="error_count_" jdbcType="INTEGER" property="errorCount"/>
+    </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.UserExt"/>
+    <sql id="selectAllJoin"/>
+    <sql id="selectAllWhere"/>
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_user_ext"/>
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_user_ext t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_user_ext
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete>
+    <update id="update" parameterType="com.ujcms.core.domain.UserExt">
+        update ujcms_user_ext
+        set real_name_   = #{realName,jdbcType=VARCHAR},
+            gender_      = #{gender,jdbcType=CHAR},
+            birthday_    = #{birthday,jdbcType=TIMESTAMP},
+            location_    = #{location,jdbcType=VARCHAR},
+            bio_         = #{bio,jdbcType=VARCHAR},
+            created_     = #{created,jdbcType=TIMESTAMP},
+            login_date_  = #{loginDate,jdbcType=TIMESTAMP},
+            login_ip_    = #{loginIp,jdbcType=VARCHAR},
+            login_count_ = #{loginCount,jdbcType=INTEGER},
+            error_date_  = #{errorDate,jdbcType=TIMESTAMP},
+            error_count_ = #{errorCount,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=INTEGER}
+    </update>
+    <insert id="insert" parameterType="com.ujcms.core.domain.UserExt">
+        insert into ujcms_user_ext (id_, real_name_, gender_, birthday_, location_, bio_, created_, login_date_, login_ip_, login_count_, error_date_,
+                                    error_count_)
+        values (#{id,jdbcType=INTEGER}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=CHAR}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR},
+                #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR},
+                #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})
+    </insert>
+    <sql id="Column_List">
+        t.id_, t.real_name_, t.gender_, t.birthday_, t.location_, t.bio_, t.created_, t.login_date_, t.login_ip_, t.login_count_, t.error_date_, t.error_count_
+    </sql>
+</mapper>

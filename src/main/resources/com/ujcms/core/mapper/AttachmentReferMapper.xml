@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.AttachmentReferMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.AttachmentRefer">
+    <id column="attachment_id_" jdbcType="INTEGER" property="attachmentId" />
+    <id column="refer_type_" jdbcType="VARCHAR" property="referType" />
+    <id column="refer_id_" jdbcType="INTEGER" property="referId" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.AttachmentRefer" />
+    <select id="listByAttachmentId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_attachment_refer t
+        where t.attachment_id_ = #{attachmentId,jdbcType=INTEGER}
+    </select>
+    <select id="listByReferTypeAndReferId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_attachment_refer t
+        where t.refer_type_ = #{referType,jdbcType=VARCHAR}
+        and t.refer_id_ = #{referId,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByReferTypeAndReferId">
+        delete
+        from ujcms_attachment_refer
+        where refer_type_ = #{referType,jdbcType=VARCHAR}
+          and refer_id_ = #{referId,jdbcType=INTEGER}
+    </delete>
+    <select id="select" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_attachment_refer t
+        where t.attachment_id_ = #{attachmentId,jdbcType=INTEGER}
+        and t.refer_type_ = #{referType,jdbcType=VARCHAR}
+        and t.refer_id_ = #{referId,jdbcType=INTEGER}
+    </select>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_attachment_refer" />
+        </include>
+    </select><insert id="insert" parameterType="com.ujcms.core.domain.AttachmentRefer">
+    insert into ujcms_attachment_refer (attachment_id_, refer_type_, refer_id_)
+    values (#{attachmentId,jdbcType=INTEGER}, #{referType,jdbcType=VARCHAR}, #{referId,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.attachment_id_, t.refer_type_, t.refer_id_
+  </sql></mapper>

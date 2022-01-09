@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.ArticleBufferMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.ArticleBuffer">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="comments_" jdbcType="INTEGER" property="comments" />
+    <result column="downloads_" jdbcType="INTEGER" property="downloads" />
+    <result column="favorites_" jdbcType="INTEGER" property="favorites" />
+    <result column="ups_" jdbcType="INTEGER" property="ups" />
+    <result column="downs_" jdbcType="INTEGER" property="downs" />
+    <result column="views_" jdbcType="BIGINT" property="views" />
+    <result column="day_views_" jdbcType="INTEGER" property="dayViews" />
+    <result column="week_views_" jdbcType="INTEGER" property="weekViews" />
+    <result column="month_views_" jdbcType="INTEGER" property="monthViews" />
+    <result column="quarter_views_" jdbcType="INTEGER" property="quarterViews" />
+    <result column="year_views_" jdbcType="BIGINT" property="yearViews" />
+    <result column="stat_day_" jdbcType="INTEGER" property="statDay" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.ArticleBuffer" />
+
+    <update id="plusViews">
+        update ujcms_article_buffer
+        set views_     = views_ + #{viewsToPlus},
+            day_views_ = day_views_ + #{viewsToPlus},
+            week_views_ = week_views_ + #{viewsToPlus},
+            month_views_ = month_views_ + #{viewsToPlus},
+            quarter_views_ = quarter_views_ + #{viewsToPlus},
+            year_views_ = year_views_ + #{viewsToPlus}
+        where id_ = #{id,jdbcType=INTEGER}
+    </update>
+
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_article_buffer" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_article_buffer t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_article_buffer
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.core.domain.ArticleBuffer">
+    update ujcms_article_buffer
+    set comments_ = #{comments,jdbcType=INTEGER},
+      downloads_ = #{downloads,jdbcType=INTEGER},
+      favorites_ = #{favorites,jdbcType=INTEGER},
+      ups_ = #{ups,jdbcType=INTEGER},
+      downs_ = #{downs,jdbcType=INTEGER},
+      views_ = #{views,jdbcType=BIGINT},
+      day_views_ = #{dayViews,jdbcType=INTEGER},
+      week_views_ = #{weekViews,jdbcType=INTEGER},
+      month_views_ = #{monthViews,jdbcType=INTEGER},
+      quarter_views_ = #{quarterViews,jdbcType=INTEGER},
+      year_views_ = #{yearViews,jdbcType=BIGINT},
+      stat_day_ = #{statDay,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.core.domain.ArticleBuffer">
+    insert into ujcms_article_buffer (id_, comments_, downloads_, favorites_, ups_, downs_, views_, day_views_, week_views_, month_views_, quarter_views_, year_views_, stat_day_)
+    values (#{id,jdbcType=INTEGER}, #{comments,jdbcType=INTEGER}, #{downloads,jdbcType=INTEGER}, #{favorites,jdbcType=INTEGER}, #{ups,jdbcType=INTEGER}, #{downs,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{dayViews,jdbcType=INTEGER}, #{weekViews,jdbcType=INTEGER}, #{monthViews,jdbcType=INTEGER}, #{quarterViews,jdbcType=INTEGER}, #{yearViews,jdbcType=BIGINT}, #{statDay,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.comments_, t.downloads_, t.favorites_, t.ups_, t.downs_, t.views_, t.day_views_, t.week_views_, t.month_views_, t.quarter_views_, t.year_views_, t.stat_day_
+  </sql></mapper>

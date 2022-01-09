@@ -1,0 +1,22 @@
+# Eclipse project files
+.classpath
+.project
+/.settings
+
+# IntelliJ IDEA project files
+*.iml
+/.idea
+
+# js
+/node_modules
+
+# Others
+/target
+/logs
+
+# Lucene
+/src/main/webapp/WEB-INF/lucene
+/src/main/webapp/WEB-INF/lucene_test
+
+# Uploads
+/src/main/webapp/uploads_test
