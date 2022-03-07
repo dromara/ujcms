@@ -3,8 +3,8 @@ package com.ujcms.core.web.backendapi;
 import com.ujcms.core.domain.Attachment;
 import com.ujcms.core.domain.Global;
 import com.ujcms.core.domain.Site;
-import com.ujcms.core.exception.Http400Exception;
-import com.ujcms.core.exception.LogicException;
+import com.ofwise.util.web.exception.Http400Exception;
+import com.ofwise.util.web.exception.LogicException;
 import com.ujcms.core.service.AttachmentService;
 import com.ujcms.core.service.GlobalService;
 import com.ujcms.core.support.Contexts;
@@ -131,7 +131,7 @@ public class UploadController {
         String extension = FilenameUtils.getExtension(multipart.getOriginalFilename());
         validateType(extension, types);
 
-        FileHandler fileHandler = Contexts.getCurrentSite().getFileHandler(pathResolver);
+        FileHandler fileHandler = Contexts.getCurrentSite().getStorage().getFileHandler(pathResolver);
         File tempFile = FilesEx.getTempFile(extension);
         String name = multipart.getOriginalFilename();
         try {
@@ -172,7 +172,7 @@ public class UploadController {
     public Object imageCrop(@RequestBody CropParam params) throws IOException {
         Site site = Contexts.getCurrentSite();
         Integer userId = Contexts.getCurrentUserId();
-        FileHandler fileHandler = site.getFileHandler(pathResolver);
+        FileHandler fileHandler = site.getStorage().getFileHandler(pathResolver);
         String src = fileHandler.getName(params.getUrl());
         if (src == null) {
             return Responses.badRequest("external url not support: " + params.getUrl());
@@ -357,6 +357,7 @@ public class UploadController {
          * @param extension   上传文件的扩展名
          * @param pathname    存储文件名
          * @param fileHandler 文件处理对象
+         * @throws IOException IO异常
          */
         void handle(File tempFile, String extension, String pathname, FileHandler fileHandler) throws IOException;
     }

@@ -70,7 +70,7 @@ public class QueryParser {
             // Like_1-1_questionExt-markdown
             // In_1_status
             String key = entry.getKey();
-            QueryUtils.preventInjection(key);
+            QueryUtils.validateQuery(key);
             Object value = entry.getValue();
             if (key.equalsIgnoreCase(DISTINCT)) {
                 info.setDistinct(true);
@@ -143,7 +143,7 @@ public class QueryParser {
         String comma = ",";
         for (String orderBy : StringUtils.split(rawOrderBy, comma)) {
             orderBy = orderBy.trim();
-            QueryUtils.preventInjection(orderBy);
+            QueryUtils.validateQuery(orderBy);
             int index = orderBy.indexOf("_");
             String direction = "";
             if (index != -1) {

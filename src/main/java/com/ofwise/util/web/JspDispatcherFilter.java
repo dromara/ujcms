@@ -11,6 +11,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * JSP过滤器。直接允许访问 JSP 或 JSPX 文件会导致安全隐患，容易被木马攻击。默认不允许访问 JSP 和 JSPX 文件。
@@ -46,14 +47,9 @@ public class JspDispatcherFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) {
-        String allowed = filterConfig.getInitParameter("allowed");
-        if ("true".equals(allowed)) {
-            this.allowed = true;
-        }
-        String prefix = filterConfig.getInitParameter("prefix");
-        if (StringUtils.isNotBlank(prefix)) {
-            this.prefix = prefix;
-        }
+        this.allowed = Boolean.parseBoolean(filterConfig.getInitParameter("allowed"));
+        Optional.ofNullable(filterConfig.getInitParameter("prefix"))
+                .filter(StringUtils::isNotBlank).ifPresent((it) -> this.prefix = it);
     }
 
     @Override

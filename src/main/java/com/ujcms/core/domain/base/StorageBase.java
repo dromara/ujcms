@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,7 +18,8 @@ public class StorageBase {
     /**
      * 发布点ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 站点ID
@@ -27,57 +30,67 @@ public class StorageBase {
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 描述
      */
+    @Length(max = 300)
     @Nullable
     private String description;
 
     /**
      * 类型(1:HTML存储,2:附件存储)
      */
-    private short type = 0;
+    @NotNull
+    private Short type = 0;
 
     /**
      * 存储模式(0:本地服务器,1:FTP,2:MinIO,3:阿里云,4:腾讯云,5:七牛云)
      */
-    private short mode = 0;
+    @NotNull
+    private Short mode = 0;
 
     /**
      * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
      */
-    private short scope = 0;
+    @NotNull
+    private Short scope = 0;
 
     /**
      * 存储路径
      */
+    @Length(max = 255)
     @Nullable
     private String path;
 
     /**
      * 访问路径
      */
+    @Length(max = 255)
     @Nullable
     private String url;
 
     /**
      * 属性集
      */
+    @Length(max = 1000)
     @Nullable
     private String attrs;
 
     /**
      * 排列顺序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -107,27 +120,27 @@ public class StorageBase {
         this.description = description;
     }
 
-    public short getType() {
+    public Short getType() {
         return type;
     }
 
-    public void setType(short type) {
+    public void setType(Short type) {
         this.type = type;
     }
 
-    public short getMode() {
+    public Short getMode() {
         return mode;
     }
 
-    public void setMode(short mode) {
+    public void setMode(Short mode) {
         this.mode = mode;
     }
 
-    public short getScope() {
+    public Short getScope() {
         return scope;
     }
 
-    public void setScope(short scope) {
+    public void setScope(Short scope) {
         this.scope = scope;
     }
 
@@ -158,11 +171,11 @@ public class StorageBase {
         this.attrs = attrs;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 }

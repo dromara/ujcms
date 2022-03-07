@@ -44,14 +44,14 @@ public class AttachmentService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insertRefer(String referType, int referId, List<String> urls) {
+    public void insertRefer(String referType, Integer referId, List<String> urls) {
         Set<Integer> ids = doInsertRefer(referType, referId, urls);
         if (!ids.isEmpty()) {
             mapper.updateUsed(ids);
         }
     }
 
-    private Set<Integer> doInsertRefer(String referType, int referId, List<String> urls) {
+    private Set<Integer> doInsertRefer(String referType, Integer referId, List<String> urls) {
         Set<Integer> ids = new HashSet<>();
         urls.forEach(url -> {
             Attachment attachment = mapper.findByUrl(url);
@@ -66,7 +66,7 @@ public class AttachmentService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateRefer(String referType, int referId, List<String> urls) {
+    public void updateRefer(String referType, Integer referId, List<String> urls) {
         Set<Integer> ids = findAttachmentIds(referType, referId);
         doDeleteRefer(referType, referId);
         if (!urls.isEmpty()) {
@@ -77,14 +77,14 @@ public class AttachmentService {
         }
     }
 
-    private Set<Integer> findAttachmentIds(String referType, int referId) {
+    private Set<Integer> findAttachmentIds(String referType, Integer referId) {
         Set<Integer> ids = new HashSet<>();
         referMapper.listByReferTypeAndReferId(referType, referId).forEach(refer -> ids.add(refer.getAttachmentId()));
         return ids;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void deleteRefer(String referType, int referId) {
+    public void deleteRefer(String referType, Integer referId) {
         Set<Integer> ids = findAttachmentIds(referType, referId);
         doDeleteRefer(referType, referId);
         if (!ids.isEmpty()) {
@@ -92,7 +92,7 @@ public class AttachmentService {
         }
     }
 
-    private void doDeleteRefer(String referType, int referId) {
+    private void doDeleteRefer(String referType, Integer referId) {
         referMapper.deleteByReferTypeAndReferId(referType, referId);
     }
 
@@ -108,10 +108,10 @@ public class AttachmentService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         Attachment bean = select(id);
-        if (bean != null && !bean.isUsed()) {
-            FileHandler fileHandler = bean.getSite().getFileHandler(pathResolver);
+        if (bean != null && !bean.getUsed()) {
+            FileHandler fileHandler = bean.getSite().getStorage().getFileHandler(pathResolver);
             Optional.ofNullable(fileHandler.getName(bean.getUrl())).ifPresent(pathname -> {
                 fileHandler.delete(pathname);
                 // 删除缩略图，如果有的话
@@ -127,7 +127,7 @@ public class AttachmentService {
     }
 
     @Nullable
-    public Attachment select(int id) {
+    public Attachment select(Integer id) {
         return mapper.select(id);
     }
 

@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,34 +18,40 @@ public class GroupBase {
     /**
      * 用户组ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 描述
      */
+    @Length(max = 300)
     @Nullable
     private String description;
 
     /**
      * 类型(1:系统,2:常规,3:IP组)
      */
-    private short type = 2;
+    @NotNull
+    private Short type = 2;
 
     /**
      * 排序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -64,19 +72,19 @@ public class GroupBase {
         this.description = description;
     }
 
-    public short getType() {
+    public Short getType() {
         return type;
     }
 
-    public void setType(short type) {
+    public void setType(Short type) {
         this.type = type;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 }

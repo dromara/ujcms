@@ -53,7 +53,7 @@ public class ChannelController {
     }
 
     @GetMapping("/{id}")
-    public Channel show(@PathVariable int id) {
+    public Channel show(@PathVariable Integer id) {
         return channelService.select(id);
     }
 
@@ -65,13 +65,13 @@ public class ChannelController {
         return channelService.findBySiteIdAndAlias(siteId, alias);
     }
 
-    @PostMapping("/view/{id}")
-    public long view(@PathVariable int id) {
+    @GetMapping("/view/{id}")
+    public long view(@PathVariable Integer id) {
         return bufferService.updateViews(id, 1);
     }
 
     @GetMapping("/buffer/{id}")
-    public ChannelBuffer buffer(@PathVariable int id) {
+    public ChannelBuffer buffer(@PathVariable Integer id) {
         return bufferService.select(id);
     }
 }

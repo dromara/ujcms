@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,94 +18,110 @@ public class UserBase {
     /**
      * 用户ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 用户组ID
      */
-    private int groupId = 0;
+    @NotNull
+    private Integer groupId = 0;
 
     /**
      * 组织ID
      */
-    private int orgId = 0;
+    @NotNull
+    private Integer orgId = 0;
 
     /**
      * 用户名
      */
+    @Length(max = 30)
+    @NotNull
     private String username = "";
 
     /**
      * 密码
      */
+    @Length(max = 128)
+    @NotNull
     private String password = "0";
 
     /**
      * 密码混淆码
      */
+    @Length(max = 32)
+    @NotNull
     private String salt = "0";
 
     /**
      * 电子邮箱
      */
+    @Length(max = 50)
     @Nullable
     private String email;
 
     /**
      * 手机号码
      */
+    @Length(max = 50)
     @Nullable
     private String mobile;
 
     /**
      * 博客地址
      */
+    @Length(max = 50)
     @Nullable
     private String alias;
 
     /**
      * 显示名
      */
+    @Length(max = 50)
     @Nullable
     private String displayName;
 
     /**
      * 头像URL
      */
+    @Length(max = 255)
     @Nullable
     private String avatar;
 
     /**
      * 等级
      */
-    private short rank = 999;
+    @NotNull
+    private Short rank = 999;
 
     /**
      * 状态(0:正常,1:锁定)
      */
-    private short status = 0;
+    @NotNull
+    private Short status = 0;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getGroupId() {
+    public Integer getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(int groupId) {
+    public void setGroupId(Integer groupId) {
         this.groupId = groupId;
     }
 
-    public int getOrgId() {
+    public Integer getOrgId() {
         return orgId;
     }
 
-    public void setOrgId(int orgId) {
+    public void setOrgId(Integer orgId) {
         this.orgId = orgId;
     }
 
@@ -176,19 +194,19 @@ public class UserBase {
         this.avatar = avatar;
     }
 
-    public short getRank() {
+    public Short getRank() {
         return rank;
     }
 
-    public void setRank(short rank) {
+    public void setRank(Short rank) {
         this.rank = rank;
     }
 
-    public short getStatus() {
+    public Short getStatus() {
         return status;
     }
 
-    public void setStatus(short status) {
+    public void setStatus(Short status) {
         this.status = status;
     }
 }

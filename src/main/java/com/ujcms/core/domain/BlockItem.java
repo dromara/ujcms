@@ -3,6 +3,7 @@ package com.ujcms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.core.domain.base.BlockItemBase;
+import com.ujcms.core.support.Anchor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
@@ -16,13 +17,20 @@ import java.util.Optional;
  *
  * @author PONY
  */
-public class BlockItem extends BlockItemBase implements Serializable {
+public class BlockItem extends BlockItemBase implements Anchor, Serializable {
     @Nullable
+    @Override
     public String getUrl() {
         if (getArticle() != null) {
             return getArticle().getUrl();
         }
         return getLinkUrl();
+    }
+
+    @JsonIgnore
+    @Override
+    public String getName() {
+        return getTitle();
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,11 +18,13 @@ public class GlobalBase {
     /**
      * ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 上下文路径
      */
+    @Length(max = 50)
     @Nullable
     private String contextPath;
 
@@ -31,37 +35,50 @@ public class GlobalBase {
     private Integer port;
 
     /**
+     * 随机密钥(可用于生成下载key)
+     */
+    @Length(max = 32)
+    @Nullable
+    private String secret;
+
+    /**
      * 默认站点ID
      */
-    private int defaultSiteId = 0;
+    @NotNull
+    private Integer defaultSiteId = 0;
 
     /**
      * 栏目URL地址
      */
+    @Length(max = 50)
     @Nullable
     private String channelUrl;
 
     /**
      * 文章URL地址
      */
+    @Length(max = 50)
     @Nullable
     private String articleUrl;
 
     /**
      * 上传设置
      */
+    @Length(max = 1000)
     @Nullable
     private String uploadSettings;
 
     /**
      * 注册设置
      */
+    @Length(max = 1000)
     @Nullable
     private String registerSettings;
 
     /**
      * 邮件设置
      */
+    @Length(max = 1000)
     @Nullable
     private String emailSettings;
 
@@ -71,11 +88,11 @@ public class GlobalBase {
     @Nullable
     private String customsSettings;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -97,11 +114,20 @@ public class GlobalBase {
         this.port = port;
     }
 
-    public int getDefaultSiteId() {
+    @Nullable
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(@Nullable String secret) {
+        this.secret = secret;
+    }
+
+    public Integer getDefaultSiteId() {
         return defaultSiteId;
     }
 
-    public void setDefaultSiteId(int defaultSiteId) {
+    public void setDefaultSiteId(Integer defaultSiteId) {
         this.defaultSiteId = defaultSiteId;
     }
 

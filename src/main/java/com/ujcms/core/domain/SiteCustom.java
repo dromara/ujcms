@@ -14,7 +14,7 @@ public class SiteCustom extends SiteCustomBase implements Serializable, CustomBe
     public SiteCustom() {
     }
 
-    public SiteCustom(int articleId, String name, String value) {
+    public SiteCustom(Integer articleId, String name, String value) {
         setSiteId(articleId);
         setName(name);
         setValue(value);

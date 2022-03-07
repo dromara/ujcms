@@ -31,7 +31,7 @@ public class FrontendInterceptor implements HandlerInterceptor {
         // 访问设备
         Device device = deviceResolver.resolveDevice(request);
         Contexts.setMobile(device.isMobile());
-        request.setAttribute("templateUrl", props.getTemplateUrl());
+        request.setAttribute(Frontends.TEMPLATE_URL, props.getTemplateUrl());
         return true;
     }
 

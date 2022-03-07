@@ -39,7 +39,7 @@ public interface BlockItemMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface BlockItemMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    BlockItem select(int id);
+    BlockItem select(Integer id);
 
     /**
      * 根据查询条件获取列表
@@ -65,7 +65,7 @@ public interface BlockItemMapper {
      * @param articleId 文章ID
      * @return 数据条数
      */
-    int countByBlockIdAndArticleId(@Param("blockId") int blockId, @Param("articleId") int articleId);
+    int countByBlockIdAndArticleId(@Param("blockId") Integer blockId, @Param("articleId") Integer articleId);
 
     /**
      * 根据 文章ID 获取列表
@@ -73,5 +73,5 @@ public interface BlockItemMapper {
      * @param articleId 文章ID
      * @return 数据列表
      */
-    List<BlockItem> listByArticleId(int articleId);
+    List<BlockItem> listByArticleId(Integer articleId);
 }

@@ -1,10 +1,13 @@
 package com.ofwise.util.file;
 
+import freemarker.template.Template;
 import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * 文件处理接口
@@ -37,6 +40,15 @@ public interface FileHandler {
      * 存储文件
      *
      * @param filename  文件名
+     * @param template  模板
+     * @param dataModel 模板数据
+     */
+    void store(String filename, Template template, Map<String, Object> dataModel);
+
+    /**
+     * 存储文件
+     *
+     * @param filename  文件名
      * @param multipart 上传文件
      */
     void store(String filename, MultipartFile multipart);
@@ -53,7 +65,7 @@ public interface FileHandler {
      * 获取本地文件
      *
      * @param filename 文件名
-     * @return 本地文件
+     * @return 本地文件。文件不存在时，返回null。
      */
     @Nullable
     File getFile(String filename);
@@ -71,6 +83,7 @@ public interface FileHandler {
      * 删除文件
      *
      * @param filename 文件名
+     * @return 如果文件被删除，则返回{@code true}，否则返回{@code false}
      */
-    void delete(String filename);
+    boolean delete(String filename);
 }

@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,11 +18,14 @@ public class ArticleCustomBase {
     /**
      * 文章ID
      */
-    private int articleId = 0;
+    @NotNull
+    private Integer articleId = 0;
 
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
@@ -29,11 +34,11 @@ public class ArticleCustomBase {
     @Nullable
     private String value;
 
-    public int getArticleId() {
+    public Integer getArticleId() {
         return articleId;
     }
 
-    public void setArticleId(int articleId) {
+    public void setArticleId(Integer articleId) {
         this.articleId = articleId;
     }
 

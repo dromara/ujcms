@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import java.util.Map;
+
 import static com.ujcms.core.support.UrlConstants.BACKEND_API;
 
 /**
@@ -45,11 +48,29 @@ public class GlobalSettingsController {
         return modelService.selectGlobalModel();
     }
 
-    @PutMapping
-    @RequiresPermissions("globalSettings:update")
-    public ResponseEntity<Body> update(@RequestBody Global bean) {
+    @PutMapping("base")
+    @RequiresPermissions("globalSettings:base:update")
+    public ResponseEntity<Body> updateBase(@RequestBody @Valid Global bean) {
         Global global = service.getUnique();
-        Entities.copy(bean, global, "id");
+        Entities.copy(bean, global, "id", "upload", "register", "email", "customs");
+        service.update(global);
+        return Responses.ok();
+    }
+
+    @PutMapping("upload")
+    @RequiresPermissions("globalSettings:upload:update")
+    public ResponseEntity<Body> updateUpload(@RequestBody @Valid Global.Upload bean) {
+        Global global = service.getUnique();
+        global.setUpload(bean);
+        service.update(global);
+        return Responses.ok();
+    }
+
+    @PutMapping("customs")
+    @RequiresPermissions("globalSettings:customs:update")
+    public ResponseEntity<Body> updateCustoms(@RequestBody Map<String, Object> customs) {
+        Global global = service.getUnique();
+        global.setCustoms(customs);
         service.update(global);
         return Responses.ok();
     }

@@ -1,7 +1,9 @@
 package com.ujcms.core.lucene.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ofwise.util.lucene.StringNormsField;
 import com.ujcms.core.domain.Site;
+import com.ujcms.core.support.Anchor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
@@ -24,7 +26,7 @@ import static org.apache.lucene.document.Field.Store;
 /**
  * @author PONY
  */
-public class WebPage {
+public class WebPage implements Anchor {
     public static final String URL = "url";
     public static final String TITLE = "title";
     public static final String BODY = "body";
@@ -107,6 +109,7 @@ public class WebPage {
     @Transient
     private String highlightBody;
 
+    @Override
     public String getUrl() {
         return url;
     }
@@ -121,6 +124,12 @@ public class WebPage {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    @JsonIgnore
+    @Override
+    public String getName() {
+        return title;
     }
 
     @Nullable
@@ -186,17 +195,17 @@ public class WebPage {
         }
 
         @Field(type = FieldType.Integer)
-        private int id;
+        private Integer id = 0;
         @Field(type = FieldType.Keyword, index = false)
         private String name = "";
         @Field(type = FieldType.Keyword, index = false)
         private String url = "";
 
-        public int getId() {
+        public Integer getId() {
             return id;
         }
 
-        public void setId(int id) {
+        public void setId(Integer id) {
             this.id = id;
         }
 

@@ -51,7 +51,7 @@ public class BlockService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return mapper.delete(id);
     }
 
@@ -61,7 +61,7 @@ public class BlockService {
     }
 
     @Nullable
-    public Block select(int id) {
+    public Block select(Integer id) {
         return mapper.select(id);
     }
 

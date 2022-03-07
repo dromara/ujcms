@@ -39,7 +39,7 @@ public interface ModelMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface ModelMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Model select(int id);
+    Model select(Integer id);
 
     /**
      * 根据查询条件获取列表

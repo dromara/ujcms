@@ -6,9 +6,9 @@
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="alias_" jdbcType="VARCHAR" property="alias" />
     <result column="remark_" jdbcType="VARCHAR" property="remark" />
-    <result column="scope_" jdbcType="TINYINT" property="scope" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
-    <result column="sys_" jdbcType="BIT" property="sys" />
+    <result column="sys_" jdbcType="BOOLEAN" property="sys" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.DictType" />
     <sql id="selectAllJoin" />
@@ -34,13 +34,13 @@
       name_ = #{name,jdbcType=VARCHAR},
       alias_ = #{alias,jdbcType=VARCHAR},
       remark_ = #{remark,jdbcType=VARCHAR},
-      scope_ = #{scope,jdbcType=TINYINT},
+      scope_ = #{scope,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=SMALLINT},
-      sys_ = #{sys,jdbcType=BIT}
+      sys_ = #{sys,jdbcType=BOOLEAN}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.DictType">
     insert into ujcms_dict_type (id_, site_id_, name_, alias_, remark_, scope_, order_, sys_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{scope,jdbcType=TINYINT}, #{order,jdbcType=SMALLINT}, #{sys,jdbcType=BIT})
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{sys,jdbcType=BOOLEAN})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.name_, t.alias_, t.remark_, t.scope_, t.order_, t.sys_
   </sql></mapper>

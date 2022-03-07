@@ -13,7 +13,7 @@ public class AttachmentRefer extends AttachmentReferBase implements Serializable
     public AttachmentRefer() {
     }
 
-    public AttachmentRefer(int attachmentId, String referType, int referId) {
+    public AttachmentRefer(Integer attachmentId, String referType, Integer referId) {
         setAttachmentId(attachmentId);
         setReferType(referType);
         setReferId(referId);

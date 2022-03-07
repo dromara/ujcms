@@ -150,6 +150,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
             int pageSize = Directives.getPageSize(params, env);
             Page<Article> pagedList = MyBatis.toPage(
                     articleService.selectPage(queryMap, customsQueryMap, null, page, pageSize));
+            Directives.setTotalPages(pagedList.getTotalPages());
             loopVars[0] = env.getObjectWrapper().wrap(pagedList);
         } else {
             Integer offset = Directives.findOffset(params);

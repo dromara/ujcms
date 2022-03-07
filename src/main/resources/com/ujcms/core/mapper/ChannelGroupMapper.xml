@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.core.mapper.ChannelGroupMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.ChannelGroup">
-    <id column="group_id_" jdbcType="INTEGER" property="groupId" />
     <id column="channel_id_" jdbcType="INTEGER" property="channelId" />
+    <id column="group_id_" jdbcType="INTEGER" property="groupId" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.ChannelGroup" />
     <delete id="deleteByChannelId" parameterType="int">
@@ -23,8 +23,8 @@
         where group_id_ = #{groupId,jdbcType=INTEGER}
           and channel_id_ = #{channelId,jdbcType=INTEGER}
     </delete><insert id="insert" parameterType="com.ujcms.core.domain.ChannelGroup">
-    insert into ujcms_channel_group (group_id_, channel_id_)
-    values (#{groupId,jdbcType=INTEGER}, #{channelId,jdbcType=INTEGER})
+    insert into ujcms_channel_group (channel_id_, group_id_)
+    values (#{channelId,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER})
   </insert><sql id="Column_List">
-    t.group_id_, t.channel_id_
+    t.channel_id_, t.group_id_
   </sql></mapper>

@@ -32,7 +32,7 @@ public interface ArticleStatMapper {
      * @param statDays  统计日列表
      * @return 对象列表
      */
-    List<ArticleStat> listByStatDay(@Param("articleId") int articleId,
+    List<ArticleStat> listByStatDay(@Param("articleId") Integer articleId,
                                     @Param("statDays") Collection<Integer> statDays);
 
     /**
@@ -41,7 +41,7 @@ public interface ArticleStatMapper {
      * @param articleId 文章ID
      * @return 删除条数
      */
-    int deleteByArticleId(@Param("articleId") int articleId);
+    int deleteByArticleId(@Param("articleId") Integer articleId);
 
     /**
      * 删除 统计日期 之前所有数据
@@ -50,5 +50,5 @@ public interface ArticleStatMapper {
      * @param statDay   统计日期
      * @return 删除条数
      */
-    int deleteByStatDay(@Param("articleId") int articleId, @Param("statDay") int statDay);
+    int deleteByStatDay(@Param("articleId") Integer articleId, @Param("statDay") int statDay);
 }

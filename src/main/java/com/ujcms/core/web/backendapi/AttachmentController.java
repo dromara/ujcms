@@ -46,7 +46,7 @@ public class AttachmentController {
 
     @GetMapping("{id}")
     @RequiresPermissions("attachment:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Attachment bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Attachment not found. ID = " + id);

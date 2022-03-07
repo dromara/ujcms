@@ -57,12 +57,12 @@ public class ArticleLuceneImpl implements ArticleLucene {
     }
 
     @Override
-    public void deleteById(int id) {
+    public void deleteById(Integer id) {
         operations.deleteDocuments(new Term(EsArticle.ID, String.valueOf(id)));
     }
 
     @Override
-    public void deleteBySiteId(int siteId) {
+    public void deleteBySiteId(Integer siteId) {
         operations.deleteDocuments(IntPoint.newExactQuery(SITE_ID, siteId));
     }
 

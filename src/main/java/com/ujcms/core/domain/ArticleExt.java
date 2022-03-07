@@ -1,5 +1,6 @@
 package com.ujcms.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ujcms.core.domain.base.ArticleExtBase;
 
 import java.io.Serializable;
@@ -9,5 +10,6 @@ import java.io.Serializable;
  *
  * @author PONY
  */
+@JsonIgnoreProperties("handler")
 public class ArticleExt extends ArticleExtBase implements Serializable {
 }

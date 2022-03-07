@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author PONY
  */
 public class ChannelTree extends ChannelTreeBase implements Serializable {
-    public ChannelTree(int ancestorId, int descendantId) {
+    public ChannelTree(Integer ancestorId, Integer descendantId) {
         setAncestorId(ancestorId);
         setDescendantId(descendantId);
     }

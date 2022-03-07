@@ -7,8 +7,13 @@
 *.iml
 /.idea
 
-# js
+# JS
 /node_modules
+
+# Liquibase
+/liquibase/changelogDocs
+/liquibase/temp-diff.yaml
+/liquibase/temp-changelog.yaml
 
 # Others
 /target
@@ -20,3 +25,8 @@
 
 # Uploads
 /src/main/webapp/uploads_test
+
+# Static HTML file
+/src/main/webapp/articles
+/src/main/webapp/channels
+/src/main/webapp/index.html

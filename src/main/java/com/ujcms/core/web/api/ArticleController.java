@@ -1,18 +1,22 @@
 package com.ujcms.core.web.api;
 
+import com.ofwise.util.db.MyBatis;
+import com.ofwise.util.function.Function3;
+import com.ofwise.util.query.QueryUtils;
+import com.ofwise.util.security.Secures;
+import com.ofwise.util.web.exception.Http404Exception;
 import com.ujcms.core.domain.Article;
 import com.ujcms.core.domain.ArticleBuffer;
-import com.ujcms.core.exception.Http404Exception;
+import com.ujcms.core.domain.Global;
 import com.ujcms.core.service.ArticleBufferService;
 import com.ujcms.core.service.ArticleService;
 import com.ujcms.core.service.ChannelService;
 import com.ujcms.core.service.GlobalService;
+import com.ujcms.core.support.Utils;
 import com.ujcms.core.web.directive.ArticleListDirective;
 import com.ujcms.core.web.directive.ArticleNextDirective;
 import com.ujcms.core.web.support.Directives;
-import com.ofwise.util.db.MyBatis;
-import com.ofwise.util.function.Function3;
-import com.ofwise.util.query.QueryUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,8 +28,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
-import static com.ujcms.core.support.UrlConstants.API;
 import static com.ofwise.util.query.QueryUtils.QUERY_PREFIX;
+import static com.ujcms.core.support.UrlConstants.API;
 
 /**
  * 文章前台 接口
@@ -93,13 +97,13 @@ public class ArticleController {
         return ArticleNextDirective.query(params, articleService::findPrev);
     }
 
-    @PostMapping("/view/{id}")
-    public long view(@PathVariable int id) {
+    @GetMapping("/view/{id}")
+    public long view(@PathVariable Integer id) {
         return bufferService.updateViews(id, 1);
     }
 
     @PostMapping("/up/{id}")
-    public int up(@PathVariable int id) {
+    public int up(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             return 0;
@@ -111,7 +115,7 @@ public class ArticleController {
     }
 
     @PostMapping("/down/{id}")
-    public int down(@PathVariable int id) {
+    public int down(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             return 0;
@@ -122,8 +126,22 @@ public class ArticleController {
         return downs;
     }
 
+    @GetMapping("/download-params/{id}")
+    public String downloadParam(@PathVariable Integer id) {
+        Global global = globalService.getUnique();
+        long time = System.currentTimeMillis();
+        String secret = global.getSecret();
+        if (StringUtils.isBlank(secret)) {
+            secret = Secures.randomAlphanumeric(32);
+            global.setSecret(secret);
+            globalService.update(global);
+        }
+        String key = Utils.getDownloadKey(id, time, secret);
+        return "time=" + time + "&key=" + key;
+    }
+
     @PostMapping("/download/{id}")
-    public int download(@PathVariable int id) {
+    public int download(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             return 0;
@@ -135,7 +153,7 @@ public class ArticleController {
     }
 
     @GetMapping("/buffer/{id}")
-    public ArticleBuffer buffer(@PathVariable int id) {
+    public ArticleBuffer buffer(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             throw new Http404Exception("ArticleBuffer not found. id=" + id);

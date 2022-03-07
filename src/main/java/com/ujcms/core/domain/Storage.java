@@ -1,9 +1,15 @@
 package com.ujcms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.ofwise.util.file.FileHandler;
+import com.ofwise.util.file.LocalFileHandler;
+import com.ofwise.util.web.PathResolver;
 import com.ujcms.core.domain.base.StorageBase;
+import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * 存储 实体类
@@ -36,4 +42,31 @@ public class Storage extends StorageBase implements Serializable {
      * 存储模式：七牛云
      */
     public static final short MODE_QINIU = 5;
+
+    public FileHandler getFileHandler(PathResolver pathResolver) {
+        String storePrefix = Optional.ofNullable(getPath()).orElse("");
+        String displayPrefix = Optional.ofNullable(getUrl()).orElse("");
+        switch (getType()) {
+            // case Storage.MODE_FTP:
+            //     break;
+            // case Storage.MODE_MINIO:
+            //     break;
+            default:
+                return new LocalFileHandler(pathResolver, storePrefix, displayPrefix);
+        }
+    }
+
+    @Nullable
+    @Override
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    public String getPath() {
+        return super.getPath();
+    }
+
+    @Nullable
+    @Override
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    public String getUrl() {
+        return super.getUrl();
+    }
 }

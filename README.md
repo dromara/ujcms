@@ -2,7 +2,7 @@
 
 Java开源内容管理系统(java cms)。使用SpringBoot、MyBatis、Shiro、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。
 
-UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统。针对原系统中的一些痛点问题，进行解决、优化和改进，并使用`AGPL-3`开源协议发布。
+UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统。针对原系统中的一些痛点问题，进行解决、优化和改进，并使用`AGPL-3`开源协议发布，可免费商用。
 
 技术上尽量选择主流、先进、简单的架构，方便用户进行二次开发。持久化层用MyBatis替换了Hibernate；视图层用前后端分离的Vue3替换了JSP；数据库也进行了重新设计。设计上强调“简单”、“灵活”，避免繁杂的设计和实现，降低系统维护成本和二次开发难度。功能使用上也要求“简单”，避免复杂的使用逻辑。
 
@@ -10,6 +10,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 * 下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)。提供安装包下载。
 * 演示站前台：[https://demo.ujcms.com](https://demo.ujcms.com)。使用手机访问或者浏览器手机模式访问前台，会自动呈现手机页面。
 * 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)。演示用户登录后只拥有浏览后台功能，所有操作功能点击后都会显示无权访问（403）。如需进行操作测试，可以下载软件到本地安装。
+* QQ交流群：626599871
 
 ## 技术及功能亮点
 
@@ -41,7 +42,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 ## 数据导入数据库
 
 1. 创建数据库。如使用MySQL，字符集选择`utf8mb4`（支持更多特殊字符如表情字符emoji，推荐）。不要选择`utf8`，该字符集可能导致某些特殊字符出现乱码。
-2. 执行数据库脚本。数据库脚本在`database`目录下。
+2. 无需执行SQL文件，程序启动时会自动创建表。
 
 ## 启动程序
 
@@ -49,8 +50,18 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 2. 修改数据库连接。打开`/src/main/resources/application.propertis`文件，根据实际情况修改`spring.datasource.url`、`spring.datasource.username`、`spring.datasource.password`的值。
 3. 启动程序。在eclipse中，右键点击项目名，选择`Run as` - `Java Application`，选择`Application - com.ujcms`，然后点击`OK`。也可在左侧导航中找到`com.ujcms.Application`类并右键点击，选择`Run as` - `Java Application`即可直接运行。
 4. 使用 IntelliJ IDEA 开发的，步骤与 Eclipse 类似。打开工程后，修改数据库连接，然后直接点击右上角的绿色三角图标(`Run 'Application'`)，即可直接运行。也可在左侧导航中找到`com.ujcms.Application`类并右键点击，选择`Run 'Application'`。
-5. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。
+5. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
 6. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于`Vue 3`开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+
+## 关于部署路径
+
+程序通常在部署在Tomcat根目录，首页访问地址类似`http://www.mysite.com/` `http://localhost/` `http://localhost:8080/`。在一些特殊的场合，如在Eclipse默认的Tomcat启动方式，可能将程序部署在某一个路径下，首页访问地址类似`http://www.mysite.com/ujcms/` `http://localhost/ujcms/` `http://localhost:8080/ujcms/`。此时访问网站前台会出现样式不能正常显示的情况，可以到后台`配置 - 全局设置`中设置`上下文路径`，类似为`/ujcms`，其中斜杠`/`不能省略，`ujcms`为部署目录的路径，如在开发环境，则通常为项目名。
+
+开发环境要避免使用上下文路径，除非网站正式部署时也要部署到相应的路径下，否则在开发环境下上传的图片部署到正式环境时，不能正常显示。因为上传图片时，图片地址会带有上下文路径的信息（如：`/ujcms/uploads/...`）。
+
+Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，并不是直接在项目所在目录启动tomcat，这时上传的图片（包括通过系统后台新增和修改的模板）也保存在特定的部署目录，并不会保存在程序所在的目录。当修改了Eclipse源代码或文件，会自动重新部署程序，之前上传的图片会被清空。如果发现在开发环境下上传的图片突然都找不到了，很可能就是这个原因。
+
+综上所述，强烈建议使用`启动程序`中介绍的方式启动程序。
 
 ## 后端技术
 
@@ -64,7 +75,10 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 ## 前端技术
 
 * TypeScript: JavaScript的一个超集。
+* Vite 2: 下一代前端开发与构建工具。
 * Vue 3：JavaScript框架。
 * ElementPlus：Vue 3 UI 框架。
 * Tailwind CSS: 功能类优先的 CSS 框架。
+* VueRouter: Vue 路由组件。
+* VueI18n: Vue 国际化组件。
 * Tinymce: 富文本编辑器。

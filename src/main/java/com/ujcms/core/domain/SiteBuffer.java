@@ -13,7 +13,7 @@ public class SiteBuffer extends SiteBufferBase implements Serializable {
     public SiteBuffer() {
     }
 
-    public SiteBuffer(int id) {
+    public SiteBuffer(Integer id) {
         setId(id);
     }
 }

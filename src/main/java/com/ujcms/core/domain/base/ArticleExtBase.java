@@ -1,6 +1,8 @@
 package com.ujcms.core.domain.base;
 
 import java.time.OffsetDateTime;
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -17,69 +19,82 @@ public class ArticleExtBase {
     /**
      * 文章ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 标题
      */
+    @Length(max = 150)
+    @NotNull
     private String title = "";
 
     /**
      * 副标题
      */
+    @Length(max = 150)
     @Nullable
     private String subtitle;
 
     /**
      * 完整标题
      */
+    @Length(max = 150)
     @Nullable
     private String fullTitle;
 
     /**
      * 别名
      */
+    @Length(max = 160)
     @Nullable
     private String alias;
 
     /**
      * 转向链接地址
      */
+    @Length(max = 255)
     @Nullable
     private String linkUrl;
 
     /**
      * 是否新窗口打开
      */
-    private boolean targetBlank = false;
+    @NotNull
+    private Boolean targetBlank = false;
 
     /**
      * SEO关键词
      */
+    @Length(max = 150)
     @Nullable
     private String seoKeywords;
 
     /**
      * 摘要
      */
+    @Length(max = 1000)
     @Nullable
     private String seoDescription;
 
     /**
      * 作者
      */
+    @Length(max = 50)
     @Nullable
     private String author;
 
     /**
      * 编辑
      */
+    @Length(max = 50)
     @Nullable
     private String editor;
 
     /**
      * 来源
      */
+    @Length(max = 50)
     @Nullable
     private String source;
 
@@ -98,30 +113,35 @@ public class ArticleExtBase {
     /**
      * 图片
      */
+    @Length(max = 255)
     @Nullable
     private String image;
 
     /**
      * 视频
      */
+    @Length(max = 255)
     @Nullable
     private String video;
 
     /**
      * 视频时长
      */
+    @Length(max = 10)
     @Nullable
     private String videoTime;
 
     /**
      * 文件
      */
+    @Length(max = 255)
     @Nullable
     private String file;
 
     /**
      * 文件名称
      */
+    @Length(max = 150)
     @Nullable
     private String fileName;
 
@@ -134,12 +154,14 @@ public class ArticleExtBase {
     /**
      * 文库
      */
+    @Length(max = 255)
     @Nullable
     private String doc;
 
     /**
      * 文库名称
      */
+    @Length(max = 150)
     @Nullable
     private String docName;
 
@@ -152,29 +174,34 @@ public class ArticleExtBase {
     /**
      * 独立模板
      */
+    @Length(max = 255)
     @Nullable
     private String articleTemplate;
 
     /**
      * 是否允许评论
      */
-    private boolean allowComment = true;
+    @NotNull
+    private Boolean allowComment = true;
 
     /**
      * 静态页文件
      */
+    @Length(max = 255)
     @Nullable
     private String staticFile;
 
     /**
      * 手机端静态页文件
      */
+    @Length(max = 255)
     @Nullable
     private String mobileStaticFile;
 
     /**
      * 创建日期
      */
+    @NotNull
     private OffsetDateTime created = OffsetDateTime.now();
 
     /**
@@ -189,11 +216,11 @@ public class ArticleExtBase {
     @Nullable
     private String text;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -241,11 +268,11 @@ public class ArticleExtBase {
         this.linkUrl = linkUrl;
     }
 
-    public boolean isTargetBlank() {
+    public Boolean getTargetBlank() {
         return targetBlank;
     }
 
-    public void setTargetBlank(boolean targetBlank) {
+    public void setTargetBlank(Boolean targetBlank) {
         this.targetBlank = targetBlank;
     }
 
@@ -402,11 +429,11 @@ public class ArticleExtBase {
         this.articleTemplate = articleTemplate;
     }
 
-    public boolean isAllowComment() {
+    public Boolean getAllowComment() {
         return allowComment;
     }
 
-    public void setAllowComment(boolean allowComment) {
+    public void setAllowComment(Boolean allowComment) {
         this.allowComment = allowComment;
     }
 

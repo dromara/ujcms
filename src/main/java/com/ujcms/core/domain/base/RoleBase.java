@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,7 +18,8 @@ public class RoleBase {
     /**
      * 角色ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 站点ID
@@ -27,23 +30,28 @@ public class RoleBase {
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 描述
      */
+    @Length(max = 300)
     @Nullable
     private String description;
 
     /**
      * 等级
      */
-    private short rank = 32767;
+    @NotNull
+    private Short rank = 32767;
 
     /**
      * 排序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
     /**
      * 功能权限
@@ -51,11 +59,11 @@ public class RoleBase {
     @Nullable
     private String permission;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -85,19 +93,19 @@ public class RoleBase {
         this.description = description;
     }
 
-    public short getRank() {
+    public Short getRank() {
         return rank;
     }
 
-    public void setRank(short rank) {
+    public void setRank(Short rank) {
         this.rank = rank;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 

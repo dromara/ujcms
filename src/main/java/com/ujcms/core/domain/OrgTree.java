@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author PONY
  */
 public class OrgTree extends OrgTreeBase implements Serializable {
-    public OrgTree(int ancestorId, int descendantId) {
+    public OrgTree(Integer ancestorId, Integer descendantId) {
         setAncestorId(ancestorId);
         setDescendantId(descendantId);
     }

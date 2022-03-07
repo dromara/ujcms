@@ -8,8 +8,8 @@
     <result column="article_model_id_" jdbcType="INTEGER" property="articleModelId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="alias_" jdbcType="VARCHAR" property="alias" />
-    <result column="nav_" jdbcType="BIT" property="nav" />
-    <result column="type_" jdbcType="TINYINT" property="type" />
+    <result column="nav_" jdbcType="BOOLEAN" property="nav" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="depth_" jdbcType="SMALLINT" property="depth" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
   </resultMap>
@@ -17,12 +17,12 @@
         <association column="id_" javaType="com.ujcms.core.domain.ChannelExt" property="ext" select="com.ujcms.core.mapper.ChannelExtMapper.select" />
         <association column="id_" javaType="com.ujcms.core.domain.ChannelBuffer" property="buffer" select="com.ujcms.core.mapper.ChannelBufferMapper.select" />
         <association column="parent_id_" javaType="com.ujcms.core.domain.Channel" property="parent" select="select" />
-        <association column="site_id_" fetchType="eager" javaType="com.ujcms.core.domain.Site" property="site" select="com.ujcms.core.mapper.SiteMapper.select" />
+        <association column="site_id_" javaType="com.ujcms.core.domain.Site" property="site" select="com.ujcms.core.mapper.SiteMapper.select" />
         <association column="channel_model_id_" javaType="com.ujcms.core.domain.Model" property="channelModel" select="com.ujcms.core.mapper.ModelMapper.select" />
         <association column="article_model_id_" javaType="com.ujcms.core.domain.Model" property="articleModel" select="com.ujcms.core.mapper.ModelMapper.select" />
-        <collection column="id_" ofType="com.ujcms.core.domain.Channel" property="children" select="listChildren" />
-        <collection column="id_" ofType="com.ujcms.core.domain.Group" property="groupList" select="com.ujcms.core.mapper.GroupMapper.listByChannelId" />
-        <collection column="id_" ofType="com.ujcms.core.domain.ChannelCustom" property="customList" select="com.ujcms.core.mapper.ChannelCustomMapper.listByChannelId" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.core.domain.Channel" property="children" select="listChildren" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.core.domain.Group" property="groupList" select="com.ujcms.core.mapper.GroupMapper.listByChannelId" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.core.domain.ChannelCustom" property="customList" select="com.ujcms.core.mapper.ChannelCustomMapper.listByChannelId" />
     </resultMap>
     <select id="listChildren" resultMap="ResultMap">
         select
@@ -67,14 +67,14 @@
       article_model_id_ = #{articleModelId,jdbcType=INTEGER},
       name_ = #{name,jdbcType=VARCHAR},
       alias_ = #{alias,jdbcType=VARCHAR},
-      nav_ = #{nav,jdbcType=BIT},
-      type_ = #{type,jdbcType=TINYINT},
+      nav_ = #{nav,jdbcType=BOOLEAN},
+      type_ = #{type,jdbcType=SMALLINT},
       depth_ = #{depth,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.Channel">
     insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, name_, alias_, nav_, type_, depth_, order_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{channelModelId,jdbcType=INTEGER}, #{articleModelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nav,jdbcType=BIT}, #{type,jdbcType=TINYINT}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT})
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{channelModelId,jdbcType=INTEGER}, #{articleModelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nav,jdbcType=BOOLEAN}, #{type,jdbcType=SMALLINT}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.name_, t.alias_, t.nav_, t.type_, t.depth_, t.order_
   </sql></mapper>

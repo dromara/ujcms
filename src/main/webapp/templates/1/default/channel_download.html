@@ -33,10 +33,10 @@
       [#list channel.articleModel.fieldList?filter(field->['radio','checkbox','select','multipleSelect']?seqContains(field.type)) as field]
         <div class="py-1 border-bottom">
           [#assign param=field.code/]
-          <a href="${addParam(param)}" class="btn btn-sm[#if !Params[param]??] btn-secondary[#else] btn-link text-reset[/#if]">全部${field.name}</a>
+          <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="btn btn-sm[#if !Params[param]??] btn-secondary[#else] btn-link text-reset[/#if]">全部${field.name}</a>
           [@DictList typeId=field.dictTypeId; list]
             [#list list as dict]
-              <a href="${addParam(param,dict.name)}"
+              <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.name)}"
                  class="btn btn-sm [#if Params[param]! == dict.name]btn-secondary[#else]btn-link text-reset[/#if]">${dict.name}</a>
             [/#list]
           [/@DictList]
@@ -49,11 +49,11 @@
             <li class="mt-3 media position-relative pb-3 border-bottom">
               [#if bean.image??]<img src="${bean.image}" class="mr-3 img-thumbnail" width="48" height="48" alt="${bean.title}">[/#if]
               <div class="media-body">
-                <p class="mt-0 mb-1"><a href="${bean.url}" class="text-reset stretched-link">${bean.title}</a></p>
+                <p class="mt-0 mb-1">[@A bean=bean class="text-reset stretched-link"]${bean.title}[/@A]</p>
                 <p class="small text-muted d-none d-sm-block mb-2">${substring(bean.description,80,'...')}</p>
                 <div class="small text-muted mt-2 clearfix">
                   <div class="float-left">
-                    <span>[#list bean.channel.paths as n]<a href="${n.url}">${n.name}</a>[#if n_has_next] > [/#if][/#list]</span>
+                    <span>[#list bean.channel.paths as n][@A bean=n/][#if n_has_next] > [/#if][/#list]</span>
                     <i class="ml-2 fas fa-download"></i> ${bean.downloads}
                   </div>
                   <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.publishDate.format('yyyy-MM-dd')}</div>
@@ -69,11 +69,11 @@
       <h5 class="border-bottom"><span class="border-primary cm-block-head-bottom">下载排行榜</span></h5>
       <div class="px-2 pb-2 mt-3">
         [@ArticleList channelId=channel.id isIncludeSubChannel='true' sort='@articleBuffer-downloads_desc' limit='10';list]
-          [#list list as info]
+          [#list list as bean]
             <div class="mt-2 d-flex flex-row">
-              <div><span class="badge [#if info_index < 3]badge-primary[#else]badge-secondary[/#if]" style="width:26px;">${info_index+1}</span></div>
-              <div class="ml-2 flex-grow-1 text-truncate"><a class="text-reset" href="${info.url}">${info.title}</a></div>
-              <div class="text-muted">${info.downloads}</div>
+              <div><span class="badge [#if bean_index < 3]badge-primary[#else]badge-secondary[/#if]" style="width:26px;">${bean_index+1}</span></div>
+              <div class="ml-2 flex-grow-1 text-truncate">[@A bean=bean class="text-reset"/]</div>
+              <div class="text-muted">${bean.downloads}</div>
             </div>
           [/#list]
         [/@ArticleList]
@@ -82,6 +82,6 @@
   </div>
 </div>
 [#include 'includes_footer.html'/]
-<script>axios.post('${ctx}/api/channel/view/${channel.id}');</script>
+<script>axios.get('${api}/channel/view/${channel.id}');</script>
 </body>
 </html>

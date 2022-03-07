@@ -11,5 +11,5 @@ public interface ChannelDeleteListener {
      *
      * @param channelId 栏目ID
      */
-    void preChannelDelete(int channelId);
+    void preChannelDelete(Integer channelId);
 }

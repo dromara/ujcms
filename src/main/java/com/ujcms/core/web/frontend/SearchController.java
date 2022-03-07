@@ -26,6 +26,6 @@ public class SearchController {
     @GetMapping({"/search", "/{subDir:[\\w-]+}/search"})
     public String channel(@PathVariable(required = false) String subDir, HttpServletRequest request) {
         Site site = siteResolver.resolve(request, subDir);
-        return site.getTemplate(TEMPLATE);
+        return site.assembleTemplate(TEMPLATE);
     }
 }

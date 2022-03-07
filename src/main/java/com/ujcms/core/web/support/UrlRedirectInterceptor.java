@@ -28,7 +28,8 @@ public class UrlRedirectInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws ServletException, IOException {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws ServletException, IOException {
         Global global = globalService.getUnique();
         String channel = global.getChannelUrl();
         String article = global.getArticleUrl();

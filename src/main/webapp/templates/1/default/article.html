@@ -22,7 +22,7 @@
         <li class="list-inline-item"><a href="${site.url}">首页</a></li>
         [#list channel.paths as c]
           <li class="list-inline-item">/</li>
-          <li class="list-inline-item"><a href="${c.url}">${c.name}</a></li>
+          <li class="list-inline-item">[@A bean=c/]</li>
         [/#list]
       </ol>
     </nav>
@@ -38,7 +38,7 @@
         [#if article.author??]<span class="ml-2">${article.author}</span>[/#if]
         <i class="ml-2 far fa-eye"></i> <span id="views"></span>
         <script>
-          axios.post('${ctx}/api/article/view/${article.id}').then(function (response) {
+          axios.get('${api}/article/view/${article.id}').then(function (response) {
             $('#views').text(response.data);
           });
         </script>
@@ -62,13 +62,28 @@
         </div>
       [/#if]
       <div class="mt-4 article-content">${article.text!?no_esc}</div>
+      [#if article.fileList?size > 0]
+        <div class="mt-4 bg-light">附件下载</div>
+        <ul class="mt-2 list-unstyled small">
+          [#list article.fileList as file]
+            <li><i class="fas fa-download text-primary"></i> <a class="article-download">${file.name}</a></li>
+          [/#list]
+        </ul>
+        <script>
+          axios.get('${api}/article/download-params/${article.id}').then(function (response) {
+            $('.article-download').each(function (index, element) {
+              $(element).attr('href', '${dy}/download/${article.id}/' + index + '?' + response.data)
+            });
+          })
+        </script>
+      [/#if]
       <div class="lead d-flex justify-content-center text-info">
         <div class="cm-pointer" onclick="voteUp()"><i class="far fa-thumbs-up"></i> <span id="ups"></span></div>
         <div class="cm-pointer ml-4" onclick="voteDown()"><i class="far fa-thumbs-down"></i> <span id="downs"></span></div>
       </div>
       <script>
         function voteUp() {
-          axios.post('${ctx}/api/article/up/${article.id}').then(function (response) {
+          axios.post('${api}/article/up/${article.id}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经顶过一次！");
               return;
@@ -78,7 +93,7 @@
         }
 
         function voteDown() {
-          axios.post('${ctx}/api/article/down/${article.id}').then(function (response) {
+          axios.post('${api}/article/down/${article.id}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经踩过一次！");
               return;
@@ -87,7 +102,7 @@
           });
         }
 
-        axios.get('${ctx}/api/article/buffer/${article.id}').then(function (response) {
+        axios.get('${api}/article/buffer/${article.id}').then(function (response) {
           $('#ups').text(response.data.ups);
           $('#downs').text(response.data.downs);
         });
@@ -96,12 +111,12 @@
       <ul class="mt-4 list-unstyled">
         [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
           <li class="text-truncate mt-2">
-            <strong>上一条：</strong>[#if bean??]<a href="${bean.url}" class="cm-link">${bean.title}</a>[#else]没有了[/#if]
+            <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>
         [/@ArticleNext]
         [@ArticlePrev id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
           <li class="text-truncate mt-2">
-            <strong>下一条：</strong>[#if bean??]<a href="${bean.url}" class="cm-link">${bean.title}</a>[#else]没有了[/#if]
+            <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>
         [/@ArticlePrev]
       </ul>
@@ -110,7 +125,7 @@
       [@EsArticleList q=article.title excludeId=article.id limit=5; list]
         <ul class="list-unstyled mt-3">
           [#list list as bean]
-            <li class="text-truncate mt-2"><a href="${bean.url}" class="cm-link" title="${bean.title}">${bean.title}</a></li>
+            <li class="text-truncate mt-2">[@A bean=bean class="cm-link"/]</li>
           [/#list]
         </ul>
       [/@EsArticleList]
@@ -163,16 +178,16 @@
 </div>
 
 <script>
-  var initPhotoSwipeFromDOM = function(gallerySelector) {
-    var onClick = function(e) {
+  var initPhotoSwipeFromDOM = function (gallerySelector) {
+    var onClick = function (e) {
       e = e || window.event;
       e.preventDefault ? e.preventDefault() : e.returnValue = false;
 
       var eTarget = e.target || e.srcElement;
       var index = eTarget.getAttribute('data-index');
-      if(index >= 0) {
+      if (index >= 0) {
         // open PhotoSwipe if valid index found
-        openPhotoSwipe( parseInt(index, 10), gallerySelector );
+        openPhotoSwipe(parseInt(index, 10), gallerySelector);
       }
       return false;
     };
@@ -200,7 +215,7 @@
     var openPhotoSwipe = function (index, galleryElement, disableAnimation) {
       var pswpElement = document.querySelectorAll('.pswp')[0],
               options = {index: index},
-              items = parseElements(document.querySelectorAll( gallerySelector )),
+              items = parseElements(document.querySelectorAll(gallerySelector)),
               gallery;
       if (disableAnimation) options.showAnimationDuration = 0;
       gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, options);
@@ -220,11 +235,11 @@
       gallery.init();
     };
 
-    var galleryElements = document.querySelectorAll( gallerySelector );
-    for(var i = 0, l = galleryElements.length; i < l; i++) {
+    var galleryElements = document.querySelectorAll(gallerySelector);
+    for (var i = 0, l = galleryElements.length; i < l; i++) {
       galleryElements[i].setAttribute('data-index', i);
       galleryElements[i].onclick = onClick;
-      galleryElements[i].style.cursor= 'pointer';
+      galleryElements[i].style.cursor = 'pointer';
     }
   };
   $('.article-content img').addClass('img-fluid');

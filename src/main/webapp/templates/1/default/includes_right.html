@@ -6,7 +6,7 @@
         <div class="mt-3 d-flex flex-row">
           <div><span class="badge [#if bean_index==0]badge-danger[#elseif bean_index==1]badge-warning text-white[#elseif bean_index==2]badge-primary[#else]badge-secondary[/#if]"
                      style="width:26px;">${bean_index+1}</span></div>
-          <div class="ml-2 text-truncate"><a class="cm-link text-sm" href="${bean.url}">${bean.title}</a></div>
+          <div class="ml-2 text-truncate">[@A bean=bean class="cm-link text-sm"/]</div>
         </div>
       [/#list]
     [/@ArticleList]
@@ -14,7 +14,7 @@
 
   [@Channel alias='video';bean]
     <h5 class="mt-3 ml-2">
-      <i class="fas fa-film text-primary"></i> <a class="text-reset text-decoration-none" href="${bean.url}">精彩视频</a>
+      <i class="fas fa-film text-primary"></i> [@A bean=bean class="text-reset text-decoration-none"]精彩视频[/@A]
     </h5>
   [/@Channel]
   <div class="px-3">
@@ -23,13 +23,13 @@
         <div class="py-3 px-2 position-relative">
           [#--<img src="${bean.image}" class="img-fluid" alt="${bean.title}">--]
           <div class="position-relative">
-            <a href="${bean.url}"><img src="${bean.image}" class="card-img-top" alt="${bean.title}"></a>
+            [@A bean=bean]<img src="${bean.image}" class="card-img-top" alt="${bean.title}">[/@A]
             <div class="cm-trans-bottom clearfix px-2 text-light">
               <div class="float-left"><i class="far fa-play-circle"></i></div>
               <div class="float-right">${bean.videoTime}</div>
             </div>
           </div>
-          <div class="mt-2"><a class="cm-link text-sm" href="${bean.url}">${bean.title}</a></div>
+          <div class="mt-2">[@A bean=bean class="cm-link text-sm"/]</div>
         </div>
       [/#list]
     [/@ArticleList]

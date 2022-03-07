@@ -1,7 +1,7 @@
 package com.ujcms.core.web.backendapi;
 
 import com.ujcms.core.domain.Site;
-import com.ujcms.core.exception.Http404Exception;
+import com.ofwise.util.web.exception.Http404Exception;
 import com.ujcms.core.service.SiteQueryService;
 import com.ujcms.core.support.Constants;
 import com.ujcms.core.support.Contexts;
@@ -51,7 +51,7 @@ public class SiteQueryController {
 
     @GetMapping("{id}")
     @RequiresPermissions("site:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Site bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Site not found. ID = " + id);
@@ -67,7 +67,7 @@ public class SiteQueryController {
 
     @GetMapping("{id}/theme")
     @RequiresPermissions("site:list")
-    public List<String> theme(@PathVariable int id) throws IOException {
+    public List<String> theme(@PathVariable Integer id) throws IOException {
         Site site = service.select(id);
         if (site == null) {
             throw new Http404Exception("Site not found. ID = " + id);

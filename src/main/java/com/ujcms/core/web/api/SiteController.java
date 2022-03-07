@@ -1,11 +1,10 @@
 package com.ujcms.core.web.api;
 
 import com.ujcms.core.domain.SiteBuffer;
-import com.ujcms.core.exception.Http404Exception;
+import com.ofwise.util.web.exception.Http404Exception;
 import com.ujcms.core.service.SiteBufferService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,13 +24,13 @@ public class SiteController {
         this.bufferService = bufferService;
     }
 
-    @PostMapping("/view/{id}")
-    public long view(@PathVariable int id) {
+    @GetMapping("/view/{id}")
+    public long view(@PathVariable Integer id) {
         return bufferService.updateViews(id, 1);
     }
 
     @GetMapping("/buffer/{id}")
-    public SiteBuffer buffer(@PathVariable int id) {
+    public SiteBuffer buffer(@PathVariable Integer id) {
         SiteBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             throw new Http404Exception("SiteBuffer not found. id=" + id);

@@ -30,7 +30,8 @@ public class Strings {
                 actualLength += 1;
             }
         }
-        if (i > 2 && i + 1 < textLength && StringUtils.isNotBlank(append)) {
+        int minLength = 2;
+        if (i > minLength && i + 1 < textLength && StringUtils.isNotBlank(append)) {
             if (text.charAt(i) > doubleSpaceChar || text.charAt(i - 1) > doubleSpaceChar) {
                 return StringUtils.substring(text, 0, i - 1) + append;
             }

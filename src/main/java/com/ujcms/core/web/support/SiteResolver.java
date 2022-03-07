@@ -1,7 +1,7 @@
 package com.ujcms.core.web.support;
 
 import com.ujcms.core.domain.Site;
-import com.ujcms.core.exception.Http404Exception;
+import com.ofwise.util.web.exception.Http404Exception;
 import com.ujcms.core.service.GlobalService;
 import com.ujcms.core.service.SiteQueryService;
 import com.ujcms.core.support.Contexts;

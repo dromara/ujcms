@@ -39,7 +39,7 @@ public interface SiteMapper {
      * @param id 主键ID
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface SiteMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Site select(int id);
+    Site select(Integer id);
 
     /**
      * 根据查询条件获取列表
@@ -93,5 +93,5 @@ public interface SiteMapper {
      * @param depth 深度
      * @return 更新条数
      */
-    int updateDepth(@Param("id") int id, @Param("depth") short depth);
+    int updateDepth(@Param("id") Integer id, @Param("depth") short depth);
 }

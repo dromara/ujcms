@@ -50,7 +50,7 @@ public class BlockController {
 
     @GetMapping("{id}")
     @RequiresPermissions("block:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Block bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Block not found. ID = " + id);
@@ -82,9 +82,9 @@ public class BlockController {
 
     @PutMapping("order")
     @RequiresPermissions("block:update")
-    public ResponseEntity<Body> updateOrder(@RequestBody int[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<Block> list = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             Block bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("Block not found. ID = " + id);

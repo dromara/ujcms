@@ -50,7 +50,7 @@ public class DictController {
 
     @GetMapping("{id}")
     @RequiresPermissions("dict:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Dict bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Dict not found. ID = " + id);
@@ -81,9 +81,9 @@ public class DictController {
 
     @PutMapping("order")
     @RequiresPermissions("dictType:update")
-    public ResponseEntity<Body> updateOrder(@RequestBody int[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<Dict> list = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             Dict bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("Dict not found. ID = " + id);

@@ -3,7 +3,7 @@
 <mapper namespace="com.ujcms.core.mapper.ChannelCustomMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.ChannelCustom">
     <result column="channel_id_" jdbcType="INTEGER" property="channelId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
-    <result column="value_" jdbcType="CLOB" property="value" />
+    <result column="value_" jdbcType="LONGVARCHAR" property="value" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.ChannelCustom" />
     <select id="listByChannelId" resultMap="ResultMap">
@@ -25,7 +25,7 @@
         </include>
     </select><insert id="insert" parameterType="com.ujcms.core.domain.ChannelCustom">
     insert into ujcms_channel_custom (channel_id_, name_, value_)
-    values (#{channelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=CLOB})
+    values (#{channelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
     t.channel_id_, t.name_, t.value_
   </sql></mapper>

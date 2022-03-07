@@ -9,6 +9,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * 区块 Mapper
+ *
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface BlockMapper {
@@ -34,7 +39,7 @@ public interface BlockMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -43,7 +48,7 @@ public interface BlockMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Block select(int id);
+    Block select(Integer id);
 
     /**
      * 根据查询条件获取列表

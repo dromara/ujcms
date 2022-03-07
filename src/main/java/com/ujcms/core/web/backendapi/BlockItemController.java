@@ -2,7 +2,7 @@ package com.ujcms.core.web.backendapi;
 
 import com.ujcms.core.domain.BlockItem;
 import com.ujcms.core.domain.Site;
-import com.ujcms.core.exception.Http400Exception;
+import com.ofwise.util.web.exception.Http400Exception;
 import com.ujcms.core.service.BlockItemService;
 import com.ujcms.core.support.Contexts;
 import com.ofwise.util.query.QueryUtils;
@@ -52,7 +52,7 @@ public class BlockItemController {
 
     @GetMapping("{id}")
     @RequiresPermissions("blockItem:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         BlockItem bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("BlockItem not found. ID = " + id);
@@ -84,9 +84,9 @@ public class BlockItemController {
 
     @PutMapping("order")
     @RequiresPermissions("block:update")
-    public ResponseEntity<Body> updateOrder(@RequestBody int[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<BlockItem> list = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             BlockItem bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("BlockItem not found. ID = " + id);

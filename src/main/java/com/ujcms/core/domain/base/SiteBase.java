@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,7 +18,8 @@ public class SiteBase {
     /**
      * 站点ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 上级站点ID
@@ -27,25 +30,26 @@ public class SiteBase {
     /**
      * 组织ID
      */
-    private int orgId = 0;
+    @NotNull
+    private Integer orgId = 0;
 
     /**
      * 模型ID
      */
-    @Nullable
-    private Integer modelId;
+    @NotNull
+    private Integer modelId = 0;
 
     /**
      * 附件发布点ID
      */
-    @Nullable
-    private Integer storageId;
+    @NotNull
+    private Integer storageId = 0;
 
     /**
      * 静态页发布点ID
      */
-    @Nullable
-    private Integer htmlStorageId;
+    @NotNull
+    private Integer htmlStorageId = 0;
 
     /**
      * 手机端静态页发布点ID
@@ -56,89 +60,130 @@ public class SiteBase {
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 协议(http,https)
      */
+    @Length(max = 20)
+    @NotNull
     private String protocol = "";
 
     /**
      * 域名
      */
+    @Length(max = 50)
+    @NotNull
     private String domain = "";
 
     /**
      * 子目录
      */
+    @Length(max = 50)
     @Nullable
     private String subDir;
 
     /**
      * 主题
      */
+    @Length(max = 50)
+    @NotNull
     private String theme = "";
 
     /**
      * 手机端主题
      */
+    @Length(max = 50)
+    @NotNull
     private String mobileTheme = "";
 
     /**
      * 每页条数
      */
-    private short pageSize = 20;
+    @NotNull
+    private Short pageSize = 20;
 
     /**
      * LOGO
      */
+    @Length(max = 255)
     @Nullable
     private String logo;
 
     /**
      * SEO标题
      */
+    @Length(max = 150)
     @Nullable
     private String seoTitle;
 
     /**
      * SEO关键词
      */
+    @Length(max = 150)
     @Nullable
     private String seoKeywords;
 
     /**
      * SEO描述
      */
+    @Length(max = 1000)
     @Nullable
     private String seoDescription;
 
     /**
+     * 静态页文件
+     */
+    @Length(max = 255)
+    @Nullable
+    private String staticFile;
+
+    /**
+     * 手机端静态页文件
+     */
+    @Length(max = 255)
+    @Nullable
+    private String mobileStaticFile;
+
+    /**
      * 水印设置
      */
+    @Length(max = 1000)
     @Nullable
     private String watermarkSettings;
 
     /**
+     * 静态页设置
+     */
+    @Length(max = 1000)
+    @Nullable
+    private String htmlSettings;
+
+    /**
      * 层级
      */
-    private short depth = 1;
+    @NotNull
+    private Short depth = 1;
 
     /**
      * 排序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
     /**
      * 状态(0:正常,1:关闭)
      */
-    private short status = 0;
+    @NotNull
+    private Short status = 0;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -151,38 +196,35 @@ public class SiteBase {
         this.parentId = parentId;
     }
 
-    public int getOrgId() {
+    public Integer getOrgId() {
         return orgId;
     }
 
-    public void setOrgId(int orgId) {
+    public void setOrgId(Integer orgId) {
         this.orgId = orgId;
     }
 
-    @Nullable
     public Integer getModelId() {
         return modelId;
     }
 
-    public void setModelId(@Nullable Integer modelId) {
+    public void setModelId(Integer modelId) {
         this.modelId = modelId;
     }
 
-    @Nullable
     public Integer getStorageId() {
         return storageId;
     }
 
-    public void setStorageId(@Nullable Integer storageId) {
+    public void setStorageId(Integer storageId) {
         this.storageId = storageId;
     }
 
-    @Nullable
     public Integer getHtmlStorageId() {
         return htmlStorageId;
     }
 
-    public void setHtmlStorageId(@Nullable Integer htmlStorageId) {
+    public void setHtmlStorageId(Integer htmlStorageId) {
         this.htmlStorageId = htmlStorageId;
     }
 
@@ -244,11 +286,11 @@ public class SiteBase {
         this.mobileTheme = mobileTheme;
     }
 
-    public short getPageSize() {
+    public Short getPageSize() {
         return pageSize;
     }
 
-    public void setPageSize(short pageSize) {
+    public void setPageSize(Short pageSize) {
         this.pageSize = pageSize;
     }
 
@@ -289,6 +331,24 @@ public class SiteBase {
     }
 
     @Nullable
+    public String getStaticFile() {
+        return staticFile;
+    }
+
+    public void setStaticFile(@Nullable String staticFile) {
+        this.staticFile = staticFile;
+    }
+
+    @Nullable
+    public String getMobileStaticFile() {
+        return mobileStaticFile;
+    }
+
+    public void setMobileStaticFile(@Nullable String mobileStaticFile) {
+        this.mobileStaticFile = mobileStaticFile;
+    }
+
+    @Nullable
     public String getWatermarkSettings() {
         return watermarkSettings;
     }
@@ -297,27 +357,36 @@ public class SiteBase {
         this.watermarkSettings = watermarkSettings;
     }
 
-    public short getDepth() {
+    @Nullable
+    public String getHtmlSettings() {
+        return htmlSettings;
+    }
+
+    public void setHtmlSettings(@Nullable String htmlSettings) {
+        this.htmlSettings = htmlSettings;
+    }
+
+    public Short getDepth() {
         return depth;
     }
 
-    public void setDepth(short depth) {
+    public void setDepth(Short depth) {
         this.depth = depth;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 
-    public short getStatus() {
+    public Short getStatus() {
         return status;
     }
 
-    public void setStatus(short status) {
+    public void setStatus(Short status) {
         this.status = status;
     }
 }

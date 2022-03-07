@@ -5,14 +5,13 @@ import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
+import static com.ofwise.util.web.Servlets.getMessage;
 import static javax.servlet.http.HttpServletResponse.*;
 
 /**
@@ -320,12 +319,6 @@ public final class Responses {
         WebUtils.saveRequest(request);
         response.sendError(SC_UNAUTHORIZED);
         return "redirect:" + loginUrl;
-    }
-
-    private static String getMessage(HttpServletRequest request, String code, @Nullable Object... args) {
-        return Optional.ofNullable(RequestContextUtils.findWebApplicationContext(request))
-                .map(context -> context.getMessage(code, args, code, RequestContextUtils.getLocale(request)))
-                .orElse(code);
     }
 
     /**

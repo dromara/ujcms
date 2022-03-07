@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,17 +18,20 @@ public class BlockItemBase {
     /**
      * 区块项ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 站点ID
      */
-    private int siteId = 0;
+    @NotNull
+    private Integer siteId = 0;
 
     /**
      * 区块ID
      */
-    private int blockId = 0;
+    @NotNull
+    private Integer blockId = 0;
 
     /**
      * 文章ID
@@ -37,64 +42,71 @@ public class BlockItemBase {
     /**
      * 标题
      */
-    @Nullable
-    private String title;
+    @Length(max = 150)
+    @NotNull
+    private String title = "";
 
     /**
      * 描述
      */
+    @Length(max = 1000)
     @Nullable
     private String description;
 
     /**
      * 链接
      */
+    @Length(max = 255)
     @Nullable
     private String linkUrl;
 
     /**
      * 图片
      */
+    @Length(max = 255)
     @Nullable
     private String image;
 
     /**
      * 手机端图片
      */
+    @Length(max = 255)
     @Nullable
     private String mobileImage;
 
     /**
      * 是否启用
      */
-    private boolean enabled = true;
+    @NotNull
+    private Boolean enabled = true;
 
     /**
      * 排序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getSiteId() {
+    public Integer getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(int siteId) {
+    public void setSiteId(Integer siteId) {
         this.siteId = siteId;
     }
 
-    public int getBlockId() {
+    public Integer getBlockId() {
         return blockId;
     }
 
-    public void setBlockId(int blockId) {
+    public void setBlockId(Integer blockId) {
         this.blockId = blockId;
     }
 
@@ -107,12 +119,11 @@ public class BlockItemBase {
         this.articleId = articleId;
     }
 
-    @Nullable
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(@Nullable String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
@@ -152,19 +163,19 @@ public class BlockItemBase {
         this.mobileImage = mobileImage;
     }
 
-    public boolean isEnabled() {
+    public Boolean getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 }

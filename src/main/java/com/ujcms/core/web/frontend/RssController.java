@@ -29,6 +29,6 @@ public class RssController {
                       HttpServletResponse response) {
         response.setContentType("application/xml;charset=UTF-8");
         Site site = siteResolver.resolve(request, subDir);
-        return site.getTemplate(TEMPLATE);
+        return site.assembleTemplate(TEMPLATE);
     }
 }

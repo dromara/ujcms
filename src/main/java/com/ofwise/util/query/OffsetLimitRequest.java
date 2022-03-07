@@ -134,7 +134,7 @@ public class OffsetLimitRequest implements Pageable, Serializable {
 
     @Override
     public Pageable withPage(int pageNumber) {
-        return new OffsetLimitRequest(getPageSize() * pageNumber, getPageSize(), getSort());
+        return new OffsetLimitRequest(getPageSize() * (long) pageNumber, getPageSize(), getSort());
     }
 
     @Override

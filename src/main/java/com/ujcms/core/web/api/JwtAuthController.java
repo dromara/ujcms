@@ -86,14 +86,13 @@ public class JwtAuthController {
         return Responses.ok(result);
     }
 
-
     @PostMapping("/refresh-token")
     public ResponseEntity<Body> refreshToken(@RequestBody RefreshTokenParam params) {
         try {
             String refreshToken = params.getRefreshToken();
             DecodedJWT jwt = refreshTokenVerifier.verify(refreshToken);
             // 可以获取 jwtId 从数据库等存储空间中验证 token 是否伪造
-            int userId = Integer.parseInt(jwt.getSubject());
+            Integer userId = new Integer(jwt.getSubject());
             User user = userService.select(userId);
             if (user == null || user.isDisabled()) {
                 return null;

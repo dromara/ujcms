@@ -34,7 +34,7 @@ public interface AttachmentReferMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    AttachmentRefer select(@Param("attachmentId") int attachmentId, @Param("referType") String referType, @Param("referId") int referId);
+    AttachmentRefer select(@Param("attachmentId") Integer attachmentId, @Param("referType") String referType, @Param("referId") Integer referId);
 
     /**
      * 根据查询条件获取列表
@@ -50,7 +50,7 @@ public interface AttachmentReferMapper {
      * @param attachmentId 附件ID
      * @return 数据列表
      */
-    List<AttachmentRefer> listByAttachmentId(int attachmentId);
+    List<AttachmentRefer> listByAttachmentId(Integer attachmentId);
 
     /**
      * 根据引用类型和引用ID删除数据
@@ -59,7 +59,7 @@ public interface AttachmentReferMapper {
      * @param referId   引用ID
      * @return 删除条数
      */
-    int deleteByReferTypeAndReferId(@Param("referType") String referType, @Param("referId") int referId);
+    int deleteByReferTypeAndReferId(@Param("referType") String referType, @Param("referId") Integer referId);
 
     /**
      * 根据引用类型和引用ID获取数据列表
@@ -68,5 +68,5 @@ public interface AttachmentReferMapper {
      * @param referId   引用ID
      * @return 数据列表
      */
-    List<AttachmentRefer> listByReferTypeAndReferId(@Param("referType") String referType, @Param("referId") int referId);
+    List<AttachmentRefer> listByReferTypeAndReferId(@Param("referType") String referType, @Param("referId") Integer referId);
 }

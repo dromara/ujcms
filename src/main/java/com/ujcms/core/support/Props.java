@@ -16,6 +16,14 @@ public class Props {
      */
     private int sequenceCacheSize = 50;
     /**
+     * 是否执行数据初始化脚本
+     */
+    private boolean dataSqlEnabled = true;
+    /**
+     * 数据初始化脚本的数据库类型
+     */
+    private String dataSqlPlatform = "mysql";
+    /**
      * 是否允许访问JSP。允许JSP访问会带来一定的安全风险，比如攻击者通过上传JSP文件，获得webshell。
      * 若允许，所有JSP文件必须放在 {@code /jsp} 目录下，但访问地址不用加 {@code /jsp} 前缀。
      * 比如： {@code /jsp/example.jsp} 文件的访问地址依然为 {@code /example.jsp}
@@ -77,6 +85,30 @@ public class Props {
         this.version = version;
     }
 
+    public int getSequenceCacheSize() {
+        return sequenceCacheSize;
+    }
+
+    public void setSequenceCacheSize(int sequenceCacheSize) {
+        this.sequenceCacheSize = sequenceCacheSize;
+    }
+
+    public boolean isDataSqlEnabled() {
+        return dataSqlEnabled;
+    }
+
+    public void setDataSqlEnabled(boolean dataSqlEnabled) {
+        this.dataSqlEnabled = dataSqlEnabled;
+    }
+
+    public String getDataSqlPlatform() {
+        return dataSqlPlatform;
+    }
+
+    public void setDataSqlPlatform(String dataSqlPlatform) {
+        this.dataSqlPlatform = dataSqlPlatform;
+    }
+
     public String getTemplatePath() {
         return Props.TEMPLATE_PATH;
     }
@@ -91,14 +123,6 @@ public class Props {
 
     public void setTemplateUrl(String templateUrl) {
         Props.TEMPLATE_URL = templateUrl;
-    }
-
-    public int getSequenceCacheSize() {
-        return sequenceCacheSize;
-    }
-
-    public void setSequenceCacheSize(int sequenceCacheSize) {
-        this.sequenceCacheSize = sequenceCacheSize;
     }
 
     public boolean isJspAllowed() {

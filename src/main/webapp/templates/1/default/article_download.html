@@ -18,7 +18,7 @@
         <li class="list-inline-item"><a href="${site.url}">首页</a></li>
         [#list channel.paths as c]
           <li class="list-inline-item">/</li>
-          <li class="list-inline-item"><a href="${c.url}">${c.name}</a></li>
+          <li class="list-inline-item">[@A bean=c/]</li>
         [/#list]
       </ol>
     </nav>
@@ -35,7 +35,7 @@
         <span>${format(article.publishDate, 'yyyy-MM-dd HH:mm')}</span>
         <i class="ml-2 far fa-eye"></i> <span id="views"></span>
         <script>
-          axios.post('${ctx}/api/article/view/${article.id}').then(function (response) {
+          axios.get('${api}/article/view/${article.id}').then(function (response) {
             $('#views').text(response.data);
           });
         </script>
@@ -50,17 +50,21 @@
         <div class="float-left w-50 mt-3"><span class="text-muted mr-2">下载次数：</span><span id="downloads" class="text-danger"></span> 次</div>
         <div class="float-left w-50 mt-3"><span class="text-muted mr-2">运行环境：</span>${article.customs['system']!?join(", ")}</div>
       </div>
-      <a href="${article.file}" class="mt-3 p-2 rounded h3 d-inline-block bg-primary text-white text-decoration-none"
-         onclick="axios.post('${ctx}/api/article/download/${article.id}')">
+      <a id="articleDownload" class="mt-3 p-2 rounded h3 d-inline-block bg-primary text-white text-decoration-none">
         <i class="fas fa-download"></i> 立即下载
       </a>
+      <script>
+        axios.get('${api}/article/download-params/${article.id}').then(function (response) {
+          $('#articleDownload').attr('href', '${dy}/download/${article.id}?' + response.data);
+        })
+      </script>
       <div class="lead d-flex text-danger">
         <div class="cm-pointer" onclick="voteUp()"><i class="far fa-thumbs-up"></i> <span id="ups"></span></div>
         <div class="cm-pointer ml-4" onclick="voteDown()"><i class="far fa-thumbs-down"></i> <span id="downs"></span></div>
       </div>
       <script>
         function voteUp() {
-          axios.post('${ctx}/api/article/up/${article.id}').then(function (response) {
+          axios.post('${api}/article/up/${article.id}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经顶过一次！");
               return;
@@ -70,7 +74,7 @@
         }
 
         function voteDown() {
-          axios.post('${ctx}/api/article/down/${article.id}').then(function (response) {
+          axios.post('${api}/article/down/${article.id}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经踩过一次！");
               return;
@@ -79,7 +83,7 @@
           });
         }
 
-        axios.get('${ctx}/api/article/buffer/${article.id}').then(function (response) {
+        axios.get('${api}/article/buffer/${article.id}').then(function (response) {
           $('#ups').text(response.data.ups);
           $('#downs').text(response.data.downs);
           $('#downloads').text(response.data.downloads);
@@ -95,12 +99,12 @@
       <ul class="border-top list-unstyled mt-3 pt-3">
         [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
           <li class="text-truncate mt-2">
-            <strong>上一条：</strong>[#if bean??]<a href="${bean.url}" class="cm-link">${bean.title}</a>[#else]没有了[/#if]
+            <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>
         [/@ArticleNext]
         [@ArticlePrev id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
           <li class="text-truncate mt-2">
-            <strong>下一条：</strong>[#if bean??]<a href="${bean.url}" class="cm-link">${bean.title}</a>[#else]没有了[/#if]
+            <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>
         [/@ArticlePrev]
       </ul>
@@ -108,7 +112,7 @@
       [@EsArticleList q=article.title excludeId=article.id limit=5; list]
         <ul class="list-unstyled mt-3">
           [#list list as bean]
-            <li class="text-truncate mt-2"><a href="${bean.url}" class="cm-link" title="${bean.title}">${bean.title}</a></li>
+            <li class="text-truncate mt-2">[@A bean=bean class="cm-link"/]</li>
           [/#list]
         </ul>
       [/@EsArticleList]

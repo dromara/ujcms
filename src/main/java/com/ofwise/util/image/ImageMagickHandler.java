@@ -16,8 +16,12 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 /**
+ * ImageMagick 图片处理实现
+ * <p>
  * http://www.graphicsmagick.org/GraphicsMagick.html
  * http://www.imagemagick.org/script/command-line-options.php
+ *
+ * @author PONY
  */
 public class ImageMagickHandler implements ImageHandler {
     public ImageMagickHandler() {
@@ -53,6 +57,8 @@ public class ImageMagickHandler implements ImageHandler {
         FileUtils.forceMkdir(destFile.getParentFile());
         IMOperation op = new IMOperation();
         op.addImage(src);
+        // 去除Exif信息
+        op.profile("*");
         consumer.accept(op);
         op.addImage(dest);
         ConvertCmd convertCmd = getConvertCmd();
@@ -74,19 +80,9 @@ public class ImageMagickHandler implements ImageHandler {
             return false;
         }
         try {
-            File destFile = new File(dest);
-            FileUtils.forceMkdir(destFile.getParentFile());
-            IMOperation op = new IMOperation();
-            op.addImage(src);
-            // 去除Exif信息
-            // op.profile("*");
-            // 按宽高生成图片（不按比例）
-            // op.resize(width, height, '!');
+            // 按宽高生成图片（不按比例）：resize(width, height, '!');
             // 按比例只缩小不放大
-            op.resize(width, height, '>');
-            op.addImage(dest);
-            ConvertCmd convertCmd = getConvertCmd();
-            convertCmd.run(op);
+            operate(src, dest, op -> op.resize(width, height, '>'));
             return true;
         } catch (Exception e) {
             FileUtils.deleteQuietly(new File(dest));

@@ -40,7 +40,7 @@ public interface AttachmentMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -49,7 +49,7 @@ public interface AttachmentMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Attachment select(int id);
+    Attachment select(Integer id);
 
     /**
      * 根据查询条件获取列表
@@ -74,5 +74,5 @@ public interface AttachmentMapper {
      * @param ids 附件ID集
      * @return 更新条数
      */
-    int updateUsed(Set<Integer> ids);
+    int updateUsed(@Param("ids") Set<Integer> ids);
 }

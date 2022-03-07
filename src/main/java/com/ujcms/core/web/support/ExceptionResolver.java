@@ -1,11 +1,11 @@
 package com.ujcms.core.web.support;
 
-import com.ujcms.core.exception.Http400Exception;
-import com.ujcms.core.exception.Http401Exception;
-import com.ujcms.core.exception.Http403Exception;
-import com.ujcms.core.exception.Http404Exception;
-import com.ujcms.core.exception.LogicException;
-import com.ujcms.core.exception.MessagedException;
+import com.ofwise.util.web.exception.Http400Exception;
+import com.ofwise.util.web.exception.Http401Exception;
+import com.ofwise.util.web.exception.Http403Exception;
+import com.ofwise.util.web.exception.Http404Exception;
+import com.ofwise.util.web.exception.LogicException;
+import com.ofwise.util.web.exception.MessagedException;
 import org.apache.shiro.authz.AuthorizationException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;

@@ -2,7 +2,7 @@
   <div class="container flex-column flex-xl-row justify-content-start align-items-stretch align-items-xl-center px-lg-3">
     <div class="d-flex align-items-center">
       <div class="flex-grow-1">
-        <a class="navbar-brand" href="${site.url}/" title="${site.name}"><img src="${files}/img/logo.png" alt="${site.name}" height="50"></a>
+        <a class="navbar-brand" href="${site.url}" title="${site.name}"><img src="${files}/img/logo.png" alt="${site.name}" height="50"></a>
       </div>
       <button class="btn d-xl-none collapsed p-0" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
               aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,7 +19,7 @@
         [@ChannelList isNav='true' offset='0'; list]
           [#list list as item]
             <li class="nav-item">
-              <a class="nav-link[#if channel?? && channel.paths[0].id == item.id] active[/#if]" href="${item.url}">${item.name}</a>
+              <a class="nav-link[#if channel?? && channel.paths[0].id == item.id] active[/#if]" href="${item.url}"[#if item.targetBlank] target="_blank"[/#if]>${item.name}</a>
             </li>
           [/#list]
         [/@ChannelList]

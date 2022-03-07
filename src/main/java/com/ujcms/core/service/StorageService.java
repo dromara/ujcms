@@ -1,10 +1,10 @@
 package com.ujcms.core.service;
 
 import com.github.pagehelper.PageHelper;
-import com.ujcms.core.domain.Storage;
-import com.ujcms.core.mapper.StorageMapper;
 import com.ofwise.util.query.QueryInfo;
 import com.ofwise.util.query.QueryParser;
+import com.ujcms.core.domain.Storage;
+import com.ujcms.core.mapper.StorageMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +51,7 @@ public class StorageService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return mapper.delete(id);
     }
 
@@ -61,7 +61,7 @@ public class StorageService {
     }
 
     @Nullable
-    public Storage select(int id) {
+    public Storage select(Integer id) {
         return mapper.select(id);
     }
 

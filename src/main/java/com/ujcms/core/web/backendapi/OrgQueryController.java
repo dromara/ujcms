@@ -38,7 +38,7 @@ public class OrgQueryController {
 
     @GetMapping("{id}")
     @RequiresPermissions("org:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Org bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Org not found. ID = " + id);

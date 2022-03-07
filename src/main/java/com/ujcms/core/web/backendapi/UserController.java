@@ -52,7 +52,7 @@ public class UserController {
 
     @GetMapping("{id}")
     @RequiresPermissions("user:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         User bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("User not found. ID = " + id);

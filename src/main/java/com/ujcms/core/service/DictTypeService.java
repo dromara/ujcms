@@ -56,7 +56,7 @@ public class DictTypeService {
 
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return mapper.delete(id);
     }
 
@@ -67,7 +67,7 @@ public class DictTypeService {
     }
 
     @Nullable
-    public DictType select(int id) {
+    public DictType select(Integer id) {
         return mapper.select(id);
     }
 

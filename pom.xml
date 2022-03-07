@@ -6,18 +6,18 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <packaging>war</packaging>
 
     <name>UJCMS</name>
-    <description>UJCMS是基于Java的CMS网站内容系统。使用spring-boot、mybatis、freemarker、vue、element-plus等技术开发。</description>
+    <description>UJCMS是基于Java的CMS网站内容系统。使用spring-boot2、mybatis、freemarker、vite、vue3、element-plus、tailwind-css等技术开发。</description>
     <url>http://www.ujcms.com/</url>
     <inceptionYear>2021-2022</inceptionYear>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.2</version>
+        <version>2.6.3</version>
     </parent>
     <properties>
         <!-- mybatis-spring-boot-starter 2.0 以上版本 会引用 MyBatis 3.5 以上版本，导致OffsetDateTime出错。该问题与MySQL驱动有关，MySQL8.0.23驱动已解决这个问题。-->
@@ -57,6 +57,8 @@
         <UserAgentUtils.version>1.21</UserAgentUtils.version>
         <!-- Markdown解析组件 -->
         <commonmark.version>0.17.1</commonmark.version>
+        <!-- 计算机信息获取组件 -->
+        <oshi-core.version>6.0.0</oshi-core.version>
         <!-- 阿里云短信组件 -->
         <aliyun-java-sdk-core.version>4.5.30</aliyun-java-sdk-core.version>
         <aliyun-java-sdk-dysmsapi.version>2.1.0</aliyun-java-sdk-dysmsapi.version>
@@ -72,19 +74,21 @@
         <qiniu-java-sdk.version>7.9.1</qiniu-java-sdk.version>
         <!-- swagger2 API文档工具 -->
         <!--<springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>-->
+        <annotations.version>3.0.1</annotations.version>
+        <mybatis-generator-core.version>1.4.0</mybatis-generator-core.version>
+
+        <!-- MySQL JDBC驱动 8.0 驱动可以支持 MySQL5.7，但MySQL 5.6的支持情况还不清楚。但为了支持MySQL8，必须使用8.0的驱动 -->
+        <mysql-connector-java.version>8.0.23</mysql-connector-java.version>
+        <!-- PostgreSQL JDBC驱动-->
+        <postgresql.version>42.3.3</postgresql.version>
+        <!-- 达梦 JDBC驱动-->
+        <DmJdbcDriver.version>18</DmJdbcDriver.version>
 
         <!-- 此项设置可以让IntelliJ IDEA自动识别Spring Boot工程，可以直接点击右上角运行按钮启动程序 -->
         <start-class>com.ujcms.Application</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-
-        <!-- JDBC驱动 -->
-        <jdbc.driver.groupId>mysql</jdbc.driver.groupId>
-        <jdbc.driver.artifactId>mysql-connector-java</jdbc.driver.artifactId>
-        <!-- 8.0 驱动可以支持 MySQL5.7，但MySQL 5.6的支持情况还不清楚。但为了支持MySQL8，必须使用8.0的驱动 -->
-        <jdbc.driver.version>8.0.23</jdbc.driver.version>
-        <jdbc.driverClassName>com.mysql.cj.jdbc.Driver</jdbc.driverClassName>
     </properties>
     <dependencies>
         <dependency>
@@ -144,6 +148,16 @@
             <artifactId>spring-boot-starter-mobile</artifactId>
             <version>${spring-boot-starter-mobile.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+        <!-- LiquiBase 数据库版本管理组件 -->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+        <!-- Shiro 安全组件 -->
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring-boot-web-starter</artifactId>
@@ -251,12 +265,18 @@
             <artifactId>UserAgentUtils</artifactId>
             <version>${UserAgentUtils.version}</version>
         </dependency>
+        <!-- Markdown解析组件 -->
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
             <version>${commonmark.version}</version>
         </dependency>
-
+        <!-- 计算机信息获取组件 -->
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>${oshi-core.version}</version>
+        </dependency>
         <!-- 阿里云短信组件 -->
         <dependency>
             <groupId>com.aliyun</groupId>
@@ -319,16 +339,20 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
-            <version>3.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>${jdbc.driver.groupId}</groupId>
-            <artifactId>${jdbc.driver.artifactId}</artifactId>
-            <version>${jdbc.driver.version}</version>
-            <scope>runtime</scope>
+            <version>${annotations.version}</version>
         </dependency>
 
-        <!---->
+        <!-- JDBC 驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql-connector-java.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        
+        
+
+        <!-- 测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -351,7 +375,7 @@
         <dependency>
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
-            <version>1.4.0</version>
+            <version>${mybatis-generator-core.version}</version>
             <scope>test</scope>
             <optional>true</optional>
         </dependency>
@@ -362,20 +386,22 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- liquibase 插件 -->
             <plugin>
-                <groupId>org.mybatis.generator</groupId>
-                <artifactId>mybatis-generator-maven-plugin</artifactId>
-                <version>1.4.0</version>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase.version}</version>
                 <configuration>
-                    <!-- 将MyBatis代码生成配置文件放到test目录下，以免作为正式文件发布 -->
-                    <!-- 默认值：${basedir}/src/main/resources/generatorConfig.xml -->
-                    <configurationFile>${basedir}/src/test/resources/generatorConfig.xml</configurationFile>
+                    <changeLogFile>/db/changelog/db.changelog-master.yaml</changeLogFile>
+                    <url>jdbc:mysql://localhost:3306/ujcms?serverTimezone=Asia/Shanghai</url>
+                    <username>ujcms</username>
+                    <password>password</password>
                 </configuration>
                 <dependencies>
                     <dependency>
-                        <groupId>${jdbc.driver.groupId}</groupId>
-                        <artifactId>${jdbc.driver.artifactId}</artifactId>
-                        <version>${jdbc.driver.version}</version>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>${mysql-connector-java.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>

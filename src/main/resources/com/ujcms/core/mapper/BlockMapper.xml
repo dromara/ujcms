@@ -5,15 +5,15 @@
     <result column="site_id_" jdbcType="INTEGER" property="siteId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="alias_" jdbcType="VARCHAR" property="alias" />
-    <result column="scope_" jdbcType="TINYINT" property="scope" />
-    <result column="with_description_" jdbcType="BIT" property="withDescription" />
-    <result column="with_image_" jdbcType="BIT" property="withImage" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
+    <result column="with_description_" jdbcType="BOOLEAN" property="withDescription" />
+    <result column="with_image_" jdbcType="BOOLEAN" property="withImage" />
     <result column="image_width_" jdbcType="INTEGER" property="imageWidth" />
     <result column="image_height_" jdbcType="INTEGER" property="imageHeight" />
-    <result column="with_mobile_image_" jdbcType="BIT" property="withMobileImage" />
+    <result column="with_mobile_image_" jdbcType="BOOLEAN" property="withMobileImage" />
     <result column="mobile_image_width_" jdbcType="INTEGER" property="mobileImageWidth" />
     <result column="mobile_image_height_" jdbcType="INTEGER" property="mobileImageHeight" />
-    <result column="enabled_" jdbcType="BIT" property="enabled" />
+    <result column="enabled_" jdbcType="BOOLEAN" property="enabled" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Block" />
@@ -39,20 +39,20 @@
     set site_id_ = #{siteId,jdbcType=INTEGER},
       name_ = #{name,jdbcType=VARCHAR},
       alias_ = #{alias,jdbcType=VARCHAR},
-      scope_ = #{scope,jdbcType=TINYINT},
-      with_description_ = #{withDescription,jdbcType=BIT},
-      with_image_ = #{withImage,jdbcType=BIT},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      with_description_ = #{withDescription,jdbcType=BOOLEAN},
+      with_image_ = #{withImage,jdbcType=BOOLEAN},
       image_width_ = #{imageWidth,jdbcType=INTEGER},
       image_height_ = #{imageHeight,jdbcType=INTEGER},
-      with_mobile_image_ = #{withMobileImage,jdbcType=BIT},
+      with_mobile_image_ = #{withMobileImage,jdbcType=BOOLEAN},
       mobile_image_width_ = #{mobileImageWidth,jdbcType=INTEGER},
       mobile_image_height_ = #{mobileImageHeight,jdbcType=INTEGER},
-      enabled_ = #{enabled,jdbcType=BIT},
+      enabled_ = #{enabled,jdbcType=BOOLEAN},
       order_ = #{order,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.Block">
     insert into ujcms_block (id_, site_id_, name_, alias_, scope_, with_description_, with_image_, image_width_, image_height_, with_mobile_image_, mobile_image_width_, mobile_image_height_, enabled_, order_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{scope,jdbcType=TINYINT}, #{withDescription,jdbcType=BIT}, #{withImage,jdbcType=BIT}, #{imageWidth,jdbcType=INTEGER}, #{imageHeight,jdbcType=INTEGER}, #{withMobileImage,jdbcType=BIT}, #{mobileImageWidth,jdbcType=INTEGER}, #{mobileImageHeight,jdbcType=INTEGER}, #{enabled,jdbcType=BIT}, #{order,jdbcType=SMALLINT})
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{withDescription,jdbcType=BOOLEAN}, #{withImage,jdbcType=BOOLEAN}, #{imageWidth,jdbcType=INTEGER}, #{imageHeight,jdbcType=INTEGER}, #{withMobileImage,jdbcType=BOOLEAN}, #{mobileImageWidth,jdbcType=INTEGER}, #{mobileImageHeight,jdbcType=INTEGER}, #{enabled,jdbcType=BOOLEAN}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.name_, t.alias_, t.scope_, t.with_description_, t.with_image_, t.image_width_, t.image_height_, t.with_mobile_image_, t.mobile_image_width_, t.mobile_image_height_, t.enabled_, t.order_
   </sql></mapper>

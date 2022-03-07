@@ -10,6 +10,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 
+import static org.springframework.http.HttpMethod.*;
+
+/**
+ * Csrf 令牌
+ *
+ * @author PONY
+ */
 public class CsrfToken {
     public static final String PARAMETER_NAME = "_csrf";
     public static final String HEADER_NAME = "X-XSRF-TOKEN";
@@ -19,7 +26,7 @@ public class CsrfToken {
         this.token = token;
     }
 
-    public static String loadTokenFromCookie(HttpServletRequest request, HttpServletResponse response) {
+    public static String loadTokenFromCookie(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, COOKIE_NAME);
         if (cookie != null) {
             String token = cookie.getValue();
@@ -48,21 +55,19 @@ public class CsrfToken {
     }
 
     public static boolean verify(HttpServletRequest request, HttpServletResponse response) {
-        String token = loadTokenFromCookie(request, response);
+        String token = loadTokenFromCookie(request);
         boolean missingToken = token == null;
         if (token == null) {
             token = RandomStringUtils.randomAlphanumeric(32);
             saveToken(token, request, response);
         }
         request.setAttribute(PARAMETER_NAME, new CsrfToken(token));
-        if (!Arrays.asList("GET", "HEAD", "TRACE", "OPTIONS").contains(request.getMethod())) {
+        if (!Arrays.asList(GET.name(), HEAD.name(), TRACE.name(), OPTIONS.name()).contains(request.getMethod())) {
             String actualToken = request.getHeader(HEADER_NAME);
-            if (actualToken == null) {
-                actualToken = request.getParameter(PARAMETER_NAME);
-            }
             if (!token.equals(actualToken)) {
                 try {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, missingToken ? "CSRF Token Missing" : "CSRF Token Invalid");
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                            missingToken ? "CSRF Token Missing" : "CSRF Token Invalid");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -73,7 +78,6 @@ public class CsrfToken {
     }
 
     private String token;
-    private String parameterName = PARAMETER_NAME;
 
     public String getToken() {
         return token;
@@ -82,13 +86,4 @@ public class CsrfToken {
     public void setToken(String token) {
         this.token = token;
     }
-
-    public String getParameterName() {
-        return parameterName;
-    }
-
-    public void setParameterName(String parameterName) {
-        this.parameterName = parameterName;
-    }
-
 }

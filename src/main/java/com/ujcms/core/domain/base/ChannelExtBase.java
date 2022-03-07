@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,84 +18,99 @@ public class ChannelExtBase {
     /**
      * 栏目ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * SEO标题
      */
+    @Length(max = 150)
     @Nullable
     private String seoTitle;
 
     /**
      * SEO关键词
      */
+    @Length(max = 150)
     @Nullable
     private String seoKeywords;
 
     /**
      * SEO描述
      */
+    @Length(max = 1000)
     @Nullable
     private String seoDescription;
 
     /**
      * 文章模板
      */
+    @Length(max = 255)
     @Nullable
     private String articleTemplate;
 
     /**
      * 栏目模板
      */
+    @Length(max = 255)
     @Nullable
     private String channelTemplate;
 
     /**
      * 每页条数
      */
-    private short pageSize = 20;
+    @NotNull
+    private Short pageSize = 20;
 
     /**
      * 图片
      */
+    @Length(max = 255)
     @Nullable
     private String image;
 
     /**
      * 转向链接地址
      */
+    @Length(max = 255)
     @Nullable
     private String linkUrl;
 
     /**
      * 是否新窗口打开
      */
-    private boolean targetBlank = false;
+    @NotNull
+    private Boolean targetBlank = false;
 
     /**
      * 是否允许评论
      */
-    private boolean allowComment = true;
+    @NotNull
+    private Boolean allowComment = true;
 
     /**
      * 是否允许投稿
      */
-    private boolean allowContribute = false;
+    @NotNull
+    private Boolean allowContribute = false;
 
     /**
      * 是否允许搜索
      */
-    private boolean allowSearch = true;
+    @NotNull
+    private Boolean allowSearch = true;
 
     /**
      * 静态页文件
      */
+    @Length(max = 255)
     @Nullable
     private String staticFile;
 
     /**
      * 手机端静态页文件
      */
+    @Length(max = 255)
     @Nullable
     private String mobileStaticFile;
 
@@ -103,11 +120,11 @@ public class ChannelExtBase {
     @Nullable
     private String text;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -156,11 +173,11 @@ public class ChannelExtBase {
         this.channelTemplate = channelTemplate;
     }
 
-    public short getPageSize() {
+    public Short getPageSize() {
         return pageSize;
     }
 
-    public void setPageSize(short pageSize) {
+    public void setPageSize(Short pageSize) {
         this.pageSize = pageSize;
     }
 
@@ -182,35 +199,35 @@ public class ChannelExtBase {
         this.linkUrl = linkUrl;
     }
 
-    public boolean isTargetBlank() {
+    public Boolean getTargetBlank() {
         return targetBlank;
     }
 
-    public void setTargetBlank(boolean targetBlank) {
+    public void setTargetBlank(Boolean targetBlank) {
         this.targetBlank = targetBlank;
     }
 
-    public boolean isAllowComment() {
+    public Boolean getAllowComment() {
         return allowComment;
     }
 
-    public void setAllowComment(boolean allowComment) {
+    public void setAllowComment(Boolean allowComment) {
         this.allowComment = allowComment;
     }
 
-    public boolean isAllowContribute() {
+    public Boolean getAllowContribute() {
         return allowContribute;
     }
 
-    public void setAllowContribute(boolean allowContribute) {
+    public void setAllowContribute(Boolean allowContribute) {
         this.allowContribute = allowContribute;
     }
 
-    public boolean isAllowSearch() {
+    public Boolean getAllowSearch() {
         return allowSearch;
     }
 
-    public void setAllowSearch(boolean allowSearch) {
+    public void setAllowSearch(Boolean allowSearch) {
         this.allowSearch = allowSearch;
     }
 

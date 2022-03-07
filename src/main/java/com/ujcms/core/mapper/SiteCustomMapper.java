@@ -39,7 +39,7 @@ public interface SiteCustomMapper {
      * @param siteId 站点ID
      * @return 删除条数
      */
-    int deleteBySiteId(int siteId);
+    int deleteBySiteId(Integer siteId);
 
     /**
      * 根据站点ID获取列表
@@ -47,5 +47,5 @@ public interface SiteCustomMapper {
      * @param siteId 站点ID
      * @return 数据列表
      */
-    List<SiteCustom> listBySiteId(int siteId);
+    List<SiteCustom> listBySiteId(Integer siteId);
 }

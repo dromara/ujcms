@@ -101,6 +101,7 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
             int page = Directives.getPage(params, env) - 1;
             int pageSize = Directives.getPageSize(params, env);
             Page<EsArticle> pagedList = query(params, defaultSiteId, PageRequest.of(page, pageSize), articleLucene);
+            Directives.setTotalPages(pagedList.getTotalPages());
             loopVars[0] = env.getObjectWrapper().wrap(pagedList);
         } else {
             int offset = Directives.getOffset(params);

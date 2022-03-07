@@ -5,13 +5,15 @@ import com.github.pagehelper.PageHelper;
 import com.ofwise.util.query.CustomFieldQuery;
 import com.ofwise.util.query.QueryInfo;
 import com.ofwise.util.query.QueryParser;
+import com.ofwise.util.web.PathResolver;
 import com.ujcms.core.domain.Article;
 import com.ujcms.core.domain.ArticleBuffer;
 import com.ujcms.core.domain.ArticleCustom;
 import com.ujcms.core.domain.ArticleExt;
 import com.ujcms.core.domain.ArticleFile;
 import com.ujcms.core.domain.ArticleImage;
-import com.ujcms.core.exception.LogicException;
+import com.ofwise.util.web.exception.LogicException;
+import com.ujcms.core.generator.HtmlService;
 import com.ujcms.core.listener.ChannelDeleteListener;
 import com.ujcms.core.listener.UserDeleteListener;
 import com.ujcms.core.lucene.ArticleLucene;
@@ -30,11 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 文章 Service
@@ -43,8 +41,9 @@ import java.util.Optional;
  */
 @Service
 public class ArticleService implements ChannelDeleteListener, UserDeleteListener {
-    private ArticleLucene articleLucene;
+    private HtmlService htmlService;
     private PolicyFactory policyFactory;
+    private ArticleLucene articleLucene;
     private ArticleMapper mapper;
     private ArticleExtMapper extMapper;
     private ArticleBufferMapper bufferMapper;
@@ -55,13 +54,14 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     private AttachmentService attachmentService;
     private SeqService seqService;
 
-    public ArticleService(ArticleLucene articleLucene, PolicyFactory policyFactory, ArticleMapper mapper,
-                          ArticleExtMapper extMapper, ArticleBufferMapper bufferMapper,
+    public ArticleService(HtmlService htmlService, PolicyFactory policyFactory, ArticleLucene articleLucene,
+                          ArticleMapper mapper, ArticleExtMapper extMapper, ArticleBufferMapper bufferMapper,
                           ArticleCustomMapper customMapper, ArticleImageMapper imageMapper,
                           ArticleFileMapper fileMapper, ArticleStatMapper statMapper,
                           AttachmentService attachmentService, SeqService seqService) {
-        this.articleLucene = articleLucene;
+        this.htmlService = htmlService;
         this.policyFactory = policyFactory;
+        this.articleLucene = articleLucene;
         this.mapper = mapper;
         this.extMapper = extMapper;
         this.bufferMapper = bufferMapper;
@@ -73,7 +73,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         this.seqService = seqService;
     }
 
-    private void insertRelatedList(int articleId, List<ArticleCustom> customList, List<ArticleImage> imageList, List<ArticleFile> fileList) {
+    private void insertRelatedList(Integer articleId, List<ArticleCustom> customList, List<ArticleImage> imageList, List<ArticleFile> fileList) {
         customList.forEach(it -> {
             it.setArticleId(articleId);
             customMapper.insert(it);
@@ -129,7 +129,12 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public void update(ArticleExt ext) {
+        extMapper.update(ext);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int delete(Integer id) {
         Article bean = select(id);
         if (bean == null) {
             return 0;
@@ -141,6 +146,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         statMapper.deleteByArticleId(id);
         int count = mapper.delete(id);
         articleLucene.deleteById(id);
+        htmlService.deleteArticleHtml(bean);
         return count;
     }
 
@@ -149,42 +155,13 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
-    public void reindex() {
-        reindex(null);
-    }
-
-    public void reindex(@Nullable Integer siteId) {
-        if (siteId != null) {
-            articleLucene.deleteBySiteId(siteId);
-        } else {
-            articleLucene.deleteAll();
-        }
-        Map<String, Object> queryMap = new HashMap<>(16);
-        int minId = 0;
-        int offset = 0, limit = 100, size = limit;
-        if (siteId != null) {
-            queryMap.put("EQ_siteId", siteId);
-        }
-        queryMap.put("OrderBy", "id");
-        while (size >= limit) {
-            queryMap.put("GT_id", minId);
-            List<Article> list = selectList(queryMap, null, null, offset, limit);
-            size = list.size();
-            for (int i = 0; i < size; i++) {
-                Article article = list.get(i);
-                articleLucene.save(EsArticle.of(article));
-                if (i == size - 1) {
-                    minId = article.getId();
-                }
-            }
-        }
-    }
-
     @Nullable
-    public Article select(int id) {
+    @Transactional(readOnly = true)
+    public Article select(Integer id) {
         return mapper.select(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Article> selectList(@Nullable Map<String, Object> queryMap,
                                     @Nullable Map<String, String> customsQueryMap,
                                     @Nullable Integer channelId) {
@@ -193,6 +170,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         return mapper.selectAll(queryInfo, customsCondition, channelId);
     }
 
+    @Transactional(readOnly = true)
     public List<Article> selectList(@Nullable Map<String, Object> queryMap,
                                     @Nullable Map<String, String> customsQueryMap,
                                     @Nullable Integer channelId,
@@ -201,6 +179,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
                 .doSelectPage(() -> selectList(queryMap, customsQueryMap, channelId));
     }
 
+    @Transactional(readOnly = true)
     public Page<Article> selectPage(@Nullable Map<String, Object> queryMap,
                                     @Nullable Map<String, String> customsQueryMap,
                                     @Nullable Integer channelId,
@@ -209,8 +188,20 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
                 .doSelectPage(() -> selectList(queryMap, customsQueryMap, channelId));
     }
 
+    @Transactional(readOnly = true)
+    public List<Article> selectByMinId(Integer minId, @Nullable Integer siteId, @Nullable Integer channelId, Integer offset, Integer limit) {
+        Map<String, Object> queryMap = new HashMap<>(16);
+        if (siteId != null) {
+            queryMap.put("EQ_siteId", siteId);
+        }
+        queryMap.put("GT_id", minId);
+        queryMap.put("OrderBy", "id");
+        return selectList(queryMap, null, channelId, offset, limit);
+    }
+
     @Nullable
-    public Article findNext(int id, OffsetDateTime publishDate, int channelId) {
+    @Transactional(readOnly = true)
+    public Article findNext(Integer id, OffsetDateTime publishDate, Integer channelId) {
         List<Article> list = PageHelper.offsetPage(0, 1, false)
                 .doSelectPage(() -> mapper.findNext(id, publishDate, channelId));
         if (list.isEmpty()) {
@@ -220,7 +211,8 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     @Nullable
-    public Article findPrev(int id, OffsetDateTime publishDate, int channelId) {
+    @Transactional(readOnly = true)
+    public Article findPrev(Integer id, OffsetDateTime publishDate, Integer channelId) {
         List<Article> list = PageHelper.offsetPage(0, 1, false)
                 .doSelectPage(() -> mapper.findPrev(id, publishDate, channelId));
         if (list.isEmpty()) {
@@ -231,14 +223,14 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
 
 
     @Override
-    public void preChannelDelete(int channelId) {
+    public void preChannelDelete(Integer channelId) {
         if (mapper.countByChannelId(channelId) > 0) {
             throw new LogicException("error.refer.article");
         }
     }
 
     @Override
-    public void preUserDelete(int userId) {
+    public void preUserDelete(Integer userId) {
         if (mapper.countByUserId(userId) > 0) {
             throw new LogicException("error.refer.article");
         }

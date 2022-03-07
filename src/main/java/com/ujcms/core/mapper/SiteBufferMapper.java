@@ -39,7 +39,7 @@ public interface SiteBufferMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface SiteBufferMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    SiteBuffer select(int id);
+    SiteBuffer select(Integer id);
 
     /**
      * 根据查询条件获取列表
@@ -65,5 +65,5 @@ public interface SiteBufferMapper {
      * @param viewsToPlus 浏览次数
      * @return 如果站点不存在，则返回{@code 0}；否则返回{@code 1}。
      */
-    int updateViews(@Param("id") int id, @Param("viewsToPlus") int viewsToPlus);
+    int updateViews(@Param("id") Integer id, @Param("viewsToPlus") int viewsToPlus);
 }

@@ -63,16 +63,49 @@ public class QueryUtils {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static final Pattern PREVENT_INJECTION_PATTERN = Pattern.compile("[\\w@-]*");
+    private static final Pattern QUERY_PATTERN = Pattern.compile("[\\w@-]*");
+    private static final Pattern TABLE_PATTERN = Pattern.compile("[\\w]*");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("[\\w.]*");
+    private static final Pattern ORDER_BY_PATTERN = Pattern.compile("[\\w ,.]*");
 
     /**
      * 只允许 字母 数字 下划线 中划线 @
      */
-    public static void preventInjection(String key) {
-        if (!PREVENT_INJECTION_PATTERN.matcher(key).matches()) {
+    public static void validateQuery(String key) {
+        if (!QUERY_PATTERN.matcher(key).matches()) {
             throw new RuntimeException("QueryParser只允许 字母 数字 下划线 中划线 @：" + key);
         }
     }
+
+    /**
+     * 只允许 字母 数字 下划线
+     */
+    public static void validateTable(String table) {
+        if (!TABLE_PATTERN.matcher(table).matches()) {
+            throw new RuntimeException("QueryParser table 只允许 字母 数字 下划线：" + table);
+        }
+    }
+    /**
+     * 只允许 字母 数字 下划线 .
+     */
+    public static void validateField(String field) {
+        if (!FIELD_PATTERN.matcher(field).matches()) {
+            throw new RuntimeException("QueryParser field 只允许 字母 数字 下划线 .：" + field);
+        }
+    }
+
+    /**
+     * 只允许 字母 数字 下划线
+     */
+    public static void validateOrderBy(@Nullable String orderBy) {
+        if (StringUtils.isBlank(orderBy)) {
+            return;
+        }
+        if (!ORDER_BY_PATTERN.matcher(orderBy).matches()) {
+            throw new RuntimeException("QueryParser orderBy 只允许 字母 数字 空格 下划线 . ,：" + orderBy);
+        }
+    }
+
 
     /**
      * 驼峰名转下划线
@@ -268,7 +301,12 @@ public class QueryUtils {
                 }
                 return parseBigDecimal(obj);
             case TYPE_BOOLEAN:
-                return parseBoolean(obj);
+                Boolean bool = parseBoolean(obj);
+                if (bool == null) {
+                    return null;
+                }
+                // 数据库中使用数值类型（如：tinyint）代替布尔类型
+                return bool ? 1 : 0;
             case TYPE_DATE_TIME:
                 return parseDate(obj);
             case TYPE_DATE:

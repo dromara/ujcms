@@ -13,13 +13,13 @@
     <result column="display_name_" jdbcType="VARCHAR" property="displayName" />
     <result column="avatar_" jdbcType="VARCHAR" property="avatar" />
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
-    <result column="status_" jdbcType="TINYINT" property="status" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.User">
         <association column="id_" javaType="com.ujcms.core.domain.UserExt" property="ext" select="com.ujcms.core.mapper.UserExtMapper.select" />
         <association column="group_id_" javaType="com.ujcms.core.domain.Group" property="group" select="com.ujcms.core.mapper.GroupMapper.select" />
         <association column="org_id_" javaType="com.ujcms.core.domain.Org" property="org" select="com.ujcms.core.mapper.OrgMapper.select" />
-        <collection column="id_" javaType="ArrayList" property="roleList" select="com.ujcms.core.mapper.RoleMapper.listByUserId" />
+        <collection column="id_" fetchType="lazy" javaType="ArrayList" property="roleList" select="com.ujcms.core.mapper.RoleMapper.listByUserId" />
     </resultMap>
 
     <sql id="selectAllJoin" />
@@ -75,11 +75,11 @@
       display_name_ = #{displayName,jdbcType=VARCHAR},
       avatar_ = #{avatar,jdbcType=VARCHAR},
       rank_ = #{rank,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=TINYINT}
+      status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.User">
     insert into ujcms_user (id_, group_id_, org_id_, username_, password_, salt_, email_, mobile_, alias_, display_name_, avatar_, rank_, status_)
-    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{salt,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{displayName,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{rank,jdbcType=SMALLINT}, #{status,jdbcType=TINYINT})
+    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{salt,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{displayName,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{rank,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.salt_, t.email_, t.mobile_, t.alias_, t.display_name_, t.avatar_, t.rank_, t.status_
   </sql></mapper>

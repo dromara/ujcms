@@ -11,5 +11,5 @@ public interface OrgDeleteListener {
      *
      * @param orgId 组织ID
      */
-    void preOrgDelete(int orgId);
+    void preOrgDelete(Integer orgId);
 }

@@ -17,7 +17,7 @@ public class Attachment extends AttachmentBase implements Serializable {
     public Attachment() {
     }
 
-    public Attachment(int siteId, int userId, String name, String path, String url, long length) {
+    public Attachment(Integer siteId, Integer userId, String name, String path, String url, long length) {
         setSiteId(siteId);
         setUserId(userId);
         setName(name);

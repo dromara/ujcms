@@ -14,7 +14,7 @@ public class ChannelCustom extends ChannelCustomBase implements Serializable, Cu
     public ChannelCustom() {
     }
 
-    public ChannelCustom(int channelId, String name, String value) {
+    public ChannelCustom(Integer channelId, String name, String value) {
         setChannelId(channelId);
         setName(name);
         setValue(value);

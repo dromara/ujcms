@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author PONY
  */
 public class UserRole extends UserRoleBase implements Serializable {
-    public UserRole(int userId, int roleId) {
+    public UserRole(Integer userId, Integer roleId) {
         setUserId(userId);
         setRoleId(roleId);
     }

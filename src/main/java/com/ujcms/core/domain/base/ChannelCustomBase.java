@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,11 +18,14 @@ public class ChannelCustomBase {
     /**
      * 文章ID
      */
-    private int channelId = 0;
+    @NotNull
+    private Integer channelId = 0;
 
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
@@ -29,11 +34,11 @@ public class ChannelCustomBase {
     @Nullable
     private String value;
 
-    public int getChannelId() {
+    public Integer getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(int channelId) {
+    public void setChannelId(Integer channelId) {
         this.channelId = channelId;
     }
 

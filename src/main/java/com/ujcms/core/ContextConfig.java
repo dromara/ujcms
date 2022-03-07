@@ -9,7 +9,10 @@ import com.ujcms.core.service.ArticleService;
 import com.ujcms.core.service.BlockItemService;
 import com.ujcms.core.service.ChannelService;
 import com.ujcms.core.service.DictService;
+import com.ujcms.core.service.GlobalService;
+import com.ujcms.core.service.SiteQueryService;
 import com.ujcms.core.support.Frontends;
+import com.ujcms.core.web.directive.AnchorDirective;
 import com.ujcms.core.web.directive.ArticleDirective;
 import com.ujcms.core.web.directive.ArticleListDirective;
 import com.ujcms.core.web.directive.ArticleNextDirective;
@@ -21,8 +24,10 @@ import com.ujcms.core.web.directive.ChannelListDirective;
 import com.ujcms.core.web.directive.DictListDirective;
 import com.ujcms.core.web.directive.EsArticleListDirective;
 import com.ujcms.core.web.directive.EsArticlePageDirective;
+import com.ujcms.core.web.support.SiteResolver;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -67,10 +72,16 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("EsArticleList", new EsArticleListDirective(articleLucene));
         configuration.setSharedVariable("EsArticlePage", new EsArticlePageDirective(articleLucene));
 
+        configuration.setSharedVariable("A", new AnchorDirective());
         // 方法
         configuration.setSharedVariable("substring", new SubstringMethod());
         configuration.setSharedVariable("format", new FormatMethod());
         configuration.setSharedVariable("paging", new PagingMethod(Frontends.PAGE));
         configuration.setSharedVariable("addParam", new AddParamMethod(Frontends.PAGE));
+    }
+
+    @Bean
+    public SiteResolver siteResolver(SiteQueryService siteService, GlobalService globalService) {
+        return new SiteResolver(siteService, globalService);
     }
 }

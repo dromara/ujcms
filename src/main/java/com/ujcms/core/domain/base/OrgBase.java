@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,7 +18,8 @@ public class OrgBase {
     /**
      * 组织ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 上级组织ID
@@ -27,41 +30,48 @@ public class OrgBase {
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 电话
      */
+    @Length(max = 100)
     @Nullable
     private String phone;
 
     /**
      * 地址
      */
+    @Length(max = 300)
     @Nullable
     private String address;
 
     /**
      * 联系人
      */
+    @Length(max = 50)
     @Nullable
     private String contacts;
 
     /**
      * 层级
      */
-    private short depth = 1;
+    @NotNull
+    private Short depth = 1;
 
     /**
      * 排序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -109,19 +119,19 @@ public class OrgBase {
         this.contacts = contacts;
     }
 
-    public short getDepth() {
+    public Short getDepth() {
         return depth;
     }
 
-    public void setDepth(short depth) {
+    public void setDepth(Short depth) {
         this.depth = depth;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 }

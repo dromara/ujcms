@@ -19,21 +19,24 @@
     <result column="seo_title_" jdbcType="VARCHAR" property="seoTitle" />
     <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
     <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
+    <result column="static_file_" jdbcType="VARCHAR" property="staticFile" />
+    <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile" />
     <result column="watermark_settings_" jdbcType="VARCHAR" property="watermarkSettings" />
+    <result column="html_settings_" jdbcType="VARCHAR" property="htmlSettings" />
     <result column="depth_" jdbcType="SMALLINT" property="depth" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
-    <result column="status_" jdbcType="TINYINT" property="status" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Site">
-        <association column="id_" fetchType="eager" javaType="com.ujcms.core.domain.Global" property="global" select="com.ujcms.core.mapper.GlobalMapper.findUnique" />
-        <association column="id_" javaType="com.ujcms.core.domain.SiteBuffer" property="buffer" select="com.ujcms.core.mapper.SiteBufferMapper.select" />
-        <association column="parent_id_" javaType="com.ujcms.core.domain.Site" property="parent" select="select" />
-        <association column="org_id_" javaType="com.ujcms.core.domain.Org" property="org" select="com.ujcms.core.mapper.OrgMapper.select" />
-        <association column="model_id_" javaType="com.ujcms.core.domain.Model" property="model" select="com.ujcms.core.mapper.ModelMapper.select" />
-        <association column="storage_id_" javaType="com.ujcms.core.domain.Storage" property="storage" select="com.ujcms.core.mapper.StorageMapper.select" />
-        <association column="html_storage_id_" javaType="com.ujcms.core.domain.Storage" property="htmlStorage" select="com.ujcms.core.mapper.StorageMapper.select" />
-        <association column="mobile_storage_id_" javaType="com.ujcms.core.domain.Storage" property="mobileStorage" select="com.ujcms.core.mapper.StorageMapper.select" />
-        <collection column="id_" ofType="com.ujcms.core.domain.SiteCustom" property="customList" select="com.ujcms.core.mapper.SiteCustomMapper.listBySiteId" />
+        <association column="id_" javaType="com.ujcms.core.domain.Global" property="global" select="com.ujcms.core.mapper.GlobalMapper.findUnique" />
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.core.domain.SiteBuffer" property="buffer" select="com.ujcms.core.mapper.SiteBufferMapper.select" />
+        <association column="parent_id_" fetchType="lazy" javaType="com.ujcms.core.domain.Site" property="parent" select="select" />
+        <association column="org_id_" fetchType="lazy" javaType="com.ujcms.core.domain.Org" property="org" select="com.ujcms.core.mapper.OrgMapper.select" />
+        <association column="model_id_" fetchType="lazy" javaType="com.ujcms.core.domain.Model" property="model" select="com.ujcms.core.mapper.ModelMapper.select" />
+        <association column="storage_id_" fetchType="lazy" javaType="com.ujcms.core.domain.Storage" property="storage" select="com.ujcms.core.mapper.StorageMapper.select" />
+        <association column="html_storage_id_" fetchType="lazy" javaType="com.ujcms.core.domain.Storage" property="htmlStorage" select="com.ujcms.core.mapper.StorageMapper.select" />
+        <association column="mobile_storage_id_" fetchType="lazy" javaType="com.ujcms.core.domain.Storage" property="mobileStorage" select="com.ujcms.core.mapper.StorageMapper.select" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.core.domain.SiteCustom" property="customList" select="com.ujcms.core.mapper.SiteCustomMapper.listBySiteId" />
     </resultMap>
     <select id="listChildren" resultMap="ResultMap">
         select
@@ -101,14 +104,17 @@
       seo_title_ = #{seoTitle,jdbcType=VARCHAR},
       seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
       seo_description_ = #{seoDescription,jdbcType=VARCHAR},
+      static_file_ = #{staticFile,jdbcType=VARCHAR},
+      mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
       watermark_settings_ = #{watermarkSettings,jdbcType=VARCHAR},
+      html_settings_ = #{htmlSettings,jdbcType=VARCHAR},
       depth_ = #{depth,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=TINYINT}
+      status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.Site">
-    insert into ujcms_site (id_, parent_id_, org_id_, model_id_, storage_id_, html_storage_id_, mobile_storage_id_, name_, protocol_, domain_, sub_dir_, theme_, mobile_theme_, page_size_, logo_, seo_title_, seo_keywords_, seo_description_, watermark_settings_, depth_, order_, status_)
-    values (#{id,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{modelId,jdbcType=INTEGER}, #{storageId,jdbcType=INTEGER}, #{htmlStorageId,jdbcType=INTEGER}, #{mobileStorageId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{protocol,jdbcType=VARCHAR}, #{domain,jdbcType=VARCHAR}, #{subDir,jdbcType=VARCHAR}, #{theme,jdbcType=VARCHAR}, #{mobileTheme,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{logo,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{watermarkSettings,jdbcType=VARCHAR}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{status,jdbcType=TINYINT})
+    insert into ujcms_site (id_, parent_id_, org_id_, model_id_, storage_id_, html_storage_id_, mobile_storage_id_, name_, protocol_, domain_, sub_dir_, theme_, mobile_theme_, page_size_, logo_, seo_title_, seo_keywords_, seo_description_, static_file_, mobile_static_file_, watermark_settings_, html_settings_, depth_, order_, status_)
+    values (#{id,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{modelId,jdbcType=INTEGER}, #{storageId,jdbcType=INTEGER}, #{htmlStorageId,jdbcType=INTEGER}, #{mobileStorageId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{protocol,jdbcType=VARCHAR}, #{domain,jdbcType=VARCHAR}, #{subDir,jdbcType=VARCHAR}, #{theme,jdbcType=VARCHAR}, #{mobileTheme,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{logo,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{watermarkSettings,jdbcType=VARCHAR}, #{htmlSettings,jdbcType=VARCHAR}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
-    t.id_, t.parent_id_, t.org_id_, t.model_id_, t.storage_id_, t.html_storage_id_, t.mobile_storage_id_, t.name_, t.protocol_, t.domain_, t.sub_dir_, t.theme_, t.mobile_theme_, t.page_size_, t.logo_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.watermark_settings_, t.depth_, t.order_, t.status_
+    t.id_, t.parent_id_, t.org_id_, t.model_id_, t.storage_id_, t.html_storage_id_, t.mobile_storage_id_, t.name_, t.protocol_, t.domain_, t.sub_dir_, t.theme_, t.mobile_theme_, t.page_size_, t.logo_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.static_file_, t.mobile_static_file_, t.watermark_settings_, t.html_settings_, t.depth_, t.order_, t.status_
   </sql></mapper>

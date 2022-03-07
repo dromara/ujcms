@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author PONY
  */
 public class SiteTree extends SiteTreeBase implements Serializable {
-    public SiteTree(int ancestorId, int descendantId) {
+    public SiteTree(Integer ancestorId, Integer descendantId) {
         setAncestorId(ancestorId);
         setDescendantId(descendantId);
     }

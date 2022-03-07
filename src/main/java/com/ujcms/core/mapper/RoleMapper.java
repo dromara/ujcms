@@ -39,7 +39,7 @@ public interface RoleMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface RoleMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Role select(int id);
+    Role select(Integer id);
 
     /**
      * 根据查询条件获取列表
@@ -64,5 +64,5 @@ public interface RoleMapper {
      * @param userId 用户ID
      * @return 角色列表
      */
-    List<Role> listByUserId(int userId);
+    List<Role> listByUserId(Integer userId);
 }

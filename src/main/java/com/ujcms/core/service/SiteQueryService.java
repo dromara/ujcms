@@ -47,7 +47,7 @@ public class SiteQueryService {
     }
 
     @Nullable
-    public Site select(int id) {
+    public Site select(Integer id) {
         return mapper.select(id);
     }
 

@@ -1,6 +1,8 @@
 package com.ujcms.core.domain.base;
 
 import java.time.OffsetDateTime;
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -17,17 +19,21 @@ public class UserExtBase {
     /**
      * 用户ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 真实姓名
      */
+    @Length(max = 50)
     @Nullable
     private String realName;
 
     /**
      * 性别(m:男,f:女,n:保密)
      */
+    @Length(max = 1)
+    @NotNull
     private String gender = "m";
 
     /**
@@ -39,50 +45,59 @@ public class UserExtBase {
     /**
      * 居住地
      */
+    @Length(max = 200)
     @Nullable
     private String location;
 
     /**
      * 自我介绍
      */
+    @Length(max = 1000)
     @Nullable
     private String bio;
 
     /**
      * 创建日期
      */
+    @NotNull
     private OffsetDateTime created = OffsetDateTime.now();
 
     /**
      * 最后登录日期
      */
+    @NotNull
     private OffsetDateTime loginDate = OffsetDateTime.now();
 
     /**
      * 最后登录IP
      */
+    @Length(max = 39)
+    @NotNull
     private String loginIp = "localhost";
 
     /**
      * 登录次数
      */
-    private int loginCount = 0;
+    @NotNull
+    private Integer loginCount = 0;
 
     /**
      * 登录错误日期
      */
+    @NotNull
     private OffsetDateTime errorDate = OffsetDateTime.now();
 
     /**
      * 登录错误次数
      */
-    private int errorCount = 0;
+    @NotNull
+    private Integer errorCount = 0;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -154,11 +169,11 @@ public class UserExtBase {
         this.loginIp = loginIp;
     }
 
-    public int getLoginCount() {
+    public Integer getLoginCount() {
         return loginCount;
     }
 
-    public void setLoginCount(int loginCount) {
+    public void setLoginCount(Integer loginCount) {
         this.loginCount = loginCount;
     }
 
@@ -170,11 +185,11 @@ public class UserExtBase {
         this.errorDate = errorDate;
     }
 
-    public int getErrorCount() {
+    public Integer getErrorCount() {
         return errorCount;
     }
 
-    public void setErrorCount(int errorCount) {
+    public void setErrorCount(Integer errorCount) {
         this.errorCount = errorCount;
     }
 }

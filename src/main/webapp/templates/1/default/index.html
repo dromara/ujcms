@@ -25,12 +25,12 @@
           <div class="carousel-inner rounded-sm">
             [#list beans as bean]
               <div class="carousel-item[#if bean_index==0] active[/#if]">
-                <a href="${bean.url}" class="text-reset text-decoration-none">
+                [@A bean=bean class="text-reset text-decoration-none"]
                   <img src="${bean.image}" class="d-block w-100" alt="...">
                   <div class="carousel-caption d-none d-md-block">
                     <p>${bean.title}</p>
                   </div>
-                </a>
+                [/@A]
               </div>
             [/#list]
           </div>
@@ -76,6 +76,6 @@
   </div>
 </div>
 [#include 'includes_footer.html'/]
-<script>axios.post('${ctx}/api/site/view/${site.id}');</script>
+<script>axios.get('${api}/site/view/${site.id}');</script>
 </body>
 </html>

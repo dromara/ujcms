@@ -1,6 +1,7 @@
 package com.ujcms.core.domain.base;
 
 import java.time.OffsetDateTime;
+import javax.validation.constraints.NotNull;
 import org.springframework.lang.Nullable;
 
 /**
@@ -17,27 +18,32 @@ public class ArticleBase {
     /**
      * 文章ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 站点ID
      */
-    private int siteId = 0;
+    @NotNull
+    private Integer siteId = 0;
 
     /**
      * 组织ID
      */
-    private int orgId = 0;
+    @NotNull
+    private Integer orgId = 0;
 
     /**
      * 栏目ID
      */
-    private int channelId = 0;
+    @NotNull
+    private Integer channelId = 0;
 
     /**
      * 创建用户ID
      */
-    private int userId = 0;
+    @NotNull
+    private Integer userId = 0;
 
     /**
      * 修改用户ID
@@ -48,60 +54,64 @@ public class ArticleBase {
     /**
      * 发布日期
      */
+    @NotNull
     private OffsetDateTime publishDate = OffsetDateTime.now();
 
     /**
      * 是否有图片
      */
-    private boolean withImage = false;
+    @NotNull
+    private Boolean withImage = false;
 
     /**
      * 置顶
      */
-    private short sticky = 0;
+    @NotNull
+    private Short sticky = 0;
 
     /**
      * 状态(0:正常)
      */
-    private short status = 0;
+    @NotNull
+    private Short status = 0;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getSiteId() {
+    public Integer getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(int siteId) {
+    public void setSiteId(Integer siteId) {
         this.siteId = siteId;
     }
 
-    public int getOrgId() {
+    public Integer getOrgId() {
         return orgId;
     }
 
-    public void setOrgId(int orgId) {
+    public void setOrgId(Integer orgId) {
         this.orgId = orgId;
     }
 
-    public int getChannelId() {
+    public Integer getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(int channelId) {
+    public void setChannelId(Integer channelId) {
         this.channelId = channelId;
     }
 
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
@@ -122,27 +132,27 @@ public class ArticleBase {
         this.publishDate = publishDate;
     }
 
-    public boolean isWithImage() {
+    public Boolean getWithImage() {
         return withImage;
     }
 
-    public void setWithImage(boolean withImage) {
+    public void setWithImage(Boolean withImage) {
         this.withImage = withImage;
     }
 
-    public short getSticky() {
+    public Short getSticky() {
         return sticky;
     }
 
-    public void setSticky(short sticky) {
+    public void setSticky(Short sticky) {
         this.sticky = sticky;
     }
 
-    public short getStatus() {
+    public Short getStatus() {
         return status;
     }
 
-    public void setStatus(short status) {
+    public void setStatus(Short status) {
         this.status = status;
     }
 }

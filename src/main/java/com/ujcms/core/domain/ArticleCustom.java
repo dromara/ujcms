@@ -14,7 +14,7 @@ public class ArticleCustom extends ArticleCustomBase implements Serializable, Cu
     public ArticleCustom() {
     }
 
-    public ArticleCustom(int articleId, String name, String value) {
+    public ArticleCustom(Integer articleId, String name, String value) {
         setArticleId(articleId);
         setName(name);
         setValue(value);

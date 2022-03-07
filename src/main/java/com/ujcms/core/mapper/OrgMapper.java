@@ -73,5 +73,5 @@ public interface OrgMapper {
      * @param depth 深度
      * @return 更新条数
      */
-    int updateDepth(@Param("id") int id, @Param("depth") short depth);
+    int updateDepth(@Param("id") Integer id, @Param("depth") short depth);
 }

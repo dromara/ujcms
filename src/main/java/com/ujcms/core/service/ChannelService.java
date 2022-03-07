@@ -1,12 +1,16 @@
 package com.ujcms.core.service;
 
 import com.github.pagehelper.PageHelper;
+import com.ofwise.util.query.CustomFieldQuery;
+import com.ofwise.util.query.QueryInfo;
+import com.ofwise.util.query.QueryParser;
 import com.ujcms.core.domain.Channel;
 import com.ujcms.core.domain.ChannelBuffer;
 import com.ujcms.core.domain.ChannelCustom;
 import com.ujcms.core.domain.ChannelExt;
 import com.ujcms.core.domain.ChannelGroup;
 import com.ujcms.core.domain.ChannelTree;
+import com.ujcms.core.generator.HtmlService;
 import com.ujcms.core.listener.ChannelDeleteListener;
 import com.ujcms.core.mapper.ChannelBufferMapper;
 import com.ujcms.core.mapper.ChannelCustomMapper;
@@ -14,9 +18,6 @@ import com.ujcms.core.mapper.ChannelExtMapper;
 import com.ujcms.core.mapper.ChannelGroupMapper;
 import com.ujcms.core.mapper.ChannelMapper;
 import com.ujcms.core.mapper.ChannelTreeMapper;
-import com.ofwise.util.query.CustomFieldQuery;
-import com.ofwise.util.query.QueryInfo;
-import com.ofwise.util.query.QueryParser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -38,6 +39,7 @@ import java.util.Objects;
  */
 @Service
 public class ChannelService {
+    private HtmlService htmlService;
     private AttachmentService attachmentService;
     private ChannelMapper mapper;
     private ChannelExtMapper extMapper;
@@ -47,10 +49,11 @@ public class ChannelService {
     private ChannelCustomMapper customMapper;
     private SeqService seqService;
 
-    public ChannelService(AttachmentService attachmentService, ChannelMapper mapper,
+    public ChannelService(HtmlService htmlService, AttachmentService attachmentService, ChannelMapper mapper,
                           ChannelExtMapper extMapper, ChannelBufferMapper bufferMapper, ChannelTreeMapper treeMapper,
                           ChannelGroupMapper channelGroupMapper, ChannelCustomMapper customMapper,
                           SeqService seqService) {
+        this.htmlService = htmlService;
         this.attachmentService = attachmentService;
         this.bufferMapper = bufferMapper;
         this.channelGroupMapper = channelGroupMapper;
@@ -88,7 +91,7 @@ public class ChannelService {
         attachmentService.insertRefer(Channel.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
-    private void insertGroupIds(List<Integer> groupIds, int channelId) {
+    private void insertGroupIds(List<Integer> groupIds, Integer channelId) {
         groupIds.forEach(groupId -> channelGroupMapper.insert(new ChannelGroup(channelId, groupId)));
     }
 
@@ -131,6 +134,11 @@ public class ChannelService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public void update(ChannelExt ext) {
+        extMapper.update(ext);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public void updateOrder(List<Channel> list) {
         short order = 1;
         for (Channel bean : list) {
@@ -141,7 +149,7 @@ public class ChannelService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         Channel bean = mapper.select(id);
         if (bean == null) {
             return 0;
@@ -155,6 +163,7 @@ public class ChannelService {
         bufferMapper.delete(id);
         extMapper.delete(id);
         count += mapper.delete(id);
+        htmlService.deleteChannelHtml(bean);
         return count;
     }
 
@@ -164,12 +173,14 @@ public class ChannelService {
     }
 
     @Nullable
-    public Channel select(int id) {
+    @Transactional(readOnly = true)
+    public Channel select(Integer id) {
         return mapper.select(id);
     }
 
     @Nullable
-    public Channel findBySiteIdAndAlias(int siteId, String alias) {
+    @Transactional(readOnly = true)
+    public Channel findBySiteIdAndAlias(Integer siteId, String alias) {
         List<Channel> list = listBySiteIdAndAlias(siteId, Collections.singletonList(alias), false);
         if (list.isEmpty()) {
             return null;
@@ -177,7 +188,9 @@ public class ChannelService {
         return list.get(0);
     }
 
-    public List<Channel> listBySiteIdAndAlias(@Nullable Integer siteId, Collection<String> alias, boolean isIncludeSubSite) {
+    @Transactional(readOnly = true)
+    public List<Channel> listBySiteIdAndAlias(@Nullable Integer siteId, Collection<String> alias,
+                                              boolean isIncludeSubSite) {
         Map<String, Object> queryMap = new HashMap<>(16);
         if (siteId != null) {
             if (isIncludeSubSite) {
@@ -190,6 +203,7 @@ public class ChannelService {
         return selectList(queryMap, null);
     }
 
+    @Transactional(readOnly = true)
     public List<Channel> selectList(@Nullable Map<String, Object> queryMap,
                                     @Nullable Map<String, String> customsQueryMap) {
         QueryInfo queryInfo = QueryParser.parse(queryMap, Channel.TABLE_NAME, "order,id");
@@ -197,6 +211,7 @@ public class ChannelService {
         return mapper.selectAll(queryInfo, customsCondition);
     }
 
+    @Transactional(readOnly = true)
     public List<Channel> selectList(@Nullable Map<String, Object> queryMap,
                                     @Nullable Map<String, String> customsQueryMap,
                                     @Nullable Integer offset, @Nullable Integer limit) {

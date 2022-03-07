@@ -46,7 +46,7 @@ public class GroupController {
 
     @GetMapping("{id}")
     @RequiresPermissions("group:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Group bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Group not found. ID = " + id);
@@ -70,9 +70,9 @@ public class GroupController {
 
     @PutMapping("order")
     @RequiresPermissions("group:update")
-    public ResponseEntity<Body> updateOrder(@RequestBody int[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<Group> list = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             Group bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("Role not found. ID = " + id);

@@ -39,7 +39,7 @@ public interface UserMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface UserMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    User select(int id);
+    User select(Integer id);
 
     /**
      * 根据用户名获取用户
@@ -91,5 +91,5 @@ public interface UserMapper {
      * @param orgId 组织ID
      * @return 用户数量
      */
-    int countByOrgId(int orgId);
+    int countByOrgId(Integer orgId);
 }

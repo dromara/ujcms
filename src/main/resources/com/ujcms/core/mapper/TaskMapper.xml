@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.core.mapper.TaskMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.Task">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="begin_date_" jdbcType="TIMESTAMP" property="beginDate" />
+    <result column="end_date_" jdbcType="TIMESTAMP" property="endDate" />
+    <result column="current_" jdbcType="INTEGER" property="current" />
+    <result column="total_" jdbcType="INTEGER" property="total" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
+    <result column="error_info_" jdbcType="LONGVARCHAR" property="errorInfo" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Task">
+        <association column="user_id_" javaType="com.ujcms.core.domain.User" property="user" select="com.ujcms.core.mapper.UserMapper.select" />
+    </resultMap>
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_task" />
+    </include>
+  </select>
+  <select id="select" parameterType="int" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_task t
+    where t.id_ = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="delete" parameterType="int">
+    delete from ujcms_task
+    where id_ = #{id,jdbcType=INTEGER}
+  </delete><update id="update" parameterType="com.ujcms.core.domain.Task">
+    update ujcms_task
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      user_id_ = #{userId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      end_date_ = #{endDate,jdbcType=TIMESTAMP},
+      current_ = #{current,jdbcType=INTEGER},
+      total_ = #{total,jdbcType=INTEGER},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT},
+      error_info_ = #{errorInfo,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.core.domain.Task">
+    insert into ujcms_task (id_, site_id_, user_id_, name_, begin_date_, end_date_, current_, total_, type_, status_, error_info_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{current,jdbcType=INTEGER}, #{total,jdbcType=INTEGER}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{errorInfo,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.user_id_, t.name_, t.begin_date_, t.end_date_, t.current_, t.total_, t.type_, t.status_, t.error_info_
+  </sql></mapper>

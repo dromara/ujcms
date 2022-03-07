@@ -1,5 +1,6 @@
 package com.ofwise.util.web;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -21,11 +22,12 @@ import java.io.IOException;
  * 如果访问的路径不存在（没有实体文件），则重定向至文件。例如：访问 /foo/ ，则重定向至 /foo
  *
  * @author PONY
+ * @see org.apache.catalina.servlets.DefaultServlet#doDirectoryRedirect
  */
 public class DirectoryRedirectInterceptor implements HandlerInterceptor {
     private ResourceLoader resourceLoader;
-    private boolean isFileToDir = true;
-    private boolean isDirToFile = true;
+    private boolean isFileToDir;
+    private boolean isDirToFile;
 
     public DirectoryRedirectInterceptor(ResourceLoader resourceLoader, boolean isFileToDir, boolean isDirToFile) {
         this.resourceLoader = resourceLoader;
@@ -38,7 +40,7 @@ public class DirectoryRedirectInterceptor implements HandlerInterceptor {
             throws IOException, ServletException {
         String path = Servlets.getRelativePath(request);
         boolean isDirPath = path.endsWith("/");
-        if(isFileToDir) {
+        if (isFileToDir) {
             Resource resource = resourceLoader.getResource(path);
             // 资源存在
             if (resource.exists()) {
@@ -79,11 +81,18 @@ public class DirectoryRedirectInterceptor implements HandlerInterceptor {
         doRedirect(request, response, false);
     }
 
+    /**
+     * 此段代码根据 Tomcat 官方代码编写
+     *
+     * @see org.apache.catalina.servlets.DefaultServlet#doDirectoryRedirect
+     */
+    @SuppressFBWarnings("HRS_REQUEST_PARAMETER_TO_HTTP_HEADER")
     private void doRedirect(HttpServletRequest request, HttpServletResponse response, boolean toDir)
             throws IOException {
         StringBuilder location = new StringBuilder(request.getRequestURI());
+        char slash = '/';
         if (toDir) {
-            location.append('/');
+            location.append(slash);
         } else {
             location.deleteCharAt(location.length() - 1);
         }
@@ -92,7 +101,7 @@ public class DirectoryRedirectInterceptor implements HandlerInterceptor {
             location.append(request.getQueryString());
         }
         // Avoid protocol relative redirects
-        while (location.length() > 1 && location.charAt(1) == '/') {
+        while (location.length() > 1 && location.charAt(1) == slash) {
             location.deleteCharAt(0);
         }
         response.sendRedirect(response.encodeRedirectURL(location.toString()));

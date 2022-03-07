@@ -3,7 +3,7 @@
 <mapper namespace="com.ujcms.core.mapper.ArticleCustomMapper"><resultMap id="BaseResultMap" type="com.ujcms.core.domain.ArticleCustom">
     <result column="article_id_" jdbcType="INTEGER" property="articleId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
-    <result column="value_" jdbcType="CLOB" property="value" />
+    <result column="value_" jdbcType="LONGVARCHAR" property="value" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.ArticleCustom" />
     <select id="listByArticleId" resultMap="ResultMap">
@@ -25,7 +25,7 @@
         </include>
     </select><insert id="insert" parameterType="com.ujcms.core.domain.ArticleCustom">
     insert into ujcms_article_custom (article_id_, name_, value_)
-    values (#{articleId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=CLOB})
+    values (#{articleId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
     t.article_id_, t.name_, t.value_
   </sql></mapper>

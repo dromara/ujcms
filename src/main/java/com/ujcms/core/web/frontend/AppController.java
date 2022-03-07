@@ -25,6 +25,6 @@ public class AppController {
     public String app(@PathVariable String name, @PathVariable(required = false) String subDir,
                       HttpServletRequest request) {
         Site site = siteResolver.resolve(request, subDir);
-        return site.getTemplate("app_" + name);
+        return site.assembleTemplate("app_" + name);
     }
 }

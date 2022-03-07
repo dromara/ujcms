@@ -2,7 +2,7 @@ package com.ujcms.core.support;
 
 import com.ujcms.core.domain.Site;
 import com.ujcms.core.domain.User;
-import com.ujcms.core.exception.Http401Exception;
+import com.ofwise.util.web.exception.Http401Exception;
 import com.ujcms.core.service.UserService;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;

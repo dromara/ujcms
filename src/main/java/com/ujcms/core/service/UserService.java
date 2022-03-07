@@ -7,7 +7,7 @@ import com.ofwise.util.security.Secures;
 import com.ujcms.core.domain.User;
 import com.ujcms.core.domain.UserExt;
 import com.ujcms.core.domain.UserRole;
-import com.ujcms.core.exception.LogicException;
+import com.ofwise.util.web.exception.LogicException;
 import com.ujcms.core.listener.OrgDeleteListener;
 import com.ujcms.core.listener.UserDeleteListener;
 import com.ujcms.core.mapper.UserExtMapper;
@@ -102,7 +102,7 @@ public class UserService implements OrgDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         deleteListeners.forEach(it -> it.preUserDelete(id));
         extMapper.delete(id);
         return mapper.delete(id);
@@ -114,7 +114,7 @@ public class UserService implements OrgDeleteListener {
     }
 
     @Nullable
-    public User select(int id) {
+    public User select(Integer id) {
         return mapper.select(id);
     }
 
@@ -147,7 +147,7 @@ public class UserService implements OrgDeleteListener {
     }
 
     @Override
-    public void preOrgDelete(int orgId) {
+    public void preOrgDelete(Integer orgId) {
         if (mapper.countByOrgId(orgId) > 0) {
             throw new LogicException("error.refer.user");
         }

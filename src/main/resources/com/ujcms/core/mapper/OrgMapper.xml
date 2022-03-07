@@ -12,7 +12,7 @@
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Org">
         <association column="parent_id_" javaType="com.ujcms.core.domain.Org" property="parent" select="select" />
-        <collection column="id_" ofType="com.ujcms.core.domain.Org" property="children" select="listChildren" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.core.domain.Org" property="children" select="listChildren" />
     </resultMap>
     <select id="listChildren" resultMap="ResultMap">
         select

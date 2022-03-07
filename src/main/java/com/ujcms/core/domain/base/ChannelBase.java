@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,12 +18,14 @@ public class ChannelBase {
     /**
      * 栏目ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 站点ID
      */
-    private int siteId = 0;
+    @NotNull
+    private Integer siteId = 0;
 
     /**
      * 上级栏目ID
@@ -32,56 +36,66 @@ public class ChannelBase {
     /**
      * 栏目模型ID
      */
-    private int channelModelId = 0;
+    @NotNull
+    private Integer channelModelId = 0;
 
     /**
      * 文章模型ID
      */
-    private int articleModelId = 0;
+    @NotNull
+    private Integer articleModelId = 0;
 
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 别名
      */
+    @Length(max = 50)
+    @NotNull
     private String alias = "";
 
     /**
      * 是否导航菜单
      */
-    private boolean nav = true;
+    @NotNull
+    private Boolean nav = true;
 
     /**
      * 类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一篇文章,5:链接到第一个子栏目)
      */
-    private short type = 1;
+    @NotNull
+    private Short type = 1;
 
     /**
      * 层级
      */
-    private short depth = 1;
+    @NotNull
+    private Short depth = 1;
 
     /**
      * 排列顺序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getSiteId() {
+    public Integer getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(int siteId) {
+    public void setSiteId(Integer siteId) {
         this.siteId = siteId;
     }
 
@@ -94,19 +108,19 @@ public class ChannelBase {
         this.parentId = parentId;
     }
 
-    public int getChannelModelId() {
+    public Integer getChannelModelId() {
         return channelModelId;
     }
 
-    public void setChannelModelId(int channelModelId) {
+    public void setChannelModelId(Integer channelModelId) {
         this.channelModelId = channelModelId;
     }
 
-    public int getArticleModelId() {
+    public Integer getArticleModelId() {
         return articleModelId;
     }
 
-    public void setArticleModelId(int articleModelId) {
+    public void setArticleModelId(Integer articleModelId) {
         this.articleModelId = articleModelId;
     }
 
@@ -126,35 +140,35 @@ public class ChannelBase {
         this.alias = alias;
     }
 
-    public boolean isNav() {
+    public Boolean getNav() {
         return nav;
     }
 
-    public void setNav(boolean nav) {
+    public void setNav(Boolean nav) {
         this.nav = nav;
     }
 
-    public short getType() {
+    public Short getType() {
         return type;
     }
 
-    public void setType(short type) {
+    public void setType(Short type) {
         this.type = type;
     }
 
-    public short getDepth() {
+    public Short getDepth() {
         return depth;
     }
 
-    public void setDepth(short depth) {
+    public void setDepth(Short depth) {
         this.depth = depth;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 }

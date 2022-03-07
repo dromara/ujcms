@@ -40,7 +40,7 @@ public interface ArticleMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -49,7 +49,7 @@ public interface ArticleMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Article select(int id);
+    Article select(Integer id);
 
     /**
      * 根据查询条件获取列表
@@ -79,7 +79,7 @@ public interface ArticleMapper {
      * @param channelId   栏目ID
      * @return 下一条文章
      */
-    List<Article> findNext(@Param("id") int id, @Param("publishDate") OffsetDateTime publishDate, @Param("channelId") int channelId);
+    List<Article> findNext(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate, @Param("channelId") Integer channelId);
 
     /**
      * 查询上一条文章
@@ -89,7 +89,7 @@ public interface ArticleMapper {
      * @param channelId   栏目ID
      * @return 上一条文章
      */
-    List<Article> findPrev(@Param("id") int id, @Param("publishDate") OffsetDateTime publishDate, @Param("channelId") int channelId);
+    List<Article> findPrev(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate, @Param("channelId") Integer channelId);
 
     /**
      * 根据 栏目ID 查询文章数量
@@ -97,7 +97,7 @@ public interface ArticleMapper {
      * @param channelId 栏目ID
      * @return 文章数量
      */
-    int countByChannelId(int channelId);
+    int countByChannelId(Integer channelId);
 
     /**
      * 根据 用户ID 查询文章数量
@@ -105,5 +105,5 @@ public interface ArticleMapper {
      * @param userId 用户ID
      * @return 文章数量
      */
-    int countByUserId(int userId);
+    int countByUserId(Integer userId);
 }

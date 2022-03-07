@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,12 +18,14 @@ public class DictBase {
     /**
      * 字典ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 数据字典类型ID
      */
-    private int typeId = 0;
+    @NotNull
+    private Integer typeId = 0;
 
     /**
      * 上级ID
@@ -32,42 +36,49 @@ public class DictBase {
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 值
      */
+    @Length(max = 50)
+    @NotNull
     private String value = "";
 
     /**
      * 备注
      */
+    @Length(max = 300)
     @Nullable
     private String remark;
 
     /**
      * 排列顺序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
     /**
      * 是否启用
      */
-    private boolean enabled = true;
+    @NotNull
+    private Boolean enabled = true;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getTypeId() {
+    public Integer getTypeId() {
         return typeId;
     }
 
-    public void setTypeId(int typeId) {
+    public void setTypeId(Integer typeId) {
         this.typeId = typeId;
     }
 
@@ -105,19 +116,19 @@ public class DictBase {
         this.remark = remark;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 
-    public boolean isEnabled() {
+    public Boolean getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
 }

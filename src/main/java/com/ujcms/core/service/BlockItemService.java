@@ -31,7 +31,7 @@ public class BlockItemService {
         this.seqService = seqService;
     }
 
-    public int countByBlockIdAndArticleId(@Param("blockId") int blockId, @Param("articleId") int articleId) {
+    public int countByBlockIdAndArticleId(@Param("blockId") Integer blockId, @Param("articleId") Integer articleId) {
         return mapper.countByBlockIdAndArticleId(blockId, articleId);
     }
 
@@ -59,7 +59,7 @@ public class BlockItemService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         attachmentService.deleteRefer(BlockItem.TABLE_NAME, id);
         return mapper.delete(id);
     }
@@ -70,7 +70,7 @@ public class BlockItemService {
     }
 
     @Nullable
-    public BlockItem select(int id) {
+    public BlockItem select(Integer id) {
         return mapper.select(id);
     }
 

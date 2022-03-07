@@ -14,6 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * 站点缓冲 Service
+ *
+ * @author PONY
+ */
 @Service
 public class SiteBufferService {
     private SiteBufferMapper mapper;
@@ -37,7 +42,7 @@ public class SiteBufferService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public long updateViews(int id, int viewsToPlus) {
+    public long updateViews(Integer id, int viewsToPlus) {
         SiteBuffer buffer = mapper.select(id);
         if (buffer == null) {
             return 0;
@@ -47,7 +52,7 @@ public class SiteBufferService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return mapper.delete(id);
     }
 
@@ -57,7 +62,7 @@ public class SiteBufferService {
     }
 
     @Nullable
-    public SiteBuffer select(int id) {
+    public SiteBuffer select(Integer id) {
         return mapper.select(id);
     }
 

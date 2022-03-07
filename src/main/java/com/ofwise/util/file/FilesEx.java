@@ -19,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,6 +29,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author liufang
  */
 public class FilesEx {
+    public static final String SLASH = "/";
+    /**
+     * 双点 .. 代表上级文件夹
+     */
+    public static final String DOUBLE_DOT = "..";
+
     private static final long KB = 1024;
     private static final int THRESHOLD_10 = 10;
     private static final int THRESHOLD_100 = 100;
@@ -36,6 +43,13 @@ public class FilesEx {
     private static final String HTTPS = "https";
     private static final int HTTP_PORT = 80;
     private static final int HTTPS_PORT = 443;
+
+    /**
+     * 正规化 文件名。并且去除可以返回上级的 `..` 字符。
+     */
+    public static String normalize(String filename) {
+        return Optional.ofNullable(FilenameUtils.normalize(StringUtils.remove(filename, DOUBLE_DOT), true)).orElse("");
+    }
 
     public static String getSize(@Nullable Long length) {
         if (length == null) {
@@ -150,7 +164,8 @@ public class FilesEx {
         String baseName = FilenameUtils.getBaseName(tmpFile.getName());
         String suffix = StringUtils.isNotBlank(extension) ? "." + extension : "";
         do {
-            tmpFile = new File(parentDir, baseName + "(" + count++ + ")" + suffix);
+            tmpFile = new File(parentDir, baseName + "(" + count + ")" + suffix);
+            count += 1;
         } while (tmpFile.exists());
         return tmpFile;
     }

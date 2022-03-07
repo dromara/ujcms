@@ -4,7 +4,7 @@
     <id column="id_" jdbcType="INTEGER" property="id" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
-    <result column="type_" jdbcType="TINYINT" property="type" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Group" />
@@ -36,12 +36,12 @@
     update ujcms_group
     set name_ = #{name,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
-      type_ = #{type,jdbcType=TINYINT},
+      type_ = #{type,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.Group">
     insert into ujcms_group (id_, name_, description_, type_, order_)
-    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{type,jdbcType=TINYINT}, #{order,jdbcType=SMALLINT})
+    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.name_, t.description_, t.type_, t.order_
   </sql></mapper>

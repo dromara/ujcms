@@ -32,7 +32,7 @@ public interface ChannelGroupMapper {
      * @param channelId 栏目ID
      * @return 删除条数
      */
-    int delete(@Param("groupId") int groupId, @Param("channelId") int channelId);
+    int delete(@Param("groupId") Integer groupId, @Param("channelId") Integer channelId);
 
     /**
      * 根据查询条件获取列表
@@ -48,5 +48,5 @@ public interface ChannelGroupMapper {
      * @param channelId 栏目ID
      * @return 删除条数
      */
-    int deleteByChannelId(@Param("channelId") int channelId);
+    int deleteByChannelId(@Param("channelId") Integer channelId);
 }

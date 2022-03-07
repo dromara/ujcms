@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -11,10 +12,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.UrlPathHelper;
 import org.springframework.web.util.WebUtils;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -22,11 +23,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,6 +89,15 @@ public class Servlets {
     }
 
     /**
+     * 获取国际化信息
+     */
+    public static String getMessage(HttpServletRequest request, String code, @Nullable Object... args) {
+        return Optional.ofNullable(RequestContextUtils.findWebApplicationContext(request))
+                .map(context -> context.getMessage(code, args, code, RequestContextUtils.getLocale(request)))
+                .orElse(code);
+    }
+
+    /**
      * 获取当前请求的URL，包括QueryString。
      */
     public static String getCurrentUrl(HttpServletRequest request) {
@@ -133,6 +146,28 @@ public class Servlets {
         response.addHeader("Pragma", "no-cache");
         // Http 1.1 header
         response.setHeader("Cache-Control", "no-cache, no-store, max-age=0");
+    }
+
+    /**
+     * 设置让浏览器弹出下载对话框的Header.
+     *
+     * @param filename 下载后的文件名.
+     */
+    public static void setAttachmentHeader(HttpServletResponse response, HttpServletRequest request, String filename) {
+        String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).map(String::toLowerCase).orElse("");
+        String msie10 = "trident", msie = "msie";
+        if (userAgent.indexOf(msie10) > 0 || userAgent.indexOf(msie) > 0) {
+            try {
+                filename = URLEncoder.encode(filename, StandardCharsets.UTF_8.displayName());
+            } catch (UnsupportedEncodingException e) {
+                // never
+            }
+        } else {
+            filename = new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        }
+        response.reset();
+        response.setContentType("application/octet-stream");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
     }
 
 

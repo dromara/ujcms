@@ -14,7 +14,7 @@ public class ArticleStat extends ArticleStatBase implements Serializable {
     public ArticleStat() {
     }
 
-    public ArticleStat(int articleId, int statDay, int views) {
+    public ArticleStat(Integer articleId, int statDay, int views) {
         setArticleId(articleId);
         setStatDay(statDay);
         setViews(views);

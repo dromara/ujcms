@@ -5,9 +5,9 @@
     <result column="site_id_" jdbcType="INTEGER" property="siteId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
-    <result column="type_" jdbcType="TINYINT" property="type" />
-    <result column="mode_" jdbcType="TINYINT" property="mode" />
-    <result column="scope_" jdbcType="TINYINT" property="scope" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="mode_" jdbcType="SMALLINT" property="mode" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
     <result column="path_" jdbcType="VARCHAR" property="path" />
     <result column="url_" jdbcType="VARCHAR" property="url" />
     <result column="attrs_" jdbcType="VARCHAR" property="attrs" />
@@ -42,9 +42,9 @@
     set site_id_ = #{siteId,jdbcType=INTEGER},
       name_ = #{name,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
-      type_ = #{type,jdbcType=TINYINT},
-      mode_ = #{mode,jdbcType=TINYINT},
-      scope_ = #{scope,jdbcType=TINYINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      mode_ = #{mode,jdbcType=SMALLINT},
+      scope_ = #{scope,jdbcType=SMALLINT},
       path_ = #{path,jdbcType=VARCHAR},
       url_ = #{url,jdbcType=VARCHAR},
       attrs_ = #{attrs,jdbcType=VARCHAR},
@@ -52,7 +52,7 @@
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.Storage">
     insert into ujcms_storage (id_, site_id_, name_, description_, type_, mode_, scope_, path_, url_, attrs_, order_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{type,jdbcType=TINYINT}, #{mode,jdbcType=TINYINT}, #{scope,jdbcType=TINYINT}, #{path,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{attrs,jdbcType=VARCHAR}, #{order,jdbcType=SMALLINT})
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{mode,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{path,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{attrs,jdbcType=VARCHAR}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.name_, t.description_, t.type_, t.mode_, t.scope_, t.path_, t.url_, t.attrs_, t.order_
   </sql></mapper>

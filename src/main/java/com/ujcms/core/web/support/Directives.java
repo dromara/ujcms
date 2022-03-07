@@ -1,12 +1,14 @@
 package com.ujcms.core.web.support;
 
-import com.ujcms.core.support.Constants;
 import com.ofwise.util.freemarker.Freemarkers;
 import com.ofwise.util.query.QueryParser;
 import com.ofwise.util.query.QueryUtils;
+import com.ofwise.util.web.PageUrlResolver;
+import com.ujcms.core.support.Constants;
 import freemarker.core.Environment;
 import freemarker.ext.servlet.FreemarkerServlet;
 import freemarker.ext.servlet.HttpRequestHashModel;
+import freemarker.template.AdapterTemplateModel;
 import freemarker.template.TemplateHashModelEx;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
@@ -22,9 +24,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.ujcms.core.support.Frontends.*;
 import static com.ofwise.util.query.QueryUtils.CUSTOMS_PREFIX;
 import static com.ofwise.util.query.QueryUtils.QUERY_PREFIX;
+import static com.ujcms.core.support.Frontends.*;
 
 /**
  * 标签 工具类
@@ -32,9 +34,9 @@ import static com.ofwise.util.query.QueryUtils.QUERY_PREFIX;
  * @author PONY
  */
 public class Directives {
-    public static String getRequestUri(Environment env) throws TemplateModelException {
-        String uri = Freemarkers.getString(env.getDataModel().get(REQUEST_URI));
-        return uri == null ? "" : uri;
+    public static String getUrl(Environment env) throws TemplateModelException {
+        String url = Freemarkers.getString(env.getDataModel().get(URL));
+        return url == null ? "" : url;
     }
 
     @Nullable
@@ -42,12 +44,28 @@ public class Directives {
         return Freemarkers.getString(env.getDataModel().get(QUERY_STRING));
     }
 
-    public static HttpServletRequest getRequest(Environment env) throws TemplateModelException {
+    @Nullable
+    public static PageUrlResolver getPageUrlResolver(Environment env) throws TemplateModelException {
+        TemplateModel model = env.getDataModel().get(PAGE_URL_RESOLVER);
+        if (model instanceof AdapterTemplateModel) {
+            return (PageUrlResolver) ((AdapterTemplateModel) model)
+                    .getAdaptedObject(PageUrlResolver.class);
+        }
+        return null;
+    }
+
+    @Nullable
+    public static HttpServletRequest findRequest(Environment env) throws TemplateModelException {
         TemplateModel model = env.getDataModel().get(FreemarkerServlet.KEY_REQUEST);
         if (model instanceof HttpRequestHashModel) {
             return ((HttpRequestHashModel) model).getRequest();
         }
-        throw new TemplateModelException("'" + FreemarkerServlet.KEY_REQUEST + "' not found in DataModel");
+        return null;
+    }
+
+    public static HttpServletRequest getRequest(Environment env) throws TemplateModelException {
+        return Optional.ofNullable(findRequest(env)).orElseThrow(() ->
+                new TemplateModelException("'" + FreemarkerServlet.KEY_REQUEST + "' not found in DataModel"));
     }
 
     /**
@@ -284,20 +302,17 @@ public class Directives {
     /**
      * 空值为默认值，all 则为 null ，同时支持 false 和 true
      */
-    @SuppressWarnings("AlibabaUndefineMagicConstant")
     @Nullable
     public static Boolean getDefaultBoolean(Map<String, ?> params, String name, boolean defaultValue) {
         String value = getString(params, name);
-        if ("all".equalsIgnoreCase(value)) {
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        String all = "all";
+        if (all.equalsIgnoreCase(value)) {
             return null;
         }
-        if ("false".equalsIgnoreCase(value)) {
-            return Boolean.FALSE;
-        }
-        if ("true".equalsIgnoreCase(value)) {
-            return Boolean.TRUE;
-        }
-        return defaultValue;
+        return Boolean.parseBoolean(value);
     }
 
 
@@ -340,6 +355,29 @@ public class Directives {
         return Freemarkers.required(getOffsetDateTime(params, name), name);
     }
 
+    /**
+     * 页数线程变量
+     */
+    private static ThreadLocal<Integer> totalPagesHolder = new ThreadLocal<>();
+
+    /**
+     * 栏目页分页生成静态页时，无法得到分页标签得到的总页数，需要通过此方法设置总页数，便于生成静态页代码获取。
+     */
+    public static void setTotalPages(Integer totalPages) {
+        totalPagesHolder.set(totalPages);
+    }
+
+    public static Integer getTotalPages() {
+        Integer totalPages = totalPagesHolder.get();
+        if (totalPages == null || totalPages < 1) {
+            totalPages = 1;
+        }
+        return totalPages;
+    }
+
+    public static void clearTotalPages() {
+        totalPagesHolder.remove();
+    }
 
     private Directives() {
     }

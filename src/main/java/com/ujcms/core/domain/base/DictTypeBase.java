@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,57 +18,67 @@ public class DictTypeBase {
     /**
      * 数据字典类型ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 站点ID
      */
-    private int siteId = 0;
+    @NotNull
+    private Integer siteId = 0;
 
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 别名
      */
+    @Length(max = 50)
+    @NotNull
     private String alias = "";
 
     /**
      * 备注
      */
+    @Length(max = 300)
     @Nullable
     private String remark;
 
     /**
      * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
      */
-    private short scope = 0;
+    @NotNull
+    private Short scope = 0;
 
     /**
      * 排列顺序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
     /**
      * 是否系统字典
      */
-    private boolean sys = false;
+    @NotNull
+    private Boolean sys = false;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getSiteId() {
+    public Integer getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(int siteId) {
+    public void setSiteId(Integer siteId) {
         this.siteId = siteId;
     }
 
@@ -95,27 +107,27 @@ public class DictTypeBase {
         this.remark = remark;
     }
 
-    public short getScope() {
+    public Short getScope() {
         return scope;
     }
 
-    public void setScope(short scope) {
+    public void setScope(Short scope) {
         this.scope = scope;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 
-    public boolean isSys() {
+    public Boolean getSys() {
         return sys;
     }
 
-    public void setSys(boolean sys) {
+    public void setSys(Boolean sys) {
         this.sys = sys;
     }
 }

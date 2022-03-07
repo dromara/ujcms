@@ -13,7 +13,7 @@ public class ArticleBuffer extends ArticleBufferBase implements Serializable {
     public ArticleBuffer() {
     }
 
-    public ArticleBuffer(int id) {
+    public ArticleBuffer(Integer id) {
         setId(id);
     }
 }

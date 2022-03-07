@@ -54,7 +54,7 @@ public class GroupService {
 
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return mapper.delete(id);
     }
 
@@ -65,7 +65,7 @@ public class GroupService {
     }
 
     @Nullable
-    public Group select(int id) {
+    public Group select(Integer id) {
         return mapper.select(id);
     }
 

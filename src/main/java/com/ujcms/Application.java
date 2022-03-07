@@ -1,18 +1,13 @@
 package com.ujcms;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.ofwise.util.db.DataScriptInitializer;
 import com.ofwise.util.image.ImageHandler;
 import com.ofwise.util.image.ThumbnailatorHandler;
-import com.ofwise.util.security.CredentialsDigest;
-import com.ofwise.util.security.Pbkdf2WithHmacSha512Digest;
 import com.ofwise.util.security.csrf.CsrfInterceptor;
 import com.ofwise.util.security.jwt.JwtProperties;
 import com.ofwise.util.web.DirectoryRedirectInterceptor;
-import com.ofwise.util.web.JspDispatcherFilter;
 import com.ofwise.util.web.PathResolver;
 import com.ofwise.util.web.TimerInterceptor;
-import com.ujcms.core.security.DbRealm;
 import com.ujcms.core.service.GlobalService;
 import com.ujcms.core.service.SiteQueryService;
 import com.ujcms.core.service.UserService;
@@ -21,22 +16,13 @@ import com.ujcms.core.web.support.BackendInterceptor;
 import com.ujcms.core.web.support.ExceptionResolver;
 import com.ujcms.core.web.support.FrontendInterceptor;
 import com.ujcms.core.web.support.JwtInterceptor;
-import com.ujcms.core.web.support.SiteResolver;
 import com.ujcms.core.web.support.UrlRedirectInterceptor;
 import no.api.freemarker.java8.Java8ObjectWrapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.realm.Realm;
-import org.apache.shiro.spring.web.config.DefaultShiroFilterChainDefinition;
-import org.apache.shiro.spring.web.config.ShiroFilterChainDefinition;
-import org.owasp.html.CssSchema;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
-import org.owasp.html.examples.EbayPolicyExample;
-import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,12 +31,13 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.servlet.Filter;
 import javax.servlet.ServletContext;
+import javax.sql.DataSource;
 
 import static com.ujcms.core.support.UrlConstants.API;
 import static com.ujcms.core.support.UrlConstants.BACKEND_API;
@@ -71,54 +58,11 @@ public class Application extends SpringBootServletInitializer implements WebAppl
     }
 
     /**
-     * 禁止 JSP 访问
-     */
-    @Bean
-    public FilterRegistrationBean<Filter> jspDispatcherFilterRegistrationBean() {
-        Props props = props();
-        FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
-        filterRegistration.setFilter(new JspDispatcherFilter());
-        filterRegistration.setEnabled(true);
-        filterRegistration.addUrlPatterns("*.jsp");
-        filterRegistration.addUrlPatterns("*.jspx");
-        if (props.isJspAllowed()) {
-            filterRegistration.addInitParameter("allowed", "true");
-        }
-        return filterRegistration;
-    }
-
-    /**
      * 设备识别器，用于识别是否手机访问
      */
     @Bean
     public LiteDeviceResolver liteDeviceResolver() {
         return new LiteDeviceResolver();
-    }
-
-    /**
-     * 密码加密组件
-     */
-    @Bean
-    public CredentialsDigest credentialsDigest() {
-        return new Pbkdf2WithHmacSha512Digest();
-    }
-
-    /**
-     * HTML过滤器。防止跨站攻击。
-     */
-    @Bean
-    public PolicyFactory policyFactory() {
-        return EbayPolicyExample.POLICY_DEFINITION.and(new HtmlPolicyBuilder()
-                // 允许视频元素
-                .allowAttributes("controls", "preload", "width", "height", "src").onElements("video")
-                .allowAttributes("src", "type").onElements("source")
-                .allowElements("video", "source")
-                // 允许浮动样式
-                .allowStyling(CssSchema.withProperties(ImmutableSet.of("float")))
-                // tinymce 编辑器的图片居中要使用到display:block，而display:none可以隐形内容，所以只允许display:block。
-                .allowStyling(CssSchema.withProperties(ImmutableMap.of("display",
-                        new CssSchema.Property(0, ImmutableSet.of("block"), ImmutableMap.of()))))
-                .toFactory());
     }
 
     /**
@@ -137,40 +81,21 @@ public class Application extends SpringBootServletInitializer implements WebAppl
         return new ThumbnailatorHandler();
     }
 
-    @Bean
-    public Realm realm(UserService userService) {
-        return new DbRealm(credentialsDigest(), userService);
-    }
-
     /**
-     * 这个对象在 shiro boot 里面有定义，但为了加上"proxyTargetClass=true"，必须重新定义。
-     * 为了方便 service 层直接用类，没有使用接口，所以必须加上 "proxyTargetClass=true"。
+     * 数据初始化
      */
     @Bean
-    @DependsOn("lifecycleBeanPostProcessor")
-    public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator() {
-        DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
-        advisorAutoProxyCreator.setProxyTargetClass(true);
-        return advisorAutoProxyCreator;
-    }
-
-    @Bean
-    public ShiroFilterChainDefinition shiroFilterChainDefinition() {
-        DefaultShiroFilterChainDefinition chainDefinition = new DefaultShiroFilterChainDefinition();
-        chainDefinition.addPathDefinition("/logout", "logout");
-        chainDefinition.addPathDefinition("/my/**", "user");
-        chainDefinition.addPathDefinition("/**", "anon");
-        return chainDefinition;
-    }
-
-    @Bean
-    public SiteResolver siteResolver(SiteQueryService siteService, GlobalService globalService) {
-        return new SiteResolver(siteService, globalService);
+    @DependsOn("liquibase")
+    @ConditionalOnProperty(prefix = "ujcms", name = "data-sql-enabled", matchIfMissing = true)
+    public DataScriptInitializer databaseInitializer(Props props,
+                                                     DataSource dataSource, ResourceLoader resourceLoader) {
+        return new DataScriptInitializer(dataSource, resourceLoader, "ujcms_global", props.getDataSqlPlatform());
     }
 
     @Configuration
     public static class WebConfigurer implements WebMvcConfigurer, InitializingBean {
-        private SiteQueryService siteService;
+        private UserService userService;
+        private SiteQueryService siteQueryService;
         private GlobalService globalService;
         private Props props;
         private DeviceResolver deviceResolver;
@@ -178,10 +103,11 @@ public class Application extends SpringBootServletInitializer implements WebAppl
         private ServletContext servletContext;
         private freemarker.template.Configuration configuration;
 
-        public WebConfigurer(SiteQueryService siteService, GlobalService globalService, Props props,
-                             DeviceResolver deviceResolver, ResourceLoader resourceLoader,
+        public WebConfigurer(UserService userService, SiteQueryService siteQueryService, GlobalService globalService,
+                             Props props, DeviceResolver deviceResolver, ResourceLoader resourceLoader,
                              ServletContext servletContext, freemarker.template.Configuration configuration) {
-            this.siteService = siteService;
+            this.userService = userService;
+            this.siteQueryService = siteQueryService;
             this.globalService = globalService;
             this.props = props;
             this.deviceResolver = deviceResolver;
@@ -219,7 +145,7 @@ public class Application extends SpringBootServletInitializer implements WebAppl
          */
         @Bean
         public JwtInterceptor jwtInterceptor() {
-            return new JwtInterceptor(jwtProperties());
+            return new JwtInterceptor(jwtProperties(), userService);
         }
 
         /**
@@ -235,7 +161,7 @@ public class Application extends SpringBootServletInitializer implements WebAppl
          */
         @Bean
         public BackendInterceptor backendInterceptor() {
-            return new BackendInterceptor(siteService, props);
+            return new BackendInterceptor(siteQueryService, props);
         }
 
         /**
@@ -280,6 +206,12 @@ public class Application extends SpringBootServletInitializer implements WebAppl
             // 前台拦截器
             registry.addInterceptor(urlRedirectInterceptor()).excludePathPatterns(API + "/**", "/error/**", "/**/*.*");
             registry.addInterceptor(frontendInterceptor()).excludePathPatterns(API + "/**", "/error/**", "/**/*.*");
+        }
+
+        @Override
+        public void addCorsMappings(CorsRegistry registry) {
+            // 允许 api 跨域
+//            registry.addMapping(API + "/**").allowedOrigins("*");
         }
 
         @Override

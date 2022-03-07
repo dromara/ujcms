@@ -50,7 +50,7 @@ public class ModelController {
 
     @GetMapping("{id}")
     @RequiresPermissions("model:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Model bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Model not found. ID = " + id);
@@ -82,9 +82,9 @@ public class ModelController {
 
     @PutMapping("order")
     @RequiresPermissions("model:update")
-    public ResponseEntity<Body> updateOrder(@RequestBody int[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<Model> list = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             Model bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("Model not found. ID = " + id);

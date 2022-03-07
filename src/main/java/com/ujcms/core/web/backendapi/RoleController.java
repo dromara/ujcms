@@ -47,7 +47,7 @@ public class RoleController {
 
     @GetMapping("{id}")
     @RequiresPermissions("role:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Role bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Role not found. ID = " + id);
@@ -77,9 +77,9 @@ public class RoleController {
 
     @PutMapping("order")
     @RequiresPermissions("role:update")
-    public ResponseEntity<Body> updateOrder(@RequestBody int[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<Role> list = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             Role bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("Role not found. ID = " + id);

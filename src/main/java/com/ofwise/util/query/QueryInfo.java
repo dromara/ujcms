@@ -38,6 +38,7 @@ public class QueryInfo {
     }
 
     public void setOrderBy(@Nullable String orderBy) {
+        QueryUtils.validateOrderBy(orderBy);
         this.orderBy = orderBy;
     }
 
@@ -104,6 +105,7 @@ public class QueryInfo {
         private Object value;
 
         public WhereCondition(String column, String operator, @Nullable Object value) {
+            QueryUtils.validateField(column);
             this.column = column;
             this.operator = operator;
             this.value = value;
@@ -141,6 +143,10 @@ public class QueryInfo {
         private String leftId;
 
         public JoinTable(String tableName, String tableAlias, String leftId, String rightId) {
+            QueryUtils.validateTable(tableName);
+            QueryUtils.validateTable(tableAlias);
+            QueryUtils.validateField(leftId);
+            QueryUtils.validateField(rightId);
             this.tableName = tableName;
             this.tableAlias = tableAlias;
             this.leftId = leftId;

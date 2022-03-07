@@ -7,7 +7,7 @@
     <result column="description_" jdbcType="VARCHAR" property="description" />
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
-    <result column="permission_" jdbcType="CLOB" property="permission" />
+    <result column="permission_" jdbcType="LONGVARCHAR" property="permission" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Role" />
     <select id="listByUserId" resultMap="ResultMap">
@@ -41,11 +41,11 @@
       description_ = #{description,jdbcType=VARCHAR},
       rank_ = #{rank,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=SMALLINT},
-      permission_ = #{permission,jdbcType=CLOB}
+      permission_ = #{permission,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.Role">
     insert into ujcms_role (id_, site_id_, name_, description_, rank_, order_, permission_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{rank,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{permission,jdbcType=CLOB})
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{rank,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{permission,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.name_, t.description_, t.rank_, t.order_, t.permission_
   </sql></mapper>

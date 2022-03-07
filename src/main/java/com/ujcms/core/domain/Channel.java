@@ -2,13 +2,18 @@ package com.ujcms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.ofwise.util.web.HtmlUtils;
+import com.ofwise.util.web.PageUrlResolver;
 import com.ujcms.core.domain.base.ChannelBase;
 import com.ujcms.core.domain.base.GroupBase;
+import com.ujcms.core.support.Anchor;
+import com.ujcms.core.support.Contexts;
 import com.ujcms.core.support.UrlConstants;
-import com.ofwise.util.web.HtmlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -23,19 +28,73 @@ import java.util.stream.Collectors;
  *
  * @author PONY
  */
-public class Channel extends ChannelBase implements Serializable {
+public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Serializable {
+    @Override
     public String getUrl() {
-        String linkUrl = getSite().getLinkUrl(getExt().getLinkUrl());
-        if (linkUrl != null) {
-            return linkUrl;
-        }
-        String prefix = Optional.ofNullable(getSite().getGlobal().getChannelUrl()).orElse(UrlConstants.CHANNEL);
-        return getSite().getUrl(prefix + "/" + getAlias());
+        return getUrl(1);
     }
 
-    @Nullable
+    @Override
+    public String getUrl(int page) {
+        return getSite().getHtml().isEnabled() ? getStaticUrl(page) : getDynamicUrl(page);
+    }
+
+    public String getDynamicUrl() {
+        return getDynamicUrl(1);
+    }
+
+    @Override
+    public String getDynamicUrl(int page) {
+        if (StringUtils.isNotBlank(getLinkUrl())) {
+            return getSite().assembleLinkUrl(getLinkUrl());
+        }
+        String prefix = Optional.ofNullable(getSite().getGlobal().getChannelUrl()).orElse(UrlConstants.CHANNEL);
+        String url = getSite().getDynamicUrl() + prefix + "/" + getAlias();
+        if (page <= 1) {
+            return url;
+        }
+        return url + "_" + page;
+    }
+
+    public String getStaticUrl() {
+        return getStaticUrl(1);
+    }
+
+    public String getStaticUrl(int page) {
+        return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
+    }
+
+    public String getNormalStaticUrl(int page) {
+        return getSite().getNormalStaticUrl(getChannelUrl(page));
+    }
+
+    public String getMobileStaticUrl(int page) {
+        return getSite().getMobileStaticUrl(getChannelUrl(page));
+    }
+
+    private String getChannelUrl(int page) {
+        return getSite().getHtml().getChannelUrl(getId(), getAlias(), page);
+    }
+
+    public String getNormalStaticPath(int page) {
+        return getSite().getNormalStaticPath(getChannelPath(page));
+    }
+
+    public String getMobileStaticPath(int page) {
+        return getSite().getMobileStaticPath(getChannelPath(page));
+    }
+
+    private String getChannelPath(int page) {
+        return getSite().getHtml().getChannelPath(getId(), getAlias(), page);
+    }
+
+    @JsonIgnore
     public String getTemplate() {
-        return getSite().getTemplate(getExt().getChannelTemplate());
+        String template = getChannelTemplate();
+        if (StringUtils.isBlank(template)) {
+            template = "channel";
+        }
+        return getSite().assembleTemplate(template);
     }
 
     @JsonIncludeProperties({"id", "name", "url"})
@@ -253,6 +312,15 @@ public class Channel extends ChannelBase implements Serializable {
         return Objects.hash(getId());
     }
 
+    // Channel 对象属性
+
+    @Override
+    @NotNull
+    @Pattern(regexp = "^[\\w-]*$")
+    public String getAlias() {
+        return super.getAlias();
+    }
+
     // ChannelExt 对象属性
 
     @Nullable
@@ -283,6 +351,7 @@ public class Channel extends ChannelBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getArticleTemplate() {
         return getExt().getArticleTemplate();
     }
@@ -292,6 +361,7 @@ public class Channel extends ChannelBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getChannelTemplate() {
         return getExt().getChannelTemplate();
     }
@@ -326,32 +396,33 @@ public class Channel extends ChannelBase implements Serializable {
         getExt().setLinkUrl(linkUrl);
     }
 
-    public boolean isTargetBlank() {
-        return getExt().isTargetBlank();
+    @Override
+    public Boolean getTargetBlank() {
+        return getExt().getTargetBlank();
     }
 
     public void setTargetBlank(boolean targetBlank) {
         getExt().setTargetBlank(targetBlank);
     }
 
-    public boolean isAllowComment() {
-        return getExt().isAllowComment();
+    public Boolean getAllowComment() {
+        return getExt().getAllowComment();
     }
 
     public void setAllowComment(boolean allowComment) {
         getExt().setAllowComment(allowComment);
     }
 
-    public boolean isAllowContribute() {
-        return getExt().isAllowContribute();
+    public Boolean isAllowContribute() {
+        return getExt().getAllowContribute();
     }
 
     public void setAllowContribute(boolean allowContribute) {
         getExt().setAllowContribute(allowContribute);
     }
 
-    public boolean isAllowSearch() {
-        return getExt().isAllowSearch();
+    public Boolean isAllowSearch() {
+        return getExt().getAllowSearch();
     }
 
     public void setAllowSearch(boolean allowSearch) {

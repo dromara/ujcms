@@ -6,8 +6,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ujcms.core.domain.base.GlobalBase;
 import com.ujcms.core.support.Constants;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +23,7 @@ import java.util.StringJoiner;
  *
  * @author PONY
  */
-@JsonIgnoreProperties({"uploadSettings", "registerSettings", "emailSettings", "customsSettings"})
+@JsonIgnoreProperties({"secret", "uploadSettings", "registerSettings", "emailSettings", "customsSettings"})
 public class Global extends GlobalBase implements Serializable {
     /**
      * 获取所有字段中的附件
@@ -49,13 +51,17 @@ public class Global extends GlobalBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Upload.class);
         } catch (JsonProcessingException e) {
-            return new Upload();
+            throw new RuntimeException("Cannot read value of Upload: " + settings, e);
         }
     }
 
-    public void setUpload(Upload upload) throws JsonProcessingException {
+    public void setUpload(Upload upload) {
         this.upload = upload;
-        setUploadSettings(Constants.MAPPER.writeValueAsString(upload));
+        try {
+            setUploadSettings(Constants.MAPPER.writeValueAsString(upload));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of Upload", e);
+        }
     }
 
     @Nullable
@@ -73,13 +79,17 @@ public class Global extends GlobalBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Map.class);
         } catch (JsonProcessingException e) {
-            return Collections.emptyMap();
+            throw new RuntimeException("Cannot read value of Customs: " + settings, e);
         }
     }
 
-    public void setCustoms(Map<String, Object> customs) throws JsonProcessingException {
+    public void setCustoms(Map<String, Object> customs) {
         this.customs = customs;
-        setCustomsSettings(Constants.MAPPER.writeValueAsString(customs));
+        try {
+            setCustomsSettings(Constants.MAPPER.writeValueAsString(customs));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of Customs", e);
+        }
     }
 
     public static class Upload implements Serializable {
@@ -263,5 +273,21 @@ public class Global extends GlobalBase implements Serializable {
 
     public void setModel(Model model) {
         this.model = model;
+    }
+
+    @Nullable
+    @Override
+    @Length(max = 50)
+    @Pattern(regexp = "^[\\w-]*$")
+    public String getChannelUrl() {
+        return super.getChannelUrl();
+    }
+
+    @Nullable
+    @Override
+    @Length(max = 50)
+    @Pattern(regexp = "^[\\w-]*$")
+    public String getArticleUrl() {
+        return super.getArticleUrl();
     }
 }

@@ -39,7 +39,7 @@ public interface ChannelCustomMapper {
      * @param channelId 文章ID
      * @return 删除条数
      */
-    int deleteByChannelId(int channelId);
+    int deleteByChannelId(Integer channelId);
 
     /**
      * 根据栏目ID获取列表
@@ -47,5 +47,5 @@ public interface ChannelCustomMapper {
      * @param channelId 栏目ID
      * @return 数据列表
      */
-    List<ArticleCustom> listByChannelId(int channelId);
+    List<ArticleCustom> listByChannelId(Integer channelId);
 }

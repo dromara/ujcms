@@ -40,7 +40,7 @@ public interface GroupMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(int id);
+    int delete(Integer id);
 
     /**
      * 根据主键获取数据
@@ -49,7 +49,7 @@ public interface GroupMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Group select(int id);
+    Group select(Integer id);
 
     /**
      * 根据查询条件获取列表
@@ -65,5 +65,5 @@ public interface GroupMapper {
      * @param channelId 栏目ID
      * @return 数据列表
      */
-    List<Role> listByChannelId(int channelId);
+    List<Role> listByChannelId(Integer channelId);
 }

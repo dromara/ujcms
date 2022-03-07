@@ -36,10 +36,10 @@
         [#list channel.articleModel.fieldList?filter(field->['radio','checkbox','select','multipleSelect']?seqContains(field.type)) as field]
           <div class="py-1 border-bottom">
             [#assign param=field.code/]
-            <a href="${addParam(param)}" class="btn btn-sm[#if !Params[param]??] btn-secondary[#else] btn-link text-reset[/#if]">全部${field.name}</a>
+            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="btn btn-sm[#if !Params[param]??] btn-secondary[#else] btn-link text-reset[/#if]">全部${field.name}</a>
             [@DictList typeId=field.dictTypeId; list]
               [#list list as dict]
-                <a href="${addParam(param,dict.name)}"
+                <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.name)}"
                    class="btn btn-sm [#if Params[param]! == dict.name]btn-secondary[#else]btn-link text-reset[/#if]">${dict.name}</a>
               [/#list]
             [/@DictList]
@@ -60,7 +60,7 @@
                   </div>
                 </div>
                 <div class="card-body p-2">
-                  <p class="card-text text-truncate"><a href="${bean.url}" class="text-reset stretched-link">${bean.title}</a></p>
+                  <p class="card-text text-truncate">[@A bean=bean class="text-reset stretched-link"/]</p>
                 </div>
               </div>
             </div>
@@ -72,6 +72,6 @@
   </div>
 </div>
 [#include 'includes_footer.html'/]
-<script>axios.post('${ctx}/api/channel/view/${channel.id}');</script>
+<script>axios.get('${api}/channel/view/${channel.id}');</script>
 </body>
 </html>

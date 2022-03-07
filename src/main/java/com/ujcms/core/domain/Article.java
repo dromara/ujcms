@@ -3,14 +3,18 @@ package com.ujcms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.core.domain.base.ArticleBase;
-import com.ujcms.core.support.UrlConstants;
 import com.ofwise.util.file.FilesEx;
 import com.ofwise.util.web.HtmlUtils;
+import com.ofwise.util.web.PageUrlResolver;
+import com.ujcms.core.domain.base.ArticleBase;
+import com.ujcms.core.support.Anchor;
+import com.ujcms.core.support.Contexts;
+import com.ujcms.core.support.UrlConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -24,29 +28,81 @@ import java.util.Optional;
  * @author PONY
  */
 @JsonIgnoreProperties("handler")
-public class Article extends ArticleBase implements Serializable {
+public class Article extends ArticleBase implements PageUrlResolver, Anchor, Serializable {
+    @Override
     public String getUrl() {
-        String linkUrl = getSite().getLinkUrl(getExt().getLinkUrl());
-        if (linkUrl != null) {
-            return linkUrl;
+        return getUrl(1);
+    }
+
+    @Override
+    public String getUrl(int page) {
+        return getSite().getHtml().isEnabled() ? getStaticUrl(page) : getDynamicUrl(page);
+    }
+
+    public String getDynamicUrl() {
+        return getDynamicUrl(1);
+    }
+
+    @Override
+    public String getDynamicUrl(int page) {
+        if (StringUtils.isNotBlank(getLinkUrl())) {
+            return getSite().assembleLinkUrl(getLinkUrl());
         }
-        StringBuilder buff = new StringBuilder();
+        StringBuilder buff = new StringBuilder(getSite().getDynamicUrl());
         String prefix = Optional.ofNullable(getSite().getGlobal().getArticleUrl()).orElse(UrlConstants.ARTICLE);
         buff.append(prefix).append("/").append(getId());
         String alias = getExt().getAlias();
         if (alias != null) {
             buff.append("/").append(alias);
         }
-        return getSite().getUrl(buff.toString());
+        if (page > 1) {
+            buff.append("_").append(page);
+        }
+        return buff.toString();
     }
 
-    @Nullable
+    public String getStaticUrl(int page) {
+        return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
+    }
+
+    public String getNormalStaticUrl(int page) {
+        return getSite().getNormalStaticUrl(getArticlePath(page));
+    }
+
+    public String getMobileStaticUrl(int page) {
+        return getSite().getMobileStaticUrl(getArticlePath(page));
+    }
+
+    private String getArticlePath(int page) {
+        return getSite().getHtml().getArticlePath(
+                getChannelId(), getChannel().getAlias(), getId(), getAlias(), getCreated(), page);
+    }
+
+    public String getNormalStaticPath(int page) {
+        return getSite().getNormalStaticPath(getArticlePath(page));
+    }
+
+    public String getMobileStaticPath(int page) {
+        return getSite().getMobileStaticPath(getArticlePath(page));
+    }
+
+    @JsonIgnore
+    @Override
+    public String getName() {
+        return getTitle();
+    }
+
+    @JsonIgnore
     public String getTemplate() {
-        String template = getExt().getArticleTemplate();
+        String template = getArticleTemplate();
         if (StringUtils.isBlank(template)) {
-            template = getChannel().getExt().getArticleTemplate();
+            template = getChannel().getArticleTemplate();
+            // 默认模板名为 article
+            if (StringUtils.isBlank(template)) {
+                template = "article";
+            }
         }
-        return getSite().getTemplate(template);
+        return getSite().assembleTemplate(template);
     }
 
     /**
@@ -299,6 +355,7 @@ public class Article extends ArticleBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^[\\w-]*$")
     public String getAlias() {
         return getExt().getAlias();
     }
@@ -316,8 +373,9 @@ public class Article extends ArticleBase implements Serializable {
         getExt().setLinkUrl(linkUrl);
     }
 
-    public boolean isTargetBlank() {
-        return getExt().isTargetBlank();
+    @Override
+    public Boolean getTargetBlank() {
+        return getExt().getTargetBlank();
     }
 
     public void setTargetBlank(boolean targetBlank) {
@@ -388,6 +446,7 @@ public class Article extends ArticleBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getImage() {
         return getExt().getImage();
     }
@@ -397,6 +456,7 @@ public class Article extends ArticleBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getVideo() {
         return getExt().getVideo();
     }
@@ -415,6 +475,7 @@ public class Article extends ArticleBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getFile() {
         return getExt().getFile();
     }
@@ -442,6 +503,7 @@ public class Article extends ArticleBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getDoc() {
         return getExt().getDoc();
     }
@@ -469,6 +531,7 @@ public class Article extends ArticleBase implements Serializable {
     }
 
     @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getArticleTemplate() {
         return getExt().getArticleTemplate();
     }
@@ -477,8 +540,8 @@ public class Article extends ArticleBase implements Serializable {
         getExt().setArticleTemplate(articleTemplate);
     }
 
-    public boolean isAllowComment() {
-        return getExt().isAllowComment();
+    public Boolean getAllowComment() {
+        return getExt().getAllowComment();
     }
 
     public void setAllowComment(boolean allowComment) {

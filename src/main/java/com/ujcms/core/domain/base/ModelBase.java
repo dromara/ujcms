@@ -1,5 +1,7 @@
 package com.ujcms.core.domain.base;
 
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 /**
@@ -16,7 +18,8 @@ public class ModelBase {
     /**
      * 模型ID
      */
-    private int id = 0;
+    @NotNull
+    private Integer id = 0;
 
     /**
      * 站点ID
@@ -27,22 +30,28 @@ public class ModelBase {
     /**
      * 名称
      */
+    @Length(max = 50)
+    @NotNull
     private String name = "";
 
     /**
      * 类型(,article:文章,channel:栏目,user:用户,site:站点设置,global:全局设置)
      */
+    @Length(max = 10)
+    @NotNull
     private String type = "";
 
     /**
      * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
      */
-    private short scope = 0;
+    @NotNull
+    private Short scope = 0;
 
     /**
      * 排列顺序
      */
-    private short order = 32767;
+    @NotNull
+    private Short order = 32767;
 
     /**
      * 主字段集
@@ -62,11 +71,11 @@ public class ModelBase {
     @Nullable
     private String customs;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -95,19 +104,19 @@ public class ModelBase {
         this.type = type;
     }
 
-    public short getScope() {
+    public Short getScope() {
         return scope;
     }
 
-    public void setScope(short scope) {
+    public void setScope(Short scope) {
         this.scope = scope;
     }
 
-    public short getOrder() {
+    public Short getOrder() {
         return order;
     }
 
-    public void setOrder(short order) {
+    public void setOrder(Short order) {
         this.order = order;
     }
 

@@ -1,5 +1,6 @@
 package com.ofwise.util.freemarker;
 
+import com.ofwise.util.web.PageUrlResolver;
 import com.ujcms.core.web.support.Directives;
 import freemarker.core.Environment;
 import freemarker.template.TemplateMethodModelEx;
@@ -36,17 +37,24 @@ public class PagingMethod implements TemplateMethodModelEx {
             // 删除原有page。page=3&page=4&page=10&page=0
             queryString = pattern.matcher(queryString).replaceAll("");
         }
-        String uri = Directives.getRequestUri(env);
+        PageUrlResolver pageUrlResolver = Directives.getPageUrlResolver(env);
+        if (pageUrlResolver != null) {
+            if (StringUtils.isNotBlank(queryString)) {
+                return pageUrlResolver.getDynamicUrl(page != null ? page : 1) + "?" + queryString;
+            }
+            return pageUrlResolver.getUrl(page != null ? page : 1);
+        }
+        String url = Directives.getUrl(env);
         if (page == null || page <= 1) {
             if (StringUtils.isNotBlank(queryString)) {
-                return uri + "?" + queryString;
+                return url + "?" + queryString;
             }
-            return uri;
+            return url;
         }
         if (StringUtils.isNotBlank(queryString)) {
-            return uri + "?" + queryString + "&" + param + "=" + page;
+            return url + "?" + queryString + "&" + param + "=" + page;
         }
-        return uri + "?" + param + "=" + page;
+        return url + "?" + param + "=" + page;
     }
 
     private String param;

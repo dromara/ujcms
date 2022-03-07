@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 
@@ -27,22 +28,27 @@ public class AddParamMethod implements TemplateMethodModelEx {
     @Override
     public Object exec(List args) throws TemplateModelException {
         int argsSize = args.size();
-        int minArgsSize = 1;
+        int minArgsSize = 3;
         if (argsSize < minArgsSize) {
             throw new TemplateModelException("Arguments size must greater or equal to " + minArgsSize);
         }
+        Environment env = Environment.getCurrentEnvironment();
+        String envUrl = Directives.getUrl(env);
+        // 获取URL
+        String url = Optional.ofNullable(Freemarkers.getString((TemplateModel) args.get(0))).orElse(envUrl);
+        // 获取动态URL
+        String dynamicUrl = Optional.ofNullable(Freemarkers.getString((TemplateModel) args.get(1))).orElse(envUrl);
         // 获取参数名称
-        String name = Freemarkers.getStringRequired((TemplateModel) args.get(0), "arg0");
+        String name = Freemarkers.getStringRequired((TemplateModel) args.get(2), "arg2");
         // 获取参数值，可以有多个。
         List<String> values = new ArrayList<>(argsSize - 1);
-        for (int i = 1; i < argsSize; i++) {
+        for (int i = minArgsSize; i < argsSize; i++) {
             String value = Freemarkers.getString((TemplateModel) args.get(i));
             if (StringUtils.isNotBlank(value)) {
                 values.add(value);
             }
         }
 
-        Environment env = Environment.getCurrentEnvironment();
         String queryString = StringUtils.trim(Directives.getQueryString(env));
         if (StringUtils.isNotBlank(queryString)) {
             // 删除原有param
@@ -50,11 +56,10 @@ public class AddParamMethod implements TemplateMethodModelEx {
             queryString = pattern.matcher(queryString).replaceAll("");
             queryString = pagePattern.matcher(queryString).replaceAll("");
         }
-        String uri = Directives.getRequestUri(env);
-        StringBuilder buff = new StringBuilder(uri);
-        if (StringUtils.isNotBlank(queryString) || !values.isEmpty()) {
-            buff.append("?");
+        if (StringUtils.isBlank(queryString) && values.isEmpty()) {
+            return url;
         }
+        StringBuilder buff = new StringBuilder(dynamicUrl).append("?");
         if (StringUtils.isNotBlank(queryString)) {
             buff.append(StringUtils.removeStart(queryString, "&"));
             if (!values.isEmpty()) {

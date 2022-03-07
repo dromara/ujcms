@@ -7,31 +7,23 @@ import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * FreeMarker java8 日期格式化。解决 freemarker-java-8 不支持 Instant 的问题，
  * 以及 PostgreSQL 的 OffsetDateTime 不含正确时区的问题。
  * <ul>
- *     <li>支持 Instant。使用 JVM 默认 TimeZone。
- *     <li>支持 OffsetDateTime。使用 JVM 默认 TimeZone。不使用 OffsetDateTime 自带的 TimeZone，因为PostgreSQL返回的
- *     OffsetDateTime 不带 TimeZone 信息，使用标准 UTC。
- *     <li>支持 ZonedDateTime。使用 ZonedDateTime 自带的 TimeZone 信息。
+ * <li>支持 Instant。使用 JVM 默认 TimeZone。
+ * <li>支持 OffsetDateTime。使用 JVM 默认 TimeZone。不使用 OffsetDateTime 自带的 TimeZone，因为PostgreSQL返回的
+ * OffsetDateTime 不带 TimeZone 信息，使用标准 UTC。
+ * <li>支持 ZonedDateTime。使用 ZonedDateTime 自带的 TimeZone 信息。
  * </ul>
  *
  * @author liufang
@@ -62,7 +54,8 @@ public class FormatMethod implements TemplateMethodModelEx {
         String pattern = Freemarkers.getStringRequired((TemplateModel) args.get(1), "arg1");
 
         Environment env = Environment.getCurrentEnvironment();
-        Locale locale = RequestContextUtils.getLocale(Directives.getRequest(env));
+        Locale locale = Optional.ofNullable(Directives.findRequest(env)).map(RequestContextUtils::getLocale)
+                .orElse(Locale.CHINA);
 
         DateTimeFormatter formatter = defaultOrPatternFormatted(pattern, locale);
         return formatter.format(zonedTime(date, ZoneId.systemDefault()));
@@ -75,7 +68,7 @@ public class FormatMethod implements TemplateMethodModelEx {
      * @param defaultZoneId the default value for ZoneId
      * @return a Temporal object
      */
-    public static ZonedDateTime zonedTime(final Object target, final ZoneId defaultZoneId) {
+    private static ZonedDateTime zonedTime(final Object target, final ZoneId defaultZoneId) {
         Objects.requireNonNull(target, "Target cannot be null");
         Objects.requireNonNull(defaultZoneId, "ZoneId cannot be null");
         if (target instanceof Instant) {

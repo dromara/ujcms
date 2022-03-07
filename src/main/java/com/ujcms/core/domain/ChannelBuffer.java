@@ -13,7 +13,7 @@ public class ChannelBuffer extends ChannelBufferBase implements Serializable {
     public ChannelBuffer() {
     }
 
-    public ChannelBuffer(int id) {
+    public ChannelBuffer(Integer id) {
         setId(id);
     }
 }

@@ -14,6 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * 栏目缓冲 Service
+ *
+ * @author PONY
+ */
 @Service
 public class ChannelBufferService {
     private ChannelBufferMapper mapper;
@@ -37,7 +42,7 @@ public class ChannelBufferService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public long updateViews(int id, int viewsToPlus) {
+    public long updateViews(Integer id, int viewsToPlus) {
         ChannelBuffer buffer = mapper.select(id);
         if (buffer == null) {
             return 0;
@@ -47,7 +52,7 @@ public class ChannelBufferService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return mapper.delete(id);
     }
 
@@ -57,7 +62,7 @@ public class ChannelBufferService {
     }
 
     @Nullable
-    public ChannelBuffer select(int id) {
+    public ChannelBuffer select(Integer id) {
         return mapper.select(id);
     }
 

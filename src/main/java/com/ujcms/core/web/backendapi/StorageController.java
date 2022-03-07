@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class StorageController {
 
     @GetMapping("{id}")
     @RequiresPermissions("storage:show")
-    public Object show(@PathVariable int id) {
+    public Object show(@PathVariable Integer id) {
         Storage bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Storage not found. ID = " + id);
@@ -59,7 +60,7 @@ public class StorageController {
 
     @PostMapping
     @RequiresPermissions("storage:create")
-    public ResponseEntity<Body> create(@RequestBody Storage bean) {
+    public ResponseEntity<Body> create(@RequestBody @Valid Storage bean) {
         Site site = Contexts.getCurrentSite();
         bean.setSiteId(site.getId());
         service.insert(bean);
@@ -68,7 +69,7 @@ public class StorageController {
 
     @PutMapping
     @RequiresPermissions("storage:update")
-    public ResponseEntity<Body> update(@RequestBody Storage bean) {
+    public ResponseEntity<Body> update(@RequestBody @Valid Storage bean) {
         Storage storage = service.select(bean.getId());
         if (storage == null) {
             return Responses.notFound("Storage not found. ID = " + bean.getId());
@@ -80,9 +81,9 @@ public class StorageController {
 
     @PutMapping("order")
     @RequiresPermissions("storage:update")
-    public ResponseEntity<Body> updateOrder(@RequestBody int[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<Storage> list = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             Storage bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("Storage not found. ID = " + id);

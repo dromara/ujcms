@@ -39,7 +39,7 @@ public interface ArticleCustomMapper {
      * @param articleId 文章ID
      * @return 删除条数
      */
-    int deleteByArticleId(int articleId);
+    int deleteByArticleId(Integer articleId);
 
     /**
      * 根据文章ID获取列表
@@ -47,5 +47,5 @@ public interface ArticleCustomMapper {
      * @param articleId 文章ID
      * @return 数据列表
      */
-    List<ArticleCustom> listByArticleId(int articleId);
+    List<ArticleCustom> listByArticleId(Integer articleId);
 }

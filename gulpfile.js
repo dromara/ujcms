@@ -23,6 +23,7 @@ function copy(done) {
     .pipe(gulp.dest(theme + '/_files/vendor/fontawesome-free/'))
     .pipe(gulp.dest(errorTheme + '/_files/vendor/fontawesome-free/'));
   gulp.src('node_modules/axios/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/axios/dist/'));
+  gulp.src('node_modules/es6-promise-polyfill/promise.*').pipe(gulp.dest(theme + '/_files/vendor/es6-promise-polyfill/'));
   gulp.src('node_modules/photoswipe/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/photoswipe/dist/'));
   gulp.src('node_modules/pdfjs-dist/build/**/*').pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/build/'));
   // bootstrap 需要编译，必须确保复制完成，再进行下一个任务

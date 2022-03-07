@@ -13,7 +13,7 @@ public class ChannelGroup extends ChannelGroupBase implements Serializable {
     public ChannelGroup() {
     }
 
-    public ChannelGroup(int channelId, int groupId) {
+    public ChannelGroup(Integer channelId, Integer groupId) {
         setChannelId(channelId);
         setGroupId(groupId);
     }

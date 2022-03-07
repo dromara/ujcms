@@ -5,11 +5,11 @@
     <result column="site_id_" jdbcType="INTEGER" property="siteId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="type_" jdbcType="VARCHAR" property="type" />
-    <result column="scope_" jdbcType="TINYINT" property="scope" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
-    <result column="mains_" jdbcType="CLOB" property="mains" />
-    <result column="asides_" jdbcType="CLOB" property="asides" />
-    <result column="customs_" jdbcType="CLOB" property="customs" />
+    <result column="mains_" jdbcType="LONGVARCHAR" property="mains" />
+    <result column="asides_" jdbcType="LONGVARCHAR" property="asides" />
+    <result column="customs_" jdbcType="LONGVARCHAR" property="customs" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.core.domain.Model" />
     <select id="selectGlobalModel" resultMap="ResultMap">
@@ -47,15 +47,15 @@
     set site_id_ = #{siteId,jdbcType=INTEGER},
       name_ = #{name,jdbcType=VARCHAR},
       type_ = #{type,jdbcType=VARCHAR},
-      scope_ = #{scope,jdbcType=TINYINT},
+      scope_ = #{scope,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=SMALLINT},
-      mains_ = #{mains,jdbcType=CLOB},
-      asides_ = #{asides,jdbcType=CLOB},
-      customs_ = #{customs,jdbcType=CLOB}
+      mains_ = #{mains,jdbcType=LONGVARCHAR},
+      asides_ = #{asides,jdbcType=LONGVARCHAR},
+      customs_ = #{customs,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.core.domain.Model">
     insert into ujcms_model (id_, site_id_, name_, type_, scope_, order_, mains_, asides_, customs_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{scope,jdbcType=TINYINT}, #{order,jdbcType=SMALLINT}, #{mains,jdbcType=CLOB}, #{asides,jdbcType=CLOB}, #{customs,jdbcType=CLOB})
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{mains,jdbcType=LONGVARCHAR}, #{asides,jdbcType=LONGVARCHAR}, #{customs,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.name_, t.type_, t.scope_, t.order_, t.mains_, t.asides_, t.customs_
   </sql></mapper>

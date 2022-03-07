@@ -2,6 +2,7 @@ package com.ujcms.core.lucene.domain;
 
 import com.ujcms.core.domain.Article;
 import com.ujcms.core.domain.Channel;
+import com.ujcms.core.support.Anchor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
@@ -113,7 +114,7 @@ public class EsArticle extends WebPageWithCustoms {
 
     @Id
     @Field
-    private int id;
+    private Integer id;
     @Field(type = FieldType.Date)
     private OffsetDateTime publishDate = OffsetDateTime.now();
     @Field(type = FieldType.Object, index = false)
@@ -123,7 +124,7 @@ public class EsArticle extends WebPageWithCustoms {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -154,7 +155,7 @@ public class EsArticle extends WebPageWithCustoms {
         }
 
         @Field(type = FieldType.Integer)
-        private int id;
+        private Integer id;
         @Field(type = FieldType.Keyword, index = false)
         private String name = "";
         @Field(type = FieldType.Keyword, index = false)
@@ -164,7 +165,7 @@ public class EsArticle extends WebPageWithCustoms {
             return id;
         }
 
-        public void setId(int id) {
+        public void setId(Integer id) {
             this.id = id;
         }
 
