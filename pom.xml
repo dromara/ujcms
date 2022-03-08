@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ujcms</groupId>
@@ -39,7 +37,7 @@
         <!-- HTML解析组件 -->
         <jsoup.version>1.14.2</jsoup.version>
         <!-- HTML不安全代码过滤组件 -->
-        <owasp-java-html-sanitizer.version>20200713.1</owasp-java-html-sanitizer.version>
+        <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <!-- 安全框架 -->
         <shiro.version>1.8.0</shiro.version>
         <java-jwt.version>3.14.0</java-jwt.version>
