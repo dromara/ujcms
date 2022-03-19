@@ -114,7 +114,7 @@ public class EsArticle extends WebPageWithCustoms {
 
     @Id
     @Field
-    private Integer id;
+    private Integer id = 0;
     @Field(type = FieldType.Date)
     private OffsetDateTime publishDate = OffsetDateTime.now();
     @Field(type = FieldType.Object, index = false)
@@ -144,8 +144,7 @@ public class EsArticle extends WebPageWithCustoms {
         this.channel = channel;
     }
 
-    public static class ChannelBaseInner {
-
+    public static class ChannelBaseInner implements Anchor {
         public static ChannelBaseInner of(Channel channel) {
             ChannelBaseInner bean = new ChannelInner();
             bean.setId(channel.getId());
@@ -155,7 +154,7 @@ public class EsArticle extends WebPageWithCustoms {
         }
 
         @Field(type = FieldType.Integer)
-        private Integer id;
+        private Integer id = 0;
         @Field(type = FieldType.Keyword, index = false)
         private String name = "";
         @Field(type = FieldType.Keyword, index = false)
@@ -169,6 +168,7 @@ public class EsArticle extends WebPageWithCustoms {
             this.id = id;
         }
 
+        @Override
         public String getName() {
             return name;
         }
@@ -177,6 +177,7 @@ public class EsArticle extends WebPageWithCustoms {
             this.name = name;
         }
 
+        @Override
         public String getUrl() {
             return url;
         }
@@ -187,7 +188,6 @@ public class EsArticle extends WebPageWithCustoms {
     }
 
     public static class ChannelInner extends ChannelBaseInner {
-
         public static ChannelInner of(Channel channel) {
             ChannelInner bean = new ChannelInner();
             bean.setId(channel.getId());

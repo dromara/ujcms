@@ -12,6 +12,7 @@ import com.ujcms.core.service.GlobalService;
 import com.ujcms.core.service.SiteQueryService;
 import com.ujcms.core.service.UserService;
 import com.ujcms.core.support.Props;
+import com.ujcms.core.support.Utils;
 import com.ujcms.core.web.support.BackendInterceptor;
 import com.ujcms.core.web.support.ExceptionResolver;
 import com.ujcms.core.web.support.FrontendInterceptor;
@@ -27,6 +28,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.mobile.device.LiteDeviceResolver;
@@ -47,7 +49,7 @@ import static com.ujcms.core.support.UrlConstants.BACKEND_API;
  *
  * @author PONY
  */
-@SpringBootApplication
+@SpringBootApplication(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
     /**
      * UJCMS 配置
@@ -244,6 +246,7 @@ public class Application extends SpringBootServletInitializer implements WebAppl
     }
 
     private static SpringApplicationBuilder customizerBuilder(SpringApplicationBuilder builder) {
+        Utils.boot();
         return builder.sources(Application.class);
     }
 }

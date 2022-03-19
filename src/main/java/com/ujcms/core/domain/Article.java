@@ -161,7 +161,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
      */
     public String getDescription() {
         return Optional.ofNullable(getExt().getSeoDescription())
-                .orElse(StringUtils.substring(getPlainText(), 0, 1000));
+                .orElseGet(() -> StringUtils.substring(getPlainText(), 0, 1000));
     }
 
     /**

@@ -184,8 +184,7 @@ public class WebPage implements Anchor {
         this.highlightBody = highlightBody;
     }
 
-    public static class SiteBaseInner {
-
+    public static class SiteBaseInner implements Anchor {
         public static SiteBaseInner of(Site site) {
             SiteBaseInner bean = new SiteBaseInner();
             bean.setId(site.getId());
@@ -209,6 +208,7 @@ public class WebPage implements Anchor {
             this.id = id;
         }
 
+        @Override
         public String getName() {
             return name;
         }
@@ -217,6 +217,7 @@ public class WebPage implements Anchor {
             this.name = name;
         }
 
+        @Override
         public String getUrl() {
             return url;
         }

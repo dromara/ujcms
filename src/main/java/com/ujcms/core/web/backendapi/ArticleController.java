@@ -6,6 +6,7 @@ import com.ofwise.util.web.Entities;
 import com.ofwise.util.web.Responses;
 import com.ofwise.util.web.Responses.Body;
 import com.ofwise.util.web.Servlets;
+import com.ofwise.util.web.exception.Http400Exception;
 import com.ujcms.core.domain.Article;
 import com.ujcms.core.domain.Site;
 import com.ujcms.core.domain.User;
@@ -14,6 +15,7 @@ import com.ujcms.core.service.ArticleService;
 import com.ujcms.core.service.UserService;
 import com.ujcms.core.support.Contexts;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +55,7 @@ public class ArticleController {
 
     @GetMapping
     @RequiresPermissions("article:list")
-    public Object list(Integer channelId, Integer page, Integer pageSize, HttpServletRequest request) {
+    public Page<Article> list(Integer channelId, Integer page, Integer pageSize, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         Map<String, Object> queryMap = QueryUtils.getQueryMap(request.getQueryString());
         queryMap.put("EQ_siteId_Int", String.valueOf(site.getId()));
@@ -62,10 +64,10 @@ public class ArticleController {
 
     @GetMapping("{id}")
     @RequiresPermissions("article:show")
-    public Object show(@PathVariable Integer id) {
+    public Article show(@PathVariable Integer id) {
         Article bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("Article not found. ID = " + id);
+            throw new Http400Exception("Article not found. ID = " + id);
         }
         return bean;
     }

@@ -1,10 +1,10 @@
 package com.ujcms.core.service;
 
 import com.github.pagehelper.PageHelper;
-import com.ujcms.core.domain.Model;
-import com.ujcms.core.mapper.ModelMapper;
 import com.ofwise.util.query.QueryInfo;
 import com.ofwise.util.query.QueryParser;
+import com.ujcms.core.domain.Model;
+import com.ujcms.core.mapper.ModelMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +58,6 @@ public class ModelService {
     public int delete(Integer id) {
         return mapper.delete(id);
     }
-
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(List<Integer> ids) {

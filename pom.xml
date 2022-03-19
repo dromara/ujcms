@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <packaging>war</packaging>
 
     <name>UJCMS</name>
@@ -39,7 +39,7 @@
         <!-- HTML解析组件 -->
         <jsoup.version>1.14.2</jsoup.version>
         <!-- HTML不安全代码过滤组件 -->
-        <owasp-java-html-sanitizer.version>20200713.1</owasp-java-html-sanitizer.version>
+        <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <!-- 安全框架 -->
         <shiro.version>1.8.0</shiro.version>
         <java-jwt.version>3.14.0</java-jwt.version>
@@ -342,6 +342,14 @@
             <version>${annotations.version}</version>
         </dependency>
 
+        <!-- ujcms-enterprise
+        <dependency>
+            <groupId>com.ujcms</groupId>
+            <artifactId>ujcms-ep-r1</artifactId>
+            <version>${version}</version>
+        </dependency>
+        -->
+
         <!-- JDBC 驱动 -->
         <dependency>
             <groupId>mysql</groupId>
@@ -349,8 +357,16 @@
             <version>${mysql-connector-java.version}</version>
             <scope>runtime</scope>
         </dependency>
-        
-        
+        <!-- <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency> -->
+        <!-- <dependency>
+            <groupId>dm</groupId>
+            <artifactId>DmJdbcDriver</artifactId>
+            <version>${DmJdbcDriver.version}</version>
+        </dependency> -->
 
         <!-- 测试 -->
         <dependency>

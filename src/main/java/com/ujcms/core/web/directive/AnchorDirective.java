@@ -42,7 +42,7 @@ public class AnchorDirective implements TemplateDirectiveModel {
             target = "_blank";
         }
         String title = Optional.ofNullable(Directives.getString(params, TITLE)).filter(StringUtils::isNotBlank)
-                .orElse(anchor.getName());
+                .orElseGet(anchor::getName);
 
         String append = Optional.ofNullable(Directives.getString(params, APPEND)).orElse("...");
         Integer length = Directives.getInteger(params, LENGTH);

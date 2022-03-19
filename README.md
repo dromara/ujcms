@@ -2,7 +2,7 @@
 
 Java开源内容管理系统(java cms)。使用SpringBoot、MyBatis、Shiro、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。
 
-UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统。针对原系统中的一些痛点问题，进行解决、优化和改进，并使用`AGPL-3`开源协议发布，可免费商用。
+UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统。针对原系统中的一些痛点问题，进行解决、优化和改进，并使用`GPL-2`开源协议发布，可免费商用。
 
 技术上尽量选择主流、先进、简单的架构，方便用户进行二次开发。持久化层用MyBatis替换了Hibernate；视图层用前后端分离的Vue3替换了JSP；数据库也进行了重新设计。设计上强调“简单”、“灵活”，避免繁杂的设计和实现，降低系统维护成本和二次开发难度。功能使用上也要求“简单”，避免复杂的使用逻辑。
 
@@ -39,7 +39,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 * 系统后台兼容的浏览器：Chrome、Firefox、Edge。
 * 前台页面兼容的浏览器取决于模板，使用者可以完全控制模板，理论上可以支持任何浏览器。演示模板支持IE10+(文库功能除外)、Chrome、Firefox、Edge。
 
-## 数据导入数据库
+## 创建数据库
 
 1. 创建数据库。如使用MySQL，字符集选择`utf8mb4`（支持更多特殊字符如表情字符emoji，推荐）。不要选择`utf8`，该字符集可能导致某些特殊字符出现乱码。
 2. 无需执行SQL文件，程序启动时会自动创建表。
@@ -52,6 +52,25 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 4. 使用 IntelliJ IDEA 开发的，步骤与 Eclipse 类似。打开工程后，修改数据库连接，然后直接点击右上角的绿色三角图标(`Run 'Application'`)，即可直接运行。也可在左侧导航中找到`com.ujcms.Application`类并右键点击，选择`Run 'Application'`。
 5. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
 6. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于`Vue 3`开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+
+## jar部署
+
+程序默认打包为WAR格式。如需要使用springboot的jar方式启动，可按以下步骤修改：
+
+* 将`pom.xml`文件`<packaging>war</packaging>`代码改为`<packaging>jar</packaging>`
+* 将`pom.xml`文件以下代码删除：
+```
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-tomcat</artifactId>
+    <scope>provided</scope>
+</dependency>
+```
+* 使用maven进行打包`mvn package`。
+* 将打包的`target/ujcms-***.jar`文件复制到部署目录。
+* 在部署目录（即`ujcms-***.jar`所在目录）新建文件夹`static`。
+* 将`src/main/webapp`目录下所有文件复制到上一步新建的`static`目录下。复制完成后，会有类似`static/WEB-INF` `static/templates`等文件夹。
+* 在部署目录运行`java -jar ujcms-***.jar`命令，即可启动。
 
 ## 关于部署路径
 

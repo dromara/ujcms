@@ -3,6 +3,10 @@ package com.ujcms.core.support;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * UJCMS 系统配置。部分属性使用静态属性，方便实体类调用。
  *
@@ -76,6 +80,11 @@ public class Props {
      * 模板访问路径
      */
     public static String TEMPLATE_URL = "/templates";
+    public static List<String> EP_EXCLUDES = new ArrayList<>(
+            Arrays.asList("site:list", "generator:fulltext:reindexSite", "machine:code", "machine:license"));
+    public static boolean EP_DISPLAY = true;
+    public static int EP_RANK = 0;
+    public static boolean EP_ACTIVATED = false;
 
     public String getVersion() {
         return version;
@@ -180,5 +189,13 @@ public class Props {
 
     public void setDemo(boolean demo) {
         this.demo = demo;
+    }
+
+    public boolean isEpDisplay() {
+        return EP_DISPLAY;
+    }
+
+    public void setEpDisplay(boolean epDisplay) {
+        EP_DISPLAY = epDisplay;
     }
 }

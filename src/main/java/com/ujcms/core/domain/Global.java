@@ -278,7 +278,7 @@ public class Global extends GlobalBase implements Serializable {
     @Nullable
     @Override
     @Length(max = 50)
-    @Pattern(regexp = "^[\\w-]*$")
+    @Pattern(regexp = "^/[\\w-]+$")
     public String getChannelUrl() {
         return super.getChannelUrl();
     }
@@ -286,7 +286,7 @@ public class Global extends GlobalBase implements Serializable {
     @Nullable
     @Override
     @Length(max = 50)
-    @Pattern(regexp = "^[\\w-]*$")
+    @Pattern(regexp = "^/[\\w-]+$")
     public String getArticleUrl() {
         return super.getArticleUrl();
     }

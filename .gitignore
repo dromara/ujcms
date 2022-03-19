@@ -30,3 +30,6 @@
 /src/main/webapp/articles
 /src/main/webapp/channels
 /src/main/webapp/index.html
+
+# License
+/src/main/resources/license.dat

@@ -113,7 +113,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Ser
     }
 
     public String getTitle() {
-        return Optional.ofNullable(getExt().getSeoTitle()).orElse(getName());
+        return Optional.ofNullable(getExt().getSeoTitle()).orElseGet(this::getName);
     }
 
     public String getKeywords() {
@@ -370,11 +370,11 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Ser
         getExt().setChannelTemplate(channelTemplate);
     }
 
-    public short getPageSize() {
+    public Short getPageSize() {
         return getExt().getPageSize();
     }
 
-    public void setPageSize(short pageSize) {
+    public void setPageSize(Short pageSize) {
         getExt().setPageSize(pageSize);
     }
 

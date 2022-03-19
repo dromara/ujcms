@@ -126,7 +126,7 @@ public class ArticleController {
             }
             Servlets.setAttachmentHeader(response, request,
                     Optional.ofNullable(fileName).filter(StringUtils::isNotBlank)
-                            .orElse(FilenameUtils.getName(fileUrl)));
+                            .orElseGet(() -> FilenameUtils.getName(fileUrl)));
             try (OutputStream output = response.getOutputStream()) {
                 IOUtils.copy(input, output);
                 output.flush();
