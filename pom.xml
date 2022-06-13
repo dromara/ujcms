@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>2.0.2</version>
+    <version>3.0.0</version>
     <packaging>war</packaging>
 
     <name>UJCMS</name>
@@ -17,13 +17,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.3</version>
+        <version>2.6.8</version>
     </parent>
     <properties>
         <!-- mybatis-spring-boot-starter 2.0 以上版本 会引用 MyBatis 3.5 以上版本，导致OffsetDateTime出错。该问题与MySQL驱动有关，MySQL8.0.23驱动已解决这个问题。-->
         <!-- 相关参考资料：https://blog.csdn.net/zjcsuct/article/details/107754870 -->
-        <mybatis-spring-boot-starter.version>2.2.0</mybatis-spring-boot-starter.version>
-        <pagehelper-spring-boot-starter.version>1.4.1</pagehelper-spring-boot-starter.version>
+        <mybatis-spring-boot-starter.version>2.2.2</mybatis-spring-boot-starter.version>
+        <pagehelper-spring-boot-starter.version>1.4.2</pagehelper-spring-boot-starter.version>
         <!--<mybatis-dynamic-sql.version>1.3.0</mybatis-dynamic-sql.version>-->
         <spring-boot-starter-mobile.version>1.5.22.RELEASE</spring-boot-starter-mobile.version>
         <ik-analyzer.version>8.4.0</ik-analyzer.version>
@@ -38,6 +38,8 @@
         <commons-net.version>3.8.0</commons-net.version>
         <!-- HTML解析组件 -->
         <jsoup.version>1.14.2</jsoup.version>
+        <!-- 加密组件 -->
+        <bcprov-jdk15to18.version>1.70</bcprov-jdk15to18.version>
         <!-- HTML不安全代码过滤组件 -->
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <!-- 安全框架 -->
@@ -51,6 +53,10 @@
         <thumbnailator.version>0.4.13</thumbnailator.version>
         <!-- GraphicsMagick 原生图片处理库调用组件 -->
         <im4java.version>1.4.0</im4java.version>
+        <!-- LibreOffice 转换器 -->
+        <jodconverter.version>4.4.2</jodconverter.version>
+        <!-- PDF 类库 -->
+        <pdfbox.version>3.0.0-RC1</pdfbox.version>
         <!-- IP定位组件 -->
         <ip2region.version>1.7.2</ip2region.version>
         <!-- 用户代理解析组件。分析用户浏览器类型、操作系统等信息 -->
@@ -63,9 +69,10 @@
         <aliyun-java-sdk-core.version>4.5.30</aliyun-java-sdk-core.version>
         <aliyun-java-sdk-dysmsapi.version>2.1.0</aliyun-java-sdk-dysmsapi.version>
         <!-- 微信组件 -->
-        <weixin4j.version>1.10.0</weixin4j.version>
+        <weixin-java-mp.version>4.3.4.B</weixin-java-mp.version>
         <!-- MinIO对象存储 -->
-        <minio.version>8.3.0</minio.version>
+        <minio.version>8.3.9</minio.version>
+        <okhttp.version>4.9.3</okhttp.version>
         <!-- 腾讯云对象存储 -->
         <cos_api.version>5.6.63</cos_api.version>
         <!-- 阿里云对象存储 -->
@@ -74,18 +81,21 @@
         <qiniu-java-sdk.version>7.9.1</qiniu-java-sdk.version>
         <!-- swagger2 API文档工具 -->
         <!--<springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>-->
+        <!--<springdoc-openapi-ui.version>1.6.8</springdoc-openapi-ui.version>-->
         <annotations.version>3.0.1</annotations.version>
         <mybatis-generator-core.version>1.4.0</mybatis-generator-core.version>
 
-        <!-- MySQL JDBC驱动 8.0 驱动可以支持 MySQL5.7，但MySQL 5.6的支持情况还不清楚。但为了支持MySQL8，必须使用8.0的驱动 -->
-        <mysql-connector-java.version>8.0.23</mysql-connector-java.version>
-        <!-- PostgreSQL JDBC驱动-->
-        <postgresql.version>42.3.3</postgresql.version>
-        <!-- 达梦 JDBC驱动-->
+        <!-- 达梦 JDBC驱动 -->
         <DmJdbcDriver.version>18</DmJdbcDriver.version>
+        <!-- 人大金仓 JDBC驱动 -->
+        <kingbase8.version>8.6.0</kingbase8.version>
+        <!-- 南大通用 JDBC驱动 -->
+        <gbase-connector-java.version>8.3.81.53</gbase-connector-java.version>
+        <!-- 神州通用 JDBC驱动 -->
+        <oscarJDBC8.version>7.0</oscarJDBC8.version>
 
         <!-- 此项设置可以让IntelliJ IDEA自动识别Spring Boot工程，可以直接点击右上角运行按钮启动程序 -->
-        <start-class>com.ujcms.Application</start-class>
+        <start-class>com.ujcms.cms.Application</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
@@ -205,6 +215,12 @@
             <artifactId>commons-net</artifactId>
             <version>${commons-net.version}</version>
         </dependency>
+        <!-- 加密库 -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15to18</artifactId>
+            <version>${bcprov-jdk15to18.version}</version>
+        </dependency>
         <!-- 解析 html 和过滤危险html代码 -->
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -253,6 +269,21 @@
             <artifactId>im4java</artifactId>
             <version>${im4java.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-local</artifactId>
+            <version>${jodconverter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-spring-boot-starter</artifactId>
+            <version>${jodconverter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
+        </dependency>
         <!-- IP 地址库 -->
         <dependency>
             <groupId>org.lionsoul</groupId>
@@ -282,6 +313,13 @@
             <groupId>com.aliyun</groupId>
             <artifactId>aliyun-java-sdk-core</artifactId>
             <version>${aliyun-java-sdk-core.version}</version>
+            <exclusions>
+                <!--已包含bcprov-jdk15to18-->
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.aliyun</groupId>
@@ -290,15 +328,27 @@
         </dependency>
         <!-- 微信组件 -->
         <!--<dependency>-->
-        <!--    <groupId>com.foxinmy</groupId>-->
-        <!--    <artifactId>weixin4j-mp</artifactId>-->
-        <!--    <version>${weixin4j.version}</version>-->
+        <!--    <groupId>com.github.binarywang</groupId>-->
+        <!--    <artifactId>weixin-java-mp</artifactId>-->
+        <!--    <version>${weixin-java-mp.version}</version>-->
         <!--</dependency>-->
         <!-- MinIO 对象存储 -->
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>${minio.version}</version>
+            <exclusions>
+                <!--已包含bcprov-jdk15to18-->
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
         </dependency>
 
         <!-- 腾讯云对象存储 -->
@@ -335,6 +385,11 @@
         <!--    <artifactId>springfox-boot-starter</artifactId>-->
         <!--    <version>${springfox-boot-starter.version}</version>-->
         <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.springdoc</groupId>-->
+        <!--    <artifactId>springdoc-openapi-ui</artifactId>-->
+        <!--    <version>${springdoc-openapi-ui.version}</version>-->
+        <!--</dependency>-->
         <!-- 防止出现找不到javax.annotation.meta.When的类文件的问题 -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -350,23 +405,52 @@
         </dependency>
         -->
 
+        <!--<dependency>-->
+        <!--    <groupId>com.h2database</groupId>-->
+        <!--    <artifactId>h2</artifactId>-->
+        <!--    <scope>runtime</scope>-->
+        <!--</dependency>-->
         <!-- JDBC 驱动 -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql-connector-java.version}</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
-        </dependency> -->
-        <!-- <dependency>
-            <groupId>dm</groupId>
-            <artifactId>DmJdbcDriver</artifactId>
-            <version>${DmJdbcDriver.version}</version>
-        </dependency> -->
+        <!--<dependency>-->
+        <!--    <groupId>org.postgresql</groupId>-->
+        <!--    <artifactId>postgresql</artifactId>-->
+        <!--    <scope>runtime</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>dm</groupId>-->
+        <!--    <artifactId>DmJdbcDriver</artifactId>-->
+        <!--    <version>${DmJdbcDriver.version}</version>-->
+        <!--    <scope>runtime</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.kingbase</groupId>-->
+        <!--    <artifactId>kingbase8</artifactId>-->
+        <!--    <version>${kingbase8.version}</version>-->
+        <!--    <scope>runtime</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.gbase</groupId>-->
+        <!--    <artifactId>gbase-connector-java</artifactId>-->
+        <!--    <version>${gbase-connector-java.version}</version>-->
+        <!--    <scope>runtime</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.oscar</groupId>-->
+        <!--    <artifactId>oscarJDBC8</artifactId>-->
+        <!--    <version>${oscarJDBC8.version}</version>-->
+        <!--    <scope>runtime</scope>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+        <!--    <groupId>cn.hutool</groupId>-->
+        <!--    <artifactId>hutool-all</artifactId>-->
+        <!--    <version>5.8.0.M2</version>-->
+        <!--</dependency>-->
 
         <!-- 测试 -->
         <dependency>
@@ -417,7 +501,7 @@
                     <dependency>
                         <groupId>mysql</groupId>
                         <artifactId>mysql-connector-java</artifactId>
-                        <version>${mysql-connector-java.version}</version>
+                        <version>${mysql.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>

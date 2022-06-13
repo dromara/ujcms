@@ -9,7 +9,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 * 官网地址：[https://www.ujcms.com](https://www.ujcms.com)
 * 下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)。提供安装包下载。
 * 演示站前台：[https://demo.ujcms.com](https://demo.ujcms.com)。使用手机访问或者浏览器手机模式访问前台，会自动呈现手机页面。
-* 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)。演示用户登录后只拥有浏览后台功能，所有操作功能点击后都会显示无权访问（403）。如需进行操作测试，可以下载软件到本地安装。
+* 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)。演示用户登录后只拥有后台浏览功能，所有操作功能点击后都会显示无权访问（403）。如需进行操作测试，可以下载软件到本地安装。
 * QQ交流群：626599871
 
 ## 技术及功能亮点
@@ -41,17 +41,27 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 
 ## 创建数据库
 
-1. 创建数据库。如使用MySQL，字符集选择`utf8mb4`（支持更多特殊字符如表情字符emoji，推荐）。不要选择`utf8`，该字符集可能导致某些特殊字符出现乱码。
-2. 无需执行SQL文件，程序启动时会自动创建表。
+1. 创建数据库。数据库名可为`ujcms`或其它任何名称。
+  * MySQL，字符集选`utf8mb4`（不要选择`utf8`，该字符集可能导致某些特殊字符出现乱码）。
+  * 达梦数据库，字符集选`UTF-8`（不要使用`GB18030`，该字符集可能导致某些特殊字符出现乱码）。
+2. 无需执行SQL文件，程序启动时会自动创建表及初始化数据。以后程序升级同样不需要执行SQL升级脚本，程序启动时会判断当前软件版本及数据库表结构版本，自动进行数据库表结构升级。
 
 ## 启动程序
 
-1. 在eclipse中导入maven项目。点击eclipse菜单`File` - `Import`，选择`Maven` - `Existing Maven Projects`。创建好maven项目后，会开始从maven服务器下载第三方jar包（如spring等），需要一定时间，请耐心等待。（另外：Eclipse中会出现红叉的错误警告，如是JavaScript或HTML报错则无需理会，不影响程序正常运行。这是由于Eclipse校验规则误判所致，可以在Eclipse中设置禁止对js文件进行错误校验。）
-2. 修改数据库连接。打开`/src/main/resources/application.propertis`文件，根据实际情况修改`spring.datasource.url`、`spring.datasource.username`、`spring.datasource.password`的值。
-3. 启动程序。在eclipse中，右键点击项目名，选择`Run as` - `Java Application`，选择`Application - com.ujcms`，然后点击`OK`。也可在左侧导航中找到`com.ujcms.Application`类并右键点击，选择`Run as` - `Java Application`即可直接运行。
-4. 使用 IntelliJ IDEA 开发的，步骤与 Eclipse 类似。打开工程后，修改数据库连接，然后直接点击右上角的绿色三角图标(`Run 'Application'`)，即可直接运行。也可在左侧导航中找到`com.ujcms.Application`类并右键点击，选择`Run 'Application'`。
-5. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
-6. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于`Vue 3`开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+1. 在Eclipse中导入maven项目。点击Eclipse菜单`File` - `Import`，选择`Maven` - `Existing Maven Projects`。创建好maven项目后，会开始从maven服务器下载第三方jar包（如spring等），需要一定时间，请耐心等待。（另外：Eclipse中会出现红叉的错误警告，如是JavaScript或HTML报错则无需理会，不影响程序正常运行。这是由于Eclipse校验规则误判所致，可以在Eclipse中设置禁止对js文件进行错误校验。）
+2. 修改数据库连接。打开`/src/main/resources/application.yaml`文件，根据实际情况修改`spring.datasource.url`、`spring.datasource.username`、`spring.datasource.password`的值。其中`spring.datasource.url`中的数据库名要和上一步创建的数据库名一致。
+3. 启动程序。在eclipse中，右键点击项目名，选择`Run as` - `Java Application`，选择`Application - com.ujcms`，然后点击`OK`。也可在左侧导航中找到`com.ujcms.cms.Application`类并右键点击，选择`Run as` - `Java Application`即可直接运行。
+4. 使用 IntelliJ IDEA 开发的，步骤与 Eclipse 类似。打开工程后，等待Maven下载依赖，修改数据库连接，然后直接点击右上角的绿色三角图标(`Run 'Application'`)，即可直接运行。也可在左侧导航中找到`com.ujcms.cms.Application`类并右键点击，选择`Run 'Application'`。
+5. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
+6. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
+7. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于`Vue 3`开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+
+## 部署
+
+* 使用maven进行打包`mvn package`。会生成`target/ujcms-***.war`文件和`target/ujcms-***`目录。
+* 用目录方式部署的，可以将`target/ujcms-***/`目录下文件复制到tomcat的`webapps/ROOT`目录下（请先删除原tomcat/webapps目录下所有文件夹）。复制完成后有类似`webapps/ROOT/uploads` `webapps/ROOT/templates` `webapps/ROOT/WEB-INF`等文件夹。
+* 也可使用war包部署，将`ujcms-***.war`更名为`ROOT.war`，复制到tomcat的`webapps`目录下（请先删除原tomcat/webapps目录下所有文件夹）。复制完成后文件地址为`webapps/ROOT.war`文件。war部署要使用解压模式，tomcat默认就是使用解压模式，如修改过tomcat配置，请检查`tomcat/conf/server.xml`配置文件中`<Host ... unpackWARs="true" ... >`的配置项。
+* 需注意`/WEB-INF/classes/application.yaml`文件中的数据库地址、用户名、密码相关配置是否与部署环境的数据库一致。
 
 ## jar部署
 
@@ -80,7 +90,11 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 
 Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，并不是直接在项目所在目录启动tomcat，这时上传的图片（包括通过系统后台新增和修改的模板）也保存在特定的部署目录，并不会保存在程序所在的目录。当修改了Eclipse源代码或文件，会自动重新部署程序，之前上传的图片会被清空。如果发现在开发环境下上传的图片突然都找不到了，很可能就是这个原因。
 
-综上所述，强烈建议使用`启动程序`中介绍的方式启动程序。
+综上所述，强烈建议使用之前`启动程序`中介绍的方式启动程序。
+
+## 前台模板
+
+网站前台模板位于`/src/main/webapp/templates`目录，使用`Freemarker`技术。通过修改模板文件，可以完全控制网站页面显示的内容。
 
 ## 后端技术
 
@@ -101,3 +115,51 @@ Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，�
 * VueRouter: Vue 路由组件。
 * VueI18n: Vue 国际化组件。
 * Tinymce: 富文本编辑器。
+
+## 目录结构
+
+* src
+  * main
+    * java
+      * com/ujcms/cms
+        * core
+          * domain：实体类
+          * generator：生成功能（包括静态页生成，全文索引生成）
+          * listener：监听类（包括数据删除的监听）
+          * lucene：全文检索功能
+          * mapper：MyBateis Mapper Java 文件
+          * security：安全相关功能
+          * service：服务层功能
+          * support：各种支持类
+          * web
+            * api：前台API接口
+            * backendapi：后台API接口
+            * directive：前台Freemarker自定义标签
+            * frontend：前台页面Controller
+            * support：Web支持类（包括web拦截器等）
+          * ContextConfig.java：Context配置类
+          * LuceneConfig.java：全文索引配置类
+          * ShiroConfig.java：Shiro安全配置类
+          * TaskExecutorConfig.java：任务执行器配置类
+        * Application.java 启动类
+      * com/ujcms/util：公共工具类
+    * resources
+      * com/ujcms/cms/core/mapper：MyBatis Mapper XML 配置文件。
+      * db
+        * changelog：数据库表结构更新日志文件。
+        * data.mysql.sql：数据库初始化数据SQL脚本。
+      * application.yaml：程序配置文件。包括数据库URL、数据库用户名、数据库密码等信息。
+      * messages.properties：国际化资源文件。
+    * webapp：
+      * cp：后台前端页面。
+      * templates：网站前台模板。
+      * uploads：用户上传文件。
+      * WEB-INF/lucene：全文检索索引文件。
+* .editorconfig：设置编辑器文件的格式，如缩进方式、最大行数等。
+* .gitignore：设置不需要提交到git管理的文件和目录。
+* CHANGELOG.md：版本更新日志。
+* LICENSE：许可协议。
+* gulpfile.js：前台构建文件。具有拷贝jquery、bootstrap等文件至前台模板目录`/src/main/webapp/template/1/default/_files`等功能。
+* package.json：前台模板依赖的js、css组件，如jquery、bootstrap等。
+* pom.xml：Maven配置文件。
+

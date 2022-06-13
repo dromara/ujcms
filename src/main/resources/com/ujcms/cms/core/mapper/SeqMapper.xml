@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.SeqMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Seq">
+    <id column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="next_val_" jdbcType="BIGINT" property="nextVal" />
+    <result column="cache_size_" jdbcType="INTEGER" property="cacheSize" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Seq" />
+    <select id="selectForUpdate" parameterType="java.lang.String" resultMap="ResultMap">
+        SELECT
+        <include refid="Column_List" />
+        FROM ujcms_seq t
+        WHERE t.name_ = #{name,jdbcType=VARCHAR}
+        FOR UPDATE
+    </select>
+    <select id="select" parameterType="java.lang.String" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_seq t
+        where t.name_ = #{name,jdbcType=VARCHAR}
+    </select>
+    <delete id="delete" parameterType="java.lang.String">
+        delete
+        from ujcms_seq
+        where name_ = #{name,jdbcType=VARCHAR}
+    </delete>
+    <!-- 自定义字段查询 -->
+    <sql id="selectAllCustomsFieldJoin">
+        <if test="customsCondition != null">
+            <foreach collection="customsCondition" index="index" item="condition">
+                join ${customsTable} custom${index} on custom${index}.${customsId} = t.id_
+            </foreach>
+        </if>
+    </sql>
+    <sql id="selectAllCustomsFieldWhere">
+        <if test="customsCondition != null">
+            <foreach collection="customsCondition" index="index" item="condition">
+                and custom${index}.name_ = #{condition.column} and custom${index}.value_ ${condition.operator} #{condition.value}
+            </foreach>
+        </if>
+    </sql>
+    <!-- 这两个sql防止下面的include在编辑器里报错，没有其它用处。真正被包含的页面在使用Select_All的xml文件。 -->
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <!-- 通用的列表和分页查询。必须放在一个已经映射Mapper文件里。 -->
+    <sql id="Select_All">
+        SELECT
+        <if test="queryInfo != null and queryInfo.distinct">DISTINCT</if>
+        <include refid="Column_List" />
+        FROM
+        <choose>
+            <when test="queryInfo != null">${queryInfo.tableName}</when>
+            <otherwise>${tableName}</otherwise>
+        </choose>
+        t
+        <if test="queryInfo != null">
+            <foreach collection="queryInfo.joinTables" item="table">
+                JOIN ${table.tableName} ${table.tableAlias} ON ${table.leftId} = ${table.rightId}
+            </foreach>
+        </if>
+        <include refid="selectAllJoin" />
+        <where>
+            <if test="queryInfo != null">
+                <foreach collection="queryInfo.whereConditions" item="condition">
+                    AND ${condition.column} ${condition.operator}
+                    <choose>
+                        <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
+                            <foreach close=")" collection="condition.value" index="index" item="item" open="(" separator=",">
+                                #{item}
+                            </foreach>
+                        </when>
+                        <when test="condition.operator != 'IS NULL'">#{condition.value}</when>
+                    </choose>
+                </foreach>
+                <bind name="whereOrAndConditions" value="queryInfo.whereOrAndConditions" />
+                <foreach collection="whereOrAndConditions.keys" item="key">
+                    AND (
+                    <bind name="orAndConditions" value="whereOrAndConditions[key]" />
+                    <if test="orAndConditions != null">
+                        <foreach collection="orAndConditions.keys" item="andKey" separator="OR">
+                            <bind name="andConditions" value="orAndConditions[andKey]" />
+                            <foreach close=")" collection="andConditions" item="condition" open="(" separator="AND">
+                                ${condition.column} ${condition.operator}
+                                <choose>
+                                    <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
+                                        <foreach close=")" collection="condition.value" index="index" item="item" open="(" separator=",">
+                                            #{item}
+                                        </foreach>
+                                    </when>
+                                    <when test="condition.operator != 'IS NULL'">#{condition.value}</when>
+                                </choose>
+                            </foreach>
+                        </foreach>
+                    </if>
+                    )
+                </foreach>
+            </if>
+            <include refid="selectAllWhere" />
+        </where>
+        <if test="queryInfo!=null and queryInfo.orderBy!=null">
+            ORDER BY ${queryInfo.orderBy}
+        </if>
+    </sql><update id="update" parameterType="com.ujcms.cms.core.domain.Seq">
+    update ujcms_seq
+    set next_val_ = #{nextVal,jdbcType=BIGINT},
+      cache_size_ = #{cacheSize,jdbcType=INTEGER}
+    where name_ = #{name,jdbcType=VARCHAR}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Seq">
+    insert into ujcms_seq (name_, next_val_, cache_size_)
+    values (#{name,jdbcType=VARCHAR}, #{nextVal,jdbcType=BIGINT}, #{cacheSize,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.name_, t.next_val_, t.cache_size_
+  </sql></mapper>

@@ -1,10 +1,11 @@
 <!doctype html>
+[#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <title>${article.title}</title>
-  <meta name="keywords" content="${article.seoKeywords!}">
-  <meta name="description" content="${article.seoDescription!}">
+  <meta name="keywords" content="${article.seoKeywords}">
+  <meta name="description" content="${article.seoDescription}">
   [#include 'includes_meta.html'/]
   [#include 'includes_css.html'/]
   [#include 'includes_js.html'/]
@@ -50,9 +51,9 @@
   <div class="row">
     <div class="col">
       <h5 class="border-bottom mt-4"><span class="cm-block-head-bottom">商品介绍</span></h5>
-      <div class="article-content mt-3">${article.text?no_esc}</div>
+      <div class="article-content mt-3">[#noescape]${article.text!}[/#noescape]</div>
       <h5 class="border-bottom mt-4"><span class="cm-block-head-bottom">规格参数</span></h5>
-      <div class="article-content mt-3">${article.customs['specifications']?no_esc}</div>
+      <div class="article-content mt-3">[#noescape]${article.customs['specifications']!}[/#noescape]</div>
       <script>$('.article-content img').addClass('img-fluid');</script>
       <ul class="mt-4 pt-2 list-unstyled border-top">
         [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
@@ -81,3 +82,4 @@
 [#include 'includes_footer.html'/]
 </body>
 </html>
+[/#escape]

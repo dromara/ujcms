@@ -1,8 +1,9 @@
+[#escape x as (x)!?html]
 <nav class="navbar navbar-expand navbar-light[#if headerShadow!false] shadow-sm[/#if] border-bottom cm-navbar">
   <div class="container flex-column flex-xl-row justify-content-start align-items-stretch align-items-xl-center px-lg-3">
     <div class="d-flex align-items-center">
       <div class="flex-grow-1">
-        <a class="navbar-brand" href="${site.url}" title="${site.name}"><img src="${files}/img/logo.png" alt="${site.name}" height="50"></a>
+        <a class="navbar-brand" href="${site.url}" title="${site.name}"><img src="${site.logo!'${files}/img/logo.png'}" alt="${site.name}" height="50"></a>
       </div>
       <button class="btn d-xl-none collapsed p-0" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
               aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,10 +26,11 @@
         [/@ChannelList]
       </ul>
     </div>
+    [@Site id='2'; bean][#if bean??]<div class="mr-3"><a href="${bean.url}" class="small">EN</a></div>[/#if][/@Site]
     <div class="collapse d-xl-block mt-1 mt-xl-0" id="navbarNavDropdown">
       <form action="${dy}/search">
         <div class="input-group">
-          <input type="text" class="form-control" id="q" name="q" value="${Params.q!}" placeholder="搜索" aria-label="搜索">
+          <input type="text" class="form-control" id="q" name="q" value="${Params.q}" placeholder="搜索" aria-label="搜索">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary" type="submit">
               <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-search" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -42,3 +44,4 @@
     </div>
   </div>
 </nav>
+[/#escape]

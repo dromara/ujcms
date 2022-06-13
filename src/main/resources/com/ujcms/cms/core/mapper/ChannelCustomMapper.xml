@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ChannelCustomMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ChannelCustom">
+    <result column="channel_id_" jdbcType="INTEGER" property="channelId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="type_" jdbcType="VARCHAR" property="type" />
+    <result column="value_" jdbcType="LONGVARCHAR" property="value" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ChannelCustom" />
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_channel_custom
+        where exists(select * from ujcms_channel t where t.id_ = ujcms_channel_custom.channel_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+    </delete>
+    <select id="listByChannelId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_channel_custom t
+        where t.channel_id_ = #{channelId,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByChannelId" parameterType="int">
+        delete
+        from ujcms_channel_custom
+        where channel_id_ = #{channelId,jdbcType=INTEGER}
+    </delete>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_channel_custom" />
+        </include>
+    </select><insert id="insert" parameterType="com.ujcms.cms.core.domain.ChannelCustom">
+    insert into ujcms_channel_custom (channel_id_, name_, type_, value_)
+    values (#{channelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{value,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.channel_id_, t.name_, t.type_, t.value_
+  </sql></mapper>

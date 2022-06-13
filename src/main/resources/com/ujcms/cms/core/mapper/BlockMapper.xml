@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.BlockMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Block">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="alias_" jdbcType="VARCHAR" property="alias" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
+    <result column="with_link_url_" jdbcType="BOOLEAN" property="withLinkUrl" />
+    <result column="with_subtitle_" jdbcType="BOOLEAN" property="withSubtitle" />
+    <result column="with_description_" jdbcType="BOOLEAN" property="withDescription" />
+    <result column="with_image_" jdbcType="BOOLEAN" property="withImage" />
+    <result column="with_mobile_image_" jdbcType="BOOLEAN" property="withMobileImage" />
+    <result column="link_url_required_" jdbcType="BOOLEAN" property="linkUrlRequired" />
+    <result column="subtitle_required_" jdbcType="BOOLEAN" property="subtitleRequired" />
+    <result column="description_required_" jdbcType="BOOLEAN" property="descriptionRequired" />
+    <result column="image_required_" jdbcType="BOOLEAN" property="imageRequired" />
+    <result column="mobile_image_required_" jdbcType="BOOLEAN" property="mobileImageRequired" />
+    <result column="image_width_" jdbcType="INTEGER" property="imageWidth" />
+    <result column="image_height_" jdbcType="INTEGER" property="imageHeight" />
+    <result column="mobile_image_width_" jdbcType="INTEGER" property="mobileImageWidth" />
+    <result column="mobile_image_height_" jdbcType="INTEGER" property="mobileImageHeight" />
+    <result column="recommendable_" jdbcType="BOOLEAN" property="recommendable" />
+    <result column="enabled_" jdbcType="BOOLEAN" property="enabled" />
+    <result column="order_" jdbcType="SMALLINT" property="order" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Block" />
+    <select id="countByAlias" resultType="int">
+        select count(*)
+        from ujcms_block t
+        where t.alias_ = #{alias}
+        <choose>
+            <when test="siteId != null">
+                and t.site_id_ = #{siteId}
+            </when>
+            <otherwise>
+                and t.site_id_ is null
+            </otherwise>
+        </choose>
+    </select>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_block
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_block" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_block t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_block
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Block">
+    update ujcms_block
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      with_link_url_ = #{withLinkUrl,jdbcType=BOOLEAN},
+      with_subtitle_ = #{withSubtitle,jdbcType=BOOLEAN},
+      with_description_ = #{withDescription,jdbcType=BOOLEAN},
+      with_image_ = #{withImage,jdbcType=BOOLEAN},
+      with_mobile_image_ = #{withMobileImage,jdbcType=BOOLEAN},
+      link_url_required_ = #{linkUrlRequired,jdbcType=BOOLEAN},
+      subtitle_required_ = #{subtitleRequired,jdbcType=BOOLEAN},
+      description_required_ = #{descriptionRequired,jdbcType=BOOLEAN},
+      image_required_ = #{imageRequired,jdbcType=BOOLEAN},
+      mobile_image_required_ = #{mobileImageRequired,jdbcType=BOOLEAN},
+      image_width_ = #{imageWidth,jdbcType=INTEGER},
+      image_height_ = #{imageHeight,jdbcType=INTEGER},
+      mobile_image_width_ = #{mobileImageWidth,jdbcType=INTEGER},
+      mobile_image_height_ = #{mobileImageHeight,jdbcType=INTEGER},
+      recommendable_ = #{recommendable,jdbcType=BOOLEAN},
+      enabled_ = #{enabled,jdbcType=BOOLEAN},
+      order_ = #{order,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Block">
+    insert into ujcms_block (id_, site_id_, name_, alias_, scope_, with_link_url_, with_subtitle_, with_description_, with_image_, with_mobile_image_, link_url_required_, subtitle_required_, description_required_, image_required_, mobile_image_required_, image_width_, image_height_, mobile_image_width_, mobile_image_height_, recommendable_, enabled_, order_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{withLinkUrl,jdbcType=BOOLEAN}, #{withSubtitle,jdbcType=BOOLEAN}, #{withDescription,jdbcType=BOOLEAN}, #{withImage,jdbcType=BOOLEAN}, #{withMobileImage,jdbcType=BOOLEAN}, #{linkUrlRequired,jdbcType=BOOLEAN}, #{subtitleRequired,jdbcType=BOOLEAN}, #{descriptionRequired,jdbcType=BOOLEAN}, #{imageRequired,jdbcType=BOOLEAN}, #{mobileImageRequired,jdbcType=BOOLEAN}, #{imageWidth,jdbcType=INTEGER}, #{imageHeight,jdbcType=INTEGER}, #{mobileImageWidth,jdbcType=INTEGER}, #{mobileImageHeight,jdbcType=INTEGER}, #{recommendable,jdbcType=BOOLEAN}, #{enabled,jdbcType=BOOLEAN}, #{order,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.alias_, t.scope_, t.with_link_url_, t.with_subtitle_, t.with_description_, t.with_image_, t.with_mobile_image_, t.link_url_required_, t.subtitle_required_, t.description_required_, t.image_required_, t.mobile_image_required_, t.image_width_, t.image_height_, t.mobile_image_width_, t.mobile_image_height_, t.recommendable_, t.enabled_, t.order_
+  </sql></mapper>

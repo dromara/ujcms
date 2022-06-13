@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.OrgMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Org">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="parent_id_" jdbcType="INTEGER" property="parentId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="phone_" jdbcType="VARCHAR" property="phone" />
+    <result column="address_" jdbcType="VARCHAR" property="address" />
+    <result column="contacts_" jdbcType="VARCHAR" property="contacts" />
+    <result column="depth_" jdbcType="SMALLINT" property="depth" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Org">
+        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Org" property="parent" select="select" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Org" property="children" select="listChildren" />
+        <collection column="id_" fetchType="lazy" ofType="int" property="descendants" select="com.ujcms.cms.core.mapper.OrgTreeMapper.listByAncestorId" />
+    </resultMap>
+    <select id="listChildren" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_org t
+        where parent_id_ = #{parentId,jdbcType=INTEGER}
+    </select>
+    <update id="updateDepth">
+        update ujcms_org
+        set depth_ = depth_ + #{depth,jdbcType=SMALLINT}
+        where id_ in (select descendant_id_ from ujcms_org_tree where ancestor_id_ = #{id,jdbcType=INTEGER})
+    </update>
+    <select id="maxOrder" resultType="int">
+        select max(c.order_)
+        from ujcms_org c
+        <if test="parentId != null">
+            join ujcms_org_tree t on c.id_ = t.descendant_id_
+            where t.ancestor_id_ = #{parentId,jdbcType=INTEGER}
+        </if>
+    </select>
+    <update id="updateOrder">
+        update ujcms_org
+        set order_ = order_ + #{num,jdbcType=INTEGER}
+        where order_ &gt;= #{begin,jdbcType=INTEGER}
+          and order_ &lt;= #{end,jdbcType=INTEGER}
+    </update>
+    <update id="updateOrderByParentId">
+        update ujcms_org
+        set order_ = order_ + #{num,jdbcType=INTEGER}
+        where exists(select * from ujcms_org_tree t where t.ancestor_id_ = #{parentId,jdbcType=INTEGER} and t.descendant_id_ = id_)
+    </update>
+    <sql id="selectAllJoin">
+        <if test="parentId != null">
+            join ujcms_org_tree orgTree on t.id_ = orgTree.descendant_id_
+        </if>
+    </sql>
+    <sql id="selectAllWhere">
+        <if test="parentId != null">
+            and orgTree.ancestor_id_ = #{parentId}
+        </if>
+    </sql>
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_org" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_org t
+        where id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete
+        from ujcms_org
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete>
+<update id="update" parameterType="com.ujcms.cms.core.domain.Org">
+    update ujcms_org
+    set parent_id_ = #{parentId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      phone_ = #{phone,jdbcType=VARCHAR},
+      address_ = #{address,jdbcType=VARCHAR},
+      contacts_ = #{contacts,jdbcType=VARCHAR},
+      depth_ = #{depth,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Org">
+    insert into ujcms_org (id_, parent_id_, name_, phone_, address_, contacts_, depth_, order_)
+    values (#{id,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{contacts,jdbcType=VARCHAR}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.parent_id_, t.name_, t.phone_, t.address_, t.contacts_, t.depth_, t.order_
+  </sql></mapper>

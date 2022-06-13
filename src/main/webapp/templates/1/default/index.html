@@ -1,10 +1,11 @@
 <!doctype html>
+[#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <title>${site.title}</title>
-  <meta name="keywords" content="${site.seoKeywords!}">
-  <meta name="description" content="${site.seoDescription!}">
+  <meta name="keywords" content="${site.seoKeywords}">
+  <meta name="description" content="${site.seoDescription}">
   [#include 'includes_meta.html'/]
   [#include 'includes_css.html'/]
   [#include 'includes_js.html'/]
@@ -79,3 +80,4 @@
 <script>axios.get('${api}/site/view/${site.id}');</script>
 </body>
 </html>
+[/#escape]

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.AttachmentMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Attachment">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="path_" jdbcType="VARCHAR" property="path" />
+    <result column="url_" jdbcType="VARCHAR" property="url" />
+    <result column="length_" jdbcType="BIGINT" property="length" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="used_" jdbcType="BOOLEAN" property="used" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Attachment">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.AttachmentRefer" property="referList" select="com.ujcms.cms.core.mapper.AttachmentReferMapper.listByAttachmentId" />
+    </resultMap>
+
+    <select id="findByUrl" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_attachment t
+        where t.url_= #{url,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_attachment
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+
+    <update id="updateUsed">
+        update ujcms_attachment t
+        set t.used_ = exists(select * from ujcms_attachment_refer refer where refer.attachment_id_ = t.id_)
+        where t.id_ in
+        <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
+    </update>
+
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_attachment" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_attachment t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_attachment
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Attachment">
+    update ujcms_attachment
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      user_id_ = #{userId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      path_ = #{path,jdbcType=VARCHAR},
+      url_ = #{url,jdbcType=VARCHAR},
+      length_ = #{length,jdbcType=BIGINT},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      used_ = #{used,jdbcType=BOOLEAN}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Attachment">
+    insert into ujcms_attachment (id_, site_id_, user_id_, name_, path_, url_, length_, created_, used_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{length,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{used,jdbcType=BOOLEAN})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.user_id_, t.name_, t.path_, t.url_, t.length_, t.created_, t.used_
+  </sql></mapper>

@@ -1,0 +1,203 @@
+# 注意，所有配置名冒号后必须保留一个英文空格，否则启动项目会报错。
+# 例如：`spring.datasource.username:root`是非法配置，`spring.datasource.username: root`才是合法配置。
+
+# 数据库连接 URL
+# `localhost`是数据库的IP地址，数据库安装在本机可直接用`localhost`或`127.0.0.1`，如安装在其它服务器，则填写IP，如`192.168.0.1`。
+# `3306`是数据库端口号，MySQL默认端口号就是`3306`，如安装数据库时，没有手动修改过端口号，则无需修改。
+# `ujcms`是数据库名，即创建数据库时，所填的数据库名。
+# `serverTimezone=Asia/Shanghai`是时区，中国使用上海时区也就是北京时间，不用改动。
+# `characterEncoding=UTF-8`是连接数据库的编码。不要改动。即使数据使用的是`utf8mb4`编码，此处依然使用`UTF-8`。
+spring.datasource.url: jdbc:mysql://localhost:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
+# 数据库用户名（注意：所有配置名的冒号后必须保留一个英文空格）
+spring.datasource.username: root
+# 数据库密码（注意：所有配置名的冒号后必须保留一个英文空格）
+spring.datasource.password: password
+# 数据库驱动。常用数据库（如MySQL、PostegreSQL、Oracle）可通过jdbc url自动判断，不用指定。无法自动判断时（如国产数据库），需要手动指定。
+#spring.datasource.driver-class-name: com.mysql.cj.jdbc.Driver
+# 执行初始化脚本的数据库类型。
+ujcms.data-sql-platform: mysql
+
+# PostgreSQL数据库
+#spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
+#spring.datasource.username: postgres
+#spring.datasource.password: password
+#spring.datasource.driver-class-name: org.postgresql.Driver
+#ujcms.data-sql-platform: postgresql
+
+# 达梦数据库
+#spring.datasource.url: jdbc:dm://192.168.0.240:5236/UJCMS
+#spring.datasource.username: ujcms
+#spring.datasource.password: pass@0000
+#spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
+#ujcms.data-sql-platform: dm
+
+# 是否启用liquibase。默认：true
+#spring.liquibase.enabled: false
+# 是否执行初始化脚本。默认：true
+#ujcms.data-sql-enabled: false
+
+# 数据库连接生命时长（毫秒）。默认值：1800000 (30 分钟)。
+# 官方强烈建议设置该值，该值必须比数据库连接过期时间小 30 秒以上。
+# MySQL默认的连接过期时间是 28800000 (8小时)。但有时候数据库管理员会把连接过期时间设置成15分钟甚至10分钟，这时需要调整该值。
+# 在数据库和网络允许的情况下，该值应设置的稍大一些。如：7200000（120分钟）
+#spring.datasource.hikari.max-lifetime: 7200000
+# 最大连接数。默认值：10。不需要太大，100是过大的值，会导致性能下降。
+# 该值建议为((core_count * 2) + effective_spindle_count)，即((cpu核心数*2)+硬盘数)，如果是4核cpu一个硬盘，这个值应该是((4*2)+1)=9
+#spring.datasource.hikari.maximum-pool-size: 10
+
+# 使用JNDI方式获取数据库连接，需先配置好JNDI
+#spring.datasource.jndi-name: java:comp/env/jdbc/ujcms
+# 防止在 WebSphere 下出现 UnsupportedOperationException 错误。包括宝兰德等应用服务器也必须加上这项配置
+spring.jta.enabled: false
+
+# 服务端口。默认8080端口。
+#server.port: 80
+# 上下文路径。默认根目录。
+#server.servlet.context-path: /
+# Session timeout. If a duration suffix is not specified, seconds will be used. Default Value: 30m
+# Session 过期时间。如果没有指定后缀，单位为秒。默认：30m (30分钟)
+#server.servlet.session.timeout: 30m
+# Session跟踪模式。为了避免url带;jsessionid，不使用url模式。
+# Session tracking modes (one or more of the following: "cookie", "url", "ssl").
+server.servlet.session.tracking-modes: cookie
+# Session HttpOnly Cookie。防止 js 获取 Session 的 Cookie。
+server.servlet.session.cookie.http-only: true
+# 上传文件最大限制。-1 为不限制上传大小。默认 1M
+spring.servlet.multipart.max-file-size: -1
+# 上传请求最大限制。-1 为不限制上传大小。默认 10M
+spring.servlet.multipart.max-request-size: -1
+# 是否注册 JSP Servlet。Whether the JSP servlet is registered. Default: true
+server.servlet.jsp.registered: false
+# 使用参数指定 HTTP Method
+spring.mvc.hiddenmethod.filter.enabled: true
+# 错误处理类 org.springframework.boot.autoconfigure.web.servlet.error.
+# 错误处理是否包含 "message" 属性。Include the "message" attribute.
+server.error.include-message: ALWAYS
+# 错误处理是否包含 "exception" 属性。Include the "exception" attribute.
+server.error.include-exception: true
+# 错误处理是否包含 "stacktrace" (trace?) 属性。When to include a "stacktrace" attribute.
+server.error.include-stacktrace: ALWAYS
+# 日志级别为ERROR
+logging.level.root: ERROR
+# 显示 MyBatis SQL 日志
+#logging.level.com.ujcms.cms.core.mapper: DEBUG
+# 显示tomcat启动信息
+logging.level.org.springframework.boot.web.embedded.tomcat.TomcatWebServer: INFO
+logging.level.com.ujcms.cms.Application: INFO
+# 关闭springboot日志图标
+spring.main.banner-mode: off
+
+# MyBatis关联对象延迟加载
+#mybatis.configuration.lazy-loading-enabled: true
+mybatis.configuration.default-fetch-size: 100
+mybatis.configuration.default-statement-timeout: 30
+# MyBatis分页方言。多个配置用';'分号分开。默认支持以下国产数据库(https://github.com/pagehelper/Mybatis-PageHelper)：
+# 达梦数据库(dm): OracleDialect
+# 阿里云PPAS数据库(edb): OracleDialect
+# 神通数据库(oscar): OscarDialect
+# 瀚高数据库(highgo): HsqldbDialect
+# 虚谷数据库(xugu): HsqldbDialect
+pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDialect;kingbase=com.github.pagehelper.dialect.helper.PostgreSqlDialect;opengauss=com.github.pagehelper.dialect.helper.PostgreSqlDialect
+# Jackson配置
+spring.jackson.deserialization.FAIL_ON_UNKNOWN_PROPERTIES: false
+spring.jackson.serialization.FAIL_ON_EMPTY_BEANS: false
+# 默认关闭 spring-data-elasticsearch 的 repositories
+spring.data.elasticsearch.repositories.enabled: false
+
+# Core number of threads. Default: 8
+# 核心线程数量。参考值为 CPU核心数 * 1。对于IO密集型运算，可适当加大。
+#spring.task.execution.pool.core-size: 8
+# Time limit for which threads may remain idle before being terminated. Default: 60s
+# 线程发呆时间
+#spring.task.execution.pool.keep-alive: 60s
+# Maximum allowed number of threads. If tasks are filling up the queue, the pool can expand up to that size to accommodate the load. Ignored if the queue is unbounded.
+# 最大线程数量。默认值是 Integer.MAX_VALUE。为避免内存溢出，应该设置一个值。参考值为 CPU核心数 * 2。对于IO密集型运算，可适当加大。
+spring.task.execution.pool.max-size: 16
+# Queue capacity. An unbounded capacity does not increase the pool and therefore ignores the "max-size" property.
+# 线程等待队列，等待队列满后，则会根据 "max-size" 创建新线程。默认值是 Integer.MAX_VALUE。为避免内存溢出，应该设置一个值。
+spring.task.execution.pool.queue-capacity: 2048
+
+# 结尾必须带'/'，否则 error 页面找不到模板。
+spring.freemarker.template-loader-path: /templates/
+# 必须指定后缀，否则 error 页面找不到模板。后缀使用html，方便其它编辑器识别文件格式。
+spring.freemarker.suffix: .html
+# 指定输出格式为HTML，会自动开启 html scape，防止 XSS 注入。（使用该模式后，模板中就不可以使用[#escape]标签，导致无法处理空值。所以不使用该功能）
+#spring.freemarker.settings.output_format: HTML
+# 使用中括号作为标签标志，避免DreamWeaver等开发工具因无法识别FreeMarker标签导致报错等情况。
+spring.freemarker.settings.tag_syntax: square_bracket
+# Freemarker 错误信息处理方式
+# 模板异常处理方式。`html_debug`会将错误信息直接显示在页面里，方便调试。
+# 生产环境可以设置为`rethrow`，将异常重新抛出，由 spring 处理异常。
+spring.freemarker.settings.template_exception_handler: com.ujcms.util.freemarker.SimpleTemplateExceptionHandler
+# 生产环境下，模板异常写入日志可能导致日志文件过于庞大，可设置模板异常不写入日志。
+spring.freemarker.settings.log_template_exceptions: false
+# Freemarker 默认允许在模板里创建类的实例，这会导致远程执行漏洞
+# 例如：[#assign value="freemarker.template.utility.Execute"?new()]${value("calc.exe")}
+# 此项配置禁止模板创建类的实例
+# 官方文档：https://freemarker.apache.org/docs/ref_builtins_expert.html#ref_builtin_new
+spring.freemarker.settings.new_builtin_class_resolver: allows_nothing
+
+# 如果需要将静态资源放到程序目录之外，且不想另外配置tomcat虚拟路径或nginx服务，则可通过static-locations配置，由程序提供静态资源服务。
+# 需注意，Tomcat必须要有相应目录的访问权限。
+# 默认值：[classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/]
+#spring.web.resources.static-locations:
+#  - classpath:/META-INF/resources/
+#  - classpath:/resources/
+#  - classpath:/static/
+#  - classpath:/public/
+#  - file:/to/my/path/
+
+# JWT后台Session过期时间。单位：分钟。默认：30
+jwt.sessionTimeout: 30
+# 系统版本号。获取 maven 里的 version 配置。
+ujcms.version: @project.version@
+# 主键序列缓存大小。正式环境建议50或100以上。
+ujcms.sequence-cache-size: 50
+# 是否允许访问JSP。默认不允许。允许JSP访问会带来一定的安全风险，攻击者可以通过上传JSP文件，获得webshell。
+# 若允许，所有JSP文件必须放在 {@code /jsp} 目录下，但访问地址不用加 {@code /jsp} 前缀。
+# 比如： {@code /jsp/example.jsp} 文件的访问地址依然为 {@code /example.jsp}
+# 这样可以防止所有 {@code /jsp} 目录之外的 JSP 文件被访问，降低安全风险。
+ujcms.jsp-allowed: false
+# 模板保存路径。一般模板保存在项目根目录的/templates目录下，也可以将模板保存在其他地方。
+# 模板目录下通常包含img、css、js等文件，需确保能够被浏览器访问到。
+#ujcms.template-path: file:d:\\ujcms\\templates
+#ujcms.template-path: file:/my/dir/templates
+#ujcms.template-path: /templates
+# 模板访问的路径
+#ujcms.template-url: /templates
+
+# ElasticSearch 前缀。默认：ujcms
+#ujcms.es-prefix: ujcms
+# Lucene 索引文件保存目录。可以放到程序目录之外，如
+#ujcms.lucene-path: file:d:\\ujcms\\lucene
+#ujcms.lucene-path: file:/my/dir/lucene
+ujcms.lucene-path: /WEB-INF/lucene
+# 开发环境下，上传的图片无法立即访问，需要等待1至5秒不等。可能是因为上传后，开发工具需要同步到实际 tomcat 的运行路径下。
+ujcms.uploads-location: /uploads
+
+# JWT密钥。单机环境可以不设置，会默认生成一个64位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个长度不少于64位的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
+#jwt.secret:
+# JWT token 密钥。单机环境可以不设置，会默认生成一个16位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个固定长度为16位（不可多也不可少）的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
+#jwt.token-secret:
+# 下载认证密钥。单机环境可以不设置，会默认生成一个32位的随机密钥。
+#ujcms.download-secret:
+# 客户端SM2公钥。使用QD值，HEX编码。单机环境可以不设置，会默认生成随机公钥。
+#ujcms.client-sm2-public-key:
+# 客户端SM2私钥。使用QD值，HEX编码。单机环境可以不设置，会默认生成随机私钥。
+#ujcms.client-sm2-private-key:
+# 密码胡椒。此值一般不改动，改动后用户原密码将全部验证失败；若改动，需手动重置所有密码。一般不少于32个字符。密码胡椒将加在用户实际密码的前面，防止黑客在获取数据库数据后，对密码进行破解。如pepper为 "123"，用户密码是"abc"，则使用"123abc"作为密码进行加密。
+ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
+
+# 是否启用（商业版功能）
+jodconverter.local.enabled: false
+# LibreOffice安装路径
+# linux 通常为 /usr/lib64/libreoffice
+# windows 通常为 C:/Program Files/LibreOffice
+jodconverter.local.office-home: C:/Program Files/LibreOffice
+# 端口号。如果同一台服务器启动多个程序，需要修改端口号，使其不重复
+jodconverter.local.port-numbers: 8100
+# This property sets the maximum number of tasks an office process can execute before restarting. Default: 200
+jodconverter.local.max-tasks-per-process: 50
+
+# 是否显示商业版功能。默认：true
+#ujcms.ep-display: true

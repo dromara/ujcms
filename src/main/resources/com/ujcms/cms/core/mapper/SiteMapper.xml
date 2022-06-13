@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.SiteMapper">
+    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Site">
+        <id column="id_" jdbcType="INTEGER" property="id"/>
+        <result column="parent_id_" jdbcType="INTEGER" property="parentId"/>
+        <result column="org_id_" jdbcType="INTEGER" property="orgId"/>
+        <result column="model_id_" jdbcType="INTEGER" property="modelId"/>
+        <result column="name_" jdbcType="VARCHAR" property="name"/>
+        <result column="protocol_" jdbcType="VARCHAR" property="protocol"/>
+        <result column="domain_" jdbcType="VARCHAR" property="domain"/>
+        <result column="sub_dir_" jdbcType="VARCHAR" property="subDir"/>
+        <result column="theme_" jdbcType="VARCHAR" property="theme"/>
+        <result column="mobile_theme_" jdbcType="VARCHAR" property="mobileTheme"/>
+        <result column="page_size_" jdbcType="SMALLINT" property="pageSize"/>
+        <result column="logo_" jdbcType="VARCHAR" property="logo"/>
+        <result column="seo_title_" jdbcType="VARCHAR" property="seoTitle"/>
+        <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords"/>
+        <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription"/>
+        <result column="static_file_" jdbcType="VARCHAR" property="staticFile"/>
+        <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile"/>
+        <result column="watermark_settings_" jdbcType="VARCHAR" property="watermarkSettings"/>
+        <result column="html_settings_" jdbcType="VARCHAR" property="htmlSettings"/>
+        <result column="depth_" jdbcType="SMALLINT" property="depth"/>
+        <result column="order_" jdbcType="INTEGER" property="order"/>
+        <result column="status_" jdbcType="SMALLINT" property="status"/>
+    </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Site">
+        <association column="id_" javaType="com.ujcms.cms.core.domain.Config" property="config" select="com.ujcms.cms.core.mapper.ConfigMapper.findUnique"/>
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.SiteBuffer" property="buffer"
+                     select="com.ujcms.cms.core.mapper.SiteBufferMapper.select"/>
+        <association column="parent_id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Site" property="parent" select="select"/>
+        <association column="org_id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Org" property="org"
+                     select="com.ujcms.cms.core.mapper.OrgMapper.select"/>
+        <association column="model_id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Model" property="model"
+                     select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.SiteCustom" property="customList"
+                    select="com.ujcms.cms.core.mapper.SiteCustomMapper.listBySiteId"/>
+    </resultMap>
+    <select id="listChildren" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_site t
+        where parent_id_ = #{parentId,jdbcType=INTEGER}
+    </select>
+    <select id="listByOrgId" resultMap="ResultMap">
+        select distinct
+        <include refid="Column_List"/>
+        from ujcms_site t join ujcms_org_tree td on t.org_id_ = td.descendant_id_ join ujcms_org_tree ta on t.org_id_ = ta.ancestor_id_
+        where td.ancestor_id_ = #{orgId} or ta.descendant_id_ = #{orgId} order by t.order_, t.id_
+    </select>
+    <select id="findBySubDir" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_site t
+        where t.sub_dir_ = #{subDir}
+    </select>
+    <select id="findByDomain" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_site t
+        where t.domain_ = #{domain} and t.sub_dir_ is null
+    </select>
+    <update id="updateDepth">
+        update ujcms_site
+        set depth_ = depth_ + #{depth,jdbcType=SMALLINT}
+        where id_ in (select descendant_id_ from ujcms_site_tree where ancestor_id_ = #{id,jdbcType=INTEGER})
+    </update>
+    <select id="maxOrder" resultType="int">
+        select max(c.order_)
+        from ujcms_site c
+        <if test="parentId != null">
+            join ujcms_site_tree t on c.id_ = t.descendant_id_
+            where t.ancestor_id_ = #{parentId,jdbcType=INTEGER}
+        </if>
+    </select>
+    <update id="updateOrder">
+        update ujcms_site
+        set order_ = order_ + #{num,jdbcType=INTEGER}
+        where order_ &gt;= #{begin,jdbcType=INTEGER}
+          and order_ &lt;= #{end,jdbcType=INTEGER}
+    </update>
+    <update id="updateOrderByParentId">
+        update ujcms_site
+        set order_ = order_ + #{num,jdbcType=INTEGER}
+        where exists(select * from ujcms_site_tree t where t.ancestor_id_ = #{parentId,jdbcType=INTEGER} and t.descendant_id_ = id_)
+    </update>
+
+    <sql id="selectAllJoin">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldJoin">
+            <property name="customsTable" value="ujcms_site_custom"/>
+            <property name="customsId" value="site_id_"/>
+        </include>
+        <if test="parentId != null">
+            join ujcms_site_tree siteTree on t.id_ = siteTree.descendant_id_
+        </if>
+        <if test="fullOrgId != null">
+            join ujcms_org_tree td on t.org_id_ = td.descendant_id_ join ujcms_org_tree ta on t.org_id_ = ta.ancestor_id_
+        </if>
+    </sql>
+    <sql id="selectAllWhere">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldWhere"/>
+        <if test="parentId != null">
+            and siteTree.ancestor_id_ = #{parentId}
+        </if>
+        <if test="fullOrgId != null">
+            and td.ancestor_id_ = #{fullOrgId} or ta.descendant_id_ = #{fullOrgId}
+        </if>
+    </sql>
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_site"/>
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_site t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_site
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete>
+    <update id="update" parameterType="com.ujcms.cms.core.domain.Site">
+        update ujcms_site
+        set parent_id_          = #{parentId,jdbcType=INTEGER},
+            org_id_             = #{orgId,jdbcType=INTEGER},
+            model_id_           = #{modelId,jdbcType=INTEGER},
+            name_               = #{name,jdbcType=VARCHAR},
+            protocol_           = #{protocol,jdbcType=VARCHAR},
+            domain_             = #{domain,jdbcType=VARCHAR},
+            sub_dir_            = #{subDir,jdbcType=VARCHAR},
+            theme_              = #{theme,jdbcType=VARCHAR},
+            mobile_theme_       = #{mobileTheme,jdbcType=VARCHAR},
+            page_size_          = #{pageSize,jdbcType=SMALLINT},
+            logo_               = #{logo,jdbcType=VARCHAR},
+            seo_title_          = #{seoTitle,jdbcType=VARCHAR},
+            seo_keywords_       = #{seoKeywords,jdbcType=VARCHAR},
+            seo_description_    = #{seoDescription,jdbcType=VARCHAR},
+            static_file_        = #{staticFile,jdbcType=VARCHAR},
+            mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
+            watermark_settings_ = #{watermarkSettings,jdbcType=VARCHAR},
+            html_settings_      = #{htmlSettings,jdbcType=VARCHAR},
+            depth_              = #{depth,jdbcType=SMALLINT},
+            order_              = #{order,jdbcType=INTEGER},
+            status_             = #{status,jdbcType=SMALLINT}
+        where id_ = #{id,jdbcType=INTEGER}
+    </update>
+    <insert id="insert" parameterType="com.ujcms.cms.core.domain.Site">
+        insert into ujcms_site (id_, parent_id_, org_id_, model_id_, name_, protocol_, domain_, sub_dir_, theme_, mobile_theme_, page_size_, logo_, seo_title_,
+                                seo_keywords_, seo_description_, static_file_, mobile_static_file_, watermark_settings_, html_settings_, depth_, order_,
+                                status_)
+        values (#{id,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{modelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR},
+                #{protocol,jdbcType=VARCHAR}, #{domain,jdbcType=VARCHAR}, #{subDir,jdbcType=VARCHAR}, #{theme,jdbcType=VARCHAR},
+                #{mobileTheme,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{logo,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR},
+                #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR},
+                #{watermarkSettings,jdbcType=VARCHAR}, #{htmlSettings,jdbcType=VARCHAR}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER},
+                #{status,jdbcType=SMALLINT})
+    </insert>
+    <sql id="Column_List">
+        t.id_, t.parent_id_, t.org_id_, t.model_id_, t.name_, t.protocol_, t.domain_, t.sub_dir_, t.theme_, t.mobile_theme_, t.page_size_, t.logo_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.static_file_, t.mobile_static_file_, t.watermark_settings_, t.html_settings_, t.depth_, t.order_, t.status_
+    </sql>
+</mapper>

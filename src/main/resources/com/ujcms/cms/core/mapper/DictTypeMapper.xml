@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.DictTypeMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.DictType">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="alias_" jdbcType="VARCHAR" property="alias" />
+    <result column="remark_" jdbcType="VARCHAR" property="remark" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
+    <result column="order_" jdbcType="SMALLINT" property="order" />
+    <result column="sys_" jdbcType="BOOLEAN" property="sys" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.DictType" />
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_dict_type
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+    <select id="countByAlias" resultType="int">
+        select count(*)
+        from ujcms_dict_type t
+        where t.alias_ = #{alias}
+        <choose>
+            <when test="siteId != null">
+                and t.site_id_ = #{siteId}
+            </when>
+            <otherwise>
+                and t.site_id_ is null
+            </otherwise>
+        </choose>
+    </select>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_dict_type" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_dict_type t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_dict_type
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.DictType">
+    update ujcms_dict_type
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      remark_ = #{remark,jdbcType=VARCHAR},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=SMALLINT},
+      sys_ = #{sys,jdbcType=BOOLEAN}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.DictType">
+    insert into ujcms_dict_type (id_, site_id_, name_, alias_, remark_, scope_, order_, sys_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{sys,jdbcType=BOOLEAN})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.alias_, t.remark_, t.scope_, t.order_, t.sys_
+  </sql></mapper>

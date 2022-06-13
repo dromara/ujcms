@@ -1,10 +1,11 @@
 <!doctype html>
+[#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <title>${article.title}</title>
-  <meta name="keywords" content="${article.seoKeywords!}">
-  <meta name="description" content="${article.seoDescription!}">
+  <meta name="keywords" content="${article.seoKeywords}">
+  <meta name="description" content="${article.seoDescription}">
   [#include 'includes_meta.html'/]
   [#include 'includes_css.html'/]
   [#include 'includes_js.html'/]
@@ -61,7 +62,7 @@
           [/#list]
         </div>
       [/#if]
-      <div class="mt-4 article-content">${article.text!?no_esc}</div>
+      <div class="mt-4 article-content">[#noescape]${article.text!}[/#noescape]</div>
       [#if article.fileList?size > 0]
         <div class="mt-4 bg-light">附件下载</div>
         <ul class="mt-2 list-unstyled small">
@@ -242,11 +243,12 @@
       galleryElements[i].style.cursor = 'pointer';
     }
   };
-  $('.article-content img').addClass('img-fluid');
-  $('.article-content img').addClass('gallery-img');
+  var $articleImg = $('.article-content img');
+  $articleImg.addClass('img-fluid');
+  $articleImg.addClass('gallery-img');
   initPhotoSwipeFromDOM('.gallery-img');
 </script>
-
 [#include 'includes_footer.html'/]
 </body>
 </html>
+[/#escape]

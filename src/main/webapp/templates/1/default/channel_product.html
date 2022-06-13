@@ -1,10 +1,11 @@
 <!doctype html>
+[#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <title>${channel.name} - ${site.title}</title>
-  <meta name="keywords" content="${channel.seoKeywords!}">
-  <meta name="description" content="${channel.seoDescription!}">
+  <meta name="keywords" content="${channel.seoKeywords}">
+  <meta name="description" content="${channel.seoDescription}">
   [#include 'includes_meta.html'/]
   [#include 'includes_css.html'/]
   [#include 'includes_js.html'/]
@@ -16,10 +17,10 @@
     <nav class="row" aria-label="breadcrumb">
       <ol class="col list-inline my-2">
         [#assign parent = channel.parent!channel/]
-        <li class="list-inline-item"><a class="btn btn-sm [#if parent == channel]btn-primary[#else]btn-link[/#if]" href="${parent.url}">全部</a></li>
+        <li class="list-inline-item"><a class="btn btn-sm [#if parent.id == channel.id]btn-primary[#else]btn-link[/#if]" href="${parent.url}">全部</a></li>
         [@ChannelList parentId=parent.id; list]
           [#list list as bean]
-            <li class="list-inline-item"><a class="btn btn-sm [#if channel == bean]btn-primary[#else]btn-link[/#if]" href="${bean.url}">${bean.name}</a></li>
+            <li class="list-inline-item"><a class="btn btn-sm [#if channel.id == bean.id]btn-primary[#else]btn-link[/#if]" href="${bean.url}">${bean.name}</a></li>
           [/#list]
         [/@ChannelList]
       </ol>
@@ -70,3 +71,4 @@
 <script>axios.get('${api}/channel/view/${channel.id}');</script>
 </body>
 </html>
+[/#escape]

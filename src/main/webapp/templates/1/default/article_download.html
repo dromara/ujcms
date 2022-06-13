@@ -1,10 +1,11 @@
 <!doctype html>
+[#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <title>${article.title}</title>
-  <meta name="keywords" content="${article.seoKeywords!}">
-  <meta name="description" content="${article.seoDescription!}">
+  <meta name="keywords" content="${article.seoKeywords}">
+  <meta name="description" content="${article.seoDescription}">
   [#include 'includes_meta.html'/]
   [#include 'includes_css.html'/]
   [#include 'includes_js.html'/]
@@ -41,11 +42,11 @@
         </script>
       </div>
       <div class="clearfix">
-        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">软件语言：</span>${article.customs['language']!}</div>
-        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">软件类型：</span>${article.customs['type']!}</div>
-        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">授权方式：</span>${article.customs['license']!}</div>
+        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">软件语言：</span>${article.customs['language']}</div>
+        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">软件类型：</span>${article.customs['type']}</div>
+        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">授权方式：</span>${article.customs['license']}</div>
         <div class="float-left w-50 mt-3"><span class="text-muted mr-2">软件大小：</span>${article.fileSize}</div>
-        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">推荐星级：</span><span class="text-danger">${article.customs['star']!}</span></div>
+        <div class="float-left w-50 mt-3"><span class="text-muted mr-2">推荐星级：</span><span class="text-danger">${article.customs['star']}</span></div>
         <div class="float-left w-50 mt-3"><span class="text-muted mr-2">更新时间：</span>${format(article.publishDate, 'yyyy-MM-dd')}</div>
         <div class="float-left w-50 mt-3"><span class="text-muted mr-2">下载次数：</span><span id="downloads" class="text-danger"></span> 次</div>
         <div class="float-left w-50 mt-3"><span class="text-muted mr-2">运行环境：</span>${article.customs['system']!?join(", ")}</div>
@@ -94,7 +95,7 @@
   <div class="row mt-3">
     <div class="col">
       <h5 class="mt-2 border-bottom"><span class="cm-block-head-bottom">软件介绍</span></h5>
-      <div class="article-content">${article.text!?no_esc}</div>
+      <div class="article-content">[#noescape]${article.text!}[/#noescape]</div>
       <script>$('.article-content img').addClass('img-fluid');</script>
       <ul class="border-top list-unstyled mt-3 pt-3">
         [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
@@ -122,3 +123,4 @@
 [#include 'includes_footer.html'/]
 </body>
 </html>
+[/#escape]

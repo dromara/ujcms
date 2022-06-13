@@ -1,10 +1,11 @@
 <!doctype html>
+[#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <title>${article.title}</title>
-  <meta name="keywords" content="${article.seoKeywords!}">
-  <meta name="description" content="${article.seoDescription!}">
+  <meta name="keywords" content="${article.seoKeywords}">
+  <meta name="description" content="${article.seoDescription}">
   [#include 'includes_meta.html'/]
   [#include 'includes_css.html'/]
   [#include 'includes_js.html'/]
@@ -201,7 +202,7 @@
           });
         </script>
       [/#if]
-      <div class="mt-4" id="articleText">${article.text!?no_esc}</div>
+      <div class="mt-4" id="articleText">[#noescape]${article.text!}[/#noescape]</div>
       <div class="lead d-flex justify-content-center text-info">
         <div class="cm-pointer" onclick="voteUp()"><i class="far fa-thumbs-up"></i> <span id="ups"></span></div>
         <div class="cm-pointer ml-4" onclick="voteDown()"><i class="far fa-thumbs-down"></i> <span id="downs"></span></div>
@@ -261,3 +262,4 @@
 [#include 'includes_footer.html'/]
 </body>
 </html>
+[/#escape]

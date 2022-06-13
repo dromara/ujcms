@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.RoleMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Role">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="data_scope_" jdbcType="SMALLINT" property="dataScope" />
+    <result column="rank_" jdbcType="SMALLINT" property="rank" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
+    <result column="order_" jdbcType="SMALLINT" property="order" />
+    <result column="global_permission_" jdbcType="BOOLEAN" property="globalPermission" />
+    <result column="all_article_permission_" jdbcType="BOOLEAN" property="allArticlePermission" />
+    <result column="permission_" jdbcType="LONGVARCHAR" property="permission" />
+    <result column="grant_permission_" jdbcType="LONGVARCHAR" property="grantPermission" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Role">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
+    </resultMap>
+    <select id="listByUserId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_role t
+        join ujcms_user_role ur on t.id_ = ur.role_id_
+        where ur.user_id_ = #{userId}
+    </select>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_role" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_role t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_role
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Role">
+    update ujcms_role
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      data_scope_ = #{dataScope,jdbcType=SMALLINT},
+      rank_ = #{rank,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=SMALLINT},
+      global_permission_ = #{globalPermission,jdbcType=BOOLEAN},
+      all_article_permission_ = #{allArticlePermission,jdbcType=BOOLEAN},
+      permission_ = #{permission,jdbcType=LONGVARCHAR},
+      grant_permission_ = #{grantPermission,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Role">
+    insert into ujcms_role (id_, site_id_, name_, description_, data_scope_, rank_, type_, scope_, order_, global_permission_, all_article_permission_, permission_, grant_permission_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{dataScope,jdbcType=SMALLINT}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{globalPermission,jdbcType=BOOLEAN}, #{allArticlePermission,jdbcType=BOOLEAN}, #{permission,jdbcType=LONGVARCHAR}, #{grantPermission,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.description_, t.data_scope_, t.rank_, t.type_, t.scope_, t.order_, t.global_permission_, t.all_article_permission_, t.permission_, t.grant_permission_
+  </sql></mapper>

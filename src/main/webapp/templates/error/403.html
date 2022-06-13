@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 [#import "/spring.ftl" as spring/]
+[#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -23,3 +24,4 @@
 <script src="${templateUrl!'../templates/'}/error/_files/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+[/#escape]

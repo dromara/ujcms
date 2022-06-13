@@ -1,4 +1,4 @@
-[#ftl output_format="XML"]
+[#escape x as (x)!?xml]
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0">
   <channel>
@@ -20,3 +20,4 @@
     [/@ArticleList]
   </channel>
 </rss>
+[/#escape]

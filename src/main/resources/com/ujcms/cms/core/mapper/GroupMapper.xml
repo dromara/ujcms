@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.site//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.GroupMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Group">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="order_" jdbcType="SMALLINT" property="order" />
+    <result column="all_access_permission_" jdbcType="BOOLEAN" property="allAccessPermission" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Group" />
+    <select id="listByChannelId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_group t
+        join ujcms_group_access ga on t.id_ = ga.group_id_
+        where ga.channel_id_ = #{channelId}
+    </select>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_group" />
+        </include>
+    </select>
+    <select id="select" parameterType="int" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_group t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="int">
+        delete
+        from ujcms_group
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Group">
+    update ujcms_group
+    set name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=SMALLINT},
+      all_access_permission_ = #{allAccessPermission,jdbcType=BOOLEAN}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Group">
+    insert into ujcms_group (id_, name_, description_, type_, order_, all_access_permission_)
+    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{allAccessPermission,jdbcType=BOOLEAN})
+  </insert><sql id="Column_List">
+    t.id_, t.name_, t.description_, t.type_, t.order_, t.all_access_permission_
+  </sql></mapper>

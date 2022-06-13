@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ConfigMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Config">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="context_path_" jdbcType="VARCHAR" property="contextPath" />
+    <result column="port_" jdbcType="INTEGER" property="port" />
+    <result column="multi_domain_" jdbcType="BOOLEAN" property="multiDomain" />
+    <result column="channel_url_" jdbcType="VARCHAR" property="channelUrl" />
+    <result column="article_url_" jdbcType="VARCHAR" property="articleUrl" />
+    <result column="default_site_id_" jdbcType="INTEGER" property="defaultSiteId" />
+    <result column="upload_settings_" jdbcType="VARCHAR" property="uploadSettings" />
+    <result column="register_settings_" jdbcType="VARCHAR" property="registerSettings" />
+    <result column="email_settings_" jdbcType="VARCHAR" property="emailSettings" />
+    <result column="upload_storage_settings_" jdbcType="VARCHAR" property="uploadStorageSettings" />
+    <result column="html_storage_settings_" jdbcType="VARCHAR" property="htmlStorageSettings" />
+    <result column="template_storage_settings_" jdbcType="VARCHAR" property="templateStorageSettings" />
+    <result column="customs_settings_" jdbcType="LONGVARCHAR" property="customsSettings" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Config">
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Model" property="model" select="com.ujcms.cms.core.mapper.ModelMapper.selectConfigModel" />
+    </resultMap>
+    <select id="findUnique" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_config t
+        where t.id_ = 1
+    </select>
+<update id="update" parameterType="com.ujcms.cms.core.domain.Config">
+    update ujcms_config
+    set context_path_ = #{contextPath,jdbcType=VARCHAR},
+      port_ = #{port,jdbcType=INTEGER},
+      multi_domain_ = #{multiDomain,jdbcType=BOOLEAN},
+      channel_url_ = #{channelUrl,jdbcType=VARCHAR},
+      article_url_ = #{articleUrl,jdbcType=VARCHAR},
+      default_site_id_ = #{defaultSiteId,jdbcType=INTEGER},
+      upload_settings_ = #{uploadSettings,jdbcType=VARCHAR},
+      register_settings_ = #{registerSettings,jdbcType=VARCHAR},
+      email_settings_ = #{emailSettings,jdbcType=VARCHAR},
+      upload_storage_settings_ = #{uploadStorageSettings,jdbcType=VARCHAR},
+      html_storage_settings_ = #{htmlStorageSettings,jdbcType=VARCHAR},
+      template_storage_settings_ = #{templateStorageSettings,jdbcType=VARCHAR},
+      customs_settings_ = #{customsSettings,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Config">
+    insert into ujcms_config (id_, context_path_, port_, multi_domain_, channel_url_, article_url_, default_site_id_, upload_settings_, register_settings_, email_settings_, upload_storage_settings_, html_storage_settings_, template_storage_settings_, customs_settings_)
+    values (#{id,jdbcType=INTEGER}, #{contextPath,jdbcType=VARCHAR}, #{port,jdbcType=INTEGER}, #{multiDomain,jdbcType=BOOLEAN}, #{channelUrl,jdbcType=VARCHAR}, #{articleUrl,jdbcType=VARCHAR}, #{defaultSiteId,jdbcType=INTEGER}, #{uploadSettings,jdbcType=VARCHAR}, #{registerSettings,jdbcType=VARCHAR}, #{emailSettings,jdbcType=VARCHAR}, #{uploadStorageSettings,jdbcType=VARCHAR}, #{htmlStorageSettings,jdbcType=VARCHAR}, #{templateStorageSettings,jdbcType=VARCHAR}, #{customsSettings,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.context_path_, t.port_, t.multi_domain_, t.channel_url_, t.article_url_, t.default_site_id_, t.upload_settings_, t.register_settings_, t.email_settings_, t.upload_storage_settings_, t.html_storage_settings_, t.template_storage_settings_, t.customs_settings_
+  </sql></mapper>

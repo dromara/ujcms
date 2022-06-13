@@ -1,3 +1,4 @@
+[#escape x as (x)!?html]
 <div class="col-sm-4 px-4 d-none d-lg-block">
   <h5 class="ml-2"><i class="far fa-newspaper  text-primary"></i> 热点新闻</h5>
   <div class="px-2 pb-2 mt-3">
@@ -12,7 +13,7 @@
     [/@ArticleList]
   </div>
 
-  [@Channel alias='video';bean]
+  [@Channel alias='video'; bean]
     <h5 class="mt-3 ml-2">
       <i class="fas fa-film text-primary"></i> [@A bean=bean class="text-reset text-decoration-none"]精彩视频[/@A]
     </h5>
@@ -35,3 +36,4 @@
     [/@ArticleList]
   </div>
 </div>
+[/#escape]

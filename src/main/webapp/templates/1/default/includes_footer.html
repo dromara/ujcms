@@ -1,11 +1,13 @@
+[#escape x as (x)!?html]
 <div class="bg-gray-600 gray-300 mt-4">
   <div class="container py-4 text-center small">
     <p>
-      <span>Powered by <strong><a href="http://www.ujcms.com" class="text-reset" target="_blank">UJCMS</a></strong></span>
+      <span>Powered by <strong><a href="https://www.ujcms.com" class="text-reset" target="_blank">UJCMS</a></strong></span>
     </p>
     <div>
-      <span>&copy; ${.now?string('yyyy')} ${site.customs['company']!} 版权所有</span>
-      <span><a href="http://beian.miit.gov.cn" target="_blank" class="text-reset">${site.customs['icp']!}</a></span>
+      <span>&copy; ${.now?string('yyyy')} ${site.customs['company']} 版权所有</span>
+      <span><a href="http://beian.miit.gov.cn" target="_blank" class="text-reset">${site.customs['icp']}</a></span>
     </div>
   </div>
 </div>
+[/#escape]
