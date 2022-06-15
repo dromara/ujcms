@@ -220,8 +220,9 @@ public class HtmlService {
         if (!filename.endsWith(Site.Html.SUFFIX)) {
             throw new IllegalArgumentException("filename must ends with '.html': " + filename);
         }
-        String baseFilename = filename.substring(0, filename.length() - Site.Html.SUFFIX.length() - 1);
-        for (int page = 1; fileHandler.deleteFileAndEmptyParentDir(filename); page += 1) {
+        String baseFilename = filename.substring(0, filename.length() - Site.Html.SUFFIX.length());
+        // 第一次删除无分页的索引页，第二次要从第二页开始删除，所以page=2，
+        for (int page = 2; fileHandler.deleteFileAndEmptyParentDir(filename); page += 1) {
             filename = baseFilename + "_" + page + Site.Html.SUFFIX;
         }
     }

@@ -1,1 +1,0 @@
-System.register(["./vendor-legacy.27f41ac3.js"],(function(e){"use strict";var t;return{setters:[function(e){t=e.g}],execute:function(){e("default",t({beforeRouteEnter(e,t,r){r((e=>{e.$router.replace(t.path)}))},render(){}}))}}}));

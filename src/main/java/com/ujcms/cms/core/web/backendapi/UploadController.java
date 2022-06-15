@@ -68,7 +68,6 @@ public class UploadController {
      * @param thumbnailHeight 缩略图高度
      */
     @PostMapping("image-upload")
-    // @RequiresPermissions("upload:image")
     @RequiresPermissions("backend")
     public Object imageUpload(Integer maxWidth, Integer maxHeight, String resizeMode, Boolean isWatermark,
                               Integer thumbnailWidth, Integer thumbnailHeight, HttpServletRequest request)
@@ -106,7 +105,6 @@ public class UploadController {
     }
 
     @PostMapping("video-upload")
-    // @RequiresPermissions("upload:video")
     @RequiresPermissions("backend")
     public Object videoUpload(HttpServletRequest request) throws IOException {
         Config.Upload upload = configService.getUnique().getUpload();
@@ -114,7 +112,6 @@ public class UploadController {
     }
 
     @PostMapping("doc-upload")
-    // @RequiresPermissions("upload:doc")
     @RequiresPermissions("backend")
     public Object docUpload(HttpServletRequest request) throws IOException {
         Config.Upload upload = configService.getUnique().getUpload();
@@ -122,7 +119,6 @@ public class UploadController {
     }
 
     @PostMapping("file-upload")
-    // @RequiresPermissions("upload:file")
     @RequiresPermissions("backend")
     public Object fileUpload(HttpServletRequest request) throws IOException {
         Config.Upload upload = configService.getUnique().getUpload();
@@ -322,22 +318,19 @@ public class UploadController {
 
     private void thumbnail(FileHandler fileHandler, File file, String pathname, String extension,
                            Integer thumbnailWidth, Integer thumbnailHeight) throws IOException {
+        // 缩略图。图集需要缩略图，其他一般不需要。
+        if (thumbnailWidth == null || thumbnailHeight == null) {
+            return;
+        }
         File thumbnailFile = Files.createTempFile(null, "." + extension).toFile();
         try {
-            // 缩略图。图集需要缩略图，其他一般不需要。
-            if (thumbnailWidth != null && thumbnailHeight != null) {
-                if (!imageHandler.resize(file.getAbsolutePath(), thumbnailFile.getAbsolutePath(),
-                        thumbnailWidth, thumbnailHeight, ResizeMode.normal)) {
-                    FileUtils.copyFile(file, thumbnailFile);
-                }
+            if (!imageHandler.resize(file.getAbsolutePath(), thumbnailFile.getAbsolutePath(),
+                    thumbnailWidth, thumbnailHeight, ResizeMode.normal)) {
+                FileUtils.copyFile(file, thumbnailFile);
             }
-            if (thumbnailFile.exists()) {
-                fileHandler.store(Uploads.getThumbnailName(pathname), thumbnailFile);
-            }
+            fileHandler.store(Uploads.getThumbnailName(pathname), thumbnailFile);
         } finally {
-            if (thumbnailFile.exists()) {
-                FileUtils.deleteQuietly(thumbnailFile);
-            }
+            FileUtils.deleteQuietly(thumbnailFile);
         }
     }
 

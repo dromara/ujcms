@@ -24,12 +24,12 @@ public class SiteController {
         this.bufferService = bufferService;
     }
 
-    @GetMapping("/view/{id:[\\d]}")
+    @GetMapping("/view/{id:[\\d]+}")
     public long view(@PathVariable Integer id) {
         return bufferService.updateViews(id, 1);
     }
 
-    @GetMapping("/buffer/{id:[\\d]}")
+    @GetMapping("/buffer/{id:[\\d]+}")
     public SiteBuffer buffer(@PathVariable Integer id) {
         SiteBuffer buffer = bufferService.select(id);
         if (buffer == null) {

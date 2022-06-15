@@ -17,7 +17,7 @@
     <delete id="deleteByArticleId" parameterType="int">
         delete
         from ujcms_article_image
-        where article_id_ = #{article_id_,jdbcType=INTEGER}
+        where article_id_ = #{articleId,jdbcType=INTEGER}
     </delete>
     <delete id="deleteByChannelId" parameterType="int">
         delete

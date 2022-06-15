@@ -93,7 +93,7 @@ public class Uploads {
     }
 
     public static boolean isValidType(String types, @Nullable String type) {
-        return Arrays.asList(types.split(",")).contains(type);
+        return Arrays.asList(types.toLowerCase().split(",")).contains(StringUtils.lowerCase(type));
     }
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("/yyyy/MM/yyyyMMddHHmmssSSS_");

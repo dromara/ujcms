@@ -79,8 +79,8 @@ public class ArticleController {
         return article.getTemplate();
     }
 
-    @GetMapping({"/download/{id:[\\d]}", "/download/{id:[\\d]}/{index:[\\d]}",
-            "/{subDir:[\\w-]+}/download/{id:[\\d]}", "/{subDir:[\\w-]+}/download/{id:[\\d]}/{index:[\\d]}"})
+    @GetMapping({"/download/{id:[\\d]+}", "/download/{id:[\\d]+}/{index:[\\d]+}",
+            "/{subDir:[\\w-]+}/download/{id:[\\d]+}", "/{subDir:[\\w-]+}/download/{id:[\\d]+}/{index:[\\d]+}"})
     public void download(@PathVariable Integer id, @PathVariable(required = false) Integer index,
                          @PathVariable(required = false) String subDir,
                          @RequestParam long time, @NotNull String key,

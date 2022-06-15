@@ -3,15 +3,15 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.RoleBase;
-import com.ujcms.util.db.tree.TreeEntity;
-import com.ujcms.util.web.HtmlParserUtils;
-import com.ujcms.util.web.PageUrlResolver;
 import com.ujcms.cms.core.domain.base.ChannelBase;
 import com.ujcms.cms.core.domain.base.GroupBase;
+import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.util.db.tree.TreeEntity;
+import com.ujcms.util.web.HtmlParserUtils;
+import com.ujcms.util.web.PageUrlResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
  */
 @JsonIgnoreProperties("handler")
 public class Channel extends ChannelBase implements PageUrlResolver, Anchor, TreeEntity, Serializable {
+    // region Normal
+
     public String getTitle() {
         return Optional.ofNullable(getExt().getSeoTitle()).orElseGet(this::getName);
     }
@@ -105,6 +107,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     public String toString() {
         return "Channel{id=" + getId() + ", name=" + getName() + ", site=" + getSite().getName() + '}';
     }
+    // endregion
     // region Urls
 
     @Override
@@ -153,6 +156,10 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         }
         if (getType() == TYPE_LINK_CHILD) {
             return Optional.ofNullable(getFirstChild()).map(channel -> channel.getStaticUrl(page)).orElse("");
+        }
+        // 如果页数大于最大静态化页数，则使用动态页
+        if (page > getSite().getHtml().getListPages()) {
+            return getDynamicUrl(page);
         }
         return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
     }

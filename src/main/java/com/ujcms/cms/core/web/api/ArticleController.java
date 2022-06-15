@@ -81,7 +81,7 @@ public class ArticleController {
         });
     }
 
-    @GetMapping("/{id:[\\d]}")
+    @GetMapping("/{id:[\\d]+}")
     public Article show(@PathVariable Integer id) {
         return articleService.select(id);
     }
@@ -98,12 +98,12 @@ public class ArticleController {
         return ArticleNextDirective.query(params, articleService::findPrev);
     }
 
-    @GetMapping("/view/{id:[\\d]}")
+    @GetMapping("/view/{id:[\\d]+}")
     public long view(@PathVariable Integer id) {
         return bufferService.updateViews(id, 1);
     }
 
-    @PostMapping("/up/{id:[\\d]}")
+    @PostMapping("/up/{id:[\\d]+}")
     public int up(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
@@ -115,7 +115,7 @@ public class ArticleController {
         return ups;
     }
 
-    @PostMapping("/down/{id:[\\d]}")
+    @PostMapping("/down/{id:[\\d]+}")
     public int down(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
@@ -127,7 +127,7 @@ public class ArticleController {
         return downs;
     }
 
-    @GetMapping("/download-params/{id:[\\d]}")
+    @GetMapping("/download-params/{id:[\\d]+}")
     public String downloadParam(@PathVariable Integer id) {
         long time = System.currentTimeMillis();
         String secret = props.getDownloadSecret();
@@ -135,7 +135,7 @@ public class ArticleController {
         return "time=" + time + "&key=" + key;
     }
 
-    @PostMapping("/download/{id:[\\d]}")
+    @PostMapping("/download/{id:[\\d]+}")
     public int download(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
@@ -147,7 +147,7 @@ public class ArticleController {
         return downloads;
     }
 
-    @GetMapping("/buffer/{id:[\\d]}")
+    @GetMapping("/buffer/{id:[\\d]+}")
     public ArticleBuffer buffer(@PathVariable Integer id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {

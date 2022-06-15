@@ -52,7 +52,7 @@ public class ChannelController {
         return channelService.selectList(args, offset, limit);
     }
 
-    @GetMapping("/{id:[\\d]}")
+    @GetMapping("/{id:[\\d]+}")
     public Channel show(@PathVariable Integer id) {
         return channelService.select(id);
     }
@@ -65,12 +65,12 @@ public class ChannelController {
         return channelService.findBySiteIdAndAlias(siteId, alias);
     }
 
-    @GetMapping("/view/{id:[\\d]}")
+    @GetMapping("/view/{id:[\\d]+}")
     public long view(@PathVariable Integer id) {
         return bufferService.updateViews(id, 1);
     }
 
-    @GetMapping("/buffer/{id:[\\d]}")
+    @GetMapping("/buffer/{id:[\\d]+}")
     public ChannelBuffer buffer(@PathVariable Integer id) {
         return bufferService.select(id);
     }

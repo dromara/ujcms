@@ -46,7 +46,7 @@ public class GlobalSettingsController {
     }
 
     @GetMapping("model")
-    @RequiresPermissions("globalSettings:show")
+    @RequiresPermissions("config:show")
     public Model configModel() {
         return modelService.selectConfigModel();
     }
