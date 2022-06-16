@@ -52,7 +52,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 2. 修改数据库连接。打开`/src/main/resources/application.yaml`文件，根据实际情况修改`spring.datasource.url`、`spring.datasource.username`、`spring.datasource.password`的值。其中`spring.datasource.url`中的数据库名要和上一步创建的数据库名一致。
 3. 启动程序。在eclipse中，右键点击项目名，选择`Run as` - `Java Application`，选择`Application - com.ujcms`，然后点击`OK`。也可在左侧导航中找到`com.ujcms.cms.Application`类并右键点击，选择`Run as` - `Java Application`即可直接运行。
 4. 使用 IntelliJ IDEA 开发的，步骤与 Eclipse 类似。打开工程后，等待Maven下载依赖，修改数据库连接，然后直接点击右上角的绿色三角图标(`Run 'Application'`)，即可直接运行。也可在左侧导航中找到`com.ujcms.cms.Application`类并右键点击，选择`Run 'Application'`。
-5. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
+5. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`或`Waiting for changelog lock....`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
 6. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
 7. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于`Vue 3`开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
 

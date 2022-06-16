@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 前台首页 Controller
+ * 前台 RSS Controller
  *
  * @author PONY
  */

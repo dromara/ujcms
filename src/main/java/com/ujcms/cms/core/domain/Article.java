@@ -18,6 +18,7 @@ import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +30,8 @@ import java.util.Optional;
  */
 @JsonIgnoreProperties("handler")
 public class Article extends ArticleBase implements PageUrlResolver, Anchor, Serializable {
+    // region Normal
+
     @JsonIgnore
     @Override
     public String getName() {
@@ -117,6 +120,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
      * 状态：已删除
      */
     public static final short STATUS_DELETED = 100;
+    // endregion
 
     // region Urls
 
@@ -175,6 +179,13 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     public String getMobileStaticPath(int page) {
         return getSite().getMobileStaticPath(getArticlePath(page));
+    }
+
+    /**
+     * 是否是链接
+     */
+    public boolean isLink() {
+        return StringUtils.isNotBlank(getExt().getLinkUrl());
     }
     // endregion
 
@@ -240,20 +251,20 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
      * 自定义字段列表
      */
     @JsonIgnore
-    private List<ArticleCustom> customList = new ArrayList<>();
+    private List<ArticleCustom> customList = Collections.emptyList();
     /**
      * 图片列表
      */
-    private List<ArticleImage> imageList = new ArrayList<>();
+    private List<ArticleImage> imageList = Collections.emptyList();
     /**
      * 文件列表
      */
-    private List<ArticleFile> fileList = new ArrayList<>();
+    private List<ArticleFile> fileList = Collections.emptyList();
     /**
      * 区块项列表
      */
     @JsonIncludeProperties({"id", "title", "block"})
-    private List<BlockItem> blockItemList = new ArrayList<>();
+    private List<BlockItem> blockItemList = Collections.emptyList();
 
     public ArticleExt getExt() {
         return ext;

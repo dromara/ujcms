@@ -52,8 +52,24 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @param parentId 父栏目ID
      * @return 子栏目列表
      */
-    List<Org> listChildren(Integer parentId);
+    List<Channel> listChildren(Integer parentId);
 
+    /**
+     * 查询栏目用于sitemap。sitemap查询的数据量较大，只获取必须的字段。
+     *
+     * @param id 栏目ID
+     * @return 栏目对象
+     */
+    @Nullable
+    Channel selectForSitemap(Integer id);
+
+    /**
+     * 查询栏目用于sitemap。sitemap查询的数据量较大，只获取必须的字段。
+     *
+     * @param siteId 站点ID
+     * @return 栏目列表
+     */
+    List<Channel> listByChannelForSitemap(Integer siteId);
 
     /**
      * 根据站点ID设置父栏目ID为NULL

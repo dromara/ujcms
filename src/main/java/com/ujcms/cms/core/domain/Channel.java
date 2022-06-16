@@ -19,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -264,23 +265,22 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
      * 子栏目列表
      */
     @JsonIncludeProperties({"id", "name", "url"})
-    // @JsonIgnore
-    private List<Channel> children = new ArrayList<>();
+    private List<Channel> children = Collections.emptyList();
     /**
      * 用户组列表
      */
     @JsonIgnore
-    private List<Group> groupList = new ArrayList<>();
+    private List<Group> groupList = Collections.emptyList();
     /**
      * 角色列表
      */
     @JsonIgnore
-    private List<Role> roleList = new ArrayList<>();
+    private List<Role> roleList = Collections.emptyList();
     /**
      * 自定义字段列表
      */
     @JsonIgnore
-    private List<ChannelCustom> customList = new ArrayList<>();
+    private List<ChannelCustom> customList = Collections.emptyList();
     /**
      * 上级栏目
      */

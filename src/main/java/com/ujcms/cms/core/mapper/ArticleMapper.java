@@ -8,7 +8,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文章 Mapper
@@ -72,6 +74,15 @@ public interface ArticleMapper {
     List<Article> listByIds(@Param("ids") Iterable<Integer> ids);
 
     /**
+     * 根据站点ID获取文章列表用于sitemap。由于sitemap获取的数据量较大，只查询必须字段。
+     *
+     * @param siteId 站点ID
+     * @param minId  最小的文章ID。从此文章ID开始获取数据。
+     * @return 数据列表
+     */
+    List<Article> listBySiteIdForSitemap(Integer siteId, @Nullable Integer minId);
+
+    /**
      * 查询下一条文章
      *
      * @param id          文章ID
@@ -106,6 +117,24 @@ public interface ArticleMapper {
      * @return 文章数量
      */
     int countByUserId(Integer userId);
+
+    /**
+     * 根据 站点ID 查询文章数量
+     *
+     * @param siteId 用户ID
+     * @param status 文章状态
+     * @return 文章数量
+     */
+    int countBySiteId(@Param("siteId") Integer siteId, @Param("status") Collection<Short> status);
+
+    /**
+     * 查询最大的ID值
+     *
+     * @param siteId 用户ID
+     * @param status 文章状态
+     * @return 最大的ID值
+     */
+    Map<String, Object> statForSitemap(@Param("siteId") Integer siteId, @Param("status") Collection<Short> status);
 
     /**
      * 根据栏目ID删除数据

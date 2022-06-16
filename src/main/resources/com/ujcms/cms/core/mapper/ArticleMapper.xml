@@ -33,7 +33,14 @@
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.BlockItem" property="blockItemList"
                     select="com.ujcms.cms.core.mapper.BlockItemMapper.listByArticleId"/>
     </resultMap>
-
+    <resultMap id="SitemapResultMap" type="com.ujcms.cms.core.domain.Article">
+        <id column="id_" jdbcType="INTEGER" property="id"/>
+        <result column="channel_id_" jdbcType="INTEGER" property="channelId"/>
+        <result column="status_" jdbcType="SMALLINT" property="status"/>
+        <association property="ext" javaType="com.ujcms.cms.core.domain.ArticleExt" resultMap="com.ujcms.cms.core.mapper.ArticleExtMapper.BaseResultMap"/>
+        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel"
+                     select="com.ujcms.cms.core.mapper.ChannelMapper.selectForSitemap"/>
+    </resultMap>
     <select id="listByIds" resultMap="ResultMap">
         select
         <include refid="Column_List"/>
@@ -42,6 +49,15 @@
         <foreach close=")" collection="ids" item="item" open="(" separator=",">
             #{item}
         </foreach>
+    </select>
+    <select id="listBySiteIdForSitemap" resultMap="SitemapResultMap">
+        select t.id_, t.channel_id_, uae.alias_, uae.link_url_, uae.created_, uae.modified_
+        from ujcms_article t join ujcms_article_ext uae on t.id_ = uae.id_
+        where t.site_id_ = #{siteId}
+        <if test="minId != null">
+            and t.id_ &gt;= #{minId}
+        </if>
+        order by t.id_
     </select>
     <select id="findNext" resultMap="ResultMap">
         select
@@ -83,6 +99,23 @@
         select count(*)
         from ujcms_article t
         where t.user_id_ = #{userId}
+    </select>
+    <select id="countBySiteId" resultType="int">
+        select count(*)
+        from ujcms_article t
+        where t.site_id_ = #{siteId}
+        <foreach item="item" collection="status" open="and t.status_ in (" separator="," close=")" nullable="true">
+            #{item}
+        </foreach>
+    </select>
+    <select id="statForSitemap" resultType="map">
+        select count(*) as count, max(t.id_) as maxId
+        from ujcms_article t
+        where t.site_id_ = #{siteId}
+        <foreach item="item" collection="status" open="and t.status_ in (" separator="," close=")" nullable="true">
+            #{item}
+        </foreach>
+        order by t.id_
     </select>
     <delete id="deleteByChannelId" parameterType="int">
         delete

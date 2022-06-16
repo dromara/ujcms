@@ -191,6 +191,10 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         return selectList(args);
     }
 
+    public List<Channel> listByChannelForSitemap(Integer siteId) {
+        return mapper.listByChannelForSitemap(siteId);
+    }
+
     public List<Channel> selectList(ChannelArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Channel.TABLE_NAME, "order,id");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());

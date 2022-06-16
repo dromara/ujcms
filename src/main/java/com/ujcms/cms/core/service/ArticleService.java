@@ -33,7 +33,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -189,6 +191,10 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         return selectList(args, offset, limit);
     }
 
+    public List<Article> listBySiteIdForSiteMap(Integer siteId, @Nullable Integer minId, int limit) {
+        return PageHelper.offsetPage(0, limit, false).doSelectPage(() -> mapper.listBySiteIdForSitemap(siteId, minId));
+    }
+
     @Nullable
     public Article findNext(Integer id, OffsetDateTime publishDate, Integer channelId) {
         List<Article> list = PageHelper.offsetPage(0, 1, false).doSelectPage(() ->
@@ -205,6 +211,19 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
                 mapper.findPrev(id, publishDate, channelId));
         if (list.isEmpty()) {
             return null;
+        }
+        return list.get(0);
+    }
+
+    public int countBySiteId(Integer siteId) {
+        return mapper.countBySiteId(siteId, Collections.emptyList());
+    }
+
+    public Map<String, Object> statForSitemap(Integer siteId, int limit) {
+        List<Map<String, Object>> list = PageHelper.offsetPage(0, limit, false).doSelectPage(() ->
+                mapper.statForSitemap(siteId, Collections.emptyList()));
+        if (list.isEmpty()) {
+            return Collections.emptyMap();
         }
         return list.get(0);
     }

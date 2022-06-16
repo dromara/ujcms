@@ -44,7 +44,8 @@ public class MyBatisConfig {
         properties.put("DB2", "db2");
         // 达梦
         properties.put("DM DBMS", "dm");
-        // 人大金仓 KingbaseES
+        // 人大金仓的名称是KingbaseES，判断规则为contains，只要包含部分字符串即可。
+        // 为防止金仓改变ES名称或还有其它类似产品线，此处判断包含kingbase，而不判断KingbaseES
         properties.put("Kingbase", "kingbase");
         // 南大通用
         properties.put("GBase", "gbase");

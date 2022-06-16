@@ -22,6 +22,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 import javax.servlet.Filter;
 
@@ -92,14 +93,26 @@ public class ShiroConfig {
     @Bean
     @ConditionalOnProperty(prefix = "spring.h2.console", name = "enabled", havingValue = "false", matchIfMissing = true)
     public FilterRegistrationBean<Filter> jspDispatcherFilterRegistrationBean(Props props) {
-        FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
-        filterRegistration.setFilter(new JspDispatcherFilter());
+        FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>(new JspDispatcherFilter());
         filterRegistration.setEnabled(true);
         filterRegistration.addUrlPatterns("*.jsp");
         filterRegistration.addUrlPatterns("*.jspx");
         if (props.isJspAllowed()) {
             filterRegistration.addInitParameter("allowed", "true");
         }
+        return filterRegistration;
+    }
+
+    // /**
+    //  * 百度建议sitemap支持etag，这样百度会更频繁的访问sitemap。但是filter的UrlPatterns太难用，无法符合要求
+    //  */
+    @Bean
+    public FilterRegistrationBean<ShallowEtagHeaderFilter> shallowEtagHeaderFilter() {
+        FilterRegistrationBean<ShallowEtagHeaderFilter> filterRegistration
+                = new FilterRegistrationBean<>(new ShallowEtagHeaderFilter());
+        filterRegistration.addUrlPatterns("/sitemap");
+        filterRegistration.setEnabled(true);
+        filterRegistration.setName("etagFilter");
         return filterRegistration;
     }
 }
