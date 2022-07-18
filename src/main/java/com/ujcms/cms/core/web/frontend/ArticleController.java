@@ -138,7 +138,10 @@ public class ArticleController {
     private Article validateArticle(Integer id, Site site) {
         Article article = articleService.select(id);
         if (article == null) {
-            throw new Http404Exception("Article not found. id=" + id);
+            throw new Http404Exception("Article not found. ID=" + id);
+        }
+        if (!article.isNormal()) {
+            throw new Http403Exception("Article status forbidden. ID: " + id);
         }
         if (!site.getId().equals(article.getSiteId())) {
             throw new Http404Exception("error.notInSite",

@@ -7,7 +7,7 @@
 # `ujcms`是数据库名，即创建数据库时，所填的数据库名。
 # `serverTimezone=Asia/Shanghai`是时区，中国使用上海时区也就是北京时间，不用改动。
 # `characterEncoding=UTF-8`是连接数据库的编码。不要改动。即使数据使用的是`utf8mb4`编码，此处依然使用`UTF-8`。
-spring.datasource.url: jdbc:mysql://localhost:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
+spring.datasource.url: jdbc:mysql://localhost:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
 # 数据库用户名（注意：所有配置名的冒号后必须保留一个英文空格）
 spring.datasource.username: root
 # 数据库密码（注意：所有配置名的冒号后必须保留一个英文空格）
@@ -31,8 +31,8 @@ ujcms.data-sql-platform: mysql
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
 #ujcms.data-sql-platform: dm
 
-# 是否启用liquibase。默认：true
-#spring.liquibase.enabled: false
+# 是否启用liquibase。默认：true。Flowable 将 spring.liquibase.enabled 设置成了 false。需要显式的设置为 true。
+spring.liquibase.enabled: true
 # 是否执行初始化脚本。默认：true
 #ujcms.data-sql-enabled: false
 
@@ -103,6 +103,10 @@ spring.jackson.deserialization.FAIL_ON_UNKNOWN_PROPERTIES: false
 spring.jackson.serialization.FAIL_ON_EMPTY_BEANS: false
 # 默认关闭 spring-data-elasticsearch 的 repositories
 spring.data.elasticsearch.repositories.enabled: false
+# 缓存类型。默认为内存缓存，集群环境需要设置为 redis
+spring.cache.type: caffeine
+# 如果多个应用共享一个redis，需要设置该值，以免冲突。默认：0
+#spring.redis.database: 0
 
 # Core number of threads. Default: 8
 # 核心线程数量。参考值为 CPU核心数 * 1。对于IO密集型运算，可适当加大。
@@ -172,13 +176,16 @@ ujcms.jsp-allowed: false
 #ujcms.lucene-path: file:d:\\ujcms\\lucene
 #ujcms.lucene-path: file:/my/dir/lucene
 ujcms.lucene-path: /WEB-INF/lucene
-# 开发环境下，上传的图片无法立即访问，需要等待1至5秒不等。可能是因为上传后，开发工具需要同步到实际 tomcat 的运行路径下。
+# 开发环境上传的图片无法立即访问，需要等待1至5秒不等。可能是因为上传后，开发工具需要将图片同步到实际 tomcat 的运行路径下。
+# 正确此配置可使开发环境上传的图片能立即访问
 ujcms.uploads-location: /uploads
 
 # JWT密钥。单机环境可以不设置，会默认生成一个64位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个长度不少于64位的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
 #jwt.secret:
 # JWT token 密钥。单机环境可以不设置，会默认生成一个16位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个固定长度为16位（不可多也不可少）的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
 #jwt.token-secret:
+# 验证码密钥。单机环境可以不设置，会默认生成一个32位的随机密钥。
+#captcha.secret:
 # 下载认证密钥。单机环境可以不设置，会默认生成一个32位的随机密钥。
 #ujcms.download-secret:
 # 客户端SM2公钥。使用QD值，HEX编码。单机环境可以不设置，会默认生成随机公钥。
@@ -188,11 +195,14 @@ ujcms.uploads-location: /uploads
 # 密码胡椒。此值一般不改动，改动后用户原密码将全部验证失败；若改动，需手动重置所有密码。一般不少于32个字符。密码胡椒将加在用户实际密码的前面，防止黑客在获取数据库数据后，对密码进行破解。如pepper为 "123"，用户密码是"abc"，则使用"123abc"作为密码进行加密。
 ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 
-# 是否启用（商业版功能）
+# 是否启用Office功能（商业版功能）
 jodconverter.local.enabled: false
-# LibreOffice安装路径
-# linux 通常为 /usr/lib64/libreoffice
-# windows 通常为 C:/Program Files/LibreOffice
+# Office安装路径
+# LibreOffice Linux 通常为 /usr/lib64/libreoffice
+# LibreOffice Centos 通常为 /usr/bin/libreoffice
+# LibreOffice Windows 通常为 C:/Program Files/LibreOffice
+# OpenOffice Windows 通常为 C:/Program Files (x86)/OpenOffice 4
+# OpenOffice CentOS 通常为 /opt/openoffice4
 jodconverter.local.office-home: C:/Program Files/LibreOffice
 # 端口号。如果同一台服务器启动多个程序，需要修改端口号，使其不重复
 jodconverter.local.port-numbers: 8100
@@ -200,4 +210,4 @@ jodconverter.local.port-numbers: 8100
 jodconverter.local.max-tasks-per-process: 50
 
 # 是否显示商业版功能。默认：true
-#ujcms.ep-display: true
+#ujcms.ep-display: false

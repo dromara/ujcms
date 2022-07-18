@@ -57,7 +57,7 @@ public class Images {
     public static String getFormatName(File file) {
         // 文件不存在则返回 null
         if (!file.exists()) {
-            return null;
+            throw new IllegalArgumentException("file cannot be null");
         }
         try (ImageInputStream iis = ImageIO.createImageInputStream(file)) {
             Iterator<ImageReader> it = ImageIO.getImageReaders(iis);

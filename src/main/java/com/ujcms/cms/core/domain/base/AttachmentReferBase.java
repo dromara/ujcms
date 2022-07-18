@@ -15,6 +15,12 @@ public class AttachmentReferBase {
     public static final String TABLE_NAME = "attachment_refer";
 
     /**
+     * 附件引用ID
+     */
+    @NotNull
+    private Long id = 0L;
+
+    /**
      * 附件ID
      */
     @NotNull
@@ -32,6 +38,14 @@ public class AttachmentReferBase {
      */
     @NotNull
     private Integer referId = 0;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getAttachmentId() {
         return attachmentId;

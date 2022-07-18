@@ -11,7 +11,7 @@
 /node_modules
 
 # Liquibase
-/liquibase/changelogDocs
+/liquibase/ujcms-db-docs
 /liquibase/temp-diff.yaml
 /liquibase/temp-changelog.yaml
 

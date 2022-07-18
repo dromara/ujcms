@@ -2,6 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.ujcms.cms.core.domain.ArticleImage;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.SiteCustom;
 import com.ujcms.cms.core.mapper.SiteCustomMapper;
@@ -26,13 +27,15 @@ import java.util.List;
 public class SiteService {
     private PolicyFactory policyFactory;
     private AttachmentService attachmentService;
+    private SeqService seqService;
     private SiteMapper mapper;
     private SiteCustomMapper customMapper;
 
     public SiteService(PolicyFactory policyFactory, AttachmentService attachmentService,
-                       SiteMapper mapper, SiteCustomMapper customMapper) {
+                       SeqService seqService, SiteMapper mapper, SiteCustomMapper customMapper) {
         this.policyFactory = policyFactory;
         this.attachmentService = attachmentService;
+        this.seqService = seqService;
         this.mapper = mapper;
         this.customMapper = customMapper;
     }
@@ -43,6 +46,7 @@ public class SiteService {
         if (customList != null) {
             customMapper.deleteBySiteId(bean.getId());
             customList.forEach(it -> {
+                it.setId(seqService.getNextValLong(SiteCustom.TABLE_NAME));
                 it.setSiteId(bean.getId());
                 it.setValue(policyFactory.sanitize(it.getValue()));
                 customMapper.insert(it);

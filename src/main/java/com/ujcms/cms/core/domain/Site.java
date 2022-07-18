@@ -92,7 +92,12 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      * 获取模板文件路径。如：/templates/1/default/_files
      */
     public String getFilesPath() {
-        return getConfig().getTemplateStorage().getUrl() + getTheme() + "/" + Constants.TEMPLATE_FILES;
+        return new UrlBuilder()
+                .appendPath(getConfig().getContextPath())
+                .appendPath(getConfig().getTemplateStorage().getUrl())
+                .appendPath(getTheme())
+                .appendPath(Constants.TEMPLATE_FILES)
+                .toString();
     }
 
     public String getTitle() {
@@ -233,10 +238,14 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     }
 
     public void setCustoms(Map<String, Object> customs) {
-        getCustomList().clear();
+        this.customs = customs;
+    }
+
+    public List<SiteCustom> disassembleCustoms(Map<String, Object> customs) {
+        List<SiteCustom> list = new ArrayList<>();
         getModel().disassembleCustoms(customs, (name, type, value) ->
-                getCustomList().add(new SiteCustom(getId(), name, type, value)));
-        this.customs = null;
+                list.add(new SiteCustom(getId(), name, type, value)));
+        return list;
     }
 
     @Nullable

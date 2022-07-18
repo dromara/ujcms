@@ -1,5 +1,6 @@
 package com.ujcms.util.web;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.lang.Nullable;
 
 import javax.servlet.ServletContext;
@@ -16,25 +17,45 @@ public class PathResolver {
      */
     public static final String FILE_PREFIX = "file:";
 
-    public PathResolver(ServletContext servletContext) {
-        this.servletContext = servletContext;
+    public PathResolver(ObjectProvider<ServletContext> servletContextProvider) {
+        this.servletContextProvider = servletContextProvider;
+    }
+
+
+    public String getContextPath() {
+        return getServletContext().getContextPath();
     }
 
     public String getRealPath(String uri) {
-        return servletContext.getRealPath(uri);
+        return getServletContext().getRealPath(uri);
     }
 
     public String getRealPath(String uri, @Nullable String prefix) {
         if (prefix != null && prefix.startsWith(FILE_PREFIX)) {
             return prefix.substring(FILE_PREFIX.length()) + uri.replace('/', File.separatorChar);
         } else {
-            return servletContext.getRealPath(prefix == null ? uri : prefix + uri);
+            return getServletContext().getRealPath(prefix == null ? uri : prefix + uri);
         }
     }
 
-    public String getContextPath() {
-        return servletContext.getContextPath();
+    private ObjectProvider<ServletContext> servletContextProvider;
+
+    public ServletContext getServletContext() {
+        return servletContextProvider.getObject();
     }
 
-    private ServletContext servletContext;
+    // @Nullable
+    // private ServletContext servletContext;
+    //
+    // public ServletContext getServletContext() {
+    //     if (servletContext == null) {
+    //         throw new IllegalStateException("servletContext cannot be null");
+    //     }
+    //     return servletContext;
+    // }
+    //
+    // @Override
+    // public void setServletContext(ServletContext servletContext) {
+    //     this.servletContext = servletContext;
+    // }
 }

@@ -20,6 +20,8 @@ public class ArticleArgs extends BaseQueryArgs {
     private Map<String, String> customsQueryMap;
     @Nullable
     private Integer subChannelId;
+    @Nullable
+    private Integer subOrgId;
 
     public ArticleArgs customsQueryMap(Map<String, String> customsQueryMap) {
         this.customsQueryMap = customsQueryMap;
@@ -29,6 +31,13 @@ public class ArticleArgs extends BaseQueryArgs {
     public ArticleArgs subChannelId(@Nullable Integer subChannelId) {
         if (subChannelId != null) {
             this.subChannelId = subChannelId;
+        }
+        return this;
+    }
+
+    public ArticleArgs subOrgId(@Nullable Integer subOrgId) {
+        if (subOrgId != null) {
+            this.subOrgId = subOrgId;
         }
         return this;
     }
@@ -54,6 +63,14 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
+    public ArticleArgs inRoleIds(@Nullable Collection<Integer> roleIds) {
+        if (CollectionUtils.isNotEmpty(roleIds)) {
+            queryMap.put("In_channel-channel@RoleArticle-roleId_Int", roleIds);
+        }
+        return this;
+
+    }
+
     public ArticleArgs subSiteId(@Nullable Integer siteId) {
         if (siteId != null) {
             queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Int", siteId);
@@ -64,6 +81,13 @@ public class ArticleArgs extends BaseQueryArgs {
     public ArticleArgs siteId(@Nullable Integer siteId) {
         if (siteId != null) {
             queryMap.put("EQ_siteId_Int", siteId);
+        }
+        return this;
+    }
+
+    public ArticleArgs userId(@Nullable Integer userId) {
+        if (userId != null) {
+            queryMap.put("EQ_userId_Int", userId);
         }
         return this;
     }
@@ -117,6 +141,12 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
+    public ArticleArgs status(@Nullable Collection<Short> status) {
+        if (CollectionUtils.isNotEmpty(status)) {
+            queryMap.put("In_status_Short", status);
+        }
+        return this;
+    }
 
     public ArticleArgs orderById() {
         queryMap.put("OrderBy", "id");
@@ -143,5 +173,10 @@ public class ArticleArgs extends BaseQueryArgs {
     @Nullable
     public Integer getSubChannelId() {
         return subChannelId;
+    }
+
+    @Nullable
+    public Integer getSubOrgId() {
+        return subOrgId;
     }
 }

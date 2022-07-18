@@ -4,9 +4,9 @@
     <id column="id_" jdbcType="INTEGER" property="id" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="all_access_permission_" jdbcType="BOOLEAN" property="allAccessPermission" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
-    <result column="all_access_permission_" jdbcType="BOOLEAN" property="allAccessPermission" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Group" />
     <select id="listByChannelId" resultMap="ResultMap">
@@ -37,13 +37,13 @@
     update ujcms_group
     set name_ = #{name,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
+      all_access_permission_ = #{allAccessPermission,jdbcType=BOOLEAN},
       type_ = #{type,jdbcType=SMALLINT},
-      order_ = #{order,jdbcType=SMALLINT},
-      all_access_permission_ = #{allAccessPermission,jdbcType=BOOLEAN}
+      order_ = #{order,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Group">
-    insert into ujcms_group (id_, name_, description_, type_, order_, all_access_permission_)
-    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{allAccessPermission,jdbcType=BOOLEAN})
+    insert into ujcms_group (id_, name_, description_, all_access_permission_, type_, order_)
+    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allAccessPermission,jdbcType=BOOLEAN}, #{type,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
-    t.id_, t.name_, t.description_, t.type_, t.order_, t.all_access_permission_
+    t.id_, t.name_, t.description_, t.all_access_permission_, t.type_, t.order_
   </sql></mapper>

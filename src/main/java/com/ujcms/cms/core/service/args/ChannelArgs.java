@@ -22,6 +22,13 @@ public class ChannelArgs extends BaseQueryArgs {
         return this;
     }
 
+    public ChannelArgs inArticleRoleIds(@Nullable Collection<Integer> roleIds) {
+        if (CollectionUtils.isNotEmpty(roleIds)) {
+            queryMap.put("In_channel@RoleArticle-roleId_Int", roleIds);
+        }
+        return this;
+    }
+
     public ChannelArgs subSiteId(@Nullable Integer siteId) {
         if (siteId != null) {
             queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Int", siteId);

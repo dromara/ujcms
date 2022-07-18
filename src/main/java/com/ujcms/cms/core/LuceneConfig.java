@@ -13,6 +13,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 
@@ -46,9 +47,18 @@ public class LuceneConfig {
     /**
      * Lucene IK 分词器
      */
+    @Primary
     @Bean(destroyMethod = "close")
     public IKAnalyzer ikAnalyzer() {
         return new IKAnalyzer();
+    }
+
+    /**
+     * Lucene IK smart 分词器
+     */
+    @Bean(destroyMethod = "close")
+    public IKAnalyzer ikSmartAnalyzer() {
+        return new IKAnalyzer(true);
     }
 
     /**
@@ -86,7 +96,7 @@ public class LuceneConfig {
     @Bean
     @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public ArticleLucene articleLucene() throws IOException {
-        return new ArticleLuceneImpl(luceneOperations(), ikAnalyzer());
+        return new ArticleLuceneImpl(luceneOperations(), ikAnalyzer(), ikSmartAnalyzer());
     }
 
 }

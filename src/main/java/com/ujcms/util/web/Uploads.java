@@ -100,6 +100,7 @@ public class Uploads {
 
     public static final String IMAGE_TYPE = "image";
     public static final String VIDEO_TYPE = "video";
+    public static final String AUDIO_TYPE = "audio";
     public static final String DOC_TYPE = "doc";
     public static final String FILE_TYPE = "file";
 

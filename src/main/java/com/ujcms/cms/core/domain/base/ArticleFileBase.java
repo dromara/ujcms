@@ -15,6 +15,12 @@ public class ArticleFileBase {
     public static final String TABLE_NAME = "article_file";
 
     /**
+     * 文章文件ID
+     */
+    @NotNull
+    private Long id = 0L;
+
+    /**
      * 文章ID
      */
     @NotNull
@@ -45,6 +51,14 @@ public class ArticleFileBase {
      */
     @NotNull
     private Short order = 32767;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getArticleId() {
         return articleId;

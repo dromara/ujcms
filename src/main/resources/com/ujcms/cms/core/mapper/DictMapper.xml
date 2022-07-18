@@ -8,6 +8,7 @@
     <result column="value_" jdbcType="VARCHAR" property="value" />
     <result column="remark_" jdbcType="VARCHAR" property="remark" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
+    <result column="sys_" jdbcType="BOOLEAN" property="sys" />
     <result column="enabled_" jdbcType="BOOLEAN" property="enabled" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Dict" />
@@ -42,11 +43,12 @@
       value_ = #{value,jdbcType=VARCHAR},
       remark_ = #{remark,jdbcType=VARCHAR},
       order_ = #{order,jdbcType=SMALLINT},
+      sys_ = #{sys,jdbcType=BOOLEAN},
       enabled_ = #{enabled,jdbcType=BOOLEAN}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Dict">
-    insert into ujcms_dict (id_, type_id_, parent_id_, name_, value_, remark_, order_, enabled_)
-    values (#{id,jdbcType=INTEGER}, #{typeId,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{order,jdbcType=SMALLINT}, #{enabled,jdbcType=BOOLEAN})
+    insert into ujcms_dict (id_, type_id_, parent_id_, name_, value_, remark_, order_, sys_, enabled_)
+    values (#{id,jdbcType=INTEGER}, #{typeId,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{order,jdbcType=SMALLINT}, #{sys,jdbcType=BOOLEAN}, #{enabled,jdbcType=BOOLEAN})
   </insert><sql id="Column_List">
-    t.id_, t.type_id_, t.parent_id_, t.name_, t.value_, t.remark_, t.order_, t.enabled_
+    t.id_, t.type_id_, t.parent_id_, t.name_, t.value_, t.remark_, t.order_, t.sys_, t.enabled_
   </sql></mapper>

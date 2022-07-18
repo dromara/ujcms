@@ -12,6 +12,14 @@
         where t.role_id_ = #{roleId}
         <if test="siteId != null">and t.site_id_ = #{siteId}</if>
     </select>
+    <select id="listChannelByRoleIds" resultType="int">
+        select t.channel_id_
+        from ujcms_role_article t
+        <where>
+            <foreach close=")" collection="roleIds" item="id" open="t.role_id_ in (" separator=",">#{id}</foreach>
+            <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+        </where>
+    </select>
     <delete id="deleteByChannelId" parameterType="int">
         delete
         from ujcms_role_article
@@ -47,7 +55,8 @@
         from ujcms_role_article
         where role_id_ = #{roleId,jdbcType=INTEGER}
           and channel_id_ = #{channelId,jdbcType=INTEGER}
-    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.RoleArticle">
+    </delete>
+<update id="update" parameterType="com.ujcms.cms.core.domain.RoleArticle">
     update ujcms_role_article
     set site_id_ = #{siteId,jdbcType=INTEGER}
     where role_id_ = #{roleId,jdbcType=INTEGER}

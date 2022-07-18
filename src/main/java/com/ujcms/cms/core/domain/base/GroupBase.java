@@ -36,6 +36,12 @@ public class GroupBase {
     private String description;
 
     /**
+     * 全部浏览权限
+     */
+    @NotNull
+    private Boolean allAccessPermission = true;
+
+    /**
      * 类型(1:系统,2:常规,3:IP组)
      */
     @NotNull
@@ -46,12 +52,6 @@ public class GroupBase {
      */
     @NotNull
     private Short order = 32767;
-
-    /**
-     * 全部浏览权限
-     */
-    @NotNull
-    private Boolean allAccessPermission = true;
 
     public Integer getId() {
         return id;
@@ -78,6 +78,14 @@ public class GroupBase {
         this.description = description;
     }
 
+    public Boolean getAllAccessPermission() {
+        return allAccessPermission;
+    }
+
+    public void setAllAccessPermission(Boolean allAccessPermission) {
+        this.allAccessPermission = allAccessPermission;
+    }
+
     public Short getType() {
         return type;
     }
@@ -92,13 +100,5 @@ public class GroupBase {
 
     public void setOrder(Short order) {
         this.order = order;
-    }
-
-    public Boolean getAllAccessPermission() {
-        return allAccessPermission;
-    }
-
-    public void setAllAccessPermission(Boolean allAccessPermission) {
-        this.allAccessPermission = allAccessPermission;
     }
 }

@@ -12,6 +12,7 @@
     <result column="alias_" jdbcType="VARCHAR" property="alias" />
     <result column="display_name_" jdbcType="VARCHAR" property="displayName" />
     <result column="avatar_" jdbcType="VARCHAR" property="avatar" />
+    <result column="password_modified_" jdbcType="TIMESTAMP" property="passwordModified" />
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
@@ -88,13 +89,14 @@
       alias_ = #{alias,jdbcType=VARCHAR},
       display_name_ = #{displayName,jdbcType=VARCHAR},
       avatar_ = #{avatar,jdbcType=VARCHAR},
+      password_modified_ = #{passwordModified,jdbcType=TIMESTAMP},
       rank_ = #{rank,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.User">
-    insert into ujcms_user (id_, group_id_, org_id_, username_, password_, salt_, email_, mobile_, alias_, display_name_, avatar_, rank_, type_, status_)
-    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{salt,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{displayName,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+    insert into ujcms_user (id_, group_id_, org_id_, username_, password_, salt_, email_, mobile_, alias_, display_name_, avatar_, password_modified_, rank_, type_, status_)
+    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{salt,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{displayName,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
-    t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.salt_, t.email_, t.mobile_, t.alias_, t.display_name_, t.avatar_, t.rank_, t.type_, t.status_
+    t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.salt_, t.email_, t.mobile_, t.alias_, t.display_name_, t.avatar_, t.password_modified_, t.rank_, t.type_, t.status_
   </sql></mapper>

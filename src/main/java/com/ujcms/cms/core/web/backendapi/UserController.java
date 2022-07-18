@@ -10,7 +10,9 @@ import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.exception.Http400Exception;
 import com.ujcms.util.web.exception.Http403Exception;
+import com.ujcms.util.web.exception.Http404Exception;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,8 +60,8 @@ public class UserController {
 
     @GetMapping
     @RequiresPermissions("user:list")
-    public Object list(@Nullable Integer orgId, @RequestParam(defaultValue = "false") boolean current,
-                       Integer page, Integer pageSize, HttpServletRequest request) {
+    public Page<User> list(@Nullable Integer orgId, @RequestParam(defaultValue = "false") boolean current,
+                           Integer page, Integer pageSize, HttpServletRequest request) {
         if (current && orgId == null) {
             orgId = Contexts.getCurrentSite().getOrgId();
         }
@@ -69,10 +71,10 @@ public class UserController {
 
     @GetMapping("{id}")
     @RequiresPermissions("user:show")
-    public Object show(@PathVariable Integer id) {
+    public User show(@PathVariable Integer id) {
         User bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("User not found. ID = " + id);
+            throw new Http404Exception("User not found. ID = " + id);
         }
         return bean;
     }
@@ -127,7 +129,7 @@ public class UserController {
         return Responses.ok();
     }
 
-    static class UpdateStatusParams {
+    public static class UpdateStatusParams {
         @NotNull
         public List<Integer> ids;
         @NotNull

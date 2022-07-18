@@ -207,11 +207,15 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     public void setCustoms(Map<String, Object> customs) {
-        getCustomList().clear();
-        getChannelModel().disassembleCustoms(customs, (name, type, value) -> {
-            getCustomList().add(new ChannelCustom(getId(), name, type, value));
+        this.customs = customs;
+    }
+
+    public static List<ChannelCustom> disassembleCustoms(Model model, Integer id, Map<String, Object> customs) {
+        List<ChannelCustom> list = new ArrayList<>();
+        model.disassembleCustoms(customs, (name, type, value) -> {
+            list.add(new ChannelCustom(id, name, type, value));
         });
-        this.customs = null;
+        return list;
     }
 
     @Nullable

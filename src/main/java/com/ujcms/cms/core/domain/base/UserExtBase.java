@@ -63,6 +63,13 @@ public class UserExtBase {
     private OffsetDateTime created = OffsetDateTime.now();
 
     /**
+     * 历史密码(70*24)
+     */
+    @Length(max = 1000)
+    @Nullable
+    private String historyPassword;
+
+    /**
      * 最后登录日期
      */
     @NotNull
@@ -151,6 +158,15 @@ public class UserExtBase {
 
     public void setCreated(OffsetDateTime created) {
         this.created = created;
+    }
+
+    @Nullable
+    public String getHistoryPassword() {
+        return historyPassword;
+    }
+
+    public void setHistoryPassword(@Nullable String historyPassword) {
+        this.historyPassword = historyPassword;
     }
 
     public OffsetDateTime getLoginDate() {

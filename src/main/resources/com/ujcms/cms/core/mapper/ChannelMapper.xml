@@ -1,60 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ujcms.cms.core.mapper.ChannelMapper">
-    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <id column="id_" jdbcType="INTEGER" property="id"/>
-        <result column="site_id_" jdbcType="INTEGER" property="siteId"/>
-        <result column="parent_id_" jdbcType="INTEGER" property="parentId"/>
-        <result column="channel_model_id_" jdbcType="INTEGER" property="channelModelId"/>
-        <result column="article_model_id_" jdbcType="INTEGER" property="articleModelId"/>
-        <result column="name_" jdbcType="VARCHAR" property="name"/>
-        <result column="alias_" jdbcType="VARCHAR" property="alias"/>
-        <result column="nav_" jdbcType="BOOLEAN" property="nav"/>
-        <result column="type_" jdbcType="SMALLINT" property="type"/>
-        <result column="depth_" jdbcType="SMALLINT" property="depth"/>
-        <result column="order_" jdbcType="INTEGER" property="order"/>
-    </resultMap>
+<mapper namespace="com.ujcms.cms.core.mapper.ChannelMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Channel">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="parent_id_" jdbcType="INTEGER" property="parentId" />
+    <result column="channel_model_id_" jdbcType="INTEGER" property="channelModelId" />
+    <result column="article_model_id_" jdbcType="INTEGER" property="articleModelId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="alias_" jdbcType="VARCHAR" property="alias" />
+    <result column="nav_" jdbcType="BOOLEAN" property="nav" />
+    <result column="process_key_" jdbcType="VARCHAR" property="processKey" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="depth_" jdbcType="SMALLINT" property="depth" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <association column="id_" javaType="com.ujcms.cms.core.domain.ChannelExt" property="ext" select="com.ujcms.cms.core.mapper.ChannelExtMapper.select"/>
-        <association column="id_" javaType="com.ujcms.cms.core.domain.ChannelBuffer" property="buffer"
-                     select="com.ujcms.cms.core.mapper.ChannelBufferMapper.select"/>
-        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="select"/>
-        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select"/>
-        <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel"
-                     select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
-        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel"
-                     select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
-        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Article" property="firstArticle"
-                     select="com.ujcms.cms.core.mapper.ArticleMapper.findFirstByChannelId"/>
-        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Channel" property="firstChild"
-                     select="com.ujcms.cms.core.mapper.ChannelMapper.findFirstByParentId"/>
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Channel" property="children" select="listChildren"/>
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Group" property="groupList"
-                    select="com.ujcms.cms.core.mapper.GroupMapper.listByChannelId"/>
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ChannelCustom" property="customList"
-                    select="com.ujcms.cms.core.mapper.ChannelCustomMapper.listByChannelId"/>
+        <association column="id_" javaType="com.ujcms.cms.core.domain.ChannelExt" property="ext" select="com.ujcms.cms.core.mapper.ChannelExtMapper.select" />
+        <association column="id_" javaType="com.ujcms.cms.core.domain.ChannelBuffer" property="buffer" select="com.ujcms.cms.core.mapper.ChannelBufferMapper.select" />
+        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="select" />
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
+        <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Article" property="firstArticle" select="com.ujcms.cms.core.mapper.ArticleMapper.findFirstByChannelId" />
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Channel" property="firstChild" select="com.ujcms.cms.core.mapper.ChannelMapper.findFirstByParentId" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Channel" property="children" select="listChildren" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Group" property="groupList" select="com.ujcms.cms.core.mapper.GroupMapper.listByChannelId" />
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ChannelCustom" property="customList" select="com.ujcms.cms.core.mapper.ChannelCustomMapper.listByChannelId" />
     </resultMap>
     <select id="findFirstByParentId" parameterType="int" resultMap="ResultMap">
         select
         <if test="_databaseId == 'sqlserver'">TOP 1</if>
         <if test="_databaseId == 'informix' and _databaseId == 'gbase'">FIRST 1</if>
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.parent_id_ = #{parentId,jdbcType=INTEGER}
         <if test="_databaseId == 'oracle' and _databaseId == 'dm' and _databaseId == 'oscar'">and ROWNUM &lt;= 1</if>
         order by t.order_, t.id_
         <if test="_databaseId == 'h2' and _databaseId == 'db2'">FETCH FIRST 1 ROWS ONLY</if>
-        <if test="_databaseId != 'oracle' and _databaseId != 'sqlserver' and _databaseId != 'db2' and _databaseId != 'informix'
-            and _databaseId != 'h2' and _databaseId != 'dm' and _databaseId != 'oscar'">LIMIT 1
+        <if test="_databaseId != 'oracle' and _databaseId != 'sqlserver' and _databaseId != 'db2' and _databaseId != 'informix'             and _databaseId != 'h2' and _databaseId != 'dm' and _databaseId != 'oscar'">LIMIT 1
         </if>
     </select>
     <select id="listChildren" resultMap="ResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.parent_id_ = #{parentId,jdbcType=INTEGER}
     </select>
-    <select id="selectForSitemap"  resultMap="BaseResultMap">
+    <select id="selectForSitemap" resultMap="BaseResultMap">
         select t.id_, t.alias_
         from ujcms_channel t
         where t.id_ = #{id,jdbcType=INTEGER}
@@ -107,21 +99,21 @@
     </update>
     <sql id="selectAllJoin">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldJoin">
-            <property name="customsTable" value="ujcms_channel_custom"/>
-            <property name="customsId" value="channel_id_"/>
+            <property name="customsTable" value="ujcms_channel_custom" />
+            <property name="customsId" value="channel_id_" />
         </include>
     </sql>
     <sql id="selectAllWhere">
-        <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldWhere"/>
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldWhere" />
     </sql>
     <select id="selectAll" resultMap="ResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
-            <property name="tableName" value="ujcms_channel"/>
+            <property name="tableName" value="ujcms_channel" />
         </include>
     </select>
     <select id="select" parameterType="int" resultMap="ResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.id_ = #{id,jdbcType=INTEGER}
     </select>
@@ -135,28 +127,23 @@
         delete
         from ujcms_channel
         where id_ = #{id,jdbcType=INTEGER}
-    </delete>
-    <update id="update" parameterType="com.ujcms.cms.core.domain.Channel">
-        update ujcms_channel
-        set site_id_          = #{siteId,jdbcType=INTEGER},
-            parent_id_        = #{parentId,jdbcType=INTEGER},
-            channel_model_id_ = #{channelModelId,jdbcType=INTEGER},
-            article_model_id_ = #{articleModelId,jdbcType=INTEGER},
-            name_             = #{name,jdbcType=VARCHAR},
-            alias_            = #{alias,jdbcType=VARCHAR},
-            nav_              = #{nav,jdbcType=BOOLEAN},
-            type_             = #{type,jdbcType=SMALLINT},
-            depth_            = #{depth,jdbcType=SMALLINT},
-            order_            = #{order,jdbcType=INTEGER}
-        where id_ = #{id,jdbcType=INTEGER}
-    </update>
-    <insert id="insert" parameterType="com.ujcms.cms.core.domain.Channel">
-        insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, name_, alias_, nav_, type_, depth_, order_)
-        values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{channelModelId,jdbcType=INTEGER},
-                #{articleModelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nav,jdbcType=BOOLEAN}, #{type,jdbcType=SMALLINT},
-                #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER})
-    </insert>
-    <sql id="Column_List">
-        t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.name_, t.alias_, t.nav_, t.type_, t.depth_, t.order_
-    </sql>
-</mapper>
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Channel">
+    update ujcms_channel
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      parent_id_ = #{parentId,jdbcType=INTEGER},
+      channel_model_id_ = #{channelModelId,jdbcType=INTEGER},
+      article_model_id_ = #{articleModelId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      nav_ = #{nav,jdbcType=BOOLEAN},
+      process_key_ = #{processKey,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=SMALLINT},
+      depth_ = #{depth,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Channel">
+    insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, name_, alias_, nav_, process_key_, type_, depth_, order_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{channelModelId,jdbcType=INTEGER}, #{articleModelId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nav,jdbcType=BOOLEAN}, #{processKey,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.name_, t.alias_, t.nav_, t.process_key_, t.type_, t.depth_, t.order_
+  </sql></mapper>

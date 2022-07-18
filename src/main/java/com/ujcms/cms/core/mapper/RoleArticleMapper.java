@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -50,6 +51,16 @@ public interface RoleArticleMapper {
      * @return 栏目ID列表
      */
     List<Integer> listChannelByRoleId(@Param("roleId") Integer roleId, @Nullable @Param("siteId") Integer siteId);
+
+    /**
+     * 根据 角色ID列表 查询栏目ID列表
+     *
+     * @param roleIds 角色ID列表
+     * @param siteId  站点ID
+     * @return 栏目ID列表
+     */
+    List<Integer> listChannelByRoleIds(@Param("roleIds") Collection<Integer> roleIds,
+                                       @Nullable @Param("siteId") Integer siteId);
 
     /**
      * 根据 栏目ID 删除数据

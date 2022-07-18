@@ -14,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
@@ -31,8 +33,8 @@ import static com.ujcms.cms.core.domain.Config.Storage.TYPE_LOCAL;
  *
  * @author PONY
  */
-@JsonIgnoreProperties({"uploadSettings", "registerSettings", "emailSettings", "uploadStorageSettings",
-        "htmlStorageSettings", "customsSettings"})
+@JsonIgnoreProperties({"uploadSettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
+        "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings", "customsSettings"})
 public class Config extends ConfigBase implements Serializable {
     /**
      * 获取所有字段中的附件
@@ -45,7 +47,6 @@ public class Config extends ConfigBase implements Serializable {
         getModel().handleCustoms(getCustoms(), new Model.GetUrlsHandle(urls));
         return urls;
     }
-
 
     public Upload getUpload() {
         if (upload != null) {
@@ -68,6 +69,54 @@ public class Config extends ConfigBase implements Serializable {
             setUploadSettings(Constants.MAPPER.writeValueAsString(upload));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Cannot write value of Upload", e);
+        }
+    }
+
+    public Security getSecurity() {
+        if (security != null) {
+            return security;
+        }
+        String settings = getSecuritySettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Security();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Security.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot read value of Security: " + settings, e);
+        }
+    }
+
+    public void setSecurity(Security security) {
+        this.security = security;
+        try {
+            setSecuritySettings(Constants.MAPPER.writeValueAsString(security));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of Security", e);
+        }
+    }
+
+    public Sms getSms() {
+        if (sms != null) {
+            return sms;
+        }
+        String settings = getSmsSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Sms();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Sms.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot read value of Sms: " + settings, e);
+        }
+    }
+
+    public void setSms(Sms sms) {
+        this.sms = sms;
+        try {
+            setSmsSettings(Constants.MAPPER.writeValueAsString(sms));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of Sms", e);
         }
     }
 
@@ -170,6 +219,13 @@ public class Config extends ConfigBase implements Serializable {
     }
 
     @Nullable
+    private Upload upload;
+    @Nullable
+    private Security security;
+    @Nullable
+    @JsonIgnore
+    private Sms sms;
+    @Nullable
     @JsonIgnore
     private Storage uploadStorage;
     @Nullable
@@ -178,8 +234,6 @@ public class Config extends ConfigBase implements Serializable {
     @Nullable
     @JsonIgnore
     private Storage templateStorage;
-    @Nullable
-    private Upload upload;
     @Nullable
     private Map<String, Object> customs;
 
@@ -210,16 +264,30 @@ public class Config extends ConfigBase implements Serializable {
         return super.getArticleUrl();
     }
 
+    /**
+     * 上传配置类
+     * <p>
+     * https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Containers
+     * https://www.runoob.com/html/html-media.html
+     * https://www.runoob.com/html/html5-video.html
+     * https://www.runoob.com/html/html5-audio.html
+     * https://www.w3schools.com/html/html_media.asp
+     * https://www.w3schools.com/html/html5_video.asp
+     * https://www.w3schools.com/html/html5_audio.asp
+     */
     public static class Upload implements Serializable {
-        // 音频后缀：mp3,ogg
         /**
          * 允许上传的图片类型。格式如：jpg,jpeg,png,gif
          */
         private String imageTypes = "jpg,jpeg,png,gif";
         /**
-         * 允许上传的视频类型。格式如：mp4,m3u8
+         * 允许上传的视频类型。格式如：mp4,webm,ogg
          */
-        private String videoTypes = "mp4,m3u8";
+        private String videoTypes = "mp4,webm,ogg";
+        /**
+         * 允许上传的音频格式。格式如：mp3,ogg,wav
+         */
+        private String audioTypes = "mp3,ogg,wav";
         /**
          * 允许上传的文库类型。格式如：doc,docx,xls,xlsx,ppt,pptx,pdf
          */
@@ -240,6 +308,10 @@ public class Config extends ConfigBase implements Serializable {
          * 视频最大长度。单位 MB
          */
         private int videoLimit = 0;
+        /**
+         * 音频最大长度。单位 MB
+         */
+        private int audioLimit = 0;
         /**
          * 文库最大长度。单位 MB
          */
@@ -281,6 +353,10 @@ public class Config extends ConfigBase implements Serializable {
             return toInputAccept(getVideoTypes());
         }
 
+        public String getAudioInputAccept() {
+            return toInputAccept(getAudioTypes());
+        }
+
         public String getLibraryInputAccept() {
             return toInputAccept(getLibraryTypes());
         }
@@ -299,6 +375,10 @@ public class Config extends ConfigBase implements Serializable {
 
         public long getVideoLimitByte() {
             return this.videoLimit * 1024L * 1024L;
+        }
+
+        public long getAudioLimitByte() {
+            return this.audioLimit * 1024L * 1024L;
         }
 
         public long getLibraryLimitByte() {
@@ -327,6 +407,14 @@ public class Config extends ConfigBase implements Serializable {
 
         public void setVideoTypes(String videoTypes) {
             this.videoTypes = videoTypes;
+        }
+
+        public String getAudioTypes() {
+            return audioTypes;
+        }
+
+        public void setAudioTypes(String audioTypes) {
+            this.audioTypes = audioTypes;
         }
 
         public String getLibraryTypes() {
@@ -369,6 +457,14 @@ public class Config extends ConfigBase implements Serializable {
             this.videoLimit = videoLimit;
         }
 
+        public int getAudioLimit() {
+            return audioLimit;
+        }
+
+        public void setAudioLimit(int audioLimit) {
+            this.audioLimit = audioLimit;
+        }
+
         public int getLibraryLimit() {
             return libraryLimit;
         }
@@ -407,6 +503,434 @@ public class Config extends ConfigBase implements Serializable {
 
         public void setImageMaxHeight(int imageMaxHeight) {
             this.imageMaxHeight = imageMaxHeight;
+        }
+    }
+
+    /**
+     * 安全配置类
+     * <p>
+     * Windows密码强度策略：
+     * 不能包含用户的帐户名，不能包含用户姓名中超过两个连续字符的部分
+     * 至少有六个字符长
+     * 包含以下四类字符中的三类字符:
+     * 英文大写字母(A 到 Z)
+     * 英文小写字母(a 到 z)
+     * 10 个基本数字(0 到 9)
+     * 非字母字符(例如 !、$、#、%)
+     */
+    public static class Security implements Serializable {
+        /**
+         * 密码最长使用天数。可以将密码设置为在某些天数(介于 1 到 999 之间)后到期，或者将天数设置为 0，指定密码永不过期。
+         * 0-999。0不限制，常用值90
+         */
+        @Min(0)
+        @Max(999)
+        private int passwordMaxDays = 0;
+        /**
+         * 密码最短使用天数。可以设置一个介于 1 和 998 天之间的值，或者将天数设置为 0，允许立即更改密码。
+         * 0-998。0不限制，常用值15
+         */
+        @Min(0)
+        @Max(998)
+        private int passwordMinDays = 0;
+        /**
+         * 密码过期提前警告天数。
+         * 0-90。0不警告，常用值7
+         */
+        @Min(0)
+        @Max(90)
+        private int passwordWarnDays = 0;
+        /**
+         * 强制密码历史。该值必须介于 0 个和 24 个密码之间。
+         * 0-24。0不限制，常用值5
+         */
+        @Min(0)
+        @Max(24)
+        private int passwordMaxHistory = 0;
+        /**
+         * 密码最小长度
+         * 0-16。常用值8
+         */
+        @Min(0)
+        @Max(16)
+        private int passwordMinLength = 0;
+        /**
+         * 密码最大长度
+         * 16-128。常用值64
+         */
+        @Min(16)
+        @Max(128)
+        private int passwordMaxLength = 64;
+        /**
+         * 密码强度(0:不限制; 1:大小字母+数字; 2:大写字母+小写字母+数字; 3:大小写字母+数字+特殊字符; 4:大写字母+小写字母+数字+特殊字符)
+         * 0-3。0不限制，常用值2
+         */
+        @Min(0)
+        @Max(4)
+        private int passwordStrength = 0;
+        /**
+         * 用户最大尝试次数
+         * 0-100。0不限制，常用值5
+         */
+        @Min(0)
+        @Max(100)
+        private int userMaxAttempts = 0;
+        /**
+         * 登录锁定时间。单位分钟
+         * 1-1440，0不限制，常用值30
+         */
+        @Min(1)
+        @Max(1440)
+        private int userLockMinutes = 30;
+        /**
+         * IP验证码次数
+         * 0-100。0必须提供验证码，常用值3
+         */
+        @Min(0)
+        @Max(100)
+        private int ipCaptchaAttempts = 3;
+        /**
+         * IP允许尝试次数
+         * 0-999。0不限制，常用值10
+         */
+        @Min(0)
+        @Max(999)
+        private int ipMaxAttempts = 0;
+        /**
+         * 双因子认证
+         */
+        private boolean twoFactor = false;
+
+        public int getPasswordMaxDays() {
+            return passwordMaxDays;
+        }
+
+        public void setPasswordMaxDays(int passwordMaxDays) {
+            this.passwordMaxDays = passwordMaxDays;
+        }
+
+        public int getPasswordMinDays() {
+            return passwordMinDays;
+        }
+
+        public void setPasswordMinDays(int passwordMinDays) {
+            this.passwordMinDays = passwordMinDays;
+        }
+
+        public int getPasswordWarnDays() {
+            return passwordWarnDays;
+        }
+
+        public void setPasswordWarnDays(int passwordWarnDays) {
+            this.passwordWarnDays = passwordWarnDays;
+        }
+
+        public int getPasswordMaxHistory() {
+            return passwordMaxHistory;
+        }
+
+        public void setPasswordMaxHistory(int passwordMaxHistory) {
+            this.passwordMaxHistory = passwordMaxHistory;
+        }
+
+        public int getPasswordMinLength() {
+            return passwordMinLength;
+        }
+
+        public void setPasswordMinLength(int passwordMinLength) {
+            this.passwordMinLength = passwordMinLength;
+        }
+
+        public int getPasswordMaxLength() {
+            return passwordMaxLength;
+        }
+
+        public void setPasswordMaxLength(int passwordMaxLength) {
+            this.passwordMaxLength = passwordMaxLength;
+        }
+
+        public int getPasswordStrength() {
+            return passwordStrength;
+        }
+
+        public void setPasswordStrength(int passwordStrength) {
+            this.passwordStrength = passwordStrength;
+        }
+
+        public int getUserMaxAttempts() {
+            return userMaxAttempts;
+        }
+
+        public void setUserMaxAttempts(int userMaxAttempts) {
+            this.userMaxAttempts = userMaxAttempts;
+        }
+
+        public int getUserLockMinutes() {
+            return userLockMinutes;
+        }
+
+        public void setUserLockMinutes(int userLockMinutes) {
+            this.userLockMinutes = userLockMinutes;
+        }
+
+        public int getIpCaptchaAttempts() {
+            return ipCaptchaAttempts;
+        }
+
+        public void setIpCaptchaAttempts(int ipCaptchaAttempts) {
+            this.ipCaptchaAttempts = ipCaptchaAttempts;
+        }
+
+        public int getIpMaxAttempts() {
+            return ipMaxAttempts;
+        }
+
+        public void setIpMaxAttempts(int ipMaxAttempts) {
+            this.ipMaxAttempts = ipMaxAttempts;
+        }
+
+        public boolean isTwoFactor() {
+            return twoFactor;
+        }
+
+        public void setTwoFactor(boolean twoFactor) {
+            this.twoFactor = twoFactor;
+        }
+    }
+
+    public static class Sms implements Serializable {
+        /**
+         * 未开启
+         */
+        public static final int PROVIDER_NONE = 0;
+        /**
+         * 阿里云短信
+         */
+        public static final int PROVIDER_ALIYUN = 1;
+        /**
+         * 腾讯云短信
+         */
+        public static final int PROVIDER_TENCENTCLOUD = 2;
+
+        /**
+         * 短信服务商(0:未开启,1:阿里云短信,2:腾讯云短信)
+         */
+        @Min(0)
+        @Max(2)
+        private int provider = 0;
+        /**
+         * IP每日最大量
+         */
+        @Min(1)
+        @Max(99999)
+        private int maxPerIp = 100;
+        /**
+         * 验证码长度
+         */
+        @Min(4)
+        @Max(6)
+        private int codeLength = 6;
+        /**
+         * 验证码过期时间。单位：分钟
+         */
+        @Min(3)
+        @Max(30)
+        private int codeExpires = 10;
+        /**
+         * 测试号码
+         */
+        @Nullable
+        @Length(max = 30)
+        private String testMobile;
+
+        /**
+         * 短信签名
+         */
+        @Nullable
+        @Length(max = 50)
+        private String signName;
+        /**
+         * accessKeyId
+         */
+        @Nullable
+        @Length(max = 128)
+        private String accessKeyId;
+        /**
+         * accessKeySecret
+         */
+        @Nullable
+        @Length(max = 128)
+        private String accessKeySecret;
+        /**
+         * 模板Code
+         */
+        @Nullable
+        @Length(max = 32)
+        private String templateCode;
+        /**
+         * 变量名称
+         */
+        @Length(max = 20)
+        private String codeName = "code";
+        /**
+         * secretId
+         */
+        @Nullable
+        @Length(max = 128)
+        private String secretId;
+        /**
+         * secretKey
+         */
+        @Nullable
+        @Length(max = 128)
+        private String secretKey;
+        /**
+         * SDKAppID
+         */
+        @Nullable
+        @Length(max = 64)
+        private String sdkAppId;
+        /**
+         * 地域region
+         */
+        @Nullable
+        @Length(max = 64)
+        private String region;
+        /**
+         * 模板ID
+         */
+        @Nullable
+        @Length(max = 32)
+        private String templateId;
+
+        public int getProvider() {
+            return provider;
+        }
+
+        public void setProvider(int provider) {
+            this.provider = provider;
+        }
+
+        public int getMaxPerIp() {
+            return maxPerIp;
+        }
+
+        public void setMaxPerIp(int maxPerIp) {
+            this.maxPerIp = maxPerIp;
+        }
+
+        public int getCodeLength() {
+            return codeLength;
+        }
+
+        public void setCodeLength(int codeLength) {
+            this.codeLength = codeLength;
+        }
+
+        public int getCodeExpires() {
+            return codeExpires;
+        }
+
+        public void setCodeExpires(int codeExpires) {
+            this.codeExpires = codeExpires;
+        }
+
+        @Nullable
+        public String getTestMobile() {
+            return testMobile;
+        }
+
+        public void setTestMobile(@Nullable String testMobile) {
+            this.testMobile = testMobile;
+        }
+
+        @Nullable
+        public String getSignName() {
+            return signName;
+        }
+
+        public void setSignName(@Nullable String signName) {
+            this.signName = signName;
+        }
+
+        @Nullable
+        public String getAccessKeyId() {
+            return accessKeyId;
+        }
+
+        public void setAccessKeyId(@Nullable String accessKeyId) {
+            this.accessKeyId = accessKeyId;
+        }
+
+        @Nullable
+        public String getAccessKeySecret() {
+            return accessKeySecret;
+        }
+
+        public void setAccessKeySecret(@Nullable String accessKeySecret) {
+            this.accessKeySecret = accessKeySecret;
+        }
+
+        @Nullable
+        public String getTemplateCode() {
+            return templateCode;
+        }
+
+        public void setTemplateCode(@Nullable String templateCode) {
+            this.templateCode = templateCode;
+        }
+
+        public String getCodeName() {
+            return codeName;
+        }
+
+        public void setCodeName(String codeName) {
+            this.codeName = codeName;
+        }
+
+        @Nullable
+        public String getSecretId() {
+            return secretId;
+        }
+
+        public void setSecretId(@Nullable String secretId) {
+            this.secretId = secretId;
+        }
+
+        @Nullable
+        public String getSecretKey() {
+            return secretKey;
+        }
+
+        public void setSecretKey(@Nullable String secretKey) {
+            this.secretKey = secretKey;
+        }
+
+        @Nullable
+        public String getSdkAppId() {
+            return sdkAppId;
+        }
+
+        public void setSdkAppId(@Nullable String sdkAppId) {
+            this.sdkAppId = sdkAppId;
+        }
+
+        @Nullable
+        public String getRegion() {
+            return region;
+        }
+
+        public void setRegion(@Nullable String region) {
+            this.region = region;
+        }
+
+        @Nullable
+        public String getTemplateId() {
+            return templateId;
+        }
+
+        public void setTemplateId(@Nullable String templateId) {
+            this.templateId = templateId;
         }
     }
 

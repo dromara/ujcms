@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.SiteCustomMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.SiteCustom">
+    <id column="id_" jdbcType="BIGINT" property="id" />
     <result column="site_id_" jdbcType="INTEGER" property="siteId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="type_" jdbcType="VARCHAR" property="type" />
@@ -24,9 +25,16 @@
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_site_custom" />
         </include>
-    </select><insert id="insert" parameterType="com.ujcms.cms.core.domain.SiteCustom">
-    insert into ujcms_site_custom (site_id_, name_, type_, value_)
-    values (#{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{value,jdbcType=LONGVARCHAR})
+    </select><update id="update" parameterType="com.ujcms.cms.core.domain.SiteCustom">
+    update ujcms_site_custom
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=VARCHAR},
+      value_ = #{value,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.SiteCustom">
+    insert into ujcms_site_custom (id_, site_id_, name_, type_, value_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{value,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
-    t.site_id_, t.name_, t.type_, t.value_
+    t.id_, t.site_id_, t.name_, t.type_, t.value_
   </sql></mapper>

@@ -8,6 +8,7 @@
     <result column="location_" jdbcType="VARCHAR" property="location" />
     <result column="bio_" jdbcType="VARCHAR" property="bio" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="history_password_" jdbcType="VARCHAR" property="historyPassword" />
     <result column="login_date_" jdbcType="TIMESTAMP" property="loginDate" />
     <result column="login_ip_" jdbcType="VARCHAR" property="loginIp" />
     <result column="login_count_" jdbcType="INTEGER" property="loginCount" />
@@ -40,6 +41,7 @@
       location_ = #{location,jdbcType=VARCHAR},
       bio_ = #{bio,jdbcType=VARCHAR},
       created_ = #{created,jdbcType=TIMESTAMP},
+      history_password_ = #{historyPassword,jdbcType=VARCHAR},
       login_date_ = #{loginDate,jdbcType=TIMESTAMP},
       login_ip_ = #{loginIp,jdbcType=VARCHAR},
       login_count_ = #{loginCount,jdbcType=INTEGER},
@@ -47,8 +49,8 @@
       error_count_ = #{errorCount,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserExt">
-    insert into ujcms_user_ext (id_, real_name_, gender_, birthday_, location_, bio_, created_, login_date_, login_ip_, login_count_, error_date_, error_count_)
-    values (#{id,jdbcType=INTEGER}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=CHAR}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})
+    insert into ujcms_user_ext (id_, real_name_, gender_, birthday_, location_, bio_, created_, history_password_, login_date_, login_ip_, login_count_, error_date_, error_count_)
+    values (#{id,jdbcType=INTEGER}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=CHAR}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{historyPassword,jdbcType=VARCHAR}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})
   </insert><sql id="Column_List">
-    t.id_, t.real_name_, t.gender_, t.birthday_, t.location_, t.bio_, t.created_, t.login_date_, t.login_ip_, t.login_count_, t.error_date_, t.error_count_
+    t.id_, t.real_name_, t.gender_, t.birthday_, t.location_, t.bio_, t.created_, t.history_password_, t.login_date_, t.login_ip_, t.login_count_, t.error_date_, t.error_count_
   </sql></mapper>

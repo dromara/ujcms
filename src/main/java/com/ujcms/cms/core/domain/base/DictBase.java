@@ -61,6 +61,12 @@ public class DictBase {
     private Short order = 32767;
 
     /**
+     * 是否系统字典
+     */
+    @NotNull
+    private Boolean sys = false;
+
+    /**
      * 是否启用
      */
     @NotNull
@@ -122,6 +128,14 @@ public class DictBase {
 
     public void setOrder(Short order) {
         this.order = order;
+    }
+
+    public Boolean getSys() {
+        return sys;
+    }
+
+    public void setSys(Boolean sys) {
+        this.sys = sys;
     }
 
     public Boolean getEnabled() {

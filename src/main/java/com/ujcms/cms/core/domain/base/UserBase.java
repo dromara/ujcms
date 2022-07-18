@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.domain.base;
 
+import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -90,6 +91,12 @@ public class UserBase {
     private String avatar;
 
     /**
+     * 密码修改时间
+     */
+    @NotNull
+    private OffsetDateTime passwordModified = OffsetDateTime.now();
+
+    /**
      * 等级
      */
     @NotNull
@@ -102,7 +109,7 @@ public class UserBase {
     private Short type = 4;
 
     /**
-     * 状态(0:正常,1:未激活,2:锁定,3:注销)
+     * 状态(0:正常,1:未激活,2:已锁定,3:已注销)
      */
     @NotNull
     private Short status = 0;
@@ -198,6 +205,14 @@ public class UserBase {
 
     public void setAvatar(@Nullable String avatar) {
         this.avatar = avatar;
+    }
+
+    public OffsetDateTime getPasswordModified() {
+        return passwordModified;
+    }
+
+    public void setPasswordModified(OffsetDateTime passwordModified) {
+        this.passwordModified = passwordModified;
     }
 
     public Short getRank() {

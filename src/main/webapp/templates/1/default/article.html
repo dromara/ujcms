@@ -52,6 +52,14 @@
           </video>
         </div>
       [/#if]
+      [#if article.audio??]
+        <div class="mt-4">
+          <audio style="width:100%;" controls>
+            <source src="${article.audio}">
+            您的浏览器不支持音频(Audio)标签
+          </audio>
+        </div>
+      [/#if]
       [#if article.imageList?size > 0]
         <div class="pt-2">
           [#list article.imageList as image]

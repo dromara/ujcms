@@ -3624,7 +3624,7 @@ databaseChangeLog:
             referencedTableName: ujcms_user
             validate: true
   - changeSet:
-      id:  2.0
+      id: 2.0
       author: PROJECT-VERSION
       changes:
         - tagDatabase:

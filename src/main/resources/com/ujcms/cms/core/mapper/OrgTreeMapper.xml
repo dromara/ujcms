@@ -58,8 +58,7 @@
         from ujcms_org_tree
         where ancestor_id_ = #{ancestorId,jdbcType=INTEGER}
           and descendant_id_ = #{descendantId,jdbcType=INTEGER}
-    </delete>
-<insert id="insert" parameterType="com.ujcms.cms.core.domain.OrgTree">
+    </delete><insert id="insert" parameterType="com.ujcms.cms.core.domain.OrgTree">
     insert into ujcms_org_tree (ancestor_id_, descendant_id_)
     values (#{ancestorId,jdbcType=INTEGER}, #{descendantId,jdbcType=INTEGER})
   </insert><sql id="Column_List">

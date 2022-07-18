@@ -1,13 +1,16 @@
 package com.ujcms.cms.core.web.backendapi;
 
 import com.ujcms.cms.core.domain.Channel;
+import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.domain.base.GroupBase;
 import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.generator.HtmlGenerator;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.GroupService;
 import com.ujcms.cms.core.service.RoleService;
+import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
 import com.ujcms.cms.core.service.args.GroupArgs;
 import com.ujcms.cms.core.service.args.RoleArgs;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -52,22 +56,28 @@ public class ChannelController {
     private HtmlGenerator generator;
     private GroupService groupService;
     private RoleService roleService;
+    private UserService userService;
     private ChannelService service;
     private ResourceLoader resourceLoader;
 
     public ChannelController(HtmlGenerator generator, GroupService groupService, RoleService roleService,
-                             ChannelService service, ResourceLoader resourceLoader) {
+                             UserService userService, ChannelService service, ResourceLoader resourceLoader) {
         this.generator = generator;
         this.groupService = groupService;
         this.roleService = roleService;
+        this.userService = userService;
         this.service = service;
         this.resourceLoader = resourceLoader;
     }
 
     @GetMapping
     @RequiresPermissions("channel:list")
-    public Object list(HttpServletRequest request) {
+    public Object list(@RequestParam(defaultValue = "false") boolean isArticlePermission, HttpServletRequest request) {
+        User user = Contexts.getCurrentUser(userService);
         ChannelArgs args = ChannelArgs.of(getQueryMap(request.getQueryString()));
+        if (isArticlePermission && !user.hasAllArticlePermission()) {
+            args.inArticleRoleIds(user.fetchRoleIds());
+        }
         args.siteId(Contexts.getCurrentSiteId());
         return service.selectList(args);
     }
@@ -106,8 +116,7 @@ public class ChannelController {
             RoleArgs roleArgs = RoleArgs.of().scopeSiteId(bean.getSiteId()).allArticlePermission(false);
             roleIds = roleService.selectList(roleArgs).stream().map(RoleBase::getId).collect(Collectors.toList());
         }
-
-        service.insert(channel, channel.getExt(), groupIds, roleIds, bean.getCustomList());
+        service.insert(channel, channel.getExt(), groupIds, roleIds, bean.getCustoms());
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.channelRelated");
             generator.updateChannelRelatedHtml(channel.getSiteId(), userId, taskName, channel.getId());
@@ -125,7 +134,7 @@ public class ChannelController {
         }
         Integer userId = Contexts.getCurrentUserId();
         Entities.copy(bean, channel, "siteId", "parentId", "order");
-        service.update(channel, channel.getExt(), bean.getParentId(), null, null, bean.getCustomList());
+        service.update(channel, channel.getExt(), bean.getParentId(), null, null, bean.getCustoms());
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.channelRelated");
             generator.updateChannelRelatedHtml(channel.getSiteId(), userId, taskName, channel.getId());

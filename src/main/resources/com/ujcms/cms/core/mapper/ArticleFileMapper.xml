@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.ArticleFileMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ArticleFile">
+    <id column="id_" jdbcType="BIGINT" property="id" />
     <result column="article_id_" jdbcType="INTEGER" property="articleId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="url_" jdbcType="VARCHAR" property="url" />
@@ -36,9 +37,17 @@
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_article_file" />
         </include>
-    </select><insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleFile">
-    insert into ujcms_article_file (article_id_, name_, url_, length_, order_)
-    values (#{articleId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{length,jdbcType=BIGINT}, #{order,jdbcType=SMALLINT})
+    </select><update id="update" parameterType="com.ujcms.cms.core.domain.ArticleFile">
+    update ujcms_article_file
+    set article_id_ = #{articleId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      url_ = #{url,jdbcType=VARCHAR},
+      length_ = #{length,jdbcType=BIGINT},
+      order_ = #{order,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleFile">
+    insert into ujcms_article_file (id_, article_id_, name_, url_, length_, order_)
+    values (#{id,jdbcType=BIGINT}, #{articleId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{length,jdbcType=BIGINT}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
-    t.article_id_, t.name_, t.url_, t.length_, t.order_
+    t.id_, t.article_id_, t.name_, t.url_, t.length_, t.order_
   </sql></mapper>

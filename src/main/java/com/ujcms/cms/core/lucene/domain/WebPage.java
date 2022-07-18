@@ -86,14 +86,14 @@ public class WebPage implements Anchor {
 
     @Field(type = FieldType.Keyword)
     private String url = "";
-    @MultiField(mainField = @Field(type = FieldType.Text, analyzer = "ik_max_word"),
+    @MultiField(mainField = @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart"),
             otherFields = {
                     @InnerField(suffix = "pinyin", type = FieldType.Text, analyzer = "pinyinAnalyzer"),
             }
     )
     private String title = "";
     @Nullable
-    @Field(type = FieldType.Text, analyzer = "ik_max_word")
+    @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
     private String body;
     @Nullable
     @Field(type = FieldType.Keyword, index = false)

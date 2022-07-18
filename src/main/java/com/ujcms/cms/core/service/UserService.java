@@ -23,6 +23,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -95,10 +96,40 @@ public class UserService implements OrgDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateLogin(UserExt userExt, String ip) {
+    public void changePassword(User user, UserExt userExt, String password) {
+        String origSalt = user.getSalt();
+        String origPassword = user.getPassword();
+        String salt = Secures.nextSalt();
+        user.setSalt(salt);
+        user.setPassword(credentialsDigest.digest(password, salt));
+        user.setPasswordModified(OffsetDateTime.now());
+        user.addHistoryPassword(origSalt, origPassword);
+        userExt.setErrorCount(0);
+        mapper.update(user);
+        extMapper.update(userExt);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void loginSuccess(UserExt userExt, String ip) {
         userExt.setLoginCount(userExt.getLoginCount() + 1);
         userExt.setLoginDate(OffsetDateTime.now());
         userExt.setLoginIp(ip);
+        userExt.setErrorCount(0);
+        extMapper.update(userExt);
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public void loginFailure(UserExt userExt, int lockMinutes) {
+        OffsetDateTime now = OffsetDateTime.now();
+        if (Duration.between(userExt.getErrorDate(), now).toMinutes() > lockMinutes) {
+            // 超过锁定时间，重新计数
+            userExt.setErrorCount(1);
+        } else {
+            // 累加
+            userExt.setErrorCount(userExt.getErrorCount() + 1);
+        }
+        userExt.setErrorDate(now);
         extMapper.update(userExt);
     }
 

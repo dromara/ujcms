@@ -1,7 +1,8 @@
 package com.ujcms.cms.core.security;
 
-import com.ujcms.cms.core.domain.Role;
+import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.util.security.CredentialsDigest;
 import com.ujcms.util.security.CredentialsMatcherAdapter;
@@ -9,7 +10,6 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.DisabledAccountException;
-import org.apache.shiro.authc.ExcessiveAttemptsException;
 import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -27,8 +27,9 @@ import java.util.HashSet;
  * @author PONY
  */
 public class DbRealm extends AuthorizingRealm {
-    public DbRealm(CredentialsDigest credentialsDigest, UserService userService) {
+    public DbRealm(CredentialsDigest credentialsDigest, UserService userService, ConfigService configService) {
         this.userService = userService;
+        this.configService = configService;
         // 设定Password校验的Hash算法与迭代次数.
         setCredentialsMatcher(new CredentialsMatcherAdapter(credentialsDigest));
     }
@@ -40,12 +41,10 @@ public class DbRealm extends AuthorizingRealm {
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authcToken) throws AuthenticationException {
         UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
         User user = userService.selectByUsername(token.getUsername());
+        Config.Security security = configService.getUnique().getSecurity();
         // 前后台登录共用，非管理员也可登录。
         if (user != null) {
-            if (user.isExcessiveAttempts()) {
-                // 是否尝试过多要放在第一位，否则由于登录次数过多的用户状态正常，导致登录成功
-                throw new ExcessiveAttemptsException();
-            } else if (user.isLocked()) {
+            if (user.isLocked()) {
                 throw new LockedAccountException();
             } else if (user.isDisabled()) {
                 throw new DisabledAccountException();
@@ -67,4 +66,5 @@ public class DbRealm extends AuthorizingRealm {
     }
 
     private UserService userService;
+    private ConfigService configService;
 }

@@ -40,10 +40,12 @@ import static org.apache.lucene.search.BooleanClause.Occur;
 public class ArticleLuceneImpl implements ArticleLucene {
     private LuceneOperations operations;
     private Analyzer analyzer;
+    private Analyzer smartAnalyzer;
 
-    public ArticleLuceneImpl(LuceneOperations operations, Analyzer analyzer) {
+    public ArticleLuceneImpl(LuceneOperations operations, Analyzer analyzer, Analyzer smartAnalyzer) {
         this.operations = operations;
         this.analyzer = analyzer;
+        this.smartAnalyzer = smartAnalyzer;
     }
 
     @Override
@@ -89,13 +91,13 @@ public class ArticleLuceneImpl implements ArticleLucene {
         try {
             if (StringUtils.isNotBlank(q)) {
                 q = QueryParser.escape(q);
-                QueryParser titleParser = new QueryParser(TITLE, analyzer);
+                QueryParser titleParser = new QueryParser(TITLE, smartAnalyzer);
                 titleParser.setDefaultOperator(operator);
                 BooleanQuery.Builder sub = new BooleanQuery.Builder()
                         // 标题比正文的权重高 5 倍
                         .add(new BoostQuery(titleParser.parse(q), 5), Occur.SHOULD);
                 if (isIncludeBody) {
-                    QueryParser bodyParser = new QueryParser(BODY, analyzer);
+                    QueryParser bodyParser = new QueryParser(BODY, smartAnalyzer);
                     bodyParser.setDefaultOperator(operator);
                     sub.add(bodyParser.parse(q), Occur.SHOULD);
                 }
@@ -127,7 +129,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
             String[] strings = new String[]{s1, s2, s3, s4, s5, s6};
             for (int i = 0, len = strings.length; i < len; i++) {
                 if (strings[i] != null) {
-                    QueryParser parser = new QueryParser("s" + i, analyzer);
+                    QueryParser parser = new QueryParser("s" + i, smartAnalyzer);
                     parser.setDefaultOperator(operator);
                     bool.add(parser.parse(strings[i]), Occur.MUST);
                 }

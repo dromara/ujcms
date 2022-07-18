@@ -3,13 +3,13 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.util.file.FilesEx;
-import com.ujcms.util.web.HtmlParserUtils;
-import com.ujcms.util.web.PageUrlResolver;
+import com.ujcms.cms.core.domain.base.ArticleBase;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.cms.core.domain.base.ArticleBase;
+import com.ujcms.util.file.FilesEx;
+import com.ujcms.util.web.HtmlParserUtils;
+import com.ujcms.util.web.PageUrlResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.springframework.lang.Nullable;
@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.ujcms.util.web.Strings.formatDuration;
 
 /**
  * 文章 实体类
@@ -113,13 +115,11 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     /**
-     * 状态：正常
+     * 是否正常状态（可访问）
      */
-    public static final short STATUS_NORMAL = 0;
-    /**
-     * 状态：已删除
-     */
-    public static final short STATUS_DELETED = 100;
+    public boolean isNormal() {
+        return getStatus() == STATUS_PUBLISHED || getStatus() == STATUS_ARCHIVED;
+    }
     // endregion
 
     // region Urls
@@ -189,6 +189,22 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
     // endregion
 
+    // region TempFields
+
+    @Nullable
+    private String taskId;
+
+    @Nullable
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(@Nullable String taskId) {
+        this.taskId = taskId;
+    }
+    // endregion
+
+
     // region JsonFields
 
     public Map<String, Object> getCustoms() {
@@ -199,11 +215,14 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     public void setCustoms(Map<String, Object> customs) {
-        getCustomList().clear();
-        getChannel().getArticleModel().disassembleCustoms(customs, (name, type, value) -> {
-            getCustomList().add(new ArticleCustom(getId(), name, type, value));
-        });
-        this.customs = null;
+        this.customs = customs;
+    }
+
+    public static List<ArticleCustom> disassembleCustoms(Model model, Integer id, Map<String, Object> customs) {
+        List<ArticleCustom> list = new ArrayList<>();
+        model.disassembleCustoms(customs, (name, type, value) ->
+                list.add(new ArticleCustom(id, name, type, value)));
+        return list;
     }
 
     @Nullable
@@ -495,12 +514,49 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     @Nullable
-    public String getVideoTime() {
-        return getExt().getVideoTime();
+    public Integer getVideoDuration() {
+        return getExt().getVideoDuration();
     }
 
-    public void setVideoTime(@Nullable String videoTime) {
-        getExt().setVideoTime(videoTime);
+    public void setVideoDuration(@Nullable Integer videoDuration) {
+        getExt().setVideoDuration(videoDuration);
+    }
+
+    @Nullable
+    public String getVideoTime() {
+        Integer duration = getVideoDuration();
+        if (duration == null) {
+            return null;
+        }
+        return formatDuration(duration);
+    }
+
+    @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    public String getAudio() {
+        return getExt().getAudio();
+    }
+
+    public void setAudio(@Nullable String audio) {
+        getExt().setAudio(audio);
+    }
+
+    @Nullable
+    public Integer getAudioDuration() {
+        return getExt().getAudioDuration();
+    }
+
+    public void setAudioDuration(@Nullable Integer audioDuration) {
+        getExt().setAudioDuration(audioDuration);
+    }
+
+    @Nullable
+    public String getAudioTime() {
+        Integer duration = getAudioDuration();
+        if (duration == null) {
+            return null;
+        }
+        return formatDuration(duration);
     }
 
     @Nullable
@@ -615,6 +671,24 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     @Nullable
+    public String getProcessInstanceId() {
+        return getExt().getProcessInstanceId();
+    }
+
+    public void setProcessInstanceId(@Nullable String processInstanceId) {
+        getExt().setProcessInstanceId(processInstanceId);
+    }
+
+    @Nullable
+    public String getRejectReason() {
+        return getExt().getRejectReason();
+    }
+
+    public void setRejectReason(String rejectReason) {
+        getExt().setRejectReason(rejectReason);
+    }
+
+    @Nullable
     public String getText() {
         return getExt().getText();
     }
@@ -690,5 +764,78 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     public long getYearViews() {
         return getBuffer().getYearViews();
     }
+    // endregion
+
+    // region StaticFields
+    /**
+     * 文章审核流程类型
+     */
+    public static final String PROCESS_CATEGORY = "sys_article";
+    public static final String PROCESS_VARIABLE_CHANNEL_ID = "channelId";
+    public static final String PROCESS_VARIABLE_ORG_ID = "orgId";
+    public static final String PROCESS_VARIABLE_USER_ID = "userId";
+    /**
+     * 状态：已发布
+     */
+    public static final short STATUS_PUBLISHED = 0;
+    /**
+     * 状态：已归档
+     */
+    public static final short STATUS_ARCHIVED = 1;
+    /**
+     * 状态：待发布
+     */
+    public static final short STATUS_READY = 5;
+
+    /**
+     * 状态：草稿
+     */
+    public static final short STATUS_DRAFT = 10;
+    /**
+     * 状态：待审核
+     */
+    public static final short STATUS_PENDING = 11;
+    /**
+     * 状态：审核中
+     */
+    public static final short STATUS_REVIEWING = 12;
+
+    /**
+     * 状态：已删除
+     */
+    public static final short STATUS_DELETED = 20;
+    /**
+     * 状态：已下线
+     */
+    public static final short STATUS_OFFLINE = 21;
+    /**
+     * 状态：已退回
+     */
+    public static final short STATUS_REJECTED = 22;
+
+    /**
+     * 类型：常规
+     */
+    public static final short TYPE_NORMAL = 0;
+    /**
+     * 类型：投稿
+     */
+    public static final short TYPE_CONTRIBUTE = 1;
+    /**
+     * 类型：采集
+     */
+    public static final short TYPE_COLLECTION = 2;
+    /**
+     * 类型：接口
+     */
+    public static final short TYPE_INTERFACE = 3;
+    /**
+     * 类型：站内推送
+     */
+    public static final short TYPE_IN_PUSH = 4;
+    /**
+     * 类型：站外推送
+     */
+    public static final short TYPE_OUT_PUSH = 5;
     // endregion
 }

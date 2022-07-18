@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.AttachmentReferMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.AttachmentRefer">
-    <id column="attachment_id_" jdbcType="INTEGER" property="attachmentId" />
-    <id column="refer_type_" jdbcType="VARCHAR" property="referType" />
-    <id column="refer_id_" jdbcType="INTEGER" property="referId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="attachment_id_" jdbcType="INTEGER" property="attachmentId" />
+    <result column="refer_type_" jdbcType="VARCHAR" property="referType" />
+    <result column="refer_id_" jdbcType="INTEGER" property="referId" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.AttachmentRefer" />
     <select id="listByAttachmentId" resultMap="ResultMap">
@@ -44,9 +45,15 @@
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_attachment_refer" />
         </include>
-    </select><insert id="insert" parameterType="com.ujcms.cms.core.domain.AttachmentRefer">
-    insert into ujcms_attachment_refer (attachment_id_, refer_type_, refer_id_)
-    values (#{attachmentId,jdbcType=INTEGER}, #{referType,jdbcType=VARCHAR}, #{referId,jdbcType=INTEGER})
+    </select><update id="update" parameterType="com.ujcms.cms.core.domain.AttachmentRefer">
+    update ujcms_attachment_refer
+    set attachment_id_ = #{attachmentId,jdbcType=INTEGER},
+      refer_type_ = #{referType,jdbcType=VARCHAR},
+      refer_id_ = #{referId,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.AttachmentRefer">
+    insert into ujcms_attachment_refer (id_, attachment_id_, refer_type_, refer_id_)
+    values (#{id,jdbcType=BIGINT}, #{attachmentId,jdbcType=INTEGER}, #{referType,jdbcType=VARCHAR}, #{referId,jdbcType=INTEGER})
   </insert><sql id="Column_List">
-    t.attachment_id_, t.refer_type_, t.refer_id_
+    t.id_, t.attachment_id_, t.refer_type_, t.refer_id_
   </sql></mapper>

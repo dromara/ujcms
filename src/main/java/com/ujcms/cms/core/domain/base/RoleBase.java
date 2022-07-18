@@ -42,6 +42,18 @@ public class RoleBase {
     private String description;
 
     /**
+     * 全局数据权限
+     */
+    @NotNull
+    private Boolean globalPermission = false;
+
+    /**
+     * 所有文章权限
+     */
+    @NotNull
+    private Boolean allArticlePermission = false;
+
+    /**
      * 数据权限范围(1:所有,2:本组织,3:自身)
      */
     @NotNull
@@ -72,16 +84,16 @@ public class RoleBase {
     private Short order = 32767;
 
     /**
-     * 全局数据权限
+     * 所有功能权限
      */
     @NotNull
-    private Boolean globalPermission = false;
+    private Boolean allPermission = false;
 
     /**
-     * 所有文章权限
+     * 所有授权权限
      */
     @NotNull
-    private Boolean allArticlePermission = false;
+    private Boolean allGrantPermission = true;
 
     /**
      * 功能权限
@@ -129,6 +141,22 @@ public class RoleBase {
         this.description = description;
     }
 
+    public Boolean getGlobalPermission() {
+        return globalPermission;
+    }
+
+    public void setGlobalPermission(Boolean globalPermission) {
+        this.globalPermission = globalPermission;
+    }
+
+    public Boolean getAllArticlePermission() {
+        return allArticlePermission;
+    }
+
+    public void setAllArticlePermission(Boolean allArticlePermission) {
+        this.allArticlePermission = allArticlePermission;
+    }
+
     public Short getDataScope() {
         return dataScope;
     }
@@ -169,20 +197,20 @@ public class RoleBase {
         this.order = order;
     }
 
-    public Boolean getGlobalPermission() {
-        return globalPermission;
+    public Boolean getAllPermission() {
+        return allPermission;
     }
 
-    public void setGlobalPermission(Boolean globalPermission) {
-        this.globalPermission = globalPermission;
+    public void setAllPermission(Boolean allPermission) {
+        this.allPermission = allPermission;
     }
 
-    public Boolean getAllArticlePermission() {
-        return allArticlePermission;
+    public Boolean getAllGrantPermission() {
+        return allGrantPermission;
     }
 
-    public void setAllArticlePermission(Boolean allArticlePermission) {
-        this.allArticlePermission = allArticlePermission;
+    public void setAllGrantPermission(Boolean allGrantPermission) {
+        this.allGrantPermission = allGrantPermission;
     }
 
     @Nullable

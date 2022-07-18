@@ -77,6 +77,12 @@ public class RoleController {
         Role role = new Role();
         Entities.copy(bean, role, Role.PERMISSION_FIELDS);
         validateBean(role, false, role.getRank(), currentUser);
+        // 赋予当前用户相同的数据权限
+        role.setAllPermission(currentUser.hasAllPermission());
+        role.setAllGrantPermission(currentUser.hasAllGrantPermission());
+        role.setAllArticlePermission(currentUser.hasAllArticlePermission());
+        role.setGlobalPermission(currentUser.hasGlobalPermission());
+        role.setDataScope(currentUser.getDataScope());
         service.insert(role, getCurrentSiteId());
         return Responses.ok();
     }

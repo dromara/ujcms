@@ -1,12 +1,14 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.PageHelper;
+import com.ujcms.cms.core.domain.ArticleImage;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.ChannelBuffer;
 import com.ujcms.cms.core.domain.ChannelCustom;
 import com.ujcms.cms.core.domain.ChannelExt;
 import com.ujcms.cms.core.domain.ChannelTree;
 import com.ujcms.cms.core.domain.GroupAccess;
+import com.ujcms.cms.core.domain.Model;
 import com.ujcms.cms.core.domain.RoleArticle;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
@@ -36,7 +38,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 栏目 Service
@@ -48,6 +52,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     private HtmlService htmlService;
     private PolicyFactory policyFactory;
     private AttachmentService attachmentService;
+    private ModelService modelService;
     private ChannelMapper mapper;
     private ChannelExtMapper extMapper;
     private ChannelBufferMapper bufferMapper;
@@ -59,13 +64,15 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     private TreeService<Channel, ChannelTree> treeService;
 
     public ChannelService(HtmlService htmlService, PolicyFactory policyFactory, AttachmentService attachmentService,
-                          ChannelMapper mapper, ChannelExtMapper extMapper, ChannelBufferMapper bufferMapper,
+                          ModelService modelService, ChannelMapper mapper, ChannelExtMapper extMapper,
+                          ChannelBufferMapper bufferMapper,
                           ChannelTreeMapper treeMapper, GroupAccessMapper groupAccessMapper,
                           RoleArticleMapper roleArticleMapper, ChannelCustomMapper customMapper,
                           SeqService seqService) {
         this.htmlService = htmlService;
         this.policyFactory = policyFactory;
         this.attachmentService = attachmentService;
+        this.modelService = modelService;
         this.bufferMapper = bufferMapper;
         this.groupAccessMapper = groupAccessMapper;
         this.mapper = mapper;
@@ -79,7 +86,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Channel bean, ChannelExt ext, List<Integer> groupIds, List<Integer> roleIds,
-                       List<ChannelCustom> customList) {
+                       Map<String, Object> customs) {
         bean.setId(seqService.getNextVal(Channel.TABLE_NAME));
         if (StringUtils.isBlank(bean.getAlias())) {
             bean.setAlias(String.valueOf(bean.getId()));
@@ -90,6 +97,9 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         bufferMapper.insert(new ChannelBuffer(bean.getId()));
         insertGroupIds(groupIds, bean.getId(), bean.getSiteId());
         insertRoleIds(roleIds, bean.getId(), bean.getSiteId());
+        Model model = Optional.ofNullable(modelService.select(bean.getChannelModelId()))
+                .orElseThrow(() -> new IllegalArgumentException("bean.channelModelId cannot be null"));
+        List<ChannelCustom> customList = Channel.disassembleCustoms(model, bean.getId(), customs);
         insertCustoms(customList, bean.getId());
         attachmentService.insertRefer(Channel.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
@@ -104,6 +114,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     private void insertCustoms(List<ChannelCustom> customList, Integer channelId) {
         customList.forEach(it -> {
+            it.setId(seqService.getNextValLong(ChannelCustom.TABLE_NAME));
             it.setChannelId(channelId);
             if (it.isRichEditor()) {
                 it.setValue(policyFactory.sanitize(it.getValue()));
@@ -114,7 +125,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void update(Channel bean, ChannelExt ext, @Nullable Integer parentId, @Nullable List<Integer> groupIds,
-                       @Nullable List<Integer> roleIds, @Nullable List<ChannelCustom> customList) {
+                       @Nullable List<Integer> roleIds, Map<String, Object> customs) {
         treeService.update(bean, parentId, bean.getSiteId());
         extMapper.update(ext);
         if (groupIds != null) {
@@ -125,10 +136,14 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
             roleArticleMapper.deleteByChannelId(bean.getId());
             insertRoleIds(roleIds, bean.getId(), bean.getSiteId());
         }
-        if (customList != null) {
-            customMapper.deleteByChannelId(bean.getId());
-            insertCustoms(customList, bean.getId());
-        }
+        Model model = Optional.ofNullable(modelService.select(bean.getChannelModelId()))
+                .orElseThrow(() -> new IllegalArgumentException("bean.channelModelId cannot be null"));
+        List<ChannelCustom> customList = Channel.disassembleCustoms(model, bean.getId(), customs);
+        // 要先将修改后的数据放入bean中，否则bean.getAttachmentUrls()会获取修改前的值
+        bean.setCustomList(customList);
+
+        customMapper.deleteByChannelId(bean.getId());
+        insertCustoms(customList, bean.getId());
         attachmentService.updateRefer(Channel.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 

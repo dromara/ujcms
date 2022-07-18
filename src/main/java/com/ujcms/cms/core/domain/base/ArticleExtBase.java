@@ -125,11 +125,37 @@ public class ArticleExtBase {
     private String video;
 
     /**
+     * 原视频
+     */
+    @Length(max = 255)
+    @Nullable
+    private String videoOrig;
+
+    /**
      * 视频时长
      */
-    @Length(max = 10)
     @Nullable
-    private String videoTime;
+    private Integer videoDuration;
+
+    /**
+     * 音频
+     */
+    @Length(max = 255)
+    @Nullable
+    private String audio;
+
+    /**
+     * 原音频
+     */
+    @Length(max = 255)
+    @Nullable
+    private String audioOrig;
+
+    /**
+     * 音频时长
+     */
+    @Nullable
+    private Integer audioDuration;
 
     /**
      * 文件
@@ -216,6 +242,32 @@ public class ArticleExtBase {
      */
     @Nullable
     private OffsetDateTime modified;
+
+    /**
+     * 流程实例ID
+     */
+    @Length(max = 64)
+    @Nullable
+    private String processInstanceId;
+
+    /**
+     * 退回原因
+     */
+    @Length(max = 300)
+    @Nullable
+    private String rejectReason;
+
+    /**
+     * 是否百度推送
+     */
+    @NotNull
+    private Boolean baiduPush = false;
+
+    /**
+     * 类型(常规:0,投稿:1,采集:2,接口:3,站内推送:4,站外推送:5)
+     */
+    @NotNull
+    private Short type = 0;
 
     /**
      * 编辑器类型(1:富文本编辑器,2:Markdown编辑器)
@@ -377,12 +429,48 @@ public class ArticleExtBase {
     }
 
     @Nullable
-    public String getVideoTime() {
-        return videoTime;
+    public String getVideoOrig() {
+        return videoOrig;
     }
 
-    public void setVideoTime(@Nullable String videoTime) {
-        this.videoTime = videoTime;
+    public void setVideoOrig(@Nullable String videoOrig) {
+        this.videoOrig = videoOrig;
+    }
+
+    @Nullable
+    public Integer getVideoDuration() {
+        return videoDuration;
+    }
+
+    public void setVideoDuration(@Nullable Integer videoDuration) {
+        this.videoDuration = videoDuration;
+    }
+
+    @Nullable
+    public String getAudio() {
+        return audio;
+    }
+
+    public void setAudio(@Nullable String audio) {
+        this.audio = audio;
+    }
+
+    @Nullable
+    public String getAudioOrig() {
+        return audioOrig;
+    }
+
+    public void setAudioOrig(@Nullable String audioOrig) {
+        this.audioOrig = audioOrig;
+    }
+
+    @Nullable
+    public Integer getAudioDuration() {
+        return audioDuration;
+    }
+
+    public void setAudioDuration(@Nullable Integer audioDuration) {
+        this.audioDuration = audioDuration;
     }
 
     @Nullable
@@ -498,6 +586,40 @@ public class ArticleExtBase {
 
     public void setModified(@Nullable OffsetDateTime modified) {
         this.modified = modified;
+    }
+
+    @Nullable
+    public String getProcessInstanceId() {
+        return processInstanceId;
+    }
+
+    public void setProcessInstanceId(@Nullable String processInstanceId) {
+        this.processInstanceId = processInstanceId;
+    }
+
+    @Nullable
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(@Nullable String rejectReason) {
+        this.rejectReason = rejectReason;
+    }
+
+    public Boolean getBaiduPush() {
+        return baiduPush;
+    }
+
+    public void setBaiduPush(Boolean baiduPush) {
+        this.baiduPush = baiduPush;
+    }
+
+    public Short getType() {
+        return type;
+    }
+
+    public void setType(Short type) {
+        this.type = type;
     }
 
     public Short getEditorType() {

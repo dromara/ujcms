@@ -82,8 +82,16 @@ public class Strings {
         return new String(Base64.getEncoder().encode(data), StandardCharsets.UTF_8);
     }
 
+    public static String encodeUrlBase64(final byte[] data) {
+        return new String(Base64.getUrlEncoder().encode(data), StandardCharsets.UTF_8);
+    }
+
     public static byte[] decodeBase64(final String data) {
         return Base64.getDecoder().decode(data.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static byte[] decodeUrlBase64(final String data) {
+        return Base64.getUrlDecoder().decode(data.getBytes(StandardCharsets.UTF_8));
     }
 
     public static byte[] toBytes(String source) {
@@ -92,6 +100,29 @@ public class Strings {
 
     public static String toString(byte[] bytes) {
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    public static String formatDuration(int duration) {
+        int hours = duration / 3600;
+        int minutes = (duration - hours * 3600) / 60;
+        int seconds = duration - hours * 3600 - minutes * 60;
+        StringBuilder buffer = new StringBuilder();
+        if (hours > 0) {
+            buffer.append(hours).append(":");
+        }
+        // 两位数
+        int ten = 10;
+        if (minutes < ten) {
+            buffer.append("0").append(minutes).append(":");
+        } else {
+            buffer.append(minutes).append(":");
+        }
+        if (seconds < ten) {
+            buffer.append("0").append(seconds);
+        } else {
+            buffer.append(seconds);
+        }
+        return buffer.toString();
     }
 
     /**

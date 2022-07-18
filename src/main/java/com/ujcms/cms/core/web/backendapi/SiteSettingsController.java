@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.web.backendapi;
 
 import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.domain.SiteCustom;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,8 +63,8 @@ public class SiteSettingsController {
     @RequiresPermissions("siteSettings:customs:update")
     public ResponseEntity<Body> updateCustoms(@RequestBody Map<String, Object> customs) {
         Site site = Contexts.getCurrentSite();
-        site.setCustoms(customs);
-        service.update(site, site.getCustomList());
+        List<SiteCustom> customList = site.disassembleCustoms(customs);
+        service.update(site, customList);
         return Responses.ok();
     }
 

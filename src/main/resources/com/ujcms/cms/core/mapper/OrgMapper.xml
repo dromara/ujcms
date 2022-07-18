@@ -70,8 +70,7 @@
         delete
         from ujcms_org
         where id_ = #{id,jdbcType=INTEGER}
-    </delete>
-<update id="update" parameterType="com.ujcms.cms.core.domain.Org">
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Org">
     update ujcms_org
     set parent_id_ = #{parentId,jdbcType=INTEGER},
       name_ = #{name,jdbcType=VARCHAR},

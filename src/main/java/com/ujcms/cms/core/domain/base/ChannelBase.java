@@ -66,6 +66,13 @@ public class ChannelBase {
     private Boolean nav = true;
 
     /**
+     * 流程标识
+     */
+    @Length(max = 50)
+    @Nullable
+    private String processKey;
+
+    /**
      * 类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一篇文章,5:链接到第一个子栏目)
      */
     @NotNull
@@ -146,6 +153,15 @@ public class ChannelBase {
 
     public void setNav(Boolean nav) {
         this.nav = nav;
+    }
+
+    @Nullable
+    public String getProcessKey() {
+        return processKey;
+    }
+
+    public void setProcessKey(@Nullable String processKey) {
+        this.processKey = processKey;
     }
 
     public Short getType() {

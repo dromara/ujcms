@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.web.backendapi;
 
 import com.ujcms.cms.core.domain.Article;
+import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.generator.HtmlGenerator;
@@ -56,7 +57,19 @@ public class ArticleController {
     @GetMapping
     @RequiresPermissions("article:list")
     public Page<Article> list(Integer subChannelId, Integer page, Integer pageSize, HttpServletRequest request) {
+        User user = Contexts.getCurrentUser(userService);
         ArticleArgs args = ArticleArgs.of(getQueryMap(request.getQueryString()));
+        // 数据范围
+        short dataScope = user.getDataScope();
+        if (dataScope == Role.DATA_SCOPE_ORG) {
+            args.subOrgId(user.getOrgId());
+        } else if (dataScope == Role.DATA_SCOPE_SELF) {
+            args.userId(user.getId());
+        }
+        // 文章数据权限
+        if (!user.hasAllArticlePermission()) {
+            args.inRoleIds(user.fetchRoleIds());
+        }
         args.siteId(Contexts.getCurrentSiteId()).subChannelId(subChannelId);
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }
@@ -83,8 +96,12 @@ public class ArticleController {
         Article article = new Article();
         Entities.copy(bean, article);
         article.setSiteId(site.getId());
+        // 如果不为草稿，就设置为已发布。不能为其它状态。
+        if (article.getStatus() != Article.STATUS_DRAFT) {
+            article.setStatus(Article.STATUS_PUBLISHED);
+        }
         service.insert(article, article.getExt(), userId, user.getOrgId(),
-                bean.getCustomList(), bean.getImageList(), bean.getFileList());
+                bean.getCustoms(), bean.getImageList(), bean.getFileList());
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.articleRelated");
             generator.updateArticleRelatedHtml(article.getSiteId(), userId, taskName, article.getId(), null);
@@ -102,9 +119,9 @@ public class ArticleController {
             return Responses.notFound("Article not found. ID = " + bean.getId());
         }
         Integer origChannelId = article.getChannelId();
-        Entities.copy(bean, article, "userId");
+        Entities.copy(bean, article, "orgId", "userId", "modifiedUserId", "withImage", "sticky", "status");
         service.update(article, article.getExt(), userId,
-                bean.getCustomList(), bean.getImageList(), bean.getFileList());
+                bean.getCustoms(), bean.getImageList(), bean.getFileList());
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.articleRelated");
             generator.updateArticleRelatedHtml(article.getSiteId(), userId, taskName, article.getId(), origChannelId);
@@ -112,12 +129,65 @@ public class ArticleController {
         return Responses.ok();
     }
 
-    @DeleteMapping
+    @PutMapping("/submit")
+    @RequiresPermissions("article:submit")
+    public ResponseEntity<Body> submit(@RequestBody List<Integer> ids) {
+        User user = Contexts.getCurrentUser(userService);
+        ids.forEach(id -> {
+            Article bean = service.select(id);
+            if (bean == null) {
+                return;
+            }
+            service.submit(bean, user.getId());
+        });
+        return Responses.ok();
+    }
+
+    @PutMapping("/archive")
+    @RequiresPermissions("article:archive")
+    public ResponseEntity<Body> archive(@RequestBody List<Integer> ids) {
+        ids.forEach(id -> {
+            Article bean = service.select(id);
+            if (bean == null) {
+                return;
+            }
+            service.archive(bean);
+        });
+        return Responses.ok();
+    }
+
+    @PutMapping("/offline")
+    @RequiresPermissions("article:offline")
+    public ResponseEntity<Body> offline(@RequestBody List<Integer> ids) {
+        ids.forEach(id -> {
+            Article bean = service.select(id);
+            if (bean == null) {
+                return;
+            }
+            service.offline(bean);
+        });
+        return Responses.ok();
+    }
+
+    @PutMapping("/delete")
     @RequiresPermissions("article:delete")
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids, HttpServletRequest request) {
+    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+        ids.forEach(id -> {
+            Article bean = service.select(id);
+            if (bean == null) {
+                return;
+            }
+            service.delete(bean);
+        });
+        return Responses.ok();
+    }
+
+    @DeleteMapping
+    @RequiresPermissions("article:completelyDelete")
+    public ResponseEntity<Body> completelyDelete(@RequestBody List<Integer> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         Integer userId = Contexts.getCurrentUserId();
-        service.delete(ids);
+        service.completelyDelete(ids);
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.all");
             generator.updateAllHtml(site.getId(), userId, taskName, site);

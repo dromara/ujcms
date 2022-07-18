@@ -22,6 +22,7 @@ public class JwtProperties {
     public static final String REFRESH_AUTH_EXPIRES_IN = "refreshAuthExpiresIn";
     public static final String REMEMBERED = "remembered";
     public static final String SESSION_TIMEOUT = "sessionTimeout";
+    public static final String REMAINING_DAYS = "remainingDays";
     /**
      * 使用 header(头信息) 传递 Access Token 的名称
      * <p>

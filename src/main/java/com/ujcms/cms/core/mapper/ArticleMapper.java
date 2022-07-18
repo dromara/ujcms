@@ -59,11 +59,13 @@ public interface ArticleMapper {
      * @param queryInfo        查询条件
      * @param customsCondition 自定义字段查询条件
      * @param channelId        栏目ID
+     * @param orgId            组织ID
      * @return 数据列表
      */
     List<Article> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
                             @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
-                            @Nullable @Param("channelId") Integer channelId);
+                            @Nullable @Param("channelId") Integer channelId,
+                            @Nullable @Param("orgId") Integer orgId);
 
     /**
      * 根据 id 列表查询
@@ -103,12 +105,12 @@ public interface ArticleMapper {
     List<Article> findPrev(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate, @Param("channelId") Integer channelId);
 
     /**
-     * 根据 栏目ID 查询非删除状态的文章数量
+     * 根据 栏目ID 查询文章数量
      *
      * @param channelId 栏目ID
      * @return 文章数量
      */
-    int countByChannelIdAndNotDeletedStatus(@Param("channelId") Integer channelId);
+    int countByChannelId(@Param("channelId") Integer channelId);
 
     /**
      * 根据 用户ID 查询文章数量

@@ -1,17 +1,8 @@
 package com.ujcms.cms;
 
 import com.auth0.jwt.algorithms.Algorithm;
-import com.ujcms.cms.core.service.OrgService;
-import com.ujcms.util.freemarker.OsTemplateLoader;
-import com.ujcms.util.image.ImageHandler;
-import com.ujcms.util.image.ThumbnailatorHandler;
-import com.ujcms.util.security.csrf.CsrfInterceptor;
-import com.ujcms.util.security.jwt.HmacSm3Algorithm;
-import com.ujcms.util.security.jwt.JwtProperties;
-import com.ujcms.util.web.DirectoryRedirectInterceptor;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.TimerInterceptor;
 import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Props;
@@ -21,7 +12,17 @@ import com.ujcms.cms.core.web.support.ExceptionResolver;
 import com.ujcms.cms.core.web.support.FrontendInterceptor;
 import com.ujcms.cms.core.web.support.JwtInterceptor;
 import com.ujcms.cms.core.web.support.UrlRedirectInterceptor;
+import com.ujcms.util.freemarker.OsTemplateLoader;
+import com.ujcms.util.image.ImageHandler;
+import com.ujcms.util.image.ThumbnailatorHandler;
+import com.ujcms.util.security.csrf.CsrfInterceptor;
+import com.ujcms.util.security.jwt.HmacSm3Algorithm;
+import com.ujcms.util.security.jwt.JwtProperties;
+import com.ujcms.util.web.DirectoryRedirectInterceptor;
+import com.ujcms.util.web.PathResolver;
+import com.ujcms.util.web.TimerInterceptor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -74,8 +75,8 @@ public class Application extends SpringBootServletInitializer implements WebAppl
      * 真实路径获取组件
      */
     @Bean
-    public PathResolver pathResolver(ServletContext servletContext) {
-        return new PathResolver(servletContext);
+    public PathResolver pathResolver(ObjectProvider<ServletContext> servletContextProvider) {
+        return new PathResolver(servletContextProvider);
     }
 
     /**
@@ -225,8 +226,8 @@ public class Application extends SpringBootServletInitializer implements WebAppl
             // List<String> profiles = Arrays.asList(applicationContext.getEnvironment().getActiveProfiles());
             String uploadsLocation = props.getUploadsLocation();
             if (StringUtils.isNotBlank(uploadsLocation)) {
-                registry.addResourceHandler(uploadsLocation + "/**").
-                        addResourceLocations("file:" + servletContext.getRealPath(uploadsLocation + "/"));
+                registry.addResourceHandler(uploadsLocation + "/**")
+                        .addResourceLocations("file:" + servletContext.getRealPath(uploadsLocation + "/"));
             }
         }
 

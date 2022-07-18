@@ -5,13 +5,15 @@
     <result column="site_id_" jdbcType="INTEGER" property="siteId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="global_permission_" jdbcType="BOOLEAN" property="globalPermission" />
+    <result column="all_article_permission_" jdbcType="BOOLEAN" property="allArticlePermission" />
     <result column="data_scope_" jdbcType="SMALLINT" property="dataScope" />
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="scope_" jdbcType="SMALLINT" property="scope" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
-    <result column="global_permission_" jdbcType="BOOLEAN" property="globalPermission" />
-    <result column="all_article_permission_" jdbcType="BOOLEAN" property="allArticlePermission" />
+    <result column="all_permission_" jdbcType="BOOLEAN" property="allPermission" />
+    <result column="all_grant_permission_" jdbcType="BOOLEAN" property="allGrantPermission" />
     <result column="permission_" jdbcType="LONGVARCHAR" property="permission" />
     <result column="grant_permission_" jdbcType="LONGVARCHAR" property="grantPermission" />
   </resultMap>
@@ -47,19 +49,21 @@
     set site_id_ = #{siteId,jdbcType=INTEGER},
       name_ = #{name,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
+      global_permission_ = #{globalPermission,jdbcType=BOOLEAN},
+      all_article_permission_ = #{allArticlePermission,jdbcType=BOOLEAN},
       data_scope_ = #{dataScope,jdbcType=SMALLINT},
       rank_ = #{rank,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
       scope_ = #{scope,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=SMALLINT},
-      global_permission_ = #{globalPermission,jdbcType=BOOLEAN},
-      all_article_permission_ = #{allArticlePermission,jdbcType=BOOLEAN},
+      all_permission_ = #{allPermission,jdbcType=BOOLEAN},
+      all_grant_permission_ = #{allGrantPermission,jdbcType=BOOLEAN},
       permission_ = #{permission,jdbcType=LONGVARCHAR},
       grant_permission_ = #{grantPermission,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Role">
-    insert into ujcms_role (id_, site_id_, name_, description_, data_scope_, rank_, type_, scope_, order_, global_permission_, all_article_permission_, permission_, grant_permission_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{dataScope,jdbcType=SMALLINT}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{globalPermission,jdbcType=BOOLEAN}, #{allArticlePermission,jdbcType=BOOLEAN}, #{permission,jdbcType=LONGVARCHAR}, #{grantPermission,jdbcType=LONGVARCHAR})
+    insert into ujcms_role (id_, site_id_, name_, description_, global_permission_, all_article_permission_, data_scope_, rank_, type_, scope_, order_, all_permission_, all_grant_permission_, permission_, grant_permission_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{globalPermission,jdbcType=BOOLEAN}, #{allArticlePermission,jdbcType=BOOLEAN}, #{dataScope,jdbcType=SMALLINT}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{allPermission,jdbcType=BOOLEAN}, #{allGrantPermission,jdbcType=BOOLEAN}, #{permission,jdbcType=LONGVARCHAR}, #{grantPermission,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.name_, t.description_, t.data_scope_, t.rank_, t.type_, t.scope_, t.order_, t.global_permission_, t.all_article_permission_, t.permission_, t.grant_permission_
+    t.id_, t.site_id_, t.name_, t.description_, t.global_permission_, t.all_article_permission_, t.data_scope_, t.rank_, t.type_, t.scope_, t.order_, t.all_permission_, t.all_grant_permission_, t.permission_, t.grant_permission_
   </sql></mapper>

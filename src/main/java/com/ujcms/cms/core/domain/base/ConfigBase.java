@@ -15,6 +15,9 @@ public class ConfigBase {
      */
     public static final String TABLE_NAME = "config";
 
+    /**
+     * ID
+     */
     @NotNull
     private Integer id = 0;
 
@@ -65,11 +68,25 @@ public class ConfigBase {
     private String uploadSettings;
 
     /**
+     * 安全设置
+     */
+    @Length(max = 1000)
+    @Nullable
+    private String securitySettings;
+
+    /**
      * 注册设置
      */
     @Length(max = 1000)
     @Nullable
     private String registerSettings;
+
+    /**
+     * 短信设置
+     */
+    @Length(max = 1000)
+    @Nullable
+    private String smsSettings;
 
     /**
      * 邮件设置
@@ -175,12 +192,30 @@ public class ConfigBase {
     }
 
     @Nullable
+    public String getSecuritySettings() {
+        return securitySettings;
+    }
+
+    public void setSecuritySettings(@Nullable String securitySettings) {
+        this.securitySettings = securitySettings;
+    }
+
+    @Nullable
     public String getRegisterSettings() {
         return registerSettings;
     }
 
     public void setRegisterSettings(@Nullable String registerSettings) {
         this.registerSettings = registerSettings;
+    }
+
+    @Nullable
+    public String getSmsSettings() {
+        return smsSettings;
+    }
+
+    public void setSmsSettings(@Nullable String smsSettings) {
+        this.smsSettings = smsSettings;
     }
 
     @Nullable

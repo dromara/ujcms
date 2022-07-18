@@ -120,7 +120,6 @@ public final class Responses {
         return ResponseEntity.ok().body(new Body(status, Servlets.getMessage(request, code)));
     }
 
-
     /**
      * 返回逻辑状态码。
      *

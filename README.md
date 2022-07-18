@@ -82,6 +82,23 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 * 将`src/main/webapp`目录下所有文件复制到上一步新建的`static`目录下。复制完成后，会有类似`static/WEB-INF` `static/templates`等文件夹。
 * 在部署目录运行`java -jar ujcms-***.jar`命令，即可启动。
 
+完整目录结构：
+
+* ujcms-***.jar
+* static/WEB-INF/...
+* static/templates/...
+* static/uploads/...
+* static/cp/...
+
+## 关于商业版提示
+
+程序默认包含商业版功能的链接，但点击后会提示商业版功能。如希望关闭商业版功能，可以修改`/src/main/resources/application.yaml`文件中的`ujcms.ep-display`配置项改为`false`。
+
+```
+# 是否显示商业版功能。默认：true
+ujcms.ep-display: false
+```
+
 ## 关于部署路径
 
 程序通常在部署在Tomcat根目录，首页访问地址类似`http://www.mysite.com/` `http://localhost/` `http://localhost:8080/`。在一些特殊的场合，如在Eclipse默认的Tomcat启动方式，可能将程序部署在某一个路径下，首页访问地址类似`http://www.mysite.com/ujcms/` `http://localhost/ujcms/` `http://localhost:8080/ujcms/`。此时访问网站前台会出现样式不能正常显示的情况，可以到后台`配置 - 全局设置`中设置`上下文路径`，类似为`/ujcms`，其中斜杠`/`不能省略，`ujcms`为部署目录的路径，如在开发环境，则通常为项目名。

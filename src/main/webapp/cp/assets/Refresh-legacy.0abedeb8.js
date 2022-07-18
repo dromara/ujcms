@@ -1,0 +1,1 @@
+System.register(["./vendor-legacy.c673f215.js"],(function(e){"use strict";var t;return{setters:[function(e){t=e.g}],execute:function(){e("default",t({beforeRouteEnter(e,t,r){r((e=>{e.$router.replace(t.path)}))},render(){}}))}}}));

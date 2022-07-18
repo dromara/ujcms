@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -119,6 +120,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         Optional.ofNullable(Directives.getString(params, TEXT)).ifPresent(args::containText);
         Optional.ofNullable(Directives.getIntegers(params, EXCLUDE_ID)).ifPresent(args::excludeIds);
 
+        args.status(Collections.singletonList(Article.STATUS_PUBLISHED));
         Directives.handleOrderBy(args.getQueryMap(), params, "publishDate_desc,id_desc");
     }
 

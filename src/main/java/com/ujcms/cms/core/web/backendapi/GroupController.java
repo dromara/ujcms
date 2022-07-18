@@ -5,6 +5,7 @@ import com.ujcms.cms.core.service.GroupService;
 import com.ujcms.cms.core.service.args.GroupArgs;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
+import com.ujcms.util.web.exception.Http404Exception;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -40,7 +41,7 @@ public class GroupController {
 
     @GetMapping
     @RequiresPermissions("group:list")
-    public Object list(@Nullable Short type, HttpServletRequest request) {
+    public List<Group> list(@Nullable Short type, HttpServletRequest request) {
         GroupArgs args = GroupArgs.of(getQueryMap(request.getQueryString()))
                 .type(type);
         return service.selectList(args);
@@ -48,10 +49,10 @@ public class GroupController {
 
     @GetMapping("{id}")
     @RequiresPermissions("group:show")
-    public Object show(@PathVariable Integer id) {
+    public Group show(@PathVariable Integer id) {
         Group bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("Group not found. ID = " + id);
+            throw new Http404Exception("Group not found. ID = " + id);
         }
         return bean;
     }

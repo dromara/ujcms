@@ -58,7 +58,8 @@ public class AttachmentService implements SiteDeleteListener {
             Attachment attachment = mapper.findByUrl(url);
             if (attachment != null) {
                 if (referMapper.select(attachment.getId(), referType, referId) == null) {
-                    referMapper.insert(new AttachmentRefer(attachment.getId(), referType, referId));
+                    Long id = seqService.getNextValLong(AttachmentRefer.TABLE_NAME);
+                    referMapper.insert(new AttachmentRefer(id, attachment.getId(), referType, referId));
                     ids.add(attachment.getId());
                 }
             }

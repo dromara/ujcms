@@ -15,6 +15,12 @@ public class ArticleImageBase {
     public static final String TABLE_NAME = "article_image";
 
     /**
+     * 文章图片ID
+     */
+    @NotNull
+    private Long id = 0L;
+
+    /**
      * 文章ID
      */
     @NotNull
@@ -39,6 +45,14 @@ public class ArticleImageBase {
      */
     @NotNull
     private Short order = 32767;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getArticleId() {
         return articleId;

@@ -3,6 +3,7 @@ package com.ujcms.cms.core.web.api;
 import com.ujcms.cms.core.service.args.ArticleArgs;
 import com.ujcms.util.db.MyBatis;
 import com.ujcms.util.query.QueryUtils;
+import com.ujcms.util.web.exception.Http403Exception;
 import com.ujcms.util.web.exception.Http404Exception;
 import com.ujcms.cms.core.domain.ArticleBuffer;
 import com.ujcms.cms.core.service.ArticleBufferService;
@@ -83,7 +84,14 @@ public class ArticleController {
 
     @GetMapping("/{id:[\\d]+}")
     public Article show(@PathVariable Integer id) {
-        return articleService.select(id);
+        Article article = articleService.select(id);
+        if (article == null) {
+            throw new Http404Exception("Article not found. ID: " + id);
+        }
+        if (!article.isNormal()) {
+            throw new Http403Exception("Article status forbidden. ID: " + id);
+        }
+        return article;
     }
 
     @GetMapping("/next")

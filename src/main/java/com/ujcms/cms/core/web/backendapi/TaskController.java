@@ -6,8 +6,10 @@ import com.ujcms.cms.core.service.args.TaskArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
+import com.ujcms.util.web.exception.Http404Exception;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,18 +45,17 @@ public class TaskController {
 
     @GetMapping
     @RequiresPermissions("task:list")
-    public Object list(Integer page, Integer pageSize, HttpServletRequest request) {
-        TaskArgs args = TaskArgs.of(getQueryMap(request.getQueryString()))
-                .siteId(Contexts.getCurrentSiteId());
+    public Page<Task> list(Integer page, Integer pageSize, HttpServletRequest request) {
+        TaskArgs args = TaskArgs.of(getQueryMap(request.getQueryString())).siteId(Contexts.getCurrentSiteId());
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }
 
     @GetMapping("{id}")
     @RequiresPermissions("task:show")
-    public Object show(@PathVariable Integer id) {
+    public Task show(@PathVariable Integer id) {
         Task bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("Task not found. ID = " + id);
+            throw new Http404Exception("Task not found. ID = " + id);
         }
         return bean;
     }

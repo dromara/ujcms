@@ -2,7 +2,6 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.PageHelper;
 import com.ujcms.cms.core.domain.Dict;
-import com.ujcms.cms.core.domain.DictType;
 import com.ujcms.cms.core.mapper.DictMapper;
 import com.ujcms.cms.core.service.args.DictArgs;
 import com.ujcms.util.query.QueryInfo;

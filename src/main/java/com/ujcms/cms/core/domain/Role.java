@@ -59,7 +59,19 @@ public class Role extends RoleBase implements Serializable {
      */
     public static final String PERMISSION_BACKEND = "backend";
 
-    public static final String[] PERMISSION_FIELDS = {"permission", "grantPermission",
-            "globalPermission", "allArticlePermission", "dataScope"};
+    public static final String[] PERMISSION_FIELDS = {"permission", "allPermission",
+            "grantPermission", "allGrantPermission", "globalPermission", "allArticlePermission", "dataScope"};
+    /**
+     * 数据范围：所有
+     */
+    public static final short DATA_SCOPE_ALL = 1;
+    /**
+     * 数据范围：组织
+     */
+    public static final short DATA_SCOPE_ORG = 2;
+    /**
+     * 数据范围：自身
+     */
+    public static final short DATA_SCOPE_SELF = 3;
     // endregion
 }

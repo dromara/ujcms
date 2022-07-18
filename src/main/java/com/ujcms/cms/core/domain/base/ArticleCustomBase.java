@@ -16,6 +16,12 @@ public class ArticleCustomBase {
     public static final String TABLE_NAME = "article_custom";
 
     /**
+     * 文章自定义ID
+     */
+    @NotNull
+    private Long id = 0L;
+
+    /**
      * 文章ID
      */
     @NotNull
@@ -40,6 +46,14 @@ public class ArticleCustomBase {
      */
     @Nullable
     private String value;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getArticleId() {
         return articleId;

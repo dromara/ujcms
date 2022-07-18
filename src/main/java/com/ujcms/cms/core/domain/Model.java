@@ -3,13 +3,14 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.ujcms.util.function.Consumer3;
-import com.ujcms.util.web.HtmlParserUtils;
 import com.ujcms.cms.core.domain.base.ModelBase;
 import com.ujcms.cms.core.domain.support.CustomBean;
 import com.ujcms.cms.core.support.Constants;
+import com.ujcms.util.function.Consumer3;
+import com.ujcms.util.web.HtmlParserUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,14 +52,18 @@ public class Model extends ModelBase implements Serializable {
         Map<String, Object> customs = new HashMap<>(16);
         fieldMap.forEach((name, field) -> {
             String type = field.getType();
-            List<CustomBean> list = customList.stream()
-                    .filter(item -> Objects.equals(item.getName(), name) && compatibleType(item.getType(), type))
+            List<CustomBean> list = customList.stream().filter(
+                    item -> Objects.equals(item.getName(), name) && compatibleType(item.getType(), type))
+                    .collect(Collectors.toList());
+            List<CustomBean> keyList = customList.stream().filter(
+                    item -> Objects.equals(item.getName(), name + KEY_SUFFIX) && compatibleType(item.getType(), type))
                     .collect(Collectors.toList());
             String value = list.isEmpty() ? null : list.iterator().next().getValue();
+            String valueKey = keyList.isEmpty() ? null : keyList.iterator().next().getValue();
             switch (field.getType()) {
                 case Model.TYPE_NUMBER:
                 case Model.TYPE_SLIDER:
-                    if (value != null) {
+                    if (NumberUtils.isCreatable(value)) {
                         if (field.getPrecision() != null && field.getPrecision() > 0) {
                             customs.put(name, new BigDecimal(value));
                         } else {
@@ -80,10 +85,15 @@ public class Model extends ModelBase implements Serializable {
                 case Model.TYPE_MULTIPLE_SELECT:
                     customs.put(name, list.stream().map(CustomBean::getValue).filter(Objects::nonNull)
                             .collect(Collectors.toList()));
+                    customs.put(name + KEY_SUFFIX, keyList.stream().map(CustomBean::getValue).filter(Objects::nonNull)
+                            .collect(Collectors.toList()));
                     break;
                 default:
                     if (value != null) {
                         customs.put(name, value);
+                    }
+                    if (valueKey != null) {
+                        customs.put(name + KEY_SUFFIX, valueKey);
                     }
             }
         });
@@ -92,7 +102,8 @@ public class Model extends ModelBase implements Serializable {
 
     public void disassembleCustoms(Map<String, Object> customs, Consumer3<String, String, String> consumer) {
         customs.forEach((key, value) -> {
-            String type = Optional.ofNullable(getFieldMap().get(key)).map(Field::getType).orElse(null);
+            String origKey = key.endsWith(KEY_SUFFIX) ? key.substring(0, key.lastIndexOf(KEY_SUFFIX)) : key;
+            String type = Optional.ofNullable(getFieldMap().get(origKey)).map(Field::getType).orElse(null);
             if (type == null) {
                 return;
             }
@@ -269,6 +280,8 @@ public class Model extends ModelBase implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(Model.class);
 
+    public static final String KEY_SUFFIX = "_key";
+
     public static final String TYPE_TEXT = "text";
     public static final String TYPE_TEXTAREA = "textarea";
     public static final String TYPE_NUMBER = "number";
@@ -287,9 +300,12 @@ public class Model extends ModelBase implements Serializable {
     public static final String TYPE_RICH_EDITOR = "richEditor";
     public static final String TYPE_MARKDOWN_EDITOR = "markdownEditor";
 
+    /**
+     * 每一个数组代表一组兼容的数据类型。数值和字符串都作为兼容数据。
+     */
     private static final String[][] TYPE_GROUPS = {
-            {TYPE_TEXT, TYPE_TEXTAREA, TYPE_RADIO, TYPE_CHECKBOX, TYPE_SELECT, TYPE_MULTIPLE_SELECT},
-            {TYPE_NUMBER, TYPE_SLIDER}};
+            {TYPE_TEXT, TYPE_TEXTAREA, TYPE_RADIO, TYPE_CHECKBOX, TYPE_SELECT, TYPE_MULTIPLE_SELECT,
+                    TYPE_NUMBER, TYPE_SLIDER}};
 
     private boolean compatibleType(String type1, String type2) {
         if (Objects.equals(type1, type2)) {

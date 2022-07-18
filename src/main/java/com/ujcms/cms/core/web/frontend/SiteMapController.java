@@ -8,15 +8,17 @@ import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.util.web.exception.Http404Exception;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Min;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
@@ -61,7 +63,8 @@ import java.util.Map;
  * @author PONY
  * @see org.springframework.web.filter.ShallowEtagHeaderFilter
  */
-@RestController("frontendSiteMapController")
+@Controller("frontendSiteMapController")
+@Validated
 public class SiteMapController {
     private ChannelService channelService;
     private ArticleService articleService;
@@ -118,7 +121,7 @@ public class SiteMapController {
 
         sitemapBegin(buff);
         articleService.listBySiteIdForSiteMap(site.getId(), null, PAGE_SIZE).forEach(article -> {
-            if (!article.isLink()) {
+            if (article.isNormal() && !article.isLink()) {
                 article.setSite(site);
                 sitemapItem(buff, article.getUrl(), article.getModified());
             }
@@ -129,20 +132,17 @@ public class SiteMapController {
     }
 
     @GetMapping(value = {"/sitemap-article-{page:[\\d]+}", "/{subDir:[\\w-]+}/sitemap-article-{page:[\\d]+}"})
-    public void article(@PathVariable(required = false) String subDir, @PathVariable Integer page,
+    public void article(@PathVariable(required = false) String subDir, @PathVariable @Min(2) Integer page,
                         HttpServletRequest request, HttpServletResponse response) throws IOException {
-        int minPage = 2;
-        if (page < minPage) {
-            throw new Http404Exception("sitemap page error: " + page);
-        }
         Site site = siteResolver.resolve(request, subDir);
         StringBuilder buff = new StringBuilder();
+        // 上一页加1条，即本页第一条
         int minCount = PAGE_SIZE * (page - 1) + 1;
         Map<String, Object> stat = articleService.statForSitemap(site.getId(), minCount);
         Long count = (Long) stat.get("count");
         Integer maxId = (Integer) stat.get("maxId");
         if (count == null || maxId == null || count < minCount) {
-            throw new Http404Exception("sitemap page error: " + page);
+            throw new Http404Exception("sitemap page not found: " + page);
         }
         sitemapBegin(buff);
         articleService.listBySiteIdForSiteMap(site.getId(), maxId, PAGE_SIZE * page).forEach(article -> {

@@ -16,6 +16,12 @@ public class ChannelCustomBase {
     public static final String TABLE_NAME = "channel_custom";
 
     /**
+     * 栏目自定义ID
+     */
+    @NotNull
+    private Long id = 0L;
+
+    /**
      * 文章ID
      */
     @NotNull
@@ -40,6 +46,14 @@ public class ChannelCustomBase {
      */
     @Nullable
     private String value;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Integer getChannelId() {
         return channelId;
