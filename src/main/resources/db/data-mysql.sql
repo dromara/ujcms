@@ -704,7 +704,7 @@ INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('channel_custom',1
 INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('dict',569,0);
 INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('dict_type',112,0);
 INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('group',11,0);
-INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('login_log',1001,0);
+INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('login_log',1051,0);
 INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('model',22,0);
 INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('org',111,0);
 INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('role',3,0);
@@ -715,5 +715,5 @@ INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('task',601,0);
 INSERT INTO ujcms_seq (name_, next_val_, cache_size_) VALUES ('user',13,0);
 INSERT INTO ujcms_site_buffer (id_) VALUES (1);
 INSERT INTO ujcms_site_tree (ancestor_id_, descendant_id_) VALUES (1,1);
-INSERT INTO ujcms_user_ext (id_, real_name_, gender_, birthday_, location_, bio_, created_, login_date_, login_ip_, login_count_, error_date_, error_count_, history_password_) VALUES (1,NULL,'m',NULL,NULL,NULL,'2021-03-18 12:25:06','2022-07-18 21:53:16','127.0.0.1',71,'2021-03-18 12:25:06',0,NULL);
+INSERT INTO ujcms_user_ext (id_, real_name_, gender_, birthday_, location_, bio_, created_, login_date_, login_ip_, login_count_, error_date_, error_count_, history_password_) VALUES (1,NULL,'m',NULL,NULL,NULL,'2021-03-18 12:25:06','2022-07-19 15:28:42','127.0.0.1',72,'2021-03-18 12:25:06',0,NULL);
 INSERT INTO ujcms_user_role (user_id_, role_id_, order_) VALUES (1,1,9999);

@@ -33,7 +33,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 ## 环境要求
 
 * JDK 8。
-* MySQL 5.7（兼容 5.6、8.0）。
+* MySQL 5.7（8.0）。
 * Tomcat 8.5、9.0 (Servlet 3.1+)。
 * Maven 3.5 或更高版本。
 * 系统后台兼容的浏览器：Chrome、Firefox、Edge。
@@ -46,6 +46,22 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
   * 达梦数据库，字符集选`UTF-8`（不要使用`GB18030`，该字符集可能导致某些特殊字符出现乱码）。
 2. 无需执行SQL文件，程序启动时会自动创建表及初始化数据。以后程序升级同样不需要执行SQL升级脚本，程序启动时会判断当前软件版本及数据库表结构版本，自动进行数据库表结构升级。
 
+## MySQL表名大小写问题
+
+如果在Windows环境使用MySQL，且以后需要迁移到Linux环境的MySQL，建议将Windows环境的MySQL配置为表名大小写敏感模式。
+
+因为Linux环境下MySQL的表名是大小写敏感的；而在Windows环境下MySQL表名大小写不敏感，且会自动把大写的表名改为小写的表名。从Windows向Linux迁移数据时，本为大写表名的成为了小写表名，导致程序出错。需要手动把小写表名改回大写表名，费时费力且容易出错。
+
+UJCMS系统的表名都为小写，不管在Window还是Linux下都没有问题，但第三方的类库（如Liquibase、Flowable、Quartz等）创建的表则为大写表名。所以Windows环境下也把MySQL设置成表名大小写敏感，有利以后迁移数据。
+
+可修改MySQL配置文件`my.ini`：
+
+```
+[mysqld]
+# Windows下表名也区分大小写，与Linux一致。
+lower_case_table_names=2
+```
+
 ## 启动程序
 
 1. 在Eclipse中导入maven项目。点击Eclipse菜单`File` - `Import`，选择`Maven` - `Existing Maven Projects`。创建好maven项目后，会开始从maven服务器下载第三方jar包（如spring等），需要一定时间，请耐心等待。（另外：Eclipse中会出现红叉的错误警告，如是JavaScript或HTML报错则无需理会，不影响程序正常运行。这是由于Eclipse校验规则误判所致，可以在Eclipse中设置禁止对js文件进行错误校验。）
@@ -55,6 +71,10 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 5. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`或`Waiting for changelog lock....`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
 6. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
 7. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于`Vue 3`开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+
+## 常见错误
+
+如出现`flowable-eventregistry-db-changelog.xml::1::flowable:` `Specified key was too long; max key length is 767 bytes`等错误信息，则 MySQL 5.7 需要设置`innodb_large_prefix=ON`；MySQL 5.6 需要设置`innodb_large_prefix=1`。从 mysql 5.7.7 开始，`innodb_large_prefix`的默认值就是`ON`，因此只要MySQL版本大于5.7.7即可避免这个问题。
 
 ## 部署
 

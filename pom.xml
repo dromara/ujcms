@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>4.1.1</version>
+    <version>4.1.2</version>
     <packaging>war</packaging>
 
     <name>UJCMS</name>
@@ -47,7 +47,7 @@
         <!-- HTML不安全代码过滤组件 -->
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <!-- 安全框架 -->
-        <shiro.version>1.8.0</shiro.version>
+        <shiro.version>1.9.1</shiro.version>
         <java-jwt.version>3.14.0</java-jwt.version>
         <!--<pac4j-core.version>4.0.1</pac4j-core.version>-->
         <!--<buji-pac4j.version>5.0.1</buji-pac4j.version>-->
