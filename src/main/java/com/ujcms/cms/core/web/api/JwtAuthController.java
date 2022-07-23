@@ -75,6 +75,7 @@ public class JwtAuthController {
             loginLogService.loginFailure(params.username, ip, LoginLog.STATUS_IP_EXCESSIVE_ATTEMPTS);
             return Responses.failure(request, "error.ipExcessiveAttempts");
         }
+        // 是否需要验证码
         if (!security.isTwoFactor() && ipLoginAttemptService.isExcessive(ip, security.getIpCaptchaAttempts()) &&
                 !captchaTokenService.validateCaptcha(params.captchaToken, params.captchaValue)) {
             loginLogService.loginFailure(params.username, ip, LoginLog.STATUS_CAPTCHA_WRONG);
@@ -170,6 +171,7 @@ public class JwtAuthController {
         if (maxDays > 0 && warnDays > 0 && remainingDays <= warnDays) {
             result.put(REMAINING_DAYS, remainingDays);
         }
+        ipLoginAttemptService.success(ip);
         userService.loginSuccess(user.getExt(), Servlets.getRemoteAddr(request));
         loginLogService.loginSuccess(user.getId(), params.username, ip);
         return Responses.ok(result);

@@ -205,7 +205,7 @@ public class UploadController {
     }
 
     @PostMapping("image-crop")
-    @RequiresPermissions("upload:image")
+    @RequiresPermissions("backend")
     public Object imageCrop(@RequestBody CropParam params) throws IOException {
         Site site = Contexts.getCurrentSite();
         Integer userId = Contexts.getCurrentUserId();

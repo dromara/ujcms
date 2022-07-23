@@ -16,6 +16,10 @@ public class IpLoginAttemptService {
         cache.updateAttempts(ip, cache.getAttempts(ip) + 1);
     }
 
+    public void success(String ip) {
+        cache.removeAttempts(ip);
+    }
+
     public boolean isExcessive(String ip, int maxAttempts) {
         return maxAttempts > 0 && cache.getAttempts(ip) >= maxAttempts;
     }
