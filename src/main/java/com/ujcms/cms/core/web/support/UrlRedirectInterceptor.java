@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * @author PONY
  */
 public class UrlRedirectInterceptor implements HandlerInterceptor {
-    private ConfigService configService;
+    private final ConfigService configService;
 
     public UrlRedirectInterceptor(ConfigService configService) {
         this.configService = configService;

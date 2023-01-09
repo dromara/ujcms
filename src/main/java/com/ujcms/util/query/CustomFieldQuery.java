@@ -1,6 +1,5 @@
 package com.ujcms.util.query;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
@@ -26,13 +25,12 @@ public class CustomFieldQuery {
         params.forEach((key, value) -> {
             // EQ_name
             // Contains_name
-            String[] parts = StringUtils.split(key, "_");
-            int minLength = 2;
-            if (parts.length < minLength) {
+            int index = key.indexOf("_");
+            if (index < 1) {
                 throw new IllegalArgumentException("Illegal customs field query key format: " + key);
             }
-            String operator = parts[0];
-            String name = parts[1];
+            String operator = key.substring(0, index);
+            String name = key.substring(index + 1);
             String type = "String";
             list.add(new QueryInfo.WhereCondition(name, QueryUtils.getOperator(operator), QueryUtils.getValue(type, value, operator)));
         });

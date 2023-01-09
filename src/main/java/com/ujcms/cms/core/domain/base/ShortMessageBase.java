@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
@@ -9,7 +11,9 @@ import org.hibernate.validator.constraints.Length;
  *
  * @author MyBatis Generator
  */
-public class ShortMessageBase {
+public class ShortMessageBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,12 +23,14 @@ public class ShortMessageBase {
      * 短信ID
      */
     @NotNull
+    @Schema(description="短信ID")
     private Integer id = 0;
 
     /**
      * 类型(1:手机短信,2:邮件短信)
      */
     @NotNull
+    @Schema(description="类型(1:手机短信,2:邮件短信)")
     private Short type = 1;
 
     /**
@@ -32,6 +38,7 @@ public class ShortMessageBase {
      */
     @Length(max = 100)
     @NotNull
+    @Schema(description="接收人(手机号码或邮件地址)")
     private String receiver = "";
 
     /**
@@ -39,37 +46,43 @@ public class ShortMessageBase {
      */
     @Length(max = 10)
     @NotNull
+    @Schema(description="验证码")
     private String code = "";
 
     /**
      * 发送时间
      */
     @NotNull
+    @Schema(description="发送时间")
     private OffsetDateTime sendDate = OffsetDateTime.now();
 
     /**
      * 尝试次数
      */
     @NotNull
-    private Short attempts = 0;
+    @Schema(description="尝试次数")
+    private Integer attempts = 0;
 
     /**
      * IP地址
      */
     @Length(max = 45)
     @NotNull
+    @Schema(description="IP地址")
     private String ip = "";
 
     /**
      * 用途(0:测试,1:注册,2:登录,3:双因子登录,4:找回密码,5:修改手机号码,6:修改邮箱地址)
      */
     @NotNull
+    @Schema(description="用途(0:测试,1:注册,2:登录,3:双因子登录,4:找回密码,5:修改手机号码,6:修改邮箱地址)")
     private Short usage = 0;
 
     /**
-     * 状态(0:未使用,1:验证正确,2:验证错误,3:已过期)
+     * 状态(0:未使用,1:验证正确,2:验证错误,3:已过期,4:尝试次数过多)
      */
     @NotNull
+    @Schema(description="状态(0:未使用,1:验证正确,2:验证错误,3:已过期,4:尝试次数过多)")
     private Short status = 0;
 
     public Integer getId() {
@@ -112,11 +125,11 @@ public class ShortMessageBase {
         this.sendDate = sendDate;
     }
 
-    public Short getAttempts() {
+    public Integer getAttempts() {
         return attempts;
     }
 
-    public void setAttempts(Short attempts) {
+    public void setAttempts(Integer attempts) {
         this.attempts = attempts;
     }
 

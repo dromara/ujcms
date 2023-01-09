@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
@@ -10,7 +12,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class LoginLogBase {
+public class LoginLogBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -20,12 +24,14 @@ public class LoginLogBase {
      * 登录日志ID
      */
     @NotNull
+    @Schema(description="登录日志ID")
     private Integer id = 0;
 
     /**
      * 用户ID
      */
     @Nullable
+    @Schema(description="用户ID")
     private Integer userId;
 
     /**
@@ -33,6 +39,7 @@ public class LoginLogBase {
      */
     @Length(max = 30)
     @Nullable
+    @Schema(description="登录名")
     private String loginName;
 
     /**
@@ -40,24 +47,28 @@ public class LoginLogBase {
      */
     @Length(max = 45)
     @NotNull
+    @Schema(description="IP地址")
     private String ip = "";
 
     /**
      * 创建日期
      */
     @NotNull
+    @Schema(description="创建日期")
     private OffsetDateTime created = OffsetDateTime.now();
 
     /**
      * 类型(1:登录,2:修改密码,9:退出)
      */
     @NotNull
+    @Schema(description="类型(1:登录,2:修改密码,9:退出)")
     private Short type = 0;
 
     /**
      * 状态(0:成功,1:用户名不存在,2:密码错误,3:验证码错误,4:短信错误)
      */
     @NotNull
+    @Schema(description="状态(0:成功,1:用户名不存在,2:密码错误,3:验证码错误,4:短信错误)")
     private Short status = 1;
 
     public Integer getId() {

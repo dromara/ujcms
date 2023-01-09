@@ -1,6 +1,8 @@
 package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.BlockBase;
 import org.hibernate.validator.constraints.Length;
 
@@ -12,11 +14,15 @@ import java.util.Objects;
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
 
 /**
- * 区块 实体类
+ * 区块实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class Block extends BlockBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 是否全局共享
      */

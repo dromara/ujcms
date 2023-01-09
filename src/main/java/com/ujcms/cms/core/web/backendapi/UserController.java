@@ -1,20 +1,24 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.RoleService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.service.args.UserArgs;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
+import com.ujcms.util.security.Secures;
 import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.exception.Http400Exception;
 import com.ujcms.util.web.exception.Http403Exception;
 import com.ujcms.util.web.exception.Http404Exception;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +42,7 @@ import static com.ujcms.cms.core.domain.User.EXCLUDE_FIELDS;
 import static com.ujcms.cms.core.support.Constants.validPage;
 import static com.ujcms.cms.core.support.Constants.validPageSize;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.cms.core.web.support.Validations.rankPermission;
+import static com.ujcms.cms.core.web.support.ValidUtils.rankPermission;
 import static com.ujcms.util.db.MyBatis.springPage;
 import static com.ujcms.util.query.QueryUtils.getQueryMap;
 
@@ -50,16 +54,18 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendUserController")
 @RequestMapping(BACKEND_API + "/core/user")
 public class UserController {
-    private RoleService roleService;
-    private UserService service;
+    private final RoleService roleService;
+    private final UserService service;
+    private final Props props;
 
-    public UserController(RoleService roleService, UserService service) {
+    public UserController(RoleService roleService, UserService service, Props props) {
         this.roleService = roleService;
         this.service = service;
+        this.props = props;
     }
 
     @GetMapping
-    @RequiresPermissions("user:list")
+    @PreAuthorize("hasAnyAuthority('user:list','*')")
     public Page<User> list(@Nullable Integer orgId, @RequestParam(defaultValue = "false") boolean current,
                            Integer page, Integer pageSize, HttpServletRequest request) {
         if (current && orgId == null) {
@@ -70,7 +76,7 @@ public class UserController {
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("user:show")
+    @PreAuthorize("hasAnyAuthority('user:show','*')")
     public User show(@PathVariable Integer id) {
         User bean = service.select(id);
         if (bean == null) {
@@ -80,38 +86,41 @@ public class UserController {
     }
 
     @PostMapping
-    @RequiresPermissions("user:create")
+    @PreAuthorize("hasAnyAuthority('user:create','*')")
+    @OperationLog(module = "user", operation = "create", type = OperationType.CREATE)
     public ResponseEntity<Body> create(@RequestBody User bean) {
-        User currentUser = Contexts.getCurrentUser(service);
+        User currentUser = Contexts.getCurrentUser();
         User user = new User();
         Entities.copy(bean, user, EXCLUDE_FIELDS);
         validateBean(user, user.getRank(), null, null, null, currentUser);
-        service.insert(user, user.getExt(), null);
+        service.insert(user, user.getExt());
         return Responses.ok();
     }
 
     @PutMapping
-    @RequiresPermissions("user:update")
+    @PreAuthorize("hasAnyAuthority('user:update','*')")
+    @OperationLog(module = "user", operation = "update", type = OperationType.UPDATE)
     public ResponseEntity<Body> update(@RequestBody User bean) {
         User user = service.select(bean.getId());
         if (user == null) {
             return Responses.notFound("User not found. ID = " + bean.getId());
         }
-        User currentUser = Contexts.getCurrentUser(service);
+        User currentUser = Contexts.getCurrentUser();
         Short origRank = user.getRank();
         String origUsername = user.getUsername();
         String origMobile = user.getMobile();
         String origEmail = user.getEmail();
         Entities.copy(bean, user, User.EXCLUDE_FIELDS);
         validateBean(user, origRank, origUsername, origEmail, origMobile, currentUser);
-        service.update(user, user.getExt(), null);
+        service.update(user, user.getExt());
         return Responses.ok();
     }
 
     @PutMapping("permission")
-    @RequiresPermissions("role:updatePermission")
+    @PreAuthorize("hasAnyAuthority('user:updatePermission','*')")
+    @OperationLog(module = "user", operation = "updatePermission", type = OperationType.UPDATE)
     public ResponseEntity<Body> updatePermission(@RequestBody User bean) {
-        User currentUser = Contexts.getCurrentUser(service);
+        User currentUser = Contexts.getCurrentUser();
         User user = service.select(bean.getId());
         if (user == null) {
             return Responses.notFound("User not found. ID = " + bean.getId());
@@ -139,9 +148,10 @@ public class UserController {
     }
 
     @PutMapping("status")
-    @RequiresPermissions("role:updateStatus")
+    @PreAuthorize("hasAnyAuthority('user:updateStatus','*')")
+    @OperationLog(module = "user", operation = "updateStatus", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateStatus(@RequestBody @Valid UpdateStatusParams params) {
-        User currentUser = Contexts.getCurrentUser(service);
+        User currentUser = Contexts.getCurrentUser();
         params.ids.stream().filter(Objects::nonNull).map(service::select).filter(Objects::nonNull).forEach(user -> {
             validatePermission(user.getOrgId(), user.getRank(), currentUser);
             user.setStatus(params.status);
@@ -150,10 +160,31 @@ public class UserController {
         return Responses.ok();
     }
 
+    public static class UpdatePasswordParams {
+        @NotNull
+        public Integer id;
+        @NotBlank
+        public String password;
+    }
+
+    @PutMapping("password")
+    @PreAuthorize("hasAnyAuthority('user:updatePassword','*')")
+    @OperationLog(module = "user", operation = "updatePassword", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updatePassword(@RequestBody @Valid UpdatePasswordParams params) {
+        User user = service.select(params.id);
+        if (user == null) {
+            return Responses.notFound("User not found. ID = " + params.id);
+        }
+        String password = Secures.sm2Decrypt(params.password, props.getClientSm2PrivateKey());
+        service.updatePassword(user, user.getExt(), password);
+        return Responses.ok();
+    }
+
     @DeleteMapping
-    @RequiresPermissions("user:delete")
+    @PreAuthorize("hasAnyAuthority('user:delete','*')")
+    @OperationLog(module = "user", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        User currentUser = Contexts.getCurrentUser(service);
+        User currentUser = Contexts.getCurrentUser();
         ids.stream().filter(Objects::nonNull).map(service::select).filter(Objects::nonNull).forEach(user ->
                 validatePermission(user.getOrgId(), user.getRank(), currentUser));
         service.delete(ids);

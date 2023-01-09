@@ -78,6 +78,16 @@ public interface UserMapper {
     User selectByMobile(String mobile);
 
     /**
+     * 根据提供商和openid获取用户
+     *
+     * @param provider 提供商
+     * @param openid   openid
+     * @return 用户对象
+     */
+    @Nullable
+    User selectByOpenid(@Param("provider") String provider, @Param("openid") String openid);
+
+    /**
      * 根据查询条件获取列表
      *
      * @param queryInfo 查询条件
@@ -93,6 +103,14 @@ public interface UserMapper {
      * @return 用户数量
      */
     int countByOrgId(Integer orgId);
+
+    /**
+     * 根据用户组ID统计用户数量
+     *
+     * @param groupId 用户组ID
+     * @return 用户数量
+     */
+    int countByGroupId(Integer groupId);
 
     /**
      * 根据角色ID和组织ID统计数量

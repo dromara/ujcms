@@ -9,7 +9,9 @@ import org.springframework.lang.Nullable;
  *
  * @author PONY
  */
-public class Http410Exception extends MessagedException {
+public class Http410Exception extends AbstractMessagedException {
+    private static final long serialVersionUID = 7374820636835696053L;
+
     public Http410Exception(String code, @Nullable String... args) {
         super(code, args);
     }

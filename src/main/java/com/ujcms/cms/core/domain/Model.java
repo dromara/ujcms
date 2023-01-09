@@ -1,6 +1,8 @@
 package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ModelBase;
@@ -12,8 +14,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.owasp.html.PolicyFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
@@ -34,11 +34,15 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 /**
- * 模型 实体类
+ * 模型实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class Model extends ModelBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 是否全局共享
      */
@@ -119,7 +123,8 @@ public class Model extends ModelBase implements Serializable {
     public void sanitizeCustoms(Map<String, Object> customs, PolicyFactory policyFactory) {
         Set<String> toBeRemoved = new HashSet<>();
         customs.forEach((key, value) -> {
-            String type = Optional.ofNullable(getFieldMap().get(key)).map(Field::getType).orElse(null);
+            String origKey = key.endsWith(KEY_SUFFIX) ? key.substring(0, key.lastIndexOf(KEY_SUFFIX)) : key;
+            String type = Optional.ofNullable(getFieldMap().get(origKey)).map(Field::getType).orElse(null);
             if (type == null) {
                 toBeRemoved.add(key);
                 return;
@@ -182,7 +187,6 @@ public class Model extends ModelBase implements Serializable {
             return Constants.MAPPER.readValue(customs, new TypeReference<List<Model.Field>>() {
             });
         } catch (JsonProcessingException e) {
-            logger.error("Model customs json read error.", e);
             throw new RuntimeException(e);
         }
     }
@@ -204,7 +208,7 @@ public class Model extends ModelBase implements Serializable {
     }
 
     public static class GetUrlsHandle implements CustomHandle {
-        private List<String> urls;
+        private final List<String> urls;
 
         public GetUrlsHandle(List<String> urls) {
             this.urls = urls;
@@ -277,8 +281,6 @@ public class Model extends ModelBase implements Serializable {
             this.dictTypeId = dictTypeId;
         }
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(Model.class);
 
     public static final String KEY_SUFFIX = "_key";
 

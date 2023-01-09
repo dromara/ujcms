@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.ShortMessageBase;
 import org.springframework.lang.Nullable;
 
@@ -8,11 +10,15 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 
 /**
- * 短信 实体类
+ * 短信实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class ShortMessage extends ShortMessageBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public ShortMessage() {
     }
 
@@ -30,28 +36,31 @@ public class ShortMessage extends ShortMessageBase implements Serializable {
      * @param expires 过期时间（分钟）
      */
     public boolean isExpired(int expires) {
-        boolean isExpired = Duration.between(getSendDate(), OffsetDateTime.now()).toMinutes() > expires;
-        if (isExpired) {
-            setStatus(STATUS_EXPIRED);
-        }
-        return isExpired;
+        return Duration.between(getSendDate(), OffsetDateTime.now()).toMinutes() > expires;
     }
 
-    public boolean isWrong(@Nullable String receiver, String code) {
-        boolean isWrong = !getReceiver().equalsIgnoreCase(receiver) || !getCode().equalsIgnoreCase(code);
-        if (isWrong) {
-            setStatus(STATUS_WRONG);
-        }
-        return isWrong;
+    /**
+     * 是否错误
+     *
+     * @param receiver 接收者（手机号码或邮箱地址）
+     * @param code     验证码
+     * @return 是否错误
+     */
+    public boolean isWrong(@Nullable String receiver, @Nullable String code) {
+        return !getReceiver().equalsIgnoreCase(receiver) || !getCode().equalsIgnoreCase(code);
     }
 
     /**
      * 是否使用
      */
     public boolean isUsed() {
-        return getAttempts() > 0;
+        return getStatus() != STATUS_UNUSED;
     }
 
+    /**
+     * 允许的最大尝试次数
+     */
+    public static final int MAX_ATTEMPTS = 3;
     /**
      * 类型：手机短信
      */
@@ -106,5 +115,9 @@ public class ShortMessage extends ShortMessageBase implements Serializable {
      * 状态：已过期
      */
     public static final short STATUS_EXPIRED = 3;
+    /**
+     * 状态：尝试次数过多
+     */
+    public static final short STATUS_EXCEEDED = 4;
 
 }

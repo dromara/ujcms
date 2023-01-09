@@ -1,5 +1,6 @@
 package com.ujcms.util.captcha;
 
+import com.nimbusds.jose.KeyLengthException;
 import com.octo.captcha.component.image.backgroundgenerator.UniColorBackgroundGenerator;
 import com.octo.captcha.component.image.color.RandomListColorGenerator;
 import com.octo.captcha.component.image.fontgenerator.RandomFontGenerator;
@@ -26,7 +27,7 @@ public class CaptchaAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(CaptchaTokenService.class)
     public CaptchaTokenService captchaTokenService(CaptchaProperties props, ResourceLoader resourceLoader)
-            throws IOException, FontFormatException {
+            throws IOException, FontFormatException, KeyLengthException {
         return new CaptchaTokenService(gmailCaptchaEngine(props, resourceLoader), captchaCache(), props);
     }
 
@@ -34,7 +35,7 @@ public class CaptchaAutoConfiguration {
     public GmailCaptchaEngine gmailCaptchaEngine(CaptchaProperties props, ResourceLoader resourceLoader)
             throws IOException, FontFormatException {
         RandomWordGenerator wordGenerator = new RandomWordGenerator("ABCDEGHJKLMNRSTUWXY235689235689");
-        // 防止创建字体时出现 java.io.IOException: Problem reading font data. 错误
+        // 防止创建字体时出现错误: java.io.IOException: Problem reading font data.
         // JDK11 需要安装 FontConfig 组件， yum install -y fontconfig
         // docker环境，则还需要执行 fc-ache --force
         System.setProperty("java.awt.headless", "true");

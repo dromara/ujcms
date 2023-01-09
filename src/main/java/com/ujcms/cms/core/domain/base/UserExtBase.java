@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
@@ -10,7 +12,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class UserExtBase {
+public class UserExtBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -20,6 +24,7 @@ public class UserExtBase {
      * 用户ID
      */
     @NotNull
+    @Schema(description="用户ID")
     private Integer id = 0;
 
     /**
@@ -27,6 +32,7 @@ public class UserExtBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="真实姓名")
     private String realName;
 
     /**
@@ -34,12 +40,14 @@ public class UserExtBase {
      */
     @Length(max = 1)
     @NotNull
+    @Schema(description="性别(m:男,f:女,n:保密)")
     private String gender = "m";
 
     /**
      * 出生日期
      */
     @Nullable
+    @Schema(description="出生日期")
     private OffsetDateTime birthday;
 
     /**
@@ -47,6 +55,7 @@ public class UserExtBase {
      */
     @Length(max = 200)
     @Nullable
+    @Schema(description="居住地")
     private String location;
 
     /**
@@ -54,12 +63,14 @@ public class UserExtBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="自我介绍")
     private String bio;
 
     /**
      * 创建日期
      */
     @NotNull
+    @Schema(description="创建日期")
     private OffsetDateTime created = OffsetDateTime.now();
 
     /**
@@ -67,37 +78,43 @@ public class UserExtBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="历史密码(70*24)")
     private String historyPassword;
 
     /**
      * 最后登录日期
      */
     @NotNull
+    @Schema(description="最后登录日期")
     private OffsetDateTime loginDate = OffsetDateTime.now();
 
     /**
      * 最后登录IP
      */
-    @Length(max = 39)
+    @Length(max = 45)
     @NotNull
+    @Schema(description="最后登录IP")
     private String loginIp = "localhost";
 
     /**
      * 登录次数
      */
     @NotNull
+    @Schema(description="登录次数")
     private Integer loginCount = 0;
 
     /**
      * 登录错误日期
      */
     @NotNull
+    @Schema(description="登录错误日期")
     private OffsetDateTime errorDate = OffsetDateTime.now();
 
     /**
      * 登录错误次数
      */
     @NotNull
+    @Schema(description="登录错误次数")
     private Integer errorCount = 0;
 
     public Integer getId() {

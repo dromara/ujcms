@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.TaskBase;
 
@@ -9,11 +11,15 @@ import java.io.StringWriter;
 import java.time.OffsetDateTime;
 
 /**
- * 任务 实体类
+ * 任务实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class Task extends TaskBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public Task() {
     }
 

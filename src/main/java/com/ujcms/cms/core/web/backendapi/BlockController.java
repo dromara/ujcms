@@ -1,19 +1,20 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Block;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.BlockItemService;
 import com.ujcms.cms.core.service.BlockService;
-import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.service.args.BlockArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.exception.Http400Exception;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +35,8 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_PRIVATE;
 import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.cms.core.web.support.Validations.dataInSite;
-import static com.ujcms.cms.core.web.support.Validations.globalPermission;
+import static com.ujcms.cms.core.web.support.ValidUtils.dataInSite;
+import static com.ujcms.cms.core.web.support.ValidUtils.globalPermission;
 import static com.ujcms.util.query.QueryUtils.getQueryMap;
 
 /**
@@ -45,18 +47,16 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendBlockController")
 @RequestMapping(BACKEND_API + "/core/block")
 public class BlockController {
-    private UserService userService;
-    private BlockItemService itemService;
-    private BlockService service;
+    private final BlockItemService itemService;
+    private final BlockService service;
 
-    public BlockController(UserService userService, BlockItemService itemService, BlockService service) {
-        this.userService = userService;
+    public BlockController(BlockItemService itemService, BlockService service) {
         this.itemService = itemService;
         this.service = service;
     }
 
     @GetMapping
-    @RequiresPermissions("block:list")
+    @PreAuthorize("hasAnyAuthority('block:list','*')")
     public Object list(HttpServletRequest request) {
         BlockArgs args = BlockArgs.of(getQueryMap(request.getQueryString()))
                 .scopeSiteId(getCurrentSiteId());
@@ -64,7 +64,7 @@ public class BlockController {
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("block:show")
+    @PreAuthorize("hasAnyAuthority('block:show','*')")
     public Object show(@PathVariable Integer id) {
         Block bean = service.select(id);
         if (bean == null) {
@@ -75,9 +75,10 @@ public class BlockController {
     }
 
     @PostMapping
-    @RequiresPermissions("block:create")
-    public ResponseEntity<Body> create(@RequestBody Block bean) {
-        User currentUser = Contexts.getCurrentUser(userService);
+    @PreAuthorize("hasAnyAuthority('block:create','*')")
+    @OperationLog(module = "block", operation = "create", type = OperationType.CREATE)
+    public ResponseEntity<Body> create(@RequestBody @Valid Block bean) {
+        User currentUser = Contexts.getCurrentUser();
         Block block = new Block();
         Entities.copy(bean, block, "siteId");
         validateBean(block, false, null, currentUser);
@@ -86,25 +87,27 @@ public class BlockController {
     }
 
     @PutMapping
-    @RequiresPermissions("block:update")
-    public ResponseEntity<Body> update(@RequestBody Block bean) {
-        User user = Contexts.getCurrentUser(userService);
+    @PreAuthorize("hasAnyAuthority('block:update','*')")
+    @OperationLog(module = "block", operation = "update", type = OperationType.UPDATE)
+    public ResponseEntity<Body> update(@RequestBody @Valid Block bean) {
+        User user = Contexts.getCurrentUser();
         Block block = service.select(bean.getId());
         if (block == null) {
             return Responses.notFound("Block not found. ID = " + bean.getId());
         }
-        boolean origGlobal = bean.isGlobal();
-        String origAlias = bean.getAlias();
+        boolean origGlobal = block.isGlobal();
+        String origAlias = block.getAlias();
         Entities.copy(bean, block, "siteId");
         validateBean(block, origGlobal, origAlias, user);
-        service.update(block, getCurrentSiteId());
+        service.update(block, Contexts.getCurrentSiteId());
         return Responses.ok();
     }
 
     @PutMapping("order")
-    @RequiresPermissions("block:update")
+    @PreAuthorize("hasAnyAuthority('block:update','*')")
+    @OperationLog(module = "block", operation = "updateOrder", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
-        User currentUser = Contexts.getCurrentUser(userService);
+        User currentUser = Contexts.getCurrentUser();
         List<Block> list = new ArrayList<>();
         for (Integer id : ids) {
             Block bean = service.select(id);
@@ -119,9 +122,10 @@ public class BlockController {
     }
 
     @DeleteMapping
-    @RequiresPermissions("block:delete")
+    @PreAuthorize("hasAnyAuthority('block:delete','*')")
+    @OperationLog(module = "block", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        User currentUser = Contexts.getCurrentUser(userService);
+        User currentUser = Contexts.getCurrentUser();
         ids.forEach(id -> Optional.ofNullable(id).map(service::select).ifPresent(
                 bean -> validatePermission(bean.getSiteId(), bean.isGlobal(), currentUser)));
         service.delete(ids);
@@ -132,14 +136,14 @@ public class BlockController {
      * 全局共享数据如果被其它站点使用，则不可以改为本站私有数据
      */
     @GetMapping("scope-not-allowed")
-    @RequiresPermissions("block:validation")
+    @PreAuthorize("hasAnyAuthority('block:validation','*')")
     public boolean scopeNotAllowed(int scope, Integer blockId) {
         Integer siteId = getCurrentSiteId();
         return scope == SCOPE_PRIVATE && itemService.existsByBlockId(blockId, siteId);
     }
 
     @GetMapping("alias-exist")
-    @RequiresPermissions("block:validation")
+    @PreAuthorize("hasAnyAuthority('block:validation','*')")
     public boolean aliasExist(@NotBlank String alias, int scope) {
         Integer siteId = SCOPE_GLOBAL != scope ? getCurrentSiteId() : null;
         return service.existsByAlias(alias, siteId);

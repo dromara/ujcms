@@ -1,0 +1,126 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>用户登录 - ${site.title}</title>
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+  [#include 'includes_js_validation.html'/]
+  <script src="${files}/vendor/crypto-js/crypto-js.min.js"></script>
+  <script src="${files}/vendor/sm-crypto/dist/sm2.js"></script>
+</head>
+<body class="bg-light">
+<div class="container my-3 my-md-4 my-lg-5">
+  <div class="row justify-content-center">
+    <div class="col col-md-6 col-lg-5 col-xl-5 reg-box">
+      <h3 class="reg-logo text-center">
+        <a href="/"><b>UJCMS</b></a> <span>登录</span>
+      </h3>
+      [#if Params.error?? || Params.logout??]
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          [#if SPRING_SECURITY_LAST_EXCEPTION??]
+            [#-- org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider --]
+            [#if SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "BadCredentialsException"]
+              <span>用户名或密码错误</span>
+            [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "LockedException"]
+              <span>用户已锁定</span>
+            [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "DisabledException"]
+              <span>用户已禁用</span>
+            [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "AccountExpiredException"]
+              <span>账户已过期</span>
+            [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "CredentialsExpiredException"]
+              <span>密码已过期</span>
+            [#else]
+              <span>${SPRING_SECURITY_LAST_EXCEPTION.message}</span>
+            [/#if]
+          [#elseif Params.logout??]
+            <span>您已退出登录</span>
+          [/#if]
+        </div>
+      [/#if]
+
+      <div class="reg-box-body rounded p-4 mt-4" style="background-color:#fff;border:1px solid #ccc;">
+        <form class="mb-2" id="validForm" action="${def}/login" method="post">
+          <div class="form-group">
+            <input type="text" class="form-control" id="username" name="username" placeholder="用户名" title="请输入用户名" required>
+            <label class="sr-only" for="username">用户名</label>
+            <!--<small class="form-text text-muted">4~18个字符，可使用字母、数字、下划线</small>-->
+          </div>
+          <div class="form-group">
+            <input type="password" class="form-control" id="password" name="password" placeholder="密码" title="请输入密码" required autocomplete="off">
+            <label class="sr-only" for="password">密码</label>
+          </div>
+          <div class="form-group custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="remember-me" name="remember-me" checked>
+            <label class="custom-control-label" for="remember-me">记住我</label>
+          </div>
+          <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+          <button type="submit" class="btn btn-primary btn-block">登录</button>
+
+          <p class="text-center text-muted small mt-2">
+            登录或注册代表您同意 <a href="#">服务条款</a>
+          </p>
+          [#if config.customs['oauth']!false]
+          <p class="text-center text-muted mt-3">
+            <small>----- OR -----</small>
+          </p>
+          <p class="text-center lead">
+            <!-- style="background-color:#e32529;"-->
+            <a href="${def}/oauth/login/weibo[#if Params.targetUrl??]?targetUrl=${Params.targetUrl}[/#if]" class="text-light"><i class="fab fa-weibo rounded-circle p-2 bg-danger"></i></a>
+            <!-- style="background-color:#0076c4;"-->
+            <a href="${def}/oauth/login/qq[#if Params.targetUrl??]?targetUrl=${Params.targetUrl}[/#if]" class="text-light"><i class="fab fa-qq rounded-circle p-2 bg-primary"></i></a>
+            <!-- style="background-color:#00bc0c;"-->
+            <a href="${def}/oauth/login/weixin[#if Params.targetUrl??]?targetUrl=${Params.targetUrl}[/#if]" class="text-light"><i class="fab fa-weixin rounded-circle p-2 bg-success"></i></a>
+          </p>
+          [/#if]
+          <div class="text-center">
+            <small><a href="${def}/register">注册</a><a class="ml-3" href="${def}/password-reset">忘记密码</a></small>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+[#include 'includes_message_box.html'/]
+
+<script>
+  var publicKey;
+  axios.get('${api}/env/client-public-key').then(function (response) {
+    publicKey = response.data;
+  });
+
+  function sm2Encrypt(message) {
+    return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Hex.parse('04' + sm2.doEncrypt(message, publicKey)));
+  }
+
+  $(function () {
+    $('#username').focus().select();
+    $('#validForm').validate({
+      rules: {
+        captcha: {
+          remote: {
+            url: '${api}/captcha/try', data: {
+              token: function () {
+                return $('#captchaToken').val();
+              }
+            }
+          }
+        }
+      },
+      submitHandler: function (form) {
+        var $password = $('#password');
+        $password.val(sm2Encrypt($password.val()));
+        form.submit();
+      }
+    });
+  });
+</script>
+</body>
+</html>
+[/#escape]

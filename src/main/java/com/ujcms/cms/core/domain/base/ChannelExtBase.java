@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class ChannelExtBase {
+public class ChannelExtBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,6 +23,7 @@ public class ChannelExtBase {
      * 栏目ID
      */
     @NotNull
+    @Schema(description="栏目ID")
     private Integer id = 0;
 
     /**
@@ -26,6 +31,7 @@ public class ChannelExtBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="SEO标题")
     private String seoTitle;
 
     /**
@@ -33,6 +39,7 @@ public class ChannelExtBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="SEO关键词")
     private String seoKeywords;
 
     /**
@@ -40,6 +47,7 @@ public class ChannelExtBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="SEO描述")
     private String seoDescription;
 
     /**
@@ -47,6 +55,7 @@ public class ChannelExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="文章模板")
     private String articleTemplate;
 
     /**
@@ -54,12 +63,14 @@ public class ChannelExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="栏目模板")
     private String channelTemplate;
 
     /**
      * 每页条数
      */
     @NotNull
+    @Schema(description="每页条数")
     private Short pageSize = 20;
 
     /**
@@ -67,6 +78,7 @@ public class ChannelExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="图片")
     private String image;
 
     /**
@@ -74,30 +86,35 @@ public class ChannelExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="转向链接地址")
     private String linkUrl;
 
     /**
      * 是否新窗口打开
      */
     @NotNull
+    @Schema(description="是否新窗口打开")
     private Boolean targetBlank = false;
 
     /**
      * 是否允许评论
      */
     @NotNull
+    @Schema(description="是否允许评论")
     private Boolean allowComment = true;
 
     /**
      * 是否允许投稿
      */
     @NotNull
+    @Schema(description="是否允许投稿")
     private Boolean allowContribute = false;
 
     /**
      * 是否允许搜索
      */
     @NotNull
+    @Schema(description="是否允许搜索")
     private Boolean allowSearch = true;
 
     /**
@@ -105,6 +122,7 @@ public class ChannelExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="静态页文件")
     private String staticFile;
 
     /**
@@ -112,12 +130,14 @@ public class ChannelExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="手机端静态页文件")
     private String mobileStaticFile;
 
     /**
      * 正文
      */
     @Nullable
+    @Schema(description="正文")
     private String text;
 
     public Integer getId() {

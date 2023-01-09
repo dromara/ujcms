@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,22 +11,26 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class DictTypeBase {
+public class DictTypeBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
     public static final String TABLE_NAME = "dict_type";
 
     /**
-     * 数据字典类型ID
+     * 字典类型ID
      */
     @NotNull
+    @Schema(description="字典类型ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @Nullable
+    @Schema(description="站点ID")
     private Integer siteId;
 
     /**
@@ -32,6 +38,7 @@ public class DictTypeBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -39,6 +46,7 @@ public class DictTypeBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="别名")
     private String alias = "";
 
     /**
@@ -46,24 +54,28 @@ public class DictTypeBase {
      */
     @Length(max = 300)
     @Nullable
+    @Schema(description="备注")
     private String remark;
 
     /**
      * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
      */
     @NotNull
+    @Schema(description="共享范围(0:本站私有,1:子站点共享,2:全局共享)")
     private Short scope = 0;
 
     /**
      * 排列顺序
      */
     @NotNull
+    @Schema(description="排列顺序")
     private Short order = 32767;
 
     /**
      * 是否系统字典
      */
     @NotNull
+    @Schema(description="是否系统字典")
     private Boolean sys = false;
 
     public Integer getId() {

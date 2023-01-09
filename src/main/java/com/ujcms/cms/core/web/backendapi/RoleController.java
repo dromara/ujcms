@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
@@ -12,7 +14,7 @@ import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.exception.Http400Exception;
 import com.ujcms.util.web.exception.Http404Exception;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,7 +34,7 @@ import java.util.Optional;
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_PRIVATE;
 import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.cms.core.web.support.Validations.*;
+import static com.ujcms.cms.core.web.support.ValidUtils.*;
 import static com.ujcms.util.query.QueryUtils.getQueryMap;
 
 /**
@@ -43,8 +45,8 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendRoleController")
 @RequestMapping(BACKEND_API + "/core/role")
 public class RoleController {
-    private UserService userService;
-    private RoleService service;
+    private final UserService userService;
+    private final RoleService service;
 
     public RoleController(UserService userService, RoleService service) {
         this.userService = userService;
@@ -52,7 +54,7 @@ public class RoleController {
     }
 
     @GetMapping
-    @RequiresPermissions("role:list")
+    @PreAuthorize("hasAnyAuthority('role:list','*')")
     public List<Role> list(HttpServletRequest request) {
         RoleArgs args = RoleArgs.of(getQueryMap(request.getQueryString()))
                 .scopeSiteId(getCurrentSiteId());
@@ -60,7 +62,7 @@ public class RoleController {
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("role:show")
+    @PreAuthorize("hasAnyAuthority('role:show','*')")
     public Role show(@PathVariable Integer id) {
         Role bean = service.select(id);
         if (bean == null) {
@@ -71,9 +73,10 @@ public class RoleController {
     }
 
     @PostMapping
-    @RequiresPermissions("role:create")
+    @PreAuthorize("hasAnyAuthority('role:create','*')")
+    @OperationLog(module = "role", operation = "create", type = OperationType.CREATE)
     public ResponseEntity<Body> create(@RequestBody Role bean) {
-        User currentUser = Contexts.getCurrentUser(userService);
+        User currentUser = Contexts.getCurrentUser();
         Role role = new Role();
         Entities.copy(bean, role, Role.PERMISSION_FIELDS);
         validateBean(role, false, role.getRank(), currentUser);
@@ -81,6 +84,7 @@ public class RoleController {
         role.setAllPermission(currentUser.hasAllPermission());
         role.setAllGrantPermission(currentUser.hasAllGrantPermission());
         role.setAllArticlePermission(currentUser.hasAllArticlePermission());
+        role.setAllChannelPermission(currentUser.hasAllChannelPermission());
         role.setGlobalPermission(currentUser.hasGlobalPermission());
         role.setDataScope(currentUser.getDataScope());
         service.insert(role, getCurrentSiteId());
@@ -88,9 +92,10 @@ public class RoleController {
     }
 
     @PutMapping
-    @RequiresPermissions("role:update")
+    @PreAuthorize("hasAnyAuthority('role:update','*')")
+    @OperationLog(module = "role", operation = "update", type = OperationType.UPDATE)
     public ResponseEntity<Body> update(@RequestBody Role bean) {
-        User currentUser = Contexts.getCurrentUser(userService);
+        User currentUser = Contexts.getCurrentUser();
         Role role = service.select(bean.getId());
         if (role == null) {
             return Responses.notFound("Role not found. ID = " + bean.getId());
@@ -104,23 +109,25 @@ public class RoleController {
     }
 
     @PutMapping("permission")
-    @RequiresPermissions("role:updatePermission")
+    @PreAuthorize("hasAnyAuthority('role:updatePermission','*')")
+    @OperationLog(module = "role", operation = "updatePermission", type = OperationType.UPDATE)
     public ResponseEntity<Body> updatePermission(@RequestBody Role bean) {
-        User currentUser = Contexts.getCurrentUser(userService);
+        User currentUser = Contexts.getCurrentUser();
         Role role = service.select(bean.getId());
         if (role == null) {
             return Responses.notFound("Role not found. ID = " + bean.getId());
         }
         Entities.copyIncludes(bean, role, Role.PERMISSION_FIELDS);
         validateBean(role, false, role.getRank(), currentUser);
-        service.update(role, bean.getArticlePermissions(), getCurrentSiteId());
+        service.update(role, bean.getArticlePermissions(), bean.getChannelPermissions(), getCurrentSiteId());
         return Responses.ok();
     }
 
     @PutMapping("order")
-    @RequiresPermissions("role:update")
+    @PreAuthorize("hasAnyAuthority('role:update','*')")
+    @OperationLog(module = "role", operation = "updateOrder", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
-        User currentUser = Contexts.getCurrentUser(userService);
+        User currentUser = Contexts.getCurrentUser();
         List<Role> list = new ArrayList<>();
         for (Integer id : ids) {
             Role role = service.select(id);
@@ -135,29 +142,33 @@ public class RoleController {
     }
 
     @DeleteMapping
-    @RequiresPermissions("role:delete")
+    @PreAuthorize("hasAnyAuthority('role:delete','*')")
+    @OperationLog(module = "role", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        User currentUser = Contexts.getCurrentUser(userService);
+        User currentUser = Contexts.getCurrentUser();
         ids.forEach(id -> Optional.ofNullable(id).map(service::select).ifPresent(
                 bean -> validatePermission(bean.getSiteId(), bean.isGlobal(), bean.getRank(), currentUser)));
         service.delete(ids);
         return Responses.ok();
     }
 
-    /**
-     * 全局共享数据如果被其它站点使用，则不可以改为本站私有数据
-     */
     @GetMapping("article-permissions")
-    @RequiresPermissions("role:list")
+    @PreAuthorize("hasAnyAuthority('role:list','*')")
     public List<Integer> articlePermissions(Integer roleId, @Nullable Integer siteId) {
         return service.listArticlePermissions(roleId, siteId != null ? siteId : getCurrentSiteId());
+    }
+
+    @GetMapping("channel-permissions")
+    @PreAuthorize("hasAnyAuthority('role:list','*')")
+    public List<Integer> channelPermissions(Integer roleId, @Nullable Integer siteId) {
+        return service.listChannelPermissions(roleId, siteId != null ? siteId : getCurrentSiteId());
     }
 
     /**
      * 全局共享数据如果被其它站点使用，则不可以改为本站私有数据
      */
     @GetMapping("scope-not-allowed")
-    @RequiresPermissions("role:validation")
+    @PreAuthorize("hasAnyAuthority('role:validation','*')")
     public boolean scopeNotAllowed(int scope, Integer roleId) {
         Site site = Contexts.getCurrentSite();
         return scope == SCOPE_PRIVATE && userService.existsByRoleId(roleId, site.getOrgId());

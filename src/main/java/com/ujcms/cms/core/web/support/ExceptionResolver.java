@@ -1,14 +1,9 @@
 package com.ujcms.cms.core.web.support;
 
 import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http401Exception;
-import com.ujcms.util.web.exception.Http403Exception;
 import com.ujcms.util.web.exception.Http404Exception;
 import com.ujcms.util.web.exception.LogicException;
 import com.ujcms.util.web.exception.MessagedException;
-import org.apache.shiro.authz.AuthorizationException;
-import org.apache.shiro.authz.UnauthenticatedException;
-import org.apache.shiro.authz.UnauthorizedException;
 import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
 import org.springframework.web.context.WebApplicationContext;
@@ -35,23 +30,11 @@ public class ExceptionResolver extends AbstractHandlerExceptionResolver {
     protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response,
                                               @Nullable Object handler, Exception ex) {
         try {
-            if (ex instanceof UnauthenticatedException || ex instanceof Http401Exception) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                return new ModelAndView();
-            } else if (ex instanceof UnauthorizedException) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                return new ModelAndView();
-            } else if (ex instanceof AuthorizationException) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                return new ModelAndView();
-            } else if (ex instanceof Http403Exception) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, getMessage((MessagedException) ex, request));
-                return new ModelAndView();
-            } else if (ex instanceof Http404Exception) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, getMessage((MessagedException) ex, request));
+            if (ex instanceof Http404Exception) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, getMessage(ex, request));
                 return new ModelAndView();
             } else if (ex instanceof LogicException || ex instanceof Http400Exception) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, getMessage((MessagedException) ex, request));
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, getMessage(ex, request));
                 return new ModelAndView();
             }
         } catch (Exception handlerEx) {
@@ -63,12 +46,16 @@ public class ExceptionResolver extends AbstractHandlerExceptionResolver {
     }
 
     @Nullable
-    private String getMessage(MessagedException ex, HttpServletRequest request) {
-        WebApplicationContext context = RequestContextUtils.findWebApplicationContext(request);
-        String message = ex.getMessage();
-        if (context != null) {
-            message = context.getMessage(message, ex.getArgs(), message, RequestContextUtils.getLocale(request));
+    public static String getMessage(Exception ex, HttpServletRequest request) {
+        if (ex instanceof MessagedException) {
+            MessagedException messagedException = (MessagedException) ex;
+            WebApplicationContext context = RequestContextUtils.findWebApplicationContext(request);
+            String code = messagedException.getCode();
+            if (context != null && code != null) {
+                code = context.getMessage(code, messagedException.getArgs(), code, RequestContextUtils.getLocale(request));
+            }
+            return code;
         }
-        return message;
+        return ex.getMessage();
     }
 }

@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
@@ -9,7 +11,9 @@ import org.hibernate.validator.constraints.Length;
  *
  * @author MyBatis Generator
  */
-public class AttachmentBase {
+public class AttachmentBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,18 +23,21 @@ public class AttachmentBase {
      * 附件ID
      */
     @NotNull
+    @Schema(description="附件ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer siteId = 0;
 
     /**
      * 用户ID
      */
     @NotNull
+    @Schema(description="用户ID")
     private Integer userId = 0;
 
     /**
@@ -38,6 +45,7 @@ public class AttachmentBase {
      */
     @Length(max = 150)
     @NotNull
+    @Schema(description="文件名称")
     private String name = "";
 
     /**
@@ -45,6 +53,7 @@ public class AttachmentBase {
      */
     @Length(max = 160)
     @NotNull
+    @Schema(description="存储路径")
     private String path = "";
 
     /**
@@ -52,24 +61,28 @@ public class AttachmentBase {
      */
     @Length(max = 160)
     @NotNull
+    @Schema(description="访问路径")
     private String url = "";
 
     /**
      * 文件长度
      */
     @NotNull
+    @Schema(description="文件长度")
     private Long length = 0L;
 
     /**
      * 创建时间
      */
     @NotNull
+    @Schema(description="创建时间")
     private OffsetDateTime created = OffsetDateTime.now();
 
     /**
      * 是否使用
      */
     @NotNull
+    @Schema(description="是否使用")
     private Boolean used = false;
 
     public Integer getId() {

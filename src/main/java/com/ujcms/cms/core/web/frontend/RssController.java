@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Controller("frontendRssController")
 public class RssController {
-    private SiteResolver siteResolver;
+    private final SiteResolver siteResolver;
 
     public RssController(SiteResolver siteResolver) {
         this.siteResolver = siteResolver;

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.OperationLogMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.OperationLog">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="module_" jdbcType="VARCHAR" property="module" />
+    <result column="request_method_" jdbcType="VARCHAR" property="requestMethod" />
+    <result column="ip_" jdbcType="VARCHAR" property="ip" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="audit_" jdbcType="BOOLEAN" property="audit" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.OperationLog">
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.OperationLogExt" property="ext" select="com.ujcms.cms.core.mapper.OperationLogExtMapper.select" />
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
+    </resultMap>
+
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_operation_log
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_operation_log" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_operation_log t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_operation_log
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.OperationLog">
+    update ujcms_operation_log
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      user_id_ = #{userId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      module_ = #{module,jdbcType=VARCHAR},
+      request_method_ = #{requestMethod,jdbcType=VARCHAR},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      audit_ = #{audit,jdbcType=BOOLEAN},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.OperationLog">
+    insert into ujcms_operation_log (id_, site_id_, user_id_, name_, module_, request_method_, ip_, created_, audit_, type_, status_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{module,jdbcType=VARCHAR}, #{requestMethod,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{audit,jdbcType=BOOLEAN}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.user_id_, t.name_, t.module_, t.request_method_, t.ip_, t.created_, t.audit_, t.type_, t.status_
+  </sql></mapper>

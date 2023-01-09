@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Controller("frontendAppController")
 public class AppController {
-    private SiteResolver siteResolver;
+    private final SiteResolver siteResolver;
 
     public AppController(SiteResolver siteResolver) {
         this.siteResolver = siteResolver;

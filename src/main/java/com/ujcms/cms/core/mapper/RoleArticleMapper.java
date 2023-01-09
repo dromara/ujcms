@@ -53,6 +53,15 @@ public interface RoleArticleMapper {
     List<Integer> listChannelByRoleId(@Param("roleId") Integer roleId, @Nullable @Param("siteId") Integer siteId);
 
     /**
+     * 根据 栏目ID 查询角色ID列表
+     *
+     * @param channelId 栏目ID
+     * @param siteId    站点ID
+     * @return 角色ID列表
+     */
+    List<Integer> listRoleByChannelId(@Param("channelId") Integer channelId, @Nullable @Param("siteId") Integer siteId);
+
+    /**
      * 根据 角色ID列表 查询栏目ID列表
      *
      * @param roleIds 角色ID列表

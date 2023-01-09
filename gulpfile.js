@@ -6,6 +6,7 @@ const sourcemaps = require('gulp-sourcemaps');
 const buffer = require('vinyl-buffer');
 const rename = require('gulp-rename');
 const plumber = require('gulp-plumber');
+const uglify = require('gulp-uglify');
 const autoprefixer = require('gulp-autoprefixer');
 const browserSync = require('browser-sync').create();
 
@@ -23,9 +24,24 @@ function copy(done) {
     .pipe(gulp.dest(theme + '/_files/vendor/fontawesome-free/'))
     .pipe(gulp.dest(errorTheme + '/_files/vendor/fontawesome-free/'));
   gulp.src('node_modules/axios/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/axios/dist/'));
+  gulp.src('node_modules/js-cookie/dist/*').pipe(gulp.dest(theme + '/_files/vendor/js-cookie/dist/'));
+  gulp.src('node_modules/jquery-validation/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/jquery-validation/dist/'));
+  gulp.src('node_modules/jquery-serializejson/{jquery.serializejson,jquery.serializejson.min}.js')
+    .pipe(gulp.dest(theme + '/_files/vendor/jquery-serializejson/'));
   gulp.src('node_modules/es6-promise-polyfill/promise.*').pipe(gulp.dest(theme + '/_files/vendor/es6-promise-polyfill/'));
+  gulp.src('node_modules/crypto-js/crypto-js.js').pipe(rename({suffix: '.min'}))
+    .pipe(uglify()).pipe(gulp.dest(theme + '/_files/vendor/crypto-js/'));
+  gulp.src('node_modules/sm-crypto/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/sm-crypto/dist/'));
+  gulp.src('node_modules/dayjs/{dayjs.min.js,locale/*}').pipe(gulp.dest(theme + '/_files/vendor/dayjs/'));
+  gulp.src('node_modules/flatpickr/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/flatpickr/dist/'));
   gulp.src('node_modules/photoswipe/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/photoswipe/dist/'));
   gulp.src('node_modules/pdfjs-dist/build/**/*').pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/build/'));
+  gulp.src('node_modules/blueimp-file-upload/{css,img,js}/**/*')
+    .pipe(gulp.dest(theme + '/_files/vendor/blueimp-file-upload/'));
+  gulp.src('node_modules/blueimp-file-upload/js/**/*.js').pipe(rename({suffix: '.min'}))
+    .pipe(uglify()).pipe(gulp.dest(theme + '/_files/vendor/blueimp-file-upload/js/'));
+  gulp.src('node_modules/cropperjs/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/cropperjs/dist/'));
+  gulp.src('node_modules/jquery-cropper/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/jquery-cropper/dist/'));
   // bootstrap 需要编译，必须确保复制完成，再进行下一个任务
   return gulp.src('node_modules/bootstrap/{dist,scss}/**/*')
     .pipe(gulp.dest(theme + '/_files/vendor/bootstrap/'))

@@ -65,4 +65,28 @@ public interface RoleMapper {
      * @return 角色列表
      */
     List<Role> listByUserId(Integer userId);
+
+    /**
+     * 根据栏目ID获取文章角色列表
+     *
+     * @param channelId 栏目ID
+     * @return 角色列表
+     */
+    List<Role> articleRoleList(Integer channelId);
+
+    /**
+     * 根据栏目ID获取栏目角色列表
+     *
+     * @param channelId 栏目ID
+     * @return 角色列表
+     */
+    List<Role> channelRoleList(Integer channelId);
+
+    /**
+     * 根据站点ID删除数据
+     *
+     * @param siteId 站点ID
+     * @return 被删除的数据条数
+     */
+    int deleteBySiteId(Integer siteId);
 }

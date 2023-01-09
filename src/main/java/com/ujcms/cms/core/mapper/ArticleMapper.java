@@ -85,6 +85,14 @@ public interface ArticleMapper {
     List<Article> listBySiteIdForSitemap(Integer siteId, @Nullable Integer minId);
 
     /**
+     * 根据栏目ID查询文章列表
+     *
+     * @param channelId 栏目ID
+     * @return 文章列表
+     */
+    List<Article> listByChannelId(@Param("channelId") Integer channelId);
+
+    /**
      * 查询下一条文章
      *
      * @param id          文章ID

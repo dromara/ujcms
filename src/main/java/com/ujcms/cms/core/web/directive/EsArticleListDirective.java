@@ -54,7 +54,6 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
     public static final String B3 = "b3";
     public static final String B4 = "b4";
 
-
     public static Page<EsArticle> query(Map<String, ?> params, Integer defaultSiteId,
                                         Pageable pageable, ArticleLucene articleLucene) {
         Integer siteId = getInteger(params, SITE_ID);
@@ -120,7 +119,7 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         doExecute(env, params, loopVars, body, false);
     }
 
-    private ArticleLucene articleLucene;
+    private final ArticleLucene articleLucene;
 
     public EsArticleListDirective(ArticleLucene articleLucene) {
         this.articleLucene = articleLucene;

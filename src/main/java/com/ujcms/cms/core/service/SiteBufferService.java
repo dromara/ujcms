@@ -16,9 +16,8 @@ import java.util.Objects;
  */
 @Service
 public class SiteBufferService {
-    private SiteBufferMapper mapper;
-
-    private SeqService seqService;
+    private final SiteBufferMapper mapper;
+    private final SeqService seqService;
 
     public SiteBufferService(SiteBufferMapper mapper, SeqService seqService) {
         this.mapper = mapper;

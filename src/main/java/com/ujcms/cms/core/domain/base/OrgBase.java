@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class OrgBase {
+public class OrgBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,12 +23,14 @@ public class OrgBase {
      * 组织ID
      */
     @NotNull
+    @Schema(description="组织ID")
     private Integer id = 0;
 
     /**
      * 上级组织ID
      */
     @Nullable
+    @Schema(description="上级组织ID")
     private Integer parentId;
 
     /**
@@ -32,6 +38,7 @@ public class OrgBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -39,6 +46,7 @@ public class OrgBase {
      */
     @Length(max = 100)
     @Nullable
+    @Schema(description="电话")
     private String phone;
 
     /**
@@ -46,6 +54,7 @@ public class OrgBase {
      */
     @Length(max = 300)
     @Nullable
+    @Schema(description="地址")
     private String address;
 
     /**
@@ -53,18 +62,21 @@ public class OrgBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="联系人")
     private String contacts;
 
     /**
      * 层级
      */
     @NotNull
+    @Schema(description="层级")
     private Short depth = 1;
 
     /**
      * 排序
      */
     @NotNull
+    @Schema(description="排序")
     private Integer order = 999999;
 
     public Integer getId() {

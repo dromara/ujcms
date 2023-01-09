@@ -3,6 +3,8 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.ujcms.cms.core.domain.Task;
+import com.ujcms.cms.core.listener.SiteDeleteListener;
+import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.TaskMapper;
 import com.ujcms.cms.core.service.args.TaskArgs;
 import com.ujcms.util.query.QueryInfo;
@@ -20,10 +22,9 @@ import java.util.Objects;
  * @author PONY
  */
 @Service
-public class TaskService {
-    private TaskMapper mapper;
-
-    private SeqService seqService;
+public class TaskService implements UserDeleteListener, SiteDeleteListener {
+    private final TaskMapper mapper;
+    private final SeqService seqService;
 
     public TaskService(TaskMapper mapper, SeqService seqService) {
         this.mapper = mapper;
@@ -67,5 +68,20 @@ public class TaskService {
 
     public Page<Task> selectPage(TaskArgs args, int page, int pageSize) {
         return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+    }
+
+    @Override
+    public void preUserDelete(Integer userId) {
+        mapper.deleteByUserId(userId);
+    }
+
+    @Override
+    public void preSiteDelete(Integer siteId) {
+        mapper.deleteBySiteId(siteId);
+    }
+
+    @Override
+    public int deleteListenerOrder() {
+        return 100;
     }
 }

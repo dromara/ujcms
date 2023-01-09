@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
@@ -8,7 +10,9 @@ import org.hibernate.validator.constraints.Length;
  *
  * @author MyBatis Generator
  */
-public class AttachmentReferBase {
+public class AttachmentReferBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -18,12 +22,14 @@ public class AttachmentReferBase {
      * 附件引用ID
      */
     @NotNull
+    @Schema(description="附件引用ID")
     private Long id = 0L;
 
     /**
      * 附件ID
      */
     @NotNull
+    @Schema(description="附件ID")
     private Integer attachmentId = 0;
 
     /**
@@ -31,12 +37,14 @@ public class AttachmentReferBase {
      */
     @Length(max = 20)
     @NotNull
+    @Schema(description="引用类型")
     private String referType = "";
 
     /**
      * 引用ID
      */
     @NotNull
+    @Schema(description="引用ID")
     private Integer referId = 0;
 
     public Long getId() {

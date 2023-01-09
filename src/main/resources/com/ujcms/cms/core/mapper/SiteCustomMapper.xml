@@ -7,6 +7,7 @@
     <result column="type_" jdbcType="VARCHAR" property="type" />
     <result column="value_" jdbcType="LONGVARCHAR" property="value" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.SiteCustom" />
     <select id="listBySiteId" resultMap="ResultMap">
         select

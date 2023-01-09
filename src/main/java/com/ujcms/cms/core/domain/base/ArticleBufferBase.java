@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -7,7 +9,9 @@ import javax.validation.constraints.NotNull;
  *
  * @author MyBatis Generator
  */
-public class ArticleBufferBase {
+public class ArticleBufferBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -17,78 +21,91 @@ public class ArticleBufferBase {
      * 文章ID
      */
     @NotNull
+    @Schema(description="文章ID")
     private Integer id = 0;
 
     /**
      * 评论次数
      */
     @NotNull
+    @Schema(description="评论次数")
     private Integer comments = 0;
 
     /**
      * 下载次数
      */
     @NotNull
+    @Schema(description="下载次数")
     private Integer downloads = 0;
 
     /**
      * 收藏次数
      */
     @NotNull
+    @Schema(description="收藏次数")
     private Integer favorites = 0;
 
     /**
      * 顶
      */
     @NotNull
+    @Schema(description="顶")
     private Integer ups = 0;
 
     /**
      * 踩
      */
     @NotNull
+    @Schema(description="踩")
     private Integer downs = 0;
 
     /**
      * 浏览次数
      */
     @NotNull
+    @Schema(description="浏览次数")
     private Long views = 0L;
 
     /**
      * 日浏览次数
      */
     @NotNull
+    @Schema(description="日浏览次数")
     private Integer dayViews = 0;
 
     /**
      * 周浏览次数
      */
     @NotNull
+    @Schema(description="周浏览次数")
     private Integer weekViews = 0;
 
     /**
      * 月浏览次数
      */
     @NotNull
+    @Schema(description="月浏览次数")
     private Integer monthViews = 0;
 
     /**
      * 季浏览次数
      */
     @NotNull
+    @Schema(description="季浏览次数")
     private Integer quarterViews = 0;
 
     /**
      * 年浏览次数
      */
     @NotNull
+    @Schema(description="年浏览次数")
     private Long yearViews = 0L;
 
     /**
      * 统计日
      */
     @NotNull
+    @Schema(description="统计日")
     private Integer statDay = 0;
 
     public Integer getId() {

@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * 站点树形结构 Mapper
  *
@@ -15,4 +17,11 @@ import org.springframework.stereotype.Repository;
 @Mapper
 @Repository
 public interface SiteTreeMapper extends TreeRelationMapper<SiteTree> {
+    /**
+     * 获取后代ID
+     *
+     * @param ancestorId 祖先ID
+     * @return 后代ID列表
+     */
+    List<Integer> listByAncestorId(Integer ancestorId);
 }

@@ -7,7 +7,9 @@ import org.springframework.lang.Nullable;
  *
  * @author PONY
  */
-public class Http409Exception extends MessagedException {
+public class Http409Exception extends AbstractMessagedException {
+    private static final long serialVersionUID = 7393692827921653383L;
+
     public Http409Exception(String code, @Nullable String... args) {
         super(code, args);
     }

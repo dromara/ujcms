@@ -10,6 +10,7 @@ import com.ujcms.cms.core.service.args.OrgArgs;
 import com.ujcms.util.db.tree.TreeService;
 import com.ujcms.util.query.QueryInfo;
 import com.ujcms.util.query.QueryParser;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
@@ -27,10 +28,10 @@ import java.util.Objects;
  */
 @Service
 public class OrgService {
-    private OrgMapper mapper;
-    private OrgTreeMapper treeMapper;
-    private SeqService seqService;
-    private TreeService<Org, OrgTree> treeService;
+    private final OrgMapper mapper;
+    private final OrgTreeMapper treeMapper;
+    private final SeqService seqService;
+    private final TreeService<Org, OrgTree> treeService;
 
     public OrgService(OrgMapper mapper, OrgTreeMapper treeMapper1, OrgTreeMapper treeMapper, SeqService seqService) {
         this.mapper = mapper;
@@ -61,9 +62,14 @@ public class OrgService {
         if (bean == null) {
             return 0;
         }
+        return delete(bean);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int delete(Org bean) {
         int count = bean.getChildren().stream().mapToInt(item -> delete(item.getId())).sum();
-        deleteListeners.forEach(it -> it.preOrgDelete(id));
-        return treeService.delete(id, bean.getOrder()) + count;
+        deleteListeners.forEach(it -> it.preOrgDelete(bean.getId()));
+        return treeService.delete(bean.getId(), bean.getOrder()) + count;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -83,6 +89,10 @@ public class OrgService {
 
     public List<Org> selectList(OrgArgs args, int offset, int limit) {
         return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+    }
+
+    public List<Integer> listByAncestorId(Integer ancestorId) {
+        return treeMapper.listByAncestorId(ancestorId);
     }
 
     /**

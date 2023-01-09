@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -7,7 +9,9 @@ import javax.validation.constraints.NotNull;
  *
  * @author MyBatis Generator
  */
-public class GroupAccessBase {
+public class GroupAccessBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -17,18 +21,21 @@ public class GroupAccessBase {
      * 用户组ID
      */
     @NotNull
+    @Schema(description="用户组ID")
     private Integer groupId = 0;
 
     /**
      * 栏目ID
      */
     @NotNull
+    @Schema(description="栏目ID")
     private Integer channelId = 0;
 
     /**
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer siteId = 0;
 
     public Integer getGroupId() {

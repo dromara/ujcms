@@ -66,9 +66,9 @@ import java.util.Map;
 @Controller("frontendSiteMapController")
 @Validated
 public class SiteMapController {
-    private ChannelService channelService;
-    private ArticleService articleService;
-    private SiteResolver siteResolver;
+    private final ChannelService channelService;
+    private final ArticleService articleService;
+    private final SiteResolver siteResolver;
 
     public SiteMapController(ChannelService channelService, ArticleService articleService, SiteResolver siteResolver) {
         this.channelService = channelService;
@@ -76,25 +76,25 @@ public class SiteMapController {
         this.siteResolver = siteResolver;
     }
 
-    @GetMapping(value = {"/sitemap", "/{subDir:[\\w-]+}/sitemap"})
+    @GetMapping(value = {"/sitemap.xml", "/{subDir:[\\w-]+}/sitemap.xml"})
     public void index(@PathVariable(required = false) String subDir,
                       HttpServletRequest request, HttpServletResponse response) throws IOException {
         Site site = siteResolver.resolve(request, subDir);
         StringBuilder buff = new StringBuilder();
 
         sitemapIndexBegin(buff);
-        sitemapIndexItem(buff, site.getUrl() + "/sitemap-channel");
-        sitemapIndexItem(buff, site.getUrl() + "/sitemap-article");
+        sitemapIndexItem(buff, site.getUrl() + "/sitemap-channel.xml");
+        sitemapIndexItem(buff, site.getUrl() + "/sitemap-article.xml");
         int count = articleService.countBySiteId(site.getId());
         for (int i = 2; count > PAGE_SIZE; count -= PAGE_SIZE) {
-            sitemapIndexItem(buff, site.getUrl() + "/sitemap-article-" + i);
+            sitemapIndexItem(buff, site.getUrl() + "/sitemap-article-" + i + ".xml");
         }
         sitemapIndexEnd(buff);
 
         updateResponse(request, response, buff.toString());
     }
 
-    @GetMapping(value = {"/sitemap-channel", "/{subDir:[\\w-]+}/sitemap-channel"})
+    @GetMapping(value = {"/sitemap-channel.xml", "/{subDir:[\\w-]+}/sitemap-channel.xml"})
     public void channel(@PathVariable(required = false) String subDir,
                         HttpServletRequest request, HttpServletResponse response) throws IOException {
         Site site = siteResolver.resolve(request, subDir);
@@ -113,7 +113,7 @@ public class SiteMapController {
         updateResponse(request, response, buff.toString());
     }
 
-    @GetMapping(value = {"/sitemap-article", "/{subDir:[\\w-]+}/sitemap-article"})
+    @GetMapping(value = {"/sitemap-article.xml", "/{subDir:[\\w-]+}/sitemap-article.xml"})
     public void article(@PathVariable(required = false) String subDir,
                         HttpServletRequest request, HttpServletResponse response) throws IOException {
         Site site = siteResolver.resolve(request, subDir);
@@ -131,7 +131,7 @@ public class SiteMapController {
         updateResponse(request, response, buff.toString());
     }
 
-    @GetMapping(value = {"/sitemap-article-{page:[\\d]+}", "/{subDir:[\\w-]+}/sitemap-article-{page:[\\d]+}"})
+    @GetMapping(value = {"/sitemap-article-{page:[\\d]+}.xml", "/{subDir:[\\w-]+}/sitemap-article-{page:[\\d]+}.xml"})
     public void article(@PathVariable(required = false) String subDir, @PathVariable @Min(2) Integer page,
                         HttpServletRequest request, HttpServletResponse response) throws IOException {
         Site site = siteResolver.resolve(request, subDir);

@@ -11,6 +11,7 @@
     <result column="asides_" jdbcType="LONGVARCHAR" property="asides" />
     <result column="customs_" jdbcType="LONGVARCHAR" property="customs" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Model" />
     <select id="selectConfigModel" resultMap="ResultMap">
         select

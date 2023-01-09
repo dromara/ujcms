@@ -11,6 +11,8 @@
     <result column="link_url_" jdbcType="VARCHAR" property="linkUrl" />
     <result column="image_" jdbcType="VARCHAR" property="image" />
     <result column="mobile_image_" jdbcType="VARCHAR" property="mobileImage" />
+    <result column="video_" jdbcType="VARCHAR" property="video" />
+    <result column="target_blank_" jdbcType="BOOLEAN" property="targetBlank" />
     <result column="enabled_" jdbcType="BOOLEAN" property="enabled" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
   </resultMap>
@@ -80,12 +82,14 @@
       link_url_ = #{linkUrl,jdbcType=VARCHAR},
       image_ = #{image,jdbcType=VARCHAR},
       mobile_image_ = #{mobileImage,jdbcType=VARCHAR},
+      video_ = #{video,jdbcType=VARCHAR},
+      target_blank_ = #{targetBlank,jdbcType=BOOLEAN},
       enabled_ = #{enabled,jdbcType=BOOLEAN},
       order_ = #{order,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.BlockItem">
-    insert into ujcms_block_item (id_, site_id_, block_id_, article_id_, title_, subtitle_, description_, link_url_, image_, mobile_image_, enabled_, order_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{blockId,jdbcType=INTEGER}, #{articleId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{mobileImage,jdbcType=VARCHAR}, #{enabled,jdbcType=BOOLEAN}, #{order,jdbcType=SMALLINT})
+    insert into ujcms_block_item (id_, site_id_, block_id_, article_id_, title_, subtitle_, description_, link_url_, image_, mobile_image_, video_, target_blank_, enabled_, order_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{blockId,jdbcType=INTEGER}, #{articleId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{mobileImage,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{targetBlank,jdbcType=BOOLEAN}, #{enabled,jdbcType=BOOLEAN}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.block_id_, t.article_id_, t.title_, t.subtitle_, t.description_, t.link_url_, t.image_, t.mobile_image_, t.enabled_, t.order_
+    t.id_, t.site_id_, t.block_id_, t.article_id_, t.title_, t.subtitle_, t.description_, t.link_url_, t.image_, t.mobile_image_, t.video_, t.target_blank_, t.enabled_, t.order_
   </sql></mapper>

@@ -70,7 +70,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String EXCLUDE_ID = "excludeId";
     /**
-     * 是否包含子栏目的文章。布尔型(Boolean)。默认：false。
+     * 是否包含子栏目的文章。布尔型(Boolean)。默认：true。
      */
     public static final String IS_INCLUDE_SUB_CHANNEL = "isIncludeSubChannel";
     /**
@@ -155,8 +155,8 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         doExecute(env, params, loopVars, body, false);
     }
 
-    private ArticleService articleService;
-    private ChannelService channelService;
+    private final ArticleService articleService;
+    private final ChannelService channelService;
 
     public ArticleListDirective(ArticleService articleService, ChannelService channelService) {
         this.articleService = articleService;

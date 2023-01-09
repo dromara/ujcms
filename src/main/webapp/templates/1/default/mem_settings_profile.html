@@ -1,0 +1,97 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>基本设置 - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}">
+  <meta name="_csrf_header" content="${_csrf.headerName}">
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+  [#include 'includes_js_validation.html'/]
+  <link rel="stylesheet" href="${files}/vendor/flatpickr/dist/flatpickr.min.css">
+  <script src="${files}/vendor/flatpickr/dist/flatpickr.min.js"></script>
+  <script src="${files}/vendor/flatpickr/dist/l10n/index.js"></script>
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'includes_header.html'/]
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="list-group mt-2">
+        [#assign settings = 'profile'/]
+        [#include 'mem_settings_left.html'/]
+      </div>
+    </div>
+    <div class="col-sm-9">
+      <h3 class="py-3 border-bottom">基本设置</h3>
+      <form id="validForm" class="mt-3" action="${api}/settings/profile?_method=put" method="post">
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input type="text" class="form-control" id="username" value="${user.username}" disabled>
+        </div>
+        <div class="form-group">
+          <label for="location">居住地</label>
+          <input type="text" class="form-control" id="location" name="location" maxlength="150"
+                 value="${user.ext.location}">
+        </div>
+        <div class="form-group">
+          <label for="gender">性别</label>
+          <select class="form-control" id="gender" name="gender">
+            <option value="n">保密</option>
+            <option value="m"[#if user.ext.gender=='m'] selected[/#if]>男</option>
+            <option value="f"[#if user.ext.gender=='f'] selected[/#if]>女</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="birthday_local">出生日期</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="far fa-calendar-alt text-black-50"></i></span>
+            </div>
+            <input type="text" class="form-control datepicker date" id="birthday_local" name="birthday_local"
+                   data-init-value="${user.ext.birthday}"
+                   onchange="if(this.value) $('#birthday').val(dayjs(this.value).toJSON()); else $('#birthday').val('')"
+                   autocomplete="off">
+            <input type="hidden" id="birthday" name="birthday">
+          </div>
+        </div>
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+        <button type="submit" class="btn btn-primary">保存</button>
+      </form>
+    </div>
+  </div>
+</div>
+[#include 'includes_footer.html'/]
+[#include 'includes_message_box.html'/]
+<script>
+  $(function () {
+    $('.datepicker').each(function () {
+      var initValue = $(this).data('init-value');
+      if (initValue) {
+        $(this).val(dayjs(initValue).format('YYYY-MM-DD'));
+      }
+      $(this).change().flatpickr({
+        locale: 'zh',
+        allowInput: true,
+        dateFormat: 'Y-m-d'
+      });
+    });
+    $('#validForm').validate({
+      submitHandler: function (form) {
+        request.post(form.action, $(form).serializeJSON()).then(function (response) {
+          var data = response.data;
+          if (data.status === 0) {
+            showSuccess();
+            location.reload();
+          }
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
+[/#escape]

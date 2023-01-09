@@ -1,14 +1,19 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Group;
+import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.GroupService;
 import com.ujcms.cms.core.service.args.GroupArgs;
+import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.exception.Http404Exception;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 import static com.ujcms.util.query.QueryUtils.getQueryMap;
 
@@ -33,14 +39,14 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendGroupController")
 @RequestMapping(BACKEND_API + "/core/group")
 public class GroupController {
-    private GroupService service;
+    private final GroupService service;
 
     public GroupController(GroupService service) {
         this.service = service;
     }
 
     @GetMapping
-    @RequiresPermissions("group:list")
+    @PreAuthorize("hasAnyAuthority('group:list','*')")
     public List<Group> list(@Nullable Short type, HttpServletRequest request) {
         GroupArgs args = GroupArgs.of(getQueryMap(request.getQueryString()))
                 .type(type);
@@ -48,7 +54,7 @@ public class GroupController {
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("group:show")
+    @PreAuthorize("hasAnyAuthority('group:show','*')")
     public Group show(@PathVariable Integer id) {
         Group bean = service.select(id);
         if (bean == null) {
@@ -58,21 +64,38 @@ public class GroupController {
     }
 
     @PostMapping
-    @RequiresPermissions("group:create")
+    @PreAuthorize("hasAnyAuthority('group:create','*')")
+    @OperationLog(module = "group", operation = "create", type = OperationType.CREATE)
     public ResponseEntity<Body> create(@RequestBody Group bean) {
         service.insert(bean);
         return Responses.ok();
     }
 
     @PutMapping
-    @RequiresPermissions("group:update")
+    @PreAuthorize("hasAnyAuthority('group:update','*')")
+    @OperationLog(module = "group", operation = "update", type = OperationType.UPDATE)
     public ResponseEntity<Body> update(@RequestBody Group bean) {
         service.update(bean);
         return Responses.ok();
     }
 
+    @PutMapping("permission")
+    @PreAuthorize("hasAnyAuthority('group:updatePermission','*')")
+    @OperationLog(module = "group", operation = "updatePermission", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updatePermission(@RequestBody Group bean) {
+        Group group = service.select(bean.getId());
+        if (group == null) {
+            return Responses.notFound("Group not found. ID = " + bean.getId());
+        }
+        Site site = Contexts.getCurrentSite();
+        Entities.copyIncludes(bean, group, "allAccessPermission");
+        service.update(group, bean.getAccessPermissions(), site.getId());
+        return Responses.ok();
+    }
+
     @PutMapping("order")
-    @RequiresPermissions("group:update")
+    @PreAuthorize("hasAnyAuthority('group:update','*')")
+    @OperationLog(module = "group", operation = "updateOrder", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         List<Group> list = new ArrayList<>();
         for (Integer id : ids) {
@@ -87,9 +110,16 @@ public class GroupController {
     }
 
     @DeleteMapping
-    @RequiresPermissions("group:delete")
+    @PreAuthorize("hasAnyAuthority('group:delete','*')")
+    @OperationLog(module = "group", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
         service.delete(ids);
         return Responses.ok();
+    }
+
+    @GetMapping("access-permissions")
+    @PreAuthorize("hasAnyAuthority('group:list','*')")
+    public List<Integer> accessPermissions(Integer groupId, @Nullable Integer siteId) {
+        return service.listAccessPermissions(groupId, siteId != null ? siteId : getCurrentSiteId());
     }
 }

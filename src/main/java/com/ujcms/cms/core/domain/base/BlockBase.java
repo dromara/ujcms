@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class BlockBase {
+public class BlockBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,12 +23,14 @@ public class BlockBase {
      * 区块ID
      */
     @NotNull
+    @Schema(description="区块ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @Nullable
+    @Schema(description="站点ID")
     private Integer siteId;
 
     /**
@@ -32,6 +38,7 @@ public class BlockBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -39,114 +46,147 @@ public class BlockBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="别名")
     private String alias = "";
 
     /**
      * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
      */
     @NotNull
+    @Schema(description="共享范围(0:本站私有,1:子站点共享,2:全局共享)")
     private Short scope = 0;
 
     /**
      * 是否有URL链接
      */
     @NotNull
+    @Schema(description="是否有URL链接")
     private Boolean withLinkUrl = true;
 
     /**
      * 是否有副标题
      */
     @NotNull
+    @Schema(description="是否有副标题")
     private Boolean withSubtitle = false;
 
     /**
      * 是否有摘要
      */
     @NotNull
+    @Schema(description="是否有摘要")
     private Boolean withDescription = false;
 
     /**
      * 是否有图片
      */
     @NotNull
+    @Schema(description="是否有图片")
     private Boolean withImage = false;
 
     /**
      * 是否有手机端图片
      */
     @NotNull
+    @Schema(description="是否有手机端图片")
     private Boolean withMobileImage = false;
+
+    /**
+     * 是否有视频
+     */
+    @NotNull
+    @Schema(description="是否有视频")
+    private Boolean withVideo = false;
 
     /**
      * URL链接是否必填
      */
     @NotNull
+    @Schema(description="URL链接是否必填")
     private Boolean linkUrlRequired = true;
 
     /**
      * 副标题是否必填
      */
     @NotNull
+    @Schema(description="副标题是否必填")
     private Boolean subtitleRequired = false;
 
     /**
      * 摘要是否必填
      */
     @NotNull
+    @Schema(description="摘要是否必填")
     private Boolean descriptionRequired = false;
 
     /**
      * 图片是否必填
      */
     @NotNull
+    @Schema(description="图片是否必填")
     private Boolean imageRequired = false;
 
     /**
      * 手机图片是否必填
      */
     @NotNull
+    @Schema(description="手机图片是否必填")
     private Boolean mobileImageRequired = false;
+
+    /**
+     * 视频是否必填
+     */
+    @NotNull
+    @Schema(description="视频是否必填")
+    private Boolean videoRequired = false;
 
     /**
      * 图片宽度
      */
     @NotNull
+    @Schema(description="图片宽度")
     private Integer imageWidth = 300;
 
     /**
      * 图片高度
      */
     @NotNull
+    @Schema(description="图片高度")
     private Integer imageHeight = 200;
 
     /**
      * 手机端图片宽度
      */
     @NotNull
+    @Schema(description="手机端图片宽度")
     private Integer mobileImageWidth = 300;
 
     /**
      * 手机端图片高度
      */
     @NotNull
+    @Schema(description="手机端图片高度")
     private Integer mobileImageHeight = 200;
 
     /**
      * 是否可推荐
      */
     @NotNull
+    @Schema(description="是否可推荐")
     private Boolean recommendable = true;
 
     /**
      * 是否启用
      */
     @NotNull
+    @Schema(description="是否启用")
     private Boolean enabled = true;
 
     /**
      * 排序
      */
     @NotNull
+    @Schema(description="排序")
     private Short order = 32767;
 
     public Integer getId() {
@@ -230,6 +270,14 @@ public class BlockBase {
         this.withMobileImage = withMobileImage;
     }
 
+    public Boolean getWithVideo() {
+        return withVideo;
+    }
+
+    public void setWithVideo(Boolean withVideo) {
+        this.withVideo = withVideo;
+    }
+
     public Boolean getLinkUrlRequired() {
         return linkUrlRequired;
     }
@@ -268,6 +316,14 @@ public class BlockBase {
 
     public void setMobileImageRequired(Boolean mobileImageRequired) {
         this.mobileImageRequired = mobileImageRequired;
+    }
+
+    public Boolean getVideoRequired() {
+        return videoRequired;
+    }
+
+    public void setVideoRequired(Boolean videoRequired) {
+        this.videoRequired = videoRequired;
     }
 
     public Integer getImageWidth() {

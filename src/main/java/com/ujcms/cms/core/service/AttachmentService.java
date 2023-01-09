@@ -30,11 +30,10 @@ import java.util.Set;
  */
 @Service
 public class AttachmentService implements SiteDeleteListener {
-    private AttachmentMapper mapper;
-    private AttachmentReferMapper referMapper;
-    private PathResolver pathResolver;
-
-    private SeqService seqService;
+    private final AttachmentMapper mapper;
+    private final AttachmentReferMapper referMapper;
+    private final PathResolver pathResolver;
+    private final SeqService seqService;
 
     public AttachmentService(AttachmentMapper mapper, AttachmentReferMapper referMapper, PathResolver pathResolver,
                              SeqService seqService) {
@@ -112,7 +111,15 @@ public class AttachmentService implements SiteDeleteListener {
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
         Attachment bean = select(id);
-        if (bean != null && !bean.getUsed()) {
+        if (bean != null) {
+            return delete(bean);
+        }
+        return 0;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int delete(Attachment bean) {
+        if (!bean.getUsed()) {
             FileHandler fileHandler = bean.getSite().getConfig().getUploadStorage().getFileHandler(pathResolver);
             Optional.ofNullable(fileHandler.getName(bean.getUrl())).ifPresent(pathname -> {
                 fileHandler.deleteFileAndEmptyParentDir(pathname);
@@ -120,7 +127,7 @@ public class AttachmentService implements SiteDeleteListener {
                 fileHandler.deleteFileAndEmptyParentDir(Uploads.getThumbnailName(pathname));
             });
         }
-        return mapper.delete(id);
+        return mapper.delete(bean.getId());
     }
 
     @Transactional(rollbackFor = Exception.class)

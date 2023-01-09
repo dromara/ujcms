@@ -14,15 +14,13 @@
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Article">
         <association column="id_" javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext" select="com.ujcms.cms.core.mapper.ArticleExtMapper.select" />
-        <association column="id_" javaType="com.ujcms.cms.core.domain.ArticleBuffer" property="buffer" select="com.ujcms.cms.core.mapper.ArticleBufferMapper.select" />
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.ArticleBuffer" property="buffer" select="com.ujcms.cms.core.mapper.ArticleBufferMapper.select" />
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
         <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel" select="com.ujcms.cms.core.mapper.ChannelMapper.select" />
         <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.select" />
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
         <association column="modified_user_id_" javaType="com.ujcms.cms.core.domain.User" property="modifiedUser" select="com.ujcms.cms.core.mapper.UserMapper.select" />
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ArticleCustom" property="customList" select="com.ujcms.cms.core.mapper.ArticleCustomMapper.listByArticleId" />
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ArticleImage" property="imageList" select="com.ujcms.cms.core.mapper.ArticleImageMapper.listByArticleId" />
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ArticleFile" property="fileList" select="com.ujcms.cms.core.mapper.ArticleFileMapper.listByArticleId" />
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.BlockItem" property="blockItemList" select="com.ujcms.cms.core.mapper.BlockItemMapper.listByArticleId" />
     </resultMap>
     <resultMap id="SitemapResultMap" type="com.ujcms.cms.core.domain.Article">
@@ -66,6 +64,13 @@
         and (t.publish_date_ &lt; #{publishDate} or (t.publish_date_ = #{publishDate} and t.id_ &lt; #{id}))
         order by t.publish_date_ desc, t.id_ desc
     </select>
+    <select id="listByChannelId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_article t
+        where t.channel_id_ = #{channelId,jdbcType=INTEGER} and t.status_ = 0
+        order by t.id_ desc
+    </select>
     <select id="findFirstByChannelId" resultMap="ResultMap">
         select
         <if test="_databaseId == 'sqlserver'">TOP 1</if>
@@ -74,9 +79,9 @@
         from ujcms_article t
         where t.channel_id_ = #{channelId,jdbcType=INTEGER} and t.status_ = 0
         <if test="_databaseId == 'oracle' and _databaseId == 'dm' and _databaseId == 'oscar'">and ROWNUM &lt;= 1</if>
-        order by t.publish_date_ desc, t.id_ desc
+        order by t.id_ desc
         <if test="_databaseId == 'h2' and _databaseId == 'db2'">FETCH FIRST 1 ROWS ONLY</if>
-        <if test="_databaseId != 'oracle' and _databaseId != 'sqlserver' and _databaseId != 'db2' and _databaseId != 'informix'             and _databaseId != 'h2' and _databaseId != 'dm' and _databaseId != 'oscar'">
+        <if test="_databaseId != 'oracle' and _databaseId != 'sqlserver' and _databaseId != 'db2' and _databaseId != 'informix' and _databaseId != 'h2' and _databaseId != 'dm' and _databaseId != 'oscar'">
             LIMIT 1
         </if>
     </select>
@@ -153,8 +158,7 @@
         delete
         from ujcms_article
         where id_ = #{id,jdbcType=INTEGER}
-    </delete>
-<update id="update" parameterType="com.ujcms.cms.core.domain.Article">
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Article">
     update ujcms_article
     set site_id_ = #{siteId,jdbcType=INTEGER},
       org_id_ = #{orgId,jdbcType=INTEGER},

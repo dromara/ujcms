@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.OperationLogExtMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.OperationLogExt">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="request_url_" jdbcType="LONGVARCHAR" property="requestUrl" />
+    <result column="request_body_" jdbcType="LONGVARCHAR" property="requestBody" />
+    <result column="response_entity_" jdbcType="LONGVARCHAR" property="responseEntity" />
+    <result column="exception_stack_" jdbcType="LONGVARCHAR" property="exceptionStack" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.OperationLogExt" />
+  <delete id="deleteBySiteId" parameterType="int">
+    delete
+    from ujcms_operation_log_ext
+    where exists(select * from ujcms_operation_log t where t.id_ = ujcms_operation_log_ext.id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+  </delete>
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_operation_log_ext" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_operation_log_ext t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="delete" parameterType="java.lang.Long">
+    delete from ujcms_operation_log_ext
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete><update id="update" parameterType="com.ujcms.cms.core.domain.OperationLogExt">
+    update ujcms_operation_log_ext
+    set request_url_ = #{requestUrl,jdbcType=LONGVARCHAR},
+      request_body_ = #{requestBody,jdbcType=LONGVARCHAR},
+      response_entity_ = #{responseEntity,jdbcType=LONGVARCHAR},
+      exception_stack_ = #{exceptionStack,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.OperationLogExt">
+    insert into ujcms_operation_log_ext (id_, request_url_, request_body_, response_entity_, exception_stack_)
+    values (#{id,jdbcType=BIGINT}, #{requestUrl,jdbcType=LONGVARCHAR}, #{requestBody,jdbcType=LONGVARCHAR}, #{responseEntity,jdbcType=LONGVARCHAR}, #{exceptionStack,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.request_url_, t.request_body_, t.response_entity_, t.exception_stack_
+  </sql></mapper>

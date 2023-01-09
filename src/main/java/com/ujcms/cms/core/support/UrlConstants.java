@@ -7,13 +7,17 @@ package com.ujcms.cms.core.support;
  */
 public class UrlConstants {
     /**
-     * 前台API地址
+     * API地址
      */
     public static final String API = "/api";
     /**
      * 后台API地址
      */
     public static final String BACKEND_API = API + "/backend";
+    /**
+     * 前台API地址
+     */
+    public static final String FRONTEND_API = "/frontend";
 
     /**
      * 登录地址
@@ -28,6 +32,11 @@ public class UrlConstants {
      * 文章URL
      */
     public static final String ARTICLE = "/article";
+
+    /**
+     * 返回URL参数名
+     */
+    public static final String TARGET_URL_PARAM = "targetUrl";
 
     private UrlConstants() {
     }

@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class RoleBase {
+public class RoleBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,12 +23,14 @@ public class RoleBase {
      * 角色ID
      */
     @NotNull
+    @Schema(description="角色ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @Nullable
+    @Schema(description="站点ID")
     private Integer siteId;
 
     /**
@@ -32,6 +38,7 @@ public class RoleBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -39,72 +46,91 @@ public class RoleBase {
      */
     @Length(max = 300)
     @Nullable
+    @Schema(description="描述")
     private String description;
-
-    /**
-     * 全局数据权限
-     */
-    @NotNull
-    private Boolean globalPermission = false;
-
-    /**
-     * 所有文章权限
-     */
-    @NotNull
-    private Boolean allArticlePermission = false;
-
-    /**
-     * 数据权限范围(1:所有,2:本组织,3:自身)
-     */
-    @NotNull
-    private Short dataScope = 1;
-
-    /**
-     * 等级
-     */
-    @NotNull
-    private Short rank = 32767;
-
-    /**
-     * 类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规角色)
-     */
-    @NotNull
-    private Short type = 4;
-
-    /**
-     * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
-     */
-    @NotNull
-    private Short scope = 0;
-
-    /**
-     * 排序
-     */
-    @NotNull
-    private Short order = 32767;
 
     /**
      * 所有功能权限
      */
     @NotNull
+    @Schema(description="所有功能权限")
     private Boolean allPermission = false;
 
     /**
      * 所有授权权限
      */
     @NotNull
+    @Schema(description="所有授权权限")
     private Boolean allGrantPermission = true;
+
+    /**
+     * 全局数据权限
+     */
+    @NotNull
+    @Schema(description="全局数据权限")
+    private Boolean globalPermission = false;
+
+    /**
+     * 所有文章权限
+     */
+    @NotNull
+    @Schema(description="所有文章权限")
+    private Boolean allArticlePermission = true;
+
+    /**
+     * 所有栏目权限
+     */
+    @NotNull
+    @Schema(description="所有栏目权限")
+    private Boolean allChannelPermission = true;
+
+    /**
+     * 数据权限范围(1:所有,2:本组织,3:自身)
+     */
+    @NotNull
+    @Schema(description="数据权限范围(1:所有,2:本组织,3:自身)")
+    private Short dataScope = 1;
+
+    /**
+     * 等级
+     */
+    @NotNull
+    @Schema(description="等级")
+    private Short rank = 32767;
+
+    /**
+     * 类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规角色)
+     */
+    @NotNull
+    @Schema(description="类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规角色)")
+    private Short type = 4;
+
+    /**
+     * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
+     */
+    @NotNull
+    @Schema(description="共享范围(0:本站私有,1:子站点共享,2:全局共享)")
+    private Short scope = 0;
+
+    /**
+     * 排序
+     */
+    @NotNull
+    @Schema(description="排序")
+    private Short order = 32767;
 
     /**
      * 功能权限
      */
     @Nullable
+    @Schema(description="功能权限")
     private String permission;
 
     /**
      * 授权权限
      */
     @Nullable
+    @Schema(description="授权权限")
     private String grantPermission;
 
     public Integer getId() {
@@ -141,6 +167,22 @@ public class RoleBase {
         this.description = description;
     }
 
+    public Boolean getAllPermission() {
+        return allPermission;
+    }
+
+    public void setAllPermission(Boolean allPermission) {
+        this.allPermission = allPermission;
+    }
+
+    public Boolean getAllGrantPermission() {
+        return allGrantPermission;
+    }
+
+    public void setAllGrantPermission(Boolean allGrantPermission) {
+        this.allGrantPermission = allGrantPermission;
+    }
+
     public Boolean getGlobalPermission() {
         return globalPermission;
     }
@@ -155,6 +197,14 @@ public class RoleBase {
 
     public void setAllArticlePermission(Boolean allArticlePermission) {
         this.allArticlePermission = allArticlePermission;
+    }
+
+    public Boolean getAllChannelPermission() {
+        return allChannelPermission;
+    }
+
+    public void setAllChannelPermission(Boolean allChannelPermission) {
+        this.allChannelPermission = allChannelPermission;
     }
 
     public Short getDataScope() {
@@ -195,22 +245,6 @@ public class RoleBase {
 
     public void setOrder(Short order) {
         this.order = order;
-    }
-
-    public Boolean getAllPermission() {
-        return allPermission;
-    }
-
-    public void setAllPermission(Boolean allPermission) {
-        this.allPermission = allPermission;
-    }
-
-    public Boolean getAllGrantPermission() {
-        return allGrantPermission;
-    }
-
-    public void setAllGrantPermission(Boolean allGrantPermission) {
-        this.allGrantPermission = allGrantPermission;
     }
 
     @Nullable

@@ -1,17 +1,17 @@
 package com.ujcms.cms.core.generator;
 
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.web.PathResolver;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.ArticleExt;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.mapper.ArticleExtMapper;
 import com.ujcms.cms.core.mapper.ChannelExtMapper;
-import com.ujcms.cms.core.mapper.SiteMapper;
+import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Contexts;
-import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.support.Frontends;
+import com.ujcms.cms.core.web.support.Directives;
+import com.ujcms.util.file.FileHandler;
+import com.ujcms.util.web.PathResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.apache.commons.lang3.StringUtils;
@@ -34,18 +34,18 @@ import static com.ujcms.cms.core.support.Frontends.PAGE_SIZE;
  */
 @Service
 public class HtmlService {
-    private ArticleExtMapper articleExtMapper;
-    private ChannelExtMapper channelExtMapper;
-    private SiteMapper siteMapper;
-    private PathResolver pathResolver;
-    private Configuration configuration;
-    private FreeMarkerProperties properties;
+    private final SiteService siteService;
+    private final ArticleExtMapper articleExtMapper;
+    private final ChannelExtMapper channelExtMapper;
+    private final PathResolver pathResolver;
+    private final Configuration configuration;
+    private final FreeMarkerProperties properties;
 
-    public HtmlService(ArticleExtMapper articleExtMapper, ChannelExtMapper channelExtMapper, SiteMapper siteMapper,
+    public HtmlService(SiteService siteService, ArticleExtMapper articleExtMapper, ChannelExtMapper channelExtMapper,
                        PathResolver pathResolver, Configuration configuration, FreeMarkerProperties properties) {
+        this.siteService = siteService;
         this.articleExtMapper = articleExtMapper;
         this.channelExtMapper = channelExtMapper;
-        this.siteMapper = siteMapper;
         this.pathResolver = pathResolver;
         this.configuration = configuration;
         this.properties = properties;
@@ -58,7 +58,8 @@ public class HtmlService {
             return;
         }
         Map<String, Object> dataModel = new HashMap<>(16);
-        Frontends.setDate(dataModel, site, site.getUrl(), 1, null);
+        Site defaultSite = siteService.getDefaultSite(site.getConfig().getDefaultSiteId());
+        Frontends.setDate(dataModel, site, defaultSite, site.getUrl(), 1, null);
         dataModel.put(PAGE_SIZE, site.getPageSize());
         dataModel.put("isHome", true);
         try {
@@ -74,7 +75,7 @@ public class HtmlService {
                 fileHandler.store(filename, resolveTemplate(site.getTemplate()), dataModel);
                 site.setMobileStaticFile(filename);
             }
-            siteMapper.update(site);
+            siteService.update(site);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -111,7 +112,8 @@ public class HtmlService {
         dataModel.put("article", article);
         dataModel.put("channel", article.getChannel());
         int page = 1;
-        Frontends.setDate(dataModel, site, article.getUrl(page), page, article);
+        Site defaultSite = siteService.getDefaultSite(site.getConfig().getDefaultSiteId());
+        Frontends.setDate(dataModel, site, defaultSite, article.getUrl(page), page, article);
         try {
             ArticleExt ext = article.getExt();
             Contexts.setMobile(false);
@@ -175,6 +177,7 @@ public class HtmlService {
 
     private void doMakeChannelHtml(Channel channel) throws IOException {
         Site site = channel.getSite();
+        Site defaultSite = siteService.getDefaultSite(site.getConfig().getDefaultSiteId());
         Map<String, Object> dataModel = new HashMap<>(16);
         dataModel.put("channel", channel);
         dataModel.put(PAGE_SIZE, channel.getPageSize());
@@ -183,7 +186,7 @@ public class HtmlService {
         Template template = resolveTemplate(channel.getTemplate());
         int page = 1, totalPages = 1, maxPages = site.getHtml().getListPages();
         for (; page <= totalPages && page <= maxPages; page += 1) {
-            Frontends.setDate(dataModel, site, channel.getUrl(page), page, channel);
+            Frontends.setDate(dataModel, site, defaultSite, channel.getUrl(page), page, channel);
             String filename = Contexts.isMobile() ?
                     channel.getMobileStaticPath(page) : channel.getNormalStaticPath(page);
             // ArticlePage 标签会设置 totalPages。先清除，执行模板后再获取，以免获取到无效数据。

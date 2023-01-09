@@ -16,15 +16,15 @@ import java.util.Iterator;
  * @author liufang
  */
 public class Images {
-    // 目前浏览器支持的图片有：jpg(image/jpeg),gif(image/gif),png(image/png),bmp(image/png),svg(image/svg+xml),webp(image/webp),ico(image/x-icon)
-    // 以后有可能会支持谷歌超微型WebP图像格式，目前IE、Edge、火狐都不支持。
+    // 目前浏览器支持的图片有：jpg(image/jpeg),gif(image/gif),png(image/png),bmp(image/png),svg(image/svg+xml),webp(image/webp)
+    // 谷歌超微型WebP图像格式可能成为主流格式，但IE不支持该格式。
     // JDK支持的读取格式 ImageIO.getReaderFormatNames();
     // JDK支持的写入格式 ImageIO.getWriterFormatNames();
-    // JDK8支持的格式有jpg, jpeg, png, gif, bmp, wbmp
+    // JDK8支持的格式有jpg, jpeg, png, gif, bmp, webp
     /**
      * 图片扩展名
      */
-    static final String[] IMAGE_EXTENSIONS = new String[]{"jpeg", "jpg", "png", "gif", "bmp"};
+    static final String[] IMAGE_EXTENSIONS = new String[]{"jpeg", "jpg", "jfif", "pjpeg", "pjp", "png", "gif", "bmp", "webp"};
 
     static final String JPEG = "jpeg";
 
@@ -72,6 +72,30 @@ public class Images {
             return formatName;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 通过 ContextType 获取图片后缀名
+     *
+     * @param contentType Http响应的MIME type
+     * @return 图片后缀名
+     */
+    @Nullable
+    public static String getImageExtension(String contentType) {
+        switch (contentType) {
+            case "image/jpeg":
+                return "jpg";
+            case "image/gif":
+                return "gif";
+            case "image/png":
+                return "png";
+            case "image/bmp":
+                return "bmp";
+            case "image/webp":
+                return "webp";
+            default:
+                return null;
         }
     }
 

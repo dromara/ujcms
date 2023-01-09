@@ -24,9 +24,8 @@ import java.util.Objects;
  */
 @Service
 public class ModelService {
-    private ModelMapper mapper;
-
-    private SeqService seqService;
+    private final ModelMapper mapper;
+    private final SeqService seqService;
 
     public ModelService(ModelMapper mapper, SeqService seqService) {
         this.mapper = mapper;

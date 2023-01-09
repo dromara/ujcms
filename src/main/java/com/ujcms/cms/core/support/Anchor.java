@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.support;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * html a 接口
  *
@@ -11,6 +13,7 @@ public interface Anchor {
      *
      * @return 名称
      */
+    @Schema(description = "名称")
     String getName();
 
     /**
@@ -18,6 +21,7 @@ public interface Anchor {
      *
      * @return URL
      */
+    @Schema(description = "URL地址")
     String getUrl();
 
     /**
@@ -25,6 +29,7 @@ public interface Anchor {
      *
      * @return 是否新窗口打开
      */
+    @Schema(description = "是否新窗口打开")
     default Boolean getTargetBlank() {
         return false;
     }

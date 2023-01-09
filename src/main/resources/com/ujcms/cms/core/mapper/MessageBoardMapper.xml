@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.MessageBoardMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.MessageBoard">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <result column="reply_user_id_" jdbcType="INTEGER" property="replyUserId" />
+    <result column="type_id_" jdbcType="INTEGER" property="typeId" />
+    <result column="title_" jdbcType="VARCHAR" property="title" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="reply_date_" jdbcType="TIMESTAMP" property="replyDate" />
+    <result column="place_" jdbcType="VARCHAR" property="place" />
+    <result column="contact_" jdbcType="VARCHAR" property="contact" />
+    <result column="nickname_" jdbcType="VARCHAR" property="nickname" />
+    <result column="phone_" jdbcType="VARCHAR" property="phone" />
+    <result column="email_" jdbcType="VARCHAR" property="email" />
+    <result column="address_" jdbcType="VARCHAR" property="address" />
+    <result column="profession_" jdbcType="VARCHAR" property="profession" />
+    <result column="user_type_" jdbcType="SMALLINT" property="userType" />
+    <result column="open_" jdbcType="BOOLEAN" property="open" />
+    <result column="ip_" jdbcType="VARCHAR" property="ip" />
+    <result column="replied_" jdbcType="BOOLEAN" property="replied" />
+    <result column="recommended_" jdbcType="BOOLEAN" property="recommended" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
+    <result column="text_" jdbcType="LONGVARCHAR" property="text" />
+    <result column="reply_text_" jdbcType="LONGVARCHAR" property="replyText" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.MessageBoard">
+        <association column="type_id_" javaType="com.ujcms.cms.core.domain.Dict" property="type" select="com.ujcms.cms.core.mapper.DictMapper.select" />
+        <association column="reply_user_id_" javaType="com.ujcms.cms.core.domain.User" property="replyUser" select="com.ujcms.cms.core.mapper.UserMapper.select" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
+    </resultMap>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_message_board" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_message_board t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete
+        from ujcms_message_board
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.MessageBoard">
+    update ujcms_message_board
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      user_id_ = #{userId,jdbcType=INTEGER},
+      reply_user_id_ = #{replyUserId,jdbcType=INTEGER},
+      type_id_ = #{typeId,jdbcType=INTEGER},
+      title_ = #{title,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      reply_date_ = #{replyDate,jdbcType=TIMESTAMP},
+      place_ = #{place,jdbcType=VARCHAR},
+      contact_ = #{contact,jdbcType=VARCHAR},
+      nickname_ = #{nickname,jdbcType=VARCHAR},
+      phone_ = #{phone,jdbcType=VARCHAR},
+      email_ = #{email,jdbcType=VARCHAR},
+      address_ = #{address,jdbcType=VARCHAR},
+      profession_ = #{profession,jdbcType=VARCHAR},
+      user_type_ = #{userType,jdbcType=SMALLINT},
+      open_ = #{open,jdbcType=BOOLEAN},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      replied_ = #{replied,jdbcType=BOOLEAN},
+      recommended_ = #{recommended,jdbcType=BOOLEAN},
+      status_ = #{status,jdbcType=SMALLINT},
+      text_ = #{text,jdbcType=LONGVARCHAR},
+      reply_text_ = #{replyText,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.MessageBoard">
+    insert into ujcms_message_board (id_, site_id_, user_id_, reply_user_id_, type_id_, title_, created_, reply_date_, place_, contact_, nickname_, phone_, email_, address_, profession_, user_type_, open_, ip_, replied_, recommended_, status_, text_, reply_text_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{replyUserId,jdbcType=INTEGER}, #{typeId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{replyDate,jdbcType=TIMESTAMP}, #{place,jdbcType=VARCHAR}, #{contact,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{profession,jdbcType=VARCHAR}, #{userType,jdbcType=SMALLINT}, #{open,jdbcType=BOOLEAN}, #{ip,jdbcType=VARCHAR}, #{replied,jdbcType=BOOLEAN}, #{recommended,jdbcType=BOOLEAN}, #{status,jdbcType=SMALLINT}, #{text,jdbcType=LONGVARCHAR}, #{replyText,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.user_id_, t.reply_user_id_, t.type_id_, t.title_, t.created_, t.reply_date_, t.place_, t.contact_, t.nickname_, t.phone_, t.email_, t.address_, t.profession_, t.user_type_, t.open_, t.ip_, t.replied_, t.recommended_, t.status_, t.text_, t.reply_text_
+  </sql></mapper>

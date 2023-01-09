@@ -5,20 +5,20 @@ import org.springframework.lang.Nullable;
 /**
  * @author PONY
  */
-public class MessagedException extends RuntimeException {
+public interface MessagedException {
+    /**
+     * 获取消息代码
+     *
+     * @return 消息代码
+     */
     @Nullable
-    private String[] args;
+    String getCode();
 
-    public MessagedException(String code, @Nullable String... args) {
-        super(code);
-        this.args = args;
-    }
-
+    /**
+     * 获取消息参数
+     *
+     * @return 消息参数
+     */
     @Nullable
-    public String[] getArgs() {
-        if (args == null) {
-            return null;
-        }
-        return args.clone();
-    }
+    String[] getArgs();
 }

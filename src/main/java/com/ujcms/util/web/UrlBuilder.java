@@ -13,7 +13,7 @@ public class UrlBuilder implements CharSequence {
     public static final String DOUBLE_SLASH = "//";
     public static final String HTTP_PROTOCOL = "http:";
     public static final String HTTPS_PROTOCOL = "https:";
-    private StringBuilder buff = new StringBuilder();
+    private final StringBuilder buff = new StringBuilder();
 
     public UrlBuilder() {
     }

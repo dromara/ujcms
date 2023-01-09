@@ -30,17 +30,17 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
      */
     public static final String SITE_ID = "siteId";
     /**
+     * 区块别名。字符串(String)
+     */
+    public static final String BLOCK = "block";
+    /**
      * 区块ID。字符串(String)
      */
     public static final String BLOCK_ID = "blockId";
     /**
-     * 区块别名。字符串(String)
-     */
-    public static final String BLOCK_ALIAS = "blockAlias";
-    /**
      * 是否启用。字符串(String)。可选值：all(全部), false(禁用)。默认值：启用。
      */
-    public static final String ENABLED = "enabled";
+    public static final String IS_ENABLED = "isEnabled";
 
     public static List<BlockItem> query(Map<String, ?> params, Integer defaultSiteId, BlockItemService service) {
         BlockItemArgs args = BlockItemArgs.of();
@@ -49,16 +49,16 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
         args.siteId(siteId != null ? siteId : defaultSiteId);
 
         Integer blockId = Directives.getInteger(params, BLOCK_ID);
-        String blockAlias = Directives.getString(params, BLOCK_ALIAS);
+        String blockAlias = Directives.getString(params, BLOCK);
         if (blockId != null) {
             args.blockId(blockId);
         } else if (StringUtils.isNotBlank(blockAlias)) {
             args.blockAlias(blockAlias);
         } else {
-            throw new IllegalArgumentException("Params blockId or blockAlias is required.");
+            throw new IllegalArgumentException("Params blockId or block is required.");
         }
 
-        Optional.ofNullable(Directives.getBooleanDefault(params, ENABLED, true)).ifPresent(args::enabled);
+        Optional.ofNullable(Directives.getBooleanDefault(params, IS_ENABLED, true)).ifPresent(args::enabled);
 
         Directives.handleOrderBy(args.getQueryMap(), params, "order");
         int offset = Directives.getOffset(params);
@@ -79,7 +79,7 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
         body.render(env.getOut());
     }
 
-    private BlockItemService service;
+    private final BlockItemService service;
 
     public BlockItemListDirective(BlockItemService service) {
         this.service = service;

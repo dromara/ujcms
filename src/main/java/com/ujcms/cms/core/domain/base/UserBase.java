@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
@@ -10,7 +12,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class UserBase {
+public class UserBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -20,18 +24,21 @@ public class UserBase {
      * 用户ID
      */
     @NotNull
+    @Schema(description="用户ID")
     private Integer id = 0;
 
     /**
      * 用户组ID
      */
     @NotNull
+    @Schema(description="用户组ID")
     private Integer groupId = 0;
 
     /**
      * 组织ID
      */
     @NotNull
+    @Schema(description="组织ID")
     private Integer orgId = 0;
 
     /**
@@ -39,27 +46,23 @@ public class UserBase {
      */
     @Length(max = 30)
     @NotNull
+    @Schema(description="用户名")
     private String username = "";
 
     /**
      * 密码
      */
-    @Length(max = 64)
+    @Length(max = 100)
     @NotNull
+    @Schema(description="密码")
     private String password = "0";
-
-    /**
-     * 密码混淆码
-     */
-    @Length(max = 32)
-    @NotNull
-    private String salt = "0";
 
     /**
      * 电子邮箱
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="电子邮箱")
     private String email;
 
     /**
@@ -67,6 +70,7 @@ public class UserBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="手机号码")
     private String mobile;
 
     /**
@@ -74,44 +78,51 @@ public class UserBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="博客地址")
     private String alias;
 
     /**
-     * 显示名
+     * 昵称
      */
     @Length(max = 50)
     @Nullable
-    private String displayName;
+    @Schema(description="昵称")
+    private String nickname;
 
     /**
      * 头像URL
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="头像URL")
     private String avatar;
 
     /**
      * 密码修改时间
      */
     @NotNull
+    @Schema(description="密码修改时间")
     private OffsetDateTime passwordModified = OffsetDateTime.now();
 
     /**
      * 等级
      */
     @NotNull
+    @Schema(description="等级")
     private Short rank = 999;
 
     /**
      * 类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规管理员,5:前台会员)
      */
     @NotNull
+    @Schema(description="类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规管理员,5:前台会员)")
     private Short type = 4;
 
     /**
      * 状态(0:正常,1:未激活,2:已锁定,3:已注销)
      */
     @NotNull
+    @Schema(description="状态(0:正常,1:未激活,2:已锁定,3:已注销)")
     private Short status = 0;
 
     public Integer getId() {
@@ -154,14 +165,6 @@ public class UserBase {
         this.password = password;
     }
 
-    public String getSalt() {
-        return salt;
-    }
-
-    public void setSalt(String salt) {
-        this.salt = salt;
-    }
-
     @Nullable
     public String getEmail() {
         return email;
@@ -190,12 +193,12 @@ public class UserBase {
     }
 
     @Nullable
-    public String getDisplayName() {
-        return displayName;
+    public String getNickname() {
+        return nickname;
     }
 
-    public void setDisplayName(@Nullable String displayName) {
-        this.displayName = displayName;
+    public void setNickname(@Nullable String nickname) {
+        this.nickname = nickname;
     }
 
     @Nullable

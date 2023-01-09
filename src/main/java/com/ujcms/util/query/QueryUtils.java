@@ -206,7 +206,7 @@ public class QueryUtils {
     public static final String OPERATOR_IS_NOT_NULL = "IsNotNull";
 
     /**
-     * 支持Like, Contain, StartWith, EndWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE
+     * 支持Like, Contain, StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE
      */
     public static String getOperator(String s) {
         switch (s) {
@@ -237,7 +237,7 @@ public class QueryUtils {
                 return "<=";
             default:
                 throw new RuntimeException("QueryParser operator '$s' not supported. Support: Like, Contain, " +
-                        "StartWith, EndWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE");
+                        "StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE");
         }
     }
 

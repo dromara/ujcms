@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
@@ -8,7 +10,9 @@ import org.hibernate.validator.constraints.Length;
  *
  * @author MyBatis Generator
  */
-public class SeqBase {
+public class SeqBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,18 +23,21 @@ public class SeqBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="序列名称(通常为表名)")
     private String name = "";
 
     /**
      * 下一个值
      */
     @NotNull
+    @Schema(description="下一个值")
     private Long nextVal = 1L;
 
     /**
      * 缓存数量(大于0时有效，等于0则由程序确定大小)
      */
     @NotNull
+    @Schema(description="缓存数量(大于0时有效，等于0则由程序确定大小)")
     private Integer cacheSize = 0;
 
     public String getName() {

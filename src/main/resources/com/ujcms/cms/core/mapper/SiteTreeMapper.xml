@@ -5,6 +5,11 @@
     <id column="descendant_id_" jdbcType="INTEGER" property="descendantId" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.SiteTree" />
+    <select id="listByAncestorId" resultType="int">
+        select t.descendant_id_
+        from ujcms_site_tree t
+        where t.ancestor_id_ = #{AncestorId}
+    </select>
     <insert id="save">
         insert into ujcms_site_tree (ancestor_id_, descendant_id_)
         values (#{ancestorId,jdbcType=INTEGER}, #{descendantId,jdbcType=INTEGER})

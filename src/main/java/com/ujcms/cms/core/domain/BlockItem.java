@@ -1,22 +1,31 @@
 package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.BlockItemBase;
 import com.ujcms.cms.core.support.Anchor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * 区块项 实体类
+ * 区块项实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class BlockItem extends BlockItemBase implements Anchor, Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @Schema(description = "URL地址")
     @Override
     public String getUrl() {
         if (getArticle() != null) {
@@ -42,6 +51,14 @@ public class BlockItem extends BlockItemBase implements Anchor, Serializable {
         Optional.ofNullable(getImage()).ifPresent(urls::add);
         Optional.ofNullable(getMobileImage()).ifPresent(urls::add);
         return urls;
+    }
+
+    @Schema(description = "转向链接")
+    @Pattern(regexp = "^(http|/).*$")
+    @Nullable
+    @Override
+    public String getLinkUrl() {
+        return super.getLinkUrl();
     }
 
     @Nullable

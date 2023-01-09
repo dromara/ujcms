@@ -3,6 +3,7 @@ package com.ujcms.cms.core.lucene.domain;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.support.Anchor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
@@ -16,6 +17,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Setting;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -25,11 +27,15 @@ import java.util.List;
 import static org.apache.lucene.document.Field.Store;
 
 /**
+ * 全文检索文章实体类
+ *
  * @author PONY
  */
 @Document(indexName = "#{@props.esArticle}")
 @Setting(settingPath = "/elasticsearch/article-setting.json")
-public class EsArticle extends WebPageWithCustoms {
+public class EsArticle extends WebPageWithCustoms implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public EsArticle() {
         setDiscType("Article");
     }
@@ -112,11 +118,20 @@ public class EsArticle extends WebPageWithCustoms {
         return bean;
     }
 
+    /**
+     * ID
+     */
     @Id
     @Field
     private Integer id = 0;
+    /**
+     * 发布日期
+     */
     @Field(type = FieldType.Date)
     private OffsetDateTime publishDate = OffsetDateTime.now();
+    /**
+     * 栏目
+     */
     @Field(type = FieldType.Object, index = false)
     private ChannelInner channel = new ChannelInner();
 
@@ -144,6 +159,10 @@ public class EsArticle extends WebPageWithCustoms {
         this.channel = channel;
     }
 
+    /**
+     * 全文检索栏目基础实体类
+     */
+    @Schema(name = "EsArticle.ChannelBaseInner", description = "全文检索栏目基础实体类")
     public static class ChannelBaseInner implements Anchor {
         public static ChannelBaseInner of(Channel channel) {
             ChannelBaseInner bean = new ChannelInner();
@@ -153,10 +172,19 @@ public class EsArticle extends WebPageWithCustoms {
             return bean;
         }
 
+        /**
+         * ID
+         */
         @Field(type = FieldType.Integer)
         private Integer id = 0;
+        /**
+         * 名称
+         */
         @Field(type = FieldType.Keyword, index = false)
         private String name = "";
+        /**
+         * URL地址
+         */
         @Field(type = FieldType.Keyword, index = false)
         private String url = "";
 
@@ -187,6 +215,10 @@ public class EsArticle extends WebPageWithCustoms {
         }
     }
 
+    /**
+     * 全文检索栏目实体类
+     */
+    @Schema(name = "EsArticle.ChannelInner", description = "全文检索栏目实体类")
     public static class ChannelInner extends ChannelBaseInner {
         public static ChannelInner of(Channel channel) {
             ChannelInner bean = new ChannelInner();
@@ -197,6 +229,9 @@ public class EsArticle extends WebPageWithCustoms {
             return bean;
         }
 
+        /**
+         * 栏目层级。从一级栏目到当前栏目的列表
+         */
         @Field(type = FieldType.Object, index = false)
         private List<ChannelBaseInner> paths = new ArrayList<>();
 

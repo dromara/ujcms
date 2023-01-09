@@ -10,6 +10,7 @@ import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class AnchorDirective implements TemplateDirectiveModel {
     @SuppressWarnings("unchecked")
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars,
-                        TemplateDirectiveBody body) throws TemplateException, IOException {
+                        @Nullable TemplateDirectiveBody body) throws TemplateException, IOException {
         Anchor anchor = Freemarkers.getObject(params, BEAN, Anchor.class);
         if (anchor == null) {
             return;

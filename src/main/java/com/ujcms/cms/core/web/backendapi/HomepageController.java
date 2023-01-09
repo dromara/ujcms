@@ -1,9 +1,9 @@
 package com.ujcms.cms.core.web.backendapi;
 
-import com.ujcms.util.security.CredentialsDigest;
-import com.ujcms.util.security.Secures;
 import com.ujcms.cms.core.support.Props;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.ujcms.util.security.Secures;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,16 +22,16 @@ import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 @RestController("backendHomepageController")
 @RequestMapping(BACKEND_API + "/core/homepage")
 public class HomepageController {
-    private CredentialsDigest credentialsDigest;
-    private Props props;
+    private final PasswordEncoder passwordEncoder;
+    private final Props props;
 
-    public HomepageController(CredentialsDigest credentialsDigest, Props props) {
-        this.credentialsDigest = credentialsDigest;
+    public HomepageController(PasswordEncoder passwordEncoder, Props props) {
+        this.passwordEncoder = passwordEncoder;
         this.props = props;
     }
 
     @GetMapping("generated-key")
-    @RequiresPermissions("homepage:generatedKey")
+    @PreAuthorize("hasAnyAuthority('homepage:generatedKey','*')")
     public String generatedKey() {
         Secures.Pair keyPair = Secures.generateSm2QdKeyPair();
         String newline = "\n";
@@ -42,21 +42,17 @@ public class HomepageController {
         buff.append("ujcms.download-secret: ").append(Secures.randomAlphanumeric(32)).append(newline);
         buff.append("ujcms.client-sm2-public-key: ").append(keyPair.getPublicKey()).append(newline);
         buff.append("ujcms.client-sm2-private-key: ").append(keyPair.getPrivateKey()).append(newline);
-        String pepper = Secures.randomAlphanumeric(32);
-        String salt = Secures.nextSalt();
-        String password = credentialsDigest.digest("password", salt, pepper);
-        buff.append("ujcms.password-pepper: ").append(pepper).append(newline);
+        String password = passwordEncoder.encode("password");
         buff.append(newline);
         buff.append("# 以下内容只用于修改数据库数据，不用于application.yaml配置文件。").append(newline);
         buff.append("# ujcms.password-pepper修改后，用户密码Hash值也会改变，原密码将无法登录。").append(newline);
-        buff.append("# 需要根据以下值修改数据库ujcms_user表的password_和salt_字段的值，修改后用户密码将被重置为password").append(newline);
+        buff.append("# 需要根据以下值修改数据库ujcms_user表的password_字段的值，修改后用户密码将被重置为password").append(newline);
         buff.append("ujcms_user.password_: ").append(password).append(newline);
-        buff.append("ujcms_user.salt_: ").append(salt).append(newline);
         return buff.toString();
     }
 
     @GetMapping("environment")
-    @RequiresPermissions("homepage:environment")
+    @PreAuthorize("hasAnyAuthority('homepage:environment','*')")
     public Map<String, Object> environment() {
         Map<String, Object> result = new HashMap<>(16);
         Properties properties = System.getProperties();

@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class ChannelBase {
+public class ChannelBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,30 +23,35 @@ public class ChannelBase {
      * 栏目ID
      */
     @NotNull
+    @Schema(description="栏目ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer siteId = 0;
 
     /**
      * 上级栏目ID
      */
     @Nullable
+    @Schema(description="上级栏目ID")
     private Integer parentId;
 
     /**
      * 栏目模型ID
      */
     @NotNull
+    @Schema(description="栏目模型ID")
     private Integer channelModelId = 0;
 
     /**
      * 文章模型ID
      */
     @NotNull
+    @Schema(description="文章模型ID")
     private Integer articleModelId = 0;
 
     /**
@@ -50,6 +59,7 @@ public class ChannelBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -57,12 +67,14 @@ public class ChannelBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="别名")
     private String alias = "";
 
     /**
      * 是否导航菜单
      */
     @NotNull
+    @Schema(description="是否导航菜单")
     private Boolean nav = true;
 
     /**
@@ -70,24 +82,28 @@ public class ChannelBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="流程标识")
     private String processKey;
 
     /**
      * 类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一篇文章,5:链接到第一个子栏目)
      */
     @NotNull
+    @Schema(description="类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一篇文章,5:链接到第一个子栏目)")
     private Short type = 1;
 
     /**
      * 层级
      */
     @NotNull
+    @Schema(description="层级")
     private Short depth = 1;
 
     /**
      * 排列顺序
      */
     @NotNull
+    @Schema(description="排列顺序")
     private Integer order = 999999;
 
     public Integer getId() {

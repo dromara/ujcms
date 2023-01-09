@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class LuceneGenerator extends AbstractGenerator {
-    private ArticleLucene articleLucene;
+    private final ArticleLucene articleLucene;
 
     public LuceneGenerator(ArticleLucene articleLucene, ArticleService articleService,
                            TaskService taskService, @Qualifier("generator") ThreadPoolTaskExecutor executor) {

@@ -33,7 +33,7 @@ public class SiteDirective implements TemplateDirectiveModel {
         body.render(env.getOut());
     }
 
-    private SiteService siteService;
+    private final SiteService siteService;
 
     public SiteDirective(SiteService siteService) {
         this.siteService = siteService;

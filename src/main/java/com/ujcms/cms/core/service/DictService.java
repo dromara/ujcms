@@ -24,8 +24,8 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
  */
 @Service
 public class DictService {
-    private DictMapper mapper;
-    private SeqService seqService;
+    private final DictMapper mapper;
+    private final SeqService seqService;
 
     public DictService(DictMapper mapper, SeqService seqService) {
         this.mapper = mapper;

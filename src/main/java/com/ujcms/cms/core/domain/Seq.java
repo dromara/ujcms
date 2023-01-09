@@ -1,15 +1,21 @@
 package com.ujcms.cms.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.SeqBase;
 
 import java.io.Serializable;
 
 /**
- * 序列 实体类
+ * 序列实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class Seq extends SeqBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public Seq() {
     }
 

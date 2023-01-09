@@ -12,6 +12,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.lang.Nullable;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -28,7 +29,9 @@ import static org.apache.lucene.document.Field.Store;
  *
  * @author PONY
  */
-public class WebPageWithCustoms extends WebPage {
+public class WebPageWithCustoms extends WebPage implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * BigDecimal 保留 4 位效数，转换为 Long 保存，需要乘于 10000。
      */

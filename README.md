@@ -87,16 +87,7 @@ lower_case_table_names=2
 
 程序默认打包为WAR格式。如需要使用springboot的jar方式启动，可按以下步骤修改：
 
-* 将`pom.xml`文件`<packaging>war</packaging>`代码改为`<packaging>jar</packaging>`
-* 将`pom.xml`文件以下代码删除：
-```
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-tomcat</artifactId>
-    <scope>provided</scope>
-</dependency>
-```
-* 使用maven进行打包`mvn package`。
+* 使用maven进行打包`mvn package -P jar`。
 * 将打包的`target/ujcms-***.jar`文件复制到部署目录。
 * 在部署目录（即`ujcms-***.jar`所在目录）新建文件夹`static`。
 * 将`src/main/webapp`目录下所有文件复制到上一步新建的`static`目录下。复制完成后，会有类似`static/WEB-INF` `static/templates`等文件夹。
@@ -109,15 +100,6 @@ lower_case_table_names=2
 * static/templates/...
 * static/uploads/...
 * static/cp/...
-
-## 关于商业版提示
-
-程序默认包含商业版功能的链接，但点击后会提示商业版功能。如希望关闭商业版功能，可以修改`/src/main/resources/application.yaml`文件中的`ujcms.ep-display`配置项改为`false`。
-
-```
-# 是否显示商业版功能。默认：true
-ujcms.ep-display: false
-```
 
 ## 关于部署路径
 

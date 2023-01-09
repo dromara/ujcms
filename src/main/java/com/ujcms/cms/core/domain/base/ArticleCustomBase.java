@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class ArticleCustomBase {
+public class ArticleCustomBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,12 +23,14 @@ public class ArticleCustomBase {
      * 文章自定义ID
      */
     @NotNull
+    @Schema(description="文章自定义ID")
     private Long id = 0L;
 
     /**
      * 文章ID
      */
     @NotNull
+    @Schema(description="文章ID")
     private Integer articleId = 0;
 
     /**
@@ -32,6 +38,7 @@ public class ArticleCustomBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -39,12 +46,14 @@ public class ArticleCustomBase {
      */
     @Length(max = 32)
     @NotNull
+    @Schema(description="类型")
     private String type = "text";
 
     /**
      * 值
      */
     @Nullable
+    @Schema(description="值")
     private String value;
 
     public Long getId() {

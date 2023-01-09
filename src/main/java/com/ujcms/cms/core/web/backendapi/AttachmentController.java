@@ -1,13 +1,16 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Attachment;
 import com.ujcms.cms.core.service.AttachmentService;
 import com.ujcms.cms.core.service.args.AttachmentArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.cms.core.web.support.ValidUtils;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,14 +35,14 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendAttachmentController")
 @RequestMapping(UrlConstants.BACKEND_API + "/core/attachment")
 public class AttachmentController {
-    private AttachmentService service;
+    private final AttachmentService service;
 
     public AttachmentController(AttachmentService service) {
         this.service = service;
     }
 
     @GetMapping
-    @RequiresPermissions("attachment:list")
+    @PreAuthorize("hasAnyAuthority('attachment:list','*')")
     public Object list(Integer page, Integer pageSize, HttpServletRequest request) {
         AttachmentArgs args = AttachmentArgs.of(getQueryMap(request.getQueryString()))
                 .siteId(Contexts.getCurrentSiteId());
@@ -47,19 +50,29 @@ public class AttachmentController {
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("attachment:show")
+    @PreAuthorize("hasAnyAuthority('attachment:show','*')")
     public Object show(@PathVariable Integer id) {
         Attachment bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Attachment not found. ID = " + id);
         }
+        ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
     }
 
     @DeleteMapping
-    @RequiresPermissions("attachment:delete")
+    @PreAuthorize("hasAnyAuthority('attachment:delete','*')")
+    @OperationLog(module = "attachment", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        service.delete(ids);
+        Integer siteId = Contexts.getCurrentSiteId();
+        ids.forEach(id -> {
+            Attachment bean = service.select(id);
+            if (bean == null) {
+                return;
+            }
+            ValidUtils.dataInSite(bean.getSiteId(), siteId);
+            service.delete(bean);
+        });
         return Responses.ok();
     }
 }

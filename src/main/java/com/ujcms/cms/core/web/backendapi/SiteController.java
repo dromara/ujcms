@@ -8,7 +8,7 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.exception.Http404Exception;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,8 +35,8 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendSiteController")
 @RequestMapping(UrlConstants.BACKEND_API + "/core/site")
 public class SiteController {
-    private SiteService service;
-    private ResourceLoader resourceLoader;
+    private final SiteService service;
+    private final ResourceLoader resourceLoader;
 
     public SiteController(SiteService service, ResourceLoader resourceLoader) {
         this.service = service;
@@ -44,7 +44,7 @@ public class SiteController {
     }
 
     @GetMapping
-    @RequiresPermissions("site:list")
+    @PreAuthorize("hasAnyAuthority('site:list','*')")
     public Object list(@RequestParam(defaultValue = "false") boolean current,
                        @RequestParam(defaultValue = "false") boolean currentOrg,
                        @Nullable Integer parentId, @Nullable Integer fullOrgId,
@@ -62,7 +62,7 @@ public class SiteController {
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("site:show")
+    @PreAuthorize("hasAnyAuthority('site:show','*')")
     public Object show(@PathVariable Integer id) {
         Site bean = service.select(id);
         if (bean == null) {
@@ -72,13 +72,13 @@ public class SiteController {
     }
 
     @GetMapping("/theme")
-    @RequiresPermissions("site:list")
+    @PreAuthorize("hasAnyAuthority('site:list','*')")
     public Object currentTheme() throws IOException {
         return getThemeList(Contexts.getCurrentSite());
     }
 
     @GetMapping("{id}/theme")
-    @RequiresPermissions("site:list")
+    @PreAuthorize("hasAnyAuthority('site:list','*')")
     public List<String> theme(@PathVariable Integer id) throws IOException {
         Site site = service.select(id);
         if (site == null) {

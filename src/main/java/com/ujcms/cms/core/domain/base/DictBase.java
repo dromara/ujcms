@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class DictBase {
+public class DictBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,18 +23,21 @@ public class DictBase {
      * 字典ID
      */
     @NotNull
+    @Schema(description="字典ID")
     private Integer id = 0;
 
     /**
-     * 数据字典类型ID
+     * 字典类型ID
      */
     @NotNull
+    @Schema(description="字典类型ID")
     private Integer typeId = 0;
 
     /**
      * 上级ID
      */
     @Nullable
+    @Schema(description="上级ID")
     private Integer parentId;
 
     /**
@@ -38,6 +45,7 @@ public class DictBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -45,6 +53,7 @@ public class DictBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="值")
     private String value = "";
 
     /**
@@ -52,24 +61,28 @@ public class DictBase {
      */
     @Length(max = 300)
     @Nullable
+    @Schema(description="备注")
     private String remark;
 
     /**
      * 排列顺序
      */
     @NotNull
+    @Schema(description="排列顺序")
     private Short order = 32767;
 
     /**
      * 是否系统字典
      */
     @NotNull
+    @Schema(description="是否系统字典")
     private Boolean sys = false;
 
     /**
      * 是否启用
      */
     @NotNull
+    @Schema(description="是否启用")
     private Boolean enabled = true;
 
     public Integer getId() {

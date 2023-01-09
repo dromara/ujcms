@@ -5,10 +5,10 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.SiteService;
-import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.StaticProps;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,23 +20,23 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
+import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 
 /**
  * 环境 Controller
  *
  * @author PONY
  */
+@Tag(name = "EnvController", description = "环境接口")
 @RestController
-@RequestMapping(API + "/env")
+@RequestMapping({API + "/env", FRONTEND_API + "/env"})
 public class EnvController {
-    private SiteService siteService;
-    private UserService userService;
-    private ConfigService configService;
-    private Props props;
+    private final SiteService siteService;
+    private final ConfigService configService;
+    private final Props props;
 
-    public EnvController(SiteService siteService, UserService userService, ConfigService configService, Props props) {
+    public EnvController(SiteService siteService, ConfigService configService, Props props) {
         this.siteService = siteService;
-        this.userService = userService;
         this.configService = configService;
         this.props = props;
     }
@@ -46,7 +46,7 @@ public class EnvController {
      */
     @GetMapping("/current-user")
     public Map<String, Object> currentUser() {
-        User user = Optional.ofNullable(Contexts.findCurrentUser(userService)).filter(User::isNormal).orElse(null);
+        User user = Optional.ofNullable(Contexts.findCurrentUser()).filter(User::isEnabled).orElse(null);
         if (user == null) {
             return null;
         }
@@ -57,6 +57,8 @@ public class EnvController {
         result.put("permissions", user.getPermissions());
         result.put("grantPermissions", user.getGrantPermissions());
         result.put("globalPermission", user.hasGlobalPermission());
+        result.put("allChannelPermission", user.hasAllChannelPermission());
+        result.put("allArticlePermission", user.hasAllArticlePermission());
         result.put("loginDate", user.getLoginDate());
         result.put("loginIp", user.getLoginIp());
         result.put("epExcludes", StaticProps.getEpExcludes());
@@ -66,25 +68,37 @@ public class EnvController {
         return result;
     }
 
+    /**
+     * 获取当前站点列表
+     */
     @GetMapping("/current-site-list")
     public List<Site> currentSiteList() {
-        User user = Contexts.findCurrentUser(userService);
+        User user = Contexts.findCurrentUser();
         if (user == null) {
             return Collections.emptyList();
         }
         return siteService.listByOrgId(user.getOrgId());
     }
 
+    /**
+     * 获取客户端SM2加密 public key
+     */
     @GetMapping("/client-public-key")
     public String clientPublicKey() {
         return props.getClientSm2PublicKey();
     }
 
+    /**
+     * 获取Config配置
+     */
     @GetMapping("/config")
     public Config config() {
         return configService.getUnique();
     }
 
+    /**
+     * 是否开启双因子登录
+     */
     @GetMapping("/is-mfa-login")
     public boolean isDisplayCaptcha() {
         Config.Security security = configService.getUnique().getSecurity();

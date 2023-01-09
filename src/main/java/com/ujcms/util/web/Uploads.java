@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.UUID;
 
 /**
  * 上传工具类
@@ -103,6 +104,7 @@ public class Uploads {
     public static final String AUDIO_TYPE = "audio";
     public static final String DOC_TYPE = "doc";
     public static final String FILE_TYPE = "file";
+    public static final String AVATAR_TYPE = "avatar";
 
     /**
      * 工具类不需要实例化

@@ -1,13 +1,20 @@
 package com.ujcms.util.captcha;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.common.primitives.Longs;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.KeyLengthException;
+import com.nimbusds.jose.proc.BadJWSException;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.BadJWTException;
+import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
+import com.nimbusds.jwt.proc.JWTClaimsSetVerifier;
 import com.octo.captcha.image.ImageCaptcha;
-import com.ujcms.util.security.jwt.HmacSm3Algorithm;
+import com.ujcms.util.security.jwt.HmacSm3JwsSigner;
+import com.ujcms.util.security.jwt.HmacSm3JwsVerifier;
+import com.ujcms.util.security.jwt.JwtUtils;
 import com.ujcms.util.web.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
@@ -16,8 +23,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Date;
 
+import static com.ujcms.util.security.jwt.JwtUtils.HMAC_SM3;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.ENGLISH;
 
@@ -31,14 +40,15 @@ import static java.util.Locale.ENGLISH;
  * @author liufang
  */
 public class CaptchaTokenService {
-    public CaptchaTokenService(GmailCaptchaEngine gmailCaptchaEngine, CaptchaCache cache, CaptchaProperties properties) {
+    public CaptchaTokenService(GmailCaptchaEngine gmailCaptchaEngine, CaptchaCache cache,
+                               CaptchaProperties properties) throws KeyLengthException {
         this.gmailCaptchaEngine = gmailCaptchaEngine;
         this.cache = cache;
         this.properties = properties;
-
-        this.algorithm = new HmacSm3Algorithm(properties.getSecret());
-        this.verifier = JWT.require(algorithm).withIssuer(properties.getIssuer())
-                .acceptLeeway(properties.getLeeway()).build();
+        this.jwsSigner = new HmacSm3JwsSigner(properties.getSecret());
+        this.jwsVerifier = new HmacSm3JwsVerifier(properties.getSecret());
+        this.claimsVerifier = new DefaultJWTClaimsVerifier<>(
+                new JWTClaimsSet.Builder().issuer(properties.getIssuer()).build(), null);
     }
 
     /**
@@ -57,12 +67,17 @@ public class CaptchaTokenService {
             String word = captcha.getResponse();
             Date now = new Date();
             // 只取秒级，不要毫秒。JWT 的 expiresAt 只能记录到秒
-            Date expiresAt = new Date(now.getTime() / 1000 * 1000 + properties.getExpires() * 60 * 1000);
+            Date expiresAt = new Date(now.getTime() / 1000 * 1000 + (long) properties.getExpires() * 60 * 1000);
             String subject = sign(word, expiresAt);
-            String token = JWT.create().withIssuer(properties.getIssuer())
-                    .withIssuedAt(now).withExpiresAt(expiresAt).withSubject(subject).sign(algorithm);
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().issuer(properties.getIssuer())
+                    .issueTime(now).expirationTime(expiresAt)
+                    .subject(subject)
+                    .build();
+            SignedJWT signedJwt = new SignedJWT(new JWSHeader(HMAC_SM3), claimsSet);
+            signedJwt.sign(jwsSigner);
+            String token = signedJwt.serialize();
             return new CaptchaToken(token, properties.getExpires() * 60, image);
-        } catch (IOException e) {
+        } catch (IOException | JOSEException e) {
             return null;
         }
     }
@@ -79,23 +94,25 @@ public class CaptchaTokenService {
             return false;
         }
         try {
-            DecodedJWT jwt = verifier.verify(token);
+            SignedJWT jwt = SignedJWT.parse(token);
+            JWTClaimsSet claimsSet = JwtUtils.verify(jwsVerifier, claimsVerifier, jwt);
             int wordLength = StringUtils.length(captcha);
             if (wordLength < properties.getWordLength() || wordLength > properties.getWordLength()) {
                 return false;
             }
-            int count = cache.getAttempts(jwt.getSignature());
+            String signature = jwt.getSignature().decodeToString();
+            int count = cache.getAttempts(signature);
             // count == -1 代表已经被使用过
             if (count < 0 || count >= properties.getMaxAttempts()) {
                 return false;
             }
             // 区分大小写
-            if (verifySubject(jwt.getSubject(), captcha, jwt.getExpiresAt())) {
+            if (verifySubject(claimsSet.getSubject(), captcha, claimsSet.getExpirationTime())) {
                 return true;
             }
-            cache.updateAttempts(jwt.getSignature(), count + 1);
+            cache.updateAttempts(signature, count + 1);
             return false;
-        } catch (JWTVerificationException e) {
+        } catch (ParseException | JOSEException | BadJWTException | BadJWSException e) {
             // 验证失败
             return false;
         }
@@ -113,17 +130,20 @@ public class CaptchaTokenService {
             return false;
         }
         try {
-            DecodedJWT jwt = verifier.verify(token);
-            int count = cache.getAttempts(jwt.getSignature());
+            SignedJWT jwt = SignedJWT.parse(token);
+            JWTClaimsSet claimsSet = JwtUtils.verify(jwsVerifier, claimsVerifier, jwt);
+            String signature = jwt.getSignature().decodeToString();
+
+            int count = cache.getAttempts(signature);
             // 已使用或者尝试过多，直接返回false
             boolean isExcessiveAttempts = count < 0 || count >= properties.getMaxAttempts();
             if (isExcessiveAttempts) {
                 return false;
             }
             // count == -1 代表已经被使用过
-            cache.updateAttempts(jwt.getSignature(), -1);
-            return verifySubject(jwt.getSubject(), captcha, jwt.getExpiresAt());
-        } catch (JWTVerificationException e) {
+            cache.updateAttempts(signature, -1);
+            return verifySubject(claimsSet.getSubject(), captcha, claimsSet.getExpirationTime());
+        } catch (ParseException | JOSEException | BadJWTException | BadJWSException e) {
             // 验证失败
             return false;
         }
@@ -135,14 +155,15 @@ public class CaptchaTokenService {
 
     private String sign(String word, Date expiresAt) {
         // 不区分大小写
-        byte[] subjectBytes = algorithm.sign(word.toUpperCase(ENGLISH).getBytes(UTF_8), Longs.toByteArray(expiresAt.getTime()));
+        byte[] subjectBytes = JwtUtils.signByHmacSm3(properties.getSecret(),
+                word.toUpperCase(ENGLISH).getBytes(UTF_8), Longs.toByteArray(expiresAt.getTime()));
         return Strings.encodeUrlBase64(subjectBytes);
     }
 
-    private GmailCaptchaEngine gmailCaptchaEngine;
-    private CaptchaCache cache;
-    private CaptchaProperties properties;
-
-    private Algorithm algorithm;
-    private JWTVerifier verifier;
+    private final GmailCaptchaEngine gmailCaptchaEngine;
+    private final CaptchaCache cache;
+    private final CaptchaProperties properties;
+    private final HmacSm3JwsSigner jwsSigner;
+    private final HmacSm3JwsVerifier jwsVerifier;
+    private final JWTClaimsSetVerifier<SecurityContext> claimsVerifier;
 }

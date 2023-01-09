@@ -6,7 +6,7 @@ package com.ujcms.util.captcha;
  * @author PONY
  */
 public class IpLoginAttemptService {
-    private IpLoginCache cache;
+    private final IpLoginCache cache;
 
     public IpLoginAttemptService(IpLoginCache cache) {
         this.cache = cache;

@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -7,7 +9,9 @@ import javax.validation.constraints.NotNull;
  *
  * @author MyBatis Generator
  */
-public class ArticleStatBase {
+public class ArticleStatBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -17,18 +21,21 @@ public class ArticleStatBase {
      * 文章ID
      */
     @NotNull
+    @Schema(description="文章ID")
     private Integer articleId = 0;
 
     /**
      * 统计日
      */
     @NotNull
+    @Schema(description="统计日")
     private Integer statDay = 0;
 
     /**
      * 浏览次数
      */
     @NotNull
+    @Schema(description="浏览次数")
     private Integer views = 0;
 
     public Integer getArticleId() {

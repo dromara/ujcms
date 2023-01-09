@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class ConfigBase {
+public class ConfigBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,6 +23,7 @@ public class ConfigBase {
      * ID
      */
     @NotNull
+    @Schema(description="ID")
     private Integer id = 0;
 
     /**
@@ -26,18 +31,21 @@ public class ConfigBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="上下文路径")
     private String contextPath;
 
     /**
      * 端口号
      */
     @Nullable
+    @Schema(description="端口号")
     private Integer port;
 
     /**
      * 是否多域名(多域名在生成静态页时，需要按域名分开存放)
      */
     @NotNull
+    @Schema(description="是否多域名(多域名在生成静态页时，需要按域名分开存放)")
     private Boolean multiDomain = false;
 
     /**
@@ -45,6 +53,7 @@ public class ConfigBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="栏目URL地址")
     private String channelUrl;
 
     /**
@@ -52,12 +61,14 @@ public class ConfigBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="文章URL地址")
     private String articleUrl;
 
     /**
      * 默认站点ID
      */
     @NotNull
+    @Schema(description="默认站点ID")
     private Integer defaultSiteId = 0;
 
     /**
@@ -65,13 +76,15 @@ public class ConfigBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="上传设置")
     private String uploadSettings;
 
     /**
      * 安全设置
      */
-    @Length(max = 1000)
+    @Length(max = 2000)
     @Nullable
+    @Schema(description="安全设置")
     private String securitySettings;
 
     /**
@@ -79,6 +92,7 @@ public class ConfigBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="注册设置")
     private String registerSettings;
 
     /**
@@ -86,13 +100,15 @@ public class ConfigBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="短信设置")
     private String smsSettings;
 
     /**
      * 邮件设置
      */
-    @Length(max = 1000)
+    @Length(max = 2000)
     @Nullable
+    @Schema(description="邮件设置")
     private String emailSettings;
 
     /**
@@ -100,6 +116,7 @@ public class ConfigBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="附件存储点设置")
     private String uploadStorageSettings;
 
     /**
@@ -107,6 +124,7 @@ public class ConfigBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="HTML存储点设置")
     private String htmlStorageSettings;
 
     /**
@@ -114,12 +132,14 @@ public class ConfigBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="模板存储点设置")
     private String templateStorageSettings;
 
     /**
      * 自定义设置
      */
     @Nullable
+    @Schema(description="自定义设置")
     private String customsSettings;
 
     public Integer getId() {

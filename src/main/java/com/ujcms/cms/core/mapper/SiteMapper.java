@@ -49,6 +49,14 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
     List<Site> listByOrgId(Integer orgId);
 
     /**
+     * 根据组织ID查找站点ID
+     *
+     * @param orgId 组织ID
+     * @return 站点ID列表
+     */
+    List<Integer> listIdByOrgId(Integer orgId);
+
+    /**
      * 根据域名查找站点
      *
      * @param domain 域名

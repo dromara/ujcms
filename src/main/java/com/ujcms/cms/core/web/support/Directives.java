@@ -141,8 +141,13 @@ public class Directives {
         return Constants.MAX_PAGE_SIZE;
     }
 
+    /**
+     * 通用查询
+     */
+    public static final String Q = "Q";
+
     public static Map<String, Object> getQueryMap(Map<String, TemplateModel> params) throws TemplateModelException {
-        return getQueryMap(params, QUERY_PREFIX);
+        return Freemarkers.getMap(params.get("Q"));
     }
 
     /**
@@ -152,34 +157,7 @@ public class Directives {
 
     public static Map<String, String> getCustomsQueryMap(Map<String, TemplateModel> params)
             throws TemplateModelException {
-        Map<String, String> queryMap = getQueryMap(params, CUSTOMS_PREFIX).entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()));
-        TemplateModel model = params.get(CUSTOMS);
-        if (model instanceof TemplateHashModelEx) {
-            TemplateHashModelEx hashModel = (TemplateHashModelEx) model;
-            TemplateModelIterator it = hashModel.keys().iterator();
-            while (it.hasNext()) {
-                String key = Freemarkers.getString(it.next());
-                String value = Freemarkers.getString(hashModel.get(key));
-                if (StringUtils.isNotBlank(value)) {
-                    queryMap.put(key, value);
-                }
-            }
-        }
-        return queryMap;
-    }
-
-    private static Map<String, Object> getQueryMap(Map<String, TemplateModel> params, String prefix)
-            throws TemplateModelException {
-        Map<String, Object> queryMap = new HashMap<>(16);
-        for (Map.Entry<String, TemplateModel> param : params.entrySet()) {
-            String name = param.getKey();
-            TemplateModel value = param.getValue();
-            if (name.startsWith(prefix)) {
-                queryMap.put(name.substring(prefix.length()), Freemarkers.getString(value));
-            }
-        }
-        return queryMap;
+        return Freemarkers.getStringMap(params.get(CUSTOMS));
     }
 
     @Nullable

@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.support.RequestContextUtils;
@@ -44,7 +45,6 @@ public class Servlets {
 
     private static final String REMOTE_IP_HEADER = "X-Forwarded-For";
 
-    private static final Pattern COMMA_PATTERN = Pattern.compile("\\s*,\\s*");
     private static final Pattern INTERNAL_PROXIES_PATTERN = Pattern.compile("10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" +
             "192\\.168\\.\\d{1,3}\\.\\d{1,3}|" +
             "169\\.254\\.\\d{1,3}\\.\\d{1,3}|" +
@@ -56,11 +56,13 @@ public class Servlets {
 
     private static String[] commaDelimitedStringsToArray(@Nullable String commaDelimitedStrings) {
         return (commaDelimitedStrings == null || commaDelimitedStrings.length() == 0) ?
-                new String[0] : COMMA_PATTERN.split(commaDelimitedStrings);
+                new String[0] : StringUtils.split(commaDelimitedStrings, ',');
     }
 
     /**
      * 获得真实 IP 地址。在使用了反向代理时，直接用 {@link HttpServletRequest#getRemoteAddr()}无法获取客户真实的IP地址。
+     *
+     * @see org.apache.catalina.filters.RemoteIpFilter
      */
     public static String getRemoteAddr(ServletRequest req) {
         String remoteAddr = req.getRemoteAddr();
@@ -86,6 +88,19 @@ public class Servlets {
             }
         }
         return remoteAddr;
+    }
+
+    public static void sendRedirect(HttpServletRequest request, HttpServletResponse response, String url)
+            throws IOException {
+        DefaultRedirectStrategy redirect = new DefaultRedirectStrategy();
+        redirect.sendRedirect(request, response, url);
+    }
+
+    public static void sendRedirectContextRelative(HttpServletRequest request, HttpServletResponse response, String url)
+            throws IOException {
+        DefaultRedirectStrategy redirect = new DefaultRedirectStrategy();
+        redirect.setContextRelative(true);
+        redirect.sendRedirect(request, response, url);
     }
 
     /**

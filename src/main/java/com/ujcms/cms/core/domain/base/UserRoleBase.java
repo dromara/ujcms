@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -7,7 +9,9 @@ import javax.validation.constraints.NotNull;
  *
  * @author MyBatis Generator
  */
-public class UserRoleBase {
+public class UserRoleBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -17,18 +21,21 @@ public class UserRoleBase {
      * 用户ID
      */
     @NotNull
+    @Schema(description="用户ID")
     private Integer userId = 0;
 
     /**
      * 角色ID
      */
     @NotNull
+    @Schema(description="角色ID")
     private Integer roleId = 0;
 
     /**
      * 角色排序
      */
     @NotNull
+    @Schema(description="角色排序")
     private Short order = 32767;
 
     public Integer getUserId() {

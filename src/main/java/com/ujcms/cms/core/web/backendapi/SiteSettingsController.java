@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.SiteCustom;
 import com.ujcms.cms.core.service.SiteService;
@@ -8,7 +10,8 @@ import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.owasp.html.PolicyFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -29,29 +32,33 @@ import java.util.Map;
 @RestController("backendSiteSettingsController")
 @RequestMapping(UrlConstants.BACKEND_API + "/core/site-settings")
 public class SiteSettingsController {
-    private SiteService service;
+    private final PolicyFactory policyFactory;
+    private final SiteService service;
 
-    public SiteSettingsController(SiteService service) {
+    public SiteSettingsController(PolicyFactory policyFactory, SiteService service) {
+        this.policyFactory = policyFactory;
         this.service = service;
     }
 
     @GetMapping()
-    @RequiresPermissions("siteSettings:show")
+    @PreAuthorize("hasAnyAuthority('siteSettings:show','*')")
     public Object show() {
         return Contexts.getCurrentSite();
     }
 
     @PutMapping("base")
-    @RequiresPermissions("siteSettings:base:update")
+    @PreAuthorize("hasAnyAuthority('siteSettings:base:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateBase", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateBase(@RequestBody @Valid Site bean) {
         Site site = Contexts.getCurrentSite();
         Entities.copy(bean, site, "id", "parentId", "order", "watermark", "html", "customs");
-        service.update(site, bean.getCustomList());
+        service.update(site, null);
         return Responses.ok();
     }
 
     @PutMapping("watermark")
-    @RequiresPermissions("siteSettings:watermark:update")
+    @PreAuthorize("hasAnyAuthority('siteSettings:watermark:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateWatermark", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateWatermark(@RequestBody @Valid Site.Watermark bean) {
         Site site = Contexts.getCurrentSite();
         site.setWatermark(bean);
@@ -59,23 +66,36 @@ public class SiteSettingsController {
         return Responses.ok();
     }
 
+    @PutMapping("message-board")
+    @PreAuthorize("hasAnyAuthority('siteSettings:messageBoard:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateMessageBoard", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updateMessageBoard(@RequestBody @Valid Site.MessageBoard bean) {
+        Site site = Contexts.getCurrentSite();
+        site.setMessageBoard(bean);
+        service.update(site, null);
+        return Responses.ok();
+    }
+
     @PutMapping("customs")
-    @RequiresPermissions("siteSettings:customs:update")
+    @PreAuthorize("hasAnyAuthority('siteSettings:customs:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateCustoms", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateCustoms(@RequestBody Map<String, Object> customs) {
         Site site = Contexts.getCurrentSite();
+        site.getModel().sanitizeCustoms(customs, policyFactory);
         List<SiteCustom> customList = site.disassembleCustoms(customs);
         service.update(site, customList);
         return Responses.ok();
     }
 
     @GetMapping("html")
-    @RequiresPermissions("siteSettings:html:show")
+    @PreAuthorize("hasAnyAuthority('siteSettings:html:show','*')")
     public Object showHtml() {
         return Contexts.getCurrentSite().getHtml();
     }
 
     @PutMapping("html")
-    @RequiresPermissions("siteSettings:html:update")
+    @PreAuthorize("hasAnyAuthority('siteSettings:html:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateHtml", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateHtml(@RequestBody @Valid Site.Html bean) {
         Site site = Contexts.getCurrentSite();
         site.setHtml(bean);

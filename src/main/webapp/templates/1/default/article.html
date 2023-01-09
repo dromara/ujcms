@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <title>${article.title}</title>
+  <title>${article.title} - ${site.title}</title>
   <meta name="keywords" content="${article.seoKeywords}">
   <meta name="description" content="${article.seoDescription}">
   [#include 'includes_meta.html'/]
@@ -81,7 +81,7 @@
         <script>
           axios.get('${api}/article/download-params/${article.id}').then(function (response) {
             $('.article-download').each(function (index, element) {
-              $(element).attr('href', '${dy}/download/${article.id}/' + index + '?' + response.data)
+              $(element).attr('href', '${dy}/download-file/${article.id}/' + index + '?' + response.data)
             });
           })
         </script>

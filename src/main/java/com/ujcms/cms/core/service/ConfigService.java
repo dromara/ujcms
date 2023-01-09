@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class ConfigService {
-    private AttachmentService attachmentService;
-    private ConfigMapper mapper;
+    private final AttachmentService attachmentService;
+    private final ConfigMapper mapper;
 
     public ConfigService(AttachmentService attachmentService, ConfigMapper mapper) {
         this.attachmentService = attachmentService;

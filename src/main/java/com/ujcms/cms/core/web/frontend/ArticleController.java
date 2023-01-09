@@ -1,21 +1,25 @@
 package com.ujcms.cms.core.web.frontend;
 
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Servlets;
-import com.ujcms.util.web.exception.Http403Exception;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.cms.core.domain.Article;
+import com.ujcms.cms.core.domain.ArticleBuffer;
+import com.ujcms.cms.core.domain.Group;
+import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.service.ArticleBufferService;
+import com.ujcms.cms.core.service.ArticleService;
+import com.ujcms.cms.core.service.GroupService;
+import com.ujcms.cms.core.support.Constants;
+import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.cms.core.support.Utils;
-import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.ArticleBuffer;
-import com.ujcms.cms.core.domain.ArticleFile;
-import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.service.ArticleBufferService;
-import com.ujcms.cms.core.service.ArticleService;
-import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.util.file.FileHandler;
+import com.ujcms.util.web.PathResolver;
+import com.ujcms.util.web.Servlets;
+import com.ujcms.util.web.exception.Http401Exception;
+import com.ujcms.util.web.exception.Http403Exception;
+import com.ujcms.util.web.exception.Http404Exception;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,16 +48,19 @@ import static com.ujcms.cms.core.support.Frontends.PAGE_URL_RESOLVER;
  */
 @Controller("frontendArticleController")
 public class ArticleController {
-    private ArticleBufferService bufferService;
-    private ArticleService articleService;
-    private SiteResolver siteResolver;
-    private PathResolver pathResolver;
-    private Props props;
+    private final ArticleBufferService bufferService;
+    private final ArticleService articleService;
+    private final GroupService groupService;
+    private final SiteResolver siteResolver;
+    private final PathResolver pathResolver;
+    private final Props props;
 
     public ArticleController(ArticleBufferService bufferService, ArticleService articleService,
+                             GroupService groupService,
                              SiteResolver siteResolver, PathResolver pathResolver, Props props) {
         this.bufferService = bufferService;
         this.articleService = articleService;
+        this.groupService = groupService;
         this.siteResolver = siteResolver;
         this.pathResolver = pathResolver;
         this.props = props;
@@ -68,7 +75,8 @@ public class ArticleController {
                           @PathVariable(required = false) String alias, @PathVariable(required = false) Integer page,
                           HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
-        Article article = validateArticle(id, site);
+        User user = Contexts.findCurrentUser();
+        Article article = validateArticle(id, site, user);
         if (!StringUtils.equals(article.getExt().getAlias(), alias)) {
             return "redirect:" + article.getUrl();
         }
@@ -79,8 +87,8 @@ public class ArticleController {
         return article.getTemplate();
     }
 
-    @GetMapping({"/download/{id:[\\d]+}", "/download/{id:[\\d]+}/{index:[\\d]+}",
-            "/{subDir:[\\w-]+}/download/{id:[\\d]+}", "/{subDir:[\\w-]+}/download/{id:[\\d]+}/{index:[\\d]+}"})
+    @GetMapping({"/download-file/{id:[\\d]+}", "/download-file/{id:[\\d]+}/{index:[\\d]+}",
+            "/{subDir:[\\w-]+}/download-file/{id:[\\d]+}", "/{subDir:[\\w-]+}/download-file/{id:[\\d]+}/{index:[\\d]+}"})
     public void download(@PathVariable Integer id, @PathVariable(required = false) Integer index,
                          @PathVariable(required = false) String subDir,
                          @RequestParam long time, @NotNull String key,
@@ -93,14 +101,15 @@ public class ArticleController {
         if (System.currentTimeMillis() - time > expires) {
             throw new Http403Exception("Download Key Expired");
         }
-        Article article = validateArticle(id, site);
+        User user = Contexts.findCurrentUser();
+        Article article = validateArticle(id, site, user);
         String fileUrl, fileName;
         if (index != null) {
-            List<ArticleFile> fileList = article.getFileList();
+            List<Article.ArticleFile> fileList = article.getFileList();
             if (index >= fileList.size()) {
                 throw new Http404Exception("Article file not found. id=" + id + ", index=" + index);
             }
-            ArticleFile articleFile = fileList.get(index);
+            Article.ArticleFile articleFile = fileList.get(index);
             fileUrl = articleFile.getUrl();
             fileName = articleFile.getName();
         } else {
@@ -135,7 +144,7 @@ public class ArticleController {
         }
     }
 
-    private Article validateArticle(Integer id, Site site) {
+    private Article validateArticle(Integer id, Site site, User user) {
         Article article = articleService.select(id);
         if (article == null) {
             throw new Http404Exception("Article not found. ID=" + id);
@@ -146,6 +155,23 @@ public class ArticleController {
         if (!site.getId().equals(article.getSiteId())) {
             throw new Http404Exception("error.notInSite",
                     String.valueOf(article.getSiteId()), String.valueOf(site.getId()));
+        }
+        if (user == null) {
+            Group anonymous = groupService.getAnonymous();
+            if (!anonymous.getAllAccessPermission()) {
+                List<Integer> anonChannelIds = groupService.listAccessPermissions(Group.ANONYMOUS_ID, article.getSiteId());
+                if (!anonChannelIds.contains(article.getChannelId())) {
+                    throw new Http401Exception();
+                }
+            }
+            return article;
+        }
+        if (user.hasAllAccessPermission()) {
+            return article;
+        }
+        List<Integer> channelIds = groupService.listAccessPermissions(user.getGroupId(), article.getSiteId());
+        if (!channelIds.contains(article.getChannelId())) {
+            throw new Http403Exception("Article access forbidden. ID: " + id);
         }
         return article;
     }

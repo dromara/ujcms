@@ -1,6 +1,6 @@
 package com.ujcms.cms;
 
-import com.auth0.jwt.algorithms.Algorithm;
+import com.nimbusds.jose.KeyLengthException;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.SiteService;
@@ -9,14 +9,14 @@ import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.Utils;
 import com.ujcms.cms.core.web.support.BackendInterceptor;
 import com.ujcms.cms.core.web.support.ExceptionResolver;
+import com.ujcms.cms.core.web.support.FrontendApiInterceptor;
 import com.ujcms.cms.core.web.support.FrontendInterceptor;
-import com.ujcms.cms.core.web.support.JwtInterceptor;
 import com.ujcms.cms.core.web.support.UrlRedirectInterceptor;
 import com.ujcms.util.freemarker.OsTemplateLoader;
 import com.ujcms.util.image.ImageHandler;
 import com.ujcms.util.image.ThumbnailatorHandler;
-import com.ujcms.util.security.csrf.CsrfInterceptor;
-import com.ujcms.util.security.jwt.HmacSm3Algorithm;
+import com.ujcms.util.security.jwt.HmacSm3JwsSigner;
+import com.ujcms.util.security.jwt.HmacSm3JwsVerifier;
 import com.ujcms.util.security.jwt.JwtProperties;
 import com.ujcms.util.web.DirectoryRedirectInterceptor;
 import com.ujcms.util.web.PathResolver;
@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.lang.NonNull;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.web.WebApplicationInitializer;
@@ -45,8 +46,7 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 import javax.servlet.ServletContext;
 import java.util.Properties;
 
-import static com.ujcms.cms.core.support.UrlConstants.API;
-import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
+import static com.ujcms.cms.core.support.UrlConstants.*;
 
 /**
  * 根据 https://start.spring.io/ 生成的代码范例
@@ -89,14 +89,14 @@ public class Application extends SpringBootServletInitializer implements WebAppl
 
     @Configuration
     public static class WebConfigurer implements WebMvcConfigurer {
-        private UserService userService;
-        private SiteService siteService;
-        private OrgService orgService;
-        private ConfigService configService;
-        private Props props;
-        private DeviceResolver deviceResolver;
-        private ResourceLoader resourceLoader;
-        private ServletContext servletContext;
+        private final UserService userService;
+        private final SiteService siteService;
+        private final OrgService orgService;
+        private final ConfigService configService;
+        private final Props props;
+        private final DeviceResolver deviceResolver;
+        private final ResourceLoader resourceLoader;
+        private final ServletContext servletContext;
 
         public WebConfigurer(UserService userService, SiteService siteService, OrgService orgService,
                              ConfigService configService, Props props, DeviceResolver deviceResolver,
@@ -136,27 +136,19 @@ public class Application extends SpringBootServletInitializer implements WebAppl
         }
 
         /**
-         * JWT 算法。使用国密 HmacSM3。也可使用标准的 HMAC256: Algorithm.HMAC256(properties.getSecret())
+         * JWT 签名。使用国密 HmacSM3。
          */
         @Bean
-        public Algorithm jwtAlgorithm() {
-            return new HmacSm3Algorithm(jwtProperties().getSecret());
+        public HmacSm3JwsSigner hmacSm3JwsSigner() throws KeyLengthException {
+            return new HmacSm3JwsSigner(jwtProperties().getSecret());
         }
 
         /**
-         * JWT 拦截器
+         * JWT 验证。使用国密 HmacSM3。
          */
         @Bean
-        public JwtInterceptor jwtInterceptor() {
-            return new JwtInterceptor(jwtProperties(), userService, jwtAlgorithm());
-        }
-
-        /**
-         * CSRF 拦截器
-         */
-        @Bean
-        public CsrfInterceptor csrfInterceptor() {
-            return new CsrfInterceptor();
+        public HmacSm3JwsVerifier hmacSm3JwsVerifier() throws KeyLengthException {
+            return new HmacSm3JwsVerifier(jwtProperties().getSecret());
         }
 
         /**
@@ -172,7 +164,15 @@ public class Application extends SpringBootServletInitializer implements WebAppl
          */
         @Bean
         public FrontendInterceptor frontendInterceptor() {
-            return new FrontendInterceptor(deviceResolver, configService);
+            return new FrontendInterceptor(userService, siteService, configService, deviceResolver);
+        }
+
+        /**
+         * 前台拦截器
+         */
+        @Bean
+        public FrontendApiInterceptor frontendApiInterceptor() {
+            return new FrontendApiInterceptor(userService);
         }
 
         /**
@@ -195,35 +195,38 @@ public class Application extends SpringBootServletInitializer implements WebAppl
         public void addInterceptors(InterceptorRegistry registry) {
             // 错误页面和带点的文件请求 jquery.js bootstrap.min.css 都不经过拦截器
             registry.addInterceptor(timerInterceptor()).excludePathPatterns("/error/**", "/**/*.*");
-            // RESTful 有自己的机制防止 CSRF 攻击
-            registry.addInterceptor(csrfInterceptor()).excludePathPatterns(API + "/**", "/error/**", "/**/*.*");
-            // RESTful 接口地址以 /api 开头
-            registry.addInterceptor(jwtInterceptor()).addPathPatterns(API + "/**");
             // 后台拦截器
             registry.addInterceptor(backendInterceptor()).addPathPatterns(BACKEND_API + "/**");
             // 目录重定向拦截器
             if (props.isFileToDir() || props.isDirToFile()) {
                 registry.addInterceptor(directoryRedirectInterceptor())
-                        .excludePathPatterns(API + "/**", "/error/**", "/**/*.*");
+                        .excludePathPatterns(API + "/**", FRONTEND_API + "/**", "/error/**", "/**/*.*");
             }
+            // URL重写拦截器
+            registry.addInterceptor(urlRedirectInterceptor())
+                    .excludePathPatterns(API + "/**", FRONTEND_API + "/**", "/error/**", "/**/*.*");
             // 前台拦截器
-            registry.addInterceptor(urlRedirectInterceptor()).excludePathPatterns(API + "/**", "/error/**", "/**/*.*");
-            registry.addInterceptor(frontendInterceptor()).excludePathPatterns(API + "/**", "/error/**", "/**/*.*");
+            registry.addInterceptor(frontendInterceptor())
+                    .excludePathPatterns(API + "/**", FRONTEND_API + "/**", "/error/**", "/**/*.*");
+            // 前台API拦截器
+            registry.addInterceptor(frontendApiInterceptor())
+                    .addPathPatterns(API + "/**", FRONTEND_API + "/**")
+                    .excludePathPatterns(BACKEND_API + "/**");
         }
 
         @Override
-        public void addCorsMappings(CorsRegistry registry) {
+        public void addCorsMappings(@NonNull CorsRegistry registry) {
             // 允许 api 跨域
-            // registry.addMapping("API + /**").allowedOrigins("*").allowedMethods("GET", "POST").allowCredentials(true);
+            // registry.addMapping("API + /**").allowedOrigins("*").allowedMethods("GET", "POST").allowCredentials(true)
         }
 
         @Override
-        public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
             // 在开发环境下，上传的图片无法立即访问，需要等待1至5秒不等。
             // 可能是因为上传后，开发工具需要同步到实际tomcat的运行路径下。
             // 需要将上传文件定位到真实路径。可以通过设置 spring.web.resources.static-locations 实现。
             // 也可考虑判断 profile 进行处理。
-            // List<String> profiles = Arrays.asList(applicationContext.getEnvironment().getActiveProfiles());
+            // List<String> profiles = Arrays.asList(applicationContext.getEnvironment().getActiveProfiles())
             String uploadsLocation = props.getUploadsLocation();
             if (StringUtils.isNotBlank(uploadsLocation)) {
                 registry.addResourceHandler(uploadsLocation + "/**")
@@ -233,8 +236,9 @@ public class Application extends SpringBootServletInitializer implements WebAppl
 
         @Bean
         @ConditionalOnProperty(prefix = "ujcms", name = "template-loader-url")
-        public FreeMarkerConfigurer freeMarkerConfigurer(FreeMarkerProperties properties,
-                                                         @Value("${ujcms.template-loader-url}") String templateLoaderUrl) {
+        public FreeMarkerConfigurer freeMarkerConfigurer(
+                FreeMarkerProperties properties,
+                @Value("${ujcms.template-loader-url}") String templateLoaderUrl) {
             FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
             configurer.setPreTemplateLoaders(new OsTemplateLoader(templateLoaderUrl));
             // 使用 URL 加载模板，需关闭此项

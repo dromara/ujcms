@@ -1,8 +1,10 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.google.common.collect.ImmutableMap;
 import com.ujcms.cms.core.domain.Attachment;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.AttachmentService;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.support.Contexts;
@@ -16,28 +18,36 @@ import com.ujcms.util.web.PathResolver;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Uploads;
 import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.LogicException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.lang.Nullable;
+import org.apache.commons.validator.routines.DomainValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.util.UriComponentsBuilder;
 import ws.schild.jave.EncoderException;
 import ws.schild.jave.MultimediaObject;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.ujcms.cms.core.domain.Config.Security.SSRF_WILDCARD;
 import static com.ujcms.util.web.Uploads.*;
 
 /**
@@ -47,18 +57,15 @@ import static com.ujcms.util.web.Uploads.*;
  */
 @RestController("backendUploadController")
 @RequestMapping(UrlConstants.BACKEND_API)
-public class UploadController {
-    private AttachmentService attachmentService;
-    private ConfigService configService;
-    private ImageHandler imageHandler;
-    private PathResolver pathResolver;
+public class UploadController extends AbstractUploadController {
+    private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
 
-    public UploadController(AttachmentService attachmentService, ConfigService configService,
-                            ImageHandler imageHandler, PathResolver pathResolver) {
-        this.attachmentService = attachmentService;
+    private final ConfigService configService;
+
+    public UploadController(AttachmentService attachmentService, PathResolver pathResolver, ImageHandler imageHandler,
+                            ConfigService configService) {
+        super(attachmentService, imageHandler, pathResolver);
         this.configService = configService;
-        this.imageHandler = imageHandler;
-        this.pathResolver = pathResolver;
     }
 
     /**
@@ -71,9 +78,9 @@ public class UploadController {
      * @param thumbnailHeight 缩略图高度
      */
     @PostMapping("image-upload")
-    @RequiresPermissions("backend")
-    public Object imageUpload(Integer maxWidth, Integer maxHeight, String resizeMode, Boolean isWatermark,
-                              Integer thumbnailWidth, Integer thumbnailHeight, HttpServletRequest request)
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> imageUpload(Integer maxWidth, Integer maxHeight, String resizeMode, Boolean isWatermark,
+                                           Integer thumbnailWidth, Integer thumbnailHeight, HttpServletRequest request)
             throws IOException, EncoderException {
         Config.Upload upload = configService.getUnique().getUpload();
         ExtraHandle extraHandle = (tempFile, baseName, extension, pathname, fileHandler, site, userId, result) -> {
@@ -101,14 +108,15 @@ public class UploadController {
                 });
             }
             // 缩略图。图集需要缩略图，其他一般不需要。
-            thumbnail(fileHandler, tempFile, pathname, extension, thumbnailWidth, thumbnailHeight);
+            thumbnail(imageHandler, fileHandler, tempFile, Uploads.getThumbnailName(pathname),
+                    extension, thumbnailWidth, thumbnailHeight);
         };
         return doUpload(request, upload.getImageLimitByte(), upload.getImageTypes(), IMAGE_TYPE, extraHandle);
     }
 
     @PostMapping("video-upload")
-    @RequiresPermissions("backend")
-    public Object videoUpload(HttpServletRequest request) throws IOException, EncoderException {
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> videoUpload(HttpServletRequest request) throws IOException, EncoderException {
         Config.Upload upload = configService.getUnique().getUpload();
         ExtraHandle extraHandle = (tempFile, baseName, extension, pathname, fileHandler, site, userId, result) -> {
             MultimediaObject multimediaObject = new MultimediaObject(tempFile);
@@ -132,8 +140,8 @@ public class UploadController {
     }
 
     @PostMapping("audio-upload")
-    @RequiresPermissions("backend")
-    public Object audioUpload(HttpServletRequest request) throws IOException, EncoderException {
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> audioUpload(HttpServletRequest request) throws IOException, EncoderException {
         Config.Upload upload = configService.getUnique().getUpload();
         ExtraHandle extraHandle = (tempFile, baseName, extension, pathname, fileHandler, site, userId, result) ->
                 result.put("duration", MediaUtils.getDuration(new MultimediaObject(tempFile)) / 1000);
@@ -141,104 +149,64 @@ public class UploadController {
     }
 
     @PostMapping("doc-upload")
-    @RequiresPermissions("backend")
-    public Object docUpload(HttpServletRequest request) throws IOException, EncoderException {
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> docUpload(HttpServletRequest request) throws IOException, EncoderException {
         Config.Upload upload = configService.getUnique().getUpload();
         return doUpload(request, upload.getDocLimitByte(), upload.getDocTypes(), DOC_TYPE, null);
     }
 
     @PostMapping("file-upload")
-    @RequiresPermissions("backend")
-    public Object fileUpload(HttpServletRequest request) throws IOException, EncoderException {
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> fileUpload(HttpServletRequest request) throws IOException, EncoderException {
         Config.Upload upload = configService.getUnique().getUpload();
         return doUpload(request, upload.getFileLimitByte(), upload.getFileTypes(), FILE_TYPE, null);
     }
 
-    private Object doUpload(HttpServletRequest request, long limitByte, String types, String type,
-                            @Nullable ExtraHandle extraHandle) throws IOException, EncoderException {
-        MultipartFile multipart = getMultipart(request);
-        Site site = Contexts.getCurrentSite();
-        Integer userId = Contexts.getCurrentUserId();
-        // 检查文件大小
-        long length = multipart.getSize();
-        validateLimit(length, limitByte);
-        // 检查文件后缀
-        String extension = FilenameUtils.getExtension(multipart.getOriginalFilename());
-        validateType(extension, types);
+    @PostMapping("avatar-upload")
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> avatarUpload(HttpServletRequest request) throws EncoderException, IOException {
+        Config config = configService.getUnique();
+        Config.Upload upload = config.getUpload();
+        return doUpload(request, upload.getImageLimitByte(), upload.getImageTypes(), AVATAR_TYPE, null);
+    }
 
-        FileHandler fileHandler = Contexts.getCurrentSite().getConfig().getUploadStorage().getFileHandler(pathResolver);
-        File tempFile = Files.createTempFile(null, "." + extension).toFile();
-        String name = multipart.getOriginalFilename();
-        try {
-            Map<String, Object> result = new HashMap<>(8);
-            multipart.transferTo(tempFile);
-            if (IMAGE_TYPE.equalsIgnoreCase(type)) {
-                // 使用图片格式作为后缀。有时候支持透明格式的图片使用了错误的后缀(如png图片使用jpg后缀)，会导致透明部分变成黑色。
-                extension = Images.getFormatName(tempFile);
-                if (extension == null) {
-                    throw new Http400Exception("Image format type not supported.");
-                }
-                File newFile = new File(FilenameUtils.removeExtension(tempFile.getName()) + "." + extension);
-                if (tempFile.renameTo(newFile)) {
-                    tempFile = newFile;
-                }
-            }
-            // 获得存储路径和显示路径
-            String pathname = site.getBasePath("/" + type) + Uploads.getRandomFilename(extension);
-            String url = fileHandler.getDisplayPrefix() + pathname;
-            // 执行额外的处理
-            if (extraHandle != null) {
-                String baseName = FilenameUtils.getBaseName(name);
-                extraHandle.handle(tempFile, baseName, extension, pathname, fileHandler, site, userId, result);
-            }
-            fileHandler.store(pathname, tempFile);
-            attachmentService.insert(new Attachment(site.getId(), userId, name, pathname, url, length));
-            result.put("name", name);
-            result.put("url", url);
-            result.put("size", length);
-            return result;
-        } finally {
-            if (tempFile.exists()) {
-                FileUtils.deleteQuietly(tempFile);
-            }
-        }
+    @PostMapping("avatar-crop")
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> avatarCrop(@RequestBody CropParams params) throws IOException {
+        Config config = configService.getUnique();
+        return doAvatarCrop(config, params);
     }
 
     @PostMapping("image-crop")
-    @RequiresPermissions("backend")
-    public Object imageCrop(@RequestBody CropParam params) throws IOException {
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> imageCrop(@RequestBody CropParams params) throws IOException {
         Site site = Contexts.getCurrentSite();
-        Integer userId = Contexts.getCurrentUserId();
+        User user = Contexts.getCurrentUser();
         FileHandler fileHandler = site.getConfig().getUploadStorage().getFileHandler(pathResolver);
         String src = fileHandler.getName(params.url);
         if (src == null) {
-            return Responses.badRequest("external url not support: " + params.url);
+            throw new Http400Exception("external url not support: " + params.url);
         }
         // 图片裁剪。图片任意裁剪，生成新图片。
         String extension = FilenameUtils.getExtension(src);
         String pathname = site.getBasePath("/" + IMAGE_TYPE) + Uploads.getRandomFilename(extension);
-        String destUrl = fileHandler.getDisplayPrefix() + pathname;
+        String url = fileHandler.getDisplayPrefix() + pathname;
         File file = fileHandler.getFile(src);
         if (file == null) {
-            return Responses.badRequest("file not found: $src");
+            throw new Http400Exception("file not found: " + src);
         }
         File tempFile = Files.createTempFile(null, "." + extension).toFile();
         try {
-            // 未裁剪成功，则直接拷贝原图
-            if (!imageHandler.crop(file.getAbsolutePath(), tempFile.getAbsolutePath(),
-                    params.x, params.y, params.width, params.height)) {
-                FileUtils.copyFile(file, tempFile);
-            }
-            imageHandler.resize(tempFile.getAbsolutePath(), tempFile.getAbsolutePath(),
-                    params.maxWidth, params.maxHeight, ResizeMode.normal);
-            fileHandler.store(pathname, tempFile);
+            // 裁剪
+            crop(fileHandler, file, tempFile, pathname, params);
             // 缩略图。图集需要缩略图，其他一般不需要。
-            thumbnail(fileHandler, tempFile, pathname, extension,
+            thumbnail(imageHandler, fileHandler, tempFile, Uploads.getThumbnailName(pathname), extension,
                     params.thumbnailWidth, params.thumbnailHeight);
             String name = src.substring(src.lastIndexOf("/") + 1);
-            attachmentService.insert(new Attachment(site.getId(), userId, name, pathname, destUrl, tempFile.length()));
+            attachmentService.insert(new Attachment(site.getId(), user.getId(),
+                    name, pathname, url, tempFile.length()));
             Map<String, Object> result = new HashMap<>(4);
-            result.put("url", destUrl);
+            result.put("url", url);
             return result;
         } finally {
             if (file.exists()) {
@@ -250,63 +218,79 @@ public class UploadController {
         }
     }
 
-    public static class CropParam {
-        public String url;
-        public int x;
-        public int y;
-        public int width;
-        public int height;
-        public int maxWidth;
-        public int maxHeight;
-        public Integer thumbnailWidth;
-        public Integer thumbnailHeight;
-    }
-
-    private MultipartFile getMultipart(HttpServletRequest request) {
-        if (!(request instanceof MultipartHttpServletRequest)) {
-            throw new LogicException("MultipartHttpServletRequest is required");
-        }
-        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-        Map<String, MultipartFile> fileMap = multiRequest.getFileMap();
-        if (fileMap.isEmpty()) {
-            throw new LogicException("Upload file not found");
-        }
-        return fileMap.entrySet().iterator().next().getValue();
-    }
-
-    private void thumbnail(FileHandler fileHandler, File file, String pathname, String extension,
-                           Integer thumbnailWidth, Integer thumbnailHeight) throws IOException {
-        // 缩略图。图集需要缩略图，其他一般不需要。
-        if (thumbnailWidth == null || thumbnailHeight == null) {
-            return;
-        }
-        File thumbnailFile = Files.createTempFile(null, "." + extension).toFile();
+    /**
+     * 抓取远程图片
+     */
+    @PostMapping(value = "image-fetch", consumes = "text/plain")
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public ResponseEntity<Responses.Body> imageFetch(@RequestBody String source) {
+        Config config = configService.getUnique();
+        FileHandler fileHandler = config.getUploadStorage().getFileHandler(pathResolver);
+        Site site = Contexts.getCurrentSite();
+        Config.Security security = config.getSecurity();
+        List<String> whiteList = security.getSsrfList();
         try {
-            if (!imageHandler.resize(file.getAbsolutePath(), thumbnailFile.getAbsolutePath(),
-                    thumbnailWidth, thumbnailHeight, ResizeMode.normal)) {
-                FileUtils.copyFile(file, thumbnailFile);
+            URL src = new URL(source);
+            // 只支持 http 和 https 协议
+            String protocol = src.getProtocol();
+            String httpProtocol = "http", httpsProtocol = "https";
+            if (!httpProtocol.equals(protocol) && !httpsProtocol.equals(protocol)) {
+                return Responses.failure("Only supports http and https protocols: " + protocol);
             }
-            fileHandler.store(Uploads.getThumbnailName(pathname), thumbnailFile);
-        } finally {
-            FileUtils.deleteQuietly(thumbnailFile);
+            // 只允许默认端口
+            int port = src.getPort();
+            if (port != -1) {
+                return Responses.failure("Only default port is allowed: " + port);
+            }
+            String host = src.getHost();
+            // 域名是否合法
+            if (!DomainValidator.getInstance(true).isValid(host)) {
+                return Responses.failure("Host is not valid: " + host);
+            }
+            // 是否在白名单内
+            boolean inWhiteList = false;
+            for (String domain : whiteList) {
+                // 允许使用顶级域名
+                if (domain.equals(SSRF_WILDCARD) || host.equals(domain) || host.endsWith("." + domain)) {
+                    inWhiteList = true;
+                    break;
+                }
+            }
+            if (!inWhiteList) {
+                return Responses.failure("Host not in whitelist: " + host);
+            }
+            // 禁止访问本地网络
+            InetAddress inetAddress = InetAddress.getByName(host);
+            if (inetAddress.isSiteLocalAddress() || inetAddress.isAnyLocalAddress() ||
+                    inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
+                return Responses.failure("Block access to local network: " + host);
+            }
+            // 使用UriComponentsBuilder重新构建url，防止攻击
+            src = UriComponentsBuilder.newInstance().scheme(protocol).host(host)
+                    .path(src.getPath()).query(src.getQuery()).build().toUri().toURL();
+            HttpURLConnection conn = (HttpURLConnection) src.openConnection();
+            conn.setInstanceFollowRedirects(false);
+            // responseCode 必须为 200
+            int responseCode = conn.getResponseCode();
+            if (responseCode != HttpServletResponse.SC_OK) {
+                return Responses.failure("Response code error: " + responseCode);
+            }
+            // contentType 只支持 image/jpeg image/gif image/png image/bmp image/webp
+            String contentType = conn.getContentType();
+            String extension = Images.getImageExtension(contentType);
+            if (extension == null) {
+                return Responses.failure("Only supports image contentType: " + contentType);
+            }
+            // 获得存储路径和显示路径
+            String pathname = site.getBasePath("/" + IMAGE_TYPE) + Uploads.getRandomFilename(extension);
+            String url = fileHandler.getDisplayPrefix() + pathname;
+            try (InputStream is = conn.getInputStream()) {
+                fileHandler.store(pathname, is);
+            }
+            return Responses.ok(ImmutableMap.of("src", source, "url", url));
+        } catch (Exception e) {
+            logger.error("Image cache error!", e);
+            return Responses.failure("Image cache error!");
         }
-    }
-
-    private interface ExtraHandle {
-        /**
-         * 处理文件
-         *
-         * @param tempFile    上传文件转存的临时文件
-         * @param baseName    上传文件的原基础名称（不含扩展名）
-         * @param extension   上传文件的扩展名
-         * @param pathname    存储文件名
-         * @param fileHandler 文件处理对象
-         * @param site        站点
-         * @param userId      用户ID
-         * @param result      返回前台的数据
-         * @throws IOException IO异常
-         */
-        void handle(File tempFile, String baseName, String extension, String pathname, FileHandler fileHandler,
-                    Site site, Integer userId, Map<String, Object> result) throws IOException, EncoderException;
     }
 }

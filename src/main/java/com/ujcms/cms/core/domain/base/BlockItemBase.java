@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class BlockItemBase {
+public class BlockItemBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,24 +23,28 @@ public class BlockItemBase {
      * 区块项ID
      */
     @NotNull
+    @Schema(description="区块项ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer siteId = 0;
 
     /**
      * 区块ID
      */
     @NotNull
+    @Schema(description="区块ID")
     private Integer blockId = 0;
 
     /**
      * 文章ID
      */
     @Nullable
+    @Schema(description="文章ID")
     private Integer articleId;
 
     /**
@@ -44,6 +52,7 @@ public class BlockItemBase {
      */
     @Length(max = 150)
     @NotNull
+    @Schema(description="标题")
     private String title = "";
 
     /**
@@ -51,6 +60,7 @@ public class BlockItemBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="副标题")
     private String subtitle;
 
     /**
@@ -58,6 +68,7 @@ public class BlockItemBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="描述")
     private String description;
 
     /**
@@ -65,6 +76,7 @@ public class BlockItemBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="链接")
     private String linkUrl;
 
     /**
@@ -72,6 +84,7 @@ public class BlockItemBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="图片")
     private String image;
 
     /**
@@ -79,18 +92,36 @@ public class BlockItemBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="手机端图片")
     private String mobileImage;
+
+    /**
+     * 视频
+     */
+    @Length(max = 255)
+    @Nullable
+    @Schema(description="视频")
+    private String video;
+
+    /**
+     * 是否新窗口打开
+     */
+    @NotNull
+    @Schema(description="是否新窗口打开")
+    private Boolean targetBlank = false;
 
     /**
      * 是否启用
      */
     @NotNull
+    @Schema(description="是否启用")
     private Boolean enabled = true;
 
     /**
      * 排序
      */
     @NotNull
+    @Schema(description="排序")
     private Short order = 32767;
 
     public Integer getId() {
@@ -177,6 +208,23 @@ public class BlockItemBase {
 
     public void setMobileImage(@Nullable String mobileImage) {
         this.mobileImage = mobileImage;
+    }
+
+    @Nullable
+    public String getVideo() {
+        return video;
+    }
+
+    public void setVideo(@Nullable String video) {
+        this.video = video;
+    }
+
+    public Boolean getTargetBlank() {
+        return targetBlank;
+    }
+
+    public void setTargetBlank(Boolean targetBlank) {
+        this.targetBlank = targetBlank;
     }
 
     public Boolean getEnabled() {

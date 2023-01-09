@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class ArticleBase {
+public class ArticleBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,60 +23,70 @@ public class ArticleBase {
      * 文章ID
      */
     @NotNull
+    @Schema(description="文章ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer siteId = 0;
 
     /**
      * 组织ID
      */
     @NotNull
+    @Schema(description="组织ID")
     private Integer orgId = 0;
 
     /**
      * 栏目ID
      */
     @NotNull
+    @Schema(description="栏目ID")
     private Integer channelId = 0;
 
     /**
      * 创建用户ID
      */
     @NotNull
+    @Schema(description="创建用户ID")
     private Integer userId = 0;
 
     /**
      * 修改用户ID
      */
     @Nullable
+    @Schema(description="修改用户ID")
     private Integer modifiedUserId;
 
     /**
      * 发布日期
      */
     @NotNull
+    @Schema(description="发布日期")
     private OffsetDateTime publishDate = OffsetDateTime.now();
 
     /**
      * 是否有图片
      */
     @NotNull
+    @Schema(description="是否有图片")
     private Boolean withImage = false;
 
     /**
      * 置顶
      */
     @NotNull
+    @Schema(description="置顶")
     private Short sticky = 0;
 
     /**
      * 状态(0:正常,100:已删除)
      */
     @NotNull
+    @Schema(description="状态(0:正常,100:已删除)")
     private Short status = 0;
 
     public Integer getId() {

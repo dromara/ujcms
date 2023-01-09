@@ -1,7 +1,8 @@
 package com.ujcms.cms.core.support;
 
-import com.ujcms.util.web.PageUrlResolver;
 import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.domain.User;
+import com.ujcms.util.web.PageUrlResolver;
 import freemarker.core.Environment;
 import freemarker.ext.servlet.FreemarkerServlet;
 import freemarker.ext.servlet.HttpRequestParametersHashModel;
@@ -26,11 +27,14 @@ import java.util.Optional;
  * @see freemarker.ext.servlet.AllHttpScopesHashModel#get(String)
  */
 public class Frontends {
+    public static final String USER = "user";
     public static final String PARAMS = "Params";
     public static final String CTX = "ctx";
     public static final String DY = "dy";
+    public static final String DEF = "def";
     public static final String CONFIG = "config";
     public static final String SITE = "site";
+    public static final String DEFAULT_SITE = "defaultSite";
     public static final String FILES = "files";
     public static final String PAGE = "page";
     public static final String PAGE_SIZE = "pageSize";
@@ -41,7 +45,11 @@ public class Frontends {
 
     public static final String TEMPLATE_URL = "templateUrl";
 
-    public static void setData(HttpServletRequest request) {
+    public static void setUser(HttpServletRequest request, @Nullable User user) {
+        request.setAttribute(USER, user);
+    }
+
+    public static void setData(HttpServletRequest request, Site defaultSite) {
         Site site = Contexts.findCurrentSite();
         if (site == null) {
             throw new IllegalStateException("Context site not found. request URI: " + request.getRequestURI());
@@ -51,8 +59,10 @@ public class Frontends {
         request.setAttribute(PARAMS, new HttpRequestParametersHashModel(request));
         request.setAttribute(CTX, request.getContextPath());
         request.setAttribute(DY, site.getDy());
+        request.setAttribute(DEF, defaultSite.getDynamicUrl());
         request.setAttribute(CONFIG, site.getConfig());
         request.setAttribute(SITE, site);
+        request.setAttribute(DEFAULT_SITE, defaultSite);
         request.setAttribute(FILES, site.getFilesPath());
         // 根据
         // freemarker.ext.servlet.AllHttpScopesHashModel#get
@@ -69,7 +79,7 @@ public class Frontends {
         request.setAttribute(QUERY_STRING, request.getQueryString());
     }
 
-    public static void setDate(Map<String, Object> dataModel, Site site, String url, int page,
+    public static void setDate(Map<String, Object> dataModel, Site site, Site defaultSite, String url, int page,
                                @Nullable PageUrlResolver pageUrlResolver) {
         dataModel.put(FreemarkerServlet.KEY_APPLICATION, Collections.EMPTY_MAP);
         dataModel.put(FreemarkerServlet.KEY_SESSION, Collections.EMPTY_MAP);
@@ -78,8 +88,10 @@ public class Frontends {
         dataModel.put(PARAMS, Collections.EMPTY_MAP);
         dataModel.put(CTX, Optional.ofNullable(site.getConfig().getContextPath()).orElse(""));
         dataModel.put(DY, site.getDy());
+        dataModel.put(DEF, defaultSite.getDynamicUrl());
         dataModel.put(CONFIG, site.getConfig());
         dataModel.put(SITE, site);
+        dataModel.put(DEFAULT_SITE, defaultSite);
         dataModel.put(FILES, site.getFilesPath());
         dataModel.put(PAGE, page);
         dataModel.put(URL, url);

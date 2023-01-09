@@ -1,0 +1,46 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${messageBoard.title} - ${site.title}</title>
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'includes_header.html'/]
+<div class="container">
+  <div class="row">
+    <div class="col mt-1">
+      <div class="d-flex align-items-center py-1 border-bottom">
+        <div class="flex-grow-1 h5 mb-0"><a href="${dy}/message-board">留言板</a></div>
+        <div><a class="btn btn-primary" href="${dy}/message-board/create" role="button">我要留言</a></div>
+      </div>
+      <div class="my-3">
+        <h5>
+          [#if messageBoard.replied]<span class="badge badge-success">已回复</span>[#else]<span class="badge badge-secondary">未回复</span>[/#if]
+          <span class="badge badge-info">${messageBoard.type.name}</span>
+          ${messageBoard.title}
+        </h5>
+        <div class="small text-black-50 mt-2 pb-2 border-bottom">
+          <i class="far fa-user"></i> ${messageBoard.user.username!messageBoard.nickname!"匿名网友"}
+          <i class="ml-2 far fa-clock"></i> ${messageBoard.created.format('yyyy-MM-dd')}
+        </div>
+        <div class="mt-2">[#noescape]${bbcode(messageBoard.text)}[/#noescape]</div>
+      </div>
+      [#if messageBoard.replyText??]
+        <div class="border border-warning p-2 my-3">
+          <h5 class="text-danger"><i class="fas fa-comment-dots"></i> 官方回复</h5>
+          <div class="small text-muted"><i class="far fa-user"></i> ${messageBoard.replyUser.username} <i class="ml-2 far fa-clock"></i> ${messageBoard.replyDate.format('yyyy-MM-dd')}</div>
+          <div class="my-2">[#noescape]${messageBoard.replyText!}[/#noescape]</div>
+        </div>
+      [/#if]
+    </div>
+  </div>
+</div>
+[#include 'includes_footer.html'/]
+</body>
+</html>
+[/#escape]

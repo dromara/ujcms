@@ -6,24 +6,24 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>4.1.3</version>
-    <packaging>war</packaging>
+    <version>5.5.1</version>
+    <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
     <description>UJCMS是基于Java的CMS网站内容系统。使用spring-boot2、mybatis、freemarker、vite、vue3、element-plus、tailwind-css等技术开发。</description>
-    <url>http://www.ujcms.com/</url>
+    <url>https://www.ujcms.com</url>
     <inceptionYear>2021-2022</inceptionYear>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.8</version>
+        <version>2.7.5</version>
     </parent>
     <properties>
         <!-- mybatis-spring-boot-starter 2.0 以上版本 会引用 MyBatis 3.5 以上版本，导致OffsetDateTime出错。该问题与MySQL驱动有关，MySQL8.0.23驱动已解决这个问题。-->
         <!-- 相关参考资料：https://blog.csdn.net/zjcsuct/article/details/107754870 -->
         <mybatis-spring-boot-starter.version>2.2.2</mybatis-spring-boot-starter.version>
-        <pagehelper-spring-boot-starter.version>1.4.2</pagehelper-spring-boot-starter.version>
+        <pagehelper-spring-boot-starter.version>1.4.5</pagehelper-spring-boot-starter.version>
         <!--<mybatis-dynamic-sql.version>1.3.0</mybatis-dynamic-sql.version>-->
         <spring-boot-starter-mobile.version>1.5.22.RELEASE</spring-boot-starter-mobile.version>
         <!-- 工作流引擎 -->
@@ -35,9 +35,12 @@
         <!--<elasticsearch.version>7.15.2</elasticsearch.version>-->
         <!-- freemarker java8 日期组件 -->
         <freemarker-java8.version>2.0.0</freemarker-java8.version>
+        <!-- 指定liquibase版本，更高版本的liquibase在mysql中非空约束无效 -->
+        <liquibase.version>4.5.0</liquibase.version>
         <!-- Apache公共基础组件 -->
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-io.version>2.8.0</commons-io.version>
+        <commons-validator.version>1.7</commons-validator.version>
         <!-- Apache公共网络组件 -->
         <commons-net.version>3.8.0</commons-net.version>
         <!-- HTML解析组件 -->
@@ -46,11 +49,6 @@
         <bcprov-jdk15to18.version>1.71</bcprov-jdk15to18.version>
         <!-- HTML不安全代码过滤组件 -->
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
-        <!-- 安全框架 -->
-        <shiro.version>1.9.1</shiro.version>
-        <java-jwt.version>3.14.0</java-jwt.version>
-        <!--<pac4j-core.version>4.0.1</pac4j-core.version>-->
-        <!--<buji-pac4j.version>5.0.1</buji-pac4j.version>-->
         <!-- 验证码组件 -->
         <jcaptcha.version>2.0.0</jcaptcha.version>
         <!-- 纯 java 图片处理库 -->
@@ -72,22 +70,22 @@
         <!-- 计算机信息获取组件 -->
         <oshi-core.version>6.1.5</oshi-core.version>
         <!-- 阿里云短信组件 -->
-        <dysmsapi20170525.version>2.0.15</dysmsapi20170525.version>
+        <dysmsapi20170525.version>2.0.18</dysmsapi20170525.version>
         <!-- 腾讯云短信组件 -->
-        <tencentcloud-sdk-java.version>3.1.546</tencentcloud-sdk-java.version>
+        <tencentcloud-sdk-java.version>3.1.574</tencentcloud-sdk-java.version>
         <!-- 微信组件 -->
         <weixin-java-mp.version>4.3.4.B</weixin-java-mp.version>
         <!-- MinIO对象存储 -->
-        <minio.version>8.3.9</minio.version>
+        <!-- MinIO-8使用okhttp3-4.8.1，会和阿里云短信okhttp3-3.12.13冲突。只能用7.1版本。 -->
+        <minio.version>7.1.4</minio.version>
         <!-- 腾讯云对象存储 -->
         <cos_api.version>5.6.63</cos_api.version>
         <!-- 阿里云对象存储 -->
         <aliyun-sdk-oss.version>3.13.2</aliyun-sdk-oss.version>
         <!-- 七牛云对象存储 -->
         <qiniu-java-sdk.version>7.9.1</qiniu-java-sdk.version>
-        <!-- swagger2 API文档工具 -->
-        <!--<springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>-->
-        <!--<springdoc-openapi-ui.version>1.6.8</springdoc-openapi-ui.version>-->
+        <!-- SpringDoc API文档工具 -->
+        <springdoc-openapi-ui.version>1.6.11</springdoc-openapi-ui.version>
         <annotations.version>3.0.1</annotations.version>
         <mybatis-generator-core.version>1.4.0</mybatis-generator-core.version>
 
@@ -111,12 +109,28 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- 打包成war需要设置scope为provided -->
+        <!-- Spring AOP框架 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
+        <!-- Spring 安全框架 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>org.springframework.security</groupId>-->
+        <!--    <artifactId>spring-security-oauth2-jose</artifactId>-->
+        <!--</dependency>-->
         <!-- springboot elasticsearch -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -147,6 +161,12 @@
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>${mybatis-spring-boot-starter.version}</version>
+        </dependency>
+        <!-- mybatis caffeine 缓存插件 -->
+        <dependency>
+            <groupId>org.mybatis.caches</groupId>
+            <artifactId>mybatis-caffeine</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <!-- mybatis 分页 -->
         <dependency>
@@ -193,12 +213,6 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-        </dependency>
-        <!-- Shiro 安全组件 -->
-        <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-spring-boot-web-starter</artifactId>
-            <version>${shiro.version}</version>
         </dependency>
         <!-- Flowable 工作流 -->
         <dependency>
@@ -249,6 +263,11 @@
             <artifactId>commons-net</artifactId>
             <version>${commons-net.version}</version>
         </dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>${commons-validator.version}</version>
+        </dependency>
         <!-- 加密库 -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -266,24 +285,6 @@
             <artifactId>owasp-java-html-sanitizer</artifactId>
             <version>${owasp-java-html-sanitizer.version}</version>
         </dependency>
-        <!-- JWT 组件 -->
-        <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>${java-jwt.version}</version>
-        </dependency>
-
-        <!--<dependency>-->
-        <!--    <groupId>io.buji</groupId>-->
-        <!--    <artifactId>buji-pac4j</artifactId>-->
-        <!--    <version>${buji-pac4j.version}</version>-->
-        <!--</dependency>-->
-        <!--&lt;!&ndash; shiro cas 整合 &ndash;&gt;-->
-        <!--<dependency>-->
-        <!--    <groupId>org.pac4j</groupId>-->
-        <!--    <artifactId>pac4j-cas</artifactId>-->
-        <!--    <version>${pac4j-core.version}</version>-->
-        <!--</dependency>-->
 
         <!-- 验证码组件 -->
         <dependency>
@@ -390,9 +391,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- 阿里短信(okhttp3 3.12.13)、腾讯短信(okhttp 2.5.0)、MinIO-8(okhttp3 4.8.1)、MinIO-7(okhttp3 3.14.9)都需要用到 okhttp3，版本需要保存稳定 -->
+        <!-- 如果使用okhttp3的4.x版本，会导致阿里短信发送失败，这里使用3.x版本 -->
+        <!-- 如果使用okhttp3的3.x版本，MinIO-8.x会报错，只能用MinIO-7.1 -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
+            <version>3.14.9</version>
         </dependency>
 
         <!-- 腾讯云对象存储 -->
@@ -423,17 +428,19 @@
         <!--    <artifactId>aliyun-sdk-oss</artifactId>-->
         <!--    <version>${aliyun-sdk-oss.version}</version>-->
         <!--</dependency>-->
-        <!-- swagger2 API文档工具。spring boot 2.6 会报错 -->
-        <!--<dependency>-->
-        <!--    <groupId>io.springfox</groupId>-->
-        <!--    <artifactId>springfox-boot-starter</artifactId>-->
-        <!--    <version>${springfox-boot-starter.version}</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>org.springdoc</groupId>-->
-        <!--    <artifactId>springdoc-openapi-ui</artifactId>-->
-        <!--    <version>${springdoc-openapi-ui.version}</version>-->
-        <!--</dependency>-->
+
+        <!-- SpringDoc -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>${springdoc-openapi-ui.version}</version>
+        </dependency>
+        <!-- SpringDoc 将 javadoc 注释转为 swagger 注释。可以代替 @Operation @Schema(只作用于属性，方法无效)，@return 解析为 @Operation response -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-javadoc</artifactId>
+            <version>${springdoc-openapi-ui.version}</version>
+        </dependency>
         <!-- 防止出现找不到javax.annotation.meta.When的类文件的问题 -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -456,8 +463,8 @@
         <!--</dependency>-->
         <!-- JDBC 驱动 -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -493,7 +500,7 @@
         <!--<dependency>-->
         <!--    <groupId>cn.hutool</groupId>-->
         <!--    <artifactId>hutool-all</artifactId>-->
-        <!--    <version>5.8.0.M2</version>-->
+        <!--    <version>5.8.10</version>-->
         <!--</dependency>-->
 
         <!-- 测试 -->
@@ -523,12 +530,55 @@
             <scope>test</scope>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>war</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <project.packaging>war</project.packaging>
+            </properties>
+            <dependencies>
+                <!-- 打包成war需要设置scope为provided -->
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>jar</id>
+            <properties>
+                <project.packaging>jar</project.packaging>
+            </properties>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.github.therapi</groupId>
+                            <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+                            <version>0.15.0</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
             <!-- liquibase 插件 -->
             <plugin>
@@ -543,8 +593,8 @@
                 </configuration>
                 <dependencies>
                     <dependency>
-                        <groupId>mysql</groupId>
-                        <artifactId>mysql-connector-java</artifactId>
+                        <groupId>com.mysql</groupId>
+                        <artifactId>mysql-connector-j</artifactId>
                         <version>${mysql.version}</version>
                     </dependency>
                 </dependencies>

@@ -2,29 +2,86 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.domain.base.UserBase;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * 用户 实体类
+ * 用户实体类
  *
  * @author PONY
  */
-@JsonIgnoreProperties(value = {"password", "salt"}, allowSetters = true)
-public class User extends UserBase implements Serializable {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(value = {"password", "handler"}, allowSetters = true)
+public class User extends UserBase implements UserDetails, Serializable {
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 个人主页
+     */
+    @Schema(description = "个人主页")
+    public String getHomepage() {
+        return "/users/" + getId();
+    }
+
+    @Schema(description = "大头像")
+    @Nullable
+    public String getLargeAvatar() {
+        return getOtherSizeAvatar(Config.Register.AVATAR_LARGE);
+    }
+
+    @Schema(description = "中头像")
+    @Nullable
+    public String getMediumAvatar() {
+        return getOtherSizeAvatar(Config.Register.AVATAR_MEDIUM);
+    }
+
+    @Schema(description = "小头像")
+    @Nullable
+    public String getSmallAvatar() {
+        return getOtherSizeAvatar(Config.Register.AVATAR_SMALL);
+    }
+
+    @JsonIgnore
+    public List<String> getAvatarList() {
+        if (StringUtils.isBlank(getAvatar())) {
+            return Collections.emptyList();
+        }
+        return Arrays.asList(getAvatar(), getLargeAvatar(), getMediumAvatar(), getSmallAvatar());
+    }
+
+    @Nullable
+    private String getOtherSizeAvatar(String size) {
+        if (getAvatar() == null) {
+            return null;
+        }
+        String ext = FilenameUtils.getExtension(getAvatar());
+        return getAvatar() + size + ext;
+    }
+
     /**
      * 是否登录尝试过多。登录错误次数超过8次，且在半小时内。
      */
@@ -43,7 +100,15 @@ public class User extends UserBase implements Serializable {
     @JsonIgnore
     public boolean isPasswordExpired(int maxDays) {
         // maxDays 为 0 则不过期
-        return maxDays > 0 && getPasswordRemainingDays(maxDays) > maxDays;
+        return maxDays > 0 && getPasswordRemainingDays(maxDays) < 0;
+    }
+
+    /**
+     * 是否设置密码（通过第三方注册的用户可能没有设置密码）
+     */
+    @Schema(description = "密码是否存在")
+    public boolean isPasswordExist() {
+        return !"0".equalsIgnoreCase(getPassword());
     }
 
     /**
@@ -162,6 +227,33 @@ public class User extends UserBase implements Serializable {
         return false;
     }
 
+    /**
+     * 是否拥有所有栏目数据权限
+     */
+    @JsonIgnore
+    public boolean hasAllChannelPermission() {
+        if (isRoot()) {
+            return true;
+        }
+        for (Role role : getRoleList()) {
+            if (role.getAllChannelPermission()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 是否拥有所有文章的浏览权限
+     */
+    @JsonIgnore
+    public boolean hasAllAccessPermission() {
+        if (isRoot()) {
+            return true;
+        }
+        return getGroup().getAllAccessPermission();
+    }
+
     @JsonIgnore
     public List<Integer> fetchRoleIds() {
         return getRoleList().stream().map(Role::getId).collect(Collectors.toList());
@@ -182,27 +274,20 @@ public class User extends UserBase implements Serializable {
     }
 
     @JsonIgnore
-    public List<SaltPassword> getHistoryPasswordList() {
+    public List<String> getHistoryPasswordList() {
         String whole = getHistoryPassword();
         if (StringUtils.isBlank(whole)) {
             return new ArrayList<>();
         }
-        List<SaltPassword> passwordList = new ArrayList<>();
-        char semicolon = ';';
-        char comma = ',';
-        for (String part : StringUtils.split(whole, semicolon)) {
-            String[] pair = StringUtils.split(part, comma);
-            passwordList.add(new SaltPassword(pair[0], pair[1]));
-        }
-        return passwordList;
+        return new ArrayList<>(Arrays.asList(whole.split(",")));
     }
 
     @JsonIgnore
-    public List<SaltPassword> getHistoryPasswordList(int maxHistory) {
+    public List<String> getHistoryPasswordList(int maxHistory) {
         if (maxHistory <= 0) {
             return new ArrayList<>();
         }
-        List<SaltPassword> list = getHistoryPasswordList();
+        List<String> list = getHistoryPasswordList();
         int size = list.size();
         if (size > maxHistory) {
             return list.subList(size - maxHistory, size);
@@ -210,21 +295,17 @@ public class User extends UserBase implements Serializable {
         return list;
     }
 
-    public void setHistoryPasswordList(List<SaltPassword> passwordList) {
+    public void setHistoryPasswordList(List<String> passwordList) {
         if (passwordList.isEmpty()) {
             setHistoryPassword(null);
             return;
         }
-        StringBuilder builder = new StringBuilder();
-        for (SaltPassword pass : passwordList) {
-            builder.append(pass.getSalt()).append(",").append(pass.getPassword()).append(";");
-        }
-        setHistoryPassword(builder.toString());
+        setHistoryPassword(String.join(",", passwordList));
     }
 
-    public void addHistoryPassword(String salt, String password) {
-        List<SaltPassword> list = getHistoryPasswordList();
-        list.add(new SaltPassword(salt, password));
+    public void addHistoryPassword(String password) {
+        List<String> list = getHistoryPasswordList();
+        list.add(password);
         int size = list.size();
         if (size > PASSWORD_MAX_HISTORY) {
             list = list.subList(size - PASSWORD_MAX_HISTORY, PASSWORD_MAX_HISTORY);
@@ -233,15 +314,25 @@ public class User extends UserBase implements Serializable {
     }
 
     /**
-     * 是否超级管理员
+     * 是否超级管理员。ID为1的用户为超级管理员
      */
+    @Schema(description = "是否超级管理员。ID为1的用户为超级管理员")
     public boolean isRoot() {
         return getId() == 1;
     }
 
     /**
+     * 是否审计对象。系统管理员和安全管理员为审计对象，操作日志由审计管理员审计
+     */
+    @JsonIgnore
+    public boolean isAuditObject() {
+        return getType().equals(TYPE_SYSTEM) || getType().equals(TYPE_SECURITY);
+    }
+
+    /**
      * 是否未激活
      */
+    @JsonIgnore
     public boolean isInactivated() {
         return getStatus() == STATUS_INACTIVATED;
     }
@@ -249,6 +340,7 @@ public class User extends UserBase implements Serializable {
     /**
      * 是否锁定
      */
+    @JsonIgnore
     public boolean isLocked() {
         return getStatus() == STATUS_LOCKED;
     }
@@ -256,47 +348,70 @@ public class User extends UserBase implements Serializable {
     /**
      * 是否注销
      */
+    @JsonIgnore
     public boolean isCancelled() {
         return getStatus() == STATUS_CANCELLED;
     }
 
     /**
-     * 是否正常
+     * 是否正常状态
      */
-    public boolean isNormal() {
-        return getStatus() == STATUS_NORMAL;
+    @Schema(description = "是否正常状态")
+    @Override
+    public boolean isEnabled() {
+        return getStatus() == STATUS_ENABLED;
     }
 
     /**
      * 是否禁用。非正常状态，就是禁用。
      */
+    @JsonIgnore
     public boolean isDisabled() {
-        return getStatus() != STATUS_NORMAL;
+        return !isEnabled();
+    }
+    // region UserDetails
+
+    @JsonIgnore
+    @Override
+    public Collection<GrantedAuthority> getAuthorities() {
+        return getPermissions().stream().map(permission ->
+                new SimpleGrantedAuthority(permission)).collect(Collectors.toList());
     }
 
-    // region TempFields
+    /**
+     * 是否未锁定
+     */
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonLocked() {
+        return !isLocked();
+    }
 
-    @Nullable
-    private String plainPassword;
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @JsonIgnore
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    // endregion
+
+    // region TempFields
     /**
      * 角色ID列表。用于获取前台提交的数据。
      */
     private List<Integer> roleIds = new ArrayList<>();
-
-    @Nullable
-    public String getPlainPassword() {
-        return plainPassword;
-    }
-
-    public void setPlainPassword(@Nullable String plainPassword) {
-        this.plainPassword = plainPassword;
-    }
 
     @JsonIgnore
     public List<Integer> getRoleIds() {
         return roleIds;
     }
 
+    @Schema(description = "角色ID列表")
     @JsonProperty
     public void setRoleIds(List<Integer> roleIds) {
         this.roleIds = roleIds;
@@ -360,6 +475,7 @@ public class User extends UserBase implements Serializable {
 
     // region UserExt
 
+    @Schema(description = "真实姓名")
     @Nullable
     public String getRealName() {
         return getExt().getRealName();
@@ -369,6 +485,7 @@ public class User extends UserBase implements Serializable {
         getExt().setRealName(realName);
     }
 
+    @Schema(description = "性别(m:男,f:女,n:保密)")
     public String getGender() {
         return getExt().getGender();
     }
@@ -377,6 +494,7 @@ public class User extends UserBase implements Serializable {
         getExt().setGender(gender);
     }
 
+    @Schema(description = "出生日期")
     @Nullable
     public OffsetDateTime getBirthday() {
         return getExt().getBirthday();
@@ -386,7 +504,9 @@ public class User extends UserBase implements Serializable {
         getExt().setBirthday(birthday);
     }
 
+    @Length(max = 200)
     @Nullable
+    @Schema(description = "居住地")
     public String getLocation() {
         return getExt().getLocation();
     }
@@ -395,7 +515,9 @@ public class User extends UserBase implements Serializable {
         getExt().setLocation(location);
     }
 
+    @Length(max = 1000)
     @Nullable
+    @Schema(description = "自我介绍")
     public String getBio() {
         return getExt().getBio();
     }
@@ -404,6 +526,7 @@ public class User extends UserBase implements Serializable {
         getExt().setBio(bio);
     }
 
+    @Schema(description = "创建日期")
     public OffsetDateTime getCreated() {
         return getExt().getCreated();
     }
@@ -422,6 +545,8 @@ public class User extends UserBase implements Serializable {
         getExt().setHistoryPassword(historyPassword);
     }
 
+    @NotNull
+    @Schema(description = "最后登录日期")
     public OffsetDateTime getLoginDate() {
         return getExt().getLoginDate();
     }
@@ -430,6 +555,9 @@ public class User extends UserBase implements Serializable {
         getExt().setLoginDate(loginDate);
     }
 
+    @Length(max = 45)
+    @NotNull
+    @Schema(description = "最后登录IP")
     public String getLoginIp() {
         return getExt().getLoginIp();
     }
@@ -438,6 +566,8 @@ public class User extends UserBase implements Serializable {
         getExt().setLoginIp(loginIp);
     }
 
+    @NotNull
+    @Schema(description = "登录次数")
     public int getLoginCount() {
         return getExt().getLoginCount();
     }
@@ -473,7 +603,7 @@ public class User extends UserBase implements Serializable {
     /**
      * 用户状态：正常
      */
-    public static final short STATUS_NORMAL = 0;
+    public static final short STATUS_ENABLED = 0;
     /**
      * 用户状态：未激活
      */
@@ -488,42 +618,39 @@ public class User extends UserBase implements Serializable {
     public static final short STATUS_CANCELLED = 3;
 
     /**
+     * 用户类型：系统管理员
+     */
+    public static final short TYPE_SYSTEM = 1;
+    /**
+     * 用户类型：安全管理员
+     */
+    public static final short TYPE_SECURITY = 2;
+    /**
+     * 用户类型：审计管理员
+     */
+    public static final short TYPE_AUDIT = 3;
+    /**
+     * 用户类型：常规管理员
+     */
+    public static final short TYPE_NORMAL = 4;
+    /**
+     * 用户类型：前台会员
+     */
+    public static final short TYPE_MEMBER = 5;
+
+    /**
      * 需排除的字段。不能直接修改
      */
-    public static final String[] EXCLUDE_FIELDS = {"password", "salt", "status",
+    public static String[] EXCLUDE_FIELDS = {"password", "status",
             "created", "loginDate", "loginIp", "loginCount", "errorDate", "errorCount"};
     /**
      * 权限字段
      */
-    public static final String[] PERMISSION_FIELDS = {"rank"};
+    public static String[] PERMISSION_FIELDS = {"rank"};
+
+    /**
+     * 匿名用户ID
+     */
+    public static final Integer ANONYMOUS_ID = 0;
     // endregion
-
-    public static class SaltPassword {
-        public SaltPassword() {
-        }
-
-        public SaltPassword(String salt, String password) {
-            this.salt = salt;
-            this.password = password;
-        }
-
-        private String salt = "";
-        private String password = "";
-
-        public String getSalt() {
-            return salt;
-        }
-
-        public void setSalt(String salt) {
-            this.salt = salt;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-    }
 }

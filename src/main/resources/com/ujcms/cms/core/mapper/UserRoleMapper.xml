@@ -11,6 +11,16 @@
         from ujcms_user_role
         where user_id_ = #{userId,jdbcType=INTEGER}
     </delete>
+    <delete id="deleteByRoleId" parameterType="int">
+        delete
+        from ujcms_user_role
+        where role_id_ = #{roleId,jdbcType=INTEGER}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_user_role
+        where exists(select * from ujcms_role t where t.id_ = ujcms_user_role.role_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+    </delete>
     <select id="select" parameterType="map" resultMap="ResultMap">
         select
         <include refid="Column_List" />

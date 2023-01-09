@@ -1,6 +1,6 @@
 package com.ujcms.util.web;
 
-import org.apache.shiro.web.util.WebUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -310,14 +310,14 @@ public final class Responses {
         return null;
     }
 
-    /**
-     * 用于浏览器访问。未登录。
-     */
-    public static String unauthorized(HttpServletRequest request, HttpServletResponse response, String loginUrl) throws IOException {
-        WebUtils.saveRequest(request);
-        response.sendError(SC_UNAUTHORIZED);
-        return "redirect:" + loginUrl;
-    }
+    // /**
+    //  * 用于浏览器访问。未登录。
+    //  */
+    // public static String unauthorized(HttpServletRequest request, HttpServletResponse response, String loginUrl) throws IOException {
+    //     WebUtils.saveRequest(request);
+    //     response.sendError(SC_UNAUTHORIZED);
+    //     return "redirect:" + loginUrl;
+    // }
 
     /**
      * 工具类不允许创建对象
@@ -325,6 +325,7 @@ public final class Responses {
     private Responses() {
     }
 
+    @Schema(name = "Responses.Body", description = "响应对象")
     public static class Body {
         /**
          * 状态码：成功
@@ -335,22 +336,26 @@ public final class Responses {
          */
         public static final int FAILURE = -1;
         /**
-         * 逻辑状态码。0:成功, -1:失败。其它状态可以根据自己的实际逻辑随意使用。
+         * 逻辑状态码。0:成功, -1:失败。其它状态可以根据自己的实际逻辑随意使用
          */
+        @Schema(description = "逻辑状态码。0:成功, -1:失败。其它状态可以根据自己的实际逻辑随意使用")
         private int status = SUCCESS;
         /**
          * 数据
          */
+        @Schema(description = "数据")
         @Nullable
         private Map<String, Object> result;
         /**
-         * 信息。错误的具体信息。也是code的国际化信息。
+         * 信息
          */
+        @Schema(description = "信息")
         @Nullable
         private String message;
         /**
-         * 异常类的类名。
+         * 异常类的类名
          */
+        @Schema(description = "异常类的类名")
         @Nullable
         private String exception;
 

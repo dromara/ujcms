@@ -6,7 +6,7 @@ package com.ujcms.util.sms;
  * @author PONY
  */
 public class IpSmsCounterService {
-    private IpSmsCache cache;
+    private final IpSmsCache cache;
 
     public IpSmsCounterService(IpSmsCache cache) {
         this.cache = cache;

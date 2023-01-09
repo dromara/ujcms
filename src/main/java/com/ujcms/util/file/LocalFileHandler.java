@@ -6,6 +6,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +35,8 @@ import static com.ujcms.util.file.FilesEx.normalize;
  * @author PONY
  */
 public class LocalFileHandler implements FileHandler {
+    private static final Logger logger = LoggerFactory.getLogger(LocalFileHandler.class);
+
     private PathResolver pathResolver;
     /**
      * 保存路径前缀。默认为Servlet根路径(如:/uploads)，使用file:则为服务器绝对路径(如:file:c:/tomcat/uploads)
@@ -60,17 +64,14 @@ public class LocalFileHandler implements FileHandler {
     @Override
     public void store(String filename, Template template, Map<String, Object> dataModel) {
         File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
-        try {
-            FileUtils.forceMkdirParent(dest);
-        } catch (IOException e) {
-            throw new RuntimeException("Store file exception.", e);
-        }
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(dest), StandardCharsets.UTF_8))) {
+            FileUtils.forceMkdirParent(dest);
             template.process(dataModel, writer);
         } catch (Exception e) {
             throw new RuntimeException("Store file exception.", e);
         }
+        dest.setReadable(true, false);
     }
 
     @Override
@@ -79,6 +80,7 @@ public class LocalFileHandler implements FileHandler {
         try {
             FileUtils.forceMkdirParent(dest);
             part.transferTo(dest);
+            dest.setReadable(true, false);
         } catch (IOException e) {
             throw new RuntimeException("Store file exception.", e);
         }
@@ -90,6 +92,7 @@ public class LocalFileHandler implements FileHandler {
         try {
             FileUtils.forceMkdirParent(dest);
             ImageIO.write(image, formatName, dest);
+            dest.setReadable(true, false);
         } catch (IOException e) {
             throw new RuntimeException("Store file exception.", e);
         }
@@ -101,6 +104,7 @@ public class LocalFileHandler implements FileHandler {
         // 原图片不能删除
         try {
             FileUtils.copyFile(file, dest);
+            dest.setReadable(true, false);
         } catch (IOException e) {
             throw new RuntimeException("Store file exception.", e);
         }
@@ -112,6 +116,7 @@ public class LocalFileHandler implements FileHandler {
         try {
             FileUtils.forceMkdirParent(dest);
             FileUtils.copyInputStreamToFile(source, dest);
+            dest.setReadable(true, false);
         } catch (IOException e) {
             throw new RuntimeException("Store file exception.", e);
         }

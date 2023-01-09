@@ -4,22 +4,23 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.domain.UserExt;
+import com.ujcms.cms.core.domain.UserOpenid;
 import com.ujcms.cms.core.domain.UserRole;
+import com.ujcms.cms.core.listener.GroupDeleteListener;
 import com.ujcms.cms.core.listener.OrgDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.UserExtMapper;
 import com.ujcms.cms.core.mapper.UserMapper;
+import com.ujcms.cms.core.mapper.UserOpenidMapper;
 import com.ujcms.cms.core.mapper.UserRoleMapper;
 import com.ujcms.cms.core.service.args.UserArgs;
 import com.ujcms.util.query.QueryInfo;
 import com.ujcms.util.query.QueryParser;
-import com.ujcms.util.security.CredentialsDigest;
-import com.ujcms.util.security.Secures;
 import com.ujcms.util.web.exception.LogicException;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,9 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
+import static com.ujcms.cms.core.domain.User.ANONYMOUS_ID;
 
 /**
  * 用户 Service
@@ -35,58 +39,62 @@ import java.util.Objects;
  * @author PONY
  */
 @Service
-public class UserService implements OrgDeleteListener {
-    private CredentialsDigest credentialsDigest;
-    private UserMapper mapper;
-    private UserExtMapper extMapper;
-    private UserRoleMapper userRoleMapper;
-    private SeqService seqService;
+public class UserService implements OrgDeleteListener, GroupDeleteListener {
+    private final PasswordEncoder passwordEncoder;
+    private final AttachmentService attachmentService;
+    private final UserMapper mapper;
+    private final UserExtMapper extMapper;
+    private final UserOpenidMapper openidMapper;
+    private final UserRoleMapper userRoleMapper;
+    private final SeqService seqService;
 
-    public UserService(CredentialsDigest credentialsDigest, UserMapper mapper, UserExtMapper extMapper,
+    public UserService(PasswordEncoder passwordEncoder, AttachmentService attachmentService,
+                       UserMapper mapper, UserExtMapper extMapper, UserOpenidMapper openidMapper,
                        UserRoleMapper userRoleMapper, SeqService seqService) {
-        this.credentialsDigest = credentialsDigest;
+        this.passwordEncoder = passwordEncoder;
+        this.attachmentService = attachmentService;
         this.mapper = mapper;
         this.extMapper = extMapper;
+        this.openidMapper = openidMapper;
         this.userRoleMapper = userRoleMapper;
         this.seqService = seqService;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(User bean, UserExt ext, @Nullable List<Integer> roleIds) {
+    public void insert(User bean, UserExt ext) {
         bean.setId(seqService.getNextVal(User.TABLE_NAME));
-        if (StringUtils.isNotBlank(bean.getPlainPassword())) {
-            bean.setSalt(Secures.nextSalt());
-            bean.setPassword(credentialsDigest.digest(bean.getPlainPassword(), bean.getSalt()));
-        }
         ext.setId(bean.getId());
         mapper.insert(bean);
         extMapper.insert(ext);
-        if (roleIds != null) {
-            roleIds.forEach(roleId -> userRoleMapper.insert(new UserRole(bean.getId(), roleId)));
-        }
+        attachmentService.insertRefer(User.TABLE_NAME, bean.getId(), bean.getAvatarList());
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(User bean, UserExt ext, @Nullable List<Integer> roleIds) {
-        update(bean, roleIds);
+    public void insertOpenid(UserOpenid bean) {
+        openidMapper.insert(bean);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteOpenid(Integer userId, String provider) {
+        return openidMapper.delete(userId, provider);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void update(User bean, UserExt ext) {
+        update(bean);
         update(ext);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(User bean, @Nullable List<Integer> roleIds) {
+    public void update(User bean, List<Integer> roleIds) {
         update(bean);
-        if (roleIds != null) {
-            userRoleMapper.deleteByUserId(bean.getId());
-            roleIds.forEach(roleId -> userRoleMapper.insert(new UserRole(bean.getId(), roleId)));
-        }
+        userRoleMapper.deleteByUserId(bean.getId());
+        roleIds.forEach(roleId -> userRoleMapper.insert(new UserRole(bean.getId(), roleId)));
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void update(User bean) {
-        if (StringUtils.isNotBlank(bean.getPlainPassword())) {
-            bean.setSalt(Secures.nextSalt());
-            bean.setPassword(credentialsDigest.digest(bean.getPlainPassword(), bean.getSalt()));
-        }
+        attachmentService.updateRefer(User.TABLE_NAME, bean.getId(), bean.getAvatarList());
         mapper.update(bean);
     }
 
@@ -96,14 +104,11 @@ public class UserService implements OrgDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void changePassword(User user, UserExt userExt, String password) {
-        String origSalt = user.getSalt();
+    public void updatePassword(User user, UserExt userExt, String password) {
         String origPassword = user.getPassword();
-        String salt = Secures.nextSalt();
-        user.setSalt(salt);
-        user.setPassword(credentialsDigest.digest(password, salt));
+        user.setPassword(passwordEncoder.encode(password));
         user.setPasswordModified(OffsetDateTime.now());
-        user.addHistoryPassword(origSalt, origPassword);
+        user.addHistoryPassword(origPassword);
         userExt.setErrorCount(0);
         mapper.update(user);
         extMapper.update(userExt);
@@ -136,6 +141,8 @@ public class UserService implements OrgDeleteListener {
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
         deleteListeners.forEach(it -> it.preUserDelete(id));
+        attachmentService.deleteRefer(User.TABLE_NAME, id);
+        openidMapper.deleteByUserId(id);
         extMapper.delete(id);
         return mapper.delete(id);
     }
@@ -165,9 +172,19 @@ public class UserService implements OrgDeleteListener {
         return mapper.selectByMobile(mobile);
     }
 
+    @Nullable
+    public User selectByOpenid(String provider, String openid) {
+        return mapper.selectByOpenid(provider, openid);
+    }
+
     public List<User> selectList(UserArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), User.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo, args.getOrgId());
+    }
+
+    public User anonymous() {
+        return Optional.ofNullable(select(ANONYMOUS_ID)).orElseThrow(() ->
+                new IllegalStateException("Anonymous user(ID=0) not found."));
     }
 
     public List<User> selectList(UserArgs args, int offset, int limit) {
@@ -179,16 +196,30 @@ public class UserService implements OrgDeleteListener {
     }
 
     public boolean existsByOrgId(Integer orgId) {
-        return PageHelper.offsetPage(0, 1, false).doCount(() -> mapper.countByOrgId(orgId)) > 0;
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByOrgId(orgId)).iterator().next().intValue() > 0;
+    }
+
+    public boolean existsByGroupId(Integer groupId) {
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByGroupId(groupId)).iterator().next().intValue() > 0;
     }
 
     public boolean existsByRoleId(Integer roleId, Integer notOrgId) {
-        return PageHelper.offsetPage(0, 1, false).doCount(() -> mapper.countByRoleId(roleId, notOrgId)) > 0;
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByRoleId(roleId, notOrgId)).iterator().next().intValue() > 0;
     }
 
     @Override
     public void preOrgDelete(Integer orgId) {
         if (existsByOrgId(orgId)) {
+            throw new LogicException("error.refer.user");
+        }
+    }
+
+    @Override
+    public void preGroupDelete(Integer groupId) {
+        if (existsByGroupId(groupId)) {
             throw new LogicException("error.refer.user");
         }
     }

@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <title>${channel.name} - ${site.title}</title>
+  <title>${channel.title} - ${site.title}</title>
   <meta name="keywords" content="${channel.seoKeywords}">
   <meta name="description" content="${channel.seoDescription}">
   [#include 'includes_meta.html'/]
@@ -36,19 +36,19 @@
         [#assign customsQueryMap={}/]
         [#list channel.articleModel.fieldList?filter(field->['radio','checkbox','select','multipleSelect']?seqContains(field.type)) as field]
           <div class="py-1 border-bottom">
-            [#assign param=field.code/]
+            [#assign param=field.code+'_key'/]
             <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="btn btn-sm[#if !Params[param]??] btn-secondary[#else] btn-link text-reset[/#if]">全部${field.name}</a>
             [@DictList typeId=field.dictTypeId; list]
               [#list list as dict]
-                <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.name)}"
-                   class="btn btn-sm [#if Params[param]! == dict.name]btn-secondary[#else]btn-link text-reset[/#if]">${dict.name}</a>
+                <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}"
+                   class="btn btn-sm [#if Params[param]! == dict.value]btn-secondary[#else]btn-link text-reset[/#if]">${dict.name}</a>
               [/#list]
             [/@DictList]
           </div>
           [#assign customsQueryMap=customsQueryMap + {'EQ_'+param: Params[param]!}/]
         [/#list]
       </div>
-      [@ArticlePage channelId=channel.id isIncludeSubChannel='true' customs=customsQueryMap; pagedList]
+      [@ArticlePage channelId=channel.id isIncludeSubChannel='true' customs=customsQueryMap orderBy="sticky_desc,publishDate_desc,id_desc"; pagedList]
         <div class="row mx-n1 mb-3">
           [#list pagedList.content as bean]
             <div class="col-lg-3 col-6 px-1 mt-3">

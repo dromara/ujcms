@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class SiteBase {
+public class SiteBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,24 +23,28 @@ public class SiteBase {
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer id = 0;
 
     /**
      * 上级站点ID
      */
     @Nullable
+    @Schema(description="上级站点ID")
     private Integer parentId;
 
     /**
      * 组织ID
      */
     @NotNull
+    @Schema(description="组织ID")
     private Integer orgId = 0;
 
     /**
      * 模型ID
      */
     @NotNull
+    @Schema(description="模型ID")
     private Integer modelId = 0;
 
     /**
@@ -44,6 +52,7 @@ public class SiteBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -51,6 +60,7 @@ public class SiteBase {
      */
     @Length(max = 20)
     @NotNull
+    @Schema(description="协议(http,https)")
     private String protocol = "";
 
     /**
@@ -58,6 +68,7 @@ public class SiteBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="域名")
     private String domain = "";
 
     /**
@@ -65,6 +76,7 @@ public class SiteBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="子目录")
     private String subDir;
 
     /**
@@ -72,6 +84,7 @@ public class SiteBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="主题")
     private String theme = "default";
 
     /**
@@ -79,12 +92,14 @@ public class SiteBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="手机端主题")
     private String mobileTheme = "default";
 
     /**
      * 每页条数
      */
     @NotNull
+    @Schema(description="每页条数")
     private Short pageSize = 20;
 
     /**
@@ -92,6 +107,7 @@ public class SiteBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="LOGO")
     private String logo;
 
     /**
@@ -99,6 +115,7 @@ public class SiteBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="SEO标题")
     private String seoTitle;
 
     /**
@@ -106,6 +123,7 @@ public class SiteBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="SEO关键词")
     private String seoKeywords;
 
     /**
@@ -113,6 +131,7 @@ public class SiteBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="SEO描述")
     private String seoDescription;
 
     /**
@@ -120,6 +139,7 @@ public class SiteBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="静态页文件")
     private String staticFile;
 
     /**
@@ -127,6 +147,7 @@ public class SiteBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="手机端静态页文件")
     private String mobileStaticFile;
 
     /**
@@ -134,6 +155,7 @@ public class SiteBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="水印设置")
     private String watermarkSettings;
 
     /**
@@ -141,24 +163,36 @@ public class SiteBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="静态页设置")
     private String htmlSettings;
+
+    /**
+     * 留言板设置
+     */
+    @Length(max = 1000)
+    @Nullable
+    @Schema(description="留言板设置")
+    private String messageBoardSettings;
 
     /**
      * 层级
      */
     @NotNull
+    @Schema(description="层级")
     private Short depth = 1;
 
     /**
      * 排序
      */
     @NotNull
+    @Schema(description="排序")
     private Integer order = 999999;
 
     /**
      * 状态(0:正常,1:关闭)
      */
     @NotNull
+    @Schema(description="状态(0:正常,1:关闭)")
     private Short status = 0;
 
     public Integer getId() {
@@ -321,6 +355,15 @@ public class SiteBase {
 
     public void setHtmlSettings(@Nullable String htmlSettings) {
         this.htmlSettings = htmlSettings;
+    }
+
+    @Nullable
+    public String getMessageBoardSettings() {
+        return messageBoardSettings;
+    }
+
+    public void setMessageBoardSettings(@Nullable String messageBoardSettings) {
+        this.messageBoardSettings = messageBoardSettings;
     }
 
     public Short getDepth() {

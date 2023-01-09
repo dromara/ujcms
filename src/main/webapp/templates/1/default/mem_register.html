@@ -1,0 +1,226 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>用户登录 - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+  [#include 'includes_js_validation.html'/]
+  <script src="${files}/vendor/crypto-js/crypto-js.min.js"></script>
+  <script src="${files}/vendor/sm-crypto/dist/sm2.js"></script>
+</head>
+<body class="bg-light">
+<div class="container my-3 my-md-4 my-lg-5">
+  <div class="row justify-content-center">
+    <div class="col col-md-6 col-lg-5 col-xl-5 reg-box">
+      <h3 class="reg-logo text-center">
+        <a href="/"><b>UJCMS</b></a> <span>注册</span>
+      </h3>
+
+      <div class="reg-box-body rounded p-4 mt-4" style="background-color:#fff;border:1px solid #ccc;">
+        <form class="mb-2" id="validForm" action="${def}/login" method="post">
+          <div class="form-group">
+            <label class="sr-only" for="username">用户名</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="用户名" title="请输入用户名" required
+                   maxlength="${config.register.usernameMaxLength}"
+                   data-rule-minlength="${config.register.usernameMinLength}" data-msg-minlength="用户名不能少于 ${config.register.usernameMinLength} 个字符"
+                   data-rule-pattern="${config.register.usernameRegex}" data-msg-pattern="用户名只支持 字母、数字、汉字、下划线、中划线、点号"
+                   data-rule-remote="${api}/user/username-not-exist" data-msg-remote="用户名已存在">
+            <!--<small class="form-text text-muted">4~18个字符，可使用字母、数字、下划线</small>-->
+          </div>
+          <div class="form-group">
+            <label class="sr-only" for="password">密码</label>
+            [#if config.security.passwordStrength == 1]
+              [#assign dataMsgPattern='密码中必须包含字母、数字']
+            [#elseif config.security.passwordStrength == 2]
+              [#assign dataMsgPattern='密码中必须包含大写字母、小写字母、数字']
+            [#elseif config.security.passwordStrength == 3]
+              [#assign dataMsgPattern='密码中必须包含字母、数字、特殊字符']
+            [#elseif config.security.passwordStrength == 4]
+              [#assign dataMsgPattern='密码中必须包含大写字母、小写字母、数字、特殊字符']
+            [#else]
+              [#assign dataMsgPattern='密码可以是任意字符']
+            [/#if]
+            <input type="password" class="form-control" id="password" name="password" placeholder="密码" autocomplete="off" title="请输入密码" required
+                   maxlength="${config.security.passwordMaxLength}"
+                   data-rule-minlength="${config.security.passwordMinLength}" data-msg-minlength="密码不能少于 ${config.security.passwordMinLength} 个字符"
+                   data-rule-pattern="${config.security.passwordPattern}" data-msg-pattern="${dataMsgPattern}">
+          </div>
+          <div class="form-group">
+            <label class="sr-only" for="confirmPassword">确认密码</label>
+            <input type="password" class="form-control" id="confirmPassword" placeholder="确认密码" autocomplete="off" title="请确认密码" required
+                   data-rule-equalTo="#password" data-msg-equalTo="两次输入不相同">
+          </div>
+          [#-- 不验证或人工验证，需提供验证码 --]
+          [#if config.register.verifyMode == 1 || config.register.verifyMode == 2]
+            <div class="form-group">
+              <label class="sr-only" for="captcha">图形验证码</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="captcha" name="captcha" placeholder="图形验证码" autocomplete="off"
+                       data-rule-required="true" data-msg-required="请输入验证码"
+                       data-msg-remote="验证码错误">
+                <div class="input-group-append">
+                  <img id="captchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="input-group-text"
+                       style="cursor:pointer;padding:0;" title="点击重新获取验证码" alt="图形验证码"
+                       onclick="fetchCaptcha();$('#captcha').focus();">
+                  <input type="hidden" id="captchaToken" name="captchaToken">
+                  <script>
+                    function fetchCaptcha() {
+                      axios.get('${api}/captcha').then(function (response) {
+                        var data = response.data;
+                        if (data == null) return;
+                        $('#captchaImg').attr('src', 'data:image/png;base64,' + data.image);
+                        $('#captchaToken').val(data.token);
+                      });
+                    }
+
+                    fetchCaptcha();
+                  </script>
+                </div>
+              </div>
+            </div>
+          [#-- 邮箱地址验证 --]
+          [#elseif config.register.verifyMode = 3]
+            <div class="form-group">
+              <label class="sr-only" for="email">邮箱地址</label>
+              <input type="text" class="form-control" id="email" name="email" placeholder="邮箱地址" autocomplete="off" required title="请填写邮箱地址"
+                     data-rule-email="true" data-msg-email="请填写有效的邮箱地址" data-rule-remote="${api}/user/email-not-exist" data-msg-remote="邮箱地址已存在">
+            </div>
+            <div class="form-group">
+              <label class="sr-only" for="emailMessageValue">邮件验证码</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="emailMessageValue" name="emailMessageValue" placeholder="邮件验证码" autocomplete="off" required title="请填写邮件验证码"
+                       data-msg-remote="邮件验证码不正确">
+                <input type="hidden" id="emailMessageId" name="emailMessageId">
+                <span class="input-group-append"><button class="btn btn-secondary" id="emailMessageButton" type="button">获取邮件验证码</button></span>
+              </div>
+            </div>
+          [#-- 手机号码验证 --]
+          [#elseif config.register.verifyMode = 4]
+            <div class="form-group">
+              <label class="sr-only" for="mobile">手机号码</label>
+              <input type="text" class="form-control" id="mobile" name="mobile" placeholder="手机号码" autocomplete="off" required title="请填写手机号码"
+                     data-rule-pattern="^1\d{10}$" data-msg-pattern="请填写有效的手机号码" data-rule-remote="${api}/user/mobile-not-exist" data-msg-remote="手机号码已存在">
+            </div>
+            <div class="form-group">
+              <label class="sr-only" for="mobileMessageValue">短信验证码</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="mobileMessageValue" name="mobileMessageValue" placeholder="短信验证码" autocomplete="off" required title="请填写短信验证码"
+                       data-msg-remote="短信验证码不正确">
+                <input type="hidden" id="mobileMessageId" name="mobileMessageId">
+                <span class="input-group-append"><button class="btn btn-secondary" id="mobileMessageButton" type="button">获取短信验证码</button></span>
+              </div>
+            </div>
+          [/#if]
+          <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+          <button type="submit" class="btn btn-primary btn-block">注册</button>
+
+          <p class="text-center text-muted small mt-2">
+            登录或注册代表您同意 <a href="#">服务条款</a>
+          </p>
+          [#if config.customs['oauth']!false]
+          <p class="text-center text-muted mt-3">
+            <small>----- OR -----</small>
+          </p>
+          <p class="text-center lead">
+            <!-- style="background-color:#e32529;"-->
+            <a href="${def}/oauth/login/weibo[#if Params.targetUrl??]?targetUrl=${Params.targetUrl}[/#if]" class="text-light"><i class="fab fa-weibo rounded-circle p-2 bg-danger"></i></a>
+            <!-- style="background-color:#0076c4;"-->
+            <a href="${def}/oauth/login/qq[#if Params.targetUrl??]?targetUrl=${Params.targetUrl}[/#if]" class="text-light"><i class="fab fa-qq rounded-circle p-2 bg-primary"></i></a>
+            <!-- style="background-color:#00bc0c;"-->
+            <a href="${def}/oauth/login/weixin[#if Params.targetUrl??]?targetUrl=${Params.targetUrl}[/#if]" class="text-light"><i class="fab fa-weixin rounded-circle p-2 bg-success"></i></a>
+          </p>
+          [/#if]
+          <div class="text-center">
+            <small><a href="${def}/login">登录</a></small>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+[#include 'includes_message_box.html'/]
+[#include 'includes_short_message.html'/]
+
+<script>
+  var publicKey;
+  axios.get('${api}/env/client-public-key').then(function (response) {
+    publicKey = response.data;
+  });
+
+  function sm2Encrypt(message) {
+    return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Hex.parse('04' + sm2.doEncrypt(message, publicKey)));
+  }
+
+  $(function () {
+    $('#username').focus().select();
+    var validator = $('#validForm').validate({
+      rules: {
+        captcha: {
+          remote: {
+            url: '${api}/captcha/try', data: {
+              token: function () {
+                return $('#captchaToken').val();
+              }
+            }
+          }
+        },
+        emailMessageValue: {
+          remote: {
+            url: '${api}/sms/email/try', data: {
+              emailMessageId: function () {
+                return $('#emailMessageId').val();
+              },
+              email: function () {
+                return $('#email').val();
+              }
+            }
+          }
+        },
+        mobileMessageValue: {
+          remote: {
+            url: '${api}/sms/mobile/try', data: {
+              mobileMessageId: function () {
+                return $('#mobileMessageId').val();
+              },
+              mobile: function () {
+                return $('#mobile').val();
+              }
+            }
+          }
+        }
+      },
+      submitHandler: function (form) {
+        var body = $(form).serializeJSON();
+        if (body.password) {
+          body.password = sm2Encrypt(body.password);
+        }
+        request.post('${api}/register', body).then(function (response) {
+          if (response.data.status === 100) {
+            showAlert(response.data.message);
+            location.reload();
+            return;
+          }
+          var $password = $('#password');
+          $password.val(sm2Encrypt($password.val()));
+          form.submit();
+        });
+      }
+    });
+    $('#emailMessageButton').click(function () {
+      sendEmailMessage(validator, $('#email'), $('#emailMessageId'), $(this), 6);
+    });
+    $('#mobileMessageButton').click(function () {
+      sendMobileMessage(validator, $('#mobile'), $('#mobileMessageId'), $(this), 5);
+    });
+  });
+
+</script>
+</body>
+</html>
+[/#escape]

@@ -1,5 +1,28 @@
 # UJCMS 发版说明
 
+## ujcms-5.5.1 (2023-01-09)
+
+* 修复文章管理、栏目管理的外部链接字段xss漏洞
+
+## ujcms-5.5.0 (2023-01-06)
+
+* 新增留言板功能
+* 新增登录、注册、找回密码功能
+* 新增会员中心、修改基本信息、修改头像功能
+* 新增第三方登录功能
+* 新增从正文提取图片功能
+* 新增文章置顶功能
+* 新增操作日志功能
+* 新增浏览权限、栏目权限功能
+* 安全框架从Shiro改为Spring Security
+* 已知BUG修复
+
+### 升级指南
+
+* **注意**：下载地址`${dy}/download/...`变更为`${dy}/download-file/...`。由于`download`地址比较常用，换成不易冲突的地址。
+* **注意**：密码加密方式改为Spring Security的方式加密，密码和salt放到了同一个字段里。这将导致原密码无法登录，需要到数据库重置密码，将`ujcms_user`表的`password_`字段修改为`{pbkdf2}0Knzbc+J3Fkl5/mlJBrwLFOUwOvoBANcrfCgVvrjCSIBjnazXupYVw==`，密码将被重置为`password`。
+* **注意**：执行`upgrade/mysql/mysql_upgrade_40to55.sql`升级数据库（先启动程序，升级表结构后，再执行该脚本）。
+
 ## ujcms-4.1.2 (2022-07-21)
 
 * 升级shiro至1.9.1版本

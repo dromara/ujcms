@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.web.directive;
 
+import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.service.ArticleService;
@@ -30,13 +31,18 @@ public class ArticleDirective implements TemplateDirectiveModel {
         Integer id = Directives.getIntegerRequired(params, ID);
 
         Article article = articleService.select(id);
+        if (article != null) {
+            article.getChannel().getPaths().forEach(channelService::fetchFirstData);
+        }
         loopVars[0] = env.getObjectWrapper().wrap(article);
         body.render(env.getOut());
     }
 
-    private ArticleService articleService;
+    private final ArticleService articleService;
+    private final ChannelService channelService;
 
-    public ArticleDirective(ArticleService articleService) {
+    public ArticleDirective(ArticleService articleService, ChannelService channelService) {
         this.articleService = articleService;
+        this.channelService = channelService;
     }
 }

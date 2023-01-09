@@ -19,9 +19,9 @@ import java.util.Optional;
  * @author PONY
  */
 public class SiteResolver {
-    private static Logger logger = LoggerFactory.getLogger(SiteResolver.class);
-    private SiteService siteService;
-    private ConfigService configService;
+    private static final Logger logger = LoggerFactory.getLogger(SiteResolver.class);
+    private final SiteService siteService;
+    private final ConfigService configService;
 
     public SiteResolver(SiteService siteService, ConfigService configService) {
         this.siteService = siteService;
@@ -34,6 +34,19 @@ public class SiteResolver {
                     .orElseThrow(() -> {
                         logger.warn("Site sub-dir not exist: " + request.getRequestURL());
                         return new Http404Exception("error.siteSubDirNotExist", subDir);
+                    });
+            Contexts.setCurrentSite(site);
+            return site;
+        }
+        return resolve(request);
+    }
+
+    public Site resolve(HttpServletRequest request, @Nullable Integer siteId) {
+        if (siteId != null) {
+            Site site = Optional.ofNullable(siteService.select(siteId))
+                    .orElseThrow(() -> {
+                        logger.warn("Site id not exist: " + request.getRequestURL());
+                        return new Http404Exception("error.siteIdNotExist", String.valueOf(siteId));
                     });
             Contexts.setCurrentSite(site);
             return site;

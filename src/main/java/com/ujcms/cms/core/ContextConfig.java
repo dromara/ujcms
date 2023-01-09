@@ -6,6 +6,7 @@ import com.ujcms.cms.core.service.BlockItemService;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.DictService;
 import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.service.MessageBoardService;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.directive.AnchorDirective;
@@ -20,9 +21,12 @@ import com.ujcms.cms.core.web.directive.ChannelListDirective;
 import com.ujcms.cms.core.web.directive.DictListDirective;
 import com.ujcms.cms.core.web.directive.EsArticleListDirective;
 import com.ujcms.cms.core.web.directive.EsArticlePageDirective;
+import com.ujcms.cms.core.web.directive.MessageBoardListDirective;
+import com.ujcms.cms.core.web.directive.MessageBoardPageDirective;
 import com.ujcms.cms.core.web.directive.SiteDirective;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.util.freemarker.AddParamMethod;
+import com.ujcms.util.freemarker.BbCodeMethod;
 import com.ujcms.util.freemarker.FormatMethod;
 import com.ujcms.util.freemarker.PagingMethod;
 import com.ujcms.util.freemarker.SubstringMethod;
@@ -40,23 +44,26 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @MapperScan("com.ujcms.cms.core.mapper")
 public class ContextConfig implements InitializingBean {
-    private SiteService siteService;
-    private ChannelService channelService;
-    private ArticleLucene articleLucene;
-    private ArticleService articleService;
-    private DictService dictService;
-    private BlockItemService blockItemService;
-    private freemarker.template.Configuration configuration;
+    private final SiteService siteService;
+    private final ChannelService channelService;
+    private final ArticleLucene articleLucene;
+    private final ArticleService articleService;
+    private final DictService dictService;
+    private final BlockItemService blockItemService;
+    private final MessageBoardService messageBoardService;
+    private final freemarker.template.Configuration configuration;
 
-    public ContextConfig( SiteService siteService, ChannelService channelService, ArticleLucene articleLucene,
+    public ContextConfig(SiteService siteService, ChannelService channelService, ArticleLucene articleLucene,
                          ArticleService articleService, DictService dictService,
-                         BlockItemService blockItemService, freemarker.template.Configuration configuration) {
+                         BlockItemService blockItemService, MessageBoardService messageBoardService,
+                         freemarker.template.Configuration configuration) {
         this.siteService = siteService;
         this.channelService = channelService;
         this.articleLucene = articleLucene;
         this.articleService = articleService;
         this.dictService = dictService;
         this.blockItemService = blockItemService;
+        this.messageBoardService = messageBoardService;
         this.configuration = configuration;
     }
 
@@ -70,11 +77,13 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("Channel", new ChannelDirective(channelService));
         configuration.setSharedVariable("ArticleList", new ArticleListDirective(articleService, channelService));
         configuration.setSharedVariable("ArticlePage", new ArticlePageDirective(articleService, channelService));
-        configuration.setSharedVariable("Article", new ArticleDirective(articleService));
+        configuration.setSharedVariable("Article", new ArticleDirective(articleService, channelService));
         configuration.setSharedVariable("ArticlePrev", new ArticlePrevDirective(articleService));
         configuration.setSharedVariable("ArticleNext", new ArticleNextDirective(articleService));
         configuration.setSharedVariable("DictList", new DictListDirective(dictService));
         configuration.setSharedVariable("BlockItemList", new BlockItemListDirective(blockItemService));
+        configuration.setSharedVariable("MessageBoardList", new MessageBoardListDirective(messageBoardService));
+        configuration.setSharedVariable("MessageBoardPage", new MessageBoardPageDirective(messageBoardService));
 
         configuration.setSharedVariable("EsArticleList", new EsArticleListDirective(articleLucene));
         configuration.setSharedVariable("EsArticlePage", new EsArticlePageDirective(articleLucene));
@@ -82,6 +91,7 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("A", new AnchorDirective());
         // 方法
         configuration.setSharedVariable("substring", new SubstringMethod());
+        configuration.setSharedVariable("bbcode", new BbCodeMethod());
         configuration.setSharedVariable("format", new FormatMethod());
         configuration.setSharedVariable("paging", new PagingMethod(Frontends.PAGE));
         configuration.setSharedVariable("addParam", new AddParamMethod(Frontends.PAGE));

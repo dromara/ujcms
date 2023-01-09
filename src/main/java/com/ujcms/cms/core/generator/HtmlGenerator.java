@@ -25,8 +25,8 @@ import java.util.function.Consumer;
  */
 @Component
 public class HtmlGenerator extends AbstractGenerator {
-    private ChannelService channelService;
-    private HtmlService htmlService;
+    private final ChannelService channelService;
+    private final HtmlService htmlService;
 
     public HtmlGenerator(ArticleService articleService, ChannelService channelService, HtmlService htmlService,
                          TaskService taskService, @Qualifier("generator") ThreadPoolTaskExecutor executor) {

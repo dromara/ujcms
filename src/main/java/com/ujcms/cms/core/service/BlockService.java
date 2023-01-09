@@ -22,10 +22,9 @@ import java.util.Objects;
  */
 @Service
 public class BlockService implements SiteDeleteListener {
-    private BlockItemMapper itemMapper;
-    private BlockMapper mapper;
-
-    private SeqService seqService;
+    private final BlockItemMapper itemMapper;
+    private final BlockMapper mapper;
+    private final SeqService seqService;
 
     public BlockService(BlockItemMapper itemMapper, BlockMapper mapper, SeqService seqService) {
         this.itemMapper = itemMapper;
@@ -84,7 +83,8 @@ public class BlockService implements SiteDeleteListener {
     }
 
     public boolean existsByAlias(String alias, @Nullable Integer siteId) {
-        return PageHelper.offsetPage(0, 1, false).doCount(() -> mapper.countByAlias(alias, siteId)) > 0;
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByAlias(alias, siteId)).iterator().next().intValue() > 0;
     }
 
     @Override

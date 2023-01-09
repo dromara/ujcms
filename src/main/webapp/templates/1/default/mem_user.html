@@ -1,0 +1,20 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${targetUser.username} - ${site.title}</title>
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'includes_header.html'/]
+<div class="container mt-3">
+  ${targetUser.username} 主页
+</div>
+[#include 'includes_footer.html'/]
+</body>
+</html>
+[/#escape]

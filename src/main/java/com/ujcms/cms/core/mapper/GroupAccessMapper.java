@@ -43,12 +43,39 @@ public interface GroupAccessMapper {
     List<GroupAccess> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
 
     /**
+     * 根据 用户组ID 查询栏目ID列表
+     *
+     * @param groupId 用户组ID
+     * @param siteId  站点ID
+     * @return 栏目ID列表
+     */
+    List<Integer> listChannelByGroupId(@Param("groupId") Integer groupId, @Nullable @Param("siteId") Integer siteId);
+
+    /**
+     * 根据 栏目ID 查询用户组ID列表
+     *
+     * @param channelId 栏目ID
+     * @param siteId    站点ID
+     * @return 用户组ID列表
+     */
+    List<Integer> listGroupByChannelId(@Param("channelId") Integer channelId, @Nullable @Param("siteId") Integer siteId);
+
+    /**
      * 根据 栏目ID 删除数据
      *
      * @param channelId 栏目ID
      * @return 删除条数
      */
     int deleteByChannelId(@Param("channelId") Integer channelId);
+
+    /**
+     * 根据 用户组ID 删除数据
+     *
+     * @param groupId 用户组ID
+     * @param siteId  站点ID
+     * @return 删除条数
+     */
+    int deleteByGroupId(@Param("groupId") Integer groupId, @Nullable @Param("siteId") Integer siteId);
 
     /**
      * 根据站点ID删除数据

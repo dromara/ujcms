@@ -6,7 +6,7 @@
     <result column="receiver_" jdbcType="VARCHAR" property="receiver" />
     <result column="code_" jdbcType="VARCHAR" property="code" />
     <result column="send_date_" jdbcType="TIMESTAMP" property="sendDate" />
-    <result column="attempts_" jdbcType="SMALLINT" property="attempts" />
+    <result column="attempts_" jdbcType="INTEGER" property="attempts" />
     <result column="ip_" jdbcType="VARCHAR" property="ip" />
     <result column="usage_" jdbcType="SMALLINT" property="usage" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
@@ -34,14 +34,14 @@
       receiver_ = #{receiver,jdbcType=VARCHAR},
       code_ = #{code,jdbcType=VARCHAR},
       send_date_ = #{sendDate,jdbcType=TIMESTAMP},
-      attempts_ = #{attempts,jdbcType=SMALLINT},
+      attempts_ = #{attempts,jdbcType=INTEGER},
       ip_ = #{ip,jdbcType=VARCHAR},
       usage_ = #{usage,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ShortMessage">
     insert into ujcms_short_message (id_, type_, receiver_, code_, send_date_, attempts_, ip_, usage_, status_)
-    values (#{id,jdbcType=INTEGER}, #{type,jdbcType=SMALLINT}, #{receiver,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, #{sendDate,jdbcType=TIMESTAMP}, #{attempts,jdbcType=SMALLINT}, #{ip,jdbcType=VARCHAR}, #{usage,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+    values (#{id,jdbcType=INTEGER}, #{type,jdbcType=SMALLINT}, #{receiver,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, #{sendDate,jdbcType=TIMESTAMP}, #{attempts,jdbcType=INTEGER}, #{ip,jdbcType=VARCHAR}, #{usage,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.type_, t.receiver_, t.code_, t.send_date_, t.attempts_, t.ip_, t.usage_, t.status_
   </sql></mapper>

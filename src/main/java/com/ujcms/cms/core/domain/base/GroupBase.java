@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class GroupBase {
+public class GroupBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,6 +23,7 @@ public class GroupBase {
      * 用户组ID
      */
     @NotNull
+    @Schema(description="用户组ID")
     private Integer id = 0;
 
     /**
@@ -26,6 +31,7 @@ public class GroupBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -33,24 +39,28 @@ public class GroupBase {
      */
     @Length(max = 300)
     @Nullable
+    @Schema(description="描述")
     private String description;
 
     /**
      * 全部浏览权限
      */
     @NotNull
+    @Schema(description="全部浏览权限")
     private Boolean allAccessPermission = true;
 
     /**
      * 类型(1:系统,2:常规,3:IP组)
      */
     @NotNull
+    @Schema(description="类型(1:系统,2:常规,3:IP组)")
     private Short type = 2;
 
     /**
      * 排序
      */
     @NotNull
+    @Schema(description="排序")
     private Short order = 32767;
 
     public Integer getId() {

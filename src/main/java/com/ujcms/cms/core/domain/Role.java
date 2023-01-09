@@ -1,7 +1,10 @@
 package com.ujcms.cms.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.RoleBase;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -10,14 +13,19 @@ import java.util.List;
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
 
 /**
- * 角色 实体类
+ * 角色实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class Role extends RoleBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 是否全局共享
      */
+    @Schema(description = "是否全局共享")
     public boolean isGlobal() {
         return getScope() == SCOPE_GLOBAL;
     }
@@ -43,6 +51,10 @@ public class Role extends RoleBase implements Serializable {
      * 文章权限，栏目ID列表。非数据库属性，用于接收前台请求。
      */
     private List<Integer> articlePermissions = new ArrayList<>();
+    /**
+     * 栏目权限，栏目ID列表。非数据库属性，用于接收前台请求。
+     */
+    private List<Integer> channelPermissions = new ArrayList<>();
 
     public List<Integer> getArticlePermissions() {
         return articlePermissions;
@@ -50,6 +62,14 @@ public class Role extends RoleBase implements Serializable {
 
     public void setArticlePermissions(List<Integer> articlePermissions) {
         this.articlePermissions = articlePermissions;
+    }
+
+    public List<Integer> getChannelPermissions() {
+        return channelPermissions;
+    }
+
+    public void setChannelPermissions(List<Integer> channelPermissions) {
+        this.channelPermissions = channelPermissions;
     }
     // endregion
 
@@ -59,8 +79,8 @@ public class Role extends RoleBase implements Serializable {
      */
     public static final String PERMISSION_BACKEND = "backend";
 
-    public static final String[] PERMISSION_FIELDS = {"permission", "allPermission",
-            "grantPermission", "allGrantPermission", "globalPermission", "allArticlePermission", "dataScope"};
+    public static String[] PERMISSION_FIELDS = {"permission", "allPermission", "grantPermission",
+            "allGrantPermission", "globalPermission", "allArticlePermission", "allChannelPermission", "dataScope"};
     /**
      * 数据范围：所有
      */

@@ -18,6 +18,7 @@
     <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile" />
     <result column="text_" jdbcType="LONGVARCHAR" property="text" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ChannelExt" />
     <delete id="deleteBySiteId" parameterType="int">
         delete

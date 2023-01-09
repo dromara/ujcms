@@ -57,4 +57,20 @@ public interface TaskMapper {
      * @return 数据列表
      */
     List<Task> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
+
+    /**
+     * 根据 用户ID 删除数据
+     *
+     * @param userId 用户ID
+     * @return 删除条数
+     */
+    int deleteByUserId(@Param("userId") Integer userId);
+
+    /**
+     * 根据站点ID删除数据
+     *
+     * @param siteId 站点ID
+     * @return 被删除的数据条数
+     */
+    int deleteBySiteId(Integer siteId);
 }

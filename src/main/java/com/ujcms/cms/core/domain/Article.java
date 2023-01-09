@@ -2,18 +2,27 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ArticleBase;
 import com.ujcms.cms.core.support.Anchor;
+import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.file.FilesEx;
 import com.ujcms.util.web.HtmlParserUtils;
 import com.ujcms.util.web.PageUrlResolver;
+import com.ujcms.util.web.Views;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 import org.jsoup.Jsoup;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -26,12 +35,14 @@ import java.util.Optional;
 import static com.ujcms.util.web.Strings.formatDuration;
 
 /**
- * 文章 实体类
+ * 文章实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
 public class Article extends ArticleBase implements PageUrlResolver, Anchor, Serializable {
+    private static final long serialVersionUID = 1L;
     // region Normal
 
     @JsonIgnore
@@ -40,17 +51,13 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return getTitle();
     }
 
-    /**
-     * 获取 seoDescription，如不存在，则从正文中截取（最长 1000 字符）。
-     */
+    @Schema(description = "摘要。获取`seoDescription`，如不存在，则从正文中截取（最长 1000 字符）")
     public String getDescription() {
         return Optional.ofNullable(getExt().getSeoDescription())
                 .orElseGet(() -> StringUtils.substring(getPlainText(), 0, 1000));
     }
 
-    /**
-     * 获取纯文本格式的正文
-     */
+    @Schema(description = "纯文本格式的正文")
     public String getPlainText() {
         return Optional.ofNullable(getText())
                 .map(html -> Jsoup.parse(html).body().text())
@@ -60,9 +67,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
                 .orElse("");
     }
 
-    /**
-     * 获取文件尺寸。自动使用合适的单位，如 KB、MB 等。
-     */
+    @Schema(description = "文件尺寸。自动使用合适的单位，如 KB、MB 等")
     public String getFileSize() {
         return FilesEx.getSize(getFileLength());
     }
@@ -100,11 +105,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return urls;
     }
 
-    /**
-     * 获取区块列表
-     *
-     * @return 区块列表
-     */
+    @Schema(description = "区块列表")
     @JsonIncludeProperties({"id", "name"})
     public List<Block> getBlocks() {
         List<Block> blocks = new ArrayList<>();
@@ -114,16 +115,22 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return blocks;
     }
 
-    /**
-     * 是否正常状态（可访问）
-     */
+    @Schema(description = "是否正常状态（可访问）")
     public boolean isNormal() {
         return getStatus() == STATUS_PUBLISHED || getStatus() == STATUS_ARCHIVED;
+    }
+
+    @Schema(description = "是否可编辑")
+    public boolean isEditable() {
+        return StringUtils.isBlank(getChannel().getProcessKey()) ||
+                (getStatus() != STATUS_PUBLISHED && getStatus() != STATUS_ARCHIVED && getStatus() != STATUS_READY
+                        && getStatus() != STATUS_REVIEWING);
     }
     // endregion
 
     // region Urls
 
+    @Schema(description = "URL地址")
     @Override
     public String getUrl() {
         return getUrl(1);
@@ -134,6 +141,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return getSite().getHtml().isEnabled() ? getStaticUrl(page) : getDynamicUrl(page);
     }
 
+    @Schema(description = "动态URL地址")
     public String getDynamicUrl() {
         return getDynamicUrl(1);
     }
@@ -181,9 +189,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return getSite().getMobileStaticPath(getArticlePath(page));
     }
 
-    /**
-     * 是否是链接
-     */
+    @Schema(description = "是否是链接")
     public boolean isLink() {
         return StringUtils.isNotBlank(getExt().getLinkUrl());
     }
@@ -191,6 +197,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     // region TempFields
 
+    @Schema(description = "任务ID")
     @Nullable
     private String taskId;
 
@@ -204,8 +211,72 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
     // endregion
 
-
     // region JsonFields
+    /**
+     * 图片列表
+     */
+    @Nullable
+    private List<ArticleImage> imageList;
+    /**
+     * 文件列表
+     */
+    @Nullable
+    private List<ArticleFile> fileList;
+    /**
+     * 自定义字段
+     */
+    @Nullable
+    private Map<String, Object> customs;
+
+    public List<ArticleImage> getImageList() {
+        if (imageList == null) {
+            if (StringUtils.isNotBlank(getImageListJson())) {
+                try {
+                    imageList = Constants.MAPPER.readValue(getImageListJson(), new TypeReference<List<ArticleImage>>() {
+                    });
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                imageList = Collections.emptyList();
+            }
+        }
+        return imageList;
+    }
+
+    public void setImageList(List<ArticleImage> imageList) {
+        this.imageList = imageList;
+        try {
+            setImageListJson(Constants.MAPPER.writeValueAsString(imageList));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of List<ArticleImage>", e);
+        }
+    }
+
+    public List<ArticleFile> getFileList() {
+        if (fileList == null) {
+            if (StringUtils.isNotBlank(getFileListJson())) {
+                try {
+                    fileList = Constants.MAPPER.readValue(getFileListJson(), new TypeReference<List<ArticleFile>>() {
+                    });
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                fileList = Collections.emptyList();
+            }
+        }
+        return fileList;
+    }
+
+    public void setFileList(List<ArticleFile> fileList) {
+        this.fileList = fileList;
+        try {
+            setFileListJson(Constants.MAPPER.writeValueAsString(fileList));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of List<ArticleFile>", e);
+        }
+    }
 
     public Map<String, Object> getCustoms() {
         if (customs == null) {
@@ -224,9 +295,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
                 list.add(new ArticleCustom(id, name, type, value)));
         return list;
     }
-
-    @Nullable
-    private Map<String, Object> customs;
     // endregion
 
     // region Associations
@@ -248,7 +316,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     /**
      * 栏目
      */
-    @JsonIncludeProperties({"id", "name", "url", "path", "articleModelId"})
+    @JsonIncludeProperties({"id", "name", "url", "paths", "articleModelId"})
     private Channel channel = new Channel();
     /**
      * 组织
@@ -272,17 +340,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     @JsonIgnore
     private List<ArticleCustom> customList = Collections.emptyList();
     /**
-     * 图片列表
-     */
-    private List<ArticleImage> imageList = Collections.emptyList();
-    /**
-     * 文件列表
-     */
-    private List<ArticleFile> fileList = Collections.emptyList();
-    /**
      * 区块项列表
      */
-    @JsonIncludeProperties({"id", "title", "block"})
+    @JsonIncludeProperties({"id", "title", "enabled", "block"})
     private List<BlockItem> blockItemList = Collections.emptyList();
 
     public ArticleExt getExt() {
@@ -325,22 +385,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         this.customList = customList;
     }
 
-    public List<ArticleImage> getImageList() {
-        return imageList;
-    }
-
-    public void setImageList(List<ArticleImage> imageList) {
-        this.imageList = imageList;
-    }
-
-    public List<ArticleFile> getFileList() {
-        return fileList;
-    }
-
-    public void setFileList(List<ArticleFile> fileList) {
-        this.fileList = fileList;
-    }
-
     public Org getOrg() {
         return org;
     }
@@ -376,6 +420,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     // region ArticleExt
 
+    @Schema(description = "标题")
     public String getTitle() {
         return getExt().getTitle();
     }
@@ -384,6 +429,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setTitle(title);
     }
 
+    @Schema(description = "副标题")
     @Nullable
     public String getSubtitle() {
         return getExt().getSubtitle();
@@ -393,6 +439,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setSubtitle(subtitle);
     }
 
+    @Schema(description = "完整标题")
     @Nullable
     public String getFullTitle() {
         return getExt().getFullTitle();
@@ -402,6 +449,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setFullTitle(fullTitle);
     }
 
+    @Schema(description = "别名")
     @Nullable
     @Pattern(regexp = "^[\\w-]*$")
     public String getAlias() {
@@ -412,7 +460,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setAlias(alias);
     }
 
+    @Schema(description = "跳转链接")
     @Nullable
+    @Pattern(regexp = "^(http|/).*$")
     public String getLinkUrl() {
         return getExt().getLinkUrl();
     }
@@ -421,6 +471,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setLinkUrl(linkUrl);
     }
 
+    @Schema(description = "是否新窗口打开")
     @Override
     public Boolean getTargetBlank() {
         return getExt().getTargetBlank();
@@ -430,6 +481,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setTargetBlank(targetBlank);
     }
 
+    @Schema(description = "SEO关键字")
     @Nullable
     public String getSeoKeywords() {
         return getExt().getSeoKeywords();
@@ -439,6 +491,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setSeoKeywords(seoKeywords);
     }
 
+    @Schema(description = "SEO描述")
     @Nullable
     public String getSeoDescription() {
         return getExt().getSeoDescription();
@@ -448,6 +501,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setSeoDescription(seoDescription);
     }
 
+    @Schema(description = "作者")
     @Nullable
     public String getAuthor() {
         return getExt().getAuthor();
@@ -457,6 +511,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setAuthor(author);
     }
 
+    @Schema(description = "编辑")
     @Nullable
     public String getEditor() {
         return getExt().getEditor();
@@ -466,6 +521,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setEditor(editor);
     }
 
+    @Schema(description = "来源")
     @Nullable
     public String getSource() {
         return getExt().getSource();
@@ -475,6 +531,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setSource(source);
     }
 
+    @Schema(description = "下线日期")
     @Nullable
     public OffsetDateTime getOfflineDate() {
         return getExt().getOfflineDate();
@@ -484,6 +541,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setOfflineDate(offlineDate);
     }
 
+    @Schema(description = "置顶日期")
     @Nullable
     public OffsetDateTime getStickyDate() {
         return getExt().getStickyDate();
@@ -493,6 +551,27 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setStickyDate(stickyDate);
     }
 
+    @JsonIgnore
+    @Nullable
+    public String getImageListJson() {
+        return getExt().getImageListJson();
+    }
+
+    public void setImageListJson(String imageListJson) {
+        getExt().setImageListJson(imageListJson);
+    }
+
+    @JsonIgnore
+    @Nullable
+    public String getFileListJson() {
+        return getExt().getFileListJson();
+    }
+
+    public void setFileListJson(String fileListJson) {
+        getExt().setFileListJson(fileListJson);
+    }
+
+    @Schema(description = "图片URL")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getImage() {
@@ -503,6 +582,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setImage(image);
     }
 
+    @Schema(description = "视频URL")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getVideo() {
@@ -513,6 +593,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setVideo(video);
     }
 
+    @Schema(description = "视频时长")
     @Nullable
     public Integer getVideoDuration() {
         return getExt().getVideoDuration();
@@ -522,6 +603,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setVideoDuration(videoDuration);
     }
 
+    @Schema(description = "视频时长。字符串格式，如：`20:15`")
     @Nullable
     public String getVideoTime() {
         Integer duration = getVideoDuration();
@@ -531,6 +613,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return formatDuration(duration);
     }
 
+    @Schema(description = "音频URL")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getAudio() {
@@ -541,6 +624,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setAudio(audio);
     }
 
+    @Schema(description = "音频时长")
     @Nullable
     public Integer getAudioDuration() {
         return getExt().getAudioDuration();
@@ -550,6 +634,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setAudioDuration(audioDuration);
     }
 
+    @Schema(description = "音频时长。字符串格式，如：`20:15`")
     @Nullable
     public String getAudioTime() {
         Integer duration = getAudioDuration();
@@ -559,6 +644,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return formatDuration(duration);
     }
 
+    @Schema(description = "文件URL")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getFile() {
@@ -569,6 +655,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setFile(file);
     }
 
+    @Schema(description = "文件名称")
     @Nullable
     public String getFileName() {
         return getExt().getFileName();
@@ -578,6 +665,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setFileName(fileName);
     }
 
+    @Schema(description = "文件长度")
     @Nullable
     public Long getFileLength() {
         return getExt().getFileLength();
@@ -587,6 +675,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setFileLength(fileLength);
     }
 
+    @Schema(description = "文库URL")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getDoc() {
@@ -597,6 +686,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setDoc(doc);
     }
 
+    @Schema(description = "文库名称")
     @Nullable
     public String getDocName() {
         return getExt().getDocName();
@@ -606,6 +696,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setDocName(docName);
     }
 
+    @Schema(description = "文库长度")
     @Nullable
     public Long getDocLength() {
         return getExt().getDocLength();
@@ -615,6 +706,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setDocLength(docLength);
     }
 
+    @Schema(description = "文章模板")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getArticleTemplate() {
@@ -625,6 +717,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setArticleTemplate(articleTemplate);
     }
 
+    @Schema(description = "是否允许评论")
     public Boolean getAllowComment() {
         return getExt().getAllowComment();
     }
@@ -653,6 +746,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setMobileStaticFile(mobileStaticFile);
     }
 
+    @Schema(description = "创建日期")
     public OffsetDateTime getCreated() {
         return getExt().getCreated();
     }
@@ -661,6 +755,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setCreated(created);
     }
 
+    @Schema(description = "修改日期")
     @Nullable
     public OffsetDateTime getModified() {
         return getExt().getModified();
@@ -670,6 +765,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setModified(modified);
     }
 
+    @Schema(description = "流程实例ID")
     @Nullable
     public String getProcessInstanceId() {
         return getExt().getProcessInstanceId();
@@ -679,6 +775,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setProcessInstanceId(processInstanceId);
     }
 
+    @Schema(description = "审核拒绝原因")
     @Nullable
     public String getRejectReason() {
         return getExt().getRejectReason();
@@ -688,6 +785,8 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setRejectReason(rejectReason);
     }
 
+    @Schema(description = "正文（HTML格式）")
+    @JsonView(Views.Whole.class)
     @Nullable
     public String getText() {
         return getExt().getText();
@@ -697,6 +796,8 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setText(text);
     }
 
+    @Schema(description = "正文（Markdown格式）")
+    @JsonView(Views.Whole.class)
     @Nullable
     public String getMarkdown() {
         return getExt().getMarkdown();
@@ -706,6 +807,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setMarkdown(markdown);
     }
 
+    @Schema(description = "正文编辑器类型")
     public Short getEditorType() {
         return getExt().getEditorType();
     }
@@ -717,26 +819,32 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     // region ArticleBuffer
 
+    @Schema(description = "评论次数")
     public int getComments() {
         return getBuffer().getComments();
     }
 
+    @Schema(description = "下载次数")
     public int getDownloads() {
         return getBuffer().getDownloads();
     }
 
+    @Schema(description = "收藏次数")
     public int getFavorites() {
         return getBuffer().getFavorites();
     }
 
+    @Schema(description = "顶次数")
     public int getUps() {
         return getBuffer().getUps();
     }
 
+    @Schema(description = "踩次数")
     public int getDowns() {
         return getBuffer().getDowns();
     }
 
+    @Schema(description = "浏览次数")
     public long getViews() {
         return getBuffer().getViews();
     }
@@ -745,26 +853,128 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getBuffer().setViews(views);
     }
 
+    @Schema(description = "日浏览次数")
     public int getDayViews() {
         return getBuffer().getDayViews();
     }
 
+    @Schema(description = "周浏览次数")
     public int getWeekViews() {
         return getBuffer().getWeekViews();
     }
 
+    @Schema(description = "月浏览次数")
     public int getMonthViews() {
         return getBuffer().getMonthViews();
     }
 
+    @Schema(description = "季浏览次数")
     public int getQuarterViews() {
         return getBuffer().getQuarterViews();
     }
 
+    @Schema(description = "年浏览次数")
     public long getYearViews() {
         return getBuffer().getYearViews();
     }
     // endregion
+
+    /**
+     * 文章图片集实体类
+     */
+    public static class ArticleImage {
+        /**
+         * 图片名称
+         */
+        @Length(max = 150)
+        @Nullable
+        private String name;
+        /**
+         * 图片描述
+         */
+        @Length(max = 1000)
+        @Nullable
+        private String description;
+        /**
+         * 图片URL
+         */
+        @Length(max = 255)
+        @NotNull
+        private String url = "";
+
+        @Nullable
+        public String getName() {
+            return name;
+        }
+
+        public void setName(@Nullable String name) {
+            this.name = name;
+        }
+
+        @Nullable
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(@Nullable String description) {
+            this.description = description;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+    }
+
+    /**
+     * 文章文件集实体类
+     */
+    public static class ArticleFile {
+        /**
+         * 文件名称
+         */
+        @Length(max = 150)
+        @NotNull
+        private String name = "";
+        /**
+         * 文件URL
+         */
+        @Length(max = 255)
+        @NotNull
+        private String url = "";
+        /**
+         * 文件大小
+         */
+        @NotNull
+        private Long length = 0L;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public Long getLength() {
+            return length;
+        }
+
+        public void setLength(Long length) {
+            this.length = length;
+        }
+    }
 
     // region StaticFields
     /**

@@ -86,9 +86,14 @@ logging.level.org.springframework.boot.web.embedded.tomcat.TomcatWebServer: INFO
 logging.level.com.ujcms.cms.Application: INFO
 # 关闭springboot日志图标
 spring.main.banner-mode: off
+# 默认关闭 SpringDoc
+# 文档JSON地址：/v3/api-docs
+springdoc.api-docs.enabled: false
+# 文档HTML地址：/swagger-ui/index.html
+springdoc.swagger-ui.enabled: false
 
-# MyBatis关联对象延迟加载
-#mybatis.configuration.lazy-loading-enabled: true
+# MyBatis是否开启二级缓存。默认：true
+#mybatis.configuration.cache-enabled: false
 mybatis.configuration.default-fetch-size: 100
 mybatis.configuration.default-statement-timeout: 30
 # MyBatis分页方言。多个配置用';'分号分开。默认支持以下国产数据库(https://github.com/pagehelper/Mybatis-PageHelper)：
@@ -101,6 +106,7 @@ pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDia
 # Jackson配置
 spring.jackson.deserialization.FAIL_ON_UNKNOWN_PROPERTIES: false
 spring.jackson.serialization.FAIL_ON_EMPTY_BEANS: false
+spring.jackson.mapper.DEFAULT_VIEW_INCLUSION: true
 # 默认关闭 spring-data-elasticsearch 的 repositories
 spring.data.elasticsearch.repositories.enabled: false
 # 缓存类型。默认为内存缓存，集群环境需要设置为 redis
@@ -192,13 +198,13 @@ ujcms.uploads-location: /uploads
 #ujcms.client-sm2-public-key:
 # 客户端SM2私钥。使用QD值，HEX编码。单机环境可以不设置，会默认生成随机私钥。
 #ujcms.client-sm2-private-key:
-# 密码胡椒。此值一般不改动，改动后用户原密码将全部验证失败；若改动，需手动重置所有密码。一般不少于32个字符。密码胡椒将加在用户实际密码的前面，防止黑客在获取数据库数据后，对密码进行破解。如pepper为 "123"，用户密码是"abc"，则使用"123abc"作为密码进行加密。
+# 密码胡椒。除非对加密密码安全要求特别高，否则不要修改此项。改动后用户密码将全部失效，需手动重置所有密码。一般不少于32个字符。密码胡椒将加在用户实际密码中，防止黑客在获取数据库数据后，对密码进行破解。
 ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 
 # 是否启用Office功能（商业版功能）
 jodconverter.local.enabled: false
 # Office安装路径
-# LibreOffice Linux 通常为 /usr/lib64/libreoffice
+# LibreOffice Linux 通常为 /usr/lib/libreoffice、/usr/lib64/libreoffice、/opt/libreoffice7.4
 # LibreOffice Centos 通常为 /usr/bin/libreoffice
 # LibreOffice Windows 通常为 C:/Program Files/LibreOffice
 # OpenOffice Windows 通常为 C:/Program Files (x86)/OpenOffice 4

@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -7,7 +9,9 @@ import javax.validation.constraints.NotNull;
  *
  * @author MyBatis Generator
  */
-public class ChannelTreeBase {
+public class ChannelTreeBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -17,12 +21,14 @@ public class ChannelTreeBase {
      * 祖先ID
      */
     @NotNull
+    @Schema(description="祖先ID")
     private Integer ancestorId = 0;
 
     /**
      * 后代ID
      */
     @NotNull
+    @Schema(description="后代ID")
     private Integer descendantId = 0;
 
     public Integer getAncestorId() {

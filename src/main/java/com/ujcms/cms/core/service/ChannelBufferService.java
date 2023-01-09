@@ -16,9 +16,8 @@ import java.util.Objects;
  */
 @Service
 public class ChannelBufferService {
-    private ChannelBufferMapper mapper;
-
-    private SeqService seqService;
+    private final ChannelBufferMapper mapper;
+    private final SeqService seqService;
 
     public ChannelBufferService(ChannelBufferMapper mapper, SeqService seqService) {
         this.mapper = mapper;

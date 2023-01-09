@@ -6,10 +6,12 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.LoginLogService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.security.CredentialsDigest;
 import com.ujcms.util.security.Secures;
 import com.ujcms.util.web.Responses;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,33 +23,40 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Component
 public class PasswordService {
-    private LoginLogService loginLogService;
-    private UserService userService;
-    private CredentialsDigest credentialsDigest;
-    private Props props;
+    private final LoginLogService loginLogService;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
+    private final Props props;
 
     public PasswordService(LoginLogService loginLogService, UserService userService,
-                           CredentialsDigest credentialsDigest, Props props) {
+                           PasswordEncoder passwordEncoder, Props props) {
         this.loginLogService = loginLogService;
         this.userService = userService;
-        this.credentialsDigest = credentialsDigest;
+        this.passwordEncoder = passwordEncoder;
         this.props = props;
     }
 
-    public ResponseEntity<Responses.Body> changePassword(
-            User user, String encryptedPassword, String plainPassword,
+    public ResponseEntity<Responses.Body> updatePassword(
+            User user, @Nullable String encryptedPassword, String newEncryptedPassword,
             String ip, Config.Security security, HttpServletRequest request) {
         // 用户登录是否超过尝试次数
         if (user.isExcessiveAttempts(security.getUserMaxAttempts(), security.getUserLockMinutes())) {
-            loginLogService.changePasswordFailure(user.getId(), ip, LoginLog.STATUS_USER_EXCESSIVE_ATTEMPTS);
+            loginLogService.updatePasswordFailure(user.getId(), ip, LoginLog.STATUS_USER_EXCESSIVE_ATTEMPTS);
             return Responses.failure(request, "error.userExcessiveAttempts");
         }
+        if (StringUtils.isBlank(encryptedPassword) && user.isPasswordExist()) {
+            return Responses.failure("password cannot be null");
+        }
+        String password = null;
+        if (StringUtils.isNotBlank(encryptedPassword)) {
+            password = Secures.sm2Decrypt(encryptedPassword, props.getClientSm2PrivateKey());
+        }
         // 前台密码已通过SM2加密，此处进行解密
-        String password = Secures.sm2Decrypt(encryptedPassword, props.getClientSm2PrivateKey());
-        if (!credentialsDigest.matches(user.getPassword(), password, user.getSalt())) {
+        String newPassword = Secures.sm2Decrypt(newEncryptedPassword, props.getClientSm2PrivateKey());
+        if (password != null && !passwordEncoder.matches(password, user.getPassword())) {
             // 记录用户错误次数
             userService.loginFailure(user.getExt(), security.getUserLockMinutes());
-            loginLogService.changePasswordFailure(user.getId(), ip, LoginLog.STATUS_PASSWORD_WRONG);
+            loginLogService.updatePasswordFailure(user.getId(), ip, LoginLog.STATUS_PASSWORD_WRONG);
             int maxAttempts = security.getUserMaxAttempts();
             if (maxAttempts > 0) {
                 return Responses.failure(request, "error.passwordIncorrectAndWarning",
@@ -61,12 +70,12 @@ public class PasswordService {
         }
         // 是否使用历史密码
         int passwordMaxHistory = security.getPasswordMaxHistory();
-        for (User.SaltPassword saltPassword : user.getHistoryPasswordList(passwordMaxHistory)) {
-            if (credentialsDigest.matches(saltPassword.getPassword(), plainPassword, saltPassword.getSalt())) {
+        for (String historyPassword : user.getHistoryPasswordList(passwordMaxHistory)) {
+            if (passwordEncoder.matches(newPassword, historyPassword)) {
                 return Responses.failure(request, "error.passwordMatchesHistory");
             }
         }
-        userService.changePassword(user, user.getExt(), plainPassword);
+        userService.updatePassword(user, user.getExt(), newPassword);
         return Responses.ok();
     }
 }

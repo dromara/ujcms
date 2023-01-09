@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ujcms.util.lucene.StringNormsField;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.support.Anchor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
@@ -18,15 +19,20 @@ import org.springframework.data.elasticsearch.annotations.InnerField;
 import org.springframework.data.elasticsearch.annotations.MultiField;
 import org.springframework.lang.Nullable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.lucene.document.Field.Store;
 
 /**
+ * WEB页面基类
+ *
  * @author PONY
  */
-public class WebPage implements Anchor {
+public class WebPage implements Anchor, Serializable {
+    private static final long serialVersionUID = 1L;
+
     public static final String URL = "url";
     public static final String TITLE = "title";
     public static final String BODY = "body";
@@ -84,27 +90,51 @@ public class WebPage implements Anchor {
         return doc;
     }
 
+    /**
+     * URL地址
+     */
     @Field(type = FieldType.Keyword)
     private String url = "";
+    /**
+     * 标题
+     */
     @MultiField(mainField = @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart"),
             otherFields = {
                     @InnerField(suffix = "pinyin", type = FieldType.Text, analyzer = "pinyinAnalyzer"),
             }
     )
     private String title = "";
+    /**
+     * 正文
+     */
     @Nullable
     @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
     private String body;
+    /**
+     * 图片
+     */
     @Nullable
     @Field(type = FieldType.Keyword, index = false)
     private String image;
+    /**
+     * 类型
+     */
     @Field(type = FieldType.Keyword)
     private String discType = "";
+    /**
+     * 站点
+     */
     @Field(type = FieldType.Object, index = false)
     private SiteInner site = new SiteInner();
+    /**
+     * 标题（含高亮标识）
+     */
     @Nullable
     @Transient
     private String highlightTitle;
+    /**
+     * 正文（含高亮标识）
+     */
     @Nullable
     @Transient
     private String highlightBody;
@@ -184,6 +214,10 @@ public class WebPage implements Anchor {
         this.highlightBody = highlightBody;
     }
 
+    /**
+     * 全文检索站点基础实体类
+     */
+    @Schema(name = "WebPage.SiteBaseInner", description = "文检索站点基础实体类")
     public static class SiteBaseInner implements Anchor {
         public static SiteBaseInner of(Site site) {
             SiteBaseInner bean = new SiteBaseInner();
@@ -193,10 +227,19 @@ public class WebPage implements Anchor {
             return bean;
         }
 
+        /**
+         * ID
+         */
         @Field(type = FieldType.Integer)
         private Integer id = 0;
+        /**
+         * 名称
+         */
         @Field(type = FieldType.Keyword, index = false)
         private String name = "";
+        /**
+         * URL地址
+         */
         @Field(type = FieldType.Keyword, index = false)
         private String url = "";
 
@@ -227,6 +270,10 @@ public class WebPage implements Anchor {
         }
     }
 
+    /**
+     * 全文检索站点实体类
+     */
+    @Schema(name = "WebPage.SiteInner", description = "全文检索站点实体类")
     public static class SiteInner extends SiteBaseInner {
 
         public static SiteInner of(Site site) {
@@ -238,6 +285,9 @@ public class WebPage implements Anchor {
             return bean;
         }
 
+        /**
+         * 站点层级。从一级站点到当前站点的列表
+         */
         @Field(type = FieldType.Object, index = false)
         private List<SiteBaseInner> paths = new ArrayList<>();
 

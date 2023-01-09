@@ -22,9 +22,9 @@ import java.util.Objects;
  */
 @Service
 public class DictTypeService implements SiteDeleteListener {
-    private DictTypeMapper mapper;
-    private DictMapper dictMapper;
-    private SeqService seqService;
+    private final DictTypeMapper mapper;
+    private final DictMapper dictMapper;
+    private final SeqService seqService;
 
     public DictTypeService(DictTypeMapper mapper, DictMapper dictMapper, SeqService seqService) {
         this.mapper = mapper;
@@ -84,7 +84,8 @@ public class DictTypeService implements SiteDeleteListener {
     }
 
     public boolean existsByAlias(String alias, @Nullable Integer siteId) {
-        return PageHelper.offsetPage(0, 1, false).doCount(() -> mapper.countByAlias(alias, siteId)) > 0;
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByAlias(alias, siteId)).iterator().next().intValue() > 0;
     }
 
     @Override

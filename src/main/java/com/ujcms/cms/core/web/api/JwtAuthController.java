@@ -1,11 +1,5 @@
 package com.ujcms.cms.core.web.api;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTCreator;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.LoginLog;
 import com.ujcms.cms.core.domain.ShortMessage;
@@ -18,26 +12,39 @@ import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.captcha.CaptchaTokenService;
 import com.ujcms.util.captcha.IpLoginAttemptService;
-import com.ujcms.util.security.CredentialsDigest;
 import com.ujcms.util.security.Secures;
 import com.ujcms.util.security.jwt.JwtProperties;
-import com.ujcms.util.security.jwt.JwtUtils;
-import com.ujcms.util.sms.SmsTokenService;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.Servlets;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,27 +52,31 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.ujcms.util.security.jwt.JwtProperties.*;
+import static com.ujcms.util.security.jwt.JwtUtils.*;
 
 /**
  * @author PONY
  */
+@Tag(name = "JwtAuthController", description = "JWT登录接口")
 @RestController
 @RequestMapping(UrlConstants.API + "/auth/jwt")
 public class JwtAuthController {
-    private static Logger logger = LoggerFactory.getLogger(JwtAuthController.class);
-    private Props props;
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthController.class);
 
-    public JwtAuthController(Props props, JwtProperties properties, Algorithm algorithm) {
+    private final Props props;
+
+    public JwtAuthController(Props props, JwtProperties properties, SecretKey secretKey, JwtEncoder jwtEncoder) {
         this.props = props;
         this.properties = properties;
-        this.algorithm = algorithm;
-        long leeway = properties.getLeeway();
-        this.refreshTokenVerifier = JWT.require(algorithm).withIssuer(properties.getRefreshTokenIssuer())
-                .acceptLeeway(leeway).build();
+        this.jwtEncoder = jwtEncoder;
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(secretKey).build();
+        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(properties.getRefreshTokenIssuer()));
+        this.refreshTokenDecoder = decoder;
     }
 
+    @Operation(summary = "登录")
     @PostMapping("/login")
-    public ResponseEntity<Body> login(@RequestBody LoginParam params, HttpServletRequest request) {
+    public ResponseEntity<Body> login(@RequestBody @Valid LoginParams params, HttpServletRequest request) {
         Config config = configService.getUnique();
         Config.Security security = config.getSecurity();
         Config.Sms sms = config.getSms();
@@ -77,7 +88,7 @@ public class JwtAuthController {
         }
         // 是否需要验证码
         if (!security.isTwoFactor() && ipLoginAttemptService.isExcessive(ip, security.getIpCaptchaAttempts()) &&
-                !captchaTokenService.validateCaptcha(params.captchaToken, params.captchaValue)) {
+                !captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
             loginLogService.loginFailure(params.username, ip, LoginLog.STATUS_CAPTCHA_WRONG);
             return Responses.failure(request, "error.captchaIncorrect");
         }
@@ -100,26 +111,16 @@ public class JwtAuthController {
         }
         // 双因子认证是否通过
         if (security.isTwoFactor()) {
-            ShortMessage shortMessage = Optional.ofNullable(smsTokenService.getId(params.shortMessageToken))
-                    .map(shortMessageService::select).orElse(null);
-            if (shortMessage == null) {
+            if (!shortMessageService.validateCode(params.shortMessageId, user.getMobile(), params.shortMessageValue,
+                    sms.getCodeExpires())) {
                 loginLogService.loginFailure(params.username, ip, LoginLog.STATUS_SHORT_MESSAGE_WRONG);
-                return Responses.failure(request, "error.shortMessageIncorrect");
+                return Responses.failure(request, "error.mobileMessageIncorrect");
             }
-            // 是否过期、是否正确、是否已使用
-            if (shortMessage.isExpired(sms.getCodeExpires()) || shortMessage.isUsed()
-                    || shortMessage.isWrong(user.getMobile(), params.shortMessageValue)) {
-                loginLogService.loginFailure(params.username, ip, LoginLog.STATUS_SHORT_MESSAGE_WRONG);
-                shortMessageService.update(shortMessage);
-                return Responses.failure(request, "error.shortMessageIncorrect");
-            }
-            shortMessage.setStatus(ShortMessage.STATUS_CORRECT);
-            shortMessageService.update(shortMessage);
         }
         // 前台密码已通过SM2加密，此处进行解密
         String password = Secures.sm2Decrypt(params.password, props.getClientSm2PrivateKey());
         // 密码错误
-        if (!credentialsDigest.matches(user.getPassword(), password, user.getSalt())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             // 记录IP登录错误次数
             ipLoginAttemptService.failure(Servlets.getRemoteAddr(request));
             // 记录用户错误次数
@@ -152,10 +153,10 @@ public class JwtAuthController {
             return Responses.failure(request, "error.userDisabled");
         }
         // 生成 Access Token
-        Date now = new Date();
+        Instant now = Instant.now();
         String loginId = UUID.randomUUID().toString().replace("-", "");
-        String accessToken = createAccessToken(loginId, user.getId(), now, false);
-        String refreshToken = createRefreshToken(loginId, now, user.getId(), now, params.browser);
+        String accessToken = createAccessToken(loginId, user.getUsername(), now, false);
+        String refreshToken = createRefreshToken(loginId, now, user.getUsername(), now, params.browser);
         Map<String, Object> result = new HashMap<>(6);
         result.put(ACCESS_TOKEN, accessToken);
         result.put(EXPIRES_IN, properties.getExpiresSeconds());
@@ -177,22 +178,20 @@ public class JwtAuthController {
         return Responses.ok(result);
     }
 
+    @Operation(summary = "退出。一般情况下JWT无需服务器端退出。该方法主要用于记录退出日志")
     @PostMapping("/logout")
-    public ResponseEntity<Body> logout(@RequestBody RefreshTokenParam params, HttpServletRequest request) {
+    public ResponseEntity<Body> logout(@RequestBody RefreshTokenParams params, HttpServletRequest request) {
         try {
-            String refreshTokenEncrypted = params.refreshToken;
-            String refreshToken = Secures.sm4Decrypt(refreshTokenEncrypted, properties.getTokenSecret());
-            DecodedJWT jwt = refreshTokenVerifier.verify(refreshToken);
+            Jwt jwt = refreshTokenDecoder.decode(params.refreshToken);
             // 可以获取 jwtId 从数据库等存储空间中验证 token 是否伪造
-            Integer userId = Integer.valueOf(jwt.getSubject());
-            User user = userService.select(userId);
+            String username = jwt.getSubject();
+            User user = userService.selectByUsername(username);
             if (user == null) {
-                return Responses.failure("user not found. id: " + userId);
+                return Responses.failure("user not found. username: " + username);
             }
             loginLogService.logout(user.getId(), Servlets.getRemoteAddr(request));
             return Responses.ok();
-        } catch (JWTVerificationException | BadPaddingException | IllegalBlockSizeException
-                | IllegalArgumentException e) {
+        } catch (BadJwtException e) {
             // 验证失败
             String message = "refresh token JWT verification failed: " + params.refreshToken;
             logger.info(message, e);
@@ -200,28 +199,28 @@ public class JwtAuthController {
         }
     }
 
+    @Operation(summary = "刷新TOKEN")
     @PostMapping("/refresh-token")
-    public ResponseEntity<Body> refreshToken(@RequestBody RefreshTokenParam params) {
+    public ResponseEntity<Body> refreshToken(@RequestBody RefreshTokenParams params) {
         try {
-            String refreshTokenEncrypted = params.refreshToken;
-            String refreshToken = Secures.sm4Decrypt(refreshTokenEncrypted, properties.getTokenSecret());
-            DecodedJWT jwt = refreshTokenVerifier.verify(refreshToken);
+            String refreshToken = params.refreshToken;
+            Jwt jwt = refreshTokenDecoder.decode(params.refreshToken);
             // 可以获取 jwtId 从数据库等存储空间中验证 token 是否伪造
-            Integer userId = Integer.valueOf(jwt.getSubject());
-            User user = userService.select(userId);
+            String username = jwt.getSubject();
+            User user = userService.selectByUsername(username);
             if (user == null || user.isDisabled()) {
-                return Responses.failure("user not found or user is disabled. id: " + userId);
+                return Responses.failure("user not found or user is disabled. username: " + username);
             }
-            Date now = new Date();
-            String loginId = JwtUtils.getLoginIdClaim(jwt);
-            Date loginTime = JwtUtils.getLoginTimeClaim(jwt);
-            long authExpiresMillisAt = JwtUtils.getAuthExpiresAtClaim(jwt).getTime();
-            boolean remembered = now.getTime() > authExpiresMillisAt;
+            Instant now = Instant.now();
+            String loginId = jwt.getClaimAsString(CLAIM_LOGIN_ID);
+            Instant loginTime = jwt.getClaimAsInstant(CLAIM_LOGIN_TIME);
+            Instant authExpiresAt = jwt.getClaimAsInstant(CLAIM_AUTH_EXPIRES_AT);
+            boolean remembered = now.compareTo(authExpiresAt) > 0;
             // 生成 Access Token
-            String accessToken = createAccessToken(JwtUtils.getLoginIdClaim(jwt), userId, now, remembered);
+            String accessToken = createAccessToken(loginId, user.getUsername(), now, remembered);
             // 如果 Refresh Token 认证有效期未过期，且小于有效期，则续期 Refresh Token
             long refreshExpiresIn = properties.getRefreshExpiresSeconds() -
-                    (now.getTime() - loginTime.getTime()) / 1000;
+                    (now.getEpochSecond() - loginTime.getEpochSecond());
             long refreshAuthExpiresIn = params.browser ?
                     properties.getExpiresSeconds() : properties.getRefreshExpiresSeconds();
             if (refreshAuthExpiresIn > refreshExpiresIn) {
@@ -231,16 +230,16 @@ public class JwtAuthController {
             result.put(ACCESS_TOKEN, accessToken);
             result.put(EXPIRES_IN, properties.getExpiresSeconds());
             result.put(REMEMBERED, remembered);
-            if (authExpiresMillisAt > now.getTime() && authExpiresMillisAt < jwt.getExpiresAt().getTime()) {
-                refreshToken = createRefreshToken(loginId, loginTime, userId, now, params.browser);
+            Instant expiresAt = Optional.ofNullable(jwt.getExpiresAt()).orElse(now);
+            if (authExpiresAt.compareTo(now) > 0 && authExpiresAt.compareTo(expiresAt) < 0) {
+                refreshToken = createRefreshToken(loginId, loginTime, user.getUsername(), now, params.browser);
                 // 只有 refresh token 刷新了才传递以下参数
                 result.put(REFRESH_EXPIRES_IN, refreshExpiresIn);
                 result.put(REFRESH_AUTH_EXPIRES_IN, refreshAuthExpiresIn);
             }
             result.put(REFRESH_TOKEN, refreshToken);
             return Responses.ok(result);
-        } catch (JWTVerificationException | BadPaddingException | IllegalBlockSizeException
-                | IllegalArgumentException e) {
+        } catch (BadJwtException e) {
             // 验证失败
             String message = "refresh token JWT verification failed: " + params.refreshToken;
             logger.info(message, e);
@@ -248,48 +247,47 @@ public class JwtAuthController {
         }
     }
 
-    private String createAccessToken(String loginId, Integer userId, Date now, boolean remembered) {
-        Date expiresAt = new Date(now.getTime() + properties.getExpiresMillis());
-        JWTCreator.Builder builder = JWT.create().withSubject(String.valueOf(userId)).withIssuedAt(now)
-                .withExpiresAt(expiresAt).withIssuer(properties.getAccessTokenIssuer());
-        JwtUtils.withLoginIdClaim(builder, loginId);
-        JwtUtils.withRememberedClaim(builder, remembered);
-        String sign = builder.sign(algorithm);
-        return Secures.sm4Encrypt(sign, properties.getTokenSecret());
+    private String createAccessToken(String loginId, String username, Instant now, boolean remembered) {
+        Instant expiresAt = now.plusMillis(properties.getExpiresMillis());
+        JwsHeader jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
+        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder().issuer(properties.getAccessTokenIssuer())
+                .issuedAt(now).expiresAt(expiresAt).subject(username)
+                .claim(CLAIM_LOGIN_ID, loginId).claim(CLAIM_REMEMBERED, remembered)
+                .build();
+        Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, jwtClaimsSet));
+        return jwt.getTokenValue();
     }
 
-    private String createRefreshToken(String loginId, Date loginTime, long userId, Date now, boolean isBrowser) {
-        Date expiresAt = new Date(loginTime.getTime() + properties.getRefreshExpiresMillis());
+    private String createRefreshToken(String loginId, Instant loginTime, String username, Instant now, boolean isBrowser) {
+        Instant expiresAt = loginTime.plusMillis(properties.getRefreshExpiresMillis());
         // Access Token 有效期较短（如30分钟），需要使用 Refresh Token 维持登录状态，因此可以用于记录、监控用户活动状态
-        JWTCreator.Builder builder = JWT.create().withSubject(String.valueOf(userId))
-                .withIssuer(properties.getRefreshTokenIssuer()).withIssuedAt(now).withExpiresAt(expiresAt);
+        JwsHeader jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
+        JwtClaimsSet.Builder jwtClaimsBuilder = JwtClaimsSet.builder().issuer(properties.getRefreshTokenIssuer())
+                .issuedAt(now).expiresAt(expiresAt).subject(username);
         // 如果是浏览器访问则 Refresh Token 认证有效期与 Access Token 有效期一样
-        Date authExpiresAt = new Date(now.getTime() +
-                (isBrowser ? properties.getExpiresMillis() : properties.getRefreshAuthExpiresMillis()));
-        if (authExpiresAt.getTime() > expiresAt.getTime()) {
+        Instant authExpiresAt = now.plusMillis(isBrowser ?
+                properties.getExpiresMillis() : properties.getRefreshAuthExpiresMillis());
+        if (authExpiresAt.compareTo(expiresAt) > 0) {
             authExpiresAt = expiresAt;
         }
-        JwtUtils.withAuthExpiresAtClaim(builder, authExpiresAt);
-        JwtUtils.withLoginIdClaim(builder, loginId);
-        JwtUtils.withLoginTimeClaim(builder, loginTime);
-        String sign = builder.sign(algorithm);
-        return Secures.sm4Encrypt(sign, properties.getTokenSecret());
+        jwtClaimsBuilder.claim(CLAIM_AUTH_EXPIRES_AT, new Date(authExpiresAt.toEpochMilli()));
+        jwtClaimsBuilder.claim(CLAIM_LOGIN_ID, loginId);
+        jwtClaimsBuilder.claim(CLAIM_LOGIN_TIME, new Date(loginTime.toEpochMilli()));
+
+        Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, jwtClaimsBuilder.build()));
+        return jwt.getTokenValue();
     }
 
     private JwtProperties properties;
-    private Algorithm algorithm;
-    /**
-     * 验证 Refresh Token
-     */
-    private JWTVerifier refreshTokenVerifier;
+    private JwtEncoder jwtEncoder;
+    private JwtDecoder refreshTokenDecoder;
 
     private ConfigService configService;
     private UserService userService;
     private LoginLogService loginLogService;
     private ShortMessageService shortMessageService;
-    private CredentialsDigest credentialsDigest;
+    private PasswordEncoder passwordEncoder;
     private CaptchaTokenService captchaTokenService;
-    private SmsTokenService smsTokenService;
     private IpLoginAttemptService ipLoginAttemptService;
 
     @Autowired
@@ -313,8 +311,8 @@ public class JwtAuthController {
     }
 
     @Autowired
-    public void setCredentialsDigest(CredentialsDigest credentialsDigest) {
-        this.credentialsDigest = credentialsDigest;
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Autowired
@@ -323,29 +321,36 @@ public class JwtAuthController {
     }
 
     @Autowired
-    public void setSmsTokenService(SmsTokenService smsTokenService) {
-        this.smsTokenService = smsTokenService;
-    }
-
-    @Autowired
     public void setIpLoginAttemptService(IpLoginAttemptService ipLoginAttemptService) {
         this.ipLoginAttemptService = ipLoginAttemptService;
     }
 
-    public static class LoginParam {
+    @Schema(name = "JwtAuthController.LoginParams", description = "登录参数")
+    public static class LoginParams {
+        @NotNull
+        @Schema(description = "用户名")
         public String username;
+        @NotNull
+        @Schema(description = "密码")
         public String password;
+        @Schema(description = "图形验证码Token")
         public String captchaToken;
-        public String captchaValue;
-        public String shortMessageToken;
+        @Schema(description = "图形验证码")
+        public String captcha;
+        @Schema(description = "短信ID")
+        public Integer shortMessageId;
+        @Schema(description = "短信验证码")
         public String shortMessageValue;
-        // 是否浏览器访问
+        @Schema(description = "是否浏览器访问")
         private boolean browser = true;
     }
 
-    public static class RefreshTokenParam {
+    @Schema(name = "JwtAuthController.RefreshTokenParams", description = "RefreshToken参数")
+    public static class RefreshTokenParams {
+        @NotNull
+        @Schema(description = "refreshToken")
         public String refreshToken;
-        // 是否浏览器访问
+        @Schema(description = "是否浏览器访问")
         public boolean browser = true;
     }
 }

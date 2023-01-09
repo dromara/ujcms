@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -24,9 +23,9 @@ import java.util.Objects;
  */
 @Service
 public class BlockItemService implements SiteDeleteListener, ChannelDeleteListener {
-    private AttachmentService attachmentService;
-    private BlockItemMapper mapper;
-    private SeqService seqService;
+    private final AttachmentService attachmentService;
+    private final BlockItemMapper mapper;
+    private final SeqService seqService;
 
     public BlockItemService(AttachmentService attachmentService, BlockItemMapper mapper, SeqService seqService) {
         this.attachmentService = attachmentService;
@@ -35,8 +34,8 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
     }
 
     public boolean countByBlockIdAndArticleId(@Param("blockId") Integer blockId, @Param("articleId") Integer articleId) {
-        return PageHelper.offsetPage(0, 1, false).doCount(() ->
-                mapper.countByBlockIdAndArticleId(blockId, articleId)) > 0;
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByBlockIdAndArticleId(blockId, articleId)).iterator().next().intValue() > 0;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -88,7 +87,8 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
     }
 
     public boolean existsByBlockId(Integer blockId, Integer notSiteId) {
-        return PageHelper.offsetPage(0, 1, false).doCount(() -> mapper.countByBlockId(blockId, notSiteId)) > 0;
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByBlockId(blockId, notSiteId)).iterator().next().intValue() > 0;
     }
 
     @Override

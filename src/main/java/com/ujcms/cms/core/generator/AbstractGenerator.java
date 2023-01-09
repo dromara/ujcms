@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public abstract class AbstractGenerator {
     ArticleService articleService;
     TaskService taskService;
-    private ThreadPoolTaskExecutor executor;
+    private final ThreadPoolTaskExecutor executor;
 
     protected AbstractGenerator(ArticleService articleService, TaskService taskService,
                                 ThreadPoolTaskExecutor executor) {

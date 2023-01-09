@@ -1,13 +1,17 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Task;
 import com.ujcms.cms.core.service.TaskService;
 import com.ujcms.cms.core.service.args.TaskArgs;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.web.support.ValidUtils;
+import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.exception.Http404Exception;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -37,54 +41,66 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendTaskController")
 @RequestMapping(BACKEND_API + "/core/task")
 public class TaskController {
-    private TaskService service;
+    private final TaskService service;
 
     public TaskController(TaskService service) {
         this.service = service;
     }
 
     @GetMapping
-    @RequiresPermissions("task:list")
+    @PreAuthorize("hasAnyAuthority('task:list','*')")
     public Page<Task> list(Integer page, Integer pageSize, HttpServletRequest request) {
         TaskArgs args = TaskArgs.of(getQueryMap(request.getQueryString())).siteId(Contexts.getCurrentSiteId());
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("task:show")
+    @PreAuthorize("hasAnyAuthority('task:show','*')")
     public Task show(@PathVariable Integer id) {
         Task bean = service.select(id);
         if (bean == null) {
             throw new Http404Exception("Task not found. ID = " + id);
         }
+        ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
     }
 
     @PostMapping
-    @RequiresPermissions("task:create")
+    @PreAuthorize("hasAnyAuthority('task:create','*')")
+    @OperationLog(module = "task", operation = "create", type = OperationType.CREATE)
     public ResponseEntity<Body> create(@RequestBody Task bean) {
         Task task = new Task();
-        BeanUtils.copyProperties(bean, task);
+        Entities.copy(bean, task, "siteId");
+        task.setSiteId(Contexts.getCurrentSiteId());
         service.insert(task);
         return Responses.ok();
     }
 
     @PutMapping
-    @RequiresPermissions("task:update")
+    @PreAuthorize("hasAnyAuthority('task:update','*')")
+    @OperationLog(module = "task", operation = "update", type = OperationType.UPDATE)
     public ResponseEntity<Body> update(@RequestBody Task bean) {
         Task task = service.select(bean.getId());
         if (task == null) {
             return Responses.notFound("Task not found. ID = " + bean.getId());
         }
-        BeanUtils.copyProperties(bean, task);
+        Entities.copy(bean, task);
+        ValidUtils.dataInSite(task.getSiteId(), Contexts.getCurrentSiteId());
         service.update(task);
         return Responses.ok();
     }
 
     @DeleteMapping
-    @RequiresPermissions("task:delete")
+    @PreAuthorize("hasAnyAuthority('task:delete','*')")
+    @OperationLog(module = "task", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        service.delete(ids);
+        for (Integer id : ids) {
+            Task task = service.select(id);
+            if (task == null) {
+                return Responses.notFound("Task not found. ID = " + id);
+            }
+            service.delete(id);
+        }
         return Responses.ok();
     }
 }

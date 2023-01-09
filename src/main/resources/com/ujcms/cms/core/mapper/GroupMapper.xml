@@ -8,6 +8,7 @@
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.GroupCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Group" />
     <select id="listByChannelId" resultMap="ResultMap">
         select

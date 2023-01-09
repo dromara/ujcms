@@ -48,6 +48,22 @@ public interface UserRoleMapper {
     int deleteByUserId(@Param("userId") Integer userId);
 
     /**
+     * 根据 角色ID 删除数据
+     *
+     * @param roleId 角色ID
+     * @return 删除条数
+     */
+    int deleteByRoleId(@Param("roleId") Integer roleId);
+
+    /**
+     * 根据站点ID删除数据
+     *
+     * @param siteId 站点ID
+     * @return 被删除的数据条数
+     */
+    int deleteBySiteId(Integer siteId);
+
+    /**
      * 根据主键获取数据
      *
      * @param userId 用户ID

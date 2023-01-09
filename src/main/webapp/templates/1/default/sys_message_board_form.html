@@ -1,0 +1,139 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>我要留言 - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}">
+  <meta name="_csrf_header" content="${_csrf.headerName}">
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+  [#include 'includes_js_validation.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'includes_header.html'/]
+<div class="container">
+  <div class="row">
+    <div class="col mt-3">
+      <div class="d-flex align-items-center py-1 border-bottom">
+        <div class="flex-grow-1 h5 mb-0"><a href="${dy}/message-board/create">我要留言</a></div>
+        <div><a href="${dy}/message-board" role="button">留言板</a></div>
+      </div>
+      <div class="mt-3">
+        <form id="validForm" action="${dy}/frontend/message-board" method="post" class="bg-light p-3 mb-3">
+          <fieldset class="form-group row">
+            <legend class="col-form-label col-sm-2 float-sm-left pt-0">留言类别<strong class="text-danger">*</strong></legend>
+            <div class="col-sm-10">
+              [@DictList type='sys_message_board_type'; list]
+                [#list list as type]
+                  <div class="custom-control custom-radio custom-control-inline">
+                    <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index}" value="${type.id}" required [#if type_index==0]checked[/#if]>
+                    <label class="custom-control-label" for="typeId${type_index}">${type.name}</label>
+                  </div>
+                [/#list]
+              [/@DictList]
+            </div>
+          </fieldset>
+          <div class="form-group row">
+            <label for="title" class="col-sm-2 col-form-label">留言标题<strong class="text-danger">*</strong></label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="title" name="title" maxlength="150" title="请填写留言标题" required>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="text" class="col-sm-2 col-form-label">留言内容<strong class="text-danger">*</strong></label>
+            <div class="col-sm-10">
+              <textarea type="text" class="form-control" id="text" name="text" maxlength="2000" rows="8" title="请填写留言内容" required></textarea>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="contact" class="col-sm-2 col-form-label">联系人</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="contact" name="contact" maxlength="50">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="phone" class="col-sm-2 col-form-label">联系电话</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="phone" name="phone" maxlength="50">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="email" class="col-sm-2 col-form-label">电子邮箱</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="email" name="email" maxlength="50" data-rule-email="true" data-msg-email="请填写有效的邮箱地址">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="captcha" class="col-sm-2 col-form-label">图形验证码<strong class="text-danger">*</strong></label>
+            <div class="col-sm-10">
+              <div class="input-group">
+                <input type="text" class="form-control" id="captcha" name="captcha" autocomplete="off"
+                       data-rule-required="true" data-msg-required="请输入验证码"
+                       data-msg-remote="验证码错误">
+                <div class="input-group-append">
+                  <img id="captchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="input-group-text"
+                       style="cursor:pointer;padding:0;" title="点击重新获取验证码" alt="验证码"
+                       onclick="fetchCaptcha();$('#captcha').focus();">
+                  <input type="hidden" id="captchaToken" name="captchaToken">
+                  <script>
+                    function fetchCaptcha() {
+                      axios.get('${api}/captcha').then(function (response) {
+                        var data = response.data;
+                        if (data == null) return;
+                        $('#captchaImg').attr('src', 'data:image/png;base64,' + data.image);
+                        $('#captchaToken').val(data.token);
+                      });
+                    }
+
+                    fetchCaptcha();
+                  </script>
+                </div>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" name="siteId" value="${site.id}">
+          <button type="submit" class="btn btn-primary">确认提交</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+[#include 'includes_footer.html'/]
+[#include 'includes_message_box.html'/]
+<script>
+  $('#successModal').on('hidden.bs.modal', function () {
+    location.href = '${dy}/message-board';
+  });
+
+  $(function () {
+    $('#title').focus().select();
+    $('#validForm').validate({
+      rules: {
+        captcha: {
+          remote: {
+            url: '${api}/captcha/try', data: {
+              token: function () {
+                return $('#captchaToken').val();
+              }
+            }
+          }
+        }
+      },
+      submitHandler: function (form) {
+        request.post(form.action, $(form).serializeJSON()).then(function (response) {
+          var data = response.data;
+          if (data.status === 0) {
+            showSuccess('留言成功，等待管理员审核！');
+            location.href = '${dy}/message-board';
+          }
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
+[/#escape]

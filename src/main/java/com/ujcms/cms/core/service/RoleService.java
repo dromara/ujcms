@@ -2,8 +2,12 @@ package com.ujcms.cms.core.service;
 
 import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.RoleArticle;
+import com.ujcms.cms.core.domain.RoleChannel;
+import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.RoleArticleMapper;
+import com.ujcms.cms.core.mapper.RoleChannelMapper;
 import com.ujcms.cms.core.mapper.RoleMapper;
+import com.ujcms.cms.core.mapper.UserRoleMapper;
 import com.ujcms.cms.core.service.args.RoleArgs;
 import com.ujcms.util.query.QueryInfo;
 import com.ujcms.util.query.QueryParser;
@@ -21,13 +25,18 @@ import java.util.Objects;
  * @author PONY
  */
 @Service
-public class RoleService {
-    private RoleArticleMapper roleArticleMapper;
-    private RoleMapper mapper;
-    private SeqService seqService;
+public class RoleService implements SiteDeleteListener {
+    private final RoleChannelMapper roleChannelMapper;
+    private final RoleArticleMapper roleArticleMapper;
+    private final UserRoleMapper userRoleMapper;
+    private final RoleMapper mapper;
+    private final SeqService seqService;
 
-    public RoleService(RoleArticleMapper roleArticleMapper, RoleMapper mapper, SeqService seqService) {
+    public RoleService(RoleChannelMapper roleChannelMapper, RoleArticleMapper roleArticleMapper,
+                       UserRoleMapper userRoleMapper, RoleMapper mapper, SeqService seqService) {
+        this.roleChannelMapper = roleChannelMapper;
         this.roleArticleMapper = roleArticleMapper;
+        this.userRoleMapper = userRoleMapper;
         this.mapper = mapper;
         this.seqService = seqService;
     }
@@ -54,18 +63,24 @@ public class RoleService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Role bean, Collection<Integer> articlePermissions, Integer siteId) {
+    public void update(Role bean, Collection<Integer> articlePermissions, Collection<Integer> channelPermissions,
+                       Integer siteId) {
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.update(bean);
         roleArticleMapper.deleteByRoleId(bean.getId(), siteId);
+        roleChannelMapper.deleteByRoleId(bean.getId(), siteId);
         insertArticlePermissions(articlePermissions, bean.getId(), siteId);
+        insertChannelPermissions(channelPermissions, bean.getId(), siteId);
     }
 
     private void insertArticlePermissions(Collection<Integer> articlePermissions, Integer roleId, Integer siteId) {
         articlePermissions.forEach(channelId -> roleArticleMapper.insert(new RoleArticle(roleId, channelId, siteId)));
     }
 
+    private void insertChannelPermissions(Collection<Integer> channelPermissions, Integer roleId, Integer siteId) {
+        channelPermissions.forEach(channelId -> roleChannelMapper.insert(new RoleChannel(roleId, channelId, siteId)));
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public void updateOrder(List<Role> list) {
@@ -79,13 +94,16 @@ public class RoleService {
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
+        roleArticleMapper.deleteByRoleId(id, null);
+        roleChannelMapper.deleteByRoleId(id, null);
+        userRoleMapper.deleteByRoleId(id);
         return mapper.delete(id);
     }
 
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(List<Integer> ids) {
-        return ids.stream().filter(Objects::nonNull).mapToInt(mapper::delete).sum();
+        return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
@@ -100,5 +118,26 @@ public class RoleService {
 
     public List<Integer> listArticlePermissions(Integer roleId, @Nullable Integer siteId) {
         return roleArticleMapper.listChannelByRoleId(roleId, siteId);
+    }
+
+    public List<Integer> listChannelPermissions(Integer roleId, @Nullable Integer siteId) {
+        return roleChannelMapper.listChannelByRoleId(roleId, siteId);
+    }
+
+    public List<Integer> listChannelPermissions(Collection<Integer> roleIds, @Nullable Integer siteId) {
+        return roleChannelMapper.listChannelByRoleIds(roleIds, siteId);
+    }
+
+    @Override
+    public void preSiteDelete(Integer siteId) {
+        roleChannelMapper.deleteBySiteId(siteId);
+        roleArticleMapper.deleteBySiteId(siteId);
+        userRoleMapper.deleteBySiteId(siteId);
+        mapper.deleteBySiteId(siteId);
+    }
+
+    @Override
+    public int deleteListenerOrder() {
+        return 150;
     }
 }

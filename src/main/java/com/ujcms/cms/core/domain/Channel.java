@@ -2,16 +2,16 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.ChannelBase;
-import com.ujcms.cms.core.domain.base.GroupBase;
-import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.db.tree.TreeEntity;
 import com.ujcms.util.web.HtmlParserUtils;
 import com.ujcms.util.web.PageUrlResolver;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
@@ -28,22 +28,27 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 栏目 实体类
+ * 栏目实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
 public class Channel extends ChannelBase implements PageUrlResolver, Anchor, TreeEntity, Serializable {
+    private static final long serialVersionUID = 1L;
     // region Normal
 
+    @Schema(description = "标题。获取`seoTitle`，如不存在，则获取栏目名称")
     public String getTitle() {
         return Optional.ofNullable(getExt().getSeoTitle()).orElseGet(this::getName);
     }
 
+    @Schema(description = "关键词。获取`seoKeywords`")
     public String getKeywords() {
         return Optional.ofNullable(getExt().getSeoKeywords()).orElse("");
     }
 
+    @Schema(description = "描述。获取`seoDescription`")
     public String getDescription() {
         return Optional.ofNullable(getExt().getSeoDescription()).orElse("");
     }
@@ -57,6 +62,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         return getSite().assembleTemplate(template);
     }
 
+    @Schema(description = "栏目层级。从一级栏目到当前栏目的列表")
     @JsonIncludeProperties({"id", "name", "url"})
     public List<Channel> getPaths() {
         LinkedList<Channel> parents = new LinkedList<>();
@@ -68,6 +74,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         return parents;
     }
 
+    @Schema(description = "栏目层级名称。从一级栏目到当前栏目的名称列表")
     public List<String> getNames() {
         return getPaths().stream().map(ChannelBase::getName).collect(Collectors.toList());
     }
@@ -111,6 +118,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     // endregion
     // region Urls
 
+    @Schema(description = "URL地址")
     @Override
     public String getUrl() {
         return getUrl(1);
@@ -121,6 +129,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         return getSite().getHtml().isEnabled() ? getStaticUrl(page) : getDynamicUrl(page);
     }
 
+    @Schema(description = "动态URL地址")
     public String getDynamicUrl() {
         return getDynamicUrl(1);
     }
@@ -192,6 +201,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     /**
      * 是否是链接
      */
+    @Schema(description = "是否链接")
     public boolean isLink() {
         return getType() == TYPE_LINK || getType() == TYPE_LINK_ARTICLE || getType() == TYPE_LINK_CHILD;
     }
@@ -199,6 +209,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     // region JsonFields
 
+    @Schema(description = "自定义字段")
     public Map<String, Object> getCustoms() {
         if (customs == null) {
             customs = getChannelModel().assembleCustoms(getCustomList());
@@ -212,9 +223,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     public static List<ChannelCustom> disassembleCustoms(Model model, Integer id, Map<String, Object> customs) {
         List<ChannelCustom> list = new ArrayList<>();
-        model.disassembleCustoms(customs, (name, type, value) -> {
-            list.add(new ChannelCustom(id, name, type, value));
-        });
+        model.disassembleCustoms(customs, (name, type, value) -> list.add(new ChannelCustom(id, name, type, value)));
         return list;
     }
 
@@ -222,99 +231,50 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     private Map<String, Object> customs;
     // endregion
 
-    // region TempFields
-    /**
-     * 用户组ID列表。非数据库属性，用于接收前台请求。
-     */
-    @Nullable
-    private List<Integer> groupIds;
-    @Nullable
-    private List<Integer> roleIds;
-
-    public List<Integer> getGroupIds() {
-        if (groupIds == null) {
-            groupIds = getGroupList().stream().map(GroupBase::getId).collect(Collectors.toList());
-        }
-        return groupIds;
-    }
-
-    public void setGroupIds(List<Integer> groupIds) {
-        this.groupIds = groupIds;
-    }
-
-    public List<Integer> getRoleIds() {
-        if (roleIds == null) {
-            roleIds = getRoleList().stream().map(RoleBase::getId).collect(Collectors.toList());
-        }
-        return roleIds;
-    }
-
-    public void setRoleIds(List<Integer> roleIds) {
-        this.roleIds = roleIds;
-    }
-    // endregion
-
     // region Associations
     /**
      * 栏目扩展对象
      */
-    @JsonIgnore
     private ChannelExt ext = new ChannelExt();
     /**
      * 缓冲对象
      */
-    @JsonIgnore
     private ChannelBuffer buffer = new ChannelBuffer();
     /**
      * 子栏目列表
      */
-    @JsonIncludeProperties({"id", "name", "url"})
     private List<Channel> children = Collections.emptyList();
-    /**
-     * 用户组列表
-     */
-    @JsonIgnore
-    private List<Group> groupList = Collections.emptyList();
-    /**
-     * 角色列表
-     */
-    @JsonIgnore
-    private List<Role> roleList = Collections.emptyList();
     /**
      * 自定义字段列表
      */
-    @JsonIgnore
     private List<ChannelCustom> customList = Collections.emptyList();
     /**
      * 上级栏目
      */
-    @JsonIncludeProperties({"id", "name", "url"})
     @Nullable
     private Channel parent;
     /**
      * 站点
      */
-    @JsonIncludeProperties({"id", "name"})
     private Site site = new Site();
     /**
      * 栏目模型
      */
-    @JsonIncludeProperties({"id", "name"})
     private Model channelModel = new Model();
     /**
      * 文章模型
      */
-    @JsonIncludeProperties({"id", "name"})
     private Model articleModel = new Model();
 
-    @JsonIgnore
     @Nullable
     private Article firstArticle;
 
-    @JsonIgnore
     @Nullable
     private Channel firstChild;
 
+    private boolean fetchedFirstData = false;
+
+    @JsonIgnore
     public ChannelExt getExt() {
         return ext;
     }
@@ -323,6 +283,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.ext = ext;
     }
 
+    @JsonIgnore
     public ChannelBuffer getBuffer() {
         return buffer;
     }
@@ -331,6 +292,8 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.buffer = buffer;
     }
 
+    @Schema(description = "子栏目列表")
+    @JsonIncludeProperties({"id", "name", "url"})
     public List<Channel> getChildren() {
         return children;
     }
@@ -339,30 +302,17 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.children = children;
     }
 
-    public List<Group> getGroupList() {
-        return groupList;
-    }
-
-    public void setGroupList(List<Group> groupList) {
-        this.groupList = groupList;
-    }
-
+    @JsonIgnore
     public List<ChannelCustom> getCustomList() {
         return customList;
-    }
-
-    public List<Role> getRoleList() {
-        return roleList;
-    }
-
-    public void setRoleList(List<Role> roleList) {
-        this.roleList = roleList;
     }
 
     public void setCustomList(List<ChannelCustom> customList) {
         this.customList = customList;
     }
 
+    @Schema(description = "上级栏目")
+    @JsonIncludeProperties({"id", "name", "url"})
     @Nullable
     @Override
     public Channel getParent() {
@@ -373,6 +323,8 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.parent = parent;
     }
 
+    @Schema(description = "站点")
+    @JsonIncludeProperties({"id", "name"})
     public Site getSite() {
         return site;
     }
@@ -381,6 +333,8 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.site = site;
     }
 
+    @Schema(description = "栏目模型")
+    @JsonIncludeProperties({"id", "name"})
     public Model getChannelModel() {
         return channelModel;
     }
@@ -389,6 +343,8 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.channelModel = channelModel;
     }
 
+    @Schema(description = "文章模型")
+    @JsonIncludeProperties({"id", "name"})
     public Model getArticleModel() {
         return articleModel;
     }
@@ -397,6 +353,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.articleModel = articleModel;
     }
 
+    @JsonIgnore
     @Nullable
     public Article getFirstArticle() {
         return firstArticle;
@@ -406,6 +363,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.firstArticle = firstArticle;
     }
 
+    @JsonIgnore
     @Nullable
     public Channel getFirstChild() {
         return firstChild;
@@ -414,10 +372,20 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     public void setFirstChild(@Nullable Channel firstChild) {
         this.firstChild = firstChild;
     }
+
+    @JsonIgnore
+    public boolean isFetchedFirstData() {
+        return fetchedFirstData;
+    }
+
+    public void setFetchedFirstData(boolean fetchedFirstData) {
+        this.fetchedFirstData = fetchedFirstData;
+    }
     // endregion
 
     // region ChannelBase
 
+    @Schema(description = "别名")
     @Override
     @NotNull
     @Pattern(regexp = "^[\\w-]*$")
@@ -428,6 +396,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     // region ChannelExt
 
+    @Schema(description = "SEO标题")
     @Nullable
     public String getSeoTitle() {
         return getExt().getSeoTitle();
@@ -437,6 +406,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setSeoTitle(seoTitle);
     }
 
+    @Schema(description = "SEO关键词")
     @Nullable
     public String getSeoKeywords() {
         return getExt().getSeoKeywords();
@@ -446,6 +416,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setSeoKeywords(seoKeywords);
     }
 
+    @Schema(description = "SEO描述")
     @Nullable
     public String getSeoDescription() {
         return getExt().getSeoDescription();
@@ -455,6 +426,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setSeoDescription(seoDescription);
     }
 
+    @Schema(description = "文章模板")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getArticleTemplate() {
@@ -465,6 +437,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setArticleTemplate(articleTemplate);
     }
 
+    @Schema(description = "栏目模板")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getChannelTemplate() {
@@ -475,6 +448,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setChannelTemplate(channelTemplate);
     }
 
+    @Schema(description = "每页条数")
     public Short getPageSize() {
         return getExt().getPageSize();
     }
@@ -483,6 +457,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setPageSize(pageSize);
     }
 
+    @Schema(description = "图片")
     @Nullable
     public String getImage() {
         return getExt().getImage();
@@ -492,7 +467,9 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setImage(image);
     }
 
+    @Schema(description = "转向链接")
     @Nullable
+    @Pattern(regexp = "^(http|/).*$")
     public String getLinkUrl() {
         return getExt().getLinkUrl();
     }
@@ -501,6 +478,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setLinkUrl(linkUrl);
     }
 
+    @Schema(description = "是否新窗口打开")
     @Override
     public Boolean getTargetBlank() {
         return getExt().getTargetBlank();
@@ -510,6 +488,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setTargetBlank(targetBlank);
     }
 
+    @Schema(description = "是否允许评论")
     public Boolean getAllowComment() {
         return getExt().getAllowComment();
     }
@@ -518,6 +497,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setAllowComment(allowComment);
     }
 
+    @Schema(description = "是否允许投稿")
     public Boolean isAllowContribute() {
         return getExt().getAllowContribute();
     }
@@ -526,6 +506,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setAllowContribute(allowContribute);
     }
 
+    @Schema(description = "是否允许搜索")
     public Boolean isAllowSearch() {
         return getExt().getAllowSearch();
     }
@@ -544,6 +525,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setStaticFile(staticFile);
     }
 
+    @JsonIgnore
     @Nullable
     public String getMobileStaticFile() {
         return getExt().getMobileStaticFile();
@@ -553,6 +535,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setMobileStaticFile(mobileStaticFile);
     }
 
+    @Schema(description = "正文（HTML格式）")
     @Nullable
     public String getText() {
         return getExt().getText();
@@ -565,6 +548,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     // region ChannelBuffer
 
+    @Schema(description = "浏览次数")
     public long getViews() {
         return getBuffer().getViews();
     }
@@ -575,7 +559,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     // endregion
 
     // region StaticField
-
     /**
      * 常规栏目
      */

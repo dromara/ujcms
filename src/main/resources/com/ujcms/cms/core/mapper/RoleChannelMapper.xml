@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.RoleChannelMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.RoleChannel">
+    <id column="role_id_" jdbcType="INTEGER" property="roleId" />
+    <id column="channel_id_" jdbcType="INTEGER" property="channelId" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.RoleChannel" />
+  <select id="listChannelByRoleId" resultType="int">
+    select t.channel_id_
+    from ujcms_role_channel t
+    where t.role_id_ = #{roleId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
+  <select id="listRoleByChannelId" resultType="int">
+    select t.role_id_
+    from ujcms_role_channel t
+    where t.channel_id_ = #{channelId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
+  <select id="listChannelByRoleIds" resultType="int">
+    select t.channel_id_
+    from ujcms_role_channel t
+    <where>
+      <foreach close=")" collection="roleIds" item="id" open="t.role_id_ in (" separator=",">#{id}</foreach>
+      <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+    </where>
+  </select>
+  <delete id="deleteByChannelId" parameterType="int">
+    delete
+    from ujcms_role_channel
+    where channel_id_ = #{channelId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByRoleId" parameterType="int">
+    delete
+    from ujcms_role_channel
+    where role_id_ = #{roleId,jdbcType=INTEGER}
+    <if test="siteId != null">and site_id_ = #{siteId}</if>
+  </delete>
+  <delete id="deleteBySiteId" parameterType="int">
+    delete
+    from ujcms_role_channel
+    where site_id_ = #{siteId,jdbcType=INTEGER}
+  </delete>
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_role_channel" />
+    </include>
+  </select>
+  <select id="select" parameterType="map" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_role_channel t
+    where t.role_id_ = #{roleId,jdbcType=INTEGER}
+      and t.channel_id_ = #{channelId,jdbcType=INTEGER}
+  </select>
+  <delete id="delete" parameterType="map">
+    delete from ujcms_role_channel
+    where role_id_ = #{roleId,jdbcType=INTEGER}
+      and channel_id_ = #{channelId,jdbcType=INTEGER}
+  </delete><update id="update" parameterType="com.ujcms.cms.core.domain.RoleChannel">
+    update ujcms_role_channel
+    set site_id_ = #{siteId,jdbcType=INTEGER}
+    where role_id_ = #{roleId,jdbcType=INTEGER}
+      and channel_id_ = #{channelId,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.RoleChannel">
+    insert into ujcms_role_channel (role_id_, channel_id_, site_id_)
+    values (#{roleId,jdbcType=INTEGER}, #{channelId,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.role_id_, t.channel_id_, t.site_id_
+  </sql></mapper>

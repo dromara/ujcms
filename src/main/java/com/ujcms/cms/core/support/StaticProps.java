@@ -14,7 +14,8 @@ public class StaticProps {
     private static final List<String> EP_EXCLUDES = new ArrayList<>(
             Arrays.asList("articleReview:page", "loginLog:page", "site:page",
                     "processModel:page", "processInstance:page", "processHistory:page",
-                    "generator:fulltext:reindexSite", "machine:code", "machine:license"));
+                    "generator:fulltext:reindexSite", "machine:code", "machine:license",
+                    "operationLog:page", "messageBoard:page"));
     private static boolean epDisplay = true;
     private static int epRank = 0;
     private static boolean epActivated = false;

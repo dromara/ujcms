@@ -33,7 +33,7 @@ public class ArticlePrevDirective implements TemplateDirectiveModel {
         body.render(env.getOut());
     }
 
-    private ArticleService articleService;
+    private final ArticleService articleService;
 
     public ArticlePrevDirective(ArticleService articleService) {
         this.articleService = articleService;

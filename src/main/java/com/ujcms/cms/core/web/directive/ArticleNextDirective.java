@@ -22,8 +22,17 @@ import java.util.Map;
  * @author PONY
  */
 public class ArticleNextDirective implements TemplateDirectiveModel {
+    /**
+     * 文章ID
+     */
     private static final String ID = "id";
+    /**
+     * 文章发布时间
+     */
     private static final String PUBLISH_DATE = "publishDate";
+    /**
+     * 文章栏目ID
+     */
     private static final String CHANNEL_ID = "channelId";
 
     @Nullable
@@ -47,7 +56,7 @@ public class ArticleNextDirective implements TemplateDirectiveModel {
         body.render(env.getOut());
     }
 
-    private ArticleService articleService;
+    private final ArticleService articleService;
 
     public ArticleNextDirective(ArticleService articleService) {
         this.articleService = articleService;

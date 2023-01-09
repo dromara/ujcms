@@ -1,0 +1,135 @@
+[#escape x as (x)!?html]
+  <div class="position-fixed p-3" style="z-index: 5; right: 0; top: 0;">
+    <div id="successToast" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+      <div class="toast-body"><i class="far fa-check-circle"></i><span class="ml-2" id="successMessage"></span></div>
+    </div>
+  </div>
+  <div class="position-fixed p-3" style="z-index: 5; right: 0; top: 0;">
+    <div id="alertComponent" class="alert d-none alert-info text-center" role="alert">
+      <span id="alertMessage" class="px-3">操作成功</span>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 检查是否需要显示提示信息
+    var MESSAGE_SUCCESS = 'ujcms_message_success';
+    var MESSAGE_ALERT = 'ujcms_message_alert';
+    (function () {
+      var messageSuccess = Cookies.get(MESSAGE_SUCCESS);
+      if (messageSuccess) {
+        // 显示后清空标识
+        Cookies.remove(MESSAGE_SUCCESS, {path: '/'});
+        $('#successMessage').text(messageSuccess);
+        $('#successToast').toast('show');
+      }
+
+      var messageAlert = Cookies.get(MESSAGE_ALERT);
+      if (messageAlert) {
+        // 显示后清空标识
+        Cookies.remove(MESSAGE_ALERT, {path: '/'});
+        $('#alertMessage').text(messageAlert);
+        $('#alertComponent').removeClass('d-none');
+      }
+    })();
+
+    // 设置“操作成功”标识
+    function showSuccess(text) {
+      if (!text) text = '操作成功';
+      Cookies.set(MESSAGE_SUCCESS, text, {path: '/'});
+    }
+
+    function showAlert(text) {
+      if (!text) text = '操作成功';
+      Cookies.set(MESSAGE_ALERT, text, {path: '/'});
+    }
+  </script>
+
+  <div class="modal fade" id="showErrorModel" tabindex="-1" style="z-index:2000;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    function showError(text) {
+      $('#showErrorModel .modal-dialog').removeClass('modal-xl').css('max-width', '');
+
+      $('#showErrorModel .modal-body').text(text);
+      $('#showErrorModel').modal('show');
+    }
+
+    function showErrorPreJson(json) {
+      $('#showErrorModel .modal-dialog').addClass('modal-xl').css('max-width', '100%');
+
+      var modalBody = $('#showErrorModel .modal-body').empty();
+      makeModalBody(modalBody, json);
+      // 不知 bootstrap 为何会自动加上 padding-right:17px，去除该项值。
+      $('#showErrorModel').modal('show').css('padding-right', '');
+    }
+
+    // data 为 XMLHttpRequest 对象：https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+    function showErrorPre(data) {
+      $('#showErrorModel .modal-dialog').addClass('modal-xl').css('max-width', '100%');
+
+      var modalBody = $('#showErrorModel .modal-body').empty();
+      // 能否使用 response.json() 方法？不行，只有 fetch 的 response 才可以。responseText 是 XMLHttpRequest 的标准属性。
+      var json = data.responseJSON || (data.responseText && JSON.parse(data.responseText));
+      if (json) {
+        makeModalBody(modalBody, json);
+      } else {
+        modalBody.append($('<pre>').text(JSON.stringify(data, null, 4)));
+      }
+      // 不知 bootstrap 为何会自动加上 padding-right:17px，去除该项值。
+      $('#showErrorModel').modal('show').css('padding-right', '');
+    }
+
+    function makeModalBody(modalBody, json) {
+      modalBody.append($('<h1>').append($('<span>').text(json.status)).append($('<small>').text(' (' + json.error + ')')))
+              .append($('<p>').text('path: ' + json.path))
+              .append($('<p>').text('timestamp: ' + dayjs(json.timestamp).format('YYYY-MM-DDTHH:mm:ss.SSSZZ')))
+              .append($('<p>').append($('<code>').text(json.message)));
+      if (json.trace) modalBody.append($('<pre>').css({'white-space': 'pre-wrap', 'word-wrap': 'break-word'}).append($('<code>').text(json.trace)));
+    }
+
+    function handleError(data) {
+      if (data.message && !data.error) {
+        showError(data.message);
+      } else {
+        showErrorPreJson(data);
+      }
+    }
+
+    var request = axios.create({timeout: 30000});
+    request.interceptors.request.use(function (config) {
+      var header = $('meta[name="_csrf_header"]').attr('content');
+      var token = $('meta[name="_csrf"]').attr('content');
+      config.headers = {...config.headers, [header]: token};
+      return config;
+    }, function (error) {
+      return Promise.reject(error);
+    });
+    request.interceptors.response.use(function (response) {
+      return response;
+    }, function (e) {
+      console.log(e);
+      var data = e.response.data;
+      var status = e.response.status;
+      var statusText = e.response.statusText;
+      // spring boot 的响应
+      if (data) {
+        handleError(data);
+        return Promise.reject(data.error);
+      }
+      // spring scurity BearerTokenAuthenticationEntryPoint 的响应
+      handleError({status});
+      return Promise.reject(statusText);
+    });
+  </script>
+[/#escape]

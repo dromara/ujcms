@@ -10,10 +10,11 @@
     <result column="depth_" jdbcType="SMALLINT" property="depth" />
     <result column="order_" jdbcType="INTEGER" property="order" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Org">
         <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Org" property="parent" select="select" />
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Org" property="children" select="listChildren" />
-        <collection column="id_" fetchType="lazy" ofType="int" property="descendants" select="com.ujcms.cms.core.mapper.OrgTreeMapper.listByAncestorId" />
+        <collection column="id_" ofType="com.ujcms.cms.core.domain.Org" property="children" select="listChildren" />
+        <collection column="id_" ofType="int" property="descendants" select="com.ujcms.cms.core.mapper.OrgTreeMapper.listByAncestorId" />
     </resultMap>
     <select id="listChildren" resultMap="ResultMap">
         select

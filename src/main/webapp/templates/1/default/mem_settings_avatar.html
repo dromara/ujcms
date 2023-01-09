@@ -1,0 +1,176 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>头像设置 - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}">
+  <meta name="_csrf_header" content="${_csrf.headerName}">
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  <link rel="stylesheet" href="${files}/vendor/blueimp-file-upload/css/jquery.fileupload.css">
+  <link rel="stylesheet" href="${files}/vendor/cropperjs/dist/cropper.min.css">
+  <style>
+    /* Limit image width to avoid overflow the container */
+    img {
+      max-width: 100%; /* This rule is very important, please do not ignore this! */
+    }
+  </style>
+  [#include 'includes_js.html'/]
+  [#include 'includes_js_validation.html'/]
+</head>
+<body>
+[#assign headerShadow=true /]
+[#include 'includes_header.html'/]
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="list-group mt-2">
+        [#assign settings = 'avatar'/]
+        [#include 'mem_settings_left.html'/]
+      </div>
+    </div>
+    <div class="col-sm-9">
+      <h3 class="py-3 border-bottom">头像设置</h3>
+      <div class="mt-3" style="max-height: 900px;">
+        <img src="${user.mediumAvatar!config.register.avatar}" alt="avatar" class="rounded" style="width:180px;height:180px;">
+      </div>
+      <div class="mt-3">
+        <span class="btn btn-success fileinput-button">
+            <i class="fas fa-plus"></i>
+            <span>上传头像</span>
+            <input id="fileupload" type="file" name="file" accept="${config.upload.imageInputAccept}">
+        </span>
+        <div id="progress" class="progress mt-2" style="display:none;">
+          <div class="progress-bar progress-bar-success"></div>
+        </div>
+        <div id="progressfail" class="invalid-feedback"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pictureModel" class="modal fade bd-example-modal-lg" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div id="imageDiv" class="mt-2"></div>
+        <div class="clearfix mt-2">
+          <div class="image-preview float-left border" style="width:80px;height:80px;overflow: hidden;"></div>
+          <div class="image-preview float-left border ml-2 rounded-circle" style="width:40px;height:40px;overflow: hidden;"></div>
+          <form class="float-right pt-2" id="validForm" action="${api}/upload/avatar-crop" method="post">
+            <input type="hidden" id="url" name="url">
+            <input type="hidden" id="x" name="x">
+            <input type="hidden" id="y" name="y">
+            <input type="hidden" id="width" name="width">
+            <input type="hidden" id="height" name="height">
+            <button type="submit" class="btn btn-primary">提交</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+[#include 'includes_footer.html'/]
+[#include 'includes_message_box.html'/]
+<script src="${files}/vendor/blueimp-file-upload/js/vendor/jquery.ui.widget.min.js"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.iframe-transport.min.js"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload.min.js"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload-process.min.js"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload-validate.min.js"></script>
+<script src="${files}/vendor/cropperjs/dist/cropper.min.js"></script>
+<script src="${files}/vendor/jquery-cropper/dist/jquery-cropper.min.js"></script>
+<script>
+  $(function () {
+    var header = $('meta[name="_csrf_header"]').attr('content');
+    var token = $('meta[name="_csrf"]').attr('content');
+    $(document).ajaxSend(function (e, xhr) {
+      xhr.setRequestHeader(header, token);
+    });
+    $('#fileupload').fileupload({
+      url: '${api}/upload/avatar-upload',
+      dataType: 'json',
+      maxFileSize: ${config.upload.imageLimitByte},
+      done: function (e, data) {
+        var url = data.result.url;
+        if (data.result.url) {
+          // 上传成功后立即显示图片会出现图片不存在的问题，可能上传后服务器需要一个反应时间，经测试至少要延迟1000毫秒才能确保正确显示图片。
+          setTimeout(function () {
+            $('#imageDiv').append($('<img>').attr('id', 'image').attr('src', url).css('max-height', '400px'));
+            $('#url').val(url);
+            $('#image').cropper({
+              aspectRatio: 1,
+              autoCropArea: 1,
+              viewMode: 2,
+              minCropBoxWidth: 16,
+              minCropBoxHeight: 16,
+              zoomable: false,
+              preview: '.image-preview',
+              crop: function (event) {
+                $('#x').val(Math.floor(event.detail.x));
+                $('#y').val(Math.floor(event.detail.y));
+                $('#width').val(Math.floor(event.detail.width));
+                $('#height').val(Math.floor(event.detail.height));
+              }
+            });
+          }, 1000);
+          // 要在显示图片前显示对话框，否则会出现图片大小无法计算的问题。为了让显示对话框和显示图片更好的衔接，延迟500毫秒显示对话框。
+          setTimeout(function () {
+            $('#pictureModel').modal('show');
+            $('#imageDiv').empty();
+          }, 500);
+        } else {
+          showError(data.result.message);
+        }
+      },
+      fail: function (e, data) {
+        showErrorPre(data.jqXHR);
+      },
+      start: function (e) {
+        $('#progressfail').text('').hide();
+        $('#progress').show();
+        $('#progress .progress-bar').css('width', '0%');
+      },
+      always: function (e) {
+        setTimeout(function () {
+          $('#progress').hide('fast');
+          $('#progress .progress-bar').css('width', '0%');
+        }, 1000);
+      },
+      progress: function (e, data) {
+        var progress = Math.floor(data.loaded / data.total * 100);
+        $('#progress .progress-bar').css('width', progress + '%');
+      },
+      processfail: function (e, data) {
+        var file = data.files[data.index];
+        if (data.files.error && file.error) {
+          $('#progressfail').text(file.error).show();
+        }
+      },
+      messages: {
+        acceptFileTypes: '该文件类型不允许上传',
+        maxFileSize: '文件太大'
+      }
+    }).prop('disabled', !$.support.fileInput).parent().addClass($.support.fileInput ? undefined : 'disabled');
+
+    $('#validForm').validate({
+      submitHandler: function (form) {
+        var body = $(form).serializeJSON();
+        request.post(form.action, body).then(function (response) {
+          console.log(response);
+          var url = response.data.url;
+          var image = url.substring(url.lastIndexOf('/') + 1);
+          request.post('${api}/settings/avatar?_method=put', {image}).then(function () {
+            showSuccess();
+            location.reload();
+          });
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
+[/#escape]

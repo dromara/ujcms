@@ -2,6 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ConfigBase;
@@ -10,32 +11,43 @@ import com.ujcms.util.file.FileHandler;
 import com.ujcms.util.file.LocalFileHandler;
 import com.ujcms.util.file.MinIoFileHandler;
 import com.ujcms.util.web.PathResolver;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.domain.Config.Storage.TYPE_LOCAL;
 
 /**
- * 全局配置 实体类
+ * 全局配置实体类
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"uploadSettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
-        "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings", "customsSettings"})
+        "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings", "customsSettings", "handler"})
 public class Config extends ConfigBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 获取所有字段中的附件
      *
@@ -46,6 +58,13 @@ public class Config extends ConfigBase implements Serializable {
         List<String> urls = new ArrayList<>();
         getModel().handleCustoms(getCustoms(), new Model.GetUrlsHandle(urls));
         return urls;
+    }
+
+    /**
+     * 上传文件URL地址前缀
+     */
+    public String getUploadUrlPrefix() {
+        return getUploadStorage().getUrl();
     }
 
     public Upload getUpload() {
@@ -69,6 +88,30 @@ public class Config extends ConfigBase implements Serializable {
             setUploadSettings(Constants.MAPPER.writeValueAsString(upload));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Cannot write value of Upload", e);
+        }
+    }
+
+    public Register getRegister() {
+        if (register != null) {
+            return register;
+        }
+        String settings = getRegisterSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Register();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Register.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot read value of Register: " + settings, e);
+        }
+    }
+
+    public void setRegister(Register register) {
+        this.register = register;
+        try {
+            setRegisterSettings(Constants.MAPPER.writeValueAsString(register));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of Register", e);
         }
     }
 
@@ -117,6 +160,30 @@ public class Config extends ConfigBase implements Serializable {
             setSmsSettings(Constants.MAPPER.writeValueAsString(sms));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Cannot write value of Sms", e);
+        }
+    }
+
+    public Email getEmail() {
+        if (email != null) {
+            return email;
+        }
+        String settings = getEmailSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Email();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Email.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot read value of Email: " + settings, e);
+        }
+    }
+
+    public void setEmail(Email email) {
+        this.email = email;
+        try {
+            setEmailSettings(Constants.MAPPER.writeValueAsString(email));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of Email", e);
         }
     }
 
@@ -221,10 +288,15 @@ public class Config extends ConfigBase implements Serializable {
     @Nullable
     private Upload upload;
     @Nullable
+    private Register register;
+    @Nullable
     private Security security;
     @Nullable
     @JsonIgnore
     private Sms sms;
+    @Nullable
+    @JsonIgnore
+    private Email email;
     @Nullable
     @JsonIgnore
     private Storage uploadStorage;
@@ -234,9 +306,11 @@ public class Config extends ConfigBase implements Serializable {
     @Nullable
     @JsonIgnore
     private Storage templateStorage;
+    /**
+     * 自定义字段
+     */
     @Nullable
     private Map<String, Object> customs;
-
     @JsonIgnore
     private Model model = new Model();
 
@@ -275,11 +349,13 @@ public class Config extends ConfigBase implements Serializable {
      * https://www.w3schools.com/html/html5_video.asp
      * https://www.w3schools.com/html/html5_audio.asp
      */
+    @Schema(name = "Config.Upload", description = "上传配置")
     public static class Upload implements Serializable {
+        private static final long serialVersionUID = 1L;
         /**
-         * 允许上传的图片类型。格式如：jpg,jpeg,png,gif
+         * 允许上传的图片类型。格式如：jpg,jpeg,jfif,pjpeg,pjp,png,gif,webp
          */
-        private String imageTypes = "jpg,jpeg,png,gif";
+        private String imageTypes = "jpg,jpeg,jfif,pjpeg,pjp,png,gif,webp";
         /**
          * 允许上传的视频类型。格式如：mp4,webm,ogg
          */
@@ -506,6 +582,148 @@ public class Config extends ConfigBase implements Serializable {
         }
     }
 
+    @Schema(name = "Config.Register", description = "注册配置")
+    public static class Register implements Serializable {
+        private static final long serialVersionUID = 1L;
+        /**
+         * 大头像名称
+         */
+        public static final String AVATAR_LARGE = "@large.";
+        /**
+         * 中头像名称
+         */
+        public static final String AVATAR_MEDIUM = "@medium.";
+        /**
+         * 小头像名称
+         */
+        public static final String AVATAR_SMALL = "@small.";
+        /**
+         * 是否启用
+         */
+        private boolean enabled = false;
+        /**
+         * 验证方式。1:不验证, 2:人工验证, 3:邮箱地址验证, 4:手机号码验证
+         */
+        private int verifyMode = VERIFY_MODE_NONE;
+        /**
+         * 用户名最小长度
+         */
+        private int usernameMinLength = 4;
+        /**
+         * 用户名最大长度
+         */
+        private int usernameMaxLength = 12;
+        /**
+         * 用户名正则表达式。默认允许为 中文 数字 字符 . - _
+         */
+        private String usernameRegex = "^[0-9a-zA-Z\\u4e00-\\u9fa5\\.\\-_]+$";
+        /**
+         * 默认头像
+         */
+        private String avatar = "/uploads/avatar/default/default.png";
+        /**
+         * 小头像尺寸
+         */
+        private int smallAvatarSize = 80;
+        /**
+         * 中头像尺寸
+         */
+        private int mediumAvatarSize = 240;
+        /**
+         * 大头像尺寸
+         */
+        private int largeAvatarSize = 960;
+
+        /**
+         * 验证模式：不验证
+         */
+        public static final int VERIFY_MODE_NONE = 1;
+        /**
+         * 验证模式：人工验证
+         */
+        public static final int VERIFY_MODE_MANUAL = 2;
+        /**
+         * 验证模式：邮箱地址验证
+         */
+        public static final int VERIFY_MODE_EMAIL = 3;
+        /**
+         * 验证模式：手机号码验证
+         */
+        public static final int VERIFY_MODE_MOBILE = 4;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getVerifyMode() {
+            return verifyMode;
+        }
+
+        public void setVerifyMode(int verifyMode) {
+            this.verifyMode = verifyMode;
+        }
+
+        public int getUsernameMinLength() {
+            return usernameMinLength;
+        }
+
+        public void setUsernameMinLength(int usernameMinLength) {
+            this.usernameMinLength = usernameMinLength;
+        }
+
+        public int getUsernameMaxLength() {
+            return usernameMaxLength;
+        }
+
+        public void setUsernameMaxLength(int usernameMaxLength) {
+            this.usernameMaxLength = usernameMaxLength;
+        }
+
+        public String getUsernameRegex() {
+            return usernameRegex;
+        }
+
+        public void setUsernameRegex(String usernameRegex) {
+            this.usernameRegex = usernameRegex;
+        }
+
+        public String getAvatar() {
+            return avatar;
+        }
+
+        public void setAvatar(String avatar) {
+            this.avatar = avatar;
+        }
+
+        public int getSmallAvatarSize() {
+            return smallAvatarSize;
+        }
+
+        public void setSmallAvatarSize(int smallAvatarSize) {
+            this.smallAvatarSize = smallAvatarSize;
+        }
+
+        public int getMediumAvatarSize() {
+            return mediumAvatarSize;
+        }
+
+        public void setMediumAvatarSize(int mediumAvatarSize) {
+            this.mediumAvatarSize = mediumAvatarSize;
+        }
+
+        public int getLargeAvatarSize() {
+            return largeAvatarSize;
+        }
+
+        public void setLargeAvatarSize(int largeAvatarSize) {
+            this.largeAvatarSize = largeAvatarSize;
+        }
+    }
+
     /**
      * 安全配置类
      * <p>
@@ -518,7 +736,9 @@ public class Config extends ConfigBase implements Serializable {
      * 10 个基本数字(0 到 9)
      * 非字母字符(例如 !、$、#、%)
      */
+    @Schema(name = "Config.Security", description = "安全配置")
     public static class Security implements Serializable {
+        private static final long serialVersionUID = 1L;
         /**
          * 密码最长使用天数。可以将密码设置为在某些天数(介于 1 到 999 之间)后到期，或者将天数设置为 0，指定密码永不过期。
          * 0-999。0不限制，常用值90
@@ -556,10 +776,10 @@ public class Config extends ConfigBase implements Serializable {
         private int passwordMinLength = 0;
         /**
          * 密码最大长度
-         * 16-128。常用值64
+         * 16-64。常用值64
          */
         @Min(16)
-        @Max(128)
+        @Max(64)
         private int passwordMaxLength = 64;
         /**
          * 密码强度(0:不限制; 1:大小字母+数字; 2:大写字母+小写字母+数字; 3:大小写字母+数字+特殊字符; 4:大写字母+小写字母+数字+特殊字符)
@@ -600,6 +820,57 @@ public class Config extends ConfigBase implements Serializable {
          * 双因子认证
          */
         private boolean twoFactor = false;
+        /**
+         * SSRF白名单
+         */
+        @Size(max = 1500)
+        private String ssrfWhiteList = "";
+
+        /**
+         * SSRF白名单通配符
+         */
+        public static final String SSRF_WILDCARD = "*";
+        /**
+         * 密码强度0：密码可以是任意字符
+         */
+        public static final int PASSWORD_STRENGTH_0 = 0;
+        /**
+         * 密码强度1：密码中必须包含字母、数字
+         */
+        public static final int PASSWORD_STRENGTH_1 = 1;
+        /**
+         * 密码强度2：密码中必须包含大写字母、小写字母、数字
+         */
+        public static final int PASSWORD_STRENGTH_2 = 2;
+        /**
+         * 密码强度3：密码中必须包含字母、数字、特殊字符
+         */
+        public static final int PASSWORD_STRENGTH_3 = 3;
+        /**
+         * 密码强度4：密码中必须包含大写字母、小写字母、数字、特殊字符
+         */
+        public static final int PASSWORD_STRENGTH_4 = 4;
+
+        public List<String> getSsrfList() {
+            return Arrays.stream(StringUtils.split(getSsrfWhiteList(), "\r\n"))
+                    .filter(StringUtils::isNotBlank).map(String::trim).collect(Collectors.toList());
+        }
+
+        public String getPasswordPattern() {
+            if (this.passwordStrength == PASSWORD_STRENGTH_1) {
+                return "(?=.*[0-9])(?=.*[A-Za-z]).*";
+            }
+            if (this.passwordStrength == PASSWORD_STRENGTH_2) {
+                return "(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*";
+            }
+            if (this.passwordStrength == PASSWORD_STRENGTH_3) {
+                return "(?=.*[0-9])(?=.*[A-Za-z])(?=.*[^a-zA-Z0-9]).*";
+            }
+            if (this.passwordStrength == 4) {
+                return "(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[^a-zA-Z0-9]).*";
+            }
+            return ".*";
+        }
 
         public int getPasswordMaxDays() {
             return passwordMaxDays;
@@ -696,9 +967,19 @@ public class Config extends ConfigBase implements Serializable {
         public void setTwoFactor(boolean twoFactor) {
             this.twoFactor = twoFactor;
         }
+
+        public String getSsrfWhiteList() {
+            return ssrfWhiteList;
+        }
+
+        public void setSsrfWhiteList(String ssrfWhiteList) {
+            this.ssrfWhiteList = ssrfWhiteList;
+        }
     }
 
+    @Schema(name = "Config.Sms", description = "短信配置")
     public static class Sms implements Serializable {
+        private static final long serialVersionUID = 1L;
         /**
          * 未开启
          */
@@ -735,7 +1016,7 @@ public class Config extends ConfigBase implements Serializable {
          */
         @Min(3)
         @Max(30)
-        private int codeExpires = 10;
+        private int codeExpires = 20;
         /**
          * 测试号码
          */
@@ -934,7 +1215,195 @@ public class Config extends ConfigBase implements Serializable {
         }
     }
 
+    @Schema(name = "Config.Email", description = "邮件配置")
+    public static class Email implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        @Nullable
+        @Length(max = 50)
+        private String host;
+        @Nullable
+        private Integer port;
+        private boolean ssl = true;
+        @Nullable
+        private Integer timeout;
+        @Length(max = 50)
+        private String from = "username@email.com";
+        @Length(max = 50)
+        private String username = "username";
+        @Length(max = 50)
+        private String password = "password";
+        /**
+         * IP每日最大量
+         */
+        @Min(1)
+        @Max(99999)
+        private int maxPerIp = 100;
+        /**
+         * 验证码长度
+         */
+        @Min(4)
+        @Max(6)
+        private int codeLength = 6;
+        /**
+         * 验证码过期时间。单位：分钟
+         */
+        @Min(3)
+        @Max(30)
+        private int codeExpires = 20;
+        @NotNull
+        @Length(max = 100)
+        private String subject = "邮件验证码";
+        @NotNull
+        @Length(max = 400)
+        private String text = "验证码：${code}。如非本人操作，请忽略本邮件。";
+        @Length(max = 50)
+        private String testTo = "";
+
+        public void sendMail(String[] to, String subject, String text) {
+            if (host == null) {
+                throw new RuntimeException("Email SMTP host is not set");
+            }
+            JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+            mailSender.setHost(host);
+            mailSender.setUsername(username);
+            mailSender.setPassword(password);
+            mailSender.setDefaultEncoding("UTF-8");
+            mailSender.setPort(port != null ? port : JavaMailSenderImpl.DEFAULT_PORT);
+
+            Properties prop = new Properties();
+            prop.setProperty("mail.smtp.auth", "true");
+            if (ssl) {
+                prop.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            }
+            if (timeout != null) {
+                prop.setProperty("mail.smtp.timeout", timeout.toString());
+            }
+            mailSender.setJavaMailProperties(prop);
+            MimeMessage msg = mailSender.createMimeMessage();
+            try {
+                MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                helper.setFrom(from);
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(text, false);
+            } catch (MessagingException e) {
+                throw new RuntimeException(e);
+            }
+            mailSender.send(msg);
+        }
+
+        @Nullable
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(@Nullable String host) {
+            this.host = host;
+        }
+
+        @Nullable
+        public Integer getPort() {
+            return port;
+        }
+
+        public void setPort(@Nullable Integer port) {
+            this.port = port;
+        }
+
+        public boolean isSsl() {
+            return ssl;
+        }
+
+        public void setSsl(boolean ssl) {
+            this.ssl = ssl;
+        }
+
+        @Nullable
+        public Integer getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(@Nullable Integer timeout) {
+            this.timeout = timeout;
+        }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public int getMaxPerIp() {
+            return maxPerIp;
+        }
+
+        public void setMaxPerIp(int maxPerIp) {
+            this.maxPerIp = maxPerIp;
+        }
+
+        public int getCodeLength() {
+            return codeLength;
+        }
+
+        public void setCodeLength(int codeLength) {
+            this.codeLength = codeLength;
+        }
+
+        public int getCodeExpires() {
+            return codeExpires;
+        }
+
+        public void setCodeExpires(int codeExpires) {
+            this.codeExpires = codeExpires;
+        }
+
+        public String getSubject() {
+            return subject;
+        }
+
+        public void setSubject(String subject) {
+            this.subject = subject;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public String getTestTo() {
+            return testTo;
+        }
+
+        public void setTestTo(String testTo) {
+            this.testTo = testTo;
+        }
+    }
+
+    @Schema(name = "Config.Storage", description = "存储点配置")
     public static class Storage implements Serializable {
+        private static final long serialVersionUID = 1L;
         /**
          * 存储类型(0:本地服务器,1:MinIO,2:阿里云,3:腾讯云,4:七牛云)
          */

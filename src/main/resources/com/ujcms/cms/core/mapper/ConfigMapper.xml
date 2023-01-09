@@ -18,8 +18,9 @@
     <result column="template_storage_settings_" jdbcType="VARCHAR" property="templateStorageSettings" />
     <result column="customs_settings_" jdbcType="LONGVARCHAR" property="customsSettings" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Config">
-        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Model" property="model" select="com.ujcms.cms.core.mapper.ModelMapper.selectConfigModel" />
+        <association column="id_" javaType="com.ujcms.cms.core.domain.Model" property="model" select="com.ujcms.cms.core.mapper.ModelMapper.selectConfigModel" />
     </resultMap>
     <select id="findUnique" resultMap="ResultMap">
         select

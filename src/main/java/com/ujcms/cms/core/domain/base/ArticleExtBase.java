@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
@@ -10,7 +12,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class ArticleExtBase {
+public class ArticleExtBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -20,6 +24,7 @@ public class ArticleExtBase {
      * 文章ID
      */
     @NotNull
+    @Schema(description="文章ID")
     private Integer id = 0;
 
     /**
@@ -27,6 +32,7 @@ public class ArticleExtBase {
      */
     @Length(max = 150)
     @NotNull
+    @Schema(description="标题")
     private String title = "";
 
     /**
@@ -34,6 +40,7 @@ public class ArticleExtBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="副标题")
     private String subtitle;
 
     /**
@@ -41,6 +48,7 @@ public class ArticleExtBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="完整标题")
     private String fullTitle;
 
     /**
@@ -48,6 +56,7 @@ public class ArticleExtBase {
      */
     @Length(max = 160)
     @Nullable
+    @Schema(description="别名")
     private String alias;
 
     /**
@@ -55,12 +64,14 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="转向链接地址")
     private String linkUrl;
 
     /**
      * 是否新窗口打开
      */
     @NotNull
+    @Schema(description="是否新窗口打开")
     private Boolean targetBlank = false;
 
     /**
@@ -68,6 +79,7 @@ public class ArticleExtBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="SEO关键词")
     private String seoKeywords;
 
     /**
@@ -75,6 +87,7 @@ public class ArticleExtBase {
      */
     @Length(max = 1000)
     @Nullable
+    @Schema(description="摘要")
     private String seoDescription;
 
     /**
@@ -82,6 +95,7 @@ public class ArticleExtBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="作者")
     private String author;
 
     /**
@@ -89,6 +103,7 @@ public class ArticleExtBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="编辑")
     private String editor;
 
     /**
@@ -96,18 +111,21 @@ public class ArticleExtBase {
      */
     @Length(max = 50)
     @Nullable
+    @Schema(description="来源")
     private String source;
 
     /**
      * 下线日期
      */
     @Nullable
+    @Schema(description="下线日期")
     private OffsetDateTime offlineDate;
 
     /**
      * 置顶时间
      */
     @Nullable
+    @Schema(description="置顶时间")
     private OffsetDateTime stickyDate;
 
     /**
@@ -115,6 +133,7 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="图片")
     private String image;
 
     /**
@@ -122,6 +141,7 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="视频")
     private String video;
 
     /**
@@ -129,12 +149,14 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="原视频")
     private String videoOrig;
 
     /**
      * 视频时长
      */
     @Nullable
+    @Schema(description="视频时长")
     private Integer videoDuration;
 
     /**
@@ -142,6 +164,7 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="音频")
     private String audio;
 
     /**
@@ -149,12 +172,14 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="原音频")
     private String audioOrig;
 
     /**
      * 音频时长
      */
     @Nullable
+    @Schema(description="音频时长")
     private Integer audioDuration;
 
     /**
@@ -162,6 +187,7 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="文件")
     private String file;
 
     /**
@@ -169,12 +195,14 @@ public class ArticleExtBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="文件名称")
     private String fileName;
 
     /**
      * 文件大小
      */
     @Nullable
+    @Schema(description="文件大小")
     private Long fileLength;
 
     /**
@@ -182,6 +210,7 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="文库")
     private String doc;
 
     /**
@@ -189,6 +218,7 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="文库原文档")
     private String docOrig;
 
     /**
@@ -196,12 +226,14 @@ public class ArticleExtBase {
      */
     @Length(max = 150)
     @Nullable
+    @Schema(description="文库名称")
     private String docName;
 
     /**
      * 文库大小
      */
     @Nullable
+    @Schema(description="文库大小")
     private Long docLength;
 
     /**
@@ -209,12 +241,14 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="独立模板")
     private String articleTemplate;
 
     /**
      * 是否允许评论
      */
     @NotNull
+    @Schema(description="是否允许评论")
     private Boolean allowComment = true;
 
     /**
@@ -222,6 +256,7 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="静态页文件")
     private String staticFile;
 
     /**
@@ -229,18 +264,21 @@ public class ArticleExtBase {
      */
     @Length(max = 255)
     @Nullable
+    @Schema(description="手机端静态页文件")
     private String mobileStaticFile;
 
     /**
      * 创建日期
      */
     @NotNull
+    @Schema(description="创建日期")
     private OffsetDateTime created = OffsetDateTime.now();
 
     /**
      * 修改日期
      */
     @Nullable
+    @Schema(description="修改日期")
     private OffsetDateTime modified;
 
     /**
@@ -248,6 +286,7 @@ public class ArticleExtBase {
      */
     @Length(max = 64)
     @Nullable
+    @Schema(description="流程实例ID")
     private String processInstanceId;
 
     /**
@@ -255,36 +294,56 @@ public class ArticleExtBase {
      */
     @Length(max = 300)
     @Nullable
+    @Schema(description="退回原因")
     private String rejectReason;
 
     /**
      * 是否百度推送
      */
     @NotNull
+    @Schema(description="是否百度推送")
     private Boolean baiduPush = false;
 
     /**
      * 类型(常规:0,投稿:1,采集:2,接口:3,站内推送:4,站外推送:5)
      */
     @NotNull
+    @Schema(description="类型(常规:0,投稿:1,采集:2,接口:3,站内推送:4,站外推送:5)")
     private Short type = 0;
 
     /**
      * 编辑器类型(1:富文本编辑器,2:Markdown编辑器)
      */
     @NotNull
+    @Schema(description="编辑器类型(1:富文本编辑器,2:Markdown编辑器)")
     private Short editorType = 1;
+
+    /**
+     * 图片集JSON
+     */
+    @Nullable
+    @Schema(description="图片集JSON")
+    private String imageListJson;
+
+    /**
+     * 文件集JSON
+     */
+    @Nullable
+    @Schema(description="文件集JSON")
+    private String fileListJson;
 
     /**
      * 正文
      */
     @Nullable
+    @Schema(description="正文")
     private String text;
 
     /**
      * Markdown正文
      */
     @Nullable
+    @Schema(description="Markdown正文")
     private String markdown;
 
     public Integer getId() {
@@ -628,6 +687,24 @@ public class ArticleExtBase {
 
     public void setEditorType(Short editorType) {
         this.editorType = editorType;
+    }
+
+    @Nullable
+    public String getImageListJson() {
+        return imageListJson;
+    }
+
+    public void setImageListJson(@Nullable String imageListJson) {
+        this.imageListJson = imageListJson;
+    }
+
+    @Nullable
+    public String getFileListJson() {
+        return fileListJson;
+    }
+
+    public void setFileListJson(@Nullable String fileListJson) {
+        this.fileListJson = fileListJson;
     }
 
     @Nullable

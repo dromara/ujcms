@@ -8,16 +8,15 @@ import com.ujcms.cms.core.mapper.ShortMessageMapper;
 import com.ujcms.cms.core.service.args.ShortMessageArgs;
 import com.ujcms.util.query.QueryInfo;
 import com.ujcms.util.query.QueryParser;
-
-import java.util.List;
-import java.util.Objects;
-
-import com.ujcms.util.security.Secures;
 import com.ujcms.util.sms.AliyunUtils;
 import com.ujcms.util.sms.TencentUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
 
 import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_ALIYUN;
 import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_TENCENTCLOUD;
@@ -29,16 +28,76 @@ import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_TENCENTCLOUD;
  */
 @Service
 public class ShortMessageService {
-    private ShortMessageMapper mapper;
-
-    private SeqService seqService;
+    private final ShortMessageMapper mapper;
+    private final SeqService seqService;
 
     public ShortMessageService(ShortMessageMapper mapper, SeqService seqService) {
         this.mapper = mapper;
         this.seqService = seqService;
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    /**
+     * 验证短消息是否正确。不管是否成功验证，该短消息都会被标记为已使用，不可再次验证。
+     *
+     * @param id       短消息ID
+     * @param receiver 接收者（手机号码或邮箱地址）
+     * @param code     验证码
+     * @param expires  过期时间
+     * @return 是否验证成功
+     */
+    public boolean validateCode(@Nullable Integer id, @Nullable String receiver, @Nullable String code, int expires) {
+        if (id == null) {
+            return false;
+        }
+        ShortMessage bean = select(id);
+        if (bean == null || bean.isUsed()) {
+            return false;
+        }
+        if (bean.isExpired(expires)) {
+            bean.setStatus(ShortMessage.STATUS_EXPIRED);
+        } else if (bean.isWrong(receiver, code)) {
+            bean.setStatus(ShortMessage.STATUS_WRONG);
+        } else {
+            bean.setStatus(ShortMessage.STATUS_CORRECT);
+        }
+        update(bean);
+        return bean.getStatus() == ShortMessage.STATUS_CORRECT;
+    }
+
+    /**
+     * 尝试短消息是否正确。
+     *
+     * @param id       短消息ID
+     * @param receiver 接收者（手机号码或邮箱地址）
+     * @param code     验证码
+     * @param expires  过期时间
+     * @param length   验证码长度。验证码长度不符，不计入错误次数。
+     * @return 尝试是否成功
+     */
+    public boolean tryCode(Integer id, String receiver, String code, int expires, int length) {
+        if (code.length() != length) {
+            return false;
+        }
+        ShortMessage bean = select(id);
+        if (bean == null || bean.isUsed()) {
+            return false;
+        }
+        if (bean.isExpired(expires)) {
+            bean.setStatus(ShortMessage.STATUS_EXPIRED);
+            update(bean);
+            return false;
+        }
+        if (bean.isWrong(receiver, code)) {
+            bean.setAttempts(bean.getAttempts() + 1);
+            if (bean.getAttempts() > ShortMessage.MAX_ATTEMPTS) {
+                bean.setStatus(ShortMessage.STATUS_EXCEEDED);
+            }
+            update(bean);
+            return false;
+        }
+        return true;
+    }
+
     @Nullable
     public String sendMobileMessage(String mobile, String code, Config.Sms sms) {
         if (sms.getProvider() == PROVIDER_ALIYUN) {
@@ -59,6 +118,18 @@ public class ShortMessageService {
         return shortMessage;
     }
 
+    public void sendEmailMessage(String to, String code, Config.Email email) {
+        String text = StringUtils.replace(email.getText(), "${code}", code);
+        email.sendMail(new String[]{to}, email.getSubject(), text);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ShortMessage insertEmailMessage(String email, String code, String ip, short usage) {
+        ShortMessage shortMessage = new ShortMessage(ShortMessage.TYPE_EMAIL, email, code, ip, usage);
+        insert(shortMessage);
+        return shortMessage;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void insert(ShortMessage bean) {
         bean.setId(seqService.getNextVal(ShortMessage.TABLE_NAME));
@@ -71,7 +142,7 @@ public class ShortMessageService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return mapper.delete(id);
     }
 
@@ -81,7 +152,7 @@ public class ShortMessageService {
     }
 
     @Nullable
-    public ShortMessage select(int id) {
+    public ShortMessage select(Integer id) {
         return mapper.select(id);
     }
 

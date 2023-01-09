@@ -2,6 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,6 +13,7 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.db.tree.TreeEntity;
 import com.ujcms.util.web.UrlBuilder;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -30,17 +32,21 @@ import java.util.stream.Collectors;
 import static com.ujcms.util.web.UrlBuilder.*;
 
 /**
- * 站点 实体类
+ * 站点实体类
  *
  * @author PONY
  */
-@JsonIgnoreProperties({"watermarkSettings", "htmlSettings"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties({"watermarkSettings", "htmlSettings", "messageBoardSettings", "handler"})
 public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 获取动态地址，含部署路径、子目录，不含域名、端口。如：{@code /contextPath/subDir}
      * <p>
      * 动态地址用于拼接动态页面地址，如留言、搜索页面等。PC站和手机站可拥有不同域名，所以不带域名信息。
      */
+    @Schema(description = "动态地址，含部署路径、子目录，不含域名、端口。如：{@code /contextPath/subDir}")
     public String getDy() {
         return new UrlBuilder()
                 .appendPath(getConfig().getContextPath())
@@ -49,15 +55,14 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     }
 
     /**
-     * 获取 API 接口地址，含协议、域名、端口和部署路径，不含子目录。如：{@code http://www.example.com/contextPath/api}
+     * 获取 API 接口地址。如：{@code /contextPath/subDir/frontend}
      * <p>
-     * API 接口不识别子目录信息，所以地址不带子目录。地址带域名方便静态页部署到其它域名。
+     * 地址带域名方便静态页部署到其它域名。
      */
+    @Schema(description = "API 接口地址。如：{@code /contextPath/subDir/frontend}")
     public String getApi() {
-        return new UrlBuilder()
-                .appendProtocol(getProtocol()).appendDomain(getDomain()).appendPort(getConfig().getPort())
-                .appendPath(getConfig().getContextPath())
-                .appendPath(UrlConstants.API)
+        return new UrlBuilder(getDy())
+                .appendPath(UrlConstants.FRONTEND_API)
                 .toString();
     }
 
@@ -84,6 +89,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     /**
      * 获得模板的基础路径。/{id} + path。例如：/1/...
      */
+    @Schema(description = "模板的基础路径。/{id} + path。例如：/1/...")
     public String getBasePath(String path) {
         return "/" + getId() + path;
     }
@@ -91,6 +97,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     /**
      * 获取模板文件路径。如：/templates/1/default/_files
      */
+    @Schema(description = "模板文件路径。如：/templates/1/default/_files")
     public String getFilesPath() {
         return new UrlBuilder()
                 .appendPath(getConfig().getContextPath())
@@ -100,6 +107,10 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
                 .toString();
     }
 
+    /**
+     * 获取标题。先获取SeoTitle，如不存在则获取网站名称
+     */
+    @Schema(description = "标题。先获取SeoTitle，如不存在则获取网站名称")
     public String getTitle() {
         if (StringUtils.isNotBlank(getSeoTitle())) {
             return getSeoTitle();
@@ -107,6 +118,10 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return getName();
     }
 
+    /**
+     * 站点层级。从一级站点到当前站点的列表
+     */
+    @Schema(description = "站点层级。从一级站点到当前站点的列表")
     @JsonIncludeProperties({"id", "name", "url"})
     public List<Site> getPaths() {
         LinkedList<Site> parents = new LinkedList<>();
@@ -118,6 +133,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return parents;
     }
 
+    @Schema(description = "站点层级名称。从一级栏目到当前栏目的名称列表")
     public List<String> getNames() {
         return getPaths().stream().map(SiteBase::getName).collect(Collectors.toList());
     }
@@ -146,11 +162,19 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     // region Urls
 
+    /**
+     * URL地址
+     */
+    @Schema(description = "URL地址")
     @Override
     public String getUrl() {
         return getHtml().isEnabled() ? getStaticUrl() : getDynamicUrl();
     }
 
+    /**
+     * 动态URL地址
+     */
+    @Schema(description = "动态URL地址")
     public String getDynamicUrl() {
         return new UrlBuilder()
                 .appendProtocol(getProtocol()).appendDomain(getDomain()).appendPort(getConfig().getPort())
@@ -159,16 +183,28 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
                 .toString();
     }
 
+    /**
+     * 静态URL地址
+     */
+    @Schema(description = "静态URL地址")
     public String getStaticUrl() {
         return Contexts.isMobile() ? getMobileStaticUrl() : getNormalStaticUrl();
     }
 
+    /**
+     * PC端静态URL地址
+     */
+    @Schema(description = "PC端静态URL地址")
     public String getNormalStaticUrl() {
-        return getNormalStaticUrl(SLASH);
+        return getNormalStaticUrl("");
     }
 
+    /**
+     * 手机端静态URL地址
+     */
+    @Schema(description = "手机端静态URL地址")
     public String getMobileStaticUrl() {
-        return getMobileStaticUrl(SLASH);
+        return getMobileStaticUrl("");
     }
 
     public String getNormalStaticUrl(String url) {
@@ -194,10 +230,12 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return builder.toString();
     }
 
+    @JsonIgnore
     public String getNormalStaticPath() {
         return getNormalStaticPath(Html.DEFAULT_PAGE);
     }
 
+    @JsonIgnore
     public String getMobileStaticPath() {
         return getMobileStaticPath(Html.DEFAULT_PAGE);
     }
@@ -210,6 +248,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return getStaticPath(getConfig().getHtmlStorage().getPath(), true, path);
     }
 
+    @JsonIgnore
     public String getStaticBase() {
         return getStaticPath(getConfig().getHtmlStorage().getPath(), false, "");
     }
@@ -230,6 +269,12 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     // region JsonFields
 
+    /**
+     * 自定义字段
+     */
+    @Nullable
+    private Map<String, Object> customs;
+
     public Map<String, Object> getCustoms() {
         if (customs == null) {
             customs = getModel().assembleCustoms(getCustomList());
@@ -248,9 +293,9 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return list;
     }
 
-    @Nullable
-    private Map<String, Object> customs;
-
+    /**
+     * 水印设置
+     */
     @Nullable
     private Watermark watermark;
 
@@ -278,6 +323,9 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         }
     }
 
+    /**
+     * 静态页设置
+     */
     @Nullable
     private Html html;
 
@@ -303,6 +351,37 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             setHtmlSettings(Constants.MAPPER.writeValueAsString(html));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Cannot write value of Html", e);
+        }
+    }
+
+    /**
+     * 留言板设置
+     */
+    @Nullable
+    private MessageBoard messageBoard;
+
+    @Valid
+    public MessageBoard getMessageBoard() {
+        if (messageBoard != null) {
+            return messageBoard;
+        }
+        String settings = getMessageBoardSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new MessageBoard();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, MessageBoard.class);
+        } catch (JsonProcessingException e) {
+            return new MessageBoard();
+        }
+    }
+
+    public void setMessageBoard(MessageBoard messageBoard) {
+        this.messageBoard = messageBoard;
+        try {
+            setMessageBoardSettings(Constants.MAPPER.writeValueAsString(messageBoard));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot write value of MessageBoard", e);
         }
     }
     // endregion
@@ -443,12 +522,18 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     // region SiteBase
 
+    /**
+     * 域名
+     */
     @Override
     @Pattern(regexp = "^(?!(uploads|templates|WEB-INF|cp)$)[a-zA-Z0-9-.]*", flags = Pattern.Flag.CASE_INSENSITIVE)
     public String getDomain() {
         return super.getDomain();
     }
 
+    /**
+     * 子目录
+     */
     @Override
     @Nullable
     @Pattern(regexp = "^(?!(uploads|templates|WEB-INF|cp)$)[\\w-]*", flags = Pattern.Flag.CASE_INSENSITIVE)
@@ -459,12 +544,15 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     // region SiteBuffer
 
+    @Schema(description = "浏览次数")
     public long getViews() {
         return getBuffer().getViews();
     }
     // endregion
 
+    @Schema(name = "Site.Watermark", description = "水印设置")
     public static final class Watermark implements Serializable {
+        private static final long serialVersionUID = 1L;
         /**
          * 是否开启
          */
@@ -541,7 +629,10 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         }
     }
 
+    @Schema(name = "Site.Html", description = "静态页配置")
     public static final class Html implements Serializable {
+        private static final long serialVersionUID = 1L;
+
         public static final String PATH_YEAR = "{year}";
         public static final String PATH_MONTH = "{month}";
         public static final String PATH_DAY = "{day}";
@@ -553,14 +644,19 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         public static final String DEFAULT_PAGE = "/index.html";
         public static final String MOBILE_PATH = "/m";
 
+        @Schema(description = "是否开启")
         private boolean enabled = true;
+        @Schema(description = "是否自动生成")
         private boolean auto = true;
+        @Schema(description = "列表静态页生成数")
         private int listPages = 1;
 
+        @Schema(description = "栏目静态页路径")
         @Length(max = 100)
         @Pattern(regexp = "^(?!.*\\.\\.)[\\w-{}/]*$")
         private String channel = "/channels/{channel_alias}/index";
 
+        @Schema(description = "文章静态页路径")
         @Length(max = 100)
         @Pattern(regexp = "^(?!.*\\.\\.)[\\w-{}/]*$")
         private String article = "/articles/{article_id}";
@@ -640,6 +736,32 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
         public void setArticle(String article) {
             this.article = article;
+        }
+    }
+
+    @Schema(name = "Site.MessageBoard", description = "留言板设置")
+    public static class MessageBoard implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private boolean enabled = true;
+        private boolean loginRequired = true;
+
+        @Schema(description = "是否开启")
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Schema(description = "是否需要登录")
+        public boolean isLoginRequired() {
+            return loginRequired;
+        }
+
+        public void setLoginRequired(boolean loginRequired) {
+            this.loginRequired = loginRequired;
         }
     }
 }

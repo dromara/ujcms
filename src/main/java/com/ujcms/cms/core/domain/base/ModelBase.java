@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -9,7 +11,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class ModelBase {
+public class ModelBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -19,12 +23,14 @@ public class ModelBase {
      * 模型ID
      */
     @NotNull
+    @Schema(description="模型ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @Nullable
+    @Schema(description="站点ID")
     private Integer siteId;
 
     /**
@@ -32,6 +38,7 @@ public class ModelBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
@@ -39,36 +46,42 @@ public class ModelBase {
      */
     @Length(max = 32)
     @NotNull
+    @Schema(description="类型(article:文章,channel:栏目,user:用户,site:站点设置,global:全局设置)")
     private String type = "";
 
     /**
      * 共享范围(0:本站私有,1:子站点共享,2:全局共享)
      */
     @NotNull
+    @Schema(description="共享范围(0:本站私有,1:子站点共享,2:全局共享)")
     private Short scope = 0;
 
     /**
      * 排列顺序
      */
     @NotNull
+    @Schema(description="排列顺序")
     private Short order = 32767;
 
     /**
      * 主字段集
      */
     @Nullable
+    @Schema(description="主字段集")
     private String mains;
 
     /**
      * 右侧字段集
      */
     @Nullable
+    @Schema(description="右侧字段集")
     private String asides;
 
     /**
      * 自定义字段集
      */
     @Nullable
+    @Schema(description="自定义字段集")
     private String customs;
 
     public Integer getId() {

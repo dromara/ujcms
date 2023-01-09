@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
@@ -10,7 +12,9 @@ import org.springframework.lang.Nullable;
  *
  * @author MyBatis Generator
  */
-public class TaskBase {
+public class TaskBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -20,18 +24,21 @@ public class TaskBase {
      * 任务ID
      */
     @NotNull
+    @Schema(description="任务ID")
     private Integer id = 0;
 
     /**
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer siteId = 0;
 
     /**
      * 用户ID
      */
     @NotNull
+    @Schema(description="用户ID")
     private Integer userId = 0;
 
     /**
@@ -39,48 +46,56 @@ public class TaskBase {
      */
     @Length(max = 50)
     @NotNull
+    @Schema(description="名称")
     private String name = "";
 
     /**
      * 开始时间
      */
     @NotNull
+    @Schema(description="开始时间")
     private OffsetDateTime beginDate = OffsetDateTime.now();
 
     /**
      * 结束时间
      */
     @Nullable
+    @Schema(description="结束时间")
     private OffsetDateTime endDate;
 
     /**
      * 已完成数量
      */
     @NotNull
+    @Schema(description="已完成数量")
     private Integer current = 0;
 
     /**
      * 总数量
      */
     @NotNull
+    @Schema(description="总数量")
     private Integer total = 0;
 
     /**
      * 类型(1:HTML生成,2:全文索引生成)
      */
     @NotNull
+    @Schema(description="类型(1:HTML生成,2:全文索引生成)")
     private Short type = 0;
 
     /**
      * 状态(0:等待,1:运行中,2:出错,3:停止,4:完成)
      */
     @NotNull
+    @Schema(description="状态(0:等待,1:运行中,2:出错,3:停止,4:完成)")
     private Short status = 0;
 
     /**
      * 错误信息
      */
     @Nullable
+    @Schema(description="错误信息")
     private String errorInfo;
 
     public Integer getId() {

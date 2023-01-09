@@ -2,11 +2,12 @@ package com.ujcms.cms.core.support;
 
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.util.web.exception.Http401Exception;
 import com.ujcms.cms.core.service.UserService;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
+import com.ujcms.util.web.exception.Http401Exception;
 import org.springframework.lang.Nullable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -17,49 +18,61 @@ import java.util.Optional;
  */
 public final class Contexts {
     @Nullable
-    public static Integer findCurrentUserId() {
-        Subject subject = SecurityUtils.getSubject();
-        Object principal = subject.getPrincipal();
-        boolean validPrincipal = principal instanceof Integer && (subject.isRemembered() || subject.isAuthenticated());
-        if (validPrincipal) {
-            return (Integer) principal;
+    public static String findCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
+            return authentication.getName();
         }
         return null;
     }
 
-    public static Integer getCurrentUserId() {
-        return Optional.ofNullable(findCurrentUserId()).orElseThrow(Http401Exception::new);
+    public static String getCurrentUsername() {
+        return Optional.ofNullable(findCurrentUsername()).orElseThrow(Http401Exception::new);
     }
+
+    /**
+     * 用户线程变量
+     */
+    private static final ThreadLocal<User> USER_HOLDER = new ThreadLocal<>();
 
     @Nullable
-    public static User findCurrentUser(UserService userService) {
-        return Optional.ofNullable(findCurrentUserId()).map(userService::select).orElse(null);
+    public static User findCurrentUser() {
+        return USER_HOLDER.get();
     }
 
-    public static User getCurrentUser(UserService userService) {
-        return Optional.ofNullable(findCurrentUser(userService)).orElseThrow(Http401Exception::new);
+    public static User getCurrentUser() {
+        return Optional.ofNullable(findCurrentUser()).orElseThrow(Http401Exception::new);
+    }
+
+    public static void setCurrentUser(User user) {
+        USER_HOLDER.set(user);
+    }
+
+    public static void clearCurrentUser() {
+        USER_HOLDER.remove();
     }
 
     /**
      * 站点线程变量
      */
-    private static ThreadLocal<Site> siteHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Site> SITE_HOLDER = new ThreadLocal<>();
 
     @Nullable
     public static Site findCurrentSite() {
-        return siteHolder.get();
+        return SITE_HOLDER.get();
     }
 
     public static Site getCurrentSite() {
-        return Optional.ofNullable(findCurrentSite()).orElseThrow(() -> new IllegalStateException("Current site not found"));
+        return Optional.ofNullable(findCurrentSite()).orElseThrow(() ->
+                new IllegalStateException("Current site not found"));
     }
 
     public static void setCurrentSite(Site site) {
-        siteHolder.set(site);
+        SITE_HOLDER.set(site);
     }
 
     public static void clearCurrentSite() {
-        siteHolder.remove();
+        SITE_HOLDER.remove();
     }
 
     public static Integer getCurrentSiteId() {
@@ -69,18 +82,18 @@ public final class Contexts {
     /**
      * 是否手机访问线程变量
      */
-    private static ThreadLocal<Boolean> isMobileHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> IS_MOBILE_HOLDER = new ThreadLocal<>();
 
     public static void setMobile(boolean isMobile) {
-        isMobileHolder.set(isMobile);
+        IS_MOBILE_HOLDER.set(isMobile);
     }
 
     public static boolean isMobile() {
-        return isMobileHolder.get() != null && isMobileHolder.get();
+        return IS_MOBILE_HOLDER.get() != null && IS_MOBILE_HOLDER.get();
     }
 
     public static void clearMobile() {
-        isMobileHolder.remove();
+        IS_MOBILE_HOLDER.remove();
     }
 
     /**

@@ -17,8 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class SeqService {
-    private SeqMapper mapper;
-    private Props props;
+    private final SeqMapper mapper;
+    private final Props props;
 
     public SeqService(SeqMapper mapper, Props props) {
         this.mapper = mapper;

@@ -6,10 +6,28 @@
     <result column="site_id_" jdbcType="INTEGER" property="siteId" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.GroupAccess" />
+  <select id="listChannelByGroupId" resultType="int">
+    select t.channel_id_
+    from ujcms_group_access t
+    where t.group_id_ = #{groupId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
+  <select id="listGroupByChannelId" resultType="int">
+    select t.group_id_
+    from ujcms_group_access t
+    where t.channel_id_ = #{channelId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
   <delete id="deleteByChannelId" parameterType="int">
     delete
     from ujcms_group_access
     where channel_id_ = #{channelId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByGroupId" parameterType="int">
+    delete
+    from ujcms_group_access
+    where group_id_ = #{groupId,jdbcType=INTEGER}
+    <if test="siteId != null">and site_id_ = #{siteId}</if>
   </delete>
   <delete id="deleteBySiteId" parameterType="int">
     delete

@@ -28,6 +28,8 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -131,8 +133,10 @@ public class MinIoFileHandler implements FileHandler {
             String extension = FilenameUtils.getExtension(storeName);
             Path tempFile = Files.createTempFile(null, "." + extension);
             try {
+                // minio-8.3以上版本才有overwrite方法。
+                //.overwrite(true)
                 client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(storeName)
-                        .filename(tempFile.toString()).overwrite(true).build());
+                        .filename(tempFile.toString()).build());
                 return tempFile.toFile();
             } catch (ErrorResponseException e) {
                 Files.deleteIfExists(tempFile);

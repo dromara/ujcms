@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.PageHelper;
-import com.ujcms.cms.core.domain.ArticleImage;
+import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.ChannelBuffer;
 import com.ujcms.cms.core.domain.ChannelCustom;
@@ -10,10 +10,12 @@ import com.ujcms.cms.core.domain.ChannelTree;
 import com.ujcms.cms.core.domain.GroupAccess;
 import com.ujcms.cms.core.domain.Model;
 import com.ujcms.cms.core.domain.RoleArticle;
+import com.ujcms.cms.core.domain.RoleChannel;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.ModelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
+import com.ujcms.cms.core.mapper.ArticleMapper;
 import com.ujcms.cms.core.mapper.ChannelBufferMapper;
 import com.ujcms.cms.core.mapper.ChannelCustomMapper;
 import com.ujcms.cms.core.mapper.ChannelExtMapper;
@@ -21,6 +23,7 @@ import com.ujcms.cms.core.mapper.ChannelMapper;
 import com.ujcms.cms.core.mapper.ChannelTreeMapper;
 import com.ujcms.cms.core.mapper.GroupAccessMapper;
 import com.ujcms.cms.core.mapper.RoleArticleMapper;
+import com.ujcms.cms.core.mapper.RoleChannelMapper;
 import com.ujcms.cms.core.service.args.ChannelArgs;
 import com.ujcms.util.db.tree.TreeService;
 import com.ujcms.util.query.CustomFieldQuery;
@@ -49,44 +52,49 @@ import java.util.Optional;
  */
 @Service
 public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
-    private HtmlService htmlService;
-    private PolicyFactory policyFactory;
-    private AttachmentService attachmentService;
-    private ModelService modelService;
-    private ChannelMapper mapper;
-    private ChannelExtMapper extMapper;
-    private ChannelBufferMapper bufferMapper;
-    private ChannelTreeMapper treeMapper;
-    private GroupAccessMapper groupAccessMapper;
-    private RoleArticleMapper roleArticleMapper;
-    private ChannelCustomMapper customMapper;
-    private SeqService seqService;
-    private TreeService<Channel, ChannelTree> treeService;
+    private final HtmlService htmlService;
+    private final PolicyFactory policyFactory;
+    private final AttachmentService attachmentService;
+    private final ModelService modelService;
+    private final ChannelMapper mapper;
+    private final ChannelExtMapper extMapper;
+    private final ChannelBufferMapper bufferMapper;
+    private final ChannelTreeMapper treeMapper;
+    private final ArticleMapper articleMapper;
+    private final GroupAccessMapper groupAccessMapper;
+    private final RoleArticleMapper roleArticleMapper;
+    private final RoleChannelMapper roleChannelMapper;
+    private final ChannelCustomMapper customMapper;
+    private final SeqService seqService;
+    private final TreeService<Channel, ChannelTree> treeService;
 
     public ChannelService(HtmlService htmlService, PolicyFactory policyFactory, AttachmentService attachmentService,
                           ModelService modelService, ChannelMapper mapper, ChannelExtMapper extMapper,
-                          ChannelBufferMapper bufferMapper,
-                          ChannelTreeMapper treeMapper, GroupAccessMapper groupAccessMapper,
-                          RoleArticleMapper roleArticleMapper, ChannelCustomMapper customMapper,
+                          ChannelBufferMapper bufferMapper, ChannelTreeMapper treeMapper,
+                          ArticleMapper articleMapper, GroupAccessMapper groupAccessMapper,
+                          RoleArticleMapper roleArticleMapper, RoleChannelMapper roleChannelMapper,
+                          ChannelCustomMapper customMapper,
                           SeqService seqService) {
         this.htmlService = htmlService;
         this.policyFactory = policyFactory;
         this.attachmentService = attachmentService;
         this.modelService = modelService;
         this.bufferMapper = bufferMapper;
+        this.articleMapper = articleMapper;
         this.groupAccessMapper = groupAccessMapper;
         this.mapper = mapper;
         this.extMapper = extMapper;
         this.treeMapper = treeMapper;
         this.roleArticleMapper = roleArticleMapper;
+        this.roleChannelMapper = roleChannelMapper;
         this.customMapper = customMapper;
         this.seqService = seqService;
         this.treeService = new TreeService<>(mapper, treeMapper);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(Channel bean, ChannelExt ext, List<Integer> groupIds, List<Integer> roleIds,
-                       Map<String, Object> customs) {
+    public void insert(Channel bean, ChannelExt ext, List<Integer> groupIds, List<Integer> articleRoleIds,
+                       List<Integer> channelRoleIds, Map<String, Object> customs) {
         bean.setId(seqService.getNextVal(Channel.TABLE_NAME));
         if (StringUtils.isBlank(bean.getAlias())) {
             bean.setAlias(String.valueOf(bean.getId()));
@@ -96,7 +104,8 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         extMapper.insert(ext);
         bufferMapper.insert(new ChannelBuffer(bean.getId()));
         insertGroupIds(groupIds, bean.getId(), bean.getSiteId());
-        insertRoleIds(roleIds, bean.getId(), bean.getSiteId());
+        insertArticleRoleIds(articleRoleIds, bean.getId(), bean.getSiteId());
+        insertChannelRoleIds(channelRoleIds, bean.getId(), bean.getSiteId());
         Model model = Optional.ofNullable(modelService.select(bean.getChannelModelId()))
                 .orElseThrow(() -> new IllegalArgumentException("bean.channelModelId cannot be null"));
         List<ChannelCustom> customList = Channel.disassembleCustoms(model, bean.getId(), customs);
@@ -108,8 +117,12 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         groupIds.forEach(groupId -> groupAccessMapper.insert(new GroupAccess(groupId, channelId, siteId)));
     }
 
-    private void insertRoleIds(List<Integer> roleIds, Integer channelId, Integer siteId) {
-        roleIds.forEach(roleId -> roleArticleMapper.insert(new RoleArticle(roleId, channelId, siteId)));
+    private void insertArticleRoleIds(List<Integer> articleRoleIds, Integer channelId, Integer siteId) {
+        articleRoleIds.forEach(roleId -> roleArticleMapper.insert(new RoleArticle(roleId, channelId, siteId)));
+    }
+
+    private void insertChannelRoleIds(List<Integer> channelRoleIds, Integer channelId, Integer siteId) {
+        channelRoleIds.forEach(roleId -> roleChannelMapper.insert(new RoleChannel(roleId, channelId, siteId)));
     }
 
     private void insertCustoms(List<ChannelCustom> customList, Integer channelId) {
@@ -125,16 +138,21 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void update(Channel bean, ChannelExt ext, @Nullable Integer parentId, @Nullable List<Integer> groupIds,
-                       @Nullable List<Integer> roleIds, Map<String, Object> customs) {
+                       @Nullable List<Integer> articleRoleIds, @Nullable List<Integer> channelRoleIds,
+                       Map<String, Object> customs) {
         treeService.update(bean, parentId, bean.getSiteId());
         extMapper.update(ext);
         if (groupIds != null) {
             groupAccessMapper.deleteByChannelId(bean.getId());
             insertGroupIds(groupIds, bean.getId(), bean.getSiteId());
         }
-        if (roleIds != null) {
+        if (articleRoleIds != null) {
             roleArticleMapper.deleteByChannelId(bean.getId());
-            insertRoleIds(roleIds, bean.getId(), bean.getSiteId());
+            insertArticleRoleIds(articleRoleIds, bean.getId(), bean.getSiteId());
+        }
+        if (channelRoleIds != null) {
+            roleChannelMapper.deleteByChannelId(bean.getId());
+            insertArticleRoleIds(channelRoleIds, bean.getId(), bean.getSiteId());
         }
         Model model = Optional.ofNullable(modelService.select(bean.getChannelModelId()))
                 .orElseThrow(() -> new IllegalArgumentException("bean.channelModelId cannot be null"));
@@ -163,15 +181,21 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         if (bean == null) {
             return 0;
         }
+        return delete(bean);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int delete(Channel bean) {
         int count = bean.getChildren().stream().mapToInt(item -> delete(item.getId())).sum();
-        deleteListeners.forEach(it -> it.preChannelDelete(id));
-        attachmentService.deleteRefer(Channel.TABLE_NAME, id);
-        groupAccessMapper.deleteByChannelId(id);
-        roleArticleMapper.deleteByChannelId(id);
-        customMapper.deleteByChannelId(id);
-        bufferMapper.delete(id);
-        extMapper.delete(id);
-        count += treeService.delete(id, bean.getOrder(), bean.getSiteId());
+        deleteListeners.forEach(it -> it.preChannelDelete(bean.getId()));
+        attachmentService.deleteRefer(Channel.TABLE_NAME, bean.getId());
+        groupAccessMapper.deleteByChannelId(bean.getId());
+        roleArticleMapper.deleteByChannelId(bean.getId());
+        roleChannelMapper.deleteByChannelId(bean.getId());
+        customMapper.deleteByChannelId(bean.getId());
+        bufferMapper.delete(bean.getId());
+        extMapper.delete(bean.getId());
+        count += treeService.delete(bean.getId(), bean.getOrder(), bean.getSiteId());
         htmlService.deleteChannelHtml(bean);
         return count;
     }
@@ -184,6 +208,39 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     @Nullable
     public Channel select(Integer id) {
         return mapper.select(id);
+    }
+
+    public void fetchFirstData(Channel channel) {
+        if (channel.getType() == Channel.TYPE_LINK_ARTICLE
+                && !channel.isFetchedFirstData() && channel.getFirstArticle() == null) {
+            channel.setFirstArticle(findFirstArticle(channel.getId()));
+            channel.setFetchedFirstData(true);
+        }
+        if (channel.getType() == Channel.TYPE_LINK_CHILD
+                && !channel.isFetchedFirstData() && channel.getFirstChild() == null) {
+            channel.setFirstChild(findFirstChild(channel.getId()));
+            channel.setFetchedFirstData(true);
+        }
+    }
+
+    @Nullable
+    public Article findFirstArticle(Integer channelId) {
+        List<Article> list = PageHelper.offsetPage(0, 1, false).doSelectPage(() ->
+                articleMapper.listByChannelId(channelId));
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.get(0);
+    }
+
+    @Nullable
+    public Channel findFirstChild(Integer channelId) {
+        List<Channel> list = PageHelper.offsetPage(0, 1, false).doSelectPage(() ->
+                mapper.listChildren(channelId));
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.get(0);
     }
 
     @Nullable
@@ -213,15 +270,20 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     public List<Channel> selectList(ChannelArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Channel.TABLE_NAME, "order,id");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
-        return mapper.selectAll(queryInfo, customsCondition);
+        List<Channel> list = mapper.selectAll(queryInfo, customsCondition);
+        list.forEach(this::fetchFirstData);
+        return list;
     }
 
     public List<Channel> selectList(ChannelArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        List<Channel> list = PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        list.forEach(this::fetchFirstData);
+        return list;
     }
 
     public boolean existsByModelId(Integer modelId) {
-        return PageHelper.offsetPage(0, 1, false).doCount(() -> mapper.countByModelId(modelId)) > 0;
+        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByModelId(modelId)).iterator().next().intValue() > 0;
     }
 
     @Override

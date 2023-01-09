@@ -1,16 +1,24 @@
 package com.ujcms.cms.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.ArticleStatBase;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * 文章浏览统计 实体类
+ * 文章浏览统计实体类
  *
  * @author PONY
  */
+@Schema(name = "Article.ArticleStat")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class ArticleStat extends ArticleStatBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public ArticleStat() {
     }
 

@@ -4,6 +4,7 @@
     <id column="ancestor_id_" jdbcType="INTEGER" property="ancestorId" />
     <id column="descendant_id_" jdbcType="INTEGER" property="descendantId" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.OrgTree" />
     <select id="listByAncestorId" resultType="int">
         select t.descendant_id_

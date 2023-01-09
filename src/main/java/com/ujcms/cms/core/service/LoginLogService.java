@@ -22,8 +22,8 @@ import java.util.Objects;
  */
 @Service
 public class LoginLogService {
-    private LoginLogMapper mapper;
-    private SeqService seqService;
+    private final LoginLogMapper mapper;
+    private final SeqService seqService;
 
     public LoginLogService(LoginLogMapper mapper, SeqService seqService) {
         this.mapper = mapper;
@@ -41,7 +41,7 @@ public class LoginLogService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void changePasswordFailure(Integer userId, String ip, short status) {
+    public void updatePasswordFailure(Integer userId, String ip, short status) {
         insert(LoginLog.ofChangePasswordFailure(userId, ip, status));
     }
 

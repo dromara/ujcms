@@ -35,7 +35,7 @@ public class CaptchaProperties {
     /**
      * 图片高
      */
-    private int height = 38;
+    private int height = 36;
     /**
      * 字体大小
      */

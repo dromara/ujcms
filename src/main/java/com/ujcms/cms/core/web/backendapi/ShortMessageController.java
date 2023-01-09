@@ -1,15 +1,17 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.aop.annotations.OperationLog;
+import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.service.ShortMessageService;
 import com.ujcms.cms.core.service.args.ShortMessageArgs;
+import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.exception.Http404Exception;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,21 +39,21 @@ import static com.ujcms.util.query.QueryUtils.getQueryMap;
 @RestController("backendShortMessageController")
 @RequestMapping(BACKEND_API + "/core/short-message")
 public class ShortMessageController {
-    private ShortMessageService service;
+    private final ShortMessageService service;
 
     public ShortMessageController(ShortMessageService service) {
         this.service = service;
     }
 
     @GetMapping
-    @RequiresPermissions("shortMessage:list")
+    @PreAuthorize("hasAnyAuthority('shortMessage:list','*')")
     public Page<ShortMessage> list(Integer page, Integer pageSize, HttpServletRequest request) {
         ShortMessageArgs args = ShortMessageArgs.of(getQueryMap(request.getQueryString()));
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }
 
     @GetMapping("{id}")
-    @RequiresPermissions("shortMessage:show")
+    @PreAuthorize("hasAnyAuthority('shortMessage:show','*')")
     public ShortMessage show(@PathVariable int id) {
         ShortMessage bean = service.select(id);
         if (bean == null) {
@@ -61,28 +63,31 @@ public class ShortMessageController {
     }
 
     @PostMapping
-    @RequiresPermissions("shortMessage:create")
+    @PreAuthorize("hasAnyAuthority('shortMessage:create','*')")
+    @OperationLog(module = "shortMessage", operation = "create", type = OperationType.CREATE)
     public ResponseEntity<Body> create(@RequestBody @Valid ShortMessage bean) {
         ShortMessage shortMessage = new ShortMessage();
-        BeanUtils.copyProperties(bean, shortMessage);
+        Entities.copy(bean, shortMessage);
         service.insert(shortMessage);
         return Responses.ok();
     }
 
     @PutMapping
-    @RequiresPermissions("shortMessage:update")
+    @PreAuthorize("hasAnyAuthority('shortMessage:update','*')")
+    @OperationLog(module = "shortMessage", operation = "update", type = OperationType.UPDATE)
     public ResponseEntity<Body> update(@RequestBody @Valid ShortMessage bean) {
         ShortMessage shortMessage = service.select(bean.getId());
         if (shortMessage == null) {
             return Responses.notFound("ShortMessage not found. ID = " + bean.getId());
         }
-        BeanUtils.copyProperties(bean, shortMessage);
+        Entities.copy(bean, shortMessage);
         service.update(shortMessage);
         return Responses.ok();
     }
 
     @DeleteMapping
-    @RequiresPermissions("shortMessage:delete")
+    @PreAuthorize("hasAnyAuthority('shortMessage:delete','*')")
+    @OperationLog(module = "shortMessage", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
         service.delete(ids);
         return Responses.ok();

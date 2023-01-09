@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Controller("frontendSearchController")
 public class SearchController {
-    private SiteResolver siteResolver;
+    private final SiteResolver siteResolver;
 
     public SearchController(SiteResolver siteResolver) {
         this.siteResolver = siteResolver;
@@ -24,7 +24,7 @@ public class SearchController {
     private static final String TEMPLATE = "sys_search";
 
     @GetMapping({"/search", "/{subDir:[\\w-]+}/search"})
-    public String channel(@PathVariable(required = false) String subDir, HttpServletRequest request) {
+    public String search(@PathVariable(required = false) String subDir, HttpServletRequest request) {
         Site site = siteResolver.resolve(request, subDir);
         return site.assembleTemplate(TEMPLATE);
     }

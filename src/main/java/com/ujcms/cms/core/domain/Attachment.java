@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.AttachmentBase;
 import com.ujcms.util.file.FilesEx;
@@ -13,7 +15,11 @@ import java.util.List;
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class Attachment extends AttachmentBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public Attachment() {
     }
 

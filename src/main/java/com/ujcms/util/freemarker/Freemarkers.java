@@ -7,6 +7,7 @@ import freemarker.template.TemplateBooleanModel;
 import freemarker.template.TemplateCollectionModelEx;
 import freemarker.template.TemplateDateModel;
 import freemarker.template.TemplateDirectiveBody;
+import freemarker.template.TemplateHashModelEx;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import freemarker.template.TemplateModelIterator;
@@ -24,9 +25,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * FreeMarker帮助类
@@ -326,6 +330,33 @@ public class Freemarkers {
     public static void requireBody(@Nullable TemplateDirectiveBody body) {
         if (body == null) {
             throw new RuntimeException("Missing body.");
+        }
+    }
+
+    public static Map<String, Object> getMap(@Nullable TemplateModel model) throws TemplateModelException {
+        Map<String, Object> map = new HashMap<>(16);
+        fillMap(model, map::put);
+        return map;
+    }
+
+    public static Map<String, String> getStringMap(@Nullable TemplateModel model) throws TemplateModelException {
+        Map<String, String> map = new HashMap<>(16);
+        fillMap(model, map::put);
+        return map;
+    }
+
+    private static void fillMap(@Nullable TemplateModel model, BiConsumer<String, String> consumer)
+            throws TemplateModelException {
+        if (model instanceof TemplateHashModelEx) {
+            TemplateHashModelEx hashModel = (TemplateHashModelEx) model;
+            TemplateModelIterator it = hashModel.keys().iterator();
+            while (it.hasNext()) {
+                String key = Freemarkers.getString(it.next());
+                String value = Freemarkers.getString(hashModel.get(key));
+                if (StringUtils.isNotBlank(value)) {
+                    consumer.accept(key, value);
+                }
+            }
         }
     }
 

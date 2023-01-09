@@ -27,8 +27,8 @@ import java.nio.file.Path;
  */
 @Configuration
 public class LuceneConfig {
-    private ResourceLoader resourceLoader;
-    private Props props;
+    private final ResourceLoader resourceLoader;
+    private final Props props;
 
     public LuceneConfig(ResourceLoader resourceLoader, Props props) {
         this.resourceLoader = resourceLoader;

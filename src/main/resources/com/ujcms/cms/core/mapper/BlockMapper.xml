@@ -11,11 +11,13 @@
     <result column="with_description_" jdbcType="BOOLEAN" property="withDescription" />
     <result column="with_image_" jdbcType="BOOLEAN" property="withImage" />
     <result column="with_mobile_image_" jdbcType="BOOLEAN" property="withMobileImage" />
+    <result column="with_video_" jdbcType="BOOLEAN" property="withVideo" />
     <result column="link_url_required_" jdbcType="BOOLEAN" property="linkUrlRequired" />
     <result column="subtitle_required_" jdbcType="BOOLEAN" property="subtitleRequired" />
     <result column="description_required_" jdbcType="BOOLEAN" property="descriptionRequired" />
     <result column="image_required_" jdbcType="BOOLEAN" property="imageRequired" />
     <result column="mobile_image_required_" jdbcType="BOOLEAN" property="mobileImageRequired" />
+    <result column="video_required_" jdbcType="BOOLEAN" property="videoRequired" />
     <result column="image_width_" jdbcType="INTEGER" property="imageWidth" />
     <result column="image_height_" jdbcType="INTEGER" property="imageHeight" />
     <result column="mobile_image_width_" jdbcType="INTEGER" property="mobileImageWidth" />
@@ -71,11 +73,13 @@
       with_description_ = #{withDescription,jdbcType=BOOLEAN},
       with_image_ = #{withImage,jdbcType=BOOLEAN},
       with_mobile_image_ = #{withMobileImage,jdbcType=BOOLEAN},
+      with_video_ = #{withVideo,jdbcType=BOOLEAN},
       link_url_required_ = #{linkUrlRequired,jdbcType=BOOLEAN},
       subtitle_required_ = #{subtitleRequired,jdbcType=BOOLEAN},
       description_required_ = #{descriptionRequired,jdbcType=BOOLEAN},
       image_required_ = #{imageRequired,jdbcType=BOOLEAN},
       mobile_image_required_ = #{mobileImageRequired,jdbcType=BOOLEAN},
+      video_required_ = #{videoRequired,jdbcType=BOOLEAN},
       image_width_ = #{imageWidth,jdbcType=INTEGER},
       image_height_ = #{imageHeight,jdbcType=INTEGER},
       mobile_image_width_ = #{mobileImageWidth,jdbcType=INTEGER},
@@ -85,8 +89,8 @@
       order_ = #{order,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Block">
-    insert into ujcms_block (id_, site_id_, name_, alias_, scope_, with_link_url_, with_subtitle_, with_description_, with_image_, with_mobile_image_, link_url_required_, subtitle_required_, description_required_, image_required_, mobile_image_required_, image_width_, image_height_, mobile_image_width_, mobile_image_height_, recommendable_, enabled_, order_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{withLinkUrl,jdbcType=BOOLEAN}, #{withSubtitle,jdbcType=BOOLEAN}, #{withDescription,jdbcType=BOOLEAN}, #{withImage,jdbcType=BOOLEAN}, #{withMobileImage,jdbcType=BOOLEAN}, #{linkUrlRequired,jdbcType=BOOLEAN}, #{subtitleRequired,jdbcType=BOOLEAN}, #{descriptionRequired,jdbcType=BOOLEAN}, #{imageRequired,jdbcType=BOOLEAN}, #{mobileImageRequired,jdbcType=BOOLEAN}, #{imageWidth,jdbcType=INTEGER}, #{imageHeight,jdbcType=INTEGER}, #{mobileImageWidth,jdbcType=INTEGER}, #{mobileImageHeight,jdbcType=INTEGER}, #{recommendable,jdbcType=BOOLEAN}, #{enabled,jdbcType=BOOLEAN}, #{order,jdbcType=SMALLINT})
+    insert into ujcms_block (id_, site_id_, name_, alias_, scope_, with_link_url_, with_subtitle_, with_description_, with_image_, with_mobile_image_, with_video_, link_url_required_, subtitle_required_, description_required_, image_required_, mobile_image_required_, video_required_, image_width_, image_height_, mobile_image_width_, mobile_image_height_, recommendable_, enabled_, order_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{withLinkUrl,jdbcType=BOOLEAN}, #{withSubtitle,jdbcType=BOOLEAN}, #{withDescription,jdbcType=BOOLEAN}, #{withImage,jdbcType=BOOLEAN}, #{withMobileImage,jdbcType=BOOLEAN}, #{withVideo,jdbcType=BOOLEAN}, #{linkUrlRequired,jdbcType=BOOLEAN}, #{subtitleRequired,jdbcType=BOOLEAN}, #{descriptionRequired,jdbcType=BOOLEAN}, #{imageRequired,jdbcType=BOOLEAN}, #{mobileImageRequired,jdbcType=BOOLEAN}, #{videoRequired,jdbcType=BOOLEAN}, #{imageWidth,jdbcType=INTEGER}, #{imageHeight,jdbcType=INTEGER}, #{mobileImageWidth,jdbcType=INTEGER}, #{mobileImageHeight,jdbcType=INTEGER}, #{recommendable,jdbcType=BOOLEAN}, #{enabled,jdbcType=BOOLEAN}, #{order,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.name_, t.alias_, t.scope_, t.with_link_url_, t.with_subtitle_, t.with_description_, t.with_image_, t.with_mobile_image_, t.link_url_required_, t.subtitle_required_, t.description_required_, t.image_required_, t.mobile_image_required_, t.image_width_, t.image_height_, t.mobile_image_width_, t.mobile_image_height_, t.recommendable_, t.enabled_, t.order_
+    t.id_, t.site_id_, t.name_, t.alias_, t.scope_, t.with_link_url_, t.with_subtitle_, t.with_description_, t.with_image_, t.with_mobile_image_, t.with_video_, t.link_url_required_, t.subtitle_required_, t.description_required_, t.image_required_, t.mobile_image_required_, t.video_required_, t.image_width_, t.image_height_, t.mobile_image_width_, t.mobile_image_height_, t.recommendable_, t.enabled_, t.order_
   </sql></mapper>

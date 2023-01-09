@@ -1,0 +1,61 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>留言板 - ${site.title}</title>
+  <meta name="keywords" content="留言板">
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'includes_header.html'/]
+<div class="container">
+  <div class="row">
+    <div class="col mt-1">
+      <div class="d-flex align-items-center py-1 border-bottom">
+        <div class="flex-grow-1 h5 mb-0"><a href="${dy}/message-board">留言板</a></div>
+        <div><a class="btn btn-primary" href="${dy}/message-board/create" role="button">我要留言</a></div>
+      </div>
+      <div class="py-1 border-bottom">
+        <a href="${addParam('message-board','message-board','isReplied')}" class="btn btn-sm [#if !Params.isReplied??]btn-secondary[#else]btn-link text-reset[/#if]">全部留言</a>
+        <a href="${addParam('message-board','message-board','isReplied','true')}" class="btn btn-sm [#if Params.isReplied! =='true']btn-secondary[#else]btn-link text-reset[/#if]">已回复留言</a>
+        <a href="${addParam('message-board','message-board','isReplied','false')}" class="btn btn-sm [#if Params.isReplied! =='false']btn-secondary[#else]btn-link text-reset[/#if]">未回复留言</a>
+      </div>
+      <div class="py-1 border-bottom">
+        [@DictList type='sys_message_board_type'; list]
+          <a href="${addParam('message-board','message-board','typeId')}" class="btn btn-sm[#if !Params.typeId??] btn-secondary[#else] btn-link text-reset[/#if]">全部类别</a>
+          [#list list as type]
+            <a href="${addParam('message-board','message-board','typeId',type.id)}" class="btn btn-sm [#if Params.typeId! == type.id?string]btn-secondary[#else]btn-link text-reset[/#if]">${type.name}</a>
+          [/#list]
+        [/@DictList]
+      </div>
+      [@MessageBoardPage typeId=Params.typeId isReplied=Params.isReplied status='0' limit='10';pagedList]
+        <ul class="list-unstyled">
+          [#list pagedList.content as bean]
+            <li class="mt-3 pb-3 border-bottom position-relative">
+              <div class="d-flex align-items-center">
+                <div class="badge badge-info mr-2">${bean.type.name}</div>
+                <div class="flex-grow-1 text-truncate"><a href="${dy}/message-board/${bean.id}" class="text-reset stretched-link">${bean.title!substring(bean.text,100,'...')}</a></div>
+                <div>[#if bean.replied]<span class="badge badge-success">已回复</span>[#else]<span class="badge badge-secondary">未回复</span>[/#if]</div>
+              </div>
+              <p class="small text-muted my-2 cm-truncate2">${substring(bean.text,400,'...')}</p>
+              <div class="small text-black-50 mt-2 clearfix">
+                <div class="float-left"><i class="far fa-user"></i> ${bean.user.username!bean.nickname!"匿名网友"}</div>
+                <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.created.format('yyyy-MM-dd')}</div>
+              </div>
+            </li>
+          [/#list]
+        </ul>
+        [#include 'includes_page.html'/]
+      [/@MessageBoardPage]
+    </div>
+  </div>
+</div>
+[#include 'includes_footer.html'/]
+[#include 'includes_message_box.html'/]
+</body>
+</html>
+[/#escape]

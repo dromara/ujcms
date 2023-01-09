@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain.base;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -7,7 +9,9 @@ import javax.validation.constraints.NotNull;
  *
  * @author MyBatis Generator
  */
-public class SiteBufferBase {
+public class SiteBufferBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 数据库表名
      */
@@ -17,12 +21,14 @@ public class SiteBufferBase {
      * 站点ID
      */
     @NotNull
+    @Schema(description="站点ID")
     private Integer id = 0;
 
     /**
      * 浏览次数
      */
     @NotNull
+    @Schema(description="浏览次数")
     private Long views = 0L;
 
     public Integer getId() {

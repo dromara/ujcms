@@ -29,7 +29,7 @@ public class DictArgs extends BaseQueryArgs {
 
     public DictArgs typeAlias(@Nullable String typeAlias) {
         if (StringUtils.isNotBlank(typeAlias)) {
-            queryMap.put("EQ_dictType-alias", typeAlias);
+            queryMap.put("EQ_type@dictType-alias", typeAlias);
         }
         return this;
     }

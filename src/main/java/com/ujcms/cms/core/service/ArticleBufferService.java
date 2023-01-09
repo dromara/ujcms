@@ -20,10 +20,9 @@ import java.util.Objects;
  */
 @Service
 public class ArticleBufferService {
-    private ArticleStatMapper statMapper;
-    private ArticleBufferMapper mapper;
-
-    private SeqService seqService;
+    private final ArticleStatMapper statMapper;
+    private final ArticleBufferMapper mapper;
+    private final SeqService seqService;
 
     public ArticleBufferService(ArticleStatMapper statMapper, ArticleBufferMapper mapper, SeqService seqService) {
         this.statMapper = statMapper;

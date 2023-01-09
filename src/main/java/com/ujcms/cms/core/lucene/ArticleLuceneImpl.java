@@ -38,9 +38,9 @@ import static org.apache.lucene.search.BooleanClause.Occur;
  * @author PONY
  */
 public class ArticleLuceneImpl implements ArticleLucene {
-    private LuceneOperations operations;
-    private Analyzer analyzer;
-    private Analyzer smartAnalyzer;
+    private final LuceneOperations operations;
+    private final Analyzer analyzer;
+    private final Analyzer smartAnalyzer;
 
     public ArticleLuceneImpl(LuceneOperations operations, Analyzer analyzer, Analyzer smartAnalyzer) {
         this.operations = operations;

@@ -32,7 +32,7 @@ public class ChannelDirective implements TemplateDirectiveModel {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
         Integer id = Directives.getInteger(params, ID);
-        Channel channel = null;
+        Channel channel;
         if (id != null) {
             channel = channelService.select(id);
         } else {
@@ -44,11 +44,15 @@ public class ChannelDirective implements TemplateDirectiveModel {
             Integer siteId = Directives.getInteger(params, SITE_ID, defaultSiteId);
             channel = channelService.findBySiteIdAndAlias(siteId, alias);
         }
+        if (channel != null) {
+            channel.getPaths().forEach(channelService::fetchFirstData);
+            channel.getChildren().forEach(channelService::fetchFirstData);
+        }
         loopVars[0] = env.getObjectWrapper().wrap(channel);
         body.render(env.getOut());
     }
 
-    private ChannelService channelService;
+    private final ChannelService channelService;
 
     public ChannelDirective(ChannelService channelService) {
         this.channelService = channelService;

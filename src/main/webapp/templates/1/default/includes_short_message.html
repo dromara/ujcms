@@ -1,0 +1,204 @@
+[#escape x as (x)!?html]
+  <div class="modal fade" id="sendMobileMessageModal" tabindex="-1" role="dialog" aria-labelledby="sendMobileMessageLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="mobileMessageForm" action="${api}/sms/mobile" method="post">
+          <div class="modal-header">
+            <h5 class="modal-title" id="sendMobileMessageLabel"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="sr-only" for="mobileCaptcha">图形验证码</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="mobileCaptcha" name="captcha" placeholder="图形验证码" autocomplete="off" required title="请填写图形验证码"
+                       data-msg-remote="图形验证码不正确">
+                <div class="input-group-append">
+                  <img id="mobileCaptchaImg" class="input-group-text" style="cursor:pointer;padding:0;" onclick="fetchMobileCaptcha()" title="点击重新获取图形验证码"
+                       src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                  <input type="hidden" id="mobileCaptchaToken" name="captchaToken">
+                  <script>
+                    function fetchMobileCaptcha() {
+                      axios.get('${api}/captcha').then(function (response) {
+                        var data = response.data;
+                        if (data == null) return;
+                        $('#mobileCaptchaImg').attr('src', 'data:image/png;base64,' + data.image);
+                        $('#mobileCaptchaToken').val(data.token);
+                      });
+                    }
+                  </script>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <input type="hidden" id="mobileReceiver" name="receiver"/>
+            <input type="hidden" id="mobileUsage" name="usage"/>
+            <button type="submit" class="btn btn-primary">获取短信验证码</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+    var defaultMobileTime = 90;
+    var mobileTime = defaultMobileTime, mobileInput, mobileButton, mobileName, mobileInterval;
+
+    function mobileMessageButtonControl() {
+      if (mobileTime > 0) {
+        mobileButton.text(mobileName + ' (' + mobileTime-- + ')').prop('disabled', true);
+      } else {
+        mobileButton.text(mobileName).prop('disabled', false);
+        mobileTime = defaultMobileTime;
+        clearInterval(mobileInterval);
+      }
+    }
+
+    function sendMobileMessage(formValidator, element, input, button, usage) {
+      if (formValidator.element(element)) {
+        mobileInput = input;
+        mobileButton = button;
+        mobileName = button.text();
+        $('#sendMobileMessageModal').modal('show');
+        $('#mobileCaptcha').val('');
+        $('#mobileReceiver').val(element.val());
+        $('#mobileUsage').val(usage);
+        setTimeout(function () {
+          $('#mobileCaptcha').focus().select();
+        }, 500);
+      } else {
+        element.focus().select();
+      }
+    }
+    $('#sendMobileMessageModal').on('show.bs.modal', function (event) {
+      fetchMobileCaptcha();
+    });
+    $('#mobileMessageForm').validate({
+      rules: {
+        captcha: {
+          remote: {
+            url: '${api}/captcha/try', data: {
+              token: function () {
+                return $('#mobileCaptchaToken').val();
+              }
+            }
+          }
+        }
+      },
+      submitHandler: function (form) {
+        request.post(form.action, $(form).serializeJSON()).then(function (response) {
+          var data = response.data;
+          if(data.result == null) return;
+          mobileInput.val(data.result.shortMessageId);
+          $('#sendMobileMessageModal').modal('hide');
+          clearInterval(mobileInterval);
+          mobileMessageButtonControl();
+          mobileInterval = setInterval(mobileMessageButtonControl, 1000);
+        });
+      }
+    });
+  </script>
+
+  <div class="modal fade" id="sendEmailMessageModal" tabindex="-1" role="dialog" aria-labelledby="sendEmailMessageLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="emailMessageForm" action="${api}/sms/email" method="post">
+          <div class="modal-header">
+            <h5 class="modal-title" id="sendEmailMessageLabel"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="sr-only" for="emailCaptcha">图形验证码</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="emailCaptcha" name="captcha" placeholder="图形验证码" autocomplete="off" required
+                       title="请填写图形验证码" data-msg-remote="图形验证码不正确">
+                <div class="input-group-append">
+                  <img id="emailCaptchaImg" class="input-group-text" style="cursor:pointer;padding:0;" onclick="fetchEmailCaptcha()" title="点击重新获取图形验证码"
+                       src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                  <input type="hidden" id="emailCaptchaToken" name="captchaToken">
+                  <script>
+                    function fetchEmailCaptcha() {
+                      axios.get('${api}/captcha').then(function (response) {
+                        var data = response.data;
+                        if (data == null) return;
+                        $('#emailCaptchaImg').attr('src', 'data:image/png;base64,' + data.image);
+                        $('#emailCaptchaToken').val(data.token);
+                      });
+                    }
+                  </script>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <input type="hidden" id="emailReceiver" name="receiver"/>
+            <input type="hidden" id="emailUsage" name="usage"/>
+            <button type="submit" class="btn btn-primary">获取邮件验证码</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+    var defaultEmailTime = 90;
+    var emailTime = defaultEmailTime, emailInput, emailButton, emailName, emailInterval;
+
+    function emailMessageButtonControl() {
+      if (emailTime > 0) {
+        emailButton.text(emailName + ' (' + emailTime-- + ')').prop('disabled', true);
+      } else {
+        emailButton.text(emailName).prop('disabled', false);
+        emailTime = defaultEmailTime;
+        clearInterval(emailInterval);
+      }
+    }
+
+    function sendEmailMessage(formValidator, element, input, button, usage) {
+      if (formValidator.element(element)) {
+        emailInput = input;
+        emailButton = button;
+        emailName = button.text();
+        $('#sendEmailMessageModal').modal('show');
+        $('#emailCaptcha').val('');
+        $('#emailReceiver').val(element.val());
+        $('#emailUsage').val(usage);
+        setTimeout(function () {
+          $('#emailCaptcha').focus().select();
+        }, 500);
+      } else {
+        element.focus().select();
+      }
+    }
+    $('#sendEmailMessageModal').on('show.bs.modal', function (event) {
+      fetchEmailCaptcha();
+    });
+
+    $('#emailMessageForm').validate({
+      rules: {
+        captcha: {
+          remote: {
+            url: '${api}/captcha/try', data: {
+              token: function () {
+                return $('#emailCaptchaToken').val();
+              }
+            }
+          }
+        }
+      },
+      submitHandler: function (form) {
+        request.post(form.action, $(form).serializeJSON()).then(function (response) {
+          var data = response.data;
+          if(data.result == null) return;
+          emailInput.val(data.result.shortMessageId);
+          $('#sendEmailMessageModal').modal('hide');
+          clearInterval(emailInterval);
+          emailMessageButtonControl();
+          emailInterval = setInterval(emailMessageButtonControl, 1000);
+        });
+      }
+    });
+  </script>
+[/#escape]

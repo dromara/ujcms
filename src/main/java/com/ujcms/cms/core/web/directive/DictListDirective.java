@@ -30,17 +30,17 @@ public class DictListDirective implements TemplateDirectiveModel {
     /**
      * 类型别名。字符串（String）。
      */
-    private static final String TYPE_ALIAS = "typeAlias";
+    private static final String TYPE = "type";
     /**
      * 是否启用。布尔型（Boolean）。可选值：all(全部), false(禁用)。默认值：启用。
      */
-    private static final String ENABLED = "isEnabled";
+    private static final String IS_ENABLED = "isEnabled";
 
     public static List<Dict> query(Map<String, ?> params, DictService dictService) {
         DictArgs args = DictArgs.of();
 
         Integer typeId = Directives.getInteger(params, TYPE_ID);
-        String typeAlias = Directives.getString(params, TYPE_ALIAS);
+        String typeAlias = Directives.getString(params, TYPE);
         if (typeId != null) {
             args.typeId(typeId);
         } else if (StringUtils.isNotBlank(typeAlias)) {
@@ -49,7 +49,7 @@ public class DictListDirective implements TemplateDirectiveModel {
             throw new IllegalArgumentException("Params typeId or typeAlias is required.");
         }
 
-        Optional.ofNullable(Directives.getBooleanDefault(params, ENABLED, true)).ifPresent(args::enabled);
+        Optional.ofNullable(Directives.getBooleanDefault(params, IS_ENABLED, true)).ifPresent(args::enabled);
 
         Directives.handleOrderBy(args.getQueryMap(), params);
         int offset = Directives.getOffset(params);
@@ -72,7 +72,7 @@ public class DictListDirective implements TemplateDirectiveModel {
     }
 
 
-    private DictService dictService;
+    private final DictService dictService;
 
     public DictListDirective(DictService dictService) {
         this.dictService = dictService;

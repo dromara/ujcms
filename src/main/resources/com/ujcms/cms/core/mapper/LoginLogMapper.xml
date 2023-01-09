@@ -29,8 +29,7 @@
         delete
         from ujcms_login_log
         where id_ = #{id,jdbcType=INTEGER}
-    </delete>
-<update id="update" parameterType="com.ujcms.cms.core.domain.LoginLog">
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.LoginLog">
     update ujcms_login_log
     set user_id_ = #{userId,jdbcType=INTEGER},
       login_name_ = #{loginName,jdbcType=VARCHAR},
