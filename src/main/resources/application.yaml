@@ -24,6 +24,13 @@ ujcms.data-sql-platform: mysql
 #spring.datasource.driver-class-name: org.postgresql.Driver
 #ujcms.data-sql-platform: postgresql
 
+# 人大金仓数据库
+#spring.datasource.url: jdbc:kingbase8://192.168.0.241:54321/ujcms
+#spring.datasource.username: ujcms
+#spring.datasource.password: password
+#spring.datasource.driver-class-name: com.kingbase8.Driver
+#ujcms.data-sql-platform: postgresql
+
 # 达梦数据库
 #spring.datasource.url: jdbc:dm://192.168.0.240:5236/UJCMS
 #spring.datasource.username: ujcms
@@ -102,7 +109,9 @@ mybatis.configuration.default-statement-timeout: 30
 # 神通数据库(oscar): OscarDialect
 # 瀚高数据库(highgo): HsqldbDialect
 # 虚谷数据库(xugu): HsqldbDialect
-pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDialect;kingbase=com.github.pagehelper.dialect.helper.PostgreSqlDialect;opengauss=com.github.pagehelper.dialect.helper.PostgreSqlDialect
+# 人大金仓版本(kingbase): PostgreSqlDialect
+# 人大金仓新版本(kingbase8): PostgreSqlDialect (pagehelper5.3.2没有这项，需等待pagehelper升级)
+pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDialect;kingbase8=com.github.pagehelper.dialect.helper.PostgreSqlDialect;opengauss=com.github.pagehelper.dialect.helper.PostgreSqlDialect
 # Jackson配置
 spring.jackson.deserialization.FAIL_ON_UNKNOWN_PROPERTIES: false
 spring.jackson.serialization.FAIL_ON_EMPTY_BEANS: false

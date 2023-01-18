@@ -69,7 +69,7 @@ public class RegisterController {
         Config config = configService.getUnique();
         Config.Register register = config.getRegister();
         if (!register.isEnabled()) {
-            throw new Http404Exception("Registration is not enabled");
+            throw new Http404Exception("error.registerNotEnabled");
         }
         validateRegister(params, register);
         int verifyMode = register.getVerifyMode();

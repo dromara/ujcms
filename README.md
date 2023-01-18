@@ -44,6 +44,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 1. 创建数据库。数据库名可为`ujcms`或其它任何名称。
   * MySQL，字符集选`utf8mb4`（不要选择`utf8`，该字符集可能导致某些特殊字符出现乱码）。
   * 达梦数据库，字符集选`UTF-8`（不要使用`GB18030`，该字符集可能导致某些特殊字符出现乱码）。
+  * 人大金仓数据库，字符集选`UTF8`（不要使用`GBK`，该字符集可能导致某些特殊字符出现乱码）。
 2. 无需执行SQL文件，程序启动时会自动创建表及初始化数据。以后程序升级同样不需要执行SQL升级脚本，程序启动时会判断当前软件版本及数据库表结构版本，自动进行数据库表结构升级。
 
 ## MySQL表名大小写问题
@@ -117,19 +118,19 @@ Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，�
 
 ## 后端技术
 
-* SpringBoot：提供了对Spring开箱即用的功能。简化了Spring配置，提供自动配置auto-configuration功能。
-* SpringMVC：MVC框架，使用方便，Bug较少。
+* Spring Boot：提供了对Spring开箱即用的功能。简化了Spring配置，提供自动配置auto-configuration功能。
+* Spring MVC：MVC框架，使用方便，Bug较少。
+* Spring Security：安全组件。
 * Mybatis：持久化框架。
 * FreeMarker：网站模板组件。
-* Shiro：安全组件。配置简便。
 * Lucene：全文检索组件。
 
 ## 前端技术
 
 * TypeScript: JavaScript的一个超集。
-* Vite 2: 下一代前端开发与构建工具。
-* Vue 3：JavaScript框架。
+* Vue3：JavaScript框架。
 * ElementPlus：Vue 3 UI 框架。
+* Vite: 下一代前端开发与构建工具。
 * Tailwind CSS: 功能类优先的 CSS 框架。
 * VueRouter: Vue 路由组件。
 * VueI18n: Vue 国际化组件。

@@ -5,6 +5,7 @@
     <id column="role_id_" jdbcType="INTEGER" property="roleId" />
     <result column="order_" jdbcType="SMALLINT" property="order" />
   </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.RoleCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.UserRole" />
     <delete id="deleteByUserId" parameterType="int">
         delete

@@ -77,9 +77,8 @@
         SELECT COUNT(*)
         FROM ujcms_user t
              JOIN ujcms_user_role ur ON t.id_ = ur.user_id_
-             JOIN ujcms_org_tree ot ON t.org_id_ = ot.descendant_id_
         WHERE ur.role_id_ = #{roleId}
-          AND ot.ancestor_id_ &lt;&gt; #{notOrgId}
+          AND not exists(select * from ujcms_org_tree ot where t.org_id_ = ot.descendant_id_ and ot.ancestor_id_ = #{notOrgId})
     </select>
     <select id="select" parameterType="int" resultMap="ResultMap">
         select

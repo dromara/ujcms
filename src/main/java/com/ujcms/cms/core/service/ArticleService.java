@@ -40,7 +40,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.domain.Article.*;
@@ -159,8 +158,8 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     public void submit(Article article, Integer userId) {
         String processKey = article.getChannel().getProcessKey();
         short status = article.getStatus();
-        if (status == STATUS_DRAFT || status == STATUS_REJECTED || status == STATUS_OFFLINE || status == STATUS_DELETED
-                || status == STATUS_PENDING) {
+        if (status == STATUS_DRAFT || status == STATUS_PENDING || status == STATUS_ARCHIVED
+                || status == STATUS_REJECTED || status == STATUS_OFFLINE || status == STATUS_DELETED) {
             if (StringUtils.isNotBlank(processKey)) {
                 // 有流程且在待审核状态无需处理，直接返回
                 if (status == STATUS_PENDING) {

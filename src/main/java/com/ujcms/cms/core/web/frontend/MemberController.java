@@ -49,7 +49,7 @@ public class MemberController {
         Site site = siteResolver.resolve(request, subDir);
         Config.Register register = configService.getUnique().getRegister();
         if (!register.isEnabled()) {
-            throw new Http404Exception("Registration is not enabled");
+            throw new Http404Exception("error.registerNotEnabled");
         }
         return site.assembleTemplate(REGISTER_TEMPLATE);
     }

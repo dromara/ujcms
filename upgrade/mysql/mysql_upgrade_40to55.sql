@@ -9,6 +9,8 @@ insert into ujcms_org_tree(ancestor_id_, descendant_id_) values (0,0);
 update ujcms_article_image set name_ = '' where name_ is null;
 update ujcms_article_image set description_ = '' where description_ is null;
 update ujcms_article_ext u set u.image_list_json_ = (select CONCAT('[',GROUP_CONCAT(CONCAT('{"name":"',t.name_,'","description":"',t.description_,'","url":"',t.url_,'"}') ORDER BY t.order_,t.id_ SEPARATOR ','),']') from ujcms_article_image t where t.article_id_ = u.id_);
+delete from ujcms_article_image;
 
 update ujcms_article_file set name_ = '' where name_ is null;
 update ujcms_article_ext u set u.file_list_json_ = (select CONCAT('[',GROUP_CONCAT(CONCAT('{"name":"',t.name_,'","url":"',t.url_,'","length":',t.length_,'}') ORDER BY t.order_,t.id_ SEPARATOR ','),']') from ujcms_article_file t where t.article_id_ = u.id_);
+delete from ujcms_article_file;
