@@ -1,30 +1,28 @@
 package com.ujcms.util.file;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.ujcms.util.web.UrlBuilder;
 import freemarker.template.Template;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPReply;
-import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 import java.nio.file.Files;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static com.ujcms.util.file.FilesEx.SLASH;
+import static com.ujcms.util.file.FilesEx.normalize;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * FTP 文件处理类
@@ -35,38 +33,22 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author PONY
  */
 public class FtpFileHandler implements FileHandler {
-    private String hostname;
-    @Nullable
-    private Integer port;
-    private String username;
-    private String password;
-    private String encoding;
-    /**
-     * 被动模式
-     */
-    private boolean passive;
-    /**
-     * 加密方式。0:不加密, 1: TLS隐式加密, 2: TLS显式加密
-     */
-    private int encryption;
+    private final FtpClientProperties properties;
+    private final FtpClientFactory ftpClientFactory;
     /**
      * 保存路径前缀。
      */
-    private String storePrefix;
+    private final String storePrefix;
     /**
      * 显示路径前缀
      */
-    private String displayPrefix;
+    private final String displayPrefix;
 
     public FtpFileHandler(String hostname, @Nullable Integer port, String username, String password, String encoding,
                           boolean passive, int encryption, String storePrefix, String displayPrefix) {
-        this.hostname = hostname;
-        this.port = port;
-        this.username = username;
-        this.password = password;
-        this.encoding = encoding;
-        this.passive = passive;
-        this.encryption = encryption;
+        this.properties = new FtpClientProperties(hostname, port, username, password,
+                encoding, passive, encryption);
+        this.ftpClientFactory = new FtpClientFactory(this.properties);
         this.storePrefix = storePrefix;
         this.displayPrefix = displayPrefix;
     }
@@ -81,9 +63,10 @@ public class FtpFileHandler implements FileHandler {
         execute(ftp -> {
             String storeName = getStoreName(filename);
             ByteArrayOutputStream os = new ByteArrayOutputStream();
-            template.process(dataModel, new OutputStreamWriter(os,StandardCharsets.UTF_8));
-            mkdir(ftp, FilenameUtils.getFullPath(storeName));
+            template.process(dataModel, new OutputStreamWriter(os, UTF_8));
+            mkdir(ftp, FilenameUtils.getPath(storeName));
             ftp.storeFile(storeName, new ByteArrayInputStream(os.toByteArray()));
+            return true;
         });
     }
 
@@ -91,11 +74,12 @@ public class FtpFileHandler implements FileHandler {
     public void store(String filename, MultipartFile multipart) {
         execute(ftp -> {
             String storeName = getStoreName(filename);
-            String fullPath = FilenameUtils.getFullPath(storeName);
+            String fullPath = FilenameUtils.getPath(storeName);
             mkdir(ftp, fullPath);
             try (InputStream is = multipart.getInputStream()) {
                 ftp.storeFile(storeName, is);
             }
+            return true;
         });
     }
 
@@ -105,21 +89,20 @@ public class FtpFileHandler implements FileHandler {
             String storeName = getStoreName(filename);
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             ImageIO.write(image, formatName, os);
-            mkdir(ftp, FilenameUtils.getFullPath(storeName));
+            mkdir(ftp, FilenameUtils.getPath(storeName));
             ftp.storeFile(storeName, new ByteArrayInputStream(os.toByteArray()));
+            return true;
         });
-
     }
 
     @Override
     public void store(String filename, InputStream source) {
         execute(ftp -> {
             String storeName = getStoreName(filename);
-            String fullPath = FilenameUtils.getFullPath(storeName);
+            String fullPath = FilenameUtils.getPath(storeName);
             mkdir(ftp, fullPath);
-            try (InputStream is = source) {
-                ftp.storeFile(storeName, is);
-            }
+            ftp.storeFile(storeName, source);
+            return true;
         });
     }
 
@@ -127,58 +110,179 @@ public class FtpFileHandler implements FileHandler {
     public void store(String filename, File file) {
         execute(ftp -> {
             String storeName = getStoreName(filename);
-            String fullPath = FilenameUtils.getFullPath(storeName);
+            String fullPath = FilenameUtils.getPath(storeName);
             mkdir(ftp, fullPath);
             try (InputStream is = FileUtils.openInputStream(file)) {
                 ftp.storeFile(storeName, is);
             }
+            return true;
+        });
+    }
+
+    @Override
+    public void store(String filename, String text) {
+        execute(ftp -> {
+            try (InputStream is = new ByteArrayInputStream(text.getBytes(UTF_8))) {
+                ftp.storeFile(getStoreName(filename), is);
+            }
+            return true;
+        });
+    }
+
+    @Override
+    public boolean mkdir(String dir) {
+        return execute(ftp -> ftp.makeDirectory(getStoreName(dir)));
+    }
+
+    @Override
+    public void unzip(MultipartFile zipPart, String destDir, String... ignoredExtensions) {
+        try {
+            ZipUtils.decompress(zipPart.getInputStream(),
+                    (entryName, zipIn) -> store(UrlBuilder.of(destDir).appendPath(entryName).toString(), zipIn),
+                    (entryName) -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
+                    ignoredExtensions);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void zip(String dir, String[] names, OutputStream out) {
+        ZipUtils.zip(dir, names, out,
+                (filename) -> execute(ftp -> ftp.changeWorkingDirectory(getStoreName(filename))),
+                (filename) -> execute(ftp ->
+                        Optional.ofNullable(ftp.listNames(getStoreName(filename))).orElse(new String[]{})),
+                this::writeOutputStream);
+    }
+
+    @Override
+    public boolean rename(String filename, String to) {
+        if (Objects.equals(filename, to)) {
+            return false;
+        }
+        return execute(ftp -> ftp.rename(getStoreName(filename), getStoreName(to)));
+    }
+
+    @Override
+    public void moveTo(String filename, String destDir) {
+        String name = FilenameUtils.getName(filename);
+        String to = UrlBuilder.of(destDir).appendPath(name).toString();
+        rename(filename, to);
+    }
+
+    @Override
+    public void moveTo(String dir, String[] names, String destDir) {
+        for (String name : names) {
+            String filename = UrlBuilder.of(dir).appendPath(name).toString();
+            String to = UrlBuilder.of(destDir).appendPath(name).toString();
+            rename(filename, to);
+        }
+    }
+
+    @Override
+    public boolean exist(String filename) {
+        return execute(ftp -> {
+            String storeName = getStoreName(filename);
+            if (ftp.changeWorkingDirectory(storeName)) {
+                return false;
+            }
+            return ftp.listFiles(storeName).length == 1;
         });
     }
 
     @Nullable
     @Override
     public File getFile(String filename) {
-        AtomicReference<File> ref = new AtomicReference<>();
-        execute(ftp -> {
+        File file = execute(ftp -> {
             String storeName = getStoreName(filename);
             String extension = FilenameUtils.getExtension(storeName);
             File tempFile = Files.createTempFile(null, "." + extension).toFile();
             try (OutputStream os = FileUtils.openOutputStream(tempFile)) {
                 ftp.retrieveFile(storeName, os);
+                return tempFile;
             } catch (Exception e) {
                 FileUtils.deleteQuietly(tempFile);
                 throw new RuntimeException(e);
             }
-            ref.set(tempFile);
         });
-        if (ref.get() != null && ref.get().exists()) {
-            return ref.get();
-        }
-        return null;
+        return file.exists() ? file : null;
     }
 
+    @Override
     @Nullable
-    @Override
-    public InputStream getInputStream(String filename) {
-        AtomicReference<InputStream> ref = new AtomicReference<>();
-        execute(ftp -> {
+    public WebFile getWebFile(String filename) {
+        return execute(ftp -> {
             String storeName = getStoreName(filename);
-            ref.set(ftp.retrieveFileStream(storeName));
+            if (ftp.changeWorkingDirectory(storeName)) {
+                return Optional.of(new WebFile(normalize(filename), displayPrefix));
+            }
+            FTPFile[] files = ftp.listFiles(storeName);
+            if (files.length <= 0) {
+                return Optional.<WebFile>empty();
+            }
+            WebFile webFile = new WebFile(normalize(filename), displayPrefix, files[0]);
+            if (webFile.isEditable()) {
+                try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+                    ftp.retrieveFile(storeName, os);
+                    webFile.setText(new String(os.toByteArray(), UTF_8));
+                }
+            }
+            return Optional.of(webFile);
+        }).orElse(null);
+    }
+
+    @Override
+    public void writeOutputStream(String filename, OutputStream out) {
+        execute(ftp -> ftp.retrieveFile(getStoreName(filename), out));
+    }
+
+    private void copyFile(FTPClient ftp, String src, String dest) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ftp.retrieveFile(getStoreName(src), outputStream);
+        InputStream is = new ByteArrayInputStream(outputStream.toByteArray());
+        ftp.storeFile(getStoreName(dest), is);
+    }
+
+    @Override
+    public void copy(String src, String dest) {
+        execute(ftp -> {
+            if (ftp.changeWorkingDirectory(getStoreName(src))) {
+                ftp.makeDirectory(getStoreName(dest));
+                for (String name : ftp.listNames()) {
+                    copyDirectory(ftp, src, name, dest);
+                }
+            } else {
+                copyFile(ftp, src, dest);
+            }
+            return true;
         });
-        if (ref.get() != null) {
-            return ref.get();
+    }
+
+    private void copyDirectory(FTPClient ftp, String dir, String name, String path) throws IOException {
+        String filename = UrlBuilder.of(dir).appendPath(name).toString();
+        String pathname = UrlBuilder.of(path).appendPath(name).toString();
+        String storeName = getStoreName(filename);
+        if (ftp.changeWorkingDirectory(storeName)) {
+            ftp.makeDirectory(getStoreName(pathname));
+            for (String childName : ftp.listNames(storeName)) {
+                copyDirectory(ftp, filename, FilenameUtils.getName(childName), pathname);
+            }
         }
-        return null;
+        FTPFile[] files = ftp.listFiles(storeName);
+        if (files.length <= 0) {
+            return;
+        }
+        copyFile(ftp, filename, pathname);
     }
 
     @Override
-    public void copyFile(String src, String dest) {
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
-    @Override
-    public void copyDirectory(String src, String dest) {
-        throw new UnsupportedOperationException("not yet implemented");
+    public void copy(String dir, String[] names, String destDir) {
+        execute(ftp -> {
+            for (String name : names) {
+                copyDirectory(ftp, dir, name, destDir);
+            }
+            return true;
+        });
     }
 
     @Override
@@ -188,38 +292,39 @@ public class FtpFileHandler implements FileHandler {
 
     @Override
     public boolean deleteFile(String filename) {
-        AtomicReference<Boolean> ref = new AtomicReference<>();
-        execute(ftp -> {
-            String storeName = getStoreName(filename);
-            ref.set(ftp.deleteFile(storeName));
-        });
-        if (ref.get() != null) {
-            return ref.get();
-        }
-        return false;
+        return execute(ftp -> ftp.deleteFile(getStoreName(filename)));
     }
 
     @Override
     public boolean deleteDirectory(String directory) {
-        AtomicReference<Boolean> ref = new AtomicReference<>();
-        execute(ftp -> {
+        return execute(ftp -> {
             String storeName = getStoreName(directory);
-            FTPFile file = ftp.mlistFile(storeName);
-            if (file == null) {
-                ref.set(false);
-                return;
-            }
-            if (file.isDirectory()) {
+            if (ftp.changeWorkingDirectory(storeName)) {
                 deleteDirectory(storeName, ftp);
-                ref.set(ftp.removeDirectory(storeName));
-            } else {
-                ref.set(ftp.deleteFile(storeName));
+                return ftp.removeDirectory(storeName);
             }
+            FTPFile[] files = ftp.listFiles(storeName);
+            if (files.length <= 0) {
+                return false;
+            }
+            return ftp.deleteFile(storeName);
         });
-        if (ref.get() != null) {
-            return ref.get();
-        }
-        return false;
+    }
+
+    @Override
+    public List<WebFile> listFiles(String path, WebFileFilter filter) {
+        final List<WebFile> list = new ArrayList<>();
+        execute(ftp -> {
+            for (FTPFile file : ftp.listFiles(getStoreName(path))) {
+                String id = UrlBuilder.of(path).appendPath(file.getName()).toString();
+                WebFile webFile = new WebFile(id, displayPrefix, file);
+                if (filter.accept(webFile)) {
+                    list.add(webFile);
+                }
+            }
+            return true;
+        });
+        return list;
     }
 
     /**
@@ -243,101 +348,63 @@ public class FtpFileHandler implements FileHandler {
     }
 
     private String getStoreName(String filename) {
-        return storePrefix + FilesEx.normalize(filename);
+        return storePrefix + normalize(filename);
     }
 
     private static void mkdir(FTPClient ftp, String path) throws IOException {
         if (StringUtils.isBlank(path)) {
             return;
         }
-        if (path.startsWith(FilesEx.SLASH)) {
-            ftp.changeWorkingDirectory(FilesEx.SLASH);
+        if (path.startsWith(SLASH)) {
+            ftp.changeWorkingDirectory(SLASH);
         }
-        for (String dir : StringUtils.split(path, FilesEx.SLASH)) {
+        for (String dir : StringUtils.split(path, SLASH)) {
             if (!ftp.changeWorkingDirectory(dir)) {
                 ftp.makeDirectory(dir);
                 ftp.changeWorkingDirectory(dir);
             }
         }
-        ftp.changeWorkingDirectory(FilesEx.SLASH);
+        ftp.changeWorkingDirectory(SLASH);
     }
 
-    private void execute(Extractor consumer) {
-        FTPClient ftp;
-        if (encryption == ENCRYPTION_IMPLICIT) {
-            ftp = new FTPSClient(true);
-        } else if (encryption == ENCRYPTION_EXPLICIT) {
-            ftp = new FTPSClient(false);
-        } else {
-            ftp = new FTPClient();
+    private <T> T execute(Extractor<T> consumer) {
+        String key = properties.toString();
+        FtpClientPool pool = POOL_CACHE.get(key, k -> new FtpClientPool(ftpClientFactory, new FtpClientPoolConfig()));
+        if (pool == null) {
+            throw new IllegalStateException("Cannot get FtpClientPool");
         }
-        if (StringUtils.isNotBlank(encoding)) {
-            ftp.setControlEncoding(encoding);
-        } else {
-            ftp.setControlEncoding(StandardCharsets.UTF_8.displayName());
-        }
-        FTPClientConfig config = new FTPClientConfig();
-        ftp.configure(config);
         try {
+            FTPClient ftp = pool.borrowObject();
             try {
-                if (port != null) {
-                    ftp.connect(hostname, port);
-                } else {
-                    ftp.connect(hostname);
-                }
-                ftp.login(username, password);
-                int reply = ftp.getReplyCode();
-                // 登录是否成功
-                if (!FTPReply.isPositiveCompletion(reply)) {
-                    ftp.disconnect();
-                    throw new RuntimeException("FTP login failed.");
-                }
-                // 加密模式的设置
-                if (ftp instanceof FTPSClient) {
-                    // 设置缓冲大小 Set protection buffer size
-                    ((FTPSClient) ftp).execPBSZ(0);
-                    // 开启加密传输 Set data channel protection to private
-                    ((FTPSClient) ftp).execPROT("P");
-                }
-                // 被动模式 或 主动模式
-                if (passive) {
-                    // 被动模式 Enter local passive mode
-                    ftp.enterLocalPassiveMode();
-                } else {
-                    ftp.enterLocalActiveMode();
-                }
-                // 使用二进制传输数据
-                ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
-                consumer.accept(ftp);
+                return consumer.accept(ftp);
             } finally {
-                if (ftp.isConnected()) {
-                    ftp.disconnect();
-                }
+                pool.returnObject(ftp);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private interface Extractor {
+    private interface Extractor<T> {
         /**
          * 执行方法
          *
-         * @param ftp 准备好的FTP
+         * @param ftp 准备好的
+         * @return 返回需要的结果，如果需要返回null，可考虑使用Optional
+         * @throws Exception 抛出的异常
          */
-        void accept(FTPClient ftp) throws Exception;
+        T accept(FTPClient ftp) throws Exception;
     }
 
-    /**
-     * FTP加密：不加密
-     */
-    public static final int ENCRYPTION_NO = 0;
-    /**
-     * FTP加密：隐式加密
-     */
-    public static final int ENCRYPTION_IMPLICIT = 1;
-    /**
-     * FTP加密：显式加密
-     */
-    public static final int ENCRYPTION_EXPLICIT = 2;
+    private static final Cache<String, FtpClientPool> POOL_CACHE = Caffeine.newBuilder()
+            // 最大数量
+            .maximumSize(50)
+            // 设置缓存策略在1天未写入过期缓存
+            .expireAfterAccess(30, TimeUnit.MINUTES)
+            .removalListener((RemovalListener<String, FtpClientPool>) (key, value, cause) -> {
+                if (value != null && !value.isClosed()) {
+                    value.close();
+                }
+            })
+            .build();
 }

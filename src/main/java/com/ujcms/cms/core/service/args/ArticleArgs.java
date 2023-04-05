@@ -85,6 +85,13 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
+    public ArticleArgs tagId(@Nullable Integer tagId) {
+        if (tagId != null) {
+            queryMap.put("EQ_article@ArticleTag-tagId_Int", tagId);
+        }
+        return this;
+    }
+
     public ArticleArgs userId(@Nullable Integer userId) {
         if (userId != null) {
             queryMap.put("EQ_userId_Int", userId);

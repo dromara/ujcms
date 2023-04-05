@@ -42,7 +42,7 @@ public class SiteSettingsController {
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('siteSettings:show','*')")
-    public Object show() {
+    public Site show() {
         return Contexts.getCurrentSite();
     }
 
@@ -89,7 +89,7 @@ public class SiteSettingsController {
 
     @GetMapping("html")
     @PreAuthorize("hasAnyAuthority('siteSettings:html:show','*')")
-    public Object showHtml() {
+    public Site.Html showHtml() {
         return Contexts.getCurrentSite().getHtml();
     }
 

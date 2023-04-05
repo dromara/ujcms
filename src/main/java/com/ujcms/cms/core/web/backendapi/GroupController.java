@@ -48,8 +48,7 @@ public class GroupController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('group:list','*')")
     public List<Group> list(@Nullable Short type, HttpServletRequest request) {
-        GroupArgs args = GroupArgs.of(getQueryMap(request.getQueryString()))
-                .type(type);
+        GroupArgs args = GroupArgs.of(getQueryMap(request.getQueryString())).type(type);
         return service.selectList(args);
     }
 

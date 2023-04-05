@@ -15,11 +15,19 @@ public class UrlBuilder implements CharSequence {
     public static final String HTTPS_PROTOCOL = "https:";
     private final StringBuilder buff = new StringBuilder();
 
-    public UrlBuilder() {
+    private UrlBuilder() {
     }
 
-    public UrlBuilder(String s) {
+    private UrlBuilder(String s) {
         append(s);
+    }
+
+    public static UrlBuilder of() {
+        return new UrlBuilder();
+    }
+
+    public static UrlBuilder of(String s) {
+        return new UrlBuilder(s);
     }
 
     public UrlBuilder appendProtocol(@Nullable String protocol) {
@@ -45,7 +53,8 @@ public class UrlBuilder implements CharSequence {
 
     public UrlBuilder appendPath(@Nullable String path) {
         if (StringUtils.isNotBlank(path)) {
-            if (!StringUtils.endsWith(this, SLASH) && !StringUtils.startsWith(path, SLASH)) {
+            if (StringUtils.isNotBlank(this) && !StringUtils.endsWith(this, SLASH)
+                    && !StringUtils.startsWithAny(path, SLASH)) {
                 // 没有 / 则补上
                 append(SLASH);
             } else if (StringUtils.endsWith(this, SLASH) && StringUtils.startsWith(path, SLASH)) {

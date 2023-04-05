@@ -8,6 +8,7 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.AttachmentService;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.file.FileHandler;
 import com.ujcms.util.image.ImageHandler;
@@ -63,8 +64,8 @@ public class UploadController extends AbstractUploadController {
     private final ConfigService configService;
 
     public UploadController(AttachmentService attachmentService, PathResolver pathResolver, ImageHandler imageHandler,
-                            ConfigService configService) {
-        super(attachmentService, imageHandler, pathResolver);
+                            ConfigService configService, Props props) {
+        super(attachmentService, imageHandler, pathResolver, props);
         this.configService = configService;
     }
 

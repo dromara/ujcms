@@ -1,11 +1,7 @@
 package com.ujcms.cms.core.web.api;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.ArticleBuffer;
-import com.ujcms.cms.core.domain.Group;
-import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.service.ArticleBufferService;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.ChannelService;
@@ -18,7 +14,6 @@ import com.ujcms.cms.core.web.directive.ArticleListDirective;
 import com.ujcms.cms.core.web.directive.ArticleNextDirective;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.util.db.MyBatis;
 import com.ujcms.util.query.QueryUtils;
 import com.ujcms.util.web.Views;
 import com.ujcms.util.web.exception.Http401Exception;
@@ -33,11 +28,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -46,6 +37,7 @@ import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
+import static com.ujcms.util.db.MyBatis.springPage;
 import static com.ujcms.util.query.QueryUtils.QUERY_PREFIX;
 
 /**
@@ -92,6 +84,8 @@ public class ArticleController {
                     schema = @Schema(type = "string")),
             @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
                     schema = @Schema(type = "integer", format = "int32")),
+            @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
+                    schema = @Schema(type = "integer", format = "int32")),
             @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
                     schema = @Schema(type = "string", format = "date-time")),
             @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "结束发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
@@ -135,6 +129,8 @@ public class ArticleController {
                     schema = @Schema(type = "string")),
             @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
                     schema = @Schema(type = "integer", format = "int32")),
+            @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
+                    schema = @Schema(type = "integer", format = "int32")),
             @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
                     schema = @Schema(type = "string", format = "date-time")),
             @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "接受发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
@@ -164,7 +160,7 @@ public class ArticleController {
         return query(request, (args, params) -> {
             int page = Directives.getPage(params);
             int pageSize = Directives.getPageSize(params);
-            Page<Article> pagedList = MyBatis.springPage(articleService.selectPage(args, page, pageSize));
+            Page<Article> pagedList = springPage(articleService.selectPage(args, page, pageSize));
             pagedList.getContent().forEach(article ->
                     article.getChannel().getPaths().forEach(channelService::fetchFirstData));
             return pagedList;
@@ -184,6 +180,10 @@ public class ArticleController {
         }
         article.getChannel().getPaths().forEach(channelService::fetchFirstData);
         User user = Contexts.findCurrentUser();
+        return checkAccessPermission(id, article, user, groupService);
+    }
+
+    public static Article checkAccessPermission(Integer id, Article article, User user, GroupService groupService) {
         if (user == null) {
             Group anonymous = groupService.getAnonymous();
             if (!anonymous.getAllAccessPermission()) {

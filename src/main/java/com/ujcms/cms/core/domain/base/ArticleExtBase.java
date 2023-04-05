@@ -305,13 +305,6 @@ public class ArticleExtBase implements Serializable {
     private Boolean baiduPush = false;
 
     /**
-     * 类型(常规:0,投稿:1,采集:2,接口:3,站内推送:4,站外推送:5)
-     */
-    @NotNull
-    @Schema(description="类型(常规:0,投稿:1,采集:2,接口:3,站内推送:4,站外推送:5)")
-    private Short type = 0;
-
-    /**
      * 编辑器类型(1:富文本编辑器,2:Markdown编辑器)
      */
     @NotNull
@@ -671,14 +664,6 @@ public class ArticleExtBase implements Serializable {
 
     public void setBaiduPush(Boolean baiduPush) {
         this.baiduPush = baiduPush;
-    }
-
-    public Short getType() {
-        return type;
-    }
-
-    public void setType(Short type) {
-        this.type = type;
     }
 
     public Short getEditorType() {

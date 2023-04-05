@@ -2,26 +2,19 @@ package com.ujcms.cms.core.web.frontend;
 
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.ArticleBuffer;
-import com.ujcms.cms.core.domain.Group;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ArticleBufferService;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.GroupService;
-import com.ujcms.cms.core.support.Constants;
-import com.ujcms.cms.core.support.Contexts;
-import com.ujcms.cms.core.support.Props;
-import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.cms.core.support.Utils;
+import com.ujcms.cms.core.support.*;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.util.file.FileHandler;
 import com.ujcms.util.web.PathResolver;
 import com.ujcms.util.web.Servlets;
-import com.ujcms.util.web.exception.Http401Exception;
 import com.ujcms.util.web.exception.Http403Exception;
 import com.ujcms.util.web.exception.Http404Exception;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +32,7 @@ import java.util.Optional;
 
 import static com.ujcms.cms.core.support.Frontends.PAGE;
 import static com.ujcms.cms.core.support.Frontends.PAGE_URL_RESOLVER;
+import static com.ujcms.cms.core.web.api.ArticleController.checkAccessPermission;
 
 /**
  * 前台文章 Controller
@@ -130,17 +123,14 @@ public class ArticleController {
             response.sendRedirect(fileUrl);
             return;
         }
-        try (InputStream input = fileHandler.getInputStream(filename)) {
-            if (input == null) {
-                throw new Http404Exception("Article file not found: " + fileUrl);
-            }
-            Servlets.setAttachmentHeader(response, request,
-                    Optional.ofNullable(fileName).filter(StringUtils::isNotBlank)
-                            .orElseGet(() -> FilenameUtils.getName(fileUrl)));
-            try (OutputStream output = response.getOutputStream()) {
-                IOUtils.copy(input, output);
-                output.flush();
-            }
+        if (!fileHandler.exist(filename)) {
+            throw new Http404Exception("Article file not found: " + fileUrl);
+        }
+        Servlets.setAttachmentHeader(request, response,
+                Optional.ofNullable(fileName).filter(StringUtils::isNotBlank)
+                        .orElseGet(() -> FilenameUtils.getName(fileUrl)));
+        try (OutputStream output = response.getOutputStream()) {
+            fileHandler.writeOutputStream(filename, output);
         }
     }
 
@@ -156,23 +146,6 @@ public class ArticleController {
             throw new Http404Exception("error.notInSite",
                     String.valueOf(article.getSiteId()), String.valueOf(site.getId()));
         }
-        if (user == null) {
-            Group anonymous = groupService.getAnonymous();
-            if (!anonymous.getAllAccessPermission()) {
-                List<Integer> anonChannelIds = groupService.listAccessPermissions(Group.ANONYMOUS_ID, article.getSiteId());
-                if (!anonChannelIds.contains(article.getChannelId())) {
-                    throw new Http401Exception();
-                }
-            }
-            return article;
-        }
-        if (user.hasAllAccessPermission()) {
-            return article;
-        }
-        List<Integer> channelIds = groupService.listAccessPermissions(user.getGroupId(), article.getSiteId());
-        if (!channelIds.contains(article.getChannelId())) {
-            throw new Http403Exception("Article access forbidden. ID: " + id);
-        }
-        return article;
+        return checkAccessPermission(id, article, user, groupService);
     }
 }

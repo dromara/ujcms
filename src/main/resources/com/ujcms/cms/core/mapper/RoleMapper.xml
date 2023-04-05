@@ -18,7 +18,7 @@
     <result column="permission_" jdbcType="LONGVARCHAR" property="permission" />
     <result column="grant_permission_" jdbcType="LONGVARCHAR" property="grantPermission" />
   </resultMap>
-    <cache type="com.ujcms.cms.core.domain.cache.RoleCache" />
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Role">
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
     </resultMap>

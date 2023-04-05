@@ -168,12 +168,12 @@ public class Servlets {
      *
      * @param filename 下载后的文件名.
      */
-    public static void setAttachmentHeader(HttpServletResponse response, HttpServletRequest request, String filename) {
+    public static void setAttachmentHeader(HttpServletRequest request, HttpServletResponse response, String filename) {
         String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).map(String::toLowerCase).orElse("");
         String msie10 = "trident", msie = "msie";
         if (userAgent.indexOf(msie10) > 0 || userAgent.indexOf(msie) > 0) {
             try {
-                filename = URLEncoder.encode(filename, StandardCharsets.UTF_8.displayName());
+                filename = URLEncoder.encode(filename, StandardCharsets.UTF_8.name());
             } catch (UnsupportedEncodingException e) {
                 // never
             }

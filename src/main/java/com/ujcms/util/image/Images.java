@@ -31,7 +31,7 @@ public class Images {
     /**
      * 是否是图片扩展名
      */
-    public static boolean isImage(String extension) {
+    public static boolean isImageExtension(String extension) {
         if (StringUtils.isBlank(extension)) {
             return false;
         }

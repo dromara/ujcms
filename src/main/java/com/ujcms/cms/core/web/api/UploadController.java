@@ -6,12 +6,11 @@ import com.ujcms.cms.core.service.AttachmentService;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.backendapi.AbstractUploadController;
 import com.ujcms.util.image.ImageHandler;
 import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Responses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,8 +40,8 @@ public class UploadController extends AbstractUploadController {
     private final SiteService siteService;
 
     public UploadController(AttachmentService attachmentService, ImageHandler imageHandler, PathResolver pathResolver,
-                            ConfigService configService, SiteService siteService) {
-        super(attachmentService, imageHandler, pathResolver);
+                            ConfigService configService, SiteService siteService, Props props) {
+        super(attachmentService, imageHandler, pathResolver, props);
         this.configService = configService;
         this.siteService = siteService;
     }

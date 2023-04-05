@@ -34,8 +34,7 @@
     delete from ujcms_user_openid
     where user_id_ = #{userId,jdbcType=INTEGER}
       and provider_ = #{provider,jdbcType=VARCHAR}
-  </delete>
-<update id="update" parameterType="com.ujcms.cms.core.domain.UserOpenid">
+  </delete><update id="update" parameterType="com.ujcms.cms.core.domain.UserOpenid">
     update ujcms_user_openid
     set openid_ = #{openid,jdbcType=VARCHAR},
       nickname_ = #{nickname,jdbcType=VARCHAR},

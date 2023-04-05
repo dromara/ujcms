@@ -93,6 +93,14 @@ public interface ArticleMapper {
     List<Article> listByChannelId(@Param("channelId") Integer channelId);
 
     /**
+     * 根据源文章ID查询文章列表
+     *
+     * @param srcId 源文章ID
+     * @return 文章列表
+     */
+    List<Article> listBySrcId(@Param("srcId") Integer srcId);
+
+    /**
      * 查询下一条文章
      *
      * @param id          文章ID

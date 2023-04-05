@@ -22,8 +22,8 @@
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
         <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
         <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
-        <!--&amp;amp;amp;amp;lt;association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Article" property="firstArticle" select="com.ujcms.cms.core.mapper.ArticleMapper.findFirstByChannelId" /&amp;amp;amp;amp;gt;-->
-        <!--&amp;amp;amp;amp;lt;association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Channel" property="firstChild" select="com.ujcms.cms.core.mapper.ChannelMapper.findFirstByParentId" /&amp;amp;amp;amp;gt;-->
+        <!--&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Article" property="firstArticle" select="com.ujcms.cms.core.mapper.ArticleMapper.findFirstByChannelId" /&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;-->
+        <!--&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Channel" property="firstChild" select="com.ujcms.cms.core.mapper.ChannelMapper.findFirstByParentId" /&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;-->
         <collection column="id_" ofType="com.ujcms.cms.core.domain.Channel" property="children" select="listChildren" />
         <collection column="id_" ofType="com.ujcms.cms.core.domain.ChannelCustom" property="customList" select="com.ujcms.cms.core.mapper.ChannelCustomMapper.listByChannelId" />
     </resultMap>

@@ -3,23 +3,14 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.ImmutableMap;
-import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.ArticleBuffer;
-import com.ujcms.cms.core.domain.ArticleCustom;
-import com.ujcms.cms.core.domain.ArticleExt;
-import com.ujcms.cms.core.domain.Channel;
-import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.lucene.ArticleLucene;
 import com.ujcms.cms.core.lucene.domain.EsArticle;
-import com.ujcms.cms.core.mapper.ArticleBufferMapper;
-import com.ujcms.cms.core.mapper.ArticleCustomMapper;
-import com.ujcms.cms.core.mapper.ArticleExtMapper;
-import com.ujcms.cms.core.mapper.ArticleMapper;
-import com.ujcms.cms.core.mapper.ArticleStatMapper;
+import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.ArticleArgs;
 import com.ujcms.util.query.CustomFieldQuery;
 import com.ujcms.util.query.QueryInfo;
@@ -35,12 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.ujcms.cms.core.domain.Article.*;
 
@@ -55,36 +41,54 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     private final PolicyFactory policyFactory;
     private final RuntimeService runtimeService;
     private final ChannelService channelService;
+    private final TagService tagService;
     private final ArticleLucene articleLucene;
     private final ArticleMapper mapper;
     private final ArticleExtMapper extMapper;
     private final ArticleBufferMapper bufferMapper;
     private final ArticleCustomMapper customMapper;
+    private final ArticleTagMapper articleTagMapper;
     private final ArticleStatMapper statMapper;
     private final AttachmentService attachmentService;
     private final SeqService seqService;
 
     public ArticleService(HtmlService htmlService, PolicyFactory policyFactory,
                           RuntimeService runtimeService, ChannelService channelService,
-                          ArticleLucene articleLucene,
+                          TagService tagService, ArticleLucene articleLucene,
                           ArticleMapper mapper, ArticleExtMapper extMapper, ArticleBufferMapper bufferMapper,
-                          ArticleCustomMapper customMapper, ArticleStatMapper statMapper,
-                          AttachmentService attachmentService, SeqService seqService) {
+                          ArticleCustomMapper customMapper, ArticleTagMapper articleTagMapper,
+                          ArticleStatMapper statMapper, AttachmentService attachmentService, SeqService seqService) {
         this.htmlService = htmlService;
         this.policyFactory = policyFactory;
         this.runtimeService = runtimeService;
         this.channelService = channelService;
+        this.tagService = tagService;
         this.articleLucene = articleLucene;
         this.mapper = mapper;
         this.extMapper = extMapper;
         this.bufferMapper = bufferMapper;
         this.customMapper = customMapper;
+        this.articleTagMapper = articleTagMapper;
         this.statMapper = statMapper;
         this.attachmentService = attachmentService;
         this.seqService = seqService;
     }
 
-    private void insertRelatedList(Integer articleId, List<ArticleCustom> customList) {
+    private void insertRelatedList(Integer articleId, Integer siteId, Integer userId,
+                                   List<String> tagNames, List<ArticleCustom> customList) {
+        short tagOrder = 0;
+        for (String name : tagNames) {
+            Tag tag = tagService.selectByName(siteId, name);
+            if (tag == null) {
+                tag = new Tag(siteId, userId, name);
+                tag.setRefers(1);
+                tagService.insert(tag);
+            } else {
+                tag.setRefers(tag.getRefers() + 1);
+                tagService.update(tag);
+            }
+            articleTagMapper.insert(new ArticleTag(articleId, tag.getId(), tagOrder++));
+        }
         customList.forEach(it -> {
             it.setId(seqService.getNextValLong(ArticleCustom.TABLE_NAME));
             it.setArticleId(articleId);
@@ -97,7 +101,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Article bean, ArticleExt ext, Integer userId, Integer orgId,
-                       Map<String, Object> customs) {
+                       List<String> tagNames, Map<String, Object> customs) {
         bean.setUserId(userId);
         bean.setOrgId(orgId);
         ext.setCreated(OffsetDateTime.now());
@@ -117,7 +121,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         extMapper.insert(ext);
         bufferMapper.insert(new ArticleBuffer(bean.getId()));
         List<ArticleCustom> customList = Article.disassembleCustoms(channel.getArticleModel(), bean.getId(), customs);
-        insertRelatedList(bean.getId(), customList);
+        insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames, customList);
         attachmentService.insertRefer(Article.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.save(EsArticle.of(article)));
     }
@@ -199,7 +203,8 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Article bean, ArticleExt ext, Integer userId, Map<String, Object> customs) {
+    public void update(Article bean, ArticleExt ext, Integer userId,
+                       List<String> tagNames, Map<String, Object> customs) {
         bean.setModifiedUserId(userId);
         bean.setWithImage(StringUtils.isNotBlank(ext.getImage()));
         ext.setModified(OffsetDateTime.now());
@@ -213,7 +218,9 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         // 要先将修改后的数据放入bean中，否则bean.getAttachmentUrls()会获取修改前的值
         bean.setCustomList(customList);
         customMapper.deleteByArticleId(bean.getId());
-        insertRelatedList(bean.getId(), customList);
+        tagService.reduceReferByArticleId(bean.getId());
+        articleTagMapper.deleteByArticleId(bean.getId());
+        insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames, customList);
         attachmentService.updateRefer(Article.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.update(EsArticle.of(article)));
     }
@@ -236,12 +243,25 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
 
     @Transactional(rollbackFor = Exception.class)
     public int completelyDelete(Article bean, User user) {
+        for (Article dest : bean.getDestList()) {
+            // 引用和映射，则直接删除
+            if (dest.getType() == TYPE_MAP || dest.getType() == TYPE_REFER) {
+                completelyDelete(dest, user);
+            }
+            // 复制或其它，则清空srcId
+            else {
+                dest.setSrcId(null);
+                update(dest);
+            }
+        }
         deleteProcessIfNecessary(bean, user);
         attachmentService.deleteRefer(Article.TABLE_NAME, bean.getId());
         extMapper.delete(bean.getId());
         bufferMapper.delete(bean.getId());
         customMapper.deleteByArticleId(bean.getId());
         statMapper.deleteByArticleId(bean.getId());
+        tagService.reduceReferByArticleId(bean.getId());
+        articleTagMapper.deleteByArticleId(bean.getId());
         int count = mapper.delete(bean.getId());
         articleLucene.deleteById(bean.getId());
         htmlService.deleteArticleHtml(bean);
@@ -344,6 +364,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         extMapper.deleteBySiteId(siteId);
         bufferMapper.deleteBySiteId(siteId);
         statMapper.deleteBySiteId(siteId);
+        articleTagMapper.deleteBySiteId(siteId);
         customMapper.deleteBySiteId(siteId);
         mapper.deleteBySiteId(siteId);
     }

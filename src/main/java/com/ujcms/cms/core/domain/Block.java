@@ -46,7 +46,7 @@ public class Block extends BlockBase implements Serializable {
     @Override
     @Length(max = 50)
     @NotNull
-    @Pattern(regexp = "^[u4E00-u9FA5\\w-]*$")
+    @Pattern(regexp = "^[\u4E00-\u9FA5\\w-]*$")
     public String getAlias() {
         return super.getAlias();
     }

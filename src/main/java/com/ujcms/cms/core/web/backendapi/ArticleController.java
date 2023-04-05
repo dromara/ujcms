@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Article;
@@ -16,6 +17,7 @@ import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.Servlets;
+import com.ujcms.util.web.Views;
 import com.ujcms.util.web.exception.Http400Exception;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
 import java.util.List;
 
 import static com.ujcms.cms.core.support.Constants.validPage;
@@ -58,6 +61,7 @@ public class ArticleController {
     }
 
     @GetMapping
+    @JsonView(Views.List.class)
     @PreAuthorize("hasAnyAuthority('article:list','*')")
     public Page<Article> list(Integer subChannelId, Integer page, Integer pageSize, HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
@@ -91,18 +95,19 @@ public class ArticleController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('article:create','*')")
     @OperationLog(module = "article", operation = "create", type = OperationType.CREATE)
-    public ResponseEntity<Body> create(@RequestBody @Valid Article bean, HttpServletRequest request) {
+    public ResponseEntity<Body> create(@RequestBody @Valid ArticleParams bean, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         Article article = new Article();
-        Entities.copy(bean, article);
+        Entities.copy(bean, article, "siteId", "srcId", "orgId", "userId", "modifiedUserId",
+                "withImage", "sticky", "inputType", "type");
         article.setSiteId(site.getId());
         // 如果不为草稿，就设置为已发布。不能为其它状态。
         if (article.getStatus() != Article.STATUS_DRAFT) {
             article.setStatus(Article.STATUS_PUBLISHED);
         }
         service.insert(article, article.getExt(), user.getId(), user.getOrgId(),
-                bean.getCustoms());
+                bean.tagNames, bean.getCustoms());
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.articleRelated");
             generator.updateArticleRelatedHtml(article.getSiteId(), user.getId(), taskName, article.getId(), null);
@@ -113,7 +118,7 @@ public class ArticleController {
     @PutMapping
     @PreAuthorize("hasAnyAuthority('article:update','*')")
     @OperationLog(module = "article", operation = "update", type = OperationType.UPDATE)
-    public ResponseEntity<Body> update(@RequestBody @Valid Article bean, HttpServletRequest request) {
+    public ResponseEntity<Body> update(@RequestBody @Valid ArticleParams bean, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         Article article = service.select(bean.getId());
@@ -122,14 +127,22 @@ public class ArticleController {
         }
         ValidUtils.dataInSite(article.getSiteId(), site.getId());
         Integer origChannelId = article.getChannelId();
-        Entities.copy(bean, article, "orgId", "userId", "modifiedUserId", "withImage", "sticky", "status");
-        service.update(article, article.getExt(), user.getId(), bean.getCustoms());
+        Entities.copy(bean, article, "siteId", "srcId", "orgId", "userId", "modifiedUserId",
+                "withImage", "sticky", "inputType", "type", "status");
+        service.update(article, article.getExt(), user.getId(),
+                bean.tagNames, bean.getCustoms());
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.articleRelated");
             generator.updateArticleRelatedHtml(article.getSiteId(), user.getId(), taskName,
                     article.getId(), origChannelId);
         }
         return Responses.ok();
+    }
+
+    public static class ArticleParams extends Article {
+        private static final long serialVersionUID = 1L;
+
+        public List<String> tagNames = Collections.emptyList();
     }
 
     public static class ArticleStickyParams {

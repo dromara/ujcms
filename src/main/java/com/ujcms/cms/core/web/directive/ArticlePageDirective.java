@@ -24,6 +24,6 @@ public class ArticlePageDirective extends ArticleListDirective {
     }
 
     public ArticlePageDirective(ArticleService articleService, ChannelService channelService) {
-        super(articleService,channelService);
+        super(articleService, channelService);
     }
 }

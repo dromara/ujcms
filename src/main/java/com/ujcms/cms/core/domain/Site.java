@@ -1,10 +1,6 @@
 package com.ujcms.cms.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ujcms.cms.core.domain.base.SiteBase;
 import com.ujcms.cms.core.support.Anchor;
@@ -22,11 +18,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ujcms.util.web.UrlBuilder.*;
@@ -48,7 +40,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @Schema(description = "动态地址，含部署路径、子目录，不含域名、端口。如：{@code /contextPath/subDir}")
     public String getDy() {
-        return new UrlBuilder()
+        return UrlBuilder.of()
                 .appendPath(getConfig().getContextPath())
                 .appendPath(getSubDir())
                 .toString();
@@ -61,14 +53,14 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @Schema(description = "API 接口地址。如：{@code /contextPath/subDir/frontend}")
     public String getApi() {
-        return new UrlBuilder(getDy())
+        return UrlBuilder.of(getDy())
                 .appendPath(UrlConstants.FRONTEND_API)
                 .toString();
     }
 
     public String assembleLinkUrl(String linkUrl) {
         if (linkUrl.startsWith(SLASH) && !linkUrl.startsWith(DOUBLE_SLASH)) {
-            return new UrlBuilder()
+            return UrlBuilder.of()
                     .appendPath(getConfig().getContextPath())
                     .appendPath(getSubDir())
                     .appendPath(linkUrl)
@@ -99,7 +91,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @Schema(description = "模板文件路径。如：/templates/1/default/_files")
     public String getFilesPath() {
-        return new UrlBuilder()
+        return UrlBuilder.of()
                 .appendPath(getConfig().getContextPath())
                 .appendPath(getConfig().getTemplateStorage().getUrl())
                 .appendPath(getTheme())
@@ -176,7 +168,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @Schema(description = "动态URL地址")
     public String getDynamicUrl() {
-        return new UrlBuilder()
+        return UrlBuilder.of()
                 .appendProtocol(getProtocol()).appendDomain(getDomain()).appendPort(getConfig().getPort())
                 .appendPath(getConfig().getContextPath())
                 .appendPath(getSubDir())
@@ -219,7 +211,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     }
 
     private String getStaticUrl(String storageUrl, boolean isAppendMobilePath, String url) {
-        UrlBuilder builder = new UrlBuilder();
+        UrlBuilder builder = UrlBuilder.of();
         if (!StringUtils.startsWithAny(storageUrl, HTTP_PROTOCOL, HTTPS_PROTOCOL)) {
             builder.appendProtocol(getProtocol()).appendDomain(getDomain()).appendPort(getConfig().getPort());
             builder.appendPath(getConfig().getContextPath());
@@ -241,21 +233,19 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     }
 
     public String getNormalStaticPath(String path) {
-        return getStaticPath(getConfig().getHtmlStorage().getPath(), false, path);
+        return getStaticPath(false, path);
     }
 
     public String getMobileStaticPath(String path) {
-        return getStaticPath(getConfig().getHtmlStorage().getPath(), true, path);
+        return getStaticPath(true, path);
     }
 
-    @JsonIgnore
     public String getStaticBase() {
-        return getStaticPath(getConfig().getHtmlStorage().getPath(), false, "");
+        return getStaticPath(false, "");
     }
 
-    public String getStaticPath(String storagePath, boolean isAppendMobilePath, String path) {
-        UrlBuilder builder = new UrlBuilder();
-        builder.appendPath(storagePath);
+    public String getStaticPath(boolean isAppendMobilePath, String path) {
+        UrlBuilder builder = UrlBuilder.of();
         // 多域名的情况下，要加上域名作为路径
         if (getConfig().getMultiDomain()) {
             builder.appendPath(getDomain());
@@ -399,22 +389,20 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     private List<String> copyData = new ArrayList<>();
 
     @Nullable
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public Integer getCopyFromId() {
         return copyFromId;
     }
 
-    @JsonProperty
     public void setCopyFromId(@Nullable Integer copyFromId) {
         this.copyFromId = copyFromId;
     }
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public List<String> getCopyData() {
         return copyData;
     }
 
-    @JsonProperty
     public void setCopyData(List<String> copyData) {
         this.copyData = copyData;
     }
@@ -644,19 +632,27 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         public static final String DEFAULT_PAGE = "/index.html";
         public static final String MOBILE_PATH = "/m";
 
-        @Schema(description = "是否开启")
-        private boolean enabled = true;
-        @Schema(description = "是否自动生成")
+        /**
+         * 是否开启
+         */
+        private boolean enabled = false;
+        /**
+         * 是否自动生成
+         */
         private boolean auto = true;
-        @Schema(description = "列表静态页生成数")
+        /**
+         * 列表静态页生成数
+         */
         private int listPages = 1;
-
-        @Schema(description = "栏目静态页路径")
+        /**
+         * 栏目静态页路径
+         */
         @Length(max = 100)
         @Pattern(regexp = "^(?!.*\\.\\.)[\\w-{}/]*$")
         private String channel = "/channels/{channel_alias}/index";
-
-        @Schema(description = "文章静态页路径")
+        /**
+         * 文章静态页路径
+         */
         @Length(max = 100)
         @Pattern(regexp = "^(?!.*\\.\\.)[\\w-{}/]*$")
         private String article = "/articles/{article_id}";
@@ -742,11 +738,15 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     @Schema(name = "Site.MessageBoard", description = "留言板设置")
     public static class MessageBoard implements Serializable {
         private static final long serialVersionUID = 1L;
-
-        private boolean enabled = true;
+        /**
+         * 是否开启
+         */
+        private boolean enabled = false;
+        /**
+         * 是否需要登录
+         */
         private boolean loginRequired = true;
 
-        @Schema(description = "是否开启")
         public boolean isEnabled() {
             return enabled;
         }
@@ -755,7 +755,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             this.enabled = enabled;
         }
 
-        @Schema(description = "是否需要登录")
         public boolean isLoginRequired() {
             return loginRequired;
         }

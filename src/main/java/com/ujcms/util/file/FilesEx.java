@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FilesEx {
     public static final String SLASH = "/";
+    public static final char SLASH_CHAR = '/';
     /**
      * 双点 .. 代表上级文件夹
      */

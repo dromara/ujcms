@@ -1,0 +1,61 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${tag.title} - ${site.title}</title>
+  [#include 'includes_meta.html'/]
+  [#include 'includes_css.html'/]
+  [#include 'includes_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'includes_header.html'/]
+<div class="container">
+  <div class="row">
+    <div class="col mt-1">
+      <div class="pt-3 border-bottom">
+        <div class="clearfix">
+          <h4 class="float-left"><i class="fas fa-tag text-primary"></i> <a href="${dy}/tag/${tag.id}">${tag.name}</a></h4>
+          <h4 class="float-right"><a href="${dy}/tag">Tags</a></h4>
+        </div>
+        [#if tag.description??]
+        <p>${tag.description}</p>
+        [/#if]
+      </div>
+      <div class="my-3">
+        [@ArticlePage tagId=tag.id customs=customsQueryMap orderBy="publishDate_desc,id_desc"; pagedList]
+        <ul class="list-unstyled">
+          [#list pagedList.content as bean]
+          <li class="mt-3 media border-bottom position-relative pb-3">
+            [#if bean.image??][@A bean=bean class="mr-3"]<img src="${bean.image}" class="rounded-sm cm-media-img" alt="${bean.title}">[/@A][/#if]
+            <div class="media-body">
+              <p class="mt-0 mb-1">[@A bean=bean class="cm-link text-decoration-none"/]</p>
+              <p class="text-muted d-none d-sm-block mb-2">
+                [@A bean=bean class="text-reset text-sm text-decoration-none"]${substring(bean.description,60,'...')}[/@A]
+              </p>
+              <div class="small text-muted mt-3 clearfix">
+                <div class="float-left">
+                  <span>[#list bean.channel.paths as c][@A bean=c/][#if c_has_next] > [/#if][/#list]</span>
+                  <i class="ml-2 far fa-eye"></i> ${bean.views}
+                  [#list bean.tags as tag]
+                  <a href="${dy}/tag/${tag.id}" class="ml-1"><span class="badge badge-secondary">${tag.name}</span></a>
+                  [/#list]
+                </div>
+                <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.publishDate.format('yyyy-MM-dd')}</div>
+              </div>
+            </div>
+          </li>
+          [/#list]
+        </ul>
+        [#include 'includes_page.html'/]
+        [/@ArticlePage]
+
+      </div>
+    </div>
+  </div>
+</div>
+[#include 'includes_footer.html'/]
+</body>
+</html>
+[/#escape]

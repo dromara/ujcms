@@ -4,6 +4,9 @@ import com.ujcms.util.security.Secures;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * UJCMS 系统配置。部分属性使用静态属性，方便实体类调用。
  *
@@ -55,6 +58,22 @@ public class Props {
     @Nullable
     private String uploadsLocation;
     /**
+     * 存储路径允许的文件前缀。多个路径用逗号分开。
+     */
+    private String storageFilePrefix = "";
+    /**
+     * 文件上传后缀黑名单
+     */
+    private String uploadsExtensionBlacklist = "exe,com,bat,jsp,jspx,asp,aspx,php,html,htm,xhtml,xml,shtml,shtm";
+    /**
+     * 文件管理后缀黑名单
+     */
+    private String filesExtensionBlacklist = "exe,com,bat,jsp,jspx,asp,aspx,php";
+    /**
+     * 是否开启文件管理功能
+     */
+    private boolean filesManagementEnabled = true;
+    /**
      * 是否支持静态页目录访问形式。使用了 nginx 处理静态页则该项可以关闭。
      * 如访问 /foo/ 则显示 /foo/index.html 内容。
      * 并且在 /foo/index.html 文件存在的情况下，将 /foo 重定向至 /foo/
@@ -83,7 +102,6 @@ public class Props {
      */
     @Nullable
     private String passwordPepper;
-
     /**
      * 是否演示网站。演示网站的 test 用户只能执行 GET 请求。
      */
@@ -96,8 +114,26 @@ public class Props {
         return getEsPrefix() + "-article";
     }
 
-    //以下非final常量可以被配置文件覆盖
+    /**
+     * 存储点前缀列表
+     */
+    public List<String> getStorageFilePrefixList() {
+        return Arrays.asList(storageFilePrefix.split(","));
+    }
 
+    /**
+     * 文件上传后缀排除列表
+     */
+    public List<String> getUploadsExtensionExcludes() {
+        return Arrays.asList(uploadsExtensionBlacklist.split(","));
+    }
+
+    /**
+     * 文件管理后缀排除列表
+     */
+    public List<String> getFilesExtensionExcludes() {
+        return Arrays.asList(filesExtensionBlacklist.split(","));
+    }
 
     public String getVersion() {
         return version;
@@ -171,6 +207,38 @@ public class Props {
 
     public void setUploadsLocation(@Nullable String uploadsLocation) {
         this.uploadsLocation = uploadsLocation;
+    }
+
+    public String getStorageFilePrefix() {
+        return storageFilePrefix;
+    }
+
+    public void setStorageFilePrefix(String storageFilePrefix) {
+        this.storageFilePrefix = storageFilePrefix;
+    }
+
+    public String getUploadsExtensionBlacklist() {
+        return uploadsExtensionBlacklist;
+    }
+
+    public void setUploadsExtensionBlacklist(String uploadsExtensionBlacklist) {
+        this.uploadsExtensionBlacklist = uploadsExtensionBlacklist;
+    }
+
+    public String getFilesExtensionBlacklist() {
+        return filesExtensionBlacklist;
+    }
+
+    public void setFilesExtensionBlacklist(String filesExtensionBlacklist) {
+        this.filesExtensionBlacklist = filesExtensionBlacklist;
+    }
+
+    public boolean isFilesManagementEnabled() {
+        return filesManagementEnabled;
+    }
+
+    public void setFilesManagementEnabled(boolean filesManagementEnabled) {
+        this.filesManagementEnabled = filesManagementEnabled;
     }
 
     public boolean isFileToDir() {

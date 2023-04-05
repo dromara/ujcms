@@ -48,6 +48,8 @@ public class BlockItemController {
                     schema = @Schema(type = "string")),
             @Parameter(in = ParameterIn.QUERY, name = "blockId", description = "区块ID",
                     schema = @Schema(type = "integer", format = "int32")),
+            @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点区块项列表。如：`true` `false`，默认`false`",
+                    schema = @Schema(type = "boolean")),
             @Parameter(in = ParameterIn.QUERY, name = "isEnabled", description = "是否启用。可选值：`all`(全部), `false`(禁用), `true`(启用)。默认值：启用",
                     schema = @Schema(type = "string", allowableValues = {"all", "false", "true"}, defaultValue = "true")),
     })

@@ -15,6 +15,7 @@ COPY --from=builder ujcms/application/ ./
 
 COPY --from=builder ujcms/application/BOOT-INF/classes/application-docker.yaml ./BOOT-INF/classes/config/application.yaml
 COPY src/main/webapp/ ./static/
+#COPY static/ ./static/
 
 #VOLUME ["/ujcms/static", "/ujcms/config", "/ujcms/BOOT-INF/classes/license"]
 EXPOSE 8080

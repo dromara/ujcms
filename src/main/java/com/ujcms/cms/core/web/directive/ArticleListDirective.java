@@ -46,6 +46,10 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String CHANNEL_ID = "channelId";
     /**
+     * TagID。整型(Integer)。
+     */
+    public static final String TAG_ID = "tagId";
+    /**
      * 开始发布日期。日期(OffsetDateTime)。
      */
     public static final String BEGIN_PUBLISH_DATE = "beginPublishDate";
@@ -113,6 +117,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
             }
         }
 
+        Optional.ofNullable(Directives.getInteger(params, TAG_ID)).ifPresent(args::tagId);
         Optional.ofNullable(Directives.getOffsetDateTime(params, BEGIN_PUBLISH_DATE)).ifPresent(args::gePublishDate);
         Optional.ofNullable(Directives.getOffsetDateTime(params, END_PUBLISH_DATE)).ifPresent(args::lePublishDate);
         Optional.ofNullable(getBoolean(params, IS_WITH_IMAGE)).ifPresent(args::isWithImage);

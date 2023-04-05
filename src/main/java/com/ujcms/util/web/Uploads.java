@@ -79,14 +79,14 @@ public class Uploads {
         return filename;
     }
 
-    public static void validateLimit(long fileSize, long limit) {
+    public static void validateLimit(long limit, long fileSize) {
         if (limit != 0 && fileSize > limit) {
             throw new Http400Exception(String.format("file size is too large: %s, must less than %s.",
                     fileSize, limit));
         }
     }
 
-    public static void validateType(@Nullable String extension, String types) {
+    public static void validateType(String types, @Nullable String extension) {
         if (!isValidType(types, extension)) {
             throw new Http400Exception(String.format("file extension not allowed: '%s'. allowed extension: '%s'",
                     extension, types));

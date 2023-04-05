@@ -128,13 +128,17 @@ public class RoleController {
     @OperationLog(module = "role", operation = "updateOrder", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         User currentUser = Contexts.getCurrentUser();
+        Site currentSite = Contexts.getCurrentSite();
         List<Role> list = new ArrayList<>();
         for (Integer id : ids) {
             Role role = service.select(id);
             if (role == null) {
                 return Responses.notFound("Role not found. ID = " + id);
             }
-            validateBean(role, false, role.getRank(), currentUser);
+            dataInSite(role.getSiteId(), currentSite.getId());
+            if (role.isGlobal() && !currentUser.hasGlobalPermission()) {
+                continue;
+            }
             list.add(role);
         }
         service.updateOrder(list);

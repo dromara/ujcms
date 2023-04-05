@@ -1,35 +1,11 @@
 package com.ujcms.cms.core;
 
 import com.ujcms.cms.core.lucene.ArticleLucene;
-import com.ujcms.cms.core.service.ArticleService;
-import com.ujcms.cms.core.service.BlockItemService;
-import com.ujcms.cms.core.service.ChannelService;
-import com.ujcms.cms.core.service.DictService;
-import com.ujcms.cms.core.service.ConfigService;
-import com.ujcms.cms.core.service.MessageBoardService;
-import com.ujcms.cms.core.service.SiteService;
+import com.ujcms.cms.core.service.*;
 import com.ujcms.cms.core.support.Frontends;
-import com.ujcms.cms.core.web.directive.AnchorDirective;
-import com.ujcms.cms.core.web.directive.ArticleDirective;
-import com.ujcms.cms.core.web.directive.ArticleListDirective;
-import com.ujcms.cms.core.web.directive.ArticleNextDirective;
-import com.ujcms.cms.core.web.directive.ArticlePageDirective;
-import com.ujcms.cms.core.web.directive.ArticlePrevDirective;
-import com.ujcms.cms.core.web.directive.BlockItemListDirective;
-import com.ujcms.cms.core.web.directive.ChannelDirective;
-import com.ujcms.cms.core.web.directive.ChannelListDirective;
-import com.ujcms.cms.core.web.directive.DictListDirective;
-import com.ujcms.cms.core.web.directive.EsArticleListDirective;
-import com.ujcms.cms.core.web.directive.EsArticlePageDirective;
-import com.ujcms.cms.core.web.directive.MessageBoardListDirective;
-import com.ujcms.cms.core.web.directive.MessageBoardPageDirective;
-import com.ujcms.cms.core.web.directive.SiteDirective;
+import com.ujcms.cms.core.web.directive.*;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.util.freemarker.AddParamMethod;
-import com.ujcms.util.freemarker.BbCodeMethod;
-import com.ujcms.util.freemarker.FormatMethod;
-import com.ujcms.util.freemarker.PagingMethod;
-import com.ujcms.util.freemarker.SubstringMethod;
+import com.ujcms.util.freemarker.*;
 import no.api.freemarker.java8.Java8ObjectWrapper;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.InitializingBean;
@@ -48,19 +24,21 @@ public class ContextConfig implements InitializingBean {
     private final ChannelService channelService;
     private final ArticleLucene articleLucene;
     private final ArticleService articleService;
+    private final TagService tagService;
     private final DictService dictService;
     private final BlockItemService blockItemService;
     private final MessageBoardService messageBoardService;
     private final freemarker.template.Configuration configuration;
 
     public ContextConfig(SiteService siteService, ChannelService channelService, ArticleLucene articleLucene,
-                         ArticleService articleService, DictService dictService,
+                         ArticleService articleService, TagService tagService, DictService dictService,
                          BlockItemService blockItemService, MessageBoardService messageBoardService,
                          freemarker.template.Configuration configuration) {
         this.siteService = siteService;
         this.channelService = channelService;
         this.articleLucene = articleLucene;
         this.articleService = articleService;
+        this.tagService = tagService;
         this.dictService = dictService;
         this.blockItemService = blockItemService;
         this.messageBoardService = messageBoardService;
@@ -84,6 +62,8 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("BlockItemList", new BlockItemListDirective(blockItemService));
         configuration.setSharedVariable("MessageBoardList", new MessageBoardListDirective(messageBoardService));
         configuration.setSharedVariable("MessageBoardPage", new MessageBoardPageDirective(messageBoardService));
+        configuration.setSharedVariable("TagList", new TagListDirective(tagService));
+        configuration.setSharedVariable("TagPage", new TagPageDirective(tagService));
 
         configuration.setSharedVariable("EsArticleList", new EsArticleListDirective(articleLucene));
         configuration.setSharedVariable("EsArticlePage", new EsArticlePageDirective(articleLucene));

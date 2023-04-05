@@ -1,10 +1,6 @@
 package com.ujcms.cms.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ArticleBase;
@@ -15,6 +11,7 @@ import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.util.file.FilesEx;
 import com.ujcms.util.web.HtmlParserUtils;
 import com.ujcms.util.web.PageUrlResolver;
+import com.ujcms.util.web.Strings;
 import com.ujcms.util.web.Views;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
@@ -26,11 +23,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.ujcms.util.web.Strings.formatDuration;
 
@@ -51,13 +45,14 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return getTitle();
     }
 
-    @Schema(description = "摘要。获取`seoDescription`，如不存在，则从正文中截取（最长 1000 字符）")
+    @Schema(description = "摘要。获取`seoDescription`，如不存在，则从正文中截取。最长 255 个字符（一个中文占两个字符）。")
     public String getDescription() {
         return Optional.ofNullable(getExt().getSeoDescription())
-                .orElseGet(() -> StringUtils.substring(getPlainText(), 0, 1000));
+                .orElseGet(() -> Strings.substring(getPlainText(), 255));
     }
 
     @Schema(description = "纯文本格式的正文")
+    @JsonView(Views.Whole.class)
     public String getPlainText() {
         return Optional.ofNullable(getText())
                 .map(html -> Jsoup.parse(html).body().text())
@@ -108,11 +103,25 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     @Schema(description = "区块列表")
     @JsonIncludeProperties({"id", "name"})
     public List<Block> getBlocks() {
-        List<Block> blocks = new ArrayList<>();
+        List<Block> blocks = new ArrayList<>(getBlockItemList().size());
         for (BlockItem item : getBlockItemList()) {
             blocks.add(item.getBlock());
         }
         return blocks;
+    }
+
+    @Schema(description = "TAG列表")
+    public List<Tag> getTags() {
+        List<Tag> tags = new ArrayList<>(getArticleTagList().size());
+        for (ArticleTag articleTag : getArticleTagList()) {
+            tags.add(articleTag.getTag());
+        }
+        return tags;
+    }
+
+    @Schema(description = "TAG名称列表")
+    public List<String> getTagNames() {
+        return getTags().stream().map(Tag::getName).collect(Collectors.toList());
     }
 
     @Schema(description = "是否正常状态（可访问）")
@@ -165,6 +174,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     public String getStaticUrl(int page) {
+        if (StringUtils.isNotBlank(getLinkUrl())) {
+            return getSite().assembleLinkUrl(getLinkUrl());
+        }
         return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
     }
 
@@ -191,7 +203,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     @Schema(description = "是否是链接")
     public boolean isLink() {
-        return StringUtils.isNotBlank(getExt().getLinkUrl());
+        return StringUtils.isNotBlank(getLinkUrl());
     }
     // endregion
 
@@ -299,6 +311,11 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     // region Associations
     /**
+     * 源文章
+     */
+    @Nullable
+    private Article src;
+    /**
      * 文章扩展对象
      */
     @JsonIgnore
@@ -333,7 +350,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
      */
     @JsonIncludeProperties({"id", "username"})
     private User modifiedUser = new User();
-
     /**
      * 自定义字段列表
      */
@@ -344,6 +360,26 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
      */
     @JsonIncludeProperties({"id", "title", "enabled", "block"})
     private List<BlockItem> blockItemList = Collections.emptyList();
+    /**
+     * TAG列表
+     */
+    @JsonIgnore
+    private List<ArticleTag> articleTagList = new ArrayList<>();
+    /**
+     * 引用列表
+     */
+    @JsonView(Views.Whole.class)
+    @JsonIncludeProperties({"id", "title", "channel", "site", "type"})
+    private List<Article> destList = Collections.emptyList();
+
+    @Nullable
+    public Article getSrc() {
+        return src;
+    }
+
+    public void setSrc(@Nullable Article src) {
+        this.src = src;
+    }
 
     public ArticleExt getExt() {
         return ext;
@@ -416,6 +452,22 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     public void setBlockItemList(List<BlockItem> blockItemList) {
         this.blockItemList = blockItemList;
     }
+
+    public List<ArticleTag> getArticleTagList() {
+        return articleTagList;
+    }
+
+    public void setArticleTagList(List<ArticleTag> articleTagList) {
+        this.articleTagList = articleTagList;
+    }
+
+    public List<Article> getDestList() {
+        return destList;
+    }
+
+    public void setDestList(List<Article> destList) {
+        this.destList = destList;
+    }
     // endregion
 
     // region ArticleExt
@@ -464,6 +516,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     @Nullable
     @Pattern(regexp = "^(http|/).*$")
     public String getLinkUrl() {
+        if (getType() == TYPE_REFER && getSrc() != null) {
+            return getSrc().getUrl();
+        }
         return getExt().getLinkUrl();
     }
 
@@ -747,6 +802,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     @Schema(description = "创建日期")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public OffsetDateTime getCreated() {
         return getExt().getCreated();
     }
@@ -756,6 +812,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     @Schema(description = "修改日期")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Nullable
     public OffsetDateTime getModified() {
         return getExt().getModified();
@@ -766,6 +823,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     @Schema(description = "流程实例ID")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Nullable
     public String getProcessInstanceId() {
         return getExt().getProcessInstanceId();
@@ -776,6 +834,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     @Schema(description = "审核拒绝原因")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Nullable
     public String getRejectReason() {
         return getExt().getRejectReason();
@@ -783,6 +842,16 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     public void setRejectReason(String rejectReason) {
         getExt().setRejectReason(rejectReason);
+    }
+
+    @Schema(description = "是否推送到百度")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public Boolean getBaiduPush() {
+        return getExt().getBaiduPush();
+    }
+
+    public void setBaiduPush(Boolean baiduPush) {
+        getExt().setBaiduPush(baiduPush);
     }
 
     @Schema(description = "正文（HTML格式）")
@@ -1028,24 +1097,41 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
      */
     public static final short TYPE_NORMAL = 0;
     /**
-     * 类型：投稿
+     * 类型：复制
      */
-    public static final short TYPE_CONTRIBUTE = 1;
+    public static final short TYPE_COPY = 1;
     /**
-     * 类型：采集
+     * 类型：映射
      */
-    public static final short TYPE_COLLECTION = 2;
+    public static final short TYPE_MAP = 2;
     /**
-     * 类型：接口
+     * 类型：引用
      */
-    public static final short TYPE_INTERFACE = 3;
+    public static final short TYPE_REFER = 3;
+
     /**
-     * 类型：站内推送
+     * 录入类型：常规
      */
-    public static final short TYPE_IN_PUSH = 4;
+    public static final short INPUT_TYPE_NORMAL = 0;
     /**
-     * 类型：站外推送
+     * 录入类型：投稿
      */
-    public static final short TYPE_OUT_PUSH = 5;
+    public static final short INPUT_TYPE_CONTRIBUTE = 1;
+    /**
+     * 录入类型：采集
+     */
+    public static final short INPUT_TYPE_COLLECTION = 2;
+    /**
+     * 录入类型：接口
+     */
+    public static final short INPUT_TYPE_INTERFACE = 3;
+    /**
+     * 录入类型：站内推送
+     */
+    public static final short INPUT_TYPE_INTERNAL_PUSH = 4;
+    /**
+     * 录入类型：站群推送
+     */
+    public static final short INPUT_TYPE_EXTERNAL_PUSH = 5;
     // endregion
 }

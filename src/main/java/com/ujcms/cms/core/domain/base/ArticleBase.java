@@ -27,6 +27,13 @@ public class ArticleBase implements Serializable {
     private Integer id = 0;
 
     /**
+     * 源文章ID
+     */
+    @Nullable
+    @Schema(description="源文章ID")
+    private Integer srcId;
+
+    /**
      * 站点ID
      */
     @NotNull
@@ -83,10 +90,24 @@ public class ArticleBase implements Serializable {
     private Short sticky = 0;
 
     /**
-     * 状态(0:正常,100:已删除)
+     * 录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站外推送)
      */
     @NotNull
-    @Schema(description="状态(0:正常,100:已删除)")
+    @Schema(description="录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站外推送)")
+    private Short inputType = 0;
+
+    /**
+     * 类型(0:常规,1:复制,2:映射,3:引用)
+     */
+    @NotNull
+    @Schema(description="类型(0:常规,1:复制,2:映射,3:引用)")
+    private Short type = 0;
+
+    /**
+     * 状态(0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回)
+     */
+    @NotNull
+    @Schema(description="状态(0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回)")
     private Short status = 0;
 
     public Integer getId() {
@@ -95,6 +116,15 @@ public class ArticleBase implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    @Nullable
+    public Integer getSrcId() {
+        return srcId;
+    }
+
+    public void setSrcId(@Nullable Integer srcId) {
+        this.srcId = srcId;
     }
 
     public Integer getSiteId() {
@@ -160,6 +190,22 @@ public class ArticleBase implements Serializable {
 
     public void setSticky(Short sticky) {
         this.sticky = sticky;
+    }
+
+    public Short getInputType() {
+        return inputType;
+    }
+
+    public void setInputType(Short inputType) {
+        this.inputType = inputType;
+    }
+
+    public Short getType() {
+        return type;
+    }
+
+    public void setType(Short type) {
+        this.type = type;
     }
 
     public Short getStatus() {

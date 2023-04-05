@@ -20,19 +20,12 @@ import com.ujcms.util.web.Entities;
 import com.ujcms.util.web.Responses;
 import com.ujcms.util.web.Responses.Body;
 import com.ujcms.util.web.Servlets;
+import com.ujcms.util.web.exception.Http404Exception;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -75,22 +68,26 @@ public class ChannelController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('channel:list','*')")
-    public Object list(@RequestParam(defaultValue = "false") boolean isArticlePermission, HttpServletRequest request) {
+    public List<Channel> list(@RequestParam(defaultValue = "false") boolean isArticlePermission, Integer siteId,
+                              HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
         ChannelArgs args = ChannelArgs.of(getQueryMap(request.getQueryString()));
         if (isArticlePermission && !user.hasAllArticlePermission()) {
             args.inArticleRoleIds(user.fetchRoleIds());
         }
-        args.siteId(Contexts.getCurrentSiteId());
+        if (siteId == null) {
+            siteId = Contexts.getCurrentSiteId();
+        }
+        args.siteId(siteId);
         return service.selectList(args);
     }
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('channel:show','*')")
-    public Object show(@PathVariable Integer id) {
+    public Channel show(@PathVariable Integer id) {
         Channel bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("Channel not found. ID = " + id);
+            throw new Http404Exception("Channel not found. ID = " + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;

@@ -1,5 +1,13 @@
 # UJCMS 发版说明
 
+## ujcms-6.0.2 (2023-04-05)
+
+* 新增模板、上传、HTML文件管理功能
+* 新增Tag功能
+* 新增站群推送功能
+* 新增站内推送功能
+* 修复已知BUG
+
 ## ujcms-5.5.2 (2023-01-18)
 
 * 修复图片裁剪页面无样式问题
@@ -30,7 +38,9 @@
 ### 升级指南
 
 * **注意**：下载地址`${dy}/download/...`变更为`${dy}/download-file/...`。由于`download`地址比较常用，换成不易冲突的地址。
-* **注意**：密码加密方式改为Spring Security的方式加密，密码和salt放到了同一个字段里。这将导致原密码无法登录，需要到数据库重置密码，将`ujcms_user`表的`password_`字段修改为`{pbkdf2}0Knzbc+J3Fkl5/mlJBrwLFOUwOvoBANcrfCgVvrjCSIBjnazXupYVw==`，密码将被重置为`password`。
+* **注意**：BlockItemList标签的参数`blockAlias`参数改为`block`。
+* **注意**：密码加密方式改为Spring Security的方式加密，密码和salt放到了同一个字段里。这将导致原密码无法登录，需要到数据库重置密码，将`ujcms_user`表的`password_`
+  字段修改为`{pbkdf2}0Knzbc+J3Fkl5/mlJBrwLFOUwOvoBANcrfCgVvrjCSIBjnazXupYVw==`，密码将被重置为`password`。
 * **注意**：执行`upgrade/mysql/mysql_upgrade_40to55.sql`升级数据库（先启动程序，升级表结构后，再执行该脚本）。
 
 ## ujcms-4.1.2 (2022-07-21)
@@ -73,7 +83,8 @@
 ### 升级指南
 
 * **注意**：自定义字段中如涉及下拉选择、单选框、复选框等字典数据，会因自定义字段保存数据的方式改为同时保存字典KEY和字典NAME（之前只保存字典NAME），并以字典KEY作为判断标准，从而使得后台管理时相关自定义字段数据丢失。
-* **注意**：本次升级重做了liquibase的changelog。无法通过程序自动升级数据库表结构，需手动执行`upgrade/mysql/mysql_upgrade_3to4_whole.sql`进行升级。如果之前是2.0版本的，需要先升级到3.0（使用3.0的程序，并启动，让程序自动把数据库升级到3.0），再执行`mysql_upgrade_3to4_whole.sql`将数据库升级到4.0。
+* **注意**：本次升级重做了liquibase的changelog。无法通过程序自动升级数据库表结构，需手动执行`upgrade/mysql/mysql_upgrade_3to4_whole.sql`
+  进行升级。如果之前是2.0版本的，需要先升级到3.0（使用3.0的程序，并启动，让程序自动把数据库升级到3.0），再执行`mysql_upgrade_3to4_whole.sql`将数据库升级到4.0。
 
 ## ujcms-3.1.0 (2022-06-17)
 
@@ -115,7 +126,8 @@
 
 ### 升级指南
 
-* 使用escape标签处理XSS和空值。所有freemarker页面使用`[#escape x as (x)!?html]`开头和`[/#escape]`结尾；使用`[#noescape]...[/#noescape]`功能替换原有的`?no_esc`
+* 使用escape标签处理XSS和空值。所有freemarker页面使用`[#escape x as (x)!?html]`开头和`[/#escape]`结尾；使用`[#noescape]...[/#noescape]`
+  功能替换原有的`?no_esc`
 * 密码需用新算法重置
 
 ## ujcms-2.0.2 (2022-03-21)
@@ -150,23 +162,30 @@
 ## ujcms-1.0.0 (2022-01-09)
 
 1. 内容
-  * 文章管理
-  * 栏目管理
-  * 区块管理
-  * 附件管理
-  * 生成管理
+
+* 文章管理
+* 栏目管理
+* 区块管理
+* 附件管理
+* 生成管理
+
 2. 配置
-  * 全局设置
-  * 站点设置
-  * 模型管理
-  * 区块设置
-  * 字典类型
-  * 字典数据
+
+* 全局设置
+* 站点设置
+* 模型管理
+* 区块设置
+* 字典类型
+* 字典数据
+
 3. 用户
-  * 用户管理
-  * 角色管理
-  * 用户组管理
-  * 组织管理
+
+* 用户管理
+* 角色管理
+* 用户组管理
+* 组织管理
+
 4. 系统
-  * 站点管理
-  * 储存点管理
+
+* 站点管理
+* 储存点管理

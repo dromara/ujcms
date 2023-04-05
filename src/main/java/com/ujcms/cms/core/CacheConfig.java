@@ -2,7 +2,6 @@ package com.ujcms.cms.core;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.ujcms.cms.core.domain.cache.GroupSpringCache;
-import com.ujcms.cms.core.domain.cache.RoleSpringCache;
 import com.ujcms.cms.core.domain.cache.SiteSpringCache;
 import com.ujcms.util.captcha.CaptchaCache;
 import com.ujcms.util.captcha.CaptchaProperties;
@@ -50,10 +49,6 @@ public class CacheConfig {
             cacheManager.registerCustomCache(GroupSpringCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(GroupSpringCache.EXPIRES, TimeUnit.MINUTES)
                     .maximumSize(GroupSpringCache.MAXIMUM_SIZE).build());
-            // MyBatis二级缓存：RoleSpringCache
-            cacheManager.registerCustomCache(RoleSpringCache.CACHE_NAME, Caffeine.newBuilder()
-                    .expireAfterWrite(RoleSpringCache.EXPIRES, TimeUnit.MINUTES)
-                    .maximumSize(RoleSpringCache.MAXIMUM_SIZE).build());
         };
     }
 
@@ -65,10 +60,5 @@ public class CacheConfig {
     @Bean
     public GroupSpringCache groupSpringCache() {
         return new GroupSpringCache();
-    }
-
-    @Bean
-    public RoleSpringCache roleSpringCache() {
-        return new RoleSpringCache();
     }
 }

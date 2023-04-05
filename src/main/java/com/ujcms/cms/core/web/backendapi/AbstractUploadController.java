@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.AttachmentService;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.util.file.FileHandler;
 import com.ujcms.util.image.ImageHandler;
 import com.ujcms.util.image.Images;
@@ -41,12 +42,14 @@ public abstract class AbstractUploadController {
     protected final AttachmentService attachmentService;
     protected final ImageHandler imageHandler;
     protected final PathResolver pathResolver;
+    protected final Props props;
 
     protected AbstractUploadController(AttachmentService attachmentService, ImageHandler imageHandler,
-                                       PathResolver pathResolver) {
+                                       PathResolver pathResolver, Props props) {
         this.attachmentService = attachmentService;
         this.imageHandler = imageHandler;
         this.pathResolver = pathResolver;
+        this.props = props;
     }
 
     protected Map<String, Object> doUpload(HttpServletRequest request, long limitByte, String types, String type,
@@ -56,10 +59,14 @@ public abstract class AbstractUploadController {
         User user = Contexts.getCurrentUser();
         // 检查文件大小
         long length = multipart.getSize();
-        validateLimit(length, limitByte);
+        validateLimit(limitByte, length);
         // 检查文件后缀
         String extension = FilenameUtils.getExtension(multipart.getOriginalFilename());
-        validateType(extension, types);
+        if (props.getUploadsExtensionExcludes().contains(StringUtils.lowerCase(extension))) {
+            throw new Http400Exception(String.format("file extension not allowed: '%s'. blacklist: '%s'",
+                    extension, props.getUploadsExtensionBlacklist()));
+        }
+        validateType(types, extension);
 
         FileHandler fileHandler = Contexts.getCurrentSite().getConfig().getUploadStorage().getFileHandler(pathResolver);
         File tempFile = Files.createTempFile(null, "." + extension).toFile();

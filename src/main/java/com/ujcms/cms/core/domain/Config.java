@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ConfigBase;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.util.file.FileHandler;
+import com.ujcms.util.file.FtpFileHandler;
 import com.ujcms.util.file.LocalFileHandler;
 import com.ujcms.util.file.MinIoFileHandler;
 import com.ujcms.util.web.PathResolver;
@@ -73,10 +74,12 @@ public class Config extends ConfigBase implements Serializable {
         }
         String settings = getUploadSettings();
         if (StringUtils.isBlank(settings)) {
-            return new Upload();
+            upload = new Upload();
+            return upload;
         }
         try {
-            return Constants.MAPPER.readValue(settings, Upload.class);
+            upload = Constants.MAPPER.readValue(settings, Upload.class);
+            return upload;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Cannot read value of Upload: " + settings, e);
         }
@@ -306,6 +309,9 @@ public class Config extends ConfigBase implements Serializable {
     @Nullable
     @JsonIgnore
     private Storage templateStorage;
+
+    private String uploadsExtensionBlacklist = "";
+    private String filesExtensionBlacklist = "";
     /**
      * 自定义字段
      */
@@ -336,6 +342,22 @@ public class Config extends ConfigBase implements Serializable {
     @Pattern(regexp = "^$|^/[\\w-]*$")
     public String getArticleUrl() {
         return super.getArticleUrl();
+    }
+
+    public String getUploadsExtensionBlacklist() {
+        return uploadsExtensionBlacklist;
+    }
+
+    public void setUploadsExtensionBlacklist(String uploadsExtensionBlacklist) {
+        this.uploadsExtensionBlacklist = uploadsExtensionBlacklist;
+    }
+
+    public String getFilesExtensionBlacklist() {
+        return filesExtensionBlacklist;
+    }
+
+    public void setFilesExtensionBlacklist(String filesExtensionBlacklist) {
+        this.filesExtensionBlacklist = filesExtensionBlacklist;
     }
 
     /**
@@ -373,9 +395,9 @@ public class Config extends ConfigBase implements Serializable {
          */
         private String docTypes = "doc,docx,xls,xlsx";
         /**
-         * 允许上传的文件类型。格式如：zip,7z,gz,bz2,iso,rar,pdf,doc,docx,xls,xlsx,ppt,pptx
+         * 允许上传的文件类型。格式如：zip,7z,gz,bz2,iso,rar,doc,docx,xls,xlsx,ppt,pptx,pdf,mp3,ogg,wav,mp4,webm,ogg,jpg,jpeg,jfif,pjpeg,pjp,png,gif,webp
          */
-        private String fileTypes = "zip,7z,gz,bz2,iso,rar,pdf,doc,docx,xls,xlsx,ppt,pptx";
+        private String fileTypes = "zip,7z,gz,bz2,iso,rar,doc,docx,xls,xlsx,ppt,pptx,pdf,mp3,ogg,wav,mp4,webm,ogg,jpg,jpeg,jfif,pjpeg,pjp,png,gif,webp";
         /**
          * 图片最大长度。单位 MB
          */
@@ -1429,6 +1451,21 @@ public class Config extends ConfigBase implements Serializable {
         private String accessKey = "";
         private String secretKey = "";
 
+        private String hostname = "";
+        @Nullable
+        private Integer port;
+        private String username = "";
+        private String password = "";
+        private String encoding = "";
+        /**
+         * 被动模式
+         */
+        private boolean passive = true;
+        /**
+         * 加密方式。0:不加密, 1: TLS隐式加密, 2: TLS显式加密
+         */
+        private int encryption;
+
         public Storage() {
         }
 
@@ -1441,6 +1478,9 @@ public class Config extends ConfigBase implements Serializable {
         public FileHandler getFileHandler(PathResolver pathResolver) {
             if (getType() == TYPE_MINIO) {
                 return new MinIoFileHandler(endpoint, region, bucket, accessKey, secretKey, path, url);
+            } else if (getType() == TYPE_FTP) {
+                return new FtpFileHandler(hostname, port, username, password,
+                        encoding, passive, encryption, path, url);
             }
             return new LocalFileHandler(pathResolver, getPath(), getUrl());
         }
@@ -1509,25 +1549,86 @@ public class Config extends ConfigBase implements Serializable {
             this.secretKey = secretKey;
         }
 
+        public String getHostname() {
+            return hostname;
+        }
+
+        public void setHostname(String hostname) {
+            this.hostname = hostname;
+        }
+
+        @Nullable
+        public Integer getPort() {
+            return port;
+        }
+
+        public void setPort(@Nullable Integer port) {
+            this.port = port;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getEncoding() {
+            return encoding;
+        }
+
+        public void setEncoding(String encoding) {
+            this.encoding = encoding;
+        }
+
+        public boolean isPassive() {
+            return passive;
+        }
+
+        public void setPassive(boolean passive) {
+            this.passive = passive;
+        }
+
+        public int getEncryption() {
+            return encryption;
+        }
+
+        public void setEncryption(int encryption) {
+            this.encryption = encryption;
+        }
+
         /**
          * 存储类型：本地服务器
          */
         public static final int TYPE_LOCAL = 0;
         /**
+         * 存储类型：FTP
+         */
+        public static final int TYPE_FTP = 1;
+        /**
          * 存储类型：MinIO
          */
-        public static final int TYPE_MINIO = 1;
+        public static final int TYPE_MINIO = 10;
         /**
          * 存储类型：阿里云
          */
-        public static final int TYPE_ALIYUN = 2;
+        public static final int TYPE_ALIYUN = 11;
         /**
          * 存储类型：腾讯云
          */
-        public static final int TYPE_QCLOUD = 3;
+        public static final int TYPE_QCLOUD = 12;
         /**
          * 存储类型：七牛云
          */
-        public static final short TYPE_QINIU = 4;
+        public static final int TYPE_QINIU = 13;
     }
 }

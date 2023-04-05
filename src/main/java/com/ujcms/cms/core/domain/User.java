@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.domain.base.UserBase;
+import com.ujcms.util.misc.BaseNum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,11 +41,19 @@ public class User extends UserBase implements UserDetails, Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 字符串ID。用户个人主页地址使用字符串ID，不使用规则的整数，避免ID被探测
+     */
+    @Schema(description = "字符串ID。用户个人主页地址使用字符串ID，不使用规则的整数，避免ID被探测")
+    public String getStringId() {
+        return BaseNum.base36().fromReverseInt(getId());
+    }
+
+    /**
      * 个人主页
      */
     @Schema(description = "个人主页")
     public String getHomepage() {
-        return "/users/" + getId();
+        return "/users/" + getStringId();
     }
 
     @Schema(description = "大头像")
@@ -406,13 +415,12 @@ public class User extends UserBase implements UserDetails, Serializable {
      */
     private List<Integer> roleIds = new ArrayList<>();
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public List<Integer> getRoleIds() {
         return roleIds;
     }
 
     @Schema(description = "角色ID列表")
-    @JsonProperty
     public void setRoleIds(List<Integer> roleIds) {
         this.roleIds = roleIds;
     }

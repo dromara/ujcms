@@ -10,7 +10,6 @@ import com.ujcms.cms.core.service.args.OrgArgs;
 import com.ujcms.util.db.tree.TreeService;
 import com.ujcms.util.query.QueryInfo;
 import com.ujcms.util.query.QueryParser;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;

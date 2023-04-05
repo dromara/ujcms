@@ -1,37 +1,28 @@
 package com.ujcms.util.file;
 
+import com.ujcms.util.web.UrlBuilder;
 import freemarker.template.Template;
-import io.minio.CopyObjectArgs;
-import io.minio.CopySource;
-import io.minio.DownloadObjectArgs;
-import io.minio.GetObjectArgs;
-import io.minio.ListObjectsArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
-import io.minio.Result;
-import io.minio.StatObjectArgs;
-import io.minio.UploadObjectArgs;
+import io.minio.*;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.Item;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+
+import static com.ujcms.util.file.FilesEx.SLASH;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * MinIO文件处理类
@@ -39,16 +30,16 @@ import java.util.function.Consumer;
  * @author PONY
  */
 public class MinIoFileHandler implements FileHandler {
-    private MinioClient client;
-    private String bucket;
+    private final MinioClient client;
+    private final String bucket;
     /**
-     * 保存路径前缀。
+     * 保存路径前缀
      */
-    private String storePrefix;
+    private final String storePrefix;
     /**
      * 显示路径前缀
      */
-    private String displayPrefix;
+    private final String displayPrefix;
 
     public MinIoFileHandler(String endpoint, String region, String bucket, String accessKey, String secretKey,
                             String storePrefix, String displayPrefix) {
@@ -67,14 +58,13 @@ public class MinIoFileHandler implements FileHandler {
     public void store(String filename, Template template, Map<String, Object> dataModel) {
         try {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
-            template.process(dataModel, new OutputStreamWriter(os, StandardCharsets.UTF_8));
+            template.process(dataModel, new OutputStreamWriter(os, UTF_8));
             String storeName = getStoreName(filename);
             client.putObject(PutObjectArgs.builder().bucket(bucket).object(storeName)
                     .stream(new ByteArrayInputStream(os.toByteArray()), os.size(), -1).build());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override
@@ -104,10 +94,10 @@ public class MinIoFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, InputStream source) {
-        try (InputStream is = source) {
+        try {
             String storeName = getStoreName(filename);
             client.putObject(PutObjectArgs.builder().bucket(bucket).object(storeName)
-                    .stream(is, -1, 10485760).build());
+                    .stream(source, -1, 10485760).build());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -123,6 +113,107 @@ public class MinIoFileHandler implements FileHandler {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void store(String filename, String text) {
+        try {
+            String storeName = getStoreName(filename);
+            byte[] bytes = text.getBytes(UTF_8);
+            ByteArrayInputStream input = new ByteArrayInputStream(bytes);
+            client.putObject(PutObjectArgs.builder().bucket(bucket).object(storeName)
+                    .stream(input, bytes.length, -1).build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean mkdir(String dir) {
+        try {
+            client.putObject(PutObjectArgs.builder().bucket(bucket).object(getStoreName(dir) + SLASH)
+                    .stream(new ByteArrayInputStream(new byte[]{}), 0, -1).build());
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void unzip(MultipartFile zipPart, String destDir, String... ignoredExtensions) {
+        try {
+            ZipUtils.decompress(zipPart.getInputStream(),
+                    (entryName, zipIn) -> store(UrlBuilder.of(destDir).appendPath(entryName).toString(), zipIn),
+                    (entryName) -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
+                    ignoredExtensions);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void zip(String dir, String[] names, OutputStream out) {
+        ZipUtils.zip(dir, names, out,
+                (filename) -> filename.endsWith(SLASH),
+                (filename) -> listFiles(filename).stream().map(WebFile::getOrigName).toArray(String[]::new),
+                this::writeOutputStream);
+    }
+
+    @Override
+    public boolean rename(String filename, String to) {
+        String storeName = getStoreName(filename);
+        if (storeName.endsWith(SLASH)) {
+            String toStoreName = UrlBuilder.of(FilenameUtils.getPath(storeName.substring(0, storeName.length() - 1)))
+                    .appendPath(to).appendPath(SLASH).toString();
+            handleDirectory(storeName, true, item -> {
+                String objectName = item.objectName();
+                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, toStoreName);
+                renameFile(objectName, toItemObjectName);
+            });
+        } else {
+            renameFile(storeName, FilenameUtils.getPath(storeName) + SLASH + to);
+        }
+        return true;
+    }
+
+    private void renameFile(String from, String to) {
+        try {
+            client.copyObject(CopyObjectArgs.builder()
+                    .bucket(bucket).object(to)
+                    .source(CopySource.builder().bucket(bucket).object(from).build())
+                    .build());
+            client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(from).build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void moveTo(String filename, String destDir) {
+        String storeName = getStoreName(filename);
+        String destStoreDir = getStoreName(destDir);
+        if (storeName.endsWith(SLASH)) {
+            String toStoreName = UrlBuilder.of(destStoreDir).appendPath(SLASH).toString();
+            handleDirectory(storeName, true, item -> {
+                String objectName = item.objectName();
+                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, toStoreName);
+                renameFile(objectName, toItemObjectName);
+            });
+        } else {
+            renameFile(storeName, UrlBuilder.of(destStoreDir).appendPath(FilenameUtils.getName(storeName)).toString());
+        }
+    }
+
+    @Override
+    public void moveTo(String dir, String[] names, String destDir) {
+        for (String name : names) {
+            moveTo(UrlBuilder.of(dir).appendPath(name).toString(), destDir);
+        }
+    }
+
+    @Override
+    public boolean exist(String filename) {
+        return fileExist(getStoreName(filename));
     }
 
     @Nullable
@@ -150,61 +241,94 @@ public class MinIoFileHandler implements FileHandler {
         }
     }
 
-    @Nullable
     @Override
-    public InputStream getInputStream(String filename) {
+    public WebFile getWebFile(String filename) {
         try {
             String storeName = getStoreName(filename);
-            return client.getObject(GetObjectArgs.builder().bucket(bucket).object(storeName).build());
-        } catch (ErrorResponseException e) {
-            return null;
+            ObjectStat stat = client.statObject(StatObjectArgs.builder().bucket(bucket)
+                    .object(storeName).build());
+            WebFile webFile = new WebFile(filename, displayPrefix, stat);
+            if (webFile.isEditable()) {
+                try (InputStream in = client.getObject(
+                        GetObjectArgs.builder().bucket(bucket).object(storeName).build())) {
+                    webFile.setText(IOUtils.toString(in, UTF_8));
+                }
+            }
+            return webFile;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void copyFile(String src, String dest) {
+    public void writeOutputStream(String filename, OutputStream out) {
         try {
-            client.copyObject(CopyObjectArgs.builder().bucket(bucket).object(getStoreName(dest))
-                    .source(CopySource.builder().bucket(bucket).object(getStoreName(src)).build())
+            String storeName = getStoreName(filename);
+            try (InputStream in = client.getObject(GetObjectArgs.builder().bucket(bucket).object(storeName).build())) {
+                IOUtils.copyLarge(in, out);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void copyFile(String src, String dest) {
+        try {
+            client.copyObject(CopyObjectArgs.builder().bucket(bucket).object(dest)
+                    .source(CopySource.builder().bucket(bucket).object(src).build())
                     .build());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    private void copyDirectory(String filename, String destDir) {
+        String storeName = getStoreName(filename);
+        String destStoreDir = getStoreName(destDir);
+        if (storeName.endsWith(SLASH)) {
+            String toStoreName = UrlBuilder.of(destStoreDir).appendPath(SLASH).toString();
+            handleDirectory(storeName, true, item -> {
+                String objectName = item.objectName();
+                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, toStoreName);
+                copyFile(objectName, toItemObjectName);
+            });
+        } else {
+            copyFile(storeName, UrlBuilder.of(destStoreDir).appendPath(FilenameUtils.getName(storeName)).toString());
+        }
+    }
+
     @Override
-    public void copyDirectory(String src, String dest) {
-        // 拷贝文件夹
-        copyFile(src, dest);
-        // 拷贝文件夹下的文件
-        String srcDir = getStoreName(src);
-        int srcDirLength = srcDir.length();
-        String destDir = getStoreName(dest);
-        handleDirectory(srcDir, item -> {
-            try {
-                String srcName = item.objectName();
-                String destName = destDir + srcName.substring(srcDirLength);
-                client.copyObject(CopyObjectArgs.builder().bucket(bucket).object(destName)
-                        .source(CopySource.builder().bucket(bucket).object(srcName).build())
-                        .build());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public void copy(String src, String dest) {
+        String storeName = getStoreName(src);
+        String destStoreName = getStoreName(dest);
+        if (src.endsWith(SLASH)) {
+            handleDirectory(getStoreName(src), true, item -> {
+                String objectName = item.objectName();
+                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, destStoreName);
+                copyFile(objectName, toItemObjectName);
+            });
+        } else {
+            copyFile(storeName, destStoreName);
+        }
+    }
+
+    @Override
+    public void copy(String dir, String[] names, String destDir) {
+        for (String name : names) {
+            copyDirectory(UrlBuilder.of(dir).appendPath(name).toString(), destDir);
+        }
     }
 
     @Override
     public boolean deleteFileAndEmptyParentDir(String filename) {
-        return deleteFile(filename);
+        return deleteDirectory(filename);
     }
 
     @Override
     public boolean deleteFile(String filename) {
         try {
             String storeName = getStoreName(filename);
-            if (!exist(storeName)) {
+            if (!fileExist(storeName)) {
                 return false;
             }
             client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(storeName).build());
@@ -216,10 +340,9 @@ public class MinIoFileHandler implements FileHandler {
 
     @Override
     public boolean deleteDirectory(String directory) {
-        handleDirectory(getStoreName(directory), item -> {
+        handleDirectory(getStoreName(directory), true, item -> {
             try {
-                client.removeObject(RemoveObjectArgs.builder().bucket(bucket)
-                        .object(item.objectName()).build());
+                client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(item.objectName()).build());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -229,7 +352,7 @@ public class MinIoFileHandler implements FileHandler {
         return true;
     }
 
-    private boolean exist(String storeName) {
+    private boolean fileExist(String storeName) {
         try {
             client.statObject(StatObjectArgs.builder().bucket(bucket).object(storeName).build());
             return true;
@@ -240,44 +363,73 @@ public class MinIoFileHandler implements FileHandler {
         }
     }
 
-    private void handleDirectory(String directory, Consumer<Item> consumer) {
+    private void handleDirectory(String directory, boolean recursive, Consumer<Item> consumer) {
         try {
             int maxKeys = 1000;
-            String prefix = directory + FilesEx.SLASH;
-            String startAfter = handleDirectory(prefix, null, maxKeys, consumer);
-            while (startAfter != null) {
-                startAfter = handleDirectory(prefix, startAfter, maxKeys, consumer);
-            }
+            String prefix = directory.endsWith(SLASH) || directory.isEmpty() ? directory : directory + SLASH;
+            String startAfter = null;
+            String prevStartAfter;
+            do {
+                prevStartAfter = startAfter;
+                startAfter = handleDirectory(prefix, startAfter, maxKeys, recursive, consumer);
+            } while (startAfter != null && !startAfter.equals(prefix) && !startAfter.equals(prevStartAfter));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Nullable
-    private String handleDirectory(String prefix, @Nullable String startAfter, int maxKeys, Consumer<Item> consumer)
-            throws Exception {
+    private String handleDirectory(String prefix, @Nullable String startAfter, int maxKeys, boolean recursive,
+                                   Consumer<Item> consumer) throws Exception {
         int count = 0;
         String objectName = null;
         Iterable<Result<Item>> results = client.listObjects(ListObjectsArgs.builder().bucket(bucket)
-                .prefix(prefix).startAfter(startAfter).recursive(true).maxKeys(maxKeys).build());
+                .prefix(prefix).startAfter(startAfter).recursive(recursive).maxKeys(maxKeys).build());
         for (Result<Item> result : results) {
-            Item item = result.get();
+            Item item = new MinioItem(result.get());
             objectName = item.objectName();
             consumer.accept(item);
             count += 1;
         }
-        if (count < maxKeys) {
+        if (count >= maxKeys) {
             return objectName;
         }
         return null;
     }
 
     private String getStoreName(String filename) {
-        String storeName = storePrefix + FilesEx.normalize(filename);
-        if (storeName.startsWith(FilesEx.SLASH)) {
+        String storeName = UrlBuilder.of(storePrefix).appendPath(FilesEx.normalize(filename)).toString();
+        if (storeName.startsWith(SLASH)) {
             return storeName.substring(1);
         }
         return storeName;
+    }
+
+    public List<Item> listItems(String path) {
+        List<Item> list = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+        handleDirectory(getStoreName(path), false, item -> {
+            String objectName = item.objectName();
+            if (!ids.contains(objectName) && !path.equals(objectName)) {
+                list.add(item);
+                ids.add(objectName);
+            }
+        });
+        return list;
+    }
+
+    @Override
+    public List<WebFile> listFiles(String path, WebFileFilter filter) {
+        List<WebFile> list = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+        handleDirectory(getStoreName(path), false, item -> {
+            String id = item.objectName().substring(storePrefix.length());
+            WebFile webFile = new WebFile(id, displayPrefix, item);
+            if (filter.accept(webFile) && !ids.contains(id) && !path.equals(id)) {
+                list.add(webFile);
+                ids.add(id);
+            }
+        });
+        return list;
     }
 }

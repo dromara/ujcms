@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.ujcms.cms.core.web.support.Directives.getBoolean;
+
 /**
  * 区块列表 标签
  *
@@ -41,12 +43,20 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
      * 是否启用。字符串(String)。可选值：all(全部), false(禁用)。默认值：启用。
      */
     public static final String IS_ENABLED = "isEnabled";
+    /**
+     * 是否获取所有站点文章。布尔型(Boolean)。默认：false。
+     */
+    public static final String IS_ALL_SITE = "isAllSite";
 
     public static List<BlockItem> query(Map<String, ?> params, Integer defaultSiteId, BlockItemService service) {
         BlockItemArgs args = BlockItemArgs.of();
         Integer siteId = Directives.getInteger(params, SITE_ID);
 
-        args.siteId(siteId != null ? siteId : defaultSiteId);
+        // 不获取所有站点，则给默认站点ID
+        if (siteId == null && !getBoolean(params, IS_ALL_SITE, false)) {
+            siteId = defaultSiteId;
+        }
+        args.siteId(siteId);
 
         Integer blockId = Directives.getInteger(params, BLOCK_ID);
         String blockAlias = Directives.getString(params, BLOCK);

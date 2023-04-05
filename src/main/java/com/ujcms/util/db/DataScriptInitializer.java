@@ -104,7 +104,7 @@ public class DataScriptInitializer implements InitializingBean {
             return;
         }
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-        populator.setSqlScriptEncoding(StandardCharsets.UTF_8.displayName());
+        populator.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
         populator.addScript(resource);
         DatabasePopulatorUtils.execute(populator, this.dataSource);
     }

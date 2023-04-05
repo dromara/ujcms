@@ -38,11 +38,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
@@ -56,9 +52,9 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.Filter;
 import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
@@ -95,8 +91,11 @@ public class SecurityConfig {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter((jwt) -> {
             String username = jwt.getSubject();
-            User user = Optional.ofNullable(userService.selectByUsername(username))
-                    .orElseThrow(() -> new IllegalStateException("User not found. username:" + username));
+            User user = userService.selectByUsername(username);
+            // 如果修改了用户名，user可能为null
+            if (user == null) {
+                return Collections.emptyList();
+            }
             return user.getAuthorities();
         });
         return jwtAuthenticationConverter;

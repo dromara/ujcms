@@ -1,0 +1,1 @@
+System.register([],(function(t,e){"use strict";var a=document.createElement("style");return a.textContent="[data-v-2414138e] .el-upload-dragger{padding:0 20px;--tw-bg-opacity: 1;background-color:rgb(236 245 255 / var(--tw-bg-opacity));--tw-text-opacity: 1;color:rgb(64 158 255 / var(--tw-text-opacity))}\n",document.head.appendChild(a),{execute:function(){}}}));

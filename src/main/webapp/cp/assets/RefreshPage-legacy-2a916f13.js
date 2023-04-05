@@ -1,0 +1,1 @@
+System.register(["./index-legacy-1e63c30f.js"],(function(e,t){"use strict";var r;return{setters:[e=>{r=e.d}],execute:function(){e("default",r({beforeRouteEnter(e,t,r){r((e=>{e.$router.replace(t.path)}))},render(){}}))}}}));

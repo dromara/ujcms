@@ -59,8 +59,7 @@ public class DictController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('dict:list','*')")
     public List<Dict> list(Integer typeId, HttpServletRequest request) {
-        DictArgs args = DictArgs.of(getQueryMap(request.getQueryString()));
-        args.typeId(typeId);
+        DictArgs args = DictArgs.of(getQueryMap(request.getQueryString())).typeId(typeId);
         return service.selectList(args);
     }
 
