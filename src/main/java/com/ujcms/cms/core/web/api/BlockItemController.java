@@ -5,7 +5,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.BlockItemService;
 import com.ujcms.cms.core.web.directive.BlockItemListDirective;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.util.query.QueryUtils;
+import com.ujcms.commons.query.QueryUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

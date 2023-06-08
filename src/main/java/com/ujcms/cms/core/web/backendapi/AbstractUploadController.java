@@ -7,14 +7,14 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.AttachmentService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.image.ImageHandler;
-import com.ujcms.util.image.Images;
-import com.ujcms.util.image.ResizeMode;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Uploads;
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.LogicException;
+import com.ujcms.commons.file.FileHandler;
+import com.ujcms.commons.image.ImageHandler;
+import com.ujcms.commons.image.Images;
+import com.ujcms.commons.image.ResizeMode;
+import com.ujcms.commons.web.PathResolver;
+import com.ujcms.commons.web.Uploads;
+import com.ujcms.commons.web.exception.Http400Exception;
+import com.ujcms.commons.web.exception.LogicException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.ujcms.util.web.Uploads.*;
+import static com.ujcms.commons.web.Uploads.*;
 
 /**
  * 上传抽象类。包含前后台上传的共用方法。

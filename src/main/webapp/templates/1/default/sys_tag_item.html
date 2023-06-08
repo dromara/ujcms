@@ -4,19 +4,19 @@
 <head>
   <meta charset="utf-8">
   <title>${tag.title} - ${site.title}</title>
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
 </head>
 <body>
 [#assign headerShadow=true/]
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="container">
   <div class="row">
     <div class="col mt-1">
       <div class="pt-3 border-bottom">
         <div class="clearfix">
-          <h4 class="float-left"><i class="fas fa-tag text-primary"></i> <a href="${dy}/tag/${tag.id}">${tag.name}</a></h4>
+          <h4 class="float-left"><i class="fas fa-tag text-primary"></i> <a href="${dy}/tag/${tag.id?c}">${tag.name}</a></h4>
           <h4 class="float-right"><a href="${dy}/tag">Tags</a></h4>
         </div>
         [#if tag.description??]
@@ -39,7 +39,7 @@
                   <span>[#list bean.channel.paths as c][@A bean=c/][#if c_has_next] > [/#if][/#list]</span>
                   <i class="ml-2 far fa-eye"></i> ${bean.views}
                   [#list bean.tags as tag]
-                  <a href="${dy}/tag/${tag.id}" class="ml-1"><span class="badge badge-secondary">${tag.name}</span></a>
+                  <a href="${dy}/tag/${tag.id?c}" class="ml-1"><span class="badge badge-secondary">${tag.name}</span></a>
                   [/#list]
                 </div>
                 <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.publishDate.format('yyyy-MM-dd')}</div>
@@ -48,14 +48,14 @@
           </li>
           [/#list]
         </ul>
-        [#include 'includes_page.html'/]
+        [#include 'inc_page.html'/]
         [/@ArticlePage]
 
       </div>
     </div>
   </div>
 </div>
-[#include 'includes_footer.html'/]
+[#include 'inc_footer.html'/]
 </body>
 </html>
 [/#escape]

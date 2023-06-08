@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.ArticleTag;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;

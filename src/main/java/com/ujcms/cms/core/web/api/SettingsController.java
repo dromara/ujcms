@@ -7,12 +7,12 @@ import com.ujcms.cms.core.service.ShortMessageService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.security.Secures;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Responses.Body;
+import com.ujcms.commons.file.FileHandler;
+import com.ujcms.commons.security.Secures;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.PathResolver;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Responses.Body;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +33,7 @@ import javax.validation.constraints.Pattern;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.util.web.Uploads.AVATAR_TYPE;
+import static com.ujcms.commons.web.Uploads.AVATAR_TYPE;
 
 /**
  * 会员设置 Controller

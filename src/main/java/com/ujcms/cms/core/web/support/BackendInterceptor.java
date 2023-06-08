@@ -7,8 +7,8 @@ import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.web.exception.Http401Exception;
-import com.ujcms.util.web.exception.Http403Exception;
+import com.ujcms.commons.web.exception.Http401Exception;
+import com.ujcms.commons.web.exception.Http403Exception;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 

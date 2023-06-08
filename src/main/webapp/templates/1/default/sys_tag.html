@@ -5,13 +5,13 @@
   <meta charset="utf-8">
   <title>Tag - ${site.title}</title>
   <meta name="keywords" content="Tag">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
 </head>
 <body>
 [#assign headerShadow=true/]
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="container">
   <div class="row">
     <div class="col mt-1">
@@ -21,16 +21,16 @@
       [@TagPage pageSize='20';pagedList]
       <div class="py-2">
         [#list pagedList.content as bean]
-        <a href="${dy}/tag/${bean.id}" class="btn btn-secondary btn-sm ml-2">${bean.name} <span class="badge badge-light">${bean.refers}</span></a>
+        <a href="${dy}/tag/${bean.id?c}" class="btn btn-secondary btn-sm ml-2">${bean.name} <span class="badge badge-light">${bean.refers}</span></a>
         [/#list]
       </div>
-      [#include 'includes_page.html'/]
+      [#include 'inc_page.html'/]
       [/@TagPage]
     </div>
   </div>
 </div>
-[#include 'includes_footer.html'/]
-[#include 'includes_message_box.html'/]
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
 </body>
 </html>
 [/#escape]

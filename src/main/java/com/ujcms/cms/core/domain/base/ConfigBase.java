@@ -71,8 +71,12 @@ public class ConfigBase implements Serializable {
     @Schema(description="默认站点ID")
     private Integer defaultSiteId = 0;
 
+    /**
+     * 上传设置
+     */
     @Length(max = 2000)
     @Nullable
+    @Schema(description="上传设置")
     private String uploadSettings;
 
     /**

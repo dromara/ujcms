@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.AttachmentBase;
-import com.ujcms.util.file.FilesEx;
+import com.ujcms.commons.file.FilesEx;
 
 import java.io.Serializable;
 import java.util.ArrayList;

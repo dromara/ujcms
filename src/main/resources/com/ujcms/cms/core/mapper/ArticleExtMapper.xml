@@ -7,7 +7,7 @@
     <result column="full_title_" jdbcType="VARCHAR" property="fullTitle" />
     <result column="alias_" jdbcType="VARCHAR" property="alias" />
     <result column="link_url_" jdbcType="VARCHAR" property="linkUrl" />
-    <result column="target_blank_" jdbcType="BOOLEAN" property="targetBlank" />
+    <result column="target_blank_" jdbcType="CHAR" property="targetBlank" />
     <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
     <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
     <result column="author_" jdbcType="VARCHAR" property="author" />
@@ -30,14 +30,14 @@
     <result column="doc_name_" jdbcType="VARCHAR" property="docName" />
     <result column="doc_length_" jdbcType="BIGINT" property="docLength" />
     <result column="article_template_" jdbcType="VARCHAR" property="articleTemplate" />
-    <result column="allow_comment_" jdbcType="BOOLEAN" property="allowComment" />
+    <result column="allow_comment_" jdbcType="CHAR" property="allowComment" />
     <result column="static_file_" jdbcType="VARCHAR" property="staticFile" />
     <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
     <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
     <result column="process_instance_id_" jdbcType="VARCHAR" property="processInstanceId" />
     <result column="reject_reason_" jdbcType="VARCHAR" property="rejectReason" />
-    <result column="baidu_push_" jdbcType="BOOLEAN" property="baiduPush" />
+    <result column="baidu_push_" jdbcType="CHAR" property="baiduPush" />
     <result column="editor_type_" jdbcType="SMALLINT" property="editorType" />
     <result column="image_list_json_" jdbcType="LONGVARCHAR" property="imageListJson" />
     <result column="file_list_json_" jdbcType="LONGVARCHAR" property="fileListJson" />
@@ -79,7 +79,7 @@
       full_title_ = #{fullTitle,jdbcType=VARCHAR},
       alias_ = #{alias,jdbcType=VARCHAR},
       link_url_ = #{linkUrl,jdbcType=VARCHAR},
-      target_blank_ = #{targetBlank,jdbcType=BOOLEAN},
+      target_blank_ = #{targetBlank,jdbcType=CHAR},
       seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
       seo_description_ = #{seoDescription,jdbcType=VARCHAR},
       author_ = #{author,jdbcType=VARCHAR},
@@ -102,14 +102,14 @@
       doc_name_ = #{docName,jdbcType=VARCHAR},
       doc_length_ = #{docLength,jdbcType=BIGINT},
       article_template_ = #{articleTemplate,jdbcType=VARCHAR},
-      allow_comment_ = #{allowComment,jdbcType=BOOLEAN},
+      allow_comment_ = #{allowComment,jdbcType=CHAR},
       static_file_ = #{staticFile,jdbcType=VARCHAR},
       mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
       created_ = #{created,jdbcType=TIMESTAMP},
       modified_ = #{modified,jdbcType=TIMESTAMP},
       process_instance_id_ = #{processInstanceId,jdbcType=VARCHAR},
       reject_reason_ = #{rejectReason,jdbcType=VARCHAR},
-      baidu_push_ = #{baiduPush,jdbcType=BOOLEAN},
+      baidu_push_ = #{baiduPush,jdbcType=CHAR},
       editor_type_ = #{editorType,jdbcType=SMALLINT},
       image_list_json_ = #{imageListJson,jdbcType=LONGVARCHAR},
       file_list_json_ = #{fileListJson,jdbcType=LONGVARCHAR},
@@ -118,7 +118,7 @@
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleExt">
     insert into ujcms_article_ext (id_, title_, subtitle_, full_title_, alias_, link_url_, target_blank_, seo_keywords_, seo_description_, author_, editor_, source_, offline_date_, sticky_date_, image_, video_, video_orig_, video_duration_, audio_, audio_orig_, audio_duration_, file_, file_name_, file_length_, doc_, doc_orig_, doc_name_, doc_length_, article_template_, allow_comment_, static_file_, mobile_static_file_, created_, modified_, process_instance_id_, reject_reason_, baidu_push_, editor_type_, image_list_json_, file_list_json_, text_, markdown_)
-    values (#{id,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{fullTitle,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{targetBlank,jdbcType=BOOLEAN}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{author,jdbcType=VARCHAR}, #{editor,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{offlineDate,jdbcType=TIMESTAMP}, #{stickyDate,jdbcType=TIMESTAMP}, #{image,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{videoOrig,jdbcType=VARCHAR}, #{videoDuration,jdbcType=INTEGER}, #{audio,jdbcType=VARCHAR}, #{audioOrig,jdbcType=VARCHAR}, #{audioDuration,jdbcType=INTEGER}, #{file,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{fileLength,jdbcType=BIGINT}, #{doc,jdbcType=VARCHAR}, #{docOrig,jdbcType=VARCHAR}, #{docName,jdbcType=VARCHAR}, #{docLength,jdbcType=BIGINT}, #{articleTemplate,jdbcType=VARCHAR}, #{allowComment,jdbcType=BOOLEAN}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{processInstanceId,jdbcType=VARCHAR}, #{rejectReason,jdbcType=VARCHAR}, #{baiduPush,jdbcType=BOOLEAN}, #{editorType,jdbcType=SMALLINT}, #{imageListJson,jdbcType=LONGVARCHAR}, #{fileListJson,jdbcType=LONGVARCHAR}, #{text,jdbcType=LONGVARCHAR}, #{markdown,jdbcType=LONGVARCHAR})
+    values (#{id,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{fullTitle,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{author,jdbcType=VARCHAR}, #{editor,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{offlineDate,jdbcType=TIMESTAMP}, #{stickyDate,jdbcType=TIMESTAMP}, #{image,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{videoOrig,jdbcType=VARCHAR}, #{videoDuration,jdbcType=INTEGER}, #{audio,jdbcType=VARCHAR}, #{audioOrig,jdbcType=VARCHAR}, #{audioDuration,jdbcType=INTEGER}, #{file,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{fileLength,jdbcType=BIGINT}, #{doc,jdbcType=VARCHAR}, #{docOrig,jdbcType=VARCHAR}, #{docName,jdbcType=VARCHAR}, #{docLength,jdbcType=BIGINT}, #{articleTemplate,jdbcType=VARCHAR}, #{allowComment,jdbcType=CHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{processInstanceId,jdbcType=VARCHAR}, #{rejectReason,jdbcType=VARCHAR}, #{baiduPush,jdbcType=CHAR}, #{editorType,jdbcType=SMALLINT}, #{imageListJson,jdbcType=LONGVARCHAR}, #{fileListJson,jdbcType=LONGVARCHAR}, #{text,jdbcType=LONGVARCHAR}, #{markdown,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
     t.id_, t.title_, t.subtitle_, t.full_title_, t.alias_, t.link_url_, t.target_blank_, t.seo_keywords_, t.seo_description_, t.author_, t.editor_, t.source_, t.offline_date_, t.sticky_date_, t.image_, t.video_, t.video_orig_, t.video_duration_, t.audio_, t.audio_orig_, t.audio_duration_, t.file_, t.file_name_, t.file_length_, t.doc_, t.doc_orig_, t.doc_name_, t.doc_length_, t.article_template_, t.allow_comment_, t.static_file_, t.mobile_static_file_, t.created_, t.modified_, t.process_instance_id_, t.reject_reason_, t.baidu_push_, t.editor_type_, t.image_list_json_, t.file_list_json_, t.text_, t.markdown_
   </sql></mapper>

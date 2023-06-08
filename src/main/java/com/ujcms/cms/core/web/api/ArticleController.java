@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.web.api;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.ujcms.cms.core.component.ViewCountService;
 import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.service.ArticleBufferService;
 import com.ujcms.cms.core.service.ArticleService;
@@ -14,14 +15,13 @@ import com.ujcms.cms.core.web.directive.ArticleListDirective;
 import com.ujcms.cms.core.web.directive.ArticleNextDirective;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.util.query.QueryUtils;
-import com.ujcms.util.web.Views;
-import com.ujcms.util.web.exception.Http401Exception;
-import com.ujcms.util.web.exception.Http403Exception;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.query.QueryUtils;
+import com.ujcms.commons.web.Views;
+import com.ujcms.commons.web.exception.Http401Exception;
+import com.ujcms.commons.web.exception.Http403Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,8 +37,8 @@ import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.util.db.MyBatis.springPage;
-import static com.ujcms.util.query.QueryUtils.QUERY_PREFIX;
+import static com.ujcms.commons.db.MyBatis.springPage;
+import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 文章前台 接口
@@ -54,16 +54,18 @@ public class ArticleController {
     private final ChannelService channelService;
     private final ArticleService articleService;
     private final ArticleBufferService bufferService;
+    private final ViewCountService viewCountService;
     private final Props props;
 
     public ArticleController(SiteResolver siteResolver, GroupService groupService,
                              ChannelService channelService, ArticleService articleService,
-                             ArticleBufferService bufferService, Props props) {
+                             ArticleBufferService bufferService, ViewCountService viewCountService, Props props) {
         this.siteResolver = siteResolver;
         this.groupService = groupService;
         this.channelService = channelService;
         this.articleService = articleService;
         this.bufferService = bufferService;
+        this.viewCountService = viewCountService;
         this.props = props;
     }
 
@@ -77,38 +79,36 @@ public class ArticleController {
     }
 
     @Operation(summary = "获取文章列表")
-    @Parameters({
-            @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "结束发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-                    schema = @Schema(type = "string", format = "int32 array")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
-                    schema = @Schema(type = "integer", format = "int32")),
-    })
+    @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "结束发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
+            schema = @Schema(type = "string", format = "int32 array"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
+            schema = @Schema(type = "integer", format = "int32"))
     @JsonView(Views.List.class)
     @GetMapping
     public List<Article> list(HttpServletRequest request) {
@@ -122,38 +122,36 @@ public class ArticleController {
     }
 
     @Operation(summary = "获取文章分页")
-    @Parameters({
-            @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "接受发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-                    schema = @Schema(type = "string", format = "int32 array")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "page", description = "第几页",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "pageSize", description = "每页多少条数据。最大不能超过1000",
-                    schema = @Schema(type = "integer", format = "int32")),
-    })
+    @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "接受发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
+            schema = @Schema(type = "string", format = "int32 array"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "page", description = "第几页",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "pageSize", description = "每页多少条数据。最大不能超过1000",
+            schema = @Schema(type = "integer", format = "int32"))
     @JsonView(Views.List.class)
     @GetMapping("/page")
     public Page<Article> page(HttpServletRequest request) {
@@ -186,7 +184,7 @@ public class ArticleController {
     public static Article checkAccessPermission(Integer id, Article article, User user, GroupService groupService) {
         if (user == null) {
             Group anonymous = groupService.getAnonymous();
-            if (!anonymous.getAllAccessPermission()) {
+            if (Boolean.FALSE.equals(anonymous.getAllAccessPermission())) {
                 List<Integer> anonChannelIds = groupService.listAccessPermissions(Group.ANONYMOUS_ID, article.getSiteId());
                 if (!anonChannelIds.contains(article.getChannelId())) {
                     throw new Http401Exception();
@@ -205,14 +203,12 @@ public class ArticleController {
     }
 
     @Operation(summary = "获取下一篇文章")
-    @Parameters({
-            @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "publishDate", description = "文章发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-    })
+    @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "publishDate", description = "文章发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
     @GetMapping("/next")
     public Article next(HttpServletRequest request) {
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
@@ -220,14 +216,12 @@ public class ArticleController {
     }
 
     @Operation(summary = "获取上一篇文章")
-    @Parameters({
-            @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "publishDate", description = "文章发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-    })
+    @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "publishDate", description = "文章发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
     @GetMapping("/prev")
     public Article prev(HttpServletRequest request) {
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
@@ -237,7 +231,7 @@ public class ArticleController {
     @Operation(summary = "获取文章浏览次数")
     @GetMapping("/view/{id:[\\d]+}")
     public long view(@Parameter(description = "文章ID") @PathVariable Integer id) {
-        return bufferService.updateViews(id, 1);
+        return viewCountService.viewArticle(id);
     }
 
     @Operation(summary = "顶文章")

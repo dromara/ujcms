@@ -7,10 +7,10 @@ import com.ujcms.cms.core.service.BlockItemService;
 import com.ujcms.cms.core.service.args.BlockItemArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.web.support.ValidUtils;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Responses.Body;
-import com.ujcms.util.web.exception.Http400Exception;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.exception.Http400Exception;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 /**
  * 区块项 Controller

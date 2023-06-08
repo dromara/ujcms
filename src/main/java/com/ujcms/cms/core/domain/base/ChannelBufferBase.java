@@ -31,6 +31,13 @@ public class ChannelBufferBase implements Serializable {
     @Schema(description="浏览次数")
     private Long views = 0L;
 
+    /**
+     * 栏目页浏览次数
+     */
+    @NotNull
+    @Schema(description="栏目页浏览次数")
+    private Long selfViews = 0L;
+
     public Integer getId() {
         return id;
     }
@@ -45,5 +52,13 @@ public class ChannelBufferBase implements Serializable {
 
     public void setViews(Long views) {
         this.views = views;
+    }
+
+    public Long getSelfViews() {
+        return selfViews;
+    }
+
+    public void setSelfViews(Long selfViews) {
+        this.selfViews = selfViews;
     }
 }

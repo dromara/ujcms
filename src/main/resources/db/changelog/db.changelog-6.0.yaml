@@ -104,5 +104,10 @@ databaseChangeLog:
             columnName: upload_settings_
             newDataType: varchar(2000)
             tableName: ujcms_config
-
+  - changeSet:
+      id: 6.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v6.0
 

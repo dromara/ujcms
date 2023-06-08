@@ -1,32 +1,26 @@
 package com.ujcms.cms.core.web.support;
 
 import com.ujcms.cms.core.support.Constants;
-import com.ujcms.util.freemarker.Freemarkers;
-import com.ujcms.util.query.QueryParser;
-import com.ujcms.util.query.QueryUtils;
-import com.ujcms.util.web.PageUrlResolver;
+import com.ujcms.commons.freemarker.Freemarkers;
+import com.ujcms.commons.query.QueryParser;
+import com.ujcms.commons.query.QueryUtils;
+import com.ujcms.commons.web.PageUrlResolver;
 import freemarker.core.Environment;
 import freemarker.ext.servlet.FreemarkerServlet;
 import freemarker.ext.servlet.HttpRequestHashModel;
 import freemarker.template.AdapterTemplateModel;
-import freemarker.template.TemplateHashModelEx;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
-import freemarker.template.TemplateModelIterator;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.support.Frontends.*;
-import static com.ujcms.util.query.QueryUtils.CUSTOMS_PREFIX;
-import static com.ujcms.util.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 标签 工具类
@@ -167,7 +161,7 @@ public class Directives {
             try {
                 return Freemarkers.getString((TemplateModel) obj);
             } catch (TemplateModelException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
         return QueryUtils.parseString(obj);
@@ -189,7 +183,7 @@ public class Directives {
             try {
                 return Freemarkers.getStrings((TemplateModel) obj);
             } catch (TemplateModelException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
         return QueryUtils.parseStrings(obj);
@@ -206,7 +200,7 @@ public class Directives {
             try {
                 return Freemarkers.getNumber((TemplateModel) obj, targetClass);
             } catch (TemplateModelException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
         return QueryUtils.parseNumber(obj, targetClass);
@@ -224,7 +218,7 @@ public class Directives {
             try {
                 return Freemarkers.getNumbers((TemplateModel) obj, targetClass);
             } catch (TemplateModelException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
         return QueryUtils.parseNumbers(obj, targetClass);
@@ -289,7 +283,7 @@ public class Directives {
             try {
                 return Freemarkers.getBoolean((TemplateModel) obj);
             } catch (TemplateModelException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
         return QueryUtils.parseBoolean(obj);
@@ -306,7 +300,7 @@ public class Directives {
             try {
                 return Freemarkers.getOffsetDateTime((TemplateModel) obj);
             } catch (TemplateModelException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
         return QueryUtils.parseDate(obj);
@@ -319,7 +313,7 @@ public class Directives {
     /**
      * 页数线程变量
      */
-    private static ThreadLocal<Integer> totalPagesHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Integer> totalPagesHolder = new ThreadLocal<>();
 
     /**
      * 栏目页分页生成静态页时，无法得到分页标签得到的总页数，需要通过此方法设置总页数，便于生成静态页代码获取。

@@ -10,8 +10,8 @@ import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.web.PathResolver;
+import com.ujcms.commons.file.FileHandler;
+import com.ujcms.commons.web.PathResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.apache.commons.lang3.StringUtils;
@@ -77,7 +77,7 @@ public class HtmlService {
             }
             siteService.update(site);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } finally {
             Contexts.clearMobile();
         }
@@ -130,7 +130,7 @@ public class HtmlService {
             }
             articleExtMapper.update(ext);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } finally {
             Contexts.clearMobile();
         }
@@ -169,7 +169,7 @@ public class HtmlService {
             }
             channelExtMapper.update(channel.getExt());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } finally {
             Contexts.clearMobile();
         }
@@ -184,7 +184,9 @@ public class HtmlService {
 
         FileHandler fileHandler = site.getConfig().getHtmlStorage().getFileHandler(pathResolver);
         Template template = resolveTemplate(channel.getTemplate());
-        int page = 1, totalPages = 1, maxPages = site.getHtml().getListPages();
+        int page = 1;
+        int totalPages = 1;
+        int maxPages = site.getHtml().getListPages();
         for (; page <= totalPages && page <= maxPages; page += 1) {
             Frontends.setDate(dataModel, site, defaultSite, channel.getUrl(page), page, channel);
             String filename = Contexts.isMobile() ?

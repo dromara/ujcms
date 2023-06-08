@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ujcms.cms.core.mapper.MessageBoardMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.MessageBoard">
+<mapper namespace="com.ujcms.cms.ext.mapper.MessageBoardMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.MessageBoard">
     <id column="id_" jdbcType="INTEGER" property="id" />
     <result column="site_id_" jdbcType="INTEGER" property="siteId" />
     <result column="user_id_" jdbcType="INTEGER" property="userId" />
@@ -25,7 +25,7 @@
     <result column="text_" jdbcType="LONGVARCHAR" property="text" />
     <result column="reply_text_" jdbcType="LONGVARCHAR" property="replyText" />
   </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.MessageBoard">
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.MessageBoard">
         <association column="type_id_" javaType="com.ujcms.cms.core.domain.Dict" property="type" select="com.ujcms.cms.core.mapper.DictMapper.select" />
         <association column="reply_user_id_" javaType="com.ujcms.cms.core.domain.User" property="replyUser" select="com.ujcms.cms.core.mapper.UserMapper.select" />
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
@@ -47,7 +47,7 @@
         delete
         from ujcms_message_board
         where id_ = #{id,jdbcType=INTEGER}
-    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.MessageBoard">
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.MessageBoard">
     update ujcms_message_board
     set site_id_ = #{siteId,jdbcType=INTEGER},
       user_id_ = #{userId,jdbcType=INTEGER},
@@ -72,7 +72,7 @@
       text_ = #{text,jdbcType=LONGVARCHAR},
       reply_text_ = #{replyText,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=INTEGER}
-  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.MessageBoard">
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.MessageBoard">
     insert into ujcms_message_board (id_, site_id_, user_id_, reply_user_id_, type_id_, title_, created_, reply_date_, place_, contact_, nickname_, phone_, email_, address_, profession_, user_type_, open_, ip_, replied_, recommended_, status_, text_, reply_text_)
     values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{replyUserId,jdbcType=INTEGER}, #{typeId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{replyDate,jdbcType=TIMESTAMP}, #{place,jdbcType=VARCHAR}, #{contact,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{profession,jdbcType=VARCHAR}, #{userType,jdbcType=SMALLINT}, #{open,jdbcType=BOOLEAN}, #{ip,jdbcType=VARCHAR}, #{replied,jdbcType=BOOLEAN}, #{recommended,jdbcType=BOOLEAN}, #{status,jdbcType=SMALLINT}, #{text,jdbcType=LONGVARCHAR}, #{replyText,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.OrgBase;
-import com.ujcms.util.db.tree.TreeEntity;
+import com.ujcms.commons.db.tree.TreeEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 

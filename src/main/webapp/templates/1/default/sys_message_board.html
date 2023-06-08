@@ -5,13 +5,13 @@
   <meta charset="utf-8">
   <title>留言板 - ${site.title}</title>
   <meta name="keywords" content="留言板">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
 </head>
 <body>
 [#assign headerShadow=true/]
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="container">
   <div class="row">
     <div class="col mt-1">
@@ -38,7 +38,7 @@
             <li class="mt-3 pb-3 border-bottom position-relative">
               <div class="d-flex align-items-center">
                 <div class="badge badge-info mr-2">${bean.type.name}</div>
-                <div class="flex-grow-1 text-truncate"><a href="${dy}/message-board/${bean.id}" class="text-reset stretched-link">${bean.title!substring(bean.text,100,'...')}</a></div>
+                <div class="flex-grow-1 text-truncate"><a href="${dy}/message-board/${bean.id?c}" class="text-reset stretched-link">${bean.title!substring(bean.text,100,'...')}</a></div>
                 <div>[#if bean.replied]<span class="badge badge-success">已回复</span>[#else]<span class="badge badge-secondary">未回复</span>[/#if]</div>
               </div>
               <p class="small text-muted my-2 cm-truncate2">${substring(bean.text,400,'...')}</p>
@@ -49,13 +49,13 @@
             </li>
           [/#list]
         </ul>
-        [#include 'includes_page.html'/]
+        [#include 'inc_page.html'/]
       [/@MessageBoardPage]
     </div>
   </div>
 </div>
-[#include 'includes_footer.html'/]
-[#include 'includes_message_box.html'/]
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
 </body>
 </html>
 [/#escape]

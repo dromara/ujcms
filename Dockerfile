@@ -1,12 +1,14 @@
 # $ docker build -t ujcms:x.x.x --build-arg JAR_FILE=target/ujcms-x.x.x.jar .
 
-FROM eclipse-temurin:8-jre as builder
+#FROM eclipse-temurin:8-jre as builder
+FROM eclipse-temurin:11-jre as builder
 WORKDIR ujcms
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} ujcms.jar
 RUN java -Djarmode=layertools -jar ujcms.jar extract
 
-FROM eclipse-temurin:8-jre
+#FROM eclipse-temurin:8-jre
+FROM eclipse-temurin:11-jre
 WORKDIR ujcms
 COPY --from=builder ujcms/dependencies/ ./
 COPY --from=builder ujcms/spring-boot-loader/ ./

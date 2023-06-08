@@ -6,13 +6,13 @@
   <title>${site.title}</title>
   <meta name="keywords" content="${site.seoKeywords}">
   <meta name="description" content="${site.seoDescription}">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
 </head>
 <body>
 [#assign headerShadow=true/]
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="container mt-4">
   <div class="row">
     <div class="col col-lg-8">
@@ -73,11 +73,11 @@
         }
       </script>
     </div>
-    [#include 'includes_right.html'/]
+    [#include 'inc_right.html'/]
   </div>
 </div>
-[#include 'includes_footer.html'/]
-<script>axios.get('${api}/site/view/${site.id}');</script>
+[#include 'inc_footer.html'/]
+<script>axios.get('${api}/site/view/${site.id?c}');</script>
 </body>
 </html>
 [/#escape]

@@ -32,7 +32,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 
 ## 环境要求
 
-* JDK 8。
+* JDK 8、11。
 * MySQL 5.7（8.0）。
 * Tomcat 8.5、9.0 (Servlet 3.1+)。
 * Maven 3.5 或更高版本。

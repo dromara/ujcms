@@ -6,7 +6,7 @@ import com.ujcms.cms.core.service.args.SiteArgs;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,7 +20,7 @@ import java.util.List;
 
 import static com.ujcms.cms.core.support.Constants.validLimit;
 import static com.ujcms.cms.core.support.Constants.validOffset;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 /**
  * 站点 Controller
@@ -73,13 +73,13 @@ public class SiteController {
     }
 
     @GetMapping("/theme")
-    @PreAuthorize("hasAnyAuthority('site:list','*')")
+    @PreAuthorize("hasAnyAuthority('site:theme','*')")
     public List<String> currentTheme() throws IOException {
         return getThemeList(Contexts.getCurrentSite());
     }
 
     @GetMapping("{id}/theme")
-    @PreAuthorize("hasAnyAuthority('site:list','*')")
+    @PreAuthorize("hasAnyAuthority('site:theme','*')")
     public List<String> theme(@PathVariable Integer id) throws IOException {
         Site site = service.select(id);
         if (site == null) {

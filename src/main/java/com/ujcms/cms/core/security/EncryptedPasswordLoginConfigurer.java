@@ -3,9 +3,9 @@ package com.ujcms.cms.core.security;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.LoginLogService;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.captcha.CaptchaTokenService;
-import com.ujcms.util.captcha.IpLoginAttemptService;
-import com.ujcms.util.security.AbstractLoginConfigurer;
+import com.ujcms.commons.captcha.CaptchaTokenService;
+import com.ujcms.commons.captcha.IpLoginAttemptService;
+import com.ujcms.commons.security.AbstractLoginConfigurer;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 
 /**

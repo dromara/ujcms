@@ -1,11 +1,12 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.domain.UserExt;
 import com.ujcms.cms.core.domain.UserOpenid;
 import com.ujcms.cms.core.domain.UserRole;
+import com.ujcms.cms.core.domain.base.UserBase;
 import com.ujcms.cms.core.listener.GroupDeleteListener;
 import com.ujcms.cms.core.listener.OrgDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
@@ -14,9 +15,9 @@ import com.ujcms.cms.core.mapper.UserMapper;
 import com.ujcms.cms.core.mapper.UserOpenidMapper;
 import com.ujcms.cms.core.mapper.UserRoleMapper;
 import com.ujcms.cms.core.service.args.UserArgs;
-import com.ujcms.util.query.QueryInfo;
-import com.ujcms.util.query.QueryParser;
-import com.ujcms.util.web.exception.LogicException;
+import com.ujcms.commons.query.QueryInfo;
+import com.ujcms.commons.query.QueryParser;
+import com.ujcms.commons.web.exception.LogicException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
@@ -62,11 +63,11 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(User bean, UserExt ext) {
-        bean.setId(seqService.getNextVal(User.TABLE_NAME));
+        bean.setId(seqService.getNextVal(UserBase.TABLE_NAME));
         ext.setId(bean.getId());
         mapper.insert(bean);
         extMapper.insert(ext);
-        attachmentService.insertRefer(User.TABLE_NAME, bean.getId(), bean.getAvatarList());
+        attachmentService.insertRefer(UserBase.TABLE_NAME, bean.getId(), bean.getAvatarList());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -94,7 +95,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void update(User bean) {
-        attachmentService.updateRefer(User.TABLE_NAME, bean.getId(), bean.getAvatarList());
+        attachmentService.updateRefer(UserBase.TABLE_NAME, bean.getId(), bean.getAvatarList());
         mapper.update(bean);
     }
 
@@ -141,7 +142,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
         deleteListeners.forEach(it -> it.preUserDelete(id));
-        attachmentService.deleteRefer(User.TABLE_NAME, id);
+        attachmentService.deleteRefer(UserBase.TABLE_NAME, id);
         openidMapper.deleteByUserId(id);
         extMapper.delete(id);
         return mapper.delete(id);
@@ -178,7 +179,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     public List<User> selectList(UserArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), User.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), UserBase.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo, args.getOrgId());
     }
 
@@ -188,25 +189,35 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     public List<User> selectList(UserArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public Page<User> selectPage(UserArgs args, int page, int pageSize) {
-        return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+    }
+
+    /**
+     * 统计用户数量
+     *
+     * @param created 创建日期
+     * @return 用户数量
+     */
+    public int countByCreated(@Nullable OffsetDateTime created) {
+        return mapper.countByCreated(created);
     }
 
     public boolean existsByOrgId(Integer orgId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByOrgId(orgId)).iterator().next().intValue() > 0;
     }
 
     public boolean existsByGroupId(Integer groupId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByGroupId(groupId)).iterator().next().intValue() > 0;
     }
 
     public boolean existsByRoleId(Integer roleId, Integer notOrgId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByRoleId(roleId, notOrgId)).iterator().next().intValue() > 0;
     }
 

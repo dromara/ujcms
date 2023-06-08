@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.Tag;
 import com.ujcms.cms.core.service.TagService;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

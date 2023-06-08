@@ -3,7 +3,7 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.ChannelTreeBase;
-import com.ujcms.util.db.tree.TreeRelation;
+import com.ujcms.commons.db.tree.TreeRelation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;

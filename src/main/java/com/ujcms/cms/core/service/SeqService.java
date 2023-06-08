@@ -32,7 +32,17 @@ public class SeqService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public int getNextVal(final String name) {
-        return (int) getNextValLong(name);
+        return (int) getNextLongVal(name, props.getSequenceCacheSize());
+    }
+
+    /**
+     * 获取下一个序列值
+     *
+     * @param name 序列名称
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public int getNextVal(final String name, final int cacheSize) {
+        return (int) getNextLongVal(name, cacheSize);
     }
 
     /**
@@ -41,30 +51,35 @@ public class SeqService {
      * @param name 序列名称
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public long getNextValLong(final String name) {
-        Seq seq;
-        synchronized (seq = MAP.computeIfAbsent(name, Seq::new)) {
-            if (!seq.hasNextVal()) {
-                insertOrUpdate(seq);
-            }
-            return seq.fetchNextVal();
-        }
+    public long getNextLongVal(final String name) {
+        return getNextLongVal(name, props.getSequenceCacheSize());
+    }
+
+    /**
+     * 获取下一个长整型序列值
+     *
+     * @param name 序列名称
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public long getNextLongVal(final String name, final int cacheSize) {
+        Seq seq = SEQ_MAP.computeIfAbsent(name, Seq::new);
+        return seq.getNextLongVal(cacheSize, this::insertOrUpdate);
     }
 
     /**
      * 插入或更新序列
      */
-    protected void insertOrUpdate(final Seq seq) {
+    protected void insertOrUpdate(final Seq seq, final int cacheSize) {
         Seq entity = mapper.selectForUpdate(seq.getName());
         if (entity != null) {
-            entity.copyToCache(seq, props.getSequenceCacheSize());
+            entity.copyToCache(seq, cacheSize);
             mapper.update(entity);
         } else {
             entity = new Seq(seq.getName());
-            entity.copyToCache(seq, props.getSequenceCacheSize());
+            entity.copyToCache(seq, cacheSize);
             mapper.insert(entity);
         }
     }
 
-    private static final Map<String, Seq> MAP = new ConcurrentHashMap<>();
+    private static final Map<String, Seq> SEQ_MAP = new ConcurrentHashMap<>();
 }

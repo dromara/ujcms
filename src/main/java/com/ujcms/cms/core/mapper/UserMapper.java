@@ -1,12 +1,13 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -95,6 +96,14 @@ public interface UserMapper {
      * @return 数据列表
      */
     List<User> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo, @Nullable @Param("orgId") Integer orgId);
+
+    /**
+     * 统计用户数量
+     *
+     * @param created 创建日期
+     * @return 用户数量
+     */
+    int countByCreated(@Param("created") @Nullable OffsetDateTime created);
 
     /**
      * 根据组织ID统计用户数量

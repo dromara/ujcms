@@ -30,7 +30,7 @@ public class LuceneGenerator extends AbstractGenerator {
     }
 
     public void reindex(Integer taskSiteId, Integer taskUserId, String taskName, @Nullable Integer siteId) {
-        execute(taskSiteId, taskUserId, taskName, Task.TYPE_LUCENE, false, (taskId) -> doReindex(taskId, siteId));
+        execute(taskSiteId, taskUserId, taskName, Task.TYPE_LUCENE, false, taskId -> doReindex(taskId, siteId));
     }
 
     private void doReindex(Integer taskId, @Nullable Integer siteId) {
@@ -39,6 +39,6 @@ public class LuceneGenerator extends AbstractGenerator {
         } else {
             articleLucene.deleteAll();
         }
-        handleArticle(taskId, siteId, (article) -> articleLucene.save(EsArticle.of(article)));
+        handleArticle(taskId, siteId, article -> articleLucene.save(EsArticle.of(article)));
     }
 }

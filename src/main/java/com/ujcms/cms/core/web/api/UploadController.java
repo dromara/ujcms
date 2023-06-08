@@ -8,8 +8,8 @@ import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.backendapi.AbstractUploadController;
-import com.ujcms.util.image.ImageHandler;
-import com.ujcms.util.web.PathResolver;
+import com.ujcms.commons.image.ImageHandler;
+import com.ujcms.commons.web.PathResolver;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.util.web.Uploads.AVATAR_TYPE;
+import static com.ujcms.commons.web.Uploads.AVATAR_TYPE;
 
 /**
  * 上传 Controller

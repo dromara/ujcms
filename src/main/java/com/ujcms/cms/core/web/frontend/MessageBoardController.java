@@ -1,11 +1,11 @@
 package com.ujcms.cms.core.web.frontend;
 
-import com.ujcms.cms.core.domain.MessageBoard;
+import com.ujcms.cms.ext.domain.MessageBoard;
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.service.MessageBoardService;
+import com.ujcms.cms.ext.service.MessageBoardService;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.util.web.exception.Http403Exception;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.exception.Http403Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

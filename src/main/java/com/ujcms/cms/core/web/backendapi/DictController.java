@@ -9,11 +9,11 @@ import com.ujcms.cms.core.service.DictTypeService;
 import com.ujcms.cms.core.service.args.DictArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.web.support.ValidUtils;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Responses.Body;
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.exception.Http400Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 /**
  * 字典 Controller
@@ -125,6 +125,7 @@ public class DictController {
                 throw new Http400Exception("Dict not found. ID = " + id);
             }
             validateBean(bean.getTypeId());
+            service.delete(id);
         });
         return Responses.ok();
     }

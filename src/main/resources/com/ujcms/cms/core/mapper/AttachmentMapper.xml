@@ -9,7 +9,7 @@
     <result column="url_" jdbcType="VARCHAR" property="url" />
     <result column="length_" jdbcType="BIGINT" property="length" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
-    <result column="used_" jdbcType="BOOLEAN" property="used" />
+    <result column="used_" jdbcType="CHAR" property="used" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Attachment">
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
@@ -17,6 +17,14 @@
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.AttachmentRefer" property="referList" select="com.ujcms.cms.core.mapper.AttachmentReferMapper.listByAttachmentId" />
     </resultMap>
 
+    <select id="countByCreated" resultType="int">
+        select count(*)
+        from ujcms_attachment t
+        where t.site_id_ = #{siteId}
+        <if test="created != null">
+            and t.created_ &gt;= #{created}
+        </if>
+    </select>
     <select id="findByUrl" resultMap="ResultMap">
         select
         <include refid="Column_List" />
@@ -62,11 +70,11 @@
       url_ = #{url,jdbcType=VARCHAR},
       length_ = #{length,jdbcType=BIGINT},
       created_ = #{created,jdbcType=TIMESTAMP},
-      used_ = #{used,jdbcType=BOOLEAN}
+      used_ = #{used,jdbcType=CHAR}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Attachment">
     insert into ujcms_attachment (id_, site_id_, user_id_, name_, path_, url_, length_, created_, used_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{length,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{used,jdbcType=BOOLEAN})
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{length,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{used,jdbcType=CHAR})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.user_id_, t.name_, t.path_, t.url_, t.length_, t.created_, t.used_
   </sql></mapper>

@@ -1,7 +1,6 @@
 package com.ujcms.cms.core.web.api;
 
 import com.ujcms.cms.core.service.UserService;
-import com.ujcms.util.web.Responses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.NotBlank;
-import javax.xml.ws.Response;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;

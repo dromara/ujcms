@@ -6,14 +6,14 @@
   <title>我要留言 - ${site.title}</title>
   <meta name="_csrf" content="${_csrf.token}">
   <meta name="_csrf_header" content="${_csrf.headerName}">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
-  [#include 'includes_js_validation.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+  [#include 'inc_js_validation.html'/]
 </head>
 <body>
 [#assign headerShadow=true/]
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="container">
   <div class="row">
     <div class="col mt-3">
@@ -29,7 +29,7 @@
               [@DictList type='sys_message_board_type'; list]
                 [#list list as type]
                   <div class="custom-control custom-radio custom-control-inline">
-                    <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index}" value="${type.id}" required [#if type_index==0]checked[/#if]>
+                    <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index}" value="${type.id?c}" required [#if type_index==0]checked[/#if]>
                     <label class="custom-control-label" for="typeId${type_index}">${type.name}</label>
                   </div>
                 [/#list]
@@ -94,15 +94,15 @@
               </div>
             </div>
           </div>
-          <input type="hidden" name="siteId" value="${site.id}">
+          <input type="hidden" name="siteId" value="${site.id?c}">
           <button type="submit" class="btn btn-primary">确认提交</button>
         </form>
       </div>
     </div>
   </div>
 </div>
-[#include 'includes_footer.html'/]
-[#include 'includes_message_box.html'/]
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
 <script>
   $('#successModal').on('hidden.bs.modal', function () {
     location.href = '${dy}/message-board';

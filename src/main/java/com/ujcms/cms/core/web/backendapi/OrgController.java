@@ -8,10 +8,10 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.args.OrgArgs;
 import com.ujcms.cms.core.support.Contexts;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Responses.Body;
-import com.ujcms.util.web.exception.Http403Exception;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.exception.Http403Exception;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 /**
  * 组织 Controller

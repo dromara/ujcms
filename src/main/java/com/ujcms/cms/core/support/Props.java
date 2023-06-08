@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.support;
 
-import com.ujcms.util.security.Secures;
+import com.ujcms.commons.security.Secures;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
 
@@ -42,9 +42,13 @@ public class Props {
      */
     private String esPrefix = "ujcms";
     /**
+     * IP地址库文件
+     */
+    private String ip2regionPath = "classpath:ip2region.xdb";
+    /**
      * Lucene 索引文件保存目录
      */
-    private String lucenePath = "/WEB-INF/lucene";
+    private String lucenePath = "WEB-INF/lucene";
     /**
      * 使用URL作为模板加载地址。使用对象存储保存模板时，需使用这种方式加载模板。
      */
@@ -181,6 +185,14 @@ public class Props {
 
     public void setEsPrefix(String esPrefix) {
         this.esPrefix = esPrefix;
+    }
+
+    public String getIp2regionPath() {
+        return ip2regionPath;
+    }
+
+    public void setIp2regionPath(String ip2regionPath) {
+        this.ip2regionPath = ip2regionPath;
     }
 
     public String getLucenePath() {

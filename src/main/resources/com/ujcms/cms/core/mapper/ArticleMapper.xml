@@ -1,44 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ujcms.cms.core.mapper.ArticleMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Article">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="src_id_" jdbcType="INTEGER" property="srcId" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
-    <result column="org_id_" jdbcType="INTEGER" property="orgId" />
-    <result column="channel_id_" jdbcType="INTEGER" property="channelId" />
-    <result column="user_id_" jdbcType="INTEGER" property="userId" />
-    <result column="modified_user_id_" jdbcType="INTEGER" property="modifiedUserId" />
-    <result column="publish_date_" jdbcType="TIMESTAMP" property="publishDate" />
-    <result column="with_image_" jdbcType="BOOLEAN" property="withImage" />
-    <result column="sticky_" jdbcType="SMALLINT" property="sticky" />
-    <result column="input_type_" jdbcType="SMALLINT" property="inputType" />
-    <result column="type_" jdbcType="SMALLINT" property="type" />
-    <result column="status_" jdbcType="SMALLINT" property="status" />
-  </resultMap>
+<mapper namespace="com.ujcms.cms.core.mapper.ArticleMapper">
+    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Article">
+        <id column="id_" jdbcType="INTEGER" property="id"/>
+        <result column="src_id_" jdbcType="INTEGER" property="srcId"/>
+        <result column="site_id_" jdbcType="INTEGER" property="siteId"/>
+        <result column="org_id_" jdbcType="INTEGER" property="orgId"/>
+        <result column="channel_id_" jdbcType="INTEGER" property="channelId"/>
+        <result column="user_id_" jdbcType="INTEGER" property="userId"/>
+        <result column="modified_user_id_" jdbcType="INTEGER" property="modifiedUserId"/>
+        <result column="publish_date_" jdbcType="TIMESTAMP" property="publishDate"/>
+        <result column="with_image_" jdbcType="CHAR" property="withImage"/>
+        <result column="sticky_" jdbcType="SMALLINT" property="sticky"/>
+        <result column="input_type_" jdbcType="SMALLINT" property="inputType"/>
+        <result column="type_" jdbcType="SMALLINT" property="type"/>
+        <result column="status_" jdbcType="SMALLINT" property="status"/>
+    </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Article">
-        <association column="id_" javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext" select="com.ujcms.cms.core.mapper.ArticleExtMapper.select" />
-        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.ArticleBuffer" property="buffer" select="com.ujcms.cms.core.mapper.ArticleBufferMapper.select" />
-        <association column="src_id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Article" property="src" select="com.ujcms.cms.core.mapper.ArticleMapper.select" />
-        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
-        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel" select="com.ujcms.cms.core.mapper.ChannelMapper.select" />
-        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.select" />
-        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
-        <association column="modified_user_id_" javaType="com.ujcms.cms.core.domain.User" property="modifiedUser" select="com.ujcms.cms.core.mapper.UserMapper.select" />
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ArticleCustom" property="customList" select="com.ujcms.cms.core.mapper.ArticleCustomMapper.listByArticleId" />
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ArticleTag" property="articleTagList" select="com.ujcms.cms.core.mapper.ArticleTagMapper.listByArticleId" />
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.BlockItem" property="blockItemList" select="com.ujcms.cms.core.mapper.BlockItemMapper.listByArticleId" />
-        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Article" property="destList" select="com.ujcms.cms.core.mapper.ArticleMapper.listBySrcId" />
+        <association column="id_" javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext"
+                     select="com.ujcms.cms.core.mapper.ArticleExtMapper.select"/>
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.ArticleBuffer" property="buffer"
+                     select="com.ujcms.cms.core.mapper.ArticleBufferMapper.select"/>
+        <association column="src_id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.Article" property="src"
+                     select="com.ujcms.cms.core.mapper.ArticleMapper.select"/>
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site"
+                     select="com.ujcms.cms.core.mapper.SiteMapper.select"/>
+        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel"
+                     select="com.ujcms.cms.core.mapper.ChannelMapper.select"/>
+        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org"
+                     select="com.ujcms.cms.core.mapper.OrgMapper.select"/>
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user"
+                     select="com.ujcms.cms.core.mapper.UserMapper.select"/>
+        <association column="modified_user_id_" javaType="com.ujcms.cms.core.domain.User" property="modifiedUser"
+                     select="com.ujcms.cms.core.mapper.UserMapper.select"/>
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ArticleCustom" property="customList"
+                    select="com.ujcms.cms.core.mapper.ArticleCustomMapper.listByArticleId"/>
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.ArticleTag"
+                    property="articleTagList" select="com.ujcms.cms.core.mapper.ArticleTagMapper.listByArticleId"/>
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.BlockItem" property="blockItemList"
+                    select="com.ujcms.cms.core.mapper.BlockItemMapper.listByArticleId"/>
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Article" property="destList"
+                    select="com.ujcms.cms.core.mapper.ArticleMapper.listBySrcId"/>
     </resultMap>
     <resultMap id="SitemapResultMap" type="com.ujcms.cms.core.domain.Article">
-        <id column="id_" jdbcType="INTEGER" property="id" />
-        <result column="channel_id_" jdbcType="INTEGER" property="channelId" />
-        <result column="status_" jdbcType="SMALLINT" property="status" />
-        <association javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext" resultMap="com.ujcms.cms.core.mapper.ArticleExtMapper.BaseResultMap" />
-        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel" select="com.ujcms.cms.core.mapper.ChannelMapper.selectForSitemap" />
+        <id column="id_" jdbcType="INTEGER" property="id"/>
+        <result column="channel_id_" jdbcType="INTEGER" property="channelId"/>
+        <result column="status_" jdbcType="SMALLINT" property="status"/>
+        <association javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext"
+                     resultMap="com.ujcms.cms.core.mapper.ArticleExtMapper.BaseResultMap"/>
+        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel"
+                     select="com.ujcms.cms.core.mapper.ChannelMapper.selectForSitemap"/>
     </resultMap>
     <select id="listByIds" resultMap="ResultMap">
         select
-        <include refid="Column_List" />
+        <include refid="Column_List"/>
         from ujcms_article t
         where t.id_ in
         <foreach close=")" collection="ids" item="item" open="(" separator=",">
@@ -56,7 +71,7 @@
     </select>
     <select id="findNext" resultMap="ResultMap">
         select
-        <include refid="Column_List" />
+        <include refid="Column_List"/>
         from ujcms_article t
         where t.id_ &lt;&gt; #{id} and t.channel_id_ = #{channelId}
         and (t.publish_date_ &gt; #{publishDate} or (t.publish_date_ = #{publishDate} and t.id_ &gt; #{id}))
@@ -64,7 +79,7 @@
     </select>
     <select id="findPrev" resultMap="ResultMap">
         select
-        <include refid="Column_List" />
+        <include refid="Column_List"/>
         from ujcms_article t
         where t.id_ &lt;&gt; #{id} and t.channel_id_ = #{channelId}
         and (t.publish_date_ &lt; #{publishDate} or (t.publish_date_ = #{publishDate} and t.id_ &lt; #{id}))
@@ -72,14 +87,14 @@
     </select>
     <select id="listByChannelId" resultMap="ResultMap">
         select
-        <include refid="Column_List" />
+        <include refid="Column_List"/>
         from ujcms_article t
         where t.channel_id_ = #{channelId,jdbcType=INTEGER} and t.status_ = 0
         order by t.id_ desc
     </select>
     <select id="listBySrcId" resultMap="ResultMap">
         select
-        <include refid="Column_List" />
+        <include refid="Column_List"/>
         from ujcms_article t
         where t.src_id_ = #{srcId}
     </select>
@@ -87,7 +102,7 @@
         select
         <if test="_databaseId == 'sqlserver'">TOP 1</if>
         <if test="_databaseId == 'informix' and _databaseId == 'gbase'">FIRST 1</if>
-        <include refid="Column_List" />
+        <include refid="Column_List"/>
         from ujcms_article t
         where t.channel_id_ = #{channelId,jdbcType=INTEGER} and t.status_ = 0
         <if test="_databaseId == 'oracle' and _databaseId == 'dm' and _databaseId == 'oscar'">and ROWNUM &lt;= 1</if>
@@ -114,6 +129,20 @@
         <foreach close=")" collection="status" item="item" nullable="true" open="and t.status_ in (" separator=",">
             #{item}
         </foreach>
+    </select>
+    <select id="countByPublishDate" resultType="int">
+        select count(*)
+        from ujcms_article t
+        where t.site_id_ = #{siteId}
+        <if test="publishDate != null">
+            and t.publish_date_ &gt;= #{publishDate}
+        </if>
+        <if test="status!=null and status.size>0">
+            and status_ in
+            <foreach collection="status" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
     </select>
     <select id="statForSitemap" resultType="map">
         select count(*) as count, max(t.id_) as maxId
@@ -142,8 +171,8 @@
             join ujcms_org_tree orgTree on orgTree.descendant_id_ = t.org_id_
         </if>
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldJoin">
-            <property name="customsTable" value="ujcms_article_custom" />
-            <property name="customsId" value="article_id_" />
+            <property name="customsTable" value="ujcms_article_custom"/>
+            <property name="customsId" value="article_id_"/>
         </include>
     </sql>
     <sql id="selectAllWhere">
@@ -153,16 +182,16 @@
         <if test="orgId != null">
             and orgTree.ancestor_id_ = #{orgId}
         </if>
-        <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldWhere" />
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectAllCustomsFieldWhere"/>
     </sql>
     <select id="selectAll" resultMap="ResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
-            <property name="tableName" value="ujcms_article" />
+            <property name="tableName" value="ujcms_article"/>
         </include>
     </select>
     <select id="select" parameterType="int" resultMap="ResultMap">
         select
-        <include refid="Column_List" />
+        <include refid="Column_List"/>
         from ujcms_article t
         where t.id_ = #{id,jdbcType=INTEGER}
     </select>
@@ -170,24 +199,33 @@
         delete
         from ujcms_article
         where id_ = #{id,jdbcType=INTEGER}
-    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Article">
-    update ujcms_article
-    set src_id_ = #{srcId,jdbcType=INTEGER},
-      site_id_ = #{siteId,jdbcType=INTEGER},
-      org_id_ = #{orgId,jdbcType=INTEGER},
-      channel_id_ = #{channelId,jdbcType=INTEGER},
-      user_id_ = #{userId,jdbcType=INTEGER},
-      modified_user_id_ = #{modifiedUserId,jdbcType=INTEGER},
-      publish_date_ = #{publishDate,jdbcType=TIMESTAMP},
-      with_image_ = #{withImage,jdbcType=BOOLEAN},
-      sticky_ = #{sticky,jdbcType=SMALLINT},
-      input_type_ = #{inputType,jdbcType=SMALLINT},
-      type_ = #{type,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=SMALLINT}
-    where id_ = #{id,jdbcType=INTEGER}
-  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Article">
-    insert into ujcms_article (id_, src_id_, site_id_, org_id_, channel_id_, user_id_, modified_user_id_, publish_date_, with_image_, sticky_, input_type_, type_, status_)
-    values (#{id,jdbcType=INTEGER}, #{srcId,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{channelId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{modifiedUserId,jdbcType=INTEGER}, #{publishDate,jdbcType=TIMESTAMP}, #{withImage,jdbcType=BOOLEAN}, #{sticky,jdbcType=SMALLINT}, #{inputType,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
-  </insert><sql id="Column_List">
-    t.id_, t.src_id_, t.site_id_, t.org_id_, t.channel_id_, t.user_id_, t.modified_user_id_, t.publish_date_, t.with_image_, t.sticky_, t.input_type_, t.type_, t.status_
-  </sql></mapper>
+    </delete>
+    <update id="update" parameterType="com.ujcms.cms.core.domain.Article">
+        update ujcms_article
+        set src_id_           = #{srcId,jdbcType=INTEGER},
+            site_id_          = #{siteId,jdbcType=INTEGER},
+            org_id_           = #{orgId,jdbcType=INTEGER},
+            channel_id_       = #{channelId,jdbcType=INTEGER},
+            user_id_          = #{userId,jdbcType=INTEGER},
+            modified_user_id_ = #{modifiedUserId,jdbcType=INTEGER},
+            publish_date_     = #{publishDate,jdbcType=TIMESTAMP},
+            with_image_       = #{withImage,jdbcType=CHAR},
+            sticky_           = #{sticky,jdbcType=SMALLINT},
+            input_type_       = #{inputType,jdbcType=SMALLINT},
+            type_             = #{type,jdbcType=SMALLINT},
+            status_           = #{status,jdbcType=SMALLINT}
+        where id_ = #{id,jdbcType=INTEGER}
+    </update>
+    <insert id="insert" parameterType="com.ujcms.cms.core.domain.Article">
+        insert into ujcms_article (id_, src_id_, site_id_, org_id_, channel_id_, user_id_, modified_user_id_,
+                                   publish_date_, with_image_, sticky_, input_type_, type_, status_)
+        values (#{id,jdbcType=INTEGER}, #{srcId,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER},
+                #{orgId,jdbcType=INTEGER}, #{channelId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER},
+                #{modifiedUserId,jdbcType=INTEGER}, #{publishDate,jdbcType=TIMESTAMP}, #{withImage,jdbcType=CHAR},
+                #{sticky,jdbcType=SMALLINT}, #{inputType,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT},
+                #{status,jdbcType=SMALLINT})
+    </insert>
+    <sql id="Column_List">
+        t.id_, t.src_id_, t.site_id_, t.org_id_, t.channel_id_, t.user_id_, t.modified_user_id_, t.publish_date_, t.with_image_, t.sticky_, t.input_type_, t.type_, t.status_
+    </sql>
+</mapper>

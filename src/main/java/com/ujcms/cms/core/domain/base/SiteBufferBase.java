@@ -2,6 +2,7 @@ package com.ujcms.cms.core.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -31,6 +32,41 @@ public class SiteBufferBase implements Serializable {
     @Schema(description="浏览次数")
     private Long views = 0L;
 
+    /**
+     * 首页浏览次数
+     */
+    @NotNull
+    @Schema(description="首页浏览次数")
+    private Long selfViews = 0L;
+
+    /**
+     * 今日浏览次数
+     */
+    @NotNull
+    @Schema(description="今日浏览次数")
+    private Integer todayViews = 0;
+
+    /**
+     * 昨日浏览次数
+     */
+    @NotNull
+    @Schema(description="昨日浏览次数")
+    private Integer yesterdayViews = 0;
+
+    /**
+     * 最高浏览次数
+     */
+    @NotNull
+    @Schema(description="最高浏览次数")
+    private Integer maxViews = 0;
+
+    /**
+     * 最高浏览日期
+     */
+    @NotNull
+    @Schema(description="最高浏览日期")
+    private OffsetDateTime maxDate = OffsetDateTime.now();
+
     public Integer getId() {
         return id;
     }
@@ -45,5 +81,45 @@ public class SiteBufferBase implements Serializable {
 
     public void setViews(Long views) {
         this.views = views;
+    }
+
+    public Long getSelfViews() {
+        return selfViews;
+    }
+
+    public void setSelfViews(Long selfViews) {
+        this.selfViews = selfViews;
+    }
+
+    public Integer getTodayViews() {
+        return todayViews;
+    }
+
+    public void setTodayViews(Integer todayViews) {
+        this.todayViews = todayViews;
+    }
+
+    public Integer getYesterdayViews() {
+        return yesterdayViews;
+    }
+
+    public void setYesterdayViews(Integer yesterdayViews) {
+        this.yesterdayViews = yesterdayViews;
+    }
+
+    public Integer getMaxViews() {
+        return maxViews;
+    }
+
+    public void setMaxViews(Integer maxViews) {
+        this.maxViews = maxViews;
+    }
+
+    public OffsetDateTime getMaxDate() {
+        return maxDate;
+    }
+
+    public void setMaxDate(OffsetDateTime maxDate) {
+        this.maxDate = maxDate;
     }
 }

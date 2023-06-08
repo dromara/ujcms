@@ -7,7 +7,7 @@ import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.args.ArticleArgs;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
-import com.ujcms.util.freemarker.Freemarkers;
+import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
@@ -17,15 +17,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Page;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.web.support.Directives.*;
-import static com.ujcms.util.db.MyBatis.springPage;
+import static com.ujcms.commons.db.MyBatis.springPage;
 
 /**
  * 文章列表 标签
@@ -104,13 +100,13 @@ public class ArticleListDirective implements TemplateDirectiveModel {
             }
         }
         if (CollectionUtils.isNotEmpty(channelIds)) {
-            if (getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true)) {
+            if (Boolean.TRUE.equals(getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true))) {
                 args.inSubChannelIds(channelIds);
             } else {
                 args.inChannelIds(channelIds);
             }
         } else if (siteId != null) {
-            if (isIncludeSubSite) {
+            if (Boolean.TRUE.equals(isIncludeSubSite)) {
                 args.subSiteId(siteId);
             } else {
                 args.siteId(siteId);

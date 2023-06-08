@@ -9,6 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * 生成器抽象类
@@ -28,7 +29,7 @@ public abstract class AbstractGenerator {
     }
 
     void execute(Integer taskSiteId, Integer taskUserId, String taskName, short taskType,
-                 boolean deleteOnFinished, Consumer<Integer> consumer) {
+                 boolean deleteOnFinished, IntConsumer consumer) {
         Task task = new Task(taskSiteId, taskUserId, taskName, taskType);
         // 等待状态，在队列里等待线程池运行
         taskService.insert(task);
@@ -71,7 +72,9 @@ public abstract class AbstractGenerator {
 
     void handleArticle(Integer taskId, Integer siteId, Consumer<Article> consumer) {
         Integer minId = 0;
-        int offset = 0, limit = 100, size = limit;
+        int offset = 0;
+        int limit = 100;
+        int size = limit;
         while (size >= limit) {
             List<Article> list = articleService.selectByMinId(minId, siteId, null, offset, limit);
             size = list.size();

@@ -1,8 +1,8 @@
 package com.ujcms.cms.core;
 
-import com.ujcms.util.db.DataScriptInitializer;
-import com.ujcms.util.db.NumericBooleanTypeHandler;
 import com.ujcms.cms.core.support.Props;
+import com.ujcms.commons.db.CharBooleanTypeHandler;
+import com.ujcms.commons.db.DataScriptInitializer;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.ibatis.type.TypeHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,8 +25,8 @@ public class MyBatisConfig {
      * 数值型 boolean 类型处理
      */
     @Bean
-    public TypeHandler<Boolean> numericBooleanTypeHandler() {
-        return new NumericBooleanTypeHandler();
+    public TypeHandler<Boolean> charBooleanTypeHandler() {
+        return new CharBooleanTypeHandler();
     }
 
     /**
@@ -62,8 +62,8 @@ public class MyBatisConfig {
     @Bean
     @DependsOn("liquibase")
     @ConditionalOnProperty(prefix = "ujcms", name = "data-sql-enabled", matchIfMissing = true)
-    public DataScriptInitializer databaseInitializer(Props props,
-                                                     DataSource dataSource, ResourceLoader resourceLoader) {
+    public DataScriptInitializer databaseInitializer(
+            Props props, DataSource dataSource, ResourceLoader resourceLoader) {
         return new DataScriptInitializer(dataSource, resourceLoader, "ujcms_config", props.getDataSqlPlatform());
     }
 }

@@ -2,7 +2,7 @@ package com.ujcms.cms.core.web.directive;
 
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.service.ArticleService;
-import com.ujcms.util.freemarker.Freemarkers;
+import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;

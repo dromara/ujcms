@@ -2,11 +2,10 @@ package com.ujcms.cms.core.web.api;
 
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.service.ConfigService;
-import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.util.captcha.CaptchaToken;
-import com.ujcms.util.captcha.CaptchaTokenService;
-import com.ujcms.util.captcha.IpLoginAttemptService;
-import com.ujcms.util.web.Servlets;
+import com.ujcms.commons.captcha.CaptchaToken;
+import com.ujcms.commons.captcha.CaptchaTokenService;
+import com.ujcms.commons.captcha.IpLoginAttemptService;
+import com.ujcms.commons.web.Servlets;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

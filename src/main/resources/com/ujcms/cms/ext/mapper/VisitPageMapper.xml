@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.VisitPageMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.VisitPage">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="url_" jdbcType="VARCHAR" property="url" />
+    <result column="pv_count_" jdbcType="BIGINT" property="pvCount" />
+    <result column="uv_count_" jdbcType="BIGINT" property="uvCount" />
+    <result column="ip_count_" jdbcType="BIGINT" property="ipCount" />
+    <result column="date_string_" jdbcType="CHAR" property="dateString" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.VisitPage" />
+
+    <select id="statByDate" resultMap="ResultMap">
+        SELECT t.url_ AS url_,
+        SUM(t.pv_count_) AS pv_count_,
+        SUM(t.uv_count_) AS uv_count_,
+        SUM(t.ip_count_) AS ip_count_
+        FROM ujcms_visit_page t
+        WHERE t.site_id_ = #{siteId}
+        AND t.type_ = #{type}
+        <if test="begin != null">
+            AND t.date_string_ &gt;= #{begin}
+        </if>
+        <if test="end != null">
+            AND t.date_string_ &lt;= #{end}
+        </if>
+        GROUP BY t.url_
+        ORDER BY SUM(t.pv_count_) desc
+    </select>
+
+    <insert id="insertBatch">
+        insert into ujcms_visit_page (id_, site_id_, url_, pv_count_, uv_count_, ip_count_, date_string_, type_)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=BIGINT}, #{item.siteId,jdbcType=INTEGER}, #{item.url,jdbcType=VARCHAR},
+            #{item.pvCount,jdbcType=BIGINT}, #{item.uvCount,jdbcType=BIGINT}, #{item.ipCount,jdbcType=BIGINT},
+            #{item.dateString,jdbcType=CHAR}, #{item.type,jdbcType=SMALLINT})
+        </foreach>
+    </insert>
+
+    <delete id="deleteBeforeDateString">
+        delete
+        from ujcms_visit_page
+        where date_string_ &lt; #{dateString}
+    </delete>
+    <delete id="deleteByDateString">
+        delete
+        from ujcms_visit_page
+        where date_string_ = #{dateString}
+        <if test="type != null">
+            and type_ = #{type}
+        </if>
+    </delete>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_visit_page
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_visit_page" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_visit_page t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_visit_page
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+<update id="update" parameterType="com.ujcms.cms.ext.domain.VisitPage">
+    update ujcms_visit_page
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      url_ = #{url,jdbcType=VARCHAR},
+      pv_count_ = #{pvCount,jdbcType=BIGINT},
+      uv_count_ = #{uvCount,jdbcType=BIGINT},
+      ip_count_ = #{ipCount,jdbcType=BIGINT},
+      date_string_ = #{dateString,jdbcType=CHAR},
+      type_ = #{type,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VisitPage">
+    insert into ujcms_visit_page (id_, site_id_, url_, pv_count_, uv_count_, ip_count_, date_string_, type_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=INTEGER}, #{url,jdbcType=VARCHAR}, #{pvCount,jdbcType=BIGINT}, #{uvCount,jdbcType=BIGINT}, #{ipCount,jdbcType=BIGINT}, #{dateString,jdbcType=CHAR}, #{type,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.url_, t.pv_count_, t.uv_count_, t.ip_count_, t.date_string_, t.type_
+  </sql></mapper>

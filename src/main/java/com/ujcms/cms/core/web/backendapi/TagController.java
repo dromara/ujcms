@@ -3,8 +3,8 @@ package com.ujcms.cms.core.web.backendapi;
 import static com.ujcms.cms.core.support.Constants.*;
 import static com.ujcms.cms.core.support.Constants.validLimit;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.util.db.MyBatis.springPage;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.db.MyBatis.springPage;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
@@ -15,10 +15,10 @@ import com.ujcms.cms.core.service.TagService;
 import com.ujcms.cms.core.service.args.TagArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.web.support.ValidUtils;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.Responses.Body;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.exception.Http404Exception;
 
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;

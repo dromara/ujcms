@@ -6,7 +6,7 @@ import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 
-import static com.ujcms.util.db.MyBatis.deserialize;
+import static com.ujcms.commons.db.MyBatis.deserialize;
 
 /**
  * @author PONY

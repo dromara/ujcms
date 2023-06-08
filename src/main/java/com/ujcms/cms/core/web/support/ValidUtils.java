@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.web.support;
 
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http403Exception;
+import com.ujcms.commons.web.exception.Http400Exception;
+import com.ujcms.commons.web.exception.Http403Exception;
 import org.springframework.lang.Nullable;
 
 /**

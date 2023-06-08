@@ -1,12 +1,13 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.SiteBuffer;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -59,11 +60,18 @@ public interface SiteBufferMapper {
     List<SiteBuffer> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
 
     /**
-     * 更新站点浏览次数
+     * 批量更新浏览次数
      *
-     * @param id          栏目ID
-     * @param viewsToPlus 浏览次数
-     * @return 如果站点不存在，则返回{@code 0}；否则返回{@code 1}。
+     * @param list 待更新列表
+     * @return 更新条数
      */
-    int updateViews(@Param("id") Integer id, @Param("viewsToPlus") int viewsToPlus);
+    int updateBatch(List<SiteBuffer> list);
+
+    /**
+     * 更新浏览统计
+     *
+     * @param yesterday 如果出现最高访问量，此日期作为最高访问量的日期。应为昨天的日期。
+     * @return 更新条数
+     */
+    int updateStat(@Param("yesterday") OffsetDateTime yesterday);
 }

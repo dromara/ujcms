@@ -1,7 +1,8 @@
 package com.ujcms.cms.core.web.api;
 
+import com.ujcms.cms.core.component.ViewCountService;
 import com.ujcms.cms.core.domain.SiteBuffer;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import com.ujcms.cms.core.service.SiteBufferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,15 +25,17 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 @RequestMapping({API + "/site", FRONTEND_API + "/site"})
 public class SiteController {
     private final SiteBufferService bufferService;
+    private final ViewCountService viewCountService;
 
-    public SiteController(SiteBufferService bufferService) {
+    public SiteController(SiteBufferService bufferService, ViewCountService viewCountService) {
         this.bufferService = bufferService;
+        this.viewCountService = viewCountService;
     }
 
     @Operation(summary = "获取网站浏览次数")
     @GetMapping("/view/{id:[\\d]+}")
     public long view(@Parameter(description = "站点ID") @PathVariable Integer id) {
-        return bufferService.updateViews(id, 1);
+        return viewCountService.viewSite(id);
     }
 
     @Operation(summary = "获取站点缓冲对象")

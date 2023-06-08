@@ -45,7 +45,7 @@ public class HtmlGenerator extends AbstractGenerator {
      */
     public void updateAllHtml(Integer taskSiteId, Integer taskUserId, String taskName, Site site) {
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, false,
-                (taskId) -> {
+                taskId -> {
                     handleArticle(taskId, site.getId(), htmlService::updateArticleHtml);
                     handleChannel(taskId, site.getId(), htmlService::updateChannelHtml);
                     htmlService.updateHomeHtml(site);
@@ -71,7 +71,7 @@ public class HtmlGenerator extends AbstractGenerator {
         Integer channelId = article.getChannelId();
         OffsetDateTime publishDate = article.getPublishDate();
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, true,
-                (taskId) -> {
+                taskId -> {
                     // 当前文章
                     htmlService.updateArticleHtml(article);
                     // 上一篇文章
@@ -122,7 +122,7 @@ public class HtmlGenerator extends AbstractGenerator {
             return;
         }
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, true,
-                (taskId) -> {
+                taskId -> {
                     htmlService.updateChannelHtml(channel);
                     Channel parent = channel.getParent();
                     while (parent != null) {
@@ -145,7 +145,7 @@ public class HtmlGenerator extends AbstractGenerator {
      */
     public void updateArticleHtml(Integer taskSiteId, Integer taskUserId, String taskName, Site site) {
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, false,
-                (taskId) -> handleArticle(taskId, site.getId(), htmlService::updateArticleHtml));
+                taskId -> handleArticle(taskId, site.getId(), htmlService::updateArticleHtml));
     }
 
     /**
@@ -158,7 +158,7 @@ public class HtmlGenerator extends AbstractGenerator {
      */
     public void updateChannelHtml(Integer taskSiteId, Integer taskUserId, String taskName, Site site) {
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, false,
-                (taskId) -> handleChannel(taskId, site.getId(), htmlService::updateChannelHtml));
+                taskId -> handleChannel(taskId, site.getId(), htmlService::updateChannelHtml));
     }
 
     private void handleChannel(Integer taskId, Integer siteId, Consumer<Channel> consumer) {

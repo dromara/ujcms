@@ -3,7 +3,7 @@
 <mapper namespace="com.ujcms.cms.core.mapper.UserExtMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.UserExt">
     <id column="id_" jdbcType="INTEGER" property="id" />
     <result column="real_name_" jdbcType="VARCHAR" property="realName" />
-    <result column="gender_" jdbcType="CHAR" property="gender" />
+    <result column="gender_" jdbcType="SMALLINT" property="gender" />
     <result column="birthday_" jdbcType="TIMESTAMP" property="birthday" />
     <result column="location_" jdbcType="VARCHAR" property="location" />
     <result column="bio_" jdbcType="VARCHAR" property="bio" />
@@ -36,7 +36,7 @@
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.UserExt">
     update ujcms_user_ext
     set real_name_ = #{realName,jdbcType=VARCHAR},
-      gender_ = #{gender,jdbcType=CHAR},
+      gender_ = #{gender,jdbcType=SMALLINT},
       birthday_ = #{birthday,jdbcType=TIMESTAMP},
       location_ = #{location,jdbcType=VARCHAR},
       bio_ = #{bio,jdbcType=VARCHAR},
@@ -50,7 +50,7 @@
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserExt">
     insert into ujcms_user_ext (id_, real_name_, gender_, birthday_, location_, bio_, created_, history_password_, login_date_, login_ip_, login_count_, error_date_, error_count_)
-    values (#{id,jdbcType=INTEGER}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=CHAR}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{historyPassword,jdbcType=VARCHAR}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})
+    values (#{id,jdbcType=INTEGER}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{historyPassword,jdbcType=VARCHAR}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})
   </insert><sql id="Column_List">
     t.id_, t.real_name_, t.gender_, t.birthday_, t.location_, t.bio_, t.created_, t.history_password_, t.login_date_, t.login_ip_, t.login_count_, t.error_date_, t.error_count_
   </sql></mapper>

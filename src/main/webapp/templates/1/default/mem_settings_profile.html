@@ -6,17 +6,17 @@
   <title>基本设置 - ${site.title}</title>
   <meta name="_csrf" content="${_csrf.token}">
   <meta name="_csrf_header" content="${_csrf.headerName}">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
-  [#include 'includes_js_validation.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+  [#include 'inc_js_validation.html'/]
   <link rel="stylesheet" href="${files}/vendor/flatpickr/dist/flatpickr.min.css">
   <script src="${files}/vendor/flatpickr/dist/flatpickr.min.js"></script>
   <script src="${files}/vendor/flatpickr/dist/l10n/index.js"></script>
 </head>
 <body>
 [#assign headerShadow=true/]
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="container mt-3">
   <div class="row">
     <div class="col-sm-3">
@@ -64,8 +64,8 @@
     </div>
   </div>
 </div>
-[#include 'includes_footer.html'/]
-[#include 'includes_message_box.html'/]
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
 <script>
   $(function () {
     $('.datepicker').each(function () {

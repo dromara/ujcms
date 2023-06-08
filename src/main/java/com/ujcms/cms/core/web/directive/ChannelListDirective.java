@@ -5,7 +5,7 @@ import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
-import com.ujcms.util.freemarker.Freemarkers;
+import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
@@ -84,17 +84,20 @@ public class ChannelListDirective implements TemplateDirectiveModel {
         ChannelArgs args = ChannelArgs.of(Directives.getQueryMap(params));
         assemble(args, params, defaultSiteId, channelService);
         args.customsQueryMap(Directives.getCustomsQueryMap(params));
+        List<Channel> list = selectList(channelService, args, params);
+        loopVars[0] = env.getObjectWrapper().wrap(list);
+        body.render(env.getOut());
+    }
 
+    public static List<Channel> selectList(ChannelService channelService, ChannelArgs args, Map<String, String> params) {
         int offset = Directives.getOffset(params);
         int limit = Directives.getLimit(params);
-
         List<Channel> list = channelService.selectList(args, offset, limit);
         list.forEach(channel -> {
             channel.getPaths().forEach(channelService::fetchFirstData);
             channel.getChildren().forEach(channelService::fetchFirstData);
         });
-        loopVars[0] = env.getObjectWrapper().wrap(list);
-        body.render(env.getOut());
+        return list;
     }
 
     private final ChannelService channelService;

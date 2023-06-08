@@ -6,12 +6,12 @@
   <title>${article.title} - ${site.seoTitle!site.title}</title>
   <meta name="keywords" content="${article.seoKeywords}">
   <meta name="description" content="${article.seoDescription}">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
 </head>
 <body>
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="bg-gray-200">
   <div class="container">
     <nav class="row" aria-label="breadcrumb">
@@ -36,7 +36,7 @@
         <span>${format(article.publishDate, 'yyyy-MM-dd HH:mm')}</span>
         <i class="ml-2 far fa-eye"></i> <span id="views"></span>
         <script>
-          axios.get('${api}/article/view/${article.id}').then(function (response) {
+          axios.get('${api}/article/view/${article.id?c}').then(function (response) {
             $('#views').text(response.data);
           });
         </script>
@@ -79,7 +79,7 @@
     </div>
   </div>
 </div>
-[#include 'includes_footer.html'/]
+[#include 'inc_footer.html'/]
 </body>
 </html>
 [/#escape]

@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.web.directive;
 
-import com.ujcms.cms.core.service.MessageBoardService;
+import com.ujcms.cms.ext.service.MessageBoardService;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateException;

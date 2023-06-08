@@ -1,8 +1,8 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.Org;
-import com.ujcms.util.db.tree.TreeEntityMapper;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.db.tree.TreeEntityMapper;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;

@@ -6,16 +6,16 @@
   <title>${article.title} - ${site.title}</title>
   <meta name="keywords" content="${article.seoKeywords}">
   <meta name="description" content="${article.seoDescription}">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
   <link rel="stylesheet" href="${files}/vendor/photoswipe/dist/photoswipe.css">
   <link rel="stylesheet" href="${files}/vendor/photoswipe/dist/default-skin/default-skin.css">
   <script src="${files}/vendor/photoswipe/dist/photoswipe.min.js"></script>
   <script src="${files}/vendor/photoswipe/dist/photoswipe-ui-default.min.js"></script>
 </head>
 <body>
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="bg-gray-200">
   <div class="container">
     <nav class="row" aria-label="breadcrumb">
@@ -36,7 +36,7 @@
       [#if article.tags?size gt 0]
       <div class="mt-2">
         [#list article.tags as tag]
-        <a href="${dy}/tag/${tag.id}" class="ml-1"><span class="badge badge-secondary">${tag.name}</span></a>
+        <a href="${dy}/tag/${tag.id?c}" class="ml-1"><span class="badge badge-secondary">${tag.name}</span></a>
         [/#list]
       </div>
       [/#if]
@@ -46,7 +46,7 @@
         [#if article.author??]<span class="ml-2">${article.author}</span>[/#if]
         <i class="ml-2 far fa-eye"></i> <span id="views"></span>
         <script>
-          axios.get('${api}/article/view/${article.id}').then(function (response) {
+          axios.get('${api}/article/view/${article.id?c}').then(function (response) {
             $('#views').text(response.data);
           });
         </script>
@@ -86,9 +86,9 @@
           [/#list]
         </ul>
         <script>
-          axios.get('${api}/article/download-params/${article.id}').then(function (response) {
+          axios.get('${api}/article/download-params/${article.id?c}').then(function (response) {
             $('.article-download').each(function (index, element) {
-              $(element).attr('href', '${dy}/download-file/${article.id}/' + index + '?' + response.data)
+              $(element).attr('href', '${dy}/download-file/${article.id?c}/' + index + '?' + response.data)
             });
           })
         </script>
@@ -99,7 +99,7 @@
       </div>
       <script>
         function voteUp() {
-          axios.post('${api}/article/up/${article.id}').then(function (response) {
+          axios.post('${api}/article/up/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经顶过一次！");
               return;
@@ -109,7 +109,7 @@
         }
 
         function voteDown() {
-          axios.post('${api}/article/down/${article.id}').then(function (response) {
+          axios.post('${api}/article/down/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经踩过一次！");
               return;
@@ -118,7 +118,7 @@
           });
         }
 
-        axios.get('${api}/article/buffer/${article.id}').then(function (response) {
+        axios.get('${api}/article/buffer/${article.id?c}').then(function (response) {
           $('#ups').text(response.data.ups);
           $('#downs').text(response.data.downs);
         });
@@ -146,7 +146,7 @@
         </ul>
       [/@EsArticleList]
     </div>
-    [#include 'includes_right.html'/]
+    [#include 'inc_right.html'/]
   </div>
 </div>
 
@@ -263,7 +263,7 @@
   $articleImg.addClass('gallery-img');
   initPhotoSwipeFromDOM('.gallery-img');
 </script>
-[#include 'includes_footer.html'/]
+[#include 'inc_footer.html'/]
 </body>
 </html>
 [/#escape]

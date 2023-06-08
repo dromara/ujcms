@@ -1,11 +1,15 @@
 package com.ujcms.cms.core.service;
 
 import com.ujcms.cms.core.domain.SiteBuffer;
+import com.ujcms.cms.core.domain.base.SiteBufferBase;
 import com.ujcms.cms.core.mapper.SiteBufferMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,23 +30,13 @@ public class SiteBufferService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(SiteBuffer bean) {
-        bean.setId(seqService.getNextVal(SiteBuffer.TABLE_NAME));
+        bean.setId(seqService.getNextVal(SiteBufferBase.TABLE_NAME));
         mapper.insert(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void update(SiteBuffer bean) {
         mapper.update(bean);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public long updateViews(Integer id, int viewsToPlus) {
-        SiteBuffer buffer = mapper.select(id);
-        if (buffer == null) {
-            return 0;
-        }
-        mapper.updateViews(id, viewsToPlus);
-        return buffer.getViews() + viewsToPlus;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -58,5 +52,16 @@ public class SiteBufferService {
     @Nullable
     public SiteBuffer select(Integer id) {
         return mapper.select(id);
+    }
+
+    /**
+     * 更新浏览统计
+     *
+     * @return 更新条数
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public int updateStat() {
+        OffsetDateTime yesterday = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).minusDays(1).toOffsetDateTime();
+        return mapper.updateStat(yesterday);
     }
 }

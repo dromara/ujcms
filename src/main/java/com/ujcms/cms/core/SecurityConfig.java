@@ -14,11 +14,11 @@ import com.ujcms.cms.core.service.LoginLogService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.support.ExceptionResolver;
-import com.ujcms.util.captcha.CaptchaTokenService;
-import com.ujcms.util.captcha.IpLoginAttemptService;
-import com.ujcms.util.security.Pbkdf2WithHmacSm3PasswordEncoder;
-import com.ujcms.util.security.jwt.JwtProperties;
-import com.ujcms.util.web.JspDispatcherFilter;
+import com.ujcms.commons.captcha.CaptchaTokenService;
+import com.ujcms.commons.captcha.IpLoginAttemptService;
+import com.ujcms.commons.security.Pbkdf2WithHmacSm3PasswordEncoder;
+import com.ujcms.commons.security.jwt.JwtProperties;
+import com.ujcms.commons.web.JspDispatcherFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.owasp.html.CssSchema;
 import org.owasp.html.HtmlPolicyBuilder;
@@ -89,7 +89,7 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter(UserService userService) {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter((jwt) -> {
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             String username = jwt.getSubject();
             User user = userService.selectByUsername(username);
             // 如果修改了用户名，user可能为null
@@ -109,8 +109,8 @@ public class SecurityConfig {
                 .anyRequest().permitAll();
         http.csrf().disable();
         http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
-        http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.exceptionHandling((exceptions) -> exceptions
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                 // .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
                 // 使用Exception中的message信息

@@ -8,9 +8,9 @@ import com.ujcms.cms.core.domain.base.ChannelBase;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.util.db.tree.TreeEntity;
-import com.ujcms.util.web.HtmlParserUtils;
-import com.ujcms.util.web.PageUrlResolver;
+import com.ujcms.commons.db.tree.TreeEntity;
+import com.ujcms.commons.web.HtmlParserUtils;
+import com.ujcms.commons.web.PageUrlResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
@@ -136,8 +136,9 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     @Override
     public String getDynamicUrl(int page) {
-        if (getType() == TYPE_LINK && StringUtils.isNotBlank(getLinkUrl())) {
-            return getSite().assembleLinkUrl(getLinkUrl());
+        String linkUrl = getLinkUrl();
+        if (getType() == TYPE_LINK && StringUtils.isNotBlank(linkUrl)) {
+            return getSite().assembleLinkUrl(linkUrl);
         }
         if (getType() == TYPE_LINK_ARTICLE) {
             return Optional.ofNullable(getFirstArticle()).map(article -> article.getDynamicUrl(page)).orElse("");
@@ -158,8 +159,9 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     public String getStaticUrl(int page) {
-        if (getType() == TYPE_LINK && StringUtils.isNotBlank(getLinkUrl())) {
-            return getSite().assembleLinkUrl(getLinkUrl());
+        String linkUrl = getLinkUrl();
+        if (getType() == TYPE_LINK && StringUtils.isNotBlank(linkUrl)) {
+            return getSite().assembleLinkUrl(linkUrl);
         }
         if (getType() == TYPE_LINK_ARTICLE) {
             return Optional.ofNullable(getFirstArticle()).map(article -> article.getStaticUrl(page)).orElse("");
@@ -228,7 +230,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Nullable
-    private Map<String, Object> customs;
+    private transient Map<String, Object> customs;
     // endregion
 
     // region Associations

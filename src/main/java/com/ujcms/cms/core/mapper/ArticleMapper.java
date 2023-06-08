@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.Article;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
@@ -144,6 +144,17 @@ public interface ArticleMapper {
      * @return 文章数量
      */
     int countBySiteId(@Param("siteId") Integer siteId, @Param("status") Collection<Short> status);
+
+    /**
+     * 统计文章数量
+     *
+     * @param siteId      站点ID
+     * @param publishDate 发布日期
+     * @param status      状态
+     * @return 文章数量
+     */
+    int countByPublishDate(@Param("siteId") Integer siteId, @Param("publishDate") @Nullable OffsetDateTime publishDate,
+                           @Param("status") Collection<Short> status);
 
     /**
      * 查询最大的ID值

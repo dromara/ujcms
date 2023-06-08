@@ -2,9 +2,8 @@ package com.ujcms.cms.core.web.api;
 
 import com.ujcms.cms.core.domain.Dict;
 import com.ujcms.cms.core.service.DictService;
-import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.cms.core.web.directive.DictListDirective;
-import com.ujcms.util.query.QueryUtils;
+import com.ujcms.commons.query.QueryUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

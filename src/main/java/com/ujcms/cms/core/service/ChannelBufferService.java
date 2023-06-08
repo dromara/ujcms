@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.service;
 
 import com.ujcms.cms.core.domain.ChannelBuffer;
+import com.ujcms.cms.core.domain.base.ChannelBufferBase;
 import com.ujcms.cms.core.mapper.ChannelBufferMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -26,23 +27,13 @@ public class ChannelBufferService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(ChannelBuffer bean) {
-        bean.setId(seqService.getNextVal(ChannelBuffer.TABLE_NAME));
+        bean.setId(seqService.getNextVal(ChannelBufferBase.TABLE_NAME));
         mapper.insert(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void update(ChannelBuffer bean) {
         mapper.update(bean);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public long updateViews(Integer id, int viewsToPlus) {
-        ChannelBuffer buffer = mapper.select(id);
-        if (buffer == null) {
-            return 0;
-        }
-        mapper.updateViews(id, viewsToPlus);
-        return buffer.getViews() + viewsToPlus;
     }
 
     @Transactional(rollbackFor = Exception.class)

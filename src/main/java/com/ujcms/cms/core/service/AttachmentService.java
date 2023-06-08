@@ -1,27 +1,26 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Attachment;
 import com.ujcms.cms.core.domain.AttachmentRefer;
+import com.ujcms.cms.core.domain.base.AttachmentBase;
+import com.ujcms.cms.core.domain.base.AttachmentReferBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.AttachmentMapper;
 import com.ujcms.cms.core.mapper.AttachmentReferMapper;
 import com.ujcms.cms.core.service.args.AttachmentArgs;
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.query.QueryInfo;
-import com.ujcms.util.query.QueryParser;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Uploads;
+import com.ujcms.commons.file.FileHandler;
+import com.ujcms.commons.query.QueryInfo;
+import com.ujcms.commons.query.QueryParser;
+import com.ujcms.commons.web.PathResolver;
+import com.ujcms.commons.web.Uploads;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.time.OffsetDateTime;
+import java.util.*;
 
 /**
  * 附件 Service
@@ -55,12 +54,10 @@ public class AttachmentService implements SiteDeleteListener {
         Set<Integer> ids = new HashSet<>();
         urls.forEach(url -> {
             Attachment attachment = mapper.findByUrl(url);
-            if (attachment != null) {
-                if (referMapper.select(attachment.getId(), referType, referId) == null) {
-                    Long id = seqService.getNextValLong(AttachmentRefer.TABLE_NAME);
-                    referMapper.insert(new AttachmentRefer(id, attachment.getId(), referType, referId));
-                    ids.add(attachment.getId());
-                }
+            if (attachment != null && referMapper.select(attachment.getId(), referType, referId) == null) {
+                Long id = seqService.getNextLongVal(AttachmentReferBase.TABLE_NAME);
+                referMapper.insert(new AttachmentRefer(id, attachment.getId(), referType, referId));
+                ids.add(attachment.getId());
             }
         });
         return ids;
@@ -99,7 +96,7 @@ public class AttachmentService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Attachment bean) {
-        bean.setId(seqService.getNextVal(Attachment.TABLE_NAME));
+        bean.setId(seqService.getNextVal(AttachmentBase.TABLE_NAME));
         mapper.insert(bean);
     }
 
@@ -119,7 +116,7 @@ public class AttachmentService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(Attachment bean) {
-        if (!bean.getUsed()) {
+        if (Boolean.FALSE.equals(bean.getUsed())) {
             FileHandler fileHandler = bean.getSite().getConfig().getUploadStorage().getFileHandler(pathResolver);
             Optional.ofNullable(fileHandler.getName(bean.getUrl())).ifPresent(pathname -> {
                 fileHandler.deleteFileAndEmptyParentDir(pathname);
@@ -141,16 +138,27 @@ public class AttachmentService implements SiteDeleteListener {
     }
 
     public List<Attachment> selectList(AttachmentArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Attachment.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), AttachmentBase.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 
     public List<Attachment> selectList(AttachmentArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public Page<Attachment> selectPage(AttachmentArgs args, int page, int pageSize) {
-        return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+    }
+
+    /**
+     * 统计附件数量
+     *
+     * @param siteId  站点ID
+     * @param created 创建日期
+     * @return 附件数量
+     */
+    public int countByCreated(Integer siteId, @Nullable OffsetDateTime created) {
+        return mapper.countByCreated(siteId, created);
     }
 
     @Override

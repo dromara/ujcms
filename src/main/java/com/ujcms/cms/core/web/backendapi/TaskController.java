@@ -7,10 +7,10 @@ import com.ujcms.cms.core.service.TaskService;
 import com.ujcms.cms.core.service.args.TaskArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.web.support.ValidUtils;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Responses.Body;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,8 +22,8 @@ import java.util.List;
 import static com.ujcms.cms.core.support.Constants.validPage;
 import static com.ujcms.cms.core.support.Constants.validPageSize;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
-import static com.ujcms.util.db.MyBatis.springPage;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.db.MyBatis.springPage;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 /**
  * 任务 Controller

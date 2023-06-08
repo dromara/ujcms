@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Contexts;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

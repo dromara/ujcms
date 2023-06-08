@@ -6,8 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.ujcms.commons.security.Secures;
 import io.minio.ListObjectsArgs;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.web.util.WebUtils;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * 常量类
@@ -40,6 +47,8 @@ public final class Constants {
      * MinIO的listObjects最大也是1000条。{@link ListObjectsArgs.Builder#maxKeys(int)}
      */
     public static final int MAX_PAGE_SIZE = 1000;
+
+    public static final String IDENTITY_COOKIE_NAME = "ujcms-unique-visitor";
 
     public static int validPageSize(@Nullable Integer pageSize) {
         return validPageSize(pageSize, DEFAULT_PAGE_SIZE);
@@ -82,6 +91,42 @@ public final class Constants {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .addModule(new JavaTimeModule())
             .build();
+
+    @Nullable
+    public static Long getIdentityCookie(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, IDENTITY_COOKIE_NAME);
+        if (cookie != null && StringUtils.isNotBlank(cookie.getValue())) {
+            String value = cookie.getValue();
+            try {
+                return Long.parseLong(value);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public static void setIdentityCookie(long identity, HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie(IDENTITY_COOKIE_NAME, String.valueOf(identity));
+        String ctx = request.getContextPath();
+        if (StringUtils.isBlank(ctx)) {
+            ctx = "/";
+        }
+        cookie.setPath(ctx);
+        cookie.setMaxAge(Integer.MAX_VALUE);
+        cookie.setSecure(request.isSecure());
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+    }
+
+    public static Long retrieveIdentityCookie(HttpServletRequest request, HttpServletResponse response) {
+        Long identity = getIdentityCookie(request);
+        if (identity == null) {
+            identity = Secures.nextLong();
+            setIdentityCookie(identity, request, response);
+        }
+        return identity;
+    }
 
     /**
      * 常量类不允许创建对象

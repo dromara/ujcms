@@ -5,7 +5,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;

@@ -3,16 +3,13 @@ package com.ujcms.cms.core.web.backendapi;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.file.WebFile;
-import com.ujcms.util.file.WebFileFilter;
-import com.ujcms.util.file.ZipUtils;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Servlets;
-import com.ujcms.util.web.UrlBuilder;
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http403Exception;
+import com.ujcms.commons.file.*;
+import com.ujcms.commons.web.PathResolver;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Servlets;
+import com.ujcms.commons.web.UrlBuilder;
+import com.ujcms.commons.web.exception.Http400Exception;
+import com.ujcms.commons.web.exception.Http403Exception;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +22,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-import static com.ujcms.util.file.FilesEx.SLASH;
-import static com.ujcms.util.file.WebFile.TEXT_EXTENSIONS;
+import static com.ujcms.commons.file.FilesEx.SLASH;
+import static com.ujcms.commons.file.WebFile.TEXT_EXTENSIONS;
 
 /**
  * @author PONY
@@ -35,7 +32,7 @@ public abstract class AbstractWebFileController {
     private final PathResolver pathResolver;
     private final Props props;
 
-    public AbstractWebFileController(PathResolver pathResolver, Props props) {
+    protected AbstractWebFileController(PathResolver pathResolver, Props props) {
         this.pathResolver = pathResolver;
         this.props = props;
     }
@@ -56,6 +53,7 @@ public abstract class AbstractWebFileController {
 
     public static final String EXCLUDES_CP = "/cp";
     public static final String EXCLUDES_WEB_INF = "/WEB-INF";
+    public static final String EXCLUDES_META_INF = "/META-INF";
     public static final String EXCLUDES_TEMPLATES = "/templates";
     public static final String EXCLUDES_UPLOADS = "/uploads";
 
@@ -63,7 +61,7 @@ public abstract class AbstractWebFileController {
         checkFilesManagementEnabled();
         checkId(parentId);
         FileHandler fileHandler = storage.getFileHandler(pathResolver);
-        WebFileFilter baseFilter = (webFile) -> !getExcludes().contains(webFile.getId())
+        WebFileFilter baseFilter = webFile -> !getExcludes().contains(webFile.getId())
                 && (name == null || webFile.getName().contains(name));
         WebFileFilter filter = baseFilter;
         if (isDir) {
@@ -200,63 +198,128 @@ public abstract class AbstractWebFileController {
         }
     }
 
-    private void checkId(String id) {
-        boolean globalPermission = Contexts.getCurrentUser().hasGlobalPermission();
-        String[] illegals = new String[]{"./", "..", "\\", "//", "~"};
-        if (StringUtils.containsAny(id, illegals)) {
-            throw new Http400Exception("Web file illegal id: " + id);
-        }
-        for (String exclude : getExcludes()) {
-            if (id.equals(exclude) || id.startsWith(exclude + SLASH)) {
-                throw new Http403Exception("Web file forbidden: " + id);
-            }
-        }
-        boolean isSubDir = id.equals(getSubDir()) || id.startsWith(getSubDir() + SLASH);
-        if (!globalPermission && !isSubDir) {
-            throw new Http403Exception("Web file sub dir forbidden: " + id);
-        }
-    }
-
     private void checkId(String... ids) {
         for (String id : ids) {
-            checkId(id);
-        }
-    }
-
-    private void checkName(String name) {
-        String[] illegals = new String[]{"\\", "/"};
-        if (StringUtils.isBlank(name) && StringUtils.containsAny(name, illegals)) {
-            throw new Http400Exception("Web file illegal name: " + name);
-        }
-        if (props.getFilesExtensionExcludes().contains(FilenameUtils.getExtension(name).toLowerCase())) {
-            throw new Http400Exception("Web file illegal extension: " + name);
+            boolean globalPermission = Contexts.getCurrentUser().hasGlobalPermission();
+            String[] illegals = new String[]{"./", "..", "\\", "//", "~"};
+            String[] illegalsEnds = new String[]{".", " "};
+            if (StringUtils.containsAny(id, illegals) || StringUtils.endsWithAny(id, illegalsEnds)) {
+                throw new Http400Exception("Web file illegal id: " + id);
+            }
+            if (FilesEx.containsDir(id, getExcludes().toArray(new String[0]))) {
+                throw new Http403Exception("Web file forbidden: " + id);
+            }
+            boolean isSubDir = id.equals(getSubDir()) || id.startsWith(getSubDir() + SLASH);
+            if (!globalPermission && !isSubDir) {
+                throw new Http403Exception("Web file sub dir forbidden: " + id);
+            }
         }
     }
 
     private void checkName(String... names) {
         for (String name : names) {
-            checkName(name);
+            String[] illegals = new String[]{"\\", "/"};
+            String[] illegalsEnds = new String[]{".", " "};
+            if (StringUtils.isBlank(name) ||
+                    StringUtils.containsAny(name, illegals) || StringUtils.endsWithAny(name, illegalsEnds)) {
+                throw new Http400Exception("Web file illegal name: " + name);
+            }
+            if (props.getFilesExtensionExcludes().contains(FilenameUtils.getExtension(name).toLowerCase())) {
+                throw new Http400Exception("Web file illegal extension: " + name);
+            }
         }
     }
 
     @Schema(name = "AbstractWebFileController.WebFileParams", description = "Web文件参数")
     public static class WebFileParams {
-        public String id;
-        public String parentId;
-        public String name;
-        public String text;
+        private String id;
+        private String parentId;
+        private String name;
+        private String text;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getParentId() {
+            return parentId;
+        }
+
+        public void setParentId(String parentId) {
+            this.parentId = parentId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
     }
 
     @Schema(name = "AbstractWebFileController.WebFileBatchParams", description = "Web文件批量参数")
     public static class WebFileBatchParams {
-        public String dir;
-        public String[] names;
-        public String destDir;
+        private String dir;
+        private String[] names;
+        private String destDir;
+
+        public String getDir() {
+            return dir;
+        }
+
+        public void setDir(String dir) {
+            this.dir = dir;
+        }
+
+        public String[] getNames() {
+            return names;
+        }
+
+        public void setNames(String[] names) {
+            this.names = names;
+        }
+
+        public String getDestDir() {
+            return destDir;
+        }
+
+        public void setDestDir(String destDir) {
+            this.destDir = destDir;
+        }
     }
 
     @Schema(name = "AbstractWebFileController.WebFileDownloadParams", description = "Web文件下载参数")
     public static class WebFileDownloadParams {
-        public String dir;
-        public String[] names;
+        private String dir;
+        private String[] names;
+
+        public String getDir() {
+            return dir;
+        }
+
+        public void setDir(String dir) {
+            this.dir = dir;
+        }
+
+        public String[] getNames() {
+            return names;
+        }
+
+        public void setNames(String[] names) {
+            this.names = names;
+        }
     }
 }

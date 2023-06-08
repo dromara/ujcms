@@ -3,13 +3,45 @@
 <mapper namespace="com.ujcms.cms.core.mapper.SiteBufferMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.SiteBuffer">
     <id column="id_" jdbcType="INTEGER" property="id" />
     <result column="views_" jdbcType="BIGINT" property="views" />
+    <result column="self_views_" jdbcType="BIGINT" property="selfViews" />
+    <result column="today_views_" jdbcType="INTEGER" property="todayViews" />
+    <result column="yesterday_views_" jdbcType="INTEGER" property="yesterdayViews" />
+    <result column="max_views_" jdbcType="INTEGER" property="maxViews" />
+    <result column="max_date_" jdbcType="TIMESTAMP" property="maxDate" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.SiteBuffer" />
 
-    <update id="updateViews">
+    <update id="updateStat">
         update ujcms_site_buffer
-        set views_ = views_ + #{viewsToPlus}
-        where id_ = #{id,jdbcType=INTEGER}
+        set max_views_ = case when today_views_ &gt;= max_views_ then today_views_ else max_views_ end,
+            max_date_ = case when today_views_ &gt;= max_views_ then #{yesterday} else max_date_ end,
+            yesterday_views_ = today_views_,
+            today_views_ = 0
+    </update>
+
+    <update id="updateBatch">
+        update ujcms_site_buffer
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="today_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then today_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="self_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then self_views_+#{item.selfViews}
+                </foreach>
+            </trim>
+        </trim>
+        where id_ in
+        <foreach close=")" collection="list" index="index" item="item" open="(" separator=",">
+            #{item.id,jdbcType=INTEGER}
+        </foreach>
     </update>
 
     <sql id="selectAllJoin" />
@@ -31,11 +63,16 @@
         where id_ = #{id,jdbcType=INTEGER}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.SiteBuffer">
     update ujcms_site_buffer
-    set views_ = #{views,jdbcType=BIGINT}
+    set views_ = #{views,jdbcType=BIGINT},
+      self_views_ = #{selfViews,jdbcType=BIGINT},
+      today_views_ = #{todayViews,jdbcType=INTEGER},
+      yesterday_views_ = #{yesterdayViews,jdbcType=INTEGER},
+      max_views_ = #{maxViews,jdbcType=INTEGER},
+      max_date_ = #{maxDate,jdbcType=TIMESTAMP}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.SiteBuffer">
-    insert into ujcms_site_buffer (id_, views_)
-    values (#{id,jdbcType=INTEGER}, #{views,jdbcType=BIGINT})
+    insert into ujcms_site_buffer (id_, views_, self_views_, today_views_, yesterday_views_, max_views_, max_date_)
+    values (#{id,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{todayViews,jdbcType=INTEGER}, #{yesterdayViews,jdbcType=INTEGER}, #{maxViews,jdbcType=INTEGER}, #{maxDate,jdbcType=TIMESTAMP})
   </insert><sql id="Column_List">
-    t.id_, t.views_
+    t.id_, t.views_, t.self_views_, t.today_views_, t.yesterday_views_, t.max_views_, t.max_date_
   </sql></mapper>

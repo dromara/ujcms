@@ -1,9 +1,6 @@
 package com.ujcms.cms.core.support;
 
-import com.ujcms.util.security.Secures;
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http403Exception;
-import com.ujcms.cms.core.domain.User;
+import com.ujcms.commons.security.Secures;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 

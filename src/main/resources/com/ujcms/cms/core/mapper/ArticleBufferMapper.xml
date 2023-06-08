@@ -13,19 +13,67 @@
     <result column="month_views_" jdbcType="INTEGER" property="monthViews" />
     <result column="quarter_views_" jdbcType="INTEGER" property="quarterViews" />
     <result column="year_views_" jdbcType="BIGINT" property="yearViews" />
-    <result column="stat_day_" jdbcType="INTEGER" property="statDay" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ArticleBuffer" />
-
-    <update id="plusViews">
+    <update id="resetDayViews">
         update ujcms_article_buffer
-        set views_     = views_ + #{viewsToPlus},
-            day_views_ = day_views_ + #{viewsToPlus},
-            week_views_ = week_views_ + #{viewsToPlus},
-            month_views_ = month_views_ + #{viewsToPlus},
-            quarter_views_ = quarter_views_ + #{viewsToPlus},
-            year_views_ = year_views_ + #{viewsToPlus}
-        where id_ = #{id,jdbcType=INTEGER}
+        set day_views_ = 0
+    </update>
+    <update id="resetWeekViews">
+        update ujcms_article_buffer
+        set week_views_ = 0
+    </update>
+    <update id="resetMonthViews">
+        update ujcms_article_buffer
+        set month_views_ = 0
+    </update>
+    <update id="resetQuarterViews">
+        update ujcms_article_buffer
+        set quarter_views_ = 0
+    </update>
+    <update id="resetYearViews">
+        update ujcms_article_buffer
+        set year_views_ = 0
+    </update>
+
+    <update id="updateBatch">
+        update ujcms_article_buffer
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="day_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then day_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="week_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then week_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="month_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then month_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="quarter_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then quarter_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="year_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then year_views_+#{item.views}
+                </foreach>
+            </trim>
+        </trim>
+        where id_ in
+        <foreach close=")" collection="list" index="index" item="item" open="(" separator=",">
+            #{item.id,jdbcType=INTEGER}
+        </foreach>
     </update>
     <delete id="deleteByChannelId" parameterType="int">
         delete
@@ -67,12 +115,11 @@
       week_views_ = #{weekViews,jdbcType=INTEGER},
       month_views_ = #{monthViews,jdbcType=INTEGER},
       quarter_views_ = #{quarterViews,jdbcType=INTEGER},
-      year_views_ = #{yearViews,jdbcType=BIGINT},
-      stat_day_ = #{statDay,jdbcType=INTEGER}
+      year_views_ = #{yearViews,jdbcType=BIGINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleBuffer">
-    insert into ujcms_article_buffer (id_, comments_, downloads_, favorites_, ups_, downs_, views_, day_views_, week_views_, month_views_, quarter_views_, year_views_, stat_day_)
-    values (#{id,jdbcType=INTEGER}, #{comments,jdbcType=INTEGER}, #{downloads,jdbcType=INTEGER}, #{favorites,jdbcType=INTEGER}, #{ups,jdbcType=INTEGER}, #{downs,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{dayViews,jdbcType=INTEGER}, #{weekViews,jdbcType=INTEGER}, #{monthViews,jdbcType=INTEGER}, #{quarterViews,jdbcType=INTEGER}, #{yearViews,jdbcType=BIGINT}, #{statDay,jdbcType=INTEGER})
+    insert into ujcms_article_buffer (id_, comments_, downloads_, favorites_, ups_, downs_, views_, day_views_, week_views_, month_views_, quarter_views_, year_views_)
+    values (#{id,jdbcType=INTEGER}, #{comments,jdbcType=INTEGER}, #{downloads,jdbcType=INTEGER}, #{favorites,jdbcType=INTEGER}, #{ups,jdbcType=INTEGER}, #{downs,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{dayViews,jdbcType=INTEGER}, #{weekViews,jdbcType=INTEGER}, #{monthViews,jdbcType=INTEGER}, #{quarterViews,jdbcType=INTEGER}, #{yearViews,jdbcType=BIGINT})
   </insert><sql id="Column_List">
-    t.id_, t.comments_, t.downloads_, t.favorites_, t.ups_, t.downs_, t.views_, t.day_views_, t.week_views_, t.month_views_, t.quarter_views_, t.year_views_, t.stat_day_
+    t.id_, t.comments_, t.downloads_, t.favorites_, t.ups_, t.downs_, t.views_, t.day_views_, t.week_views_, t.month_views_, t.quarter_views_, t.year_views_
   </sql></mapper>

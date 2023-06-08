@@ -1,9 +1,9 @@
 package com.ujcms.cms.core.web.support;
 
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http404Exception;
-import com.ujcms.util.web.exception.LogicException;
-import com.ujcms.util.web.exception.MessagedException;
+import com.ujcms.commons.web.exception.Http400Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
+import com.ujcms.commons.web.exception.LogicException;
+import com.ujcms.commons.web.exception.MessagedException;
 import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
 import org.springframework.web.context.WebApplicationContext;

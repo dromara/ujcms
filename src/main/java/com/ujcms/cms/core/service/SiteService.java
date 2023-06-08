@@ -8,9 +8,9 @@ import com.ujcms.cms.core.mapper.SiteCustomMapper;
 import com.ujcms.cms.core.mapper.SiteMapper;
 import com.ujcms.cms.core.mapper.SiteTreeMapper;
 import com.ujcms.cms.core.service.args.SiteArgs;
-import com.ujcms.util.query.CustomFieldQuery;
-import com.ujcms.util.query.QueryInfo;
-import com.ujcms.util.query.QueryParser;
+import com.ujcms.commons.query.CustomFieldQuery;
+import com.ujcms.commons.query.QueryInfo;
+import com.ujcms.commons.query.QueryParser;
 import org.owasp.html.PolicyFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class SiteService {
         if (customList != null) {
             customMapper.deleteBySiteId(bean.getId());
             customList.forEach(it -> {
-                it.setId(seqService.getNextValLong(SiteCustom.TABLE_NAME));
+                it.setId(seqService.getNextLongVal(SiteCustom.TABLE_NAME));
                 it.setSiteId(bean.getId());
                 if (it.isRichEditor()) {
                     it.setValue(policyFactory.sanitize(it.getValue()));

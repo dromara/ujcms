@@ -5,7 +5,7 @@
     <id column="provider_" jdbcType="VARCHAR" property="provider" />
     <result column="openid_" jdbcType="VARCHAR" property="openid" />
     <result column="nickname_" jdbcType="VARCHAR" property="nickname" />
-    <result column="gender_" jdbcType="CHAR" property="gender" />
+    <result column="gender_" jdbcType="SMALLINT" property="gender" />
     <result column="avatar_url_" jdbcType="VARCHAR" property="avatarUrl" />
     <result column="large_avatar_url_" jdbcType="VARCHAR" property="largeAvatarUrl" />
   </resultMap>
@@ -38,14 +38,14 @@
     update ujcms_user_openid
     set openid_ = #{openid,jdbcType=VARCHAR},
       nickname_ = #{nickname,jdbcType=VARCHAR},
-      gender_ = #{gender,jdbcType=CHAR},
+      gender_ = #{gender,jdbcType=SMALLINT},
       avatar_url_ = #{avatarUrl,jdbcType=VARCHAR},
       large_avatar_url_ = #{largeAvatarUrl,jdbcType=VARCHAR}
     where user_id_ = #{userId,jdbcType=INTEGER}
       and provider_ = #{provider,jdbcType=VARCHAR}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserOpenid">
     insert into ujcms_user_openid (user_id_, provider_, openid_, nickname_, gender_, avatar_url_, large_avatar_url_)
-    values (#{userId,jdbcType=INTEGER}, #{provider,jdbcType=VARCHAR}, #{openid,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{gender,jdbcType=CHAR}, #{avatarUrl,jdbcType=VARCHAR}, #{largeAvatarUrl,jdbcType=VARCHAR})
+    values (#{userId,jdbcType=INTEGER}, #{provider,jdbcType=VARCHAR}, #{openid,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatarUrl,jdbcType=VARCHAR}, #{largeAvatarUrl,jdbcType=VARCHAR})
   </insert><sql id="Column_List">
     t.user_id_, t.provider_, t.openid_, t.nickname_, t.gender_, t.avatar_url_, t.large_avatar_url_
   </sql></mapper>

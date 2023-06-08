@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.Tag;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 
 import java.util.List;
 

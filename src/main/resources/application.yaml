@@ -38,6 +38,24 @@ ujcms.data-sql-platform: mysql
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
 #ujcms.data-sql-platform: dm
 
+# 集群环境需要使用jdbc。默认：memory
+#spring.quartz.job-store-type: jdbc
+# quartz是否集群
+#spring.quartz.properties.org.quartz.jobStore.isClustered: true
+# jdbc模式需要指定驱动委托类。官方文档：https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJobStoreTX.html
+#spring.quartz.properties.org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#spring.quartz.properties.org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+#spring.quartz.properties.org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.oracle.OracleDelegate
+#spring.quartz.properties.org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.MSSQLDelegate
+#spring.quartz.properties.org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.SybaseDelegate
+#spring.quartz.properties.org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.HSQLDBDelegate
+# quartz线程数。默认：10
+spring.quartz.properties.org.quartz.threadPool.threadCount: 2
+# 通过Spring配置生成的Job，是否覆盖持久化到数据库的Job。需要设置成true。默认：false
+spring.quartz.overwrite-existing-jobs: true
+# 使用liquibase初始化数据库，要使用 never。默认：embedded
+spring.quartz.jdbc.initialize-schema: never
+
 # 是否启用liquibase。默认：true。Flowable 将 spring.liquibase.enabled 设置成了 false。需要显式的设置为 true。
 spring.liquibase.enabled: true
 # 是否执行初始化脚本。默认：true
@@ -147,7 +165,7 @@ spring.freemarker.settings.tag_syntax: square_bracket
 # Freemarker 错误信息处理方式
 # 模板异常处理方式。`html_debug`会将错误信息直接显示在页面里，方便调试。
 # 生产环境可以设置为`rethrow`，将异常重新抛出，由 spring 处理异常。
-spring.freemarker.settings.template_exception_handler: com.ujcms.util.freemarker.SimpleTemplateExceptionHandler
+spring.freemarker.settings.template_exception_handler: com.ujcms.commons.freemarker.SimpleTemplateExceptionHandler
 # 生产环境下，模板异常写入日志可能导致日志文件过于庞大，可设置模板异常不写入日志。
 spring.freemarker.settings.log_template_exceptions: false
 # Freemarker 默认允许在模板里创建类的实例，这会导致远程执行漏洞

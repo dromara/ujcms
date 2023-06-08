@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.domain.base.UserBase;
-import com.ujcms.util.misc.BaseNum;
+import com.ujcms.commons.misc.BaseNum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,8 +87,8 @@ public class User extends UserBase implements UserDetails, Serializable {
         if (getAvatar() == null) {
             return null;
         }
-        String ext = FilenameUtils.getExtension(getAvatar());
-        return getAvatar() + size + ext;
+        String extension = FilenameUtils.getExtension(getAvatar());
+        return getAvatar() + size + extension;
     }
 
     /**
@@ -181,7 +181,7 @@ public class User extends UserBase implements UserDetails, Serializable {
             return true;
         }
         for (Role role : getRoleList()) {
-            if (role.getGlobalPermission()) {
+            if (Boolean.TRUE.equals(role.getGlobalPermission())) {
                 return true;
             }
         }
@@ -197,7 +197,7 @@ public class User extends UserBase implements UserDetails, Serializable {
             return true;
         }
         for (Role role : getRoleList()) {
-            if (role.getAllPermission()) {
+            if (Boolean.TRUE.equals(role.getAllPermission())) {
                 return true;
             }
         }
@@ -213,7 +213,7 @@ public class User extends UserBase implements UserDetails, Serializable {
             return true;
         }
         for (Role role : getRoleList()) {
-            if (role.getAllGrantPermission()) {
+            if (Boolean.TRUE.equals(role.getAllGrantPermission())) {
                 return true;
             }
         }
@@ -229,7 +229,7 @@ public class User extends UserBase implements UserDetails, Serializable {
             return true;
         }
         for (Role role : getRoleList()) {
-            if (role.getAllArticlePermission()) {
+            if (Boolean.TRUE.equals(role.getAllArticlePermission())) {
                 return true;
             }
         }
@@ -245,7 +245,7 @@ public class User extends UserBase implements UserDetails, Serializable {
             return true;
         }
         for (Role role : getRoleList()) {
-            if (role.getAllChannelPermission()) {
+            if (Boolean.TRUE.equals(role.getAllChannelPermission())) {
                 return true;
             }
         }
@@ -383,8 +383,7 @@ public class User extends UserBase implements UserDetails, Serializable {
     @JsonIgnore
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return getPermissions().stream().map(permission ->
-                new SimpleGrantedAuthority(permission)).collect(Collectors.toList());
+        return getPermissions().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 
     /**
@@ -493,12 +492,12 @@ public class User extends UserBase implements UserDetails, Serializable {
         getExt().setRealName(realName);
     }
 
-    @Schema(description = "性别(m:男,f:女,n:保密)")
-    public String getGender() {
+    @Schema(description = "性别(0:保密,1:男,2:女)")
+    public Short getGender() {
         return getExt().getGender();
     }
 
-    public void setGender(String gender) {
+    public void setGender(Short gender) {
         getExt().setGender(gender);
     }
 
@@ -645,16 +644,6 @@ public class User extends UserBase implements UserDetails, Serializable {
      * 用户类型：前台会员
      */
     public static final short TYPE_MEMBER = 5;
-
-    /**
-     * 需排除的字段。不能直接修改
-     */
-    public static String[] EXCLUDE_FIELDS = {"password", "status",
-            "created", "loginDate", "loginIp", "loginCount", "errorDate", "errorCount"};
-    /**
-     * 权限字段
-     */
-    public static String[] PERMISSION_FIELDS = {"rank"};
 
     /**
      * 匿名用户ID

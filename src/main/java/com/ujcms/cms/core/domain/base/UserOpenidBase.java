@@ -51,12 +51,11 @@ public class UserOpenidBase implements Serializable {
     private String nickname;
 
     /**
-     * 性别(m:男,f:女,n:保密)
+     * 性别(0:保密,1:男,2:女)
      */
-    @Length(max = 1)
     @NotNull
-    @Schema(description="性别(m:男,f:女,n:保密)")
-    private String gender = "m";
+    @Schema(description="性别(0:保密,1:男,2:女)")
+    private Short gender = 1;
 
     /**
      * 头像URL
@@ -107,11 +106,11 @@ public class UserOpenidBase implements Serializable {
         this.nickname = nickname;
     }
 
-    public String getGender() {
+    public Short getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Short gender) {
         this.gender = gender;
     }
 

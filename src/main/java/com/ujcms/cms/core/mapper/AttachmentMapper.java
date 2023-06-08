@@ -1,12 +1,13 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.Attachment;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -58,6 +59,15 @@ public interface AttachmentMapper {
      * @return 数据列表
      */
     List<Attachment> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
+
+    /**
+     * 统计附件数量
+     *
+     * @param siteId  站点ID
+     * @param created 创建日期
+     * @return 附件数量
+     */
+    int countByCreated(@Param("siteId") Integer siteId, @Param("created") @Nullable OffsetDateTime created);
 
     /**
      * 根据 url 附件对象

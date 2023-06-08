@@ -64,9 +64,9 @@ public class ArticleBase implements Serializable {
     /**
      * 修改用户ID
      */
-    @Nullable
+    @NotNull
     @Schema(description="修改用户ID")
-    private Integer modifiedUserId;
+    private Integer modifiedUserId = 0;
 
     /**
      * 发布日期
@@ -90,10 +90,10 @@ public class ArticleBase implements Serializable {
     private Short sticky = 0;
 
     /**
-     * 录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站外推送)
+     * 录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站群推送)
      */
     @NotNull
-    @Schema(description="录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站外推送)")
+    @Schema(description="录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站群推送)")
     private Short inputType = 0;
 
     /**
@@ -159,12 +159,11 @@ public class ArticleBase implements Serializable {
         this.userId = userId;
     }
 
-    @Nullable
     public Integer getModifiedUserId() {
         return modifiedUserId;
     }
 
-    public void setModifiedUserId(@Nullable Integer modifiedUserId) {
+    public void setModifiedUserId(Integer modifiedUserId) {
         this.modifiedUserId = modifiedUserId;
     }
 

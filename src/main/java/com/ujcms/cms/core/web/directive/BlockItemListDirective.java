@@ -6,7 +6,7 @@ import com.ujcms.cms.core.service.BlockItemService;
 import com.ujcms.cms.core.service.args.BlockItemArgs;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
-import com.ujcms.util.freemarker.Freemarkers;
+import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;

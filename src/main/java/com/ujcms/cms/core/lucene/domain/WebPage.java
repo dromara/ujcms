@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.lucene.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ujcms.util.lucene.StringNormsField;
+import com.ujcms.commons.lucene.StringNormsField;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.support.Anchor;
 import io.swagger.v3.oas.annotations.media.Schema;

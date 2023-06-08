@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.lucene;
 
-import com.ujcms.util.lucene.LuceneOperations;
+import com.ujcms.commons.lucene.LuceneOperations;
 import com.ujcms.cms.core.lucene.domain.EsArticle;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

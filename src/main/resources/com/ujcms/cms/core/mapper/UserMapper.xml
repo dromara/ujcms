@@ -23,6 +23,18 @@
         <collection column="id_" fetchType="lazy" javaType="ArrayList" property="roleList" select="com.ujcms.cms.core.mapper.RoleMapper.listByUserId" />
     </resultMap>
 
+    <select id="countByCreated" resultType="int">
+        select count(*)
+        from ujcms_user t
+        <if test="created != null">
+            join ujcms_user_ext ext_ on t.id_ = ext_.id_
+        </if>
+        <where>
+            <if test="created != null">
+                and ext_.created_ &gt;= #{created}
+            </if>
+        </where>
+    </select>
     <sql id="selectAllJoin">
         <if test="orgId != null">
             join ujcms_org_tree orgTree on t.org_id_ = orgTree.descendant_id_

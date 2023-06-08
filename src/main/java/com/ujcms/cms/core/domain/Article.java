@@ -8,11 +8,11 @@ import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.util.file.FilesEx;
-import com.ujcms.util.web.HtmlParserUtils;
-import com.ujcms.util.web.PageUrlResolver;
-import com.ujcms.util.web.Strings;
-import com.ujcms.util.web.Views;
+import com.ujcms.commons.file.FilesEx;
+import com.ujcms.commons.web.HtmlParserUtils;
+import com.ujcms.commons.web.PageUrlResolver;
+import com.ujcms.commons.web.Strings;
+import com.ujcms.commons.web.Views;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
@@ -26,7 +26,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.ujcms.util.web.Strings.formatDuration;
+import static com.ujcms.commons.web.Strings.formatDuration;
 
 /**
  * 文章实体类

@@ -10,15 +10,15 @@ import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.image.ImageHandler;
-import com.ujcms.util.image.Images;
-import com.ujcms.util.image.ResizeMode;
-import com.ujcms.util.misc.MediaUtils;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Uploads;
-import com.ujcms.util.web.exception.Http400Exception;
+import com.ujcms.commons.file.FileHandler;
+import com.ujcms.commons.image.ImageHandler;
+import com.ujcms.commons.image.Images;
+import com.ujcms.commons.image.ResizeMode;
+import com.ujcms.commons.misc.MediaUtils;
+import com.ujcms.commons.web.PathResolver;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Uploads;
+import com.ujcms.commons.web.exception.Http400Exception;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.validator.routines.DomainValidator;
@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.domain.Config.Security.SSRF_WILDCARD;
-import static com.ujcms.util.web.Uploads.*;
+import static com.ujcms.commons.web.Uploads.*;
 
 /**
  * 上传 Controller

@@ -15,7 +15,8 @@ public class StaticProps {
             Arrays.asList("articleReview:page", "article:internalPush", "loginLog:page", "site:page",
                     "processModel:page", "processInstance:page", "processHistory:page",
                     "generator:fulltext:reindexSite", "machine:code", "machine:license",
-                    "operationLog:page", "messageBoard:page"));
+                    "operationLog:page", "messageBoard:page", "homepage:systemMonitor",
+                    "visitedPage:page", "entryPage:page", "visitSource:page", "visitEnv:page"));
     private static boolean epDisplay = true;
     private static int epRank = 0;
     private static boolean epActivated = false;
@@ -50,5 +51,9 @@ public class StaticProps {
 
     public static void setEpActivated(boolean epActivated) {
         StaticProps.epActivated = epActivated;
+    }
+
+    private StaticProps() {
+        throw new IllegalStateException("Utility class");
     }
 }

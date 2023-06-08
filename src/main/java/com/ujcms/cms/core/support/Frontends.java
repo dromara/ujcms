@@ -2,7 +2,7 @@ package com.ujcms.cms.core.support;
 
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.util.web.PageUrlResolver;
+import com.ujcms.commons.web.PageUrlResolver;
 import freemarker.core.Environment;
 import freemarker.ext.servlet.FreemarkerServlet;
 import freemarker.ext.servlet.HttpRequestParametersHashModel;

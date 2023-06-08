@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.Dict;
 import com.ujcms.cms.core.service.DictService;
 import com.ujcms.cms.core.service.args.DictArgs;
 import com.ujcms.cms.core.web.support.Directives;
-import com.ujcms.util.freemarker.Freemarkers;
+import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;

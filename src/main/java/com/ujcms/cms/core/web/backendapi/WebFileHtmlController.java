@@ -5,10 +5,10 @@ import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.file.FilesEx;
-import com.ujcms.util.file.WebFile;
-import com.ujcms.util.web.PathResolver;
-import com.ujcms.util.web.Responses;
+import com.ujcms.commons.file.FilesEx;
+import com.ujcms.commons.file.WebFile;
+import com.ujcms.commons.web.PathResolver;
+import com.ujcms.commons.web.Responses;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,7 +36,7 @@ public class WebFileHtmlController extends AbstractWebFileController {
 
     @Override
     protected List<String> getExcludes() {
-        return Arrays.asList(EXCLUDES_WEB_INF, EXCLUDES_CP, EXCLUDES_TEMPLATES, EXCLUDES_UPLOADS);
+        return Arrays.asList(EXCLUDES_WEB_INF, EXCLUDES_META_INF, EXCLUDES_CP, EXCLUDES_TEMPLATES, EXCLUDES_UPLOADS);
     }
 
     @Override

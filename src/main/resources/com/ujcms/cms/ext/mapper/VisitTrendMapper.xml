@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.VisitTrendMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.VisitTrend">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="pv_count_" jdbcType="BIGINT" property="pvCount" />
+    <result column="uv_count_" jdbcType="BIGINT" property="uvCount" />
+    <result column="ip_count_" jdbcType="BIGINT" property="ipCount" />
+    <result column="nv_count_" jdbcType="BIGINT" property="nvCount" />
+    <result column="bounce_count_" jdbcType="INTEGER" property="bounceCount" />
+    <result column="duration_" jdbcType="INTEGER" property="duration" />
+    <result column="date_string_" jdbcType="VARCHAR" property="dateString" />
+    <result column="period_" jdbcType="SMALLINT" property="period" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.VisitTrend" />
+
+    <select id="statByDate" resultMap="ResultMap">
+        SELECT t.site_id_           AS site_id_,
+               SUM(t.pv_count_)     AS pv_count_,
+               SUM(t.uv_count_)     AS uv_count_,
+               SUM(t.ip_count_)     AS ip_count_,
+               SUM(t.nv_count_)     AS nv_count_,
+               SUM(t.bounce_count_) AS bounce_count_,
+               SUM(t.duration_)     AS duration_
+        FROM ujcms_visit_trend t
+        WHERE t.period_ = #{period}
+          AND t.date_string_ &gt;= #{begin}
+          AND t.date_string_ &lt;= #{end}
+        GROUP BY t.site_id_
+    </select>
+
+    <insert id="insertBatch">
+        insert into ujcms_visit_trend (id_, site_id_, pv_count_, uv_count_, ip_count_, nv_count_, bounce_count_,
+        duration_, date_string_, period_)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=INTEGER}, #{item.siteId,jdbcType=INTEGER}, #{item.pvCount,jdbcType=BIGINT},
+            #{item.uvCount,jdbcType=BIGINT}, #{item.ipCount,jdbcType=BIGINT}, #{item.nvCount,jdbcType=BIGINT},
+            #{item.bounceCount,jdbcType=INTEGER}, #{item.duration,jdbcType=INTEGER},
+            #{item.dateString,jdbcType=VARCHAR},
+            #{item.period,jdbcType=SMALLINT})
+        </foreach>
+    </insert>
+
+    <delete id="deleteBeforeDateString">
+        delete
+        from ujcms_visit_trend
+        where date_string_ &lt; #{dateString}
+          and period_ = #{period}
+    </delete>
+    <delete id="deleteByDateString">
+        delete
+        from ujcms_visit_trend
+        where date_string_ = #{dateString}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_visit_trend
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_visit_trend" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_visit_trend t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete
+        from ujcms_visit_trend
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.VisitTrend">
+    update ujcms_visit_trend
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      pv_count_ = #{pvCount,jdbcType=BIGINT},
+      uv_count_ = #{uvCount,jdbcType=BIGINT},
+      ip_count_ = #{ipCount,jdbcType=BIGINT},
+      nv_count_ = #{nvCount,jdbcType=BIGINT},
+      bounce_count_ = #{bounceCount,jdbcType=INTEGER},
+      duration_ = #{duration,jdbcType=INTEGER},
+      date_string_ = #{dateString,jdbcType=VARCHAR},
+      period_ = #{period,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VisitTrend">
+    insert into ujcms_visit_trend (id_, site_id_, pv_count_, uv_count_, ip_count_, nv_count_, bounce_count_, duration_, date_string_, period_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{pvCount,jdbcType=BIGINT}, #{uvCount,jdbcType=BIGINT}, #{ipCount,jdbcType=BIGINT}, #{nvCount,jdbcType=BIGINT}, #{bounceCount,jdbcType=INTEGER}, #{duration,jdbcType=INTEGER}, #{dateString,jdbcType=VARCHAR}, #{period,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.pv_count_, t.uv_count_, t.ip_count_, t.nv_count_, t.bounce_count_, t.duration_, t.date_string_, t.period_
+  </sql></mapper>

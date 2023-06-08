@@ -6,12 +6,12 @@
   <title>${channel.title} - ${site.title}</title>
   <meta name="keywords" content="${channel.seoKeywords}">
   <meta name="description" content="${channel.seoDescription}">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
 </head>
 <body>
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="bg-gray-200">
   <div class="container">
     <nav class="row" aria-label="breadcrumb">
@@ -63,7 +63,7 @@
             </li>
           [/#list]
         </ul>
-        [#include 'includes_page.html'/]
+        [#include 'inc_page.html'/]
       [/@ArticlePage]
     </div>
     <div class="col-sm-4 mt-3 px-4 d-none d-lg-block">
@@ -82,8 +82,8 @@
     </div>
   </div>
 </div>
-[#include 'includes_footer.html'/]
-<script>axios.get('${api}/channel/view/${channel.id}');</script>
+[#include 'inc_footer.html'/]
+<script>axios.get('${api}/channel/view/${channel.id?c}');</script>
 </body>
 </html>
 [/#escape]

@@ -1,23 +1,23 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.OperationLog;
 import com.ujcms.cms.core.domain.OperationLogExt;
+import com.ujcms.cms.core.domain.base.OperationLogBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.OperationLogExtMapper;
 import com.ujcms.cms.core.mapper.OperationLogMapper;
 import com.ujcms.cms.core.service.args.OperationLogArgs;
-import com.ujcms.util.query.QueryInfo;
-import com.ujcms.util.query.QueryParser;
-
-import java.util.List;
-import java.util.Objects;
-
+import com.ujcms.commons.query.QueryInfo;
+import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 操作日志 Service
@@ -39,7 +39,7 @@ public class OperationLogService implements SiteDeleteListener {
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void asyncInsert(OperationLog bean, OperationLogExt ext) {
-        bean.setId(seqService.getNextValLong(OperationLog.TABLE_NAME));
+        bean.setId(seqService.getNextLongVal(OperationLogBase.TABLE_NAME));
         mapper.insert(bean);
         ext.setId(bean.getId());
         extMapper.insert(ext);
@@ -62,16 +62,16 @@ public class OperationLogService implements SiteDeleteListener {
     }
 
     public List<OperationLog> selectList(OperationLogArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), OperationLog.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), OperationLogBase.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 
     public List<OperationLog> selectList(OperationLogArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public Page<OperationLog> selectPage(OperationLogArgs args, int page, int pageSize) {
-        return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
     }
 
     @Override

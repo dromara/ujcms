@@ -2,6 +2,7 @@ package com.ujcms.cms.core.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -132,6 +133,20 @@ public class ChannelExtBase implements Serializable {
     @Nullable
     @Schema(description="手机端静态页文件")
     private String mobileStaticFile;
+
+    /**
+     * 创建日期
+     */
+    @NotNull
+    @Schema(description="创建日期")
+    private OffsetDateTime created = OffsetDateTime.now();
+
+    /**
+     * 修改日期
+     */
+    @NotNull
+    @Schema(description="修改日期")
+    private OffsetDateTime modified = OffsetDateTime.now();
 
     /**
      * 正文
@@ -267,6 +282,22 @@ public class ChannelExtBase implements Serializable {
 
     public void setMobileStaticFile(@Nullable String mobileStaticFile) {
         this.mobileStaticFile = mobileStaticFile;
+    }
+
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    public OffsetDateTime getModified() {
+        return modified;
+    }
+
+    public void setModified(OffsetDateTime modified) {
+        this.modified = modified;
     }
 
     @Nullable

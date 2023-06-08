@@ -9,19 +9,24 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.AsyncAnnotationBeanPostProcessor;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.time.Duration;
 
 /**
- * 任务执行器 配置
+ * 任务执行器配置
  *
  * @author PONY
  */
 @Configuration
+@EnableAsync
 public class TaskExecutorConfig {
     /**
-     * 应用任务执行器
+     * 默认任务执行器。
+     *
+     * 用于代替`@EnableAsync`的{@link TaskExecutionAutoConfiguration#applicationTaskExecutor(TaskExecutorBuilder)}
+     * 因为增加了自定义的`ThreadPoolTaskExecutor`，这个默认的`ThreadPoolTaskExecutor`就不会再创建了，需要自行创建。
      *
      * @see TaskExecutionAutoConfiguration#applicationTaskExecutor(TaskExecutorBuilder)
      */
@@ -34,7 +39,7 @@ public class TaskExecutorConfig {
     }
 
     /**
-     * 生成器任务执行器
+     * 生成器任务执行器。为生成功能定义专门的任务执行器，和公用的任务执行器分开，以免相互影响。
      */
     @Lazy
     @Qualifier("generator")

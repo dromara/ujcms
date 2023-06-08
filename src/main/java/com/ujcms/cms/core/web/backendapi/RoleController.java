@@ -9,11 +9,11 @@ import com.ujcms.cms.core.service.RoleService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.service.args.RoleArgs;
 import com.ujcms.cms.core.support.Contexts;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Responses.Body;
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.exception.Http400Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -35,7 +35,7 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_PRIVATE;
 import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 import static com.ujcms.cms.core.web.support.ValidUtils.*;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 /**
  * 角色 Controller

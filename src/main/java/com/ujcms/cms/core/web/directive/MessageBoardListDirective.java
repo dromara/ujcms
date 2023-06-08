@@ -1,11 +1,11 @@
 package com.ujcms.cms.core.web.directive;
 
-import com.ujcms.cms.core.domain.MessageBoard;
-import com.ujcms.cms.core.service.MessageBoardService;
-import com.ujcms.cms.core.service.args.MessageBoardArgs;
+import com.ujcms.cms.ext.domain.MessageBoard;
+import com.ujcms.cms.ext.service.MessageBoardService;
+import com.ujcms.cms.ext.service.args.MessageBoardArgs;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
-import com.ujcms.util.freemarker.Freemarkers;
+import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import static com.ujcms.cms.core.web.support.Directives.getBoolean;
 import static com.ujcms.cms.core.web.support.Directives.getInteger;
-import static com.ujcms.util.db.MyBatis.springPage;
+import static com.ujcms.commons.db.MyBatis.springPage;
 
 /**
  * 留言板列表 标签

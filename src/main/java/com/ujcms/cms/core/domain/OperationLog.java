@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.domain.base.OperationLogBase;
-import com.ujcms.util.web.Views;
+import com.ujcms.commons.web.Views;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 

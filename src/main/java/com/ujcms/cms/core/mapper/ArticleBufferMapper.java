@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.ArticleBuffer;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
@@ -59,13 +59,47 @@ public interface ArticleBufferMapper {
     List<ArticleBuffer> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
 
     /**
-     * 增加文章浏览次数
+     * 重置日浏览量
      *
-     * @param id          文章ID
-     * @param viewsToPlus 浏览次数
-     * @return 如果文章不存在，则返回{@code 0}；否则返回{@code 1}。
+     * @return 更新条数
      */
-    int plusViews(@Param("id") Integer id, @Param("viewsToPlus") int viewsToPlus);
+    int resetDayViews();
+
+    /**
+     * 重置周浏览量
+     *
+     * @return 更新条数
+     */
+    int resetWeekViews();
+
+    /**
+     * 重置月浏览量
+     *
+     * @return 更新条数
+     */
+    int resetMonthViews();
+
+    /**
+     * 重置季浏览量
+     *
+     * @return 更新条数
+     */
+    int resetQuarterViews();
+
+    /**
+     * 重置年浏览量
+     *
+     * @return 更新条数
+     */
+    int resetYearViews();
+
+    /**
+     * 批量更新浏览次数
+     *
+     * @param list 待更新列表
+     * @return 更新条数
+     */
+    int updateBatch(List<ArticleBuffer> list);
 
     /**
      * 根据栏目ID删除数据

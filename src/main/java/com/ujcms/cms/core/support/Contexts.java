@@ -2,8 +2,7 @@ package com.ujcms.cms.core.support;
 
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.core.service.UserService;
-import com.ujcms.util.web.exception.Http401Exception;
+import com.ujcms.commons.web.exception.Http401Exception;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;

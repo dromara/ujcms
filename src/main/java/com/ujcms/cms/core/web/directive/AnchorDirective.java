@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.web.directive;
 
-import com.ujcms.util.freemarker.Freemarkers;
-import com.ujcms.util.web.Strings;
+import com.ujcms.commons.freemarker.Freemarkers;
+import com.ujcms.commons.web.Strings;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.web.support.Directives;
 import freemarker.core.Environment;

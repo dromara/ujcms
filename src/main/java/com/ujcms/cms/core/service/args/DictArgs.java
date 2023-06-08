@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.service.args;
 
-import com.ujcms.util.query.BaseQueryArgs;
+import com.ujcms.commons.query.BaseQueryArgs;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 

@@ -1,6 +1,6 @@
 package com.ujcms.cms.core;
 
-import com.ujcms.util.lucene.LuceneOperations;
+import com.ujcms.commons.lucene.LuceneOperations;
 import com.ujcms.cms.core.lucene.ArticleLucene;
 import com.ujcms.cms.core.lucene.ArticleLuceneImpl;
 import com.ujcms.cms.core.support.Props;

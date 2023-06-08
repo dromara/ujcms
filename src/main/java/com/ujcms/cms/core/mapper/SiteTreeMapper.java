@@ -1,10 +1,8 @@
 package com.ujcms.cms.core.mapper;
 
-import com.ujcms.cms.core.domain.OrgTree;
 import com.ujcms.cms.core.domain.SiteTree;
-import com.ujcms.util.db.tree.TreeRelationMapper;
+import com.ujcms.commons.db.tree.TreeRelationMapper;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

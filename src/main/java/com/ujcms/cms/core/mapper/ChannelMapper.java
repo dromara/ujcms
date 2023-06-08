@@ -1,14 +1,14 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.Channel;
-import com.ujcms.cms.core.domain.Org;
-import com.ujcms.util.db.tree.TreeEntityMapper;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.db.tree.TreeEntityMapper;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -36,6 +36,15 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 栏目数量
      */
     int countByModelId(Integer modelId);
+
+    /**
+     * 统计栏目数量
+     *
+     * @param siteId  站点ID
+     * @param created 创建日期
+     * @return 栏目数量
+     */
+    int countByCreated(@Param("siteId") Integer siteId, @Param("created") @Nullable OffsetDateTime created);
 
     /**
      * 根据上级ID获取第一个子栏目

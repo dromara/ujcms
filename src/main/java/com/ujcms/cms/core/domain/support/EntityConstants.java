@@ -1,10 +1,5 @@
 package com.ujcms.cms.core.domain.support;
 
-import com.ujcms.cms.core.domain.Site;
-import com.ujcms.util.query.QueryUtils;
-
-import java.util.Map;
-
 /**
  * 实体类常量
  *

@@ -277,9 +277,9 @@ public class ArticleExtBase implements Serializable {
     /**
      * 修改日期
      */
-    @Nullable
+    @NotNull
     @Schema(description="修改日期")
-    private OffsetDateTime modified;
+    private OffsetDateTime modified = OffsetDateTime.now();
 
     /**
      * 流程实例ID
@@ -631,12 +631,11 @@ public class ArticleExtBase implements Serializable {
         this.created = created;
     }
 
-    @Nullable
     public OffsetDateTime getModified() {
         return modified;
     }
 
-    public void setModified(@Nullable OffsetDateTime modified) {
+    public void setModified(OffsetDateTime modified) {
         this.modified = modified;
     }
 

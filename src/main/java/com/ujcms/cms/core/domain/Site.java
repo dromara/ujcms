@@ -7,8 +7,8 @@ import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.util.db.tree.TreeEntity;
-import com.ujcms.util.web.UrlBuilder;
+import com.ujcms.commons.db.tree.TreeEntity;
+import com.ujcms.commons.web.UrlBuilder;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
@@ -21,7 +21,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.ujcms.util.web.UrlBuilder.*;
+import static com.ujcms.commons.web.UrlBuilder.*;
 
 /**
  * 站点实体类
@@ -104,8 +104,9 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @Schema(description = "标题。先获取SeoTitle，如不存在则获取网站名称")
     public String getTitle() {
-        if (StringUtils.isNotBlank(getSeoTitle())) {
-            return getSeoTitle();
+        String seoTitle = getSeoTitle();
+        if (StringUtils.isNotBlank(seoTitle)) {
+            return seoTitle;
         }
         return getName();
     }
@@ -247,7 +248,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     public String getStaticPath(boolean isAppendMobilePath, String path) {
         UrlBuilder builder = UrlBuilder.of();
         // 多域名的情况下，要加上域名作为路径
-        if (getConfig().getMultiDomain()) {
+        if (Boolean.TRUE.equals(getConfig().getMultiDomain())) {
             builder.appendPath(getDomain());
         }
         builder.appendPath(getSubDir());
@@ -263,7 +264,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      * 自定义字段
      */
     @Nullable
-    private Map<String, Object> customs;
+    private transient Map<String, Object> customs;
 
     public Map<String, Object> getCustoms() {
         if (customs == null) {
@@ -300,7 +301,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Watermark.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Watermark: " + settings, e);
+            throw new IllegalStateException("Cannot read value of Watermark: " + settings, e);
         }
     }
 
@@ -309,7 +310,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         try {
             setWatermarkSettings(Constants.MAPPER.writeValueAsString(watermark));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Watermark", e);
+            throw new IllegalStateException("Cannot write value of Watermark", e);
         }
     }
 
@@ -340,7 +341,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         try {
             setHtmlSettings(Constants.MAPPER.writeValueAsString(html));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Html", e);
+            throw new IllegalStateException("Cannot write value of Html", e);
         }
     }
 
@@ -371,7 +372,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         try {
             setMessageBoardSettings(Constants.MAPPER.writeValueAsString(messageBoard));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of MessageBoard", e);
+            throw new IllegalStateException("Cannot write value of MessageBoard", e);
         }
     }
     // endregion
@@ -514,7 +515,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      * 域名
      */
     @Override
-    @Pattern(regexp = "^(?!(uploads|templates|WEB-INF|cp)$)[a-zA-Z0-9-.]*", flags = Pattern.Flag.CASE_INSENSITIVE)
+    @Pattern(regexp = "^(?!(uploads|templates|WEB-INF|cp)$)[a-z0-9-.]*", flags = Pattern.Flag.CASE_INSENSITIVE)
     public String getDomain() {
         return super.getDomain();
     }
@@ -630,6 +631,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         public static final String PATH_ARTICLE_ALIAS = "{article_alias}";
         public static final String SUFFIX = ".html";
         public static final String DEFAULT_PAGE = "/index.html";
+        @SuppressWarnings("java:S1075")
         public static final String MOBILE_PATH = "/m";
 
         /**

@@ -8,26 +8,18 @@ import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.service.args.UserArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.security.Secures;
-import com.ujcms.util.web.Entities;
-import com.ujcms.util.web.Responses;
-import com.ujcms.util.web.Responses.Body;
-import com.ujcms.util.web.exception.Http400Exception;
-import com.ujcms.util.web.exception.Http403Exception;
-import com.ujcms.util.web.exception.Http404Exception;
+import com.ujcms.commons.security.Secures;
+import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.Responses;
+import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.exception.Http400Exception;
+import com.ujcms.commons.web.exception.Http403Exception;
+import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -38,13 +30,12 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 
-import static com.ujcms.cms.core.domain.User.EXCLUDE_FIELDS;
 import static com.ujcms.cms.core.support.Constants.validPage;
 import static com.ujcms.cms.core.support.Constants.validPageSize;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 import static com.ujcms.cms.core.web.support.ValidUtils.rankPermission;
-import static com.ujcms.util.db.MyBatis.springPage;
-import static com.ujcms.util.query.QueryUtils.getQueryMap;
+import static com.ujcms.commons.db.MyBatis.springPage;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
 /**
  * 用户 Controller
@@ -110,7 +101,7 @@ public class UserController {
         String origUsername = user.getUsername();
         String origMobile = user.getMobile();
         String origEmail = user.getEmail();
-        Entities.copy(bean, user, User.EXCLUDE_FIELDS);
+        Entities.copy(bean, user, EXCLUDE_FIELDS);
         validateBean(user, origRank, origUsername, origEmail, origMobile, currentUser);
         service.update(user, user.getExt());
         return Responses.ok();
@@ -125,7 +116,7 @@ public class UserController {
         if (user == null) {
             return Responses.notFound("User not found. ID = " + bean.getId());
         }
-        Entities.copyIncludes(bean, user, User.PERMISSION_FIELDS);
+        Entities.copyIncludes(bean, user, PERMISSION_FIELDS);
         validatePermission(user.getOrgId(), user.getRank(), currentUser);
         bean.getRoleIds().stream().filter(Objects::nonNull).map(roleService::select)
                 .filter(Objects::nonNull).forEach(role -> {
@@ -233,4 +224,14 @@ public class UserController {
             throw new Http400Exception("mobile exist: " + mobile);
         }
     }
+
+    /**
+     * 需排除的字段。不能直接修改
+     */
+    private static final String[] EXCLUDE_FIELDS = {"password", "status",
+            "created", "loginDate", "loginIp", "loginCount", "errorDate", "errorCount"};
+    /**
+     * 权限字段
+     */
+    private static final String[] PERMISSION_FIELDS = {"rank"};
 }

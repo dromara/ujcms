@@ -1,4 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.ujcms.util.captcha.CaptchaAutoConfiguration,\
-  com.ujcms.util.sms.IpSmsAutoConfiguration,\
-  com.ujcms.util.security.oauth.OauthAutoConfiguration
+  com.ujcms.commons.captcha.CaptchaAutoConfiguration,\
+  com.ujcms.commons.sms.IpSmsAutoConfiguration,\
+  com.ujcms.commons.security.oauth.OauthAutoConfiguration

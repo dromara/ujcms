@@ -1,13 +1,16 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.ujcms.cms.core.component.ContentStatCache;
+import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.util.security.Secures;
+import com.ujcms.commons.security.Secures;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -22,16 +25,31 @@ import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 @RestController("backendHomepageController")
 @RequestMapping(BACKEND_API + "/core/homepage")
 public class HomepageController {
+    private final ContentStatCache contentStatCache;
     private final PasswordEncoder passwordEncoder;
     private final Props props;
 
-    public HomepageController(PasswordEncoder passwordEncoder, Props props) {
+    public HomepageController(ContentStatCache contentStatCache, PasswordEncoder passwordEncoder, Props props) {
+        this.contentStatCache = contentStatCache;
         this.passwordEncoder = passwordEncoder;
         this.props = props;
     }
 
+    @GetMapping("content-stat")
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> contentStat() {
+        Integer siteId = Contexts.getCurrentSiteId();
+        Map<String, Object> result = new HashMap<>(16);
+        result.put("article", contentStatCache.articleStat(siteId));
+        result.put("channel", contentStatCache.channelStat(siteId));
+        result.put("user", contentStatCache.userStat());
+        result.put("attachment", contentStatCache.attachmentStat(siteId));
+        return result;
+    }
+
     @GetMapping("generated-key")
     @PreAuthorize("hasAnyAuthority('homepage:generatedKey','*')")
+    @SuppressWarnings("java:S6437")
     public String generatedKey() {
         Secures.Pair keyPair = Secures.generateSm2QdKeyPair();
         String newline = "\n";
@@ -51,9 +69,9 @@ public class HomepageController {
         return buff.toString();
     }
 
-    @GetMapping("environment")
-    @PreAuthorize("hasAnyAuthority('homepage:environment','*')")
-    public Map<String, Object> environment() {
+    @GetMapping("system-info")
+    @PreAuthorize("hasAnyAuthority('homepage:systemInfo','*')")
+    public Map<String, Object> systemInfo() {
         Map<String, Object> result = new HashMap<>(16);
         Properties properties = System.getProperties();
         result.put("osName", properties.getProperty("os.name"));
@@ -72,22 +90,22 @@ public class HomepageController {
         result.put("version", props.getVersion());
 
         Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
+        int div = 1024;
+        long maxMemory = runtime.maxMemory() / div / div;
+        long totalMemory = runtime.totalMemory() / div / div;
+        long freeMemory = runtime.freeMemory() / div / div;
         long usedMemory = totalMemory - freeMemory;
+        long remainingMemory = maxMemory - totalMemory;
         long availableMemory = maxMemory - totalMemory + freeMemory;
-        int div = 1000;
-        double freeMemoryMb = ((double) freeMemory) / div / div;
-        double totalMemoryMb = ((double) totalMemory) / div / div;
-        double usedMemoryMb = ((double) usedMemory) / div / div;
-        double maxMemoryMb = ((double) maxMemory) / div / div;
-        double availableMemoryMb = ((double) availableMemory) / div / div;
-        result.put("maxMemory", maxMemoryMb);
-        result.put("totalMemory", totalMemoryMb);
-        result.put("usedMemory", usedMemoryMb);
-        result.put("availableMemory", availableMemoryMb);
-        result.put("freeMemory", freeMemoryMb);
+        result.put("maxMemory", maxMemory);
+        result.put("totalMemory", totalMemory);
+        result.put("usedMemory", usedMemory);
+        result.put("availableMemory", availableMemory);
+        result.put("remainingMemory", remainingMemory);
+        result.put("freeMemory", freeMemory);
+        long currentTime = System.currentTimeMillis();
+        long vmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+        result.put("upDays", (currentTime - vmStartTime) / 1000 / 60 / 60 / 24);
         return result;
     }
 }

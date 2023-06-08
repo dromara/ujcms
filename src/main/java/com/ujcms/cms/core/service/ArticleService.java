@@ -1,9 +1,11 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.google.common.collect.ImmutableMap;
 import com.ujcms.cms.core.domain.*;
+import com.ujcms.cms.core.domain.base.ArticleBase;
+import com.ujcms.cms.core.domain.base.ArticleCustomBase;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
@@ -12,10 +14,10 @@ import com.ujcms.cms.core.lucene.ArticleLucene;
 import com.ujcms.cms.core.lucene.domain.EsArticle;
 import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.ArticleArgs;
-import com.ujcms.util.query.CustomFieldQuery;
-import com.ujcms.util.query.QueryInfo;
-import com.ujcms.util.query.QueryParser;
-import com.ujcms.util.web.exception.LogicException;
+import com.ujcms.commons.query.CustomFieldQuery;
+import com.ujcms.commons.query.QueryInfo;
+import com.ujcms.commons.query.QueryParser;
+import com.ujcms.commons.web.exception.LogicException;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.common.engine.impl.identity.Authentication;
 import org.flowable.engine.RuntimeService;
@@ -48,7 +50,6 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     private final ArticleBufferMapper bufferMapper;
     private final ArticleCustomMapper customMapper;
     private final ArticleTagMapper articleTagMapper;
-    private final ArticleStatMapper statMapper;
     private final AttachmentService attachmentService;
     private final SeqService seqService;
 
@@ -57,7 +58,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
                           TagService tagService, ArticleLucene articleLucene,
                           ArticleMapper mapper, ArticleExtMapper extMapper, ArticleBufferMapper bufferMapper,
                           ArticleCustomMapper customMapper, ArticleTagMapper articleTagMapper,
-                          ArticleStatMapper statMapper, AttachmentService attachmentService, SeqService seqService) {
+                          AttachmentService attachmentService, SeqService seqService) {
         this.htmlService = htmlService;
         this.policyFactory = policyFactory;
         this.runtimeService = runtimeService;
@@ -69,7 +70,6 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         this.bufferMapper = bufferMapper;
         this.customMapper = customMapper;
         this.articleTagMapper = articleTagMapper;
-        this.statMapper = statMapper;
         this.attachmentService = attachmentService;
         this.seqService = seqService;
     }
@@ -90,7 +90,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
             articleTagMapper.insert(new ArticleTag(articleId, tag.getId(), tagOrder++));
         }
         customList.forEach(it -> {
-            it.setId(seqService.getNextValLong(ArticleCustom.TABLE_NAME));
+            it.setId(seqService.getNextLongVal(ArticleCustomBase.TABLE_NAME));
             it.setArticleId(articleId);
             if (it.isRichEditor()) {
                 it.setValue(policyFactory.sanitize(it.getValue()));
@@ -103,9 +103,12 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     public void insert(Article bean, ArticleExt ext, Integer userId, Integer orgId,
                        List<String> tagNames, Map<String, Object> customs) {
         bean.setUserId(userId);
+        bean.setModifiedUserId(userId);
         bean.setOrgId(orgId);
-        ext.setCreated(OffsetDateTime.now());
-        bean.setId(seqService.getNextVal(Article.TABLE_NAME));
+        OffsetDateTime now = OffsetDateTime.now();
+        ext.setCreated(now);
+        ext.setModified(now);
+        bean.setId(seqService.getNextVal(ArticleBase.TABLE_NAME));
         bean.setWithImage(StringUtils.isNotBlank(ext.getImage()));
         Channel channel = channelService.select(bean.getChannelId());
         if (channel == null) {
@@ -122,7 +125,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         bufferMapper.insert(new ArticleBuffer(bean.getId()));
         List<ArticleCustom> customList = Article.disassembleCustoms(channel.getArticleModel(), bean.getId(), customs);
         insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames, customList);
-        attachmentService.insertRefer(Article.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.insertRefer(ArticleBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.save(EsArticle.of(article)));
     }
 
@@ -159,6 +162,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     /**
      * 提交。草稿、待审核、已归档、已退回、已下线、已删除，可以提交。
      */
+    @Transactional(rollbackFor = Exception.class)
     public void submit(Article article, Integer userId) {
         String processKey = article.getChannel().getProcessKey();
         short status = article.getStatus();
@@ -178,6 +182,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void archive(Article article) {
         short status = article.getStatus();
         if (status == STATUS_PUBLISHED) {
@@ -186,6 +191,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void offline(Article article, User user) {
         short status = article.getStatus();
         if (status == STATUS_PUBLISHED || status == STATUS_ARCHIVED || status == STATUS_READY
@@ -196,6 +202,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Article article, User user) {
         deleteProcessIfNecessary(article, user);
         article.setStatus(STATUS_DELETED);
@@ -221,7 +228,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         tagService.reduceReferByArticleId(bean.getId());
         articleTagMapper.deleteByArticleId(bean.getId());
         insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames, customList);
-        attachmentService.updateRefer(Article.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.updateRefer(ArticleBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.update(EsArticle.of(article)));
     }
 
@@ -255,11 +262,10 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
             }
         }
         deleteProcessIfNecessary(bean, user);
-        attachmentService.deleteRefer(Article.TABLE_NAME, bean.getId());
+        attachmentService.deleteRefer(ArticleBase.TABLE_NAME, bean.getId());
         extMapper.delete(bean.getId());
         bufferMapper.delete(bean.getId());
         customMapper.deleteByArticleId(bean.getId());
-        statMapper.deleteByArticleId(bean.getId());
         tagService.reduceReferByArticleId(bean.getId());
         articleTagMapper.deleteByArticleId(bean.getId());
         int count = mapper.delete(bean.getId());
@@ -274,17 +280,17 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     public List<Article> selectList(ArticleArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Article.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ArticleBase.TABLE_NAME, "id_desc");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
         return mapper.selectAll(queryInfo, customsCondition, args.getSubChannelId(), args.getSubOrgId());
     }
 
     public List<Article> selectList(ArticleArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public Page<Article> selectPage(ArticleArgs args, int page, int pageSize) {
-        return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
     }
 
     public List<Article> listByIds(Collection<Integer> ids) {
@@ -299,12 +305,12 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     public List<Article> listBySiteIdForSiteMap(Integer siteId, @Nullable Integer minId, int limit) {
-        return PageHelper.offsetPage(0, limit, false).doSelectPage(() -> mapper.listBySiteIdForSitemap(siteId, minId));
+        return PageMethod.offsetPage(0, limit, false).doSelectPage(() -> mapper.listBySiteIdForSitemap(siteId, minId));
     }
 
     @Nullable
     public Article findNext(Integer id, OffsetDateTime publishDate, Integer channelId) {
-        List<Article> list = PageHelper.offsetPage(0, 1, false).doSelectPage(() ->
+        List<Article> list = PageMethod.offsetPage(0, 1, false).doSelectPage(() ->
                 mapper.findNext(id, publishDate, channelId));
         if (list.isEmpty()) {
             return null;
@@ -314,7 +320,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
 
     @Nullable
     public Article findPrev(Integer id, OffsetDateTime publishDate, Integer channelId) {
-        List<Article> list = PageHelper.offsetPage(0, 1, false).doSelectPage(() ->
+        List<Article> list = PageMethod.offsetPage(0, 1, false).doSelectPage(() ->
                 mapper.findPrev(id, publishDate, channelId));
         if (list.isEmpty()) {
             return null;
@@ -326,8 +332,20 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         return mapper.countBySiteId(siteId, Collections.emptyList());
     }
 
+    /**
+     * 统计文章数量
+     *
+     * @param siteId      站点ID
+     * @param publishDate 发布日期
+     * @param status      状态
+     * @return 文章数量
+     */
+    public int countByPublishDate(Integer siteId, @Nullable OffsetDateTime publishDate, Collection<Short> status) {
+        return mapper.countByPublishDate(siteId, publishDate, status);
+    }
+
     public Map<String, Object> statForSitemap(Integer siteId, int limit) {
-        List<Map<String, Object>> list = PageHelper.offsetPage(0, limit, false).doSelectPage(() ->
+        List<Map<String, Object>> list = PageMethod.offsetPage(0, limit, false).doSelectPage(() ->
                 mapper.statForSitemap(siteId, Collections.emptyList()));
         if (list.isEmpty()) {
             return Collections.emptyMap();
@@ -336,12 +354,12 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     public boolean existsByChannelId(Integer channelId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByChannelId(channelId)).iterator().next().intValue() > 0;
     }
 
     public boolean existsByUserId(Integer userId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByUserId(userId)).iterator().next().intValue() > 0;
     }
 
@@ -363,7 +381,6 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     public void preSiteDelete(Integer siteId) {
         extMapper.deleteBySiteId(siteId);
         bufferMapper.deleteBySiteId(siteId);
-        statMapper.deleteBySiteId(siteId);
         articleTagMapper.deleteBySiteId(siteId);
         customMapper.deleteBySiteId(siteId);
         mapper.deleteBySiteId(siteId);

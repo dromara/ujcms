@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.ChannelBuffer;
-import com.ujcms.util.query.QueryInfo;
+import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
@@ -59,13 +59,12 @@ public interface ChannelBufferMapper {
     List<ChannelBuffer> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
 
     /**
-     * 更新栏目浏览次数
+     * 批量更新浏览次数
      *
-     * @param id          栏目ID
-     * @param viewsToPlus 浏览次数
-     * @return 如果栏目不存在，则返回{@code 0}；否则返回{@code 1}。
+     * @param list 待更新列表
+     * @return 更新条数
      */
-    int updateViews(@Param("id") Integer id, @Param("viewsToPlus") int viewsToPlus);
+    int updateBatch(List<ChannelBuffer> list);
 
     /**
      * 根据站点ID删除数据

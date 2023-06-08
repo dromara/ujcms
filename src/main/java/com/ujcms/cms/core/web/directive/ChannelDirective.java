@@ -4,7 +4,7 @@ import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.support.Frontends;
-import com.ujcms.util.freemarker.Freemarkers;
+import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;

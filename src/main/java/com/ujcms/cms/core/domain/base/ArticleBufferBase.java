@@ -101,13 +101,6 @@ public class ArticleBufferBase implements Serializable {
     @Schema(description="年浏览次数")
     private Long yearViews = 0L;
 
-    /**
-     * 统计日
-     */
-    @NotNull
-    @Schema(description="统计日")
-    private Integer statDay = 0;
-
     public Integer getId() {
         return id;
     }
@@ -202,13 +195,5 @@ public class ArticleBufferBase implements Serializable {
 
     public void setYearViews(Long yearViews) {
         this.yearViews = yearViews;
-    }
-
-    public Integer getStatDay() {
-        return statDay;
-    }
-
-    public void setStatDay(Integer statDay) {
-        this.statDay = statDay;
     }
 }

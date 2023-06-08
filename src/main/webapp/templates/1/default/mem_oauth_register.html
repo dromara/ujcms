@@ -6,10 +6,10 @@
   <title>用户登录 - ${site.title}</title>
   <meta name="_csrf" content="${_csrf.token}"/>
   <meta name="_csrf_header" content="${_csrf.headerName}"/>
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
-  [#include 'includes_js.html'/]
-  [#include 'includes_js_validation.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+  [#include 'inc_js_validation.html'/]
   <script src="${files}/vendor/crypto-js/crypto-js.min.js"></script>
   <script src="${files}/vendor/sm-crypto/dist/sm2.js"></script>
 </head>
@@ -61,8 +61,8 @@
   </div>
 </div>
 
-[#include 'includes_message_box.html'/]
-[#include 'includes_short_message.html'/]
+[#include 'inc_message_box.html'/]
+[#include 'inc_short_message.html'/]
 
 <script>
   var publicKey;

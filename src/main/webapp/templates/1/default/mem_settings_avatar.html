@@ -6,8 +6,8 @@
   <title>头像设置 - ${site.title}</title>
   <meta name="_csrf" content="${_csrf.token}">
   <meta name="_csrf_header" content="${_csrf.headerName}">
-  [#include 'includes_meta.html'/]
-  [#include 'includes_css.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
   <link rel="stylesheet" href="${files}/vendor/blueimp-file-upload/css/jquery.fileupload.css">
   <link rel="stylesheet" href="${files}/vendor/cropperjs/dist/cropper.min.css">
   <style>
@@ -16,12 +16,12 @@
       max-width: 100%; /* This rule is very important, please do not ignore this! */
     }
   </style>
-  [#include 'includes_js.html'/]
-  [#include 'includes_js_validation.html'/]
+  [#include 'inc_js.html'/]
+  [#include 'inc_js_validation.html'/]
 </head>
 <body>
 [#assign headerShadow=true /]
-[#include 'includes_header.html'/]
+[#include 'inc_header.html'/]
 <div class="container mt-3">
   <div class="row">
     <div class="col-sm-3">
@@ -73,8 +73,8 @@
   </div>
 </div>
 
-[#include 'includes_footer.html'/]
-[#include 'includes_message_box.html'/]
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
 <script src="${files}/vendor/blueimp-file-upload/js/vendor/jquery.ui.widget.min.js"></script>
 <script src="${files}/vendor/blueimp-file-upload/js/jquery.iframe-transport.min.js"></script>
 <script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload.min.js"></script>

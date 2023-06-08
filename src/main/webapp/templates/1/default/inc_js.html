@@ -1,0 +1,23 @@
+[#escape x as (x)!?html]
+<script src="${files}/vendor/es6-promise-polyfill/promise.min.js"></script>
+<script src="${files}/vendor/jquery/dist/jquery.min.js"></script>
+<script src="${files}/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="${files}/vendor/axios/dist/axios.min.js"></script>
+<script src="${files}/vendor/js-cookie/dist/js.cookie.min.js"></script>
+<script src="${files}/vendor/dayjs/dayjs.min.js"></script>
+[#--
+<script src="${files}/js/main.js"></script>
+--]
+<script>
+  const visitApi = "${api}";
+  const visitSiteId = "${site.id}";
+  const csrfName = "${_csrf.parameterName}";
+  const csrfValue = "${_csrf.token}";
+  (function () {
+    const visit = document.createElement("script");
+    visit.src = "${files}/js/visit.js";
+    const s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(visit, s);
+  })();
+</script>
+[/#escape]

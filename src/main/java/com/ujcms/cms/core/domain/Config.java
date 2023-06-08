@@ -7,11 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ConfigBase;
 import com.ujcms.cms.core.support.Constants;
-import com.ujcms.util.file.FileHandler;
-import com.ujcms.util.file.FtpFileHandler;
-import com.ujcms.util.file.LocalFileHandler;
-import com.ujcms.util.file.MinIoFileHandler;
-import com.ujcms.util.web.PathResolver;
+import com.ujcms.commons.file.*;
+import com.ujcms.commons.web.PathResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
@@ -81,7 +78,7 @@ public class Config extends ConfigBase implements Serializable {
             upload = Constants.MAPPER.readValue(settings, Upload.class);
             return upload;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Upload: " + settings, e);
+            throw new IllegalStateException("Cannot read value of Upload: " + settings, e);
         }
     }
 
@@ -90,7 +87,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setUploadSettings(Constants.MAPPER.writeValueAsString(upload));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Upload", e);
+            throw new IllegalStateException("Cannot write value of Upload", e);
         }
     }
 
@@ -105,7 +102,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Register.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Register: " + settings, e);
+            throw new IllegalStateException("Cannot read value of Register: " + settings, e);
         }
     }
 
@@ -114,7 +111,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setRegisterSettings(Constants.MAPPER.writeValueAsString(register));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Register", e);
+            throw new IllegalStateException("Cannot write value of Register", e);
         }
     }
 
@@ -129,7 +126,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Security.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Security: " + settings, e);
+            throw new IllegalStateException("Cannot read value of Security: " + settings, e);
         }
     }
 
@@ -138,7 +135,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setSecuritySettings(Constants.MAPPER.writeValueAsString(security));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Security", e);
+            throw new IllegalStateException("Cannot write value of Security", e);
         }
     }
 
@@ -153,7 +150,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Sms.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Sms: " + settings, e);
+            throw new IllegalStateException("Cannot read value of Sms: " + settings, e);
         }
     }
 
@@ -162,7 +159,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setSmsSettings(Constants.MAPPER.writeValueAsString(sms));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Sms", e);
+            throw new IllegalStateException("Cannot write value of Sms", e);
         }
     }
 
@@ -177,7 +174,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Email.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Email: " + settings, e);
+            throw new IllegalStateException("Cannot read value of Email: " + settings, e);
         }
     }
 
@@ -186,7 +183,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setEmailSettings(Constants.MAPPER.writeValueAsString(email));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Email", e);
+            throw new IllegalStateException("Cannot write value of Email", e);
         }
     }
 
@@ -201,7 +198,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Storage.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Storage: " + settings, e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -210,7 +207,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setUploadStorageSettings(Constants.MAPPER.writeValueAsString(uploadStorage));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Storage", e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -225,7 +222,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Storage.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Storage: " + settings, e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -234,7 +231,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setHtmlStorageSettings(Constants.MAPPER.writeValueAsString(htmlStorage));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Storage", e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -249,7 +246,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             return Constants.MAPPER.readValue(settings, Storage.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Storage: " + settings, e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -258,7 +255,7 @@ public class Config extends ConfigBase implements Serializable {
         try {
             setTemplateStorageSettings(Constants.MAPPER.writeValueAsString(templateStorage));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Storage", e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -275,7 +272,7 @@ public class Config extends ConfigBase implements Serializable {
             });
             return customs;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot read value of Customs: " + settings, e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -284,7 +281,7 @@ public class Config extends ConfigBase implements Serializable {
             setCustomsSettings(Constants.MAPPER.writeValueAsString(customs));
             this.customs = null;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of Customs", e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -316,7 +313,7 @@ public class Config extends ConfigBase implements Serializable {
      * 自定义字段
      */
     @Nullable
-    private Map<String, Object> customs;
+    private transient Map<String, Object> customs;
     @JsonIgnore
     private Model model = new Model();
 
@@ -1284,7 +1281,7 @@ public class Config extends ConfigBase implements Serializable {
 
         public void sendMail(String[] to, String subject, String text) {
             if (host == null) {
-                throw new RuntimeException("Email SMTP host is not set");
+                throw new IllegalStateException("Email SMTP host is not set");
             }
             JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
             mailSender.setHost(host);
@@ -1310,7 +1307,7 @@ public class Config extends ConfigBase implements Serializable {
                 helper.setSubject(subject);
                 helper.setText(text, false);
             } catch (MessagingException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
             mailSender.send(msg);
         }
@@ -1479,8 +1476,9 @@ public class Config extends ConfigBase implements Serializable {
             if (getType() == TYPE_MINIO) {
                 return new MinIoFileHandler(endpoint, region, bucket, accessKey, secretKey, path, url);
             } else if (getType() == TYPE_FTP) {
-                return new FtpFileHandler(hostname, port, username, password,
-                        encoding, passive, encryption, path, url);
+                FtpClientProperties properties = new FtpClientProperties(hostname, port, username, password,
+                        encoding, passive, encryption);
+                return new FtpFileHandler(properties, path, url);
             }
             return new LocalFileHandler(pathResolver, getPath(), getUrl());
         }
