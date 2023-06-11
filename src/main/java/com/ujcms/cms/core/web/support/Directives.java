@@ -17,10 +17,12 @@ import org.springframework.lang.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.support.Frontends.*;
+import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 标签 工具类
@@ -135,13 +137,16 @@ public class Directives {
         return Constants.MAX_PAGE_SIZE;
     }
 
-    /**
-     * 通用查询
-     */
-    public static final String Q = "Q";
-
     public static Map<String, Object> getQueryMap(Map<String, TemplateModel> params) throws TemplateModelException {
-        return Freemarkers.getMap(params.get("Q"));
+        Map<String, Object> queryMap = new HashMap<>(16);
+        for (Map.Entry<String, TemplateModel> param : params.entrySet()) {
+            String name = param.getKey();
+            TemplateModel value = param.getValue();
+            if (name.startsWith(QUERY_PREFIX)) {
+                queryMap.put(name.substring(QUERY_PREFIX.length()), Freemarkers.getString(value));
+            }
+        }
+        return queryMap;
     }
 
     /**

@@ -12,10 +12,12 @@ import java.util.List;
  */
 public class StaticProps {
     private static final List<String> EP_EXCLUDES = new ArrayList<>(
-            Arrays.asList("articleReview:page", "article:internalPush", "loginLog:page", "site:page",
-                    "processModel:page", "processInstance:page", "processHistory:page",
-                    "generator:fulltext:reindexSite", "machine:code", "machine:license",
-                    "operationLog:page", "messageBoard:page", "homepage:systemMonitor",
+            Arrays.asList("menu.interaction", "messageBoard:page",
+                    "menu.system", "site:page", "processModel:page", "processInstance:page", "processHistory:page",
+                    "homepage:systemMonitor", "machine:code", "machine:license",
+                    "generator:fulltext:reindexSite",
+                    "operationLog:page", "loginLog:page",
+                    "articleReview:page", "article:internalPush",
                     "visitedPage:page", "entryPage:page", "visitSource:page", "visitEnv:page"));
     private static boolean epDisplay = true;
     private static int epRank = 0;

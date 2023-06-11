@@ -1,10 +1,12 @@
 # UJCMS
 
-Java开源内容管理系统(java cms)。使用SpringBoot、MyBatis、Shiro、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。
+Java开源内容管理系统(java cms)。使用SpringBoot、MyBatis、Spring Security、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。
 
 UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统。针对原系统中的一些痛点问题，进行解决、优化和改进，并使用`GPL-2`开源协议发布，可免费商用。
 
 技术上尽量选择主流、先进、简单的架构，方便用户进行二次开发。持久化层用MyBatis替换了Hibernate；视图层用前后端分离的Vue3替换了JSP；数据库也进行了重新设计。设计上强调“简单”、“灵活”，避免繁杂的设计和实现，降低系统维护成本和二次开发难度。功能使用上也要求“简单”，避免复杂的使用逻辑。
+
+支持国产操作系统、国产数据库、国产中间件，支持信创适配。
 
 * 官网地址：[https://www.ujcms.com](https://www.ujcms.com)
 * 下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)。提供安装包下载。

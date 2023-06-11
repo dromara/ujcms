@@ -106,9 +106,11 @@ public interface ArticleMapper {
      * @param id          文章ID
      * @param publishDate 文章发布时间
      * @param channelId   栏目ID
+     * @param status      状态
      * @return 下一条文章
      */
-    List<Article> findNext(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate, @Param("channelId") Integer channelId);
+    List<Article> findNext(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate,
+                           @Param("channelId") Integer channelId, @Param("status") Collection<Short> status);
 
     /**
      * 查询上一条文章
@@ -116,9 +118,11 @@ public interface ArticleMapper {
      * @param id          文章ID
      * @param publishDate 文章发布时间
      * @param channelId   栏目ID
+     * @param status      状态
      * @return 上一条文章
      */
-    List<Article> findPrev(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate, @Param("channelId") Integer channelId);
+    List<Article> findPrev(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate,
+                           @Param("channelId") Integer channelId, @Param("status") Collection<Short> status);
 
     /**
      * 根据 栏目ID 查询文章数量

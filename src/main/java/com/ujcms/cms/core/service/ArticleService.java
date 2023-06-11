@@ -311,7 +311,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     @Nullable
     public Article findNext(Integer id, OffsetDateTime publishDate, Integer channelId) {
         List<Article> list = PageMethod.offsetPage(0, 1, false).doSelectPage(() ->
-                mapper.findNext(id, publishDate, channelId));
+                mapper.findNext(id, publishDate, channelId, Collections.singleton(STATUS_PUBLISHED)));
         if (list.isEmpty()) {
             return null;
         }
@@ -321,7 +321,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     @Nullable
     public Article findPrev(Integer id, OffsetDateTime publishDate, Integer channelId) {
         List<Article> list = PageMethod.offsetPage(0, 1, false).doSelectPage(() ->
-                mapper.findPrev(id, publishDate, channelId));
+                mapper.findPrev(id, publishDate, channelId, Collections.singleton(STATUS_PUBLISHED)));
         if (list.isEmpty()) {
             return null;
         }

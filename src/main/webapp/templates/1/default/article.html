@@ -6,6 +6,8 @@
   <title>${article.title} - ${site.title}</title>
   <meta name="keywords" content="${article.seoKeywords}">
   <meta name="description" content="${article.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
@@ -16,6 +18,7 @@
 </head>
 <body>
 [#include 'inc_header.html'/]
+[#include 'inc_message_box.html'/]
 <div class="bg-gray-200">
   <div class="container">
     <nav class="row" aria-label="breadcrumb">
@@ -99,7 +102,7 @@
       </div>
       <script>
         function voteUp() {
-          axios.post('${api}/article/up/${article.id?c}').then(function (response) {
+          request.post('${api}/article/up/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经顶过一次！");
               return;
@@ -109,7 +112,7 @@
         }
 
         function voteDown() {
-          axios.post('${api}/article/down/${article.id?c}').then(function (response) {
+          request.post('${api}/article/down/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
               alert("你已经踩过一次！");
               return;

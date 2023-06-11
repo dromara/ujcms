@@ -295,7 +295,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "子栏目列表")
-    @JsonIncludeProperties({"id", "name", "url"})
+    @JsonIncludeProperties({"id", "name", "url", "image"})
     public List<Channel> getChildren() {
         return children;
     }

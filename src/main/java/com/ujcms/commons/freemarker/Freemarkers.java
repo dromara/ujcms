@@ -328,7 +328,7 @@ public class Freemarkers {
 
     public static void requireBody(@Nullable TemplateDirectiveBody body) {
         if (body == null) {
-            throw new RuntimeException("Missing body.");
+            throw new IllegalStateException("Missing body.");
         }
     }
 
@@ -361,4 +361,8 @@ public class Freemarkers {
 
     private static final String REQUIRED = "The '%s' parameter is required";
     private static final String NOT_MATCH = "The '%s' parameter cannot convert a '%s':";
+
+    private Freemarkers() {
+        throw new IllegalStateException("Utility class");
+    }
 }

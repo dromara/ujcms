@@ -75,6 +75,10 @@
         from ujcms_article t
         where t.id_ &lt;&gt; #{id} and t.channel_id_ = #{channelId}
         and (t.publish_date_ &gt; #{publishDate} or (t.publish_date_ = #{publishDate} and t.id_ &gt; #{id}))
+        <if test="status!=null and status.size>0">
+            and t.status_ in
+            <foreach collection="status" item="item" index="index" open="(" close=")" separator=",">#{item}</foreach>
+        </if>
         order by t.publish_date_, t.id_
     </select>
     <select id="findPrev" resultMap="ResultMap">
@@ -83,6 +87,10 @@
         from ujcms_article t
         where t.id_ &lt;&gt; #{id} and t.channel_id_ = #{channelId}
         and (t.publish_date_ &lt; #{publishDate} or (t.publish_date_ = #{publishDate} and t.id_ &lt; #{id}))
+        <if test="status!=null and status.size>0">
+            and t.status_ in
+            <foreach collection="status" item="item" index="index" open="(" close=")" separator=",">#{item}</foreach>
+        </if>
         order by t.publish_date_ desc, t.id_ desc
     </select>
     <select id="listByChannelId" resultMap="ResultMap">
