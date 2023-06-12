@@ -98,6 +98,7 @@ public class ViewCountService {
             SiteBufferMapper mapper = session.getMapper(SiteBufferMapper.class);
             batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateBatch, key -> {
                 SiteBuffer bean = new SiteBuffer();
+                bean.setId(key);
                 bean.setViews((long) map.get(key).get());
                 bean.setSelfViews((long) selfMap.computeIfAbsent(key, it -> new AtomicInteger()).get());
                 return bean;
@@ -115,6 +116,7 @@ public class ViewCountService {
             ChannelBufferMapper mapper = session.getMapper(ChannelBufferMapper.class);
             batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateBatch, key -> {
                 ChannelBuffer bean = new ChannelBuffer();
+                bean.setId(key);
                 bean.setViews((long) map.get(key).get());
                 bean.setSelfViews((long) selfMap.computeIfAbsent(key, it -> new AtomicInteger()).get());
                 return bean;
@@ -132,6 +134,7 @@ public class ViewCountService {
             ArticleBufferMapper mapper = session.getMapper(ArticleBufferMapper.class);
             batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateBatch, key -> {
                 ArticleBuffer bean = new ArticleBuffer();
+                bean.setId(key);
                 bean.setViews((long) map.get(key).get());
                 return bean;
             });

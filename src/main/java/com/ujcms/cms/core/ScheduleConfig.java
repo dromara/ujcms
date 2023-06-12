@@ -31,7 +31,7 @@ public class ScheduleConfig {
         this.viewCountService = viewCountService;
     }
 
-    @Scheduled(cron = "#{new java.util.Random().nextInt(25) + 5} * * * * *")
+    @Scheduled(cron = "#{new java.util.Random().nextInt(25) + 5} * * * * ?")
     public void flushViewCountTask() {
         viewCountService.flushSiteViews();
         viewCountService.flushChannelViews();

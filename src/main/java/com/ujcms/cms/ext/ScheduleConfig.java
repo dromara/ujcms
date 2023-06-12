@@ -34,7 +34,7 @@ public class ScheduleConfig {
      * <p>
      * 不需要集群。只在本机执行，而且每台机器都必须执行。
      */
-    @Scheduled(cron = "#{new java.util.Random().nextInt(25) + 5} * * * * *")
+    @Scheduled(cron = "#{new java.util.Random().nextInt(25) + 5} * * * * ?")
     public void flushVisitLogTask() {
         visitService.flushVisitLog();
     }
