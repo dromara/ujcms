@@ -1,5 +1,18 @@
 # UJCMS 发版说明
 
+## ujcms-7.0.3 (2023-06-14)
+
+* 修复MySQL8下，统计sql报错问题
+
+### 升级指南
+
+从7.0.0~7.0.2升级到7.0.3版本，需要先执行一下sql语句，再升级。
+
+```
+update DATABASECHANGELOG set MD5SUM = '8:41b14b415cc70a528d98b73d943d8b60' where ID = '1682691725814-4';
+update DATABASECHANGELOG set MD5SUM = '8:32a87d88754436b8a792928be2b193cd' where ID = '1682691725814-5';
+```
+
 ## ujcms-7.0.2 (2023-06-13)
 
 * 修复文章点击数不增长问题

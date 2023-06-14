@@ -30,7 +30,7 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: self_views_
                   remarks: 栏目页浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_channel_buffer
   - changeSet:
       id: 1682691725814-5
@@ -44,7 +44,7 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: self_views_
                   remarks: 首页浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_site_buffer
   - changeSet:
       id: 1682691725814-6
