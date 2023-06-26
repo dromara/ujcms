@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.lucene;
 
-import com.ujcms.commons.lucene.LuceneOperations;
 import com.ujcms.cms.core.lucene.domain.EsArticle;
+import com.ujcms.commons.lucene.LuceneOperations;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -9,12 +9,8 @@ import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.BoostQuery;
-import org.apache.lucene.search.NormsFieldExistsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.queryparser.classic.QueryParserBase;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
@@ -90,7 +86,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
         Operator operator = isOperatorAnd ? Operator.AND : Operator.OR;
         try {
             if (StringUtils.isNotBlank(q)) {
-                q = QueryParser.escape(q);
+                q = QueryParserBase.escape(q);
                 QueryParser titleParser = new QueryParser(TITLE, smartAnalyzer);
                 titleParser.setDefaultOperator(operator);
                 BooleanQuery.Builder sub = new BooleanQuery.Builder()
@@ -105,7 +101,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
             }
 
             if (channelId != null) {
-                bool.add(IntPoint.newExactQuery(isIncludeSubChannel ? EsArticle.CHANNEL_PATHS_ID : EsArticle.CHANNEL_ID, channelId),
+                bool.add(IntPoint.newExactQuery(isIncludeSubChannel ? CHANNEL_PATHS_ID : CHANNEL_ID, channelId),
                         Occur.MUST);
             } else if (siteId != null) {
                 bool.add(IntPoint.newExactQuery(isIncludeSubSite ? SITE_PATHS_ID : SITE_ID, siteId), Occur.MUST);
@@ -153,7 +149,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
             }
             return page;
         } catch (Exception e) {
-            throw new RuntimeException("Lucene parse exception", e);
+            throw new IllegalStateException("Lucene parse exception", e);
         }
     }
 
@@ -174,50 +170,50 @@ public class ArticleLuceneImpl implements ArticleLucene {
     }
 
     private static void queryMapQuery(BooleanQuery.Builder bool, @Nullable Map<String, Object> queryMap) {
-        if (queryMap != null) {
-            for (Map.Entry<String, Object> entry : queryMap.entrySet()) {
-                // 支持 i1-gt: 5 或 i2: 12
-                String[] fieldAndOperator = entry.getKey().split("-");
-                String field = fieldAndOperator[0];
-                Object obj = entry.getValue();
-                // 只支持两个字母，如 i1, n1, d2 等
-                if (field.length() > 2 || obj == null) {
-                    continue;
-                }
-                long value;
-                if (obj instanceof BigDecimal) {
-                    value = ((BigDecimal) obj).multiply(BigDecimal.valueOf(SCALING_FACTOR)).longValue();
-                } else if (obj instanceof Number) {
-                    value = ((Number) obj).longValue();
-                } else if (obj instanceof OffsetDateTime) {
-                    value = ((OffsetDateTime) obj).toInstant().toEpochMilli();
-                } else {
-                    throw new RuntimeException("Value type must be BigDecimal, Number, OffsetDateTime: "
-                            + obj.getClass().getName());
-                }
-                if (fieldAndOperator.length > 1) {
-                    String op = fieldAndOperator[1];
-                    switch (op) {
-                        case "gt":
-                            bool.add(LongPoint.newRangeQuery(field, value + 1, Long.MAX_VALUE), Occur.MUST);
-                            break;
-                        case "gte":
-                            bool.add(LongPoint.newRangeQuery(field, value, Long.MAX_VALUE), Occur.MUST);
-                            break;
-                        case "lt":
-                            bool.add(LongPoint.newRangeQuery(field, Long.MIN_VALUE, value - 1), Occur.MUST);
-                            break;
-                        case "lte":
-                            bool.add(LongPoint.newRangeQuery(field, Long.MIN_VALUE, value), Occur.MUST);
-                            break;
-                        default:
-                            throw new RuntimeException("Operator not support: " + op);
-                    }
-                } else {
-                    bool.add(LongPoint.newExactQuery(field, value), Occur.MUST);
-                }
+        if (queryMap == null) {
+            return;
+        }
+        for (Map.Entry<String, Object> entry : queryMap.entrySet()) {
+            // 支持 i1-gt: 5 或 i2: 12
+            String[] fieldAndOperator = entry.getKey().split("-");
+            String field = fieldAndOperator[0];
+            Object obj = entry.getValue();
+            // 只支持两个字母，如 i1, n1, d2 等
+            if (field.length() > 2 || obj == null) {
+                continue;
             }
-
+            long value;
+            if (obj instanceof BigDecimal) {
+                value = ((BigDecimal) obj).multiply(BigDecimal.valueOf(SCALING_FACTOR)).longValue();
+            } else if (obj instanceof Number) {
+                value = ((Number) obj).longValue();
+            } else if (obj instanceof OffsetDateTime) {
+                value = ((OffsetDateTime) obj).toInstant().toEpochMilli();
+            } else {
+                throw new IllegalStateException("Value type must be BigDecimal, Number, OffsetDateTime: "
+                        + obj.getClass().getName());
+            }
+            if (fieldAndOperator.length > 1) {
+                String op = fieldAndOperator[1];
+                switch (op) {
+                    case "gt":
+                        bool.add(LongPoint.newRangeQuery(field, value + 1, Long.MAX_VALUE), Occur.MUST);
+                        break;
+                    case "gte":
+                        bool.add(LongPoint.newRangeQuery(field, value, Long.MAX_VALUE), Occur.MUST);
+                        break;
+                    case "lt":
+                        bool.add(LongPoint.newRangeQuery(field, Long.MIN_VALUE, value - 1), Occur.MUST);
+                        break;
+                    case "lte":
+                        bool.add(LongPoint.newRangeQuery(field, Long.MIN_VALUE, value), Occur.MUST);
+                        break;
+                    default:
+                        throw new IllegalStateException("Operator not support: " + op);
+                }
+            } else {
+                bool.add(LongPoint.newExactQuery(field, value), Occur.MUST);
+            }
         }
     }
 }

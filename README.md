@@ -123,11 +123,10 @@ Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，�
 * Spring Boot：提供了对Spring开箱即用的功能。简化了Spring配置，提供自动配置auto-configuration功能。
 * Spring MVC：MVC框架，使用方便，Bug较少。
 * Spring Security：安全组件。
-* Mybatis：持久化框架。
-* FreeMarker：网站模板组件。
+* MyBatis：持久化框架。
 * Lucene：全文检索组件。
 
-## 前端技术
+## 后台前端技术
 
 * TypeScript: JavaScript的一个超集。
 * Vue3：JavaScript框架。
@@ -137,6 +136,20 @@ Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，�
 * VueRouter: Vue 路由组件。
 * VueI18n: Vue 国际化组件。
 * Tinymce: 富文本编辑器。
+
+## 网站前端技术
+
+网站前端技术可以使用传统的HTML（Freemarker），通过UJCMS提供的Freemarker的自定义标签获取数据；也可以使用前后端分离的vue或react，通过调用API获取数据。
+
+由于前后端分离的方式对搜索引擎不友好，对于需要通过搜索引擎推广的网站不建议采用。
+
+演示站使用传统的HTML（Freemarker），使用到以下一些技术：
+
+* Freemarker
+* HTML、CSS、JS
+* Bootstrap
+* JQuery
+* Axios
 
 ## 目录结构
 
@@ -149,7 +162,7 @@ Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，�
           * generator：生成功能（包括静态页生成，全文索引生成）
           * listener：监听类（包括数据删除的监听）
           * lucene：全文检索功能
-          * mapper：MyBateis Mapper Java 文件
+          * mapper：MyBatis Mapper Java 文件
           * security：安全相关功能
           * service：服务层功能
           * support：各种支持类

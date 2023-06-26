@@ -92,7 +92,8 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
         doc.add(new StoredField(CHANNEL_ID, getChannel().getId()));
         doc.add(new StoredField(CHANNEL_NAME, getChannel().getName()));
         doc.add(new StoredField(CHANNEL_URL, getChannel().getUrl()));
-        for (ChannelBaseInner bean : channel.paths) {
+        for (ChannelBaseInner bean : getChannel().getPaths()) {
+            doc.add(new IntPoint(CHANNEL_PATHS_ID, bean.getId()));
             doc.add(new StoredField(CHANNEL_PATHS_ID, bean.getId()));
             doc.add(new StoredField(CHANNEL_PATHS_NAME, bean.getName()));
             doc.add(new StoredField(CHANNEL_PATHS_URL, bean.getUrl()));
