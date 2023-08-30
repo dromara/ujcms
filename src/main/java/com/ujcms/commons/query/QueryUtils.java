@@ -268,8 +268,8 @@ public class QueryUtils {
         if (bool == null) {
             return null;
         }
-        // 数据库中使用数值类型（如：tinyint）代替布尔类型
-        return bool ? 1 : 0;
+        // 数据库中使用char(1)代替布尔类型
+        return bool ? "1" : "0";
     }
 
     @Nullable

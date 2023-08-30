@@ -10,7 +10,6 @@ import com.ujcms.commons.query.OffsetLimitRequest;
 import com.ujcms.commons.query.QueryUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -50,36 +49,34 @@ public class EsArticleController {
     }
 
     @Operation(summary = "获取文章列表")
-    @Parameters({
-            @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "结束发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-                    schema = @Schema(type = "string", format = "int32 array")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
-                    schema = @Schema(type = "integer", format = "int32")),
-    })
+    @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "结束发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
+            schema = @Schema(type = "string", format = "int32 array"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
+            schema = @Schema(type = "integer", format = "int32"))
     @GetMapping
     public List<EsArticle> list(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);
@@ -91,36 +88,34 @@ public class EsArticleController {
     }
 
     @Operation(summary = "获取文章分页")
-    @Parameters({
-            @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "接受发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-                    schema = @Schema(type = "string", format = "date-time")),
-            @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
-                    schema = @Schema(type = "string")),
-            @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-                    schema = @Schema(type = "string", format = "int32 array")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
-                    schema = @Schema(type = "boolean")),
-            @Parameter(in = ParameterIn.QUERY, name = "page", description = "第几页",
-                    schema = @Schema(type = "integer", format = "int32")),
-            @Parameter(in = ParameterIn.QUERY, name = "pageSize", description = "每页多少条数据。最大不能超过1000",
-                    schema = @Schema(type = "integer", format = "int32")),
-    })
+    @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "接受发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
+            schema = @Schema(type = "string", format = "date-time"))
+    @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
+            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
+            schema = @Schema(type = "string", format = "int32 array"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "page", description = "第几页",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "pageSize", description = "每页多少条数据。最大不能超过1000",
+            schema = @Schema(type = "integer", format = "int32"))
     @GetMapping("/page")
     public Page<EsArticle> page(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);

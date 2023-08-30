@@ -6,7 +6,6 @@ import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.directive.*;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.cms.ext.service.MessageBoardService;
 import com.ujcms.commons.freemarker.*;
 import com.ujcms.commons.ip.IpSeeker;
 import no.api.freemarker.java8.Java8ObjectWrapper;
@@ -35,15 +34,14 @@ public class ContextConfig implements InitializingBean {
     private final TagService tagService;
     private final DictService dictService;
     private final BlockItemService blockItemService;
-    private final MessageBoardService messageBoardService;
     private final freemarker.template.Configuration configuration;
     private final Props props;
     private final ResourceLoader resourceLoader;
 
     public ContextConfig(SiteService siteService, ChannelService channelService, ArticleLucene articleLucene,
                          ArticleService articleService, TagService tagService, DictService dictService,
-                         BlockItemService blockItemService, MessageBoardService messageBoardService,
-                         freemarker.template.Configuration configuration, Props props,ResourceLoader resourceLoader ) {
+                         BlockItemService blockItemService,
+                         freemarker.template.Configuration configuration, Props props, ResourceLoader resourceLoader) {
         this.siteService = siteService;
         this.channelService = channelService;
         this.articleLucene = articleLucene;
@@ -51,7 +49,6 @@ public class ContextConfig implements InitializingBean {
         this.tagService = tagService;
         this.dictService = dictService;
         this.blockItemService = blockItemService;
-        this.messageBoardService = messageBoardService;
         this.configuration = configuration;
         this.props = props;
         this.resourceLoader = resourceLoader;
@@ -72,8 +69,6 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("ArticleNext", new ArticleNextDirective(articleService));
         configuration.setSharedVariable("DictList", new DictListDirective(dictService));
         configuration.setSharedVariable("BlockItemList", new BlockItemListDirective(blockItemService));
-        configuration.setSharedVariable("MessageBoardList", new MessageBoardListDirective(messageBoardService));
-        configuration.setSharedVariable("MessageBoardPage", new MessageBoardPageDirective(messageBoardService));
         configuration.setSharedVariable("TagList", new TagListDirective(tagService));
         configuration.setSharedVariable("TagPage", new TagPageDirective(tagService));
 
@@ -89,6 +84,7 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("addParam", new AddParamMethod(Frontends.PAGE));
     }
 
+
     @Bean
     public SiteResolver siteResolver(SiteService siteService, ConfigService configService) {
         return new SiteResolver(siteService, configService);
@@ -96,7 +92,7 @@ public class ContextConfig implements InitializingBean {
 
     @Bean
     public IpSeeker ipSeeker() {
-        try(InputStream is = resourceLoader.getResource(props.getIp2regionPath()).getInputStream()){
+        try (InputStream is = resourceLoader.getResource(props.getIp2regionPath()).getInputStream()) {
             byte[] buff = IOUtils.toByteArray(is);
             return new IpSeeker(buff);
         } catch (IOException e) {

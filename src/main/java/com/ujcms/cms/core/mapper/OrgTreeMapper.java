@@ -26,10 +26,19 @@ public interface OrgTreeMapper extends TreeRelationMapper<OrgTree> {
     int countByOrgId(@Param("userOrgId") Integer userOrgId, @Param("siteOrgId") Integer siteOrgId);
 
     /**
+     * 查询是否存在上下级关系
+     *
+     * @param ancestorId   祖先ID
+     * @param descendantId 后代ID
+     * @return 上下级关系数量
+     */
+    int countByAncestorId(@Param("ancestorId") Integer ancestorId, @Param("descendantId") Integer descendantId);
+
+    /**
      * 获取后代ID
      *
      * @param ancestorId 祖先ID
      * @return 后代ID列表
      */
-    List<Integer> listByAncestorId(Integer ancestorId);
+    List<Integer> listByAncestorId(@Param("ancestorId") Integer ancestorId);
 }

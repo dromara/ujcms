@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="default" targetRuntime="com.ujcms.generator.mybatis.IntrospectedTableSimpleImpl">
+        <plugin type="com.ujcms.generator.mybatis.plugin.NamingPlugin"/>
+        <plugin type="com.ujcms.generator.mybatis.plugin.JavaAnnotationPlugin"/>
+        <commentGenerator>
+            <property name="suppressAllComments" value="true"/>
+            <!--<property name="addRemarkComments" value="true"/>-->
+        </commentGenerator>
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver" connectionURL="jdbc:mysql://localhost:3306/ujcms?serverTimezone=UTC"
+                        userId="ujcms" password="password"/>
+
+        <javaTypeResolver type="com.ujcms.generator.mybatis.Java8TypeResolver">
+            <property name="useJSR310Types" value="true"/>
+        </javaTypeResolver>
+
+        <javaModelGenerator targetPackage="com.ujcms.cms.ext.domain" targetProject="src/main/java">
+            <property name="swagger" value="true"/>
+        </javaModelGenerator>
+
+        <sqlMapGenerator targetPackage="com.ujcms.cms.ext.mapper" targetProject="src/main/resources"/>
+
+        <javaClientGenerator targetPackage="com.ujcms.cms.ext.mapper" targetProject="src/main/java" type="XMLMAPPER"/>
+
+        <table tableName="ujcms_message_board" domainObjectName="MessageBoard">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_visit_log" domainObjectName="VisitLog">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_visit_trend" domainObjectName="VisitTrend">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_visit_stat" domainObjectName="VisitStat">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_visit_page" domainObjectName="VisitPage">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_vote" domainObjectName="Vote"/>
+        <table tableName="ujcms_vote_option" domainObjectName="VoteOption">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_survey" domainObjectName="Survey">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_survey_item" domainObjectName="SurveyItem">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_survey_option" domainObjectName="SurveyOption">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_survey_feedback" domainObjectName="SurveyFeedback">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_survey_item_feedback" domainObjectName="SurveyItemFeedback">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_survey_option_feedback" domainObjectName="SurveyOptionFeedback">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_example" domainObjectName="Example"/>
+    </context>
+</generatorConfiguration>

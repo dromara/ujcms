@@ -81,12 +81,7 @@ public class ChannelController {
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/{id:[\\d]+}")
     public Channel show(@Parameter(description = "栏目ID") @PathVariable Integer id) {
-        Channel channel = channelService.select(id);
-        if (channel != null) {
-            channel.getPaths().forEach(channelService::fetchFirstData);
-            channel.getChildren().forEach(channelService::fetchFirstData);
-        }
-        return channel;
+        return channelService.select(id);
     }
 
     @Operation(summary = "获取栏目对象")
@@ -98,12 +93,7 @@ public class ChannelController {
         if (siteId == null) {
             siteId = siteResolver.resolve(request).getId();
         }
-        Channel channel = channelService.findBySiteIdAndAlias(siteId, alias);
-        if (channel != null) {
-            channel.getPaths().forEach(channelService::fetchFirstData);
-            channel.getChildren().forEach(channelService::fetchFirstData);
-        }
-        return channel;
+        return channelService.findBySiteIdAndAlias(siteId, alias);
     }
 
     @Operation(summary = "获取栏目浏览次数")

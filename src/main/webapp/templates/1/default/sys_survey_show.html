@@ -1,0 +1,100 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${survey.title} - ${site.title}</title>
+  <meta name="keywords" content="${site.seoKeywords}">
+  <meta name="description" content="${site.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item"><a href="${dy}/survey">调查问卷</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-4">
+  <h3>${survey.title}</h3>
+  <div class="mt-2 pb-2 border-bottom text-muted">
+    <div>
+      <span>${format(survey.created, 'yyyy-MM-dd HH:mm')}</span>
+      [#if survey.status == 0]
+      <span class="ml-2 badge badge-success">进行中</span>
+      [#elseif survey.status == 1]
+      <span class="ml-2 badge badge-secondary">未启用</span>
+      [#elseif survey.status == 2]
+      <span class="ml-2 badge badge-warning">未开始</span>
+      [#elseif survey.status == 3]
+      <span class="ml-2 badge badge-info">已结束</span>
+      [#else]
+      <span class="ml-2 badge badge-danger">未知状态</span>
+      [/#if]
+      <i class="ml-2 fas fa-vote-yea text-primary" title="参与人次"></i> <span>${survey.times}</span>
+    </div>
+    [#if survey.description??]
+    <div class="mt-2 small">${survey.description}</div>
+    [/#if]
+  </div>
+  <form id="surveyForm" action="${api}/survey/cast" method="post">
+    [#list survey.items as item]
+    <div class="mt-4"><span>${item_index+1}.</span><label class="ml-3" for="item-${item.id?c}-essay">${item.title}</label><span class="text-warning">（必选）</span></div>
+    <div class="ml-4">
+      [#if item.essay]
+      <div class="mt-2">
+        <textarea id="item-${item.id?c}-essay" name="items[${item.id?c}]" class="form-control" rows="3" required></textarea>
+      </div>
+      [#else]
+      <div class="small check-group">
+        [#list item.options as option]
+        <div class="form-check mt-2 text-muted ">
+          <input class="form-check-input" type="${item.multiple?string('checkbox','radio')}" name="items[${item.id?c}]" id="survey-${item.id?c}-${option_index?c}" value="${option.id?c}" required>
+          <label class="form-check-label" for="survey-${item.id?c}-${option_index?c}">
+            ${option.title}
+          </label>
+        </div>
+        [/#list]
+      </div>
+      [/#if]
+    </div>
+    [/#list]
+    <input type="hidden" name="id" value="${survey.id?c}">
+    <div class="mt-4 text-center">
+      <button type="submit" class="btn btn-primary btn-sm">提交</button>
+      <a href="${dy}/survey/${survey.id?c}/result" class="ml-2 btn btn-outline-danger btn-sm">查看结果</a>
+    </div>
+  </form>
+  <script>
+    $('#surveyForm').validate({
+      submitHandler: function (form) {
+        request.post(form.action, $(form).serializeJSON()).then(function (response) {
+          var data = response.data;
+          if (data.status === 0) {
+            displayAlert('提交成功');
+            $('#surveyForm')[0].reset();
+          } else if (data.message) {
+            displayAlert(data.message);
+            $('#surveyForm')[0].reset();
+          }
+        });
+      }
+    });
+  </script>
+</div>
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+</body>
+</html>
+[/#escape]

@@ -12,6 +12,7 @@ import com.ujcms.commons.web.Dates;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -81,14 +82,15 @@ public class ViewCountService {
         }
     }
 
-    public long viewSite(Integer id) {
+    @Nullable
+    public SiteBuffer viewSite(Integer id) {
         SiteBuffer siteBuffer = siteBufferService.select(id);
         if (siteBuffer == null) {
-            return 0;
+            return null;
         }
         getCurrentSiteViewsMap().computeIfAbsent(id, key -> new AtomicInteger()).incrementAndGet();
         getCurrentSiteSelfViewsMap().computeIfAbsent(id, key -> new AtomicInteger()).incrementAndGet();
-        return siteBuffer.getSelfViews();
+        return siteBuffer;
     }
 
     public void flushSiteViews() {
@@ -174,22 +176,22 @@ public class ViewCountService {
         LocalDate quarter = day.withDayOfYear(Dates.dayOfQuarter(day));
         LocalDate year = day.withDayOfYear(1);
         GlobalViewCount viewCount = globalService.selectGlobalDataOrInit(new GlobalViewCount(), GlobalViewCount.class);
-        if (viewCount.getDay().compareTo(day) < 1) {
+        if (viewCount.getDay().compareTo(day) < 0) {
             // 日需要更新，则全部更新。先更新全局数据，避免其它集群节点也同时进行更新。
             globalService.updateGlobalData(new GlobalViewCount(day, week, month, quarter, year));
             siteBufferService.updateStat();
             articleBufferService.resetDayViews();
         }
-        if (viewCount.getWeek().compareTo(week) < 1) {
+        if (viewCount.getWeek().compareTo(week) < 0) {
             articleBufferService.resetWeekViews();
         }
-        if (viewCount.getMonth().compareTo(month) < 1) {
+        if (viewCount.getMonth().compareTo(month) < 0) {
             articleBufferService.resetMonthViews();
         }
-        if (viewCount.getQuarter().compareTo(quarter) < 1) {
+        if (viewCount.getQuarter().compareTo(quarter) < 0) {
             articleBufferService.resetQuarterViews();
         }
-        if (viewCount.getYear().compareTo(year) < 1) {
+        if (viewCount.getYear().compareTo(year) < 0) {
             articleBufferService.resetYearViews();
         }
     }

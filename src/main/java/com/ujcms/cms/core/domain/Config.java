@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ConfigBase;
 import com.ujcms.cms.core.support.Constants;
+import com.ujcms.cms.core.support.StaticProps;
 import com.ujcms.commons.file.*;
 import com.ujcms.commons.web.PathResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -355,6 +356,10 @@ public class Config extends ConfigBase implements Serializable {
 
     public void setFilesExtensionBlacklist(String filesExtensionBlacklist) {
         this.filesExtensionBlacklist = filesExtensionBlacklist;
+    }
+
+    public int getEpRank() {
+        return StaticProps.getEpRank();
     }
 
     /**

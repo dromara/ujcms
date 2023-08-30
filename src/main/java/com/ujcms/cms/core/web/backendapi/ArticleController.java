@@ -3,13 +3,14 @@ package com.ujcms.cms.core.web.backendapi;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
-import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.Role;
-import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.generator.HtmlGenerator;
 import com.ujcms.cms.core.service.ArticleService;
+import com.ujcms.cms.core.service.ErrorWordService;
+import com.ujcms.cms.core.service.SensitiveWordService;
 import com.ujcms.cms.core.service.args.ArticleArgs;
+import com.ujcms.cms.core.service.args.ErrorWordArgs;
+import com.ujcms.cms.core.service.args.SensitiveWordArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.cms.core.web.support.ValidUtils;
@@ -19,18 +20,12 @@ import com.ujcms.commons.web.Responses.Body;
 import com.ujcms.commons.web.Servlets;
 import com.ujcms.commons.web.Views;
 import com.ujcms.commons.web.exception.Http400Exception;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -55,10 +50,15 @@ import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 public class ArticleController {
     private final HtmlGenerator generator;
     private final ArticleService service;
+    private final ErrorWordService errorWordService;
+    private final SensitiveWordService sensitiveWordService;
 
-    public ArticleController(HtmlGenerator generator, ArticleService service) {
+    public ArticleController(HtmlGenerator generator, ArticleService service,
+                             ErrorWordService errorWordService, SensitiveWordService sensitiveWordService) {
         this.generator = generator;
         this.service = service;
+        this.errorWordService = errorWordService;
+        this.sensitiveWordService = sensitiveWordService;
     }
 
     @GetMapping
@@ -100,13 +100,13 @@ public class ArticleController {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         Article article = new Article();
-        Entities.copy(bean, article, "siteId", "srcId", "orgId", "userId", "modifiedUserId",
-                "withImage", "sticky", "inputType", "type");
+        Entities.copy(bean, article, EXCLUDE_FIELDS);
         article.setSiteId(site.getId());
         // 如果不为草稿，就设置为已发布。不能为其它状态。
         if (article.getStatus() != Article.STATUS_DRAFT) {
             article.setStatus(Article.STATUS_PUBLISHED);
         }
+        validateBean(article.getExt());
         service.insert(article, article.getExt(), user.getId(), user.getOrgId(),
                 bean.getTagNames(), bean.getCustoms());
         if (site.getHtml().isAuto()) {
@@ -128,10 +128,9 @@ public class ArticleController {
         }
         ValidUtils.dataInSite(article.getSiteId(), site.getId());
         Integer origChannelId = article.getChannelId();
-        Entities.copy(bean, article, "siteId", "srcId", "orgId", "userId", "modifiedUserId",
-                "withImage", "sticky", "inputType", "type", "status");
-        service.update(article, article.getExt(), user.getId(),
-                bean.getTagNames(), bean.getCustoms());
+        Entities.copy(bean, article, EXCLUDE_FIELDS);
+        validateBean(article.getExt());
+        service.update(article, article.getExt(), user.getId(), bean.getTagNames(), bean.getCustoms());
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.articleRelated");
             generator.updateArticleRelatedHtml(article.getSiteId(), user.getId(), taskName,
@@ -268,4 +267,24 @@ public class ArticleController {
         }
         return Responses.ok();
     }
+
+    private void validateBean(ArticleExt ext) {
+        String text = ext.getText();
+        if (StringUtils.isNotBlank(text)) {
+            for (ErrorWord bean : errorWordService.selectList(ErrorWordArgs.of().enabled(true))) {
+                if (text.contains(bean.getName())) {
+                    throw new Http400Exception("error word: " + bean.getName());
+                }
+            }
+            for (SensitiveWord bean : sensitiveWordService.selectList(SensitiveWordArgs.of().enabled(true))) {
+                if (text.contains(bean.getName())) {
+                    throw new Http400Exception("sensitive word: " + bean.getName());
+                }
+            }
+        }
+    }
+
+    private static final String[] EXCLUDE_FIELDS = {"siteId", "srcId", "orgId", "userId", "modifiedUserId",
+            "withImage", "sticky", "inputType", "type", "status", "created", "modified",
+            "processInstanceId", "rejectReason", "baiduPush", "staticFile", "mobileStaticFile"};
 }

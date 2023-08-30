@@ -1,9 +1,6 @@
 package com.ujcms.cms.core.web.support;
 
-import com.ujcms.commons.web.exception.Http400Exception;
-import com.ujcms.commons.web.exception.Http404Exception;
-import com.ujcms.commons.web.exception.LogicException;
-import com.ujcms.commons.web.exception.MessagedException;
+import com.ujcms.commons.web.exception.*;
 import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
 import org.springframework.web.context.WebApplicationContext;
@@ -35,6 +32,12 @@ public class ExceptionResolver extends AbstractHandlerExceptionResolver {
                 return new ModelAndView();
             } else if (ex instanceof LogicException || ex instanceof Http400Exception) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, getMessage(ex, request));
+                return new ModelAndView();
+            } else if (ex instanceof Http409Exception) {
+                response.sendError(HttpServletResponse.SC_CONFLICT, getMessage(ex, request));
+                return new ModelAndView();
+            } else if (ex instanceof Http410Exception) {
+                response.sendError(HttpServletResponse.SC_GONE, getMessage(ex, request));
                 return new ModelAndView();
             }
         } catch (Exception handlerEx) {

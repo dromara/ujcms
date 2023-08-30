@@ -91,10 +91,10 @@ public class VisitStatBase implements Serializable {
     private String dateString = "";
 
     /**
-     * 统计类型(1:新老客户,2:来源,3:国家,4:省份,5:设备,6:操作系统,7:浏览器)
+     * 统计类型(1:新老客户,2:来源,3:国家,4:省份,5:设备,6:操作系统,7:浏览器,8:来源类型)
      */
     @NotNull
-    @Schema(description="统计类型(1:新老客户,2:来源,3:国家,4:省份,5:设备,6:操作系统,7:浏览器)")
+    @Schema(description="统计类型(1:新老客户,2:来源,3:国家,4:省份,5:设备,6:操作系统,7:浏览器,8:来源类型)")
     private Short type = 1;
 
     public Integer getId() {

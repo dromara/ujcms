@@ -1,0 +1,72 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${vote.title} - 投票结果 - ${site.title}</title>
+  <meta name="keywords" content="${site.seoKeywords}">
+  <meta name="description" content="${site.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item"><a href="${dy}/vote">投票</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-4">
+  <h3>${vote.title}</h3>
+  <div class="mt-2 pb-2 border-bottom text-muted">
+    <div>
+      <span>${format(vote.created, 'yyyy-MM-dd HH:mm')}</span>
+      [#if vote.status == 0]
+      <span class="ml-2 badge badge-success">进行中</span>
+      [#elseif vote.status == 1]
+      <span class="ml-2 badge badge-secondary">未启用</span>
+      [#elseif vote.status == 2]
+      <span class="ml-2 badge badge-warning">未开始</span>
+      [#elseif vote.status == 3]
+      <span class="ml-2 badge badge-info">已结束</span>
+      [#else]
+      <span class="ml-2 badge badge-danger">未知状态</span>
+      [/#if]
+      <i class="ml-2 fas fa-vote-yea text-primary" title="参与人次"></i> <span>${vote.times}</span>
+    </div>
+    [#if vote.description??]
+    <div class="mt-2 small">${vote.description}</div>
+    [/#if]
+  </div>
+  <div class="mt-3 small text-muted check-group">
+    [#list vote.options as option]
+    <div class="mt-2 d-flex align-items-center">
+      <div class="flex-grow-1"><span>${(option_index+1)?upper_abc}.</span><span class="ml-2">${option.title}</span></div>
+      <div class="text-right mr-4">${option.count} 票</div>
+      <div class="progress" style="width:200px;">
+        <div class="progress-bar bg-warning" role="progressbar" style="width: ${option.percent?round}%" aria-valuenow="${option.percent}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <div class="text-right" style="width:60px;">${option.percent?string('0.0')}%</div>
+    </div>
+    [/#list]
+  </div>
+  <input type="hidden" name="id" value="${vote.id?c}">
+  <div class="mt-4 text-center">
+    <a href="${dy}/vote/${vote.id?c}" class="ml-2 btn btn-outline-danger btn-sm">参与投票</a>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+</body>
+</html>
+[/#escape]

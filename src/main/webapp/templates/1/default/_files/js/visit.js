@@ -121,8 +121,8 @@
         const visitStart = getStartTime();
         if (opens <= 0 && visitStart != null) {
             const duration = Math.floor((Date.now() - parseInt(visitStart)) / 1000);
+            // 保存浏览时长，清除开始时间
             setDuration(getDuration() + duration);
-            // 清除开始时间
             setStartTime(null);
             // 设置隐藏时间
             setHiddenTime(Date.now());
@@ -151,25 +151,48 @@
             decodeURI('&count=') + count;
     }
 
-    // 发送请求
-    function sendRequest() {
-        const xhr = new XMLHttpRequest();
-        const formData = new FormData();
-        formData.append(csrfName, csrfValue);
-        xhr.open('POST', getVisitUrl(1), false);
-        xhr.send(formData);
+    function fetchCsrf(callback) {
+        if (!csrfName || !csrfValue) {
+            axios.get(visitDy + '/app/csrf').then(function (response) {
+                if (response.data) {
+                    const arr = response.data.split(',');
+                    if (arr.length >=3) {
+                        csrfName = arr[0].trim();
+                        csrfValue = arr[2].trim();
+                    }
+                }
+                callback();
+            });
+        } else {
+            callback();
+        }
     }
 
-    plusOpens();
+    // 发送请求
+    function sendRequest() {
+        fetchCsrf(function () {
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData();
+            formData.append(csrfName, csrfValue);
+            xhr.open('POST', getVisitUrl(1), false);
+            xhr.send(formData);
+        });
+    }
+
     document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'hidden') {
             minusOpens();
-            const formData = new FormData();
-            formData.append(csrfName, csrfValue);
-            navigator.sendBeacon(getVisitUrl(0), formData);
+            fetchCsrf(function () {
+                const formData = new FormData();
+                formData.append(csrfName, csrfValue);
+                navigator.sendBeacon(getVisitUrl(0), formData);
+            });
         } else if (document.visibilityState === 'visible') {
             plusOpens();
         }
     });
+    if (document.visibilityState === 'visible') {
+        plusOpens();
+    }
     sendRequest();
 }());

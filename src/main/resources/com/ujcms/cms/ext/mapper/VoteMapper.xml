@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.VoteMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Vote">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="title_" jdbcType="VARCHAR" property="title" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="begin_date_" jdbcType="TIMESTAMP" property="beginDate" />
+    <result column="end_date_" jdbcType="TIMESTAMP" property="endDate" />
+    <result column="order_date_" jdbcType="TIMESTAMP" property="orderDate" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="interval_" jdbcType="INTEGER" property="interval" />
+    <result column="times_" jdbcType="INTEGER" property="times" />
+    <result column="mode_" jdbcType="SMALLINT" property="mode" />
+    <result column="multiple_" jdbcType="CHAR" property="multiple" />
+    <result column="enabled_" jdbcType="CHAR" property="enabled" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Vote">
+        <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.ext.domain.VoteOption" property="options" select="com.ujcms.cms.ext.mapper.VoteOptionMapper.listByVoteId" />
+    </resultMap>
+    <update id="cast">
+        update ujcms_vote
+        set times_ = times_ + 1
+        where id_ = #{id,jdbcType=INTEGER}
+    </update>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_vote
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_vote" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_vote t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete
+        from ujcms_vote
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.Vote">
+    update ujcms_vote
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      title_ = #{title,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      end_date_ = #{endDate,jdbcType=TIMESTAMP},
+      order_date_ = #{orderDate,jdbcType=TIMESTAMP},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      interval_ = #{interval,jdbcType=INTEGER},
+      times_ = #{times,jdbcType=INTEGER},
+      mode_ = #{mode,jdbcType=SMALLINT},
+      multiple_ = #{multiple,jdbcType=CHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Vote">
+    insert into ujcms_vote (id_, site_id_, title_, description_, begin_date_, end_date_, order_date_, created_, interval_, times_, mode_, multiple_, enabled_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{orderDate,jdbcType=TIMESTAMP}, #{created,jdbcType=TIMESTAMP}, #{interval,jdbcType=INTEGER}, #{times,jdbcType=INTEGER}, #{mode,jdbcType=SMALLINT}, #{multiple,jdbcType=CHAR}, #{enabled,jdbcType=CHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.title_, t.description_, t.begin_date_, t.end_date_, t.order_date_, t.created_, t.interval_, t.times_, t.mode_, t.multiple_, t.enabled_
+  </sql></mapper>

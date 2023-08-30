@@ -71,11 +71,43 @@ public class ChannelBase implements Serializable {
     private String alias = "";
 
     /**
-     * 是否导航菜单
+     * 类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一个子栏目)
      */
     @NotNull
-    @Schema(description="是否导航菜单")
-    private Boolean nav = true;
+    @Schema(description="类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一个子栏目)")
+    private Short type = 1;
+
+    /**
+     * 文章模板
+     */
+    @Length(max = 255)
+    @Nullable
+    @Schema(description="文章模板")
+    private String articleTemplate;
+
+    /**
+     * 栏目模板
+     */
+    @Length(max = 255)
+    @Nullable
+    @Schema(description="栏目模板")
+    private String channelTemplate;
+
+    /**
+     * 图片
+     */
+    @Length(max = 255)
+    @Nullable
+    @Schema(description="图片")
+    private String image;
+
+    /**
+     * 转向链接地址
+     */
+    @Length(max = 255)
+    @Nullable
+    @Schema(description="转向链接地址")
+    private String linkUrl;
 
     /**
      * 流程标识
@@ -86,11 +118,18 @@ public class ChannelBase implements Serializable {
     private String processKey;
 
     /**
-     * 类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一篇文章,5:链接到第一个子栏目)
+     * 是否新窗口打开
      */
     @NotNull
-    @Schema(description="类型(1:常规栏目,2:单页栏目,3:转向链接,4:链接到第一篇文章,5:链接到第一个子栏目)")
-    private Short type = 1;
+    @Schema(description="是否新窗口打开")
+    private Boolean targetBlank = false;
+
+    /**
+     * 是否导航菜单
+     */
+    @NotNull
+    @Schema(description="是否导航菜单")
+    private Boolean nav = true;
 
     /**
      * 层级
@@ -163,12 +202,48 @@ public class ChannelBase implements Serializable {
         this.alias = alias;
     }
 
-    public Boolean getNav() {
-        return nav;
+    public Short getType() {
+        return type;
     }
 
-    public void setNav(Boolean nav) {
-        this.nav = nav;
+    public void setType(Short type) {
+        this.type = type;
+    }
+
+    @Nullable
+    public String getArticleTemplate() {
+        return articleTemplate;
+    }
+
+    public void setArticleTemplate(@Nullable String articleTemplate) {
+        this.articleTemplate = articleTemplate;
+    }
+
+    @Nullable
+    public String getChannelTemplate() {
+        return channelTemplate;
+    }
+
+    public void setChannelTemplate(@Nullable String channelTemplate) {
+        this.channelTemplate = channelTemplate;
+    }
+
+    @Nullable
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(@Nullable String image) {
+        this.image = image;
+    }
+
+    @Nullable
+    public String getLinkUrl() {
+        return linkUrl;
+    }
+
+    public void setLinkUrl(@Nullable String linkUrl) {
+        this.linkUrl = linkUrl;
     }
 
     @Nullable
@@ -180,12 +255,20 @@ public class ChannelBase implements Serializable {
         this.processKey = processKey;
     }
 
-    public Short getType() {
-        return type;
+    public Boolean getTargetBlank() {
+        return targetBlank;
     }
 
-    public void setType(Short type) {
-        this.type = type;
+    public void setTargetBlank(Boolean targetBlank) {
+        this.targetBlank = targetBlank;
+    }
+
+    public Boolean getNav() {
+        return nav;
+    }
+
+    public void setNav(Boolean nav) {
+        this.nav = nav;
     }
 
     public Short getDepth() {

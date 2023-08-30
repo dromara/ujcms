@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.mapper;
 
+import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
@@ -41,6 +42,15 @@ public interface UserMapper {
      * @return 删除条数
      */
     int delete(Integer id);
+
+    /**
+     * 根据主键获取引用对象（不包括关联对象属性）
+     *
+     * @param id 主键ID
+     * @return 实体对象。没有找到数据，则返回 {@code null}
+     */
+    @Nullable
+    Org selectRefer(Integer id);
 
     /**
      * 根据主键获取数据

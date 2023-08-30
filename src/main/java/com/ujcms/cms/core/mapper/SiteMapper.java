@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.mapper;
 
+import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.commons.db.tree.TreeEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
@@ -18,6 +19,15 @@ import java.util.List;
 @Mapper
 @Repository
 public interface SiteMapper extends TreeEntityMapper<Site> {
+    /**
+     * 根据主键获取引用对象（不包括关联对象属性）
+     *
+     * @param id 主键ID
+     * @return 实体对象。没有找到数据，则返回 {@code null}
+     */
+    @Nullable
+    Site selectRefer(Integer id);
+
     /**
      * 根据查询条件获取列表
      *

@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ArticleBufferService;
 import com.ujcms.cms.core.service.ArticleService;
+import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.GroupService;
 import com.ujcms.cms.core.support.*;
 import com.ujcms.cms.core.web.support.SiteResolver;
@@ -43,16 +44,18 @@ import static com.ujcms.cms.core.web.api.ArticleController.checkAccessPermission
 public class ArticleController {
     private final ArticleBufferService bufferService;
     private final ArticleService articleService;
+    private final ChannelService channelService;
     private final GroupService groupService;
     private final SiteResolver siteResolver;
     private final PathResolver pathResolver;
     private final Props props;
 
     public ArticleController(ArticleBufferService bufferService, ArticleService articleService,
-                             GroupService groupService,
+                             ChannelService channelService, GroupService groupService,
                              SiteResolver siteResolver, PathResolver pathResolver, Props props) {
         this.bufferService = bufferService;
         this.articleService = articleService;
+        this.channelService = channelService;
         this.groupService = groupService;
         this.siteResolver = siteResolver;
         this.pathResolver = pathResolver;
@@ -74,7 +77,7 @@ public class ArticleController {
             return "redirect:" + article.getUrl();
         }
         modelMap.put("article", article);
-        modelMap.put("channel", article.getChannel());
+        modelMap.put("channel", channelService.select(article.getChannelId()));
         modelMap.put(PAGE, Constants.validPage(page));
         modelMap.put(PAGE_URL_RESOLVER, article);
         return article.getTemplate();
@@ -96,7 +99,8 @@ public class ArticleController {
         }
         User user = Contexts.findCurrentUser();
         Article article = validateArticle(id, site, user);
-        String fileUrl, fileName;
+        String fileUrl;
+        String fileName;
         if (index != null) {
             List<Article.ArticleFile> fileList = article.getFileList();
             if (index >= fileList.size()) {

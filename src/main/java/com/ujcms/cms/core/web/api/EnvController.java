@@ -48,7 +48,7 @@ public class EnvController {
     public Map<String, Object> currentUser() {
         User user = Optional.ofNullable(Contexts.findCurrentUser()).filter(User::isEnabled).orElse(null);
         if (user == null) {
-            return null;
+            return Collections.emptyMap();
         }
         Map<String, Object> result = new HashMap<>(16);
         result.put("username", user.getUsername());

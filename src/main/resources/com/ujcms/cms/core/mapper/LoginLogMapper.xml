@@ -12,6 +12,11 @@
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.LoginLog">
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
     </resultMap>
+    <delete id="deleteByUserId" parameterType="int">
+        delete
+        from ujcms_login_log
+        where user_id_ = #{userId,jdbcType=INTEGER}
+    </delete>
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

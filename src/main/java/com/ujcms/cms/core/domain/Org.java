@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,14 +39,6 @@ public class Org extends OrgBase implements TreeEntity, Serializable {
         return getPaths().stream().map(OrgBase::getName).collect(Collectors.toList());
     }
 
-    public List<Org> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<Org> children) {
-        this.children = children;
-    }
-
     @Nullable
     @Override
     public Org getParent() {
@@ -58,29 +49,12 @@ public class Org extends OrgBase implements TreeEntity, Serializable {
         this.parent = parent;
     }
 
-    public List<Integer> getDescendants() {
-        return descendants;
-    }
-
-    public void setDescendants(List<Integer> descendants) {
-        this.descendants = descendants;
-    }
-
-    /**
-     * 下级组织列表
-     */
-    @JsonIgnore
-    private List<Org> children = new ArrayList<>();
     /**
      * 上级组织
      */
+    @JsonIgnore
     @Nullable
     private Org parent;
-    /**
-     * 所有下级组织ID列表
-     */
-    @JsonIgnore
-    private List<Integer> descendants = new ArrayList<>();
     /**
      * 前台会员默认组织ID
      */

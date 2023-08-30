@@ -2,6 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.ujcms.cms.core.domain.Group;
 import com.ujcms.cms.core.domain.GroupAccess;
+import com.ujcms.cms.core.domain.base.GroupBase;
 import com.ujcms.cms.core.listener.GroupDeleteListener;
 import com.ujcms.cms.core.mapper.GroupAccessMapper;
 import com.ujcms.cms.core.mapper.GroupMapper;
@@ -87,8 +88,13 @@ public class GroupService {
     }
 
     public List<Group> selectList(GroupArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Group.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GroupBase.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
+    }
+
+    public List<Group> listNotAllAccessPermission() {
+        GroupArgs args = GroupArgs.of().allAccessPermission(false);
+        return selectList(args);
     }
 
     public List<Integer> listAccessPermissions(Integer groupId, @Nullable Integer siteId) {

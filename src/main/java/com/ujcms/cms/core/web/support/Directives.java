@@ -142,8 +142,13 @@ public class Directives {
         for (Map.Entry<String, TemplateModel> param : params.entrySet()) {
             String name = param.getKey();
             TemplateModel value = param.getValue();
-            if (name.startsWith(QUERY_PREFIX)) {
-                queryMap.put(name.substring(QUERY_PREFIX.length()), Freemarkers.getString(value));
+            if (name.equals(QUERY_PREFIX)) {
+                queryMap.putAll(Freemarkers.getStringMap(params.get(QUERY_PREFIX)));
+            } else if (name.startsWith(QUERY_PREFIX)) {
+                // Freemarker 标签参数不支持 @ 和 -，用 $ 代替 @ ，用 __ 代替 -
+                name = name.substring(QUERY_PREFIX.length())
+                        .replace("$", "@").replace("__", "-");
+                queryMap.put(name, Freemarkers.getString(value));
             }
         }
         return queryMap;

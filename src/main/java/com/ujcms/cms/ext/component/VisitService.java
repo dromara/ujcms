@@ -1,5 +1,6 @@
 package com.ujcms.cms.ext.component;
 
+import com.ujcms.cms.core.service.GlobalService;
 import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.VisitLog;
 import com.ujcms.cms.ext.domain.VisitPage;
@@ -9,6 +10,7 @@ import com.ujcms.cms.ext.domain.base.VisitLogBase;
 import com.ujcms.cms.ext.domain.base.VisitPageBase;
 import com.ujcms.cms.ext.domain.base.VisitStatBase;
 import com.ujcms.cms.ext.domain.base.VisitTrendBase;
+import com.ujcms.cms.ext.domain.global.GlobalVisitorCount;
 import com.ujcms.cms.ext.mapper.VisitLogMapper;
 import com.ujcms.cms.ext.mapper.VisitPageMapper;
 import com.ujcms.cms.ext.mapper.VisitStatMapper;
@@ -46,16 +48,18 @@ public class VisitService {
     private final VisitStatService visitStatService;
     private final VisitPageService visitPageService;
     private final VisitTrendService visitTrendService;
+    private final GlobalService globalService;
     private final SeqService seqService;
     private final SqlSessionTemplate sqlSessionTemplate;
 
     public VisitService(VisitLogService visitLogService, VisitStatService visitStatService,
                         VisitPageService visitPageService, VisitTrendService visitTrendService,
-                        SeqService seqService, SqlSessionTemplate sqlSessionTemplate) {
+                        GlobalService globalService, SeqService seqService, SqlSessionTemplate sqlSessionTemplate) {
         this.visitLogService = visitLogService;
         this.visitStatService = visitStatService;
         this.visitPageService = visitPageService;
         this.visitTrendService = visitTrendService;
+        this.globalService = globalService;
         this.seqService = seqService;
         this.sqlSessionTemplate = sqlSessionTemplate;
     }
@@ -74,6 +78,7 @@ public class VisitService {
         updateVisitStat(VisitStat.TYPE_DEVICE, startOfDay);
         updateVisitStat(VisitStat.TYPE_OS, startOfDay);
         updateVisitStat(VisitStat.TYPE_BROWSER, startOfDay);
+        updateVisitStat(VisitStat.TYPE_SOURCE_TYPE, startOfDay);
         updateVisitPageByUrl(startOfDay);
         updateVisitPageByEntryUrl(startOfDay);
         updateVisitTrendByDay(startOfDay);
@@ -92,6 +97,12 @@ public class VisitService {
             startOfMonth = startOfMonth.minusMonths(1);
         }
         updateVisitTrendByMonth(startOfMonth);
+    }
+
+    public void updateOnlineVisitors() {
+        int onlineMinutes = 20;
+        int onlineVisitors = visitLogService.countVisitors(OffsetDateTime.now().minusMinutes(onlineMinutes));
+        globalService.updateGlobalData(new GlobalVisitorCount(onlineVisitors));
     }
 
     public void deleteStatHistory() {

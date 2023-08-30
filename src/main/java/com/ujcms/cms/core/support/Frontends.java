@@ -81,11 +81,11 @@ public class Frontends {
 
     public static void setDate(Map<String, Object> dataModel, Site site, Site defaultSite, String url, int page,
                                @Nullable PageUrlResolver pageUrlResolver) {
-        dataModel.put(FreemarkerServlet.KEY_APPLICATION, Collections.EMPTY_MAP);
-        dataModel.put(FreemarkerServlet.KEY_SESSION, Collections.EMPTY_MAP);
-        dataModel.put(FreemarkerServlet.KEY_REQUEST, Collections.EMPTY_MAP);
-        dataModel.put(FreemarkerServlet.KEY_REQUEST_PARAMETERS, Collections.EMPTY_MAP);
-        dataModel.put(PARAMS, Collections.EMPTY_MAP);
+        dataModel.put(FreemarkerServlet.KEY_APPLICATION, Collections.emptyMap());
+        dataModel.put(FreemarkerServlet.KEY_SESSION, Collections.emptyMap());
+        dataModel.put(FreemarkerServlet.KEY_REQUEST, Collections.emptyMap());
+        dataModel.put(FreemarkerServlet.KEY_REQUEST_PARAMETERS, Collections.emptyMap());
+        dataModel.put(PARAMS, Collections.emptyMap());
         dataModel.put(CTX, Optional.ofNullable(site.getConfig().getContextPath()).orElse(""));
         dataModel.put(DY, site.getDy());
         dataModel.put(DEF, defaultSite.getDynamicUrl());

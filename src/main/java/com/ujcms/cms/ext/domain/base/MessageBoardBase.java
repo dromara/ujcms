@@ -78,14 +78,6 @@ public class MessageBoardBase implements Serializable {
     private OffsetDateTime replyDate;
 
     /**
-     * 事发地点
-     */
-    @Length(max = 150)
-    @Nullable
-    @Schema(description="事发地点")
-    private String place;
-
-    /**
      * 联系人
      */
     @Length(max = 30)
@@ -124,21 +116,6 @@ public class MessageBoardBase implements Serializable {
     @Nullable
     @Schema(description="联系地址")
     private String address;
-
-    /**
-     * 职业
-     */
-    @Length(max = 50)
-    @Nullable
-    @Schema(description="职业")
-    private String profession;
-
-    /**
-     * 用户类型(1:个人,2:法人)
-     */
-    @NotNull
-    @Schema(description="用户类型(1:个人,2:法人)")
-    private Short userType = 1;
 
     /**
      * 是否公开
@@ -257,15 +234,6 @@ public class MessageBoardBase implements Serializable {
     }
 
     @Nullable
-    public String getPlace() {
-        return place;
-    }
-
-    public void setPlace(@Nullable String place) {
-        this.place = place;
-    }
-
-    @Nullable
     public String getContact() {
         return contact;
     }
@@ -308,23 +276,6 @@ public class MessageBoardBase implements Serializable {
 
     public void setAddress(@Nullable String address) {
         this.address = address;
-    }
-
-    @Nullable
-    public String getProfession() {
-        return profession;
-    }
-
-    public void setProfession(@Nullable String profession) {
-        this.profession = profession;
-    }
-
-    public Short getUserType() {
-        return userType;
-    }
-
-    public void setUserType(Short userType) {
-        this.userType = userType;
     }
 
     public Boolean getOpen() {

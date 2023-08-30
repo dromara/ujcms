@@ -3,10 +3,24 @@
   <div class="container py-4 text-center small">
     <p>
       <a href="${dy}/sitemap.xml" class="text-reset">站点地图</a>
-      <span class="ml-2">Powered by <strong><a href="https://www.ujcms.com" class="text-reset" target="_blank">UJCMS</a></strong></span>
+      <span class="ml-2">在线访客: <span id="onlineVisitors"></span></span>
+      <span class="ml-2">今日访问量: <span id="siteTodayViews"></span></span>
+      <span class="ml-2">昨日访问量: <span id="siteYesterdayViews"></span></span>
+      <span class="ml-2">总访问量: <span id="siteViews"></span></span>
+      <script>
+        axios.get('${api}/visit/online-visitors').then(function (response) {
+          $('#onlineVisitors').text(response.data);
+        });
+        axios.get('${api}/site/view/${site.id?c}').then(function (response) {
+          $('#siteTodayViews').text(response.data.todayViews);
+          $('#siteYesterdayViews').text(response.data.yesterdayViews);
+          $('#siteViews').text(response.data.views);
+        });
+      </script>
     </p>
     <p>
       <span>&copy; ${.now?string('yyyy')} ${site.customs['company']} 版权所有</span>
+      <span class="ml-2">Powered by <strong><a href="https://www.ujcms.com" class="text-reset" target="_blank">UJCMS</a></strong></span>
     </p>
     <p>
       [#if site.customs['gongan_icp']??]

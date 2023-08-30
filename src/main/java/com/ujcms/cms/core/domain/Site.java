@@ -47,13 +47,12 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     }
 
     /**
-     * 获取 API 接口地址。如：{@code /contextPath/subDir/frontend}
-     * <p>
-     * 地址带域名方便静态页部署到其它域名。
+     * 获取 API 接口地址。如：{@code /contextPath/frontend}
      */
-    @Schema(description = "API 接口地址。如：{@code /contextPath/subDir/frontend}")
+    @Schema(description = "API 接口地址。如：{@code /contextPath/frontend}")
     public String getApi() {
-        return UrlBuilder.of(getDy())
+        return UrlBuilder.of()
+                .appendPath(getConfig().getContextPath())
                 .appendPath(UrlConstants.FRONTEND_API)
                 .toString();
     }

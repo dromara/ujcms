@@ -1423,5 +1423,11 @@ databaseChangeLog:
                   remarks: 修改日期
                   type: DATETIME
             tableName: ujcms_channel_ext
+  - changeSet:
+      id: 7.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v7.0
 
 

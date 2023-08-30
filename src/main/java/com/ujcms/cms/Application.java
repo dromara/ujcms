@@ -18,6 +18,7 @@ import com.ujcms.commons.web.DirectoryRedirectInterceptor;
 import com.ujcms.commons.web.PathResolver;
 import com.ujcms.commons.web.TimerInterceptor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,11 +26,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.web.WebApplicationInitializer;
@@ -50,7 +54,8 @@ import static com.ujcms.cms.core.support.UrlConstants.*;
  * @author PONY
  */
 @SpringBootApplication(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
-public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
+public class Application extends SpringBootServletInitializer
+        implements WebApplicationInitializer, ApplicationContextAware {
     /**
      * UJCMS 配置
      */
@@ -190,20 +195,20 @@ public class Application extends SpringBootServletInitializer implements WebAppl
         @Override
         public void addInterceptors(InterceptorRegistry registry) {
             // 错误页面和带点的文件请求 jquery.js bootstrap.min.css 都不经过拦截器
-            registry.addInterceptor(timerInterceptor()).excludePathPatterns("/error/**", "/**/*.*");
+            registry.addInterceptor(timerInterceptor()).excludePathPatterns(ERROR_PATH_PATTERN, EXTENSION_PATH_PATTERN);
             // 后台拦截器
             registry.addInterceptor(backendInterceptor()).addPathPatterns(BACKEND_API + "/**");
             // 目录重定向拦截器
             if (props.isFileToDir() || props.isDirToFile()) {
                 registry.addInterceptor(directoryRedirectInterceptor())
-                        .excludePathPatterns(API + "/**", FRONTEND_API + "/**", "/error/**", "/**/*.*");
+                        .excludePathPatterns(API + "/**", FRONTEND_API + "/**", ERROR_PATH_PATTERN, EXTENSION_PATH_PATTERN);
             }
             // URL重写拦截器
             registry.addInterceptor(urlRedirectInterceptor())
-                    .excludePathPatterns(API + "/**", FRONTEND_API + "/**", "/error/**", "/**/*.*");
+                    .excludePathPatterns(API + "/**", FRONTEND_API + "/**", ERROR_PATH_PATTERN, EXTENSION_PATH_PATTERN);
             // 前台拦截器
             registry.addInterceptor(frontendInterceptor())
-                    .excludePathPatterns(API + "/**", FRONTEND_API + "/**", "/error/**", "/**/*.*");
+                    .excludePathPatterns(API + "/**", FRONTEND_API + "/**", ERROR_PATH_PATTERN, EXTENSION_PATH_PATTERN);
             // 前台API拦截器
             registry.addInterceptor(frontendApiInterceptor())
                     .addPathPatterns(API + "/**", FRONTEND_API + "/**")
@@ -261,4 +266,22 @@ public class Application extends SpringBootServletInitializer implements WebAppl
         Utils.boot();
         return builder.sources(Application.class);
     }
+
+    @Nullable
+    private static ApplicationContext applicationContext;
+
+    @Override
+    @SuppressWarnings("java:S2696")
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        Application.applicationContext = applicationContext;
+    }
+
+    @Nullable
+    public static ApplicationContext getApplicationContext() {
+        return Application.applicationContext;
+    }
+
+    @SuppressWarnings("java:S1075")
+    private static final String ERROR_PATH_PATTERN = "/error/**";
+    private static final String EXTENSION_PATH_PATTERN = "/**/*.*";
 }

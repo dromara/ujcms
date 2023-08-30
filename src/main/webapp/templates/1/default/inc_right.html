@@ -7,7 +7,7 @@
     <div class="mt-3 d-flex flex-row">
       <div><span class="badge [#if bean_index==0]badge-danger[#elseif bean_index==1]badge-warning text-white[#elseif bean_index==2]badge-primary[#else]badge-secondary[/#if]"
                  style="width:26px;">${bean_index+1}</span></div>
-      <div class="ml-2 text-truncate">[@A bean=bean class="cm-link text-sm"/]</div>
+      <div class="ml-2 text-truncate">[@A bean=bean class="cm-link small"/]</div>
     </div>
     [/#list]
     [/@ArticleList]
@@ -30,11 +30,81 @@
           <div class="float-right">${bean.videoTime}</div>
         </div>
       </div>
-      <div class="mt-2">[@A bean=bean class="cm-link text-sm"/]</div>
+      <div class="mt-2">[@A bean=bean class="cm-link small"/]</div>
     </div>
     [/#list]
     [/@ArticleList]
   </div>
+
+  [#if config.epRank > 0]
+  <h5 class="mt-3 ml-2">
+    <i class="far fa-clipboard text-primary"></i> <a href="${dy}/survey" class="text-reset text-decoration-none">调查问卷</a>
+  </h5>
+  <div class="px-2 pb-2 mt-3">
+    [@SurveyList limit='9'; beans]
+    [#list beans as bean]
+    <div class="mt-2 d-flex flex-row">
+      <div class="ml-2 text-truncate position-relative"><a href="${dy}/survey/${bean.id?c}" class="cm-link small cm-dot-primary">${bean.title}</a></div>
+    </div>
+    [/#list]
+    [/@SurveyList]
+  </div>
+  [/#if]
+
+  <h5 class="mt-3 ml-2">
+    <i class="fas fa-poll text-primary"></i> <a href="${dy}/vote" class="text-reset text-decoration-none">投票</a>
+  </h5>
+  <div class="px-3">
+    [@VoteList limit='1';list]
+    [#list list as bean]
+    <div class="text-center"><a href="${dy}/vote/${bean.id?c}">${bean.title}</a></div>
+    <form id="voteForm" action="${api}/vote/cast" method="post">
+      <div class="mt-2 small check-group">
+        [#list bean.options as option]
+        <div class="form-check mt-1">
+          <input class="form-check-input" type="${bean.multiple?string('checkbox','radio')}" name="options" id="vote-${bean.id?c}-${option_index?c}" value="${option.id?c}"
+                 required>
+          <label class="form-check-label" for="vote-${bean.id?c}-${option_index?c}">
+            ${option.title}
+          </label>
+        </div>
+        [/#list]
+      </div>
+      <div class="mt-2 text-center">
+        <button type="submit" class="btn btn-primary btn-sm">提交</button>
+        <a href="${dy}/vote/${bean.id?c}/result" class="ml-2 btn btn-outline-danger btn-sm">查看结果</a>
+      </div>
+      <input type="hidden" name="id" value="${bean.id?c}">
+    </form>
+    [/#list]
+    [/@VoteList]
+  </div>
+
+  <script>
+    $('#voteForm').validate({
+      submitHandler: function (form) {
+        axios.get('${dy}/app/csrf').then(function (response) {
+          if (response.data) {
+            const arr = response.data.split(',');
+            if (arr.length >= 3) {
+              $('meta[name="_csrf_header"]').attr('content', arr[1].trim());
+              $('meta[name="_csrf"]').attr('content', arr[2].trim());
+            }
+          }
+          request.post(form.action, $(form).serializeJSON()).then(function (response) {
+            var data = response.data;
+            if (data.status === 0) {
+              displayAlert('投票成功');
+              $('#voteForm')[0].reset();
+            } else if (data.message) {
+              displayAlert(data.message);
+              $('#voteForm')[0].reset();
+            }
+          });
+        });
+      }
+    });
+  </script>
 
   <h5 class="mt-3 ml-2">
     <i class="fas fa-tags text-primary"></i> <a href="${dy}/tag" class="text-reset text-decoration-none">Tags</a>
@@ -46,5 +116,6 @@
     [/#list]
     [/@TagList]
   </div>
+
 </div>
 [/#escape]

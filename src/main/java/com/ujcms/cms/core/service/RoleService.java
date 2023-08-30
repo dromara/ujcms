@@ -3,6 +3,7 @@ package com.ujcms.cms.core.service;
 import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.RoleArticle;
 import com.ujcms.cms.core.domain.RoleChannel;
+import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.RoleArticleMapper;
 import com.ujcms.cms.core.mapper.RoleChannelMapper;
@@ -43,7 +44,7 @@ public class RoleService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Role bean, Integer siteId) {
-        bean.setId(seqService.getNextVal(Role.TABLE_NAME));
+        bean.setId(seqService.getNextVal(RoleBase.TABLE_NAME));
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.insert(bean);
@@ -112,7 +113,7 @@ public class RoleService implements SiteDeleteListener {
     }
 
     public List<Role> selectList(RoleArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Role.TABLE_NAME, "scope_desc,rank,order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), RoleBase.TABLE_NAME, "scope_desc,rank,order,id");
         return mapper.selectAll(queryInfo);
     }
 
@@ -126,6 +127,16 @@ public class RoleService implements SiteDeleteListener {
 
     public List<Integer> listChannelPermissions(Collection<Integer> roleIds, @Nullable Integer siteId) {
         return roleChannelMapper.listChannelByRoleIds(roleIds, siteId);
+    }
+
+    public List<Role> listNotAllArticlePermission(@Nullable Integer siteId) {
+        RoleArgs args = RoleArgs.of().allArticlePermission(false).scopeSiteId(siteId);
+        return selectList(args);
+    }
+
+    public List<Role> listNotAllChannelPermission(@Nullable Integer siteId) {
+        RoleArgs args = RoleArgs.of().allChannelPermission(false).scopeSiteId(siteId);
+        return selectList(args);
     }
 
     @Override

@@ -1,10 +1,11 @@
 package com.ujcms.cms.ext.service;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.service.AttachmentService;
 import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.MessageBoard;
+import com.ujcms.cms.ext.domain.base.MessageBoardBase;
 import com.ujcms.cms.ext.mapper.MessageBoardMapper;
 import com.ujcms.cms.ext.service.args.MessageBoardArgs;
 import com.ujcms.commons.query.QueryInfo;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * 留言板 Service
+ *
  * @author PONY
  */
 @Service
@@ -34,18 +37,18 @@ public class MessageBoardService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(MessageBoard bean, Integer userId, String ip) {
-        bean.setId(seqService.getNextVal(MessageBoard.TABLE_NAME));
+        bean.setId(seqService.getNextVal(MessageBoardBase.TABLE_NAME));
         bean.setUserId(userId);
         bean.setIp(ip);
         mapper.insert(bean);
-        attachmentService.insertRefer(MessageBoard.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.insertRefer(MessageBoardBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void update(MessageBoard bean) {
         bean.setReplied(StringUtils.isNotBlank(bean.getReplyText()));
         mapper.update(bean);
-        attachmentService.updateRefer(MessageBoard.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.updateRefer(MessageBoardBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -64,15 +67,15 @@ public class MessageBoardService {
     }
 
     public List<MessageBoard> selectList(MessageBoardArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), MessageBoard.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), MessageBoardBase.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 
     public List<MessageBoard> selectList(MessageBoardArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public Page<MessageBoard> selectPage(MessageBoardArgs args, int page, int pageSize) {
-        return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
     }
 }

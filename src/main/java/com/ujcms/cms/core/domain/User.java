@@ -482,25 +482,6 @@ public class User extends UserBase implements UserDetails, Serializable {
 
     // region UserExt
 
-    @Schema(description = "真实姓名")
-    @Nullable
-    public String getRealName() {
-        return getExt().getRealName();
-    }
-
-    public void setRealName(@Nullable String realName) {
-        getExt().setRealName(realName);
-    }
-
-    @Schema(description = "性别(0:保密,1:男,2:女)")
-    public Short getGender() {
-        return getExt().getGender();
-    }
-
-    public void setGender(Short gender) {
-        getExt().setGender(gender);
-    }
-
     @Schema(description = "出生日期")
     @Nullable
     public OffsetDateTime getBirthday() {

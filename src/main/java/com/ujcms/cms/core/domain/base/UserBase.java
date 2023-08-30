@@ -90,6 +90,21 @@ public class UserBase implements Serializable {
     private String nickname;
 
     /**
+     * 真实姓名
+     */
+    @Length(max = 50)
+    @Nullable
+    @Schema(description="真实姓名")
+    private String realName;
+
+    /**
+     * 性别(0:保密,1:男,2:女)
+     */
+    @NotNull
+    @Schema(description="性别(0:保密,1:男,2:女)")
+    private Short gender = 1;
+
+    /**
      * 头像URL
      */
     @Length(max = 255)
@@ -199,6 +214,23 @@ public class UserBase implements Serializable {
 
     public void setNickname(@Nullable String nickname) {
         this.nickname = nickname;
+    }
+
+    @Nullable
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(@Nullable String realName) {
+        this.realName = realName;
+    }
+
+    public Short getGender() {
+        return gender;
+    }
+
+    public void setGender(Short gender) {
+        this.gender = gender;
     }
 
     @Nullable

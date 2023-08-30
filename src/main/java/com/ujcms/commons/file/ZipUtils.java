@@ -103,8 +103,8 @@ public class ZipUtils {
      */
     public static void decompress(InputStream in, BiConsumer<String, ArchiveInputStream> store, Consumer<String> mkdir,
                                   String... ignoredExtensions) {
-        try (ArchiveInputStream archiveIn = new ArchiveStreamFactory()
-                .createArchiveInputStream(new BufferedInputStream(in))) {
+        try (ArchiveInputStream archiveIn =
+                     new ArchiveStreamFactory().createArchiveInputStream(new BufferedInputStream(in))) {
             for (ArchiveEntry entry = archiveIn.getNextEntry(); entry != null; entry = archiveIn.getNextEntry()) {
                 String entryName = entry.getName();
                 String extension = FilenameUtils.getExtension(entryName);

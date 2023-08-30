@@ -33,6 +33,11 @@ public class RoleArgs extends BaseQueryArgs {
         return this;
     }
 
+    public RoleArgs allChannelPermission(boolean allChannelPermission) {
+        queryMap.put("EQ_allChannelPermission_Boolean", allChannelPermission);
+        return this;
+    }
+
     public static RoleArgs of() {
         return of(new HashMap<>(16));
     }

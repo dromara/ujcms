@@ -9,16 +9,17 @@ package com.ujcms.commons.web;
  *
  * @author PONY
  */
-public class Views {
+public interface Views {
     /**
      * 一般用于列表(List)数据的序列化
      */
-    public static class List {
+    interface List {
     }
 
     /**
      * 一般用于详情数据的序列化
      */
-    public static class Whole extends List {
+    interface Whole extends List {
     }
+
 }

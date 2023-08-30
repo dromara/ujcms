@@ -55,4 +55,12 @@ public interface OperationLogExtMapper {
      * @return 被删除的数据条数
      */
     int deleteBySiteId(@Param("siteId") Integer siteId);
+
+    /**
+     * 根据用户ID删除数据
+     *
+     * @param userId 用户ID
+     * @return 被删除的数据条数
+     */
+    int deleteByUserId(@Param("userId") Integer userId);
 }

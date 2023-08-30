@@ -104,6 +104,13 @@ public class VisitController {
         return stat(TYPE_COUNTRY, begin, end);
     }
 
+    @GetMapping("source-type-stat")
+    @PreAuthorize("hasAnyAuthority('visitSourceType:list','backend','*')")
+    public List<VisitStat> sourceTypeStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        return stat(TYPE_SOURCE_TYPE, begin, end);
+    }
+
     private List<VisitStat> stat(short type, @Nullable LocalDate begin, @Nullable LocalDate end) {
         Site site = Contexts.getCurrentSite();
         return visitStatService.statByDate(site.getId(), type,

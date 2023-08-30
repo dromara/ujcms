@@ -32,7 +32,7 @@ public class SiteResolver {
         if (StringUtils.isNotBlank(subDir)) {
             Site site = Optional.ofNullable(siteService.findBySubDir(subDir))
                     .orElseThrow(() -> {
-                        logger.warn("Site sub-dir not exist: " + request.getRequestURL());
+                        logger.warn("Site sub-dir not exist: {}", request.getRequestURL());
                         return new Http404Exception("error.siteSubDirNotExist", subDir);
                     });
             Contexts.setCurrentSite(site);
@@ -45,7 +45,7 @@ public class SiteResolver {
         if (siteId != null) {
             Site site = Optional.ofNullable(siteService.select(siteId))
                     .orElseThrow(() -> {
-                        logger.warn("Site id not exist: " + request.getRequestURL());
+                        logger.warn("Site id not exist: {}", request.getRequestURL());
                         return new Http404Exception("error.siteIdNotExist", String.valueOf(siteId));
                     });
             Contexts.setCurrentSite(site);

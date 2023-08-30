@@ -26,6 +26,9 @@
     <result column="status_" jdbcType="SMALLINT" property="status" />
   </resultMap>
     <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+    <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.Site">
+        <association column="id_" javaType="com.ujcms.cms.core.domain.Config" property="config" select="com.ujcms.cms.core.mapper.ConfigMapper.findUnique" />
+    </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Site">
         <association column="id_" javaType="com.ujcms.cms.core.domain.Config" property="config" select="com.ujcms.cms.core.mapper.ConfigMapper.findUnique" />
         <association column="id_" javaType="com.ujcms.cms.core.domain.SiteBuffer" property="buffer" select="com.ujcms.cms.core.mapper.SiteBufferMapper.select" />
@@ -115,6 +118,13 @@
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_site" />
         </include>
+    </select>
+
+    <select id="selectRefer" parameterType="int" resultMap="ReferResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_site t
+        where t.id_ = #{id,jdbcType=INTEGER}
     </select>
     <select id="select" parameterType="int" resultMap="ResultMap">
         select

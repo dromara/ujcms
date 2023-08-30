@@ -19,6 +19,11 @@
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
     </resultMap>
 
+    <delete id="deleteByUserId" parameterType="int">
+        delete
+        from ujcms_operation_log
+        where user_id_ = #{userId,jdbcType=INTEGER}
+    </delete>
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_operation_log

@@ -104,11 +104,15 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain backendApiFilterChain(HttpSecurity http) throws Exception {
+        // 所有 /api 开头的请求都使用JWT权鉴
         http.antMatcher(API + "/**").authorizeHttpRequests()
+                // 所有 /api/backend 开头的请求为后台请求，必须登录才可访问
                 .antMatchers(BACKEND_API + "/**").authenticated()
                 .anyRequest().permitAll();
+        // JWT权鉴需关闭CSRF防护
         http.csrf().disable();
         http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+        // JWT权鉴需关闭Session
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())

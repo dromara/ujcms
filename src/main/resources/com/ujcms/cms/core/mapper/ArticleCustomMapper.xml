@@ -13,6 +13,7 @@
         <include refid="Column_List" />
         from ujcms_article_custom t
         where t.article_id_ = #{articleId,jdbcType=INTEGER}
+        order by t.id_
     </select>
     <delete id="deleteByArticleId" parameterType="int">
         delete

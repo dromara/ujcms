@@ -19,14 +19,23 @@ import java.util.List;
 @Repository
 public interface OrgMapper extends TreeEntityMapper<Org> {
     /**
+     * 根据主键获取引用对象（不包括关联对象属性）
+     *
+     * @param id 主键ID
+     * @return 实体对象。没有找到数据，则返回 {@code null}
+     */
+    @Nullable
+    Org selectRefer(Integer id);
+
+    /**
      * 根据查询条件获取列表
      *
-     * @param queryInfo 查询条件
-     * @param parentId  上级ID
+     * @param queryInfo  查询条件
+     * @param ancestorId 上级ID
      * @return 数据列表
      */
     List<Org> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
-                        @Nullable @Param("parentId") Integer parentId);
+                        @Nullable @Param("ancestorId") Integer ancestorId);
 
     /**
      * 根据父组织ID获取子组织列表

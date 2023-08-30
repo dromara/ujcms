@@ -14,17 +14,10 @@ import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
 import com.ujcms.commons.web.exception.Http400Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -66,7 +59,7 @@ public class RoleController {
     public Role show(@PathVariable Integer id) {
         Role bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception("Role not found. ID = " + id);
+            throw new Http404Exception(ROLE_ID_NOT_FOUND + id);
         }
         dataInSite(bean.getSiteId(), getCurrentSiteId());
         return bean;
@@ -98,7 +91,7 @@ public class RoleController {
         User currentUser = Contexts.getCurrentUser();
         Role role = service.select(bean.getId());
         if (role == null) {
-            return Responses.notFound("Role not found. ID = " + bean.getId());
+            throw new Http404Exception(ROLE_ID_NOT_FOUND + bean.getId());
         }
         boolean origGlobal = bean.isGlobal();
         Short origRank = bean.getRank();
@@ -115,7 +108,7 @@ public class RoleController {
         User currentUser = Contexts.getCurrentUser();
         Role role = service.select(bean.getId());
         if (role == null) {
-            return Responses.notFound("Role not found. ID = " + bean.getId());
+            throw new Http404Exception(ROLE_ID_NOT_FOUND + bean.getId());
         }
         Entities.copyIncludes(bean, role, Role.PERMISSION_FIELDS);
         validateBean(role, false, role.getRank(), currentUser);
@@ -133,7 +126,7 @@ public class RoleController {
         for (Integer id : ids) {
             Role role = service.select(id);
             if (role == null) {
-                return Responses.notFound("Role not found. ID = " + id);
+                throw new Http404Exception(ROLE_ID_NOT_FOUND + id);
             }
             dataInSite(role.getSiteId(), currentSite.getId());
             if (role.isGlobal() && !currentUser.hasGlobalPermission()) {
@@ -192,4 +185,6 @@ public class RoleController {
             throw new Http400Exception("scope not allowed " + role.getScope());
         }
     }
+
+    private static final String ROLE_ID_NOT_FOUND = "Role not found. ID = ";
 }

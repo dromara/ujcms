@@ -29,8 +29,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import static com.ujcms.commons.file.FilesEx.SLASH;
 import static com.ujcms.commons.web.Uploads.*;
 
 /**
@@ -70,7 +72,7 @@ public abstract class AbstractUploadController {
 
         FileHandler fileHandler = Contexts.getCurrentSite().getConfig().getUploadStorage().getFileHandler(pathResolver);
         File tempFile = Files.createTempFile(null, "." + extension).toFile();
-        String name = multipart.getOriginalFilename();
+        String name = Optional.ofNullable(multipart.getOriginalFilename()).orElse("");
         try {
             Map<String, Object> result = new HashMap<>(8);
             multipart.transferTo(tempFile);
@@ -88,10 +90,10 @@ public abstract class AbstractUploadController {
             // 获得存储路径和显示路径
             String pathname;
             if (AVATAR_TYPE.equalsIgnoreCase(type)) {
-                pathname = "/" + AVATAR_TYPE + "/" + user.getId() + "/" +
+                pathname = SLASH + AVATAR_TYPE + SLASH + user.getId() + SLASH +
                         StringUtils.remove(UUID.randomUUID().toString(), '-') + "." + extension;
             } else {
-                pathname = site.getBasePath("/" + type) + Uploads.getRandomFilename(extension);
+                pathname = site.getBasePath(SLASH + type) + Uploads.getRandomFilename(extension);
             }
             String url = fileHandler.getDisplayPrefix() + pathname;
             // 执行额外的处理
@@ -233,14 +235,86 @@ public abstract class AbstractUploadController {
     }
 
     public static class CropParams {
-        public String url;
-        public int x;
-        public int y;
-        public int width;
-        public int height;
-        public int maxWidth;
-        public int maxHeight;
-        public Integer thumbnailWidth;
-        public Integer thumbnailHeight;
+        private String url;
+        private int x;
+        private int y;
+        private int width;
+        private int height;
+        private int maxWidth;
+        private int maxHeight;
+        private Integer thumbnailWidth;
+        private Integer thumbnailHeight;
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public void setWidth(int width) {
+            this.width = width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
+
+        public void setHeight(int height) {
+            this.height = height;
+        }
+
+        public int getMaxWidth() {
+            return maxWidth;
+        }
+
+        public void setMaxWidth(int maxWidth) {
+            this.maxWidth = maxWidth;
+        }
+
+        public int getMaxHeight() {
+            return maxHeight;
+        }
+
+        public void setMaxHeight(int maxHeight) {
+            this.maxHeight = maxHeight;
+        }
+
+        public Integer getThumbnailWidth() {
+            return thumbnailWidth;
+        }
+
+        public void setThumbnailWidth(Integer thumbnailWidth) {
+            this.thumbnailWidth = thumbnailWidth;
+        }
+
+        public Integer getThumbnailHeight() {
+            return thumbnailHeight;
+        }
+
+        public void setThumbnailHeight(Integer thumbnailHeight) {
+            this.thumbnailHeight = thumbnailHeight;
+        }
     }
 }

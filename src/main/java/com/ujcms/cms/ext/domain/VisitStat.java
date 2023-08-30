@@ -9,9 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
@@ -127,16 +125,37 @@ public class VisitStat extends VisitStatBase implements StatDateString, Serializ
      */
     public static final String SOURCE_DIRECT = "DIRECT";
     /**
-     * 来源：站内来源
+     * 来源：站内链接
      */
     public static final String SOURCE_INNER = "INNER";
+    /**
+     * 来源：站外链接
+     */
+    public static final String SOURCE_OUTER = "OUTER";
+    /**
+     * 来源：搜索引擎
+     */
+    public static final String SOURCE_SEARCH = "SEARCH";
+
+    /**
+     * 搜索引擎域名
+     */
+    public static final List<String> SEARCH_ENGINE_LIST = Collections.unmodifiableList(Arrays.asList(
+            "baidu.com", "www.baidu.com", "m.baidu.com",
+            "bing.com", "www.bing.com", "m.bing.com",
+            "sogou.com", "www.sogou.com", "m.sogou.com",
+            "360.cn", "www.360.cn", "m.360.cn",
+            "google.com", "www.google.com", "m.google.com",
+            "google.com.hk", "www.google.com.hk", "m.google.com.hk"));
+
+
     /**
      * 数据最多保留天数（三年）
      */
     public static final int DATA_MAX_DAY = 1096;
 
     /**
-     * 类型：来源
+     * 类型：访客
      */
     public static final short TYPE_VISITOR = 1;
     /**
@@ -163,4 +182,8 @@ public class VisitStat extends VisitStatBase implements StatDateString, Serializ
      * 类型：浏览器
      */
     public static final short TYPE_BROWSER = 7;
+    /**
+     * 类型：来源类型
+     */
+    public static final short TYPE_SOURCE_TYPE = 8;
 }

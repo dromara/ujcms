@@ -4,9 +4,15 @@ if ($.validator) {
     errorElement: 'div',
     errorPlacement: function (error, element) {
       error.addClass('invalid-feedback');
-      // 错误提示信息直接放在元素后面，或者放在.input-gourp后面
-      var inputGroup = $(element).parent('.input-group');
-      inputGroup.length > 0 ? inputGroup.after(error) : element.after(error);
+      // 错误提示信息直接放在元素后面，或者放在.input-group、.check-group后面
+      var group = $(element).parent('.input-group');
+      if (group.length === 0) {
+        group = $(element).parent('.check-group');
+      }
+      if (group.length === 0) {
+        group = $(element).parent().parent('.check-group');
+      }
+      group.length > 0 ? group.after(error) : element.after(error);
     },
     highlight: function (element, errorClass, validClass) {
       $(element).closest('.form-control').addClass('is-invalid');

@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.OperationLog;
 import com.ujcms.cms.core.domain.OperationLogExt;
 import com.ujcms.cms.core.domain.base.OperationLogBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
+import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.OperationLogExtMapper;
 import com.ujcms.cms.core.mapper.OperationLogMapper;
 import com.ujcms.cms.core.service.args.OperationLogArgs;
@@ -25,7 +26,7 @@ import java.util.Objects;
  * @author PONY
  */
 @Service
-public class OperationLogService implements SiteDeleteListener {
+public class OperationLogService implements SiteDeleteListener, UserDeleteListener {
     private final OperationLogExtMapper extMapper;
     private final OperationLogMapper mapper;
     private final SeqService seqService;
@@ -83,5 +84,11 @@ public class OperationLogService implements SiteDeleteListener {
     @Override
     public int deleteListenerOrder() {
         return 100;
+    }
+
+    @Override
+    public void preUserDelete(Integer userId) {
+        extMapper.deleteByUserId(userId);
+        mapper.deleteByUserId(userId);
     }
 }

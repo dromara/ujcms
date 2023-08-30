@@ -40,6 +40,8 @@ import static com.ujcms.commons.query.QueryUtils.camelToUnderscore;
  * </ul>
  * <p>
  * HTTP Parameter Name 支持的特殊字符 _ - @ $ * ! ~ ( ) :
+ * <p>
+ * Freemarker 标签参数支持 大写字母、小写字母、数字、下划线和$，不支持@和中划线
  *
  * @author PONY
  */

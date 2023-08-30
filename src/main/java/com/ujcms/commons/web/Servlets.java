@@ -49,9 +49,9 @@ public class Servlets {
             "192\\.168\\.\\d{1,3}\\.\\d{1,3}|" +
             "169\\.254\\.\\d{1,3}\\.\\d{1,3}|" +
             "127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" +
-            "172\\.1[6-9]{1}\\.\\d{1,3}\\.\\d{1,3}|" +
-            "172\\.2[0-9]{1}\\.\\d{1,3}\\.\\d{1,3}|" +
-            "172\\.3[0-1]{1}\\.\\d{1,3}\\.\\d{1,3}|" +
+            "172\\.1[6-9]\\.\\d{1,3}\\.\\d{1,3}|" +
+            "172\\.2[\\d]\\.\\d{1,3}\\.\\d{1,3}|" +
+            "172\\.3[0-1]\\.\\d{1,3}\\.\\d{1,3}|" +
             "0:0:0:0:0:0:0:1|::1");
 
     private static String[] commaDelimitedStringsToArray(@Nullable String commaDelimitedStrings) {
@@ -65,29 +65,27 @@ public class Servlets {
      * @see org.apache.catalina.filters.RemoteIpFilter
      */
     public static String getRemoteAddr(ServletRequest req) {
-        String remoteAddr = req.getRemoteAddr();
+        String remoteAddress = req.getRemoteAddr();
         // 如果是内网IP，有可能使用了反向代理，从 X-Forwarded-For 的头信息里面查找真实 IP。
-        if (INTERNAL_PROXIES_PATTERN.matcher(remoteAddr).matches()) {
-            if (req instanceof HttpServletRequest) {
-                HttpServletRequest request = (HttpServletRequest) req;
-                StringBuilder proxiesIpsBuilder = new StringBuilder();
-                for (Enumeration<String> e = request.getHeaders(REMOTE_IP_HEADER); e.hasMoreElements(); ) {
-                    if (proxiesIpsBuilder.length() > 0) {
-                        proxiesIpsBuilder.append(", ");
-                    }
-                    proxiesIpsBuilder.append(e.nextElement());
+        if (INTERNAL_PROXIES_PATTERN.matcher(remoteAddress).matches() && req instanceof HttpServletRequest) {
+            HttpServletRequest request = (HttpServletRequest) req;
+            StringBuilder proxiesIpsBuilder = new StringBuilder();
+            for (Enumeration<String> e = request.getHeaders(REMOTE_IP_HEADER); e.hasMoreElements(); ) {
+                if (proxiesIpsBuilder.length() > 0) {
+                    proxiesIpsBuilder.append(", ");
                 }
-                String[] proxiesIps = commaDelimitedStringsToArray(proxiesIpsBuilder.toString());
-                // 从右往左找第一个公网IP，避免请求中恶意加入的 X-Forwarded-For 头信息
-                for (int i = proxiesIps.length - 1; i >= 0; i -= 1) {
-                    remoteAddr = proxiesIps[i];
-                    if (!INTERNAL_PROXIES_PATTERN.matcher(remoteAddr).matches()) {
-                        break;
-                    }
+                proxiesIpsBuilder.append(e.nextElement());
+            }
+            String[] proxiesIps = commaDelimitedStringsToArray(proxiesIpsBuilder.toString());
+            // 从右往左找第一个公网IP，避免请求中恶意加入的 X-Forwarded-For 头信息
+            for (int i = proxiesIps.length - 1; i >= 0; i -= 1) {
+                remoteAddress = proxiesIps[i];
+                if (!INTERNAL_PROXIES_PATTERN.matcher(remoteAddress).matches()) {
+                    break;
                 }
             }
         }
-        return remoteAddr;
+        return remoteAddress;
     }
 
     public static void sendRedirect(HttpServletRequest request, HttpServletResponse response, String url)
@@ -170,8 +168,9 @@ public class Servlets {
      */
     public static void setAttachmentHeader(HttpServletRequest request, HttpServletResponse response, String filename) {
         String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).map(String::toLowerCase).orElse("");
-        String msie10 = "trident", msie = "msie";
-        if (userAgent.indexOf(msie10) > 0 || userAgent.indexOf(msie) > 0) {
+        String msie10 = "trident";
+        String msie = "msie";
+        if (userAgent.contains(msie10) || userAgent.contains(msie)) {
             try {
                 filename = URLEncoder.encode(filename, StandardCharsets.UTF_8.name());
             } catch (UnsupportedEncodingException e) {
@@ -234,7 +233,7 @@ public class Servlets {
      */
     @Nullable
     private static String joinByComma(@Nullable final List<String> array) {
-        if (array == null || array.size() == 0) {
+        if (array == null || array.isEmpty()) {
             return null;
         }
         StringBuilder buff = new StringBuilder();
@@ -263,8 +262,13 @@ public class Servlets {
                 String eq = matcher.group(2);
                 String value = matcher.group(3);
                 try {
-                    queryParams.add(URLDecoder.decode(name, "UTF-8"),
-                            (value != null ? URLDecoder.decode(value, "UTF-8") : StringUtils.isNotBlank(eq) ? "" : null));
+                    String decodeValue;
+                    if (value != null) {
+                        decodeValue = URLDecoder.decode(value, "UTF-8");
+                    } else {
+                        decodeValue = StringUtils.isNotBlank(eq) ? "" : null;
+                    }
+                    queryParams.add(URLDecoder.decode(name, "UTF-8"), decodeValue);
                 } catch (UnsupportedEncodingException e) {
                     logger.error("never!", e);
                 }
@@ -276,13 +280,11 @@ public class Servlets {
     @Nullable
     public static String getParam(MultiValueMap<String, String> paramMap, String name) {
         return paramMap.getFirst(name);
-//        return joinByComma(paramMap.get(name));
     }
 
     @Nullable
     public static String getParam(String queryString, String name) {
         return parseQueryString(queryString).getFirst(name);
-//        return joinByComma(getParamValues(queryString, name));
     }
 
     public static List<String> getParamValues(String queryString, String name) {
@@ -367,5 +369,9 @@ public class Servlets {
             response.addCookie(cookie);
         }
         return value;
+    }
+
+    private Servlets() {
+        throw new IllegalStateException("Utility class");
     }
 }

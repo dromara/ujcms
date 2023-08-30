@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.SurveyOptionFeedbackMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="survey_option_id_" jdbcType="INTEGER" property="surveyOptionId" />
+    <result column="survey_feedback_id_" jdbcType="INTEGER" property="surveyFeedbackId" />
+    <result column="survey_id_" jdbcType="INTEGER" property="surveyId" />
+    <result column="survey_item_id_" jdbcType="INTEGER" property="surveyItemId" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
+    <association column="survey_feedback_id_" javaType="com.ujcms.cms.ext.domain.SurveyFeedback" property="feedback" select="com.ujcms.cms.ext.mapper.SurveyFeedbackMapper.select" />
+  </resultMap>
+
+  <delete id="deleteByOptionIds" parameterType="int">
+    delete
+    from ujcms_survey_option_feedback
+    where survey_option_id_ in
+          <foreach close=")" collection="optionIds" item="item" open="(" separator=",">
+            #{item}
+          </foreach>
+  </delete>
+  <delete id="deleteByItemId" parameterType="int">
+    delete
+    from ujcms_survey_option_feedback
+    where survey_item_id_ = #{itemId,jdbcType=INTEGER}
+    <foreach close=")" collection="optionIds" item="item" nullable="true" open="and survey_option_id_ not in (" separator=",">
+      #{item}
+    </foreach>
+  </delete>
+  <delete id="deleteBySurveyId" parameterType="int">
+    delete
+    from ujcms_survey_option_feedback
+    where survey_id_ = #{surveyId,jdbcType=INTEGER}
+    <foreach close=")" collection="itemIds" item="item" nullable="true" open="and survey_item_id_ not in (" separator=",">
+      #{item}
+    </foreach>
+  </delete>
+  <delete id="deleteByFeedbackId" parameterType="int">
+    delete
+    from ujcms_survey_option_feedback
+    where survey_feedback_id_ = #{feedbackId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="int">
+    delete
+    from ujcms_survey_option_feedback
+    where exists(select * from ujcms_survey_feedback t where t.id_ = ujcms_survey_option_feedback.survey_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+  </delete>
+  <delete id="deleteByUserId" parameterType="int">
+    delete
+    from ujcms_survey_option_feedback
+    where exists(select * from ujcms_survey_feedback t where t.id_ = ujcms_survey_option_feedback.survey_id_ and t.user_id_ = #{userId,jdbcType=INTEGER})
+  </delete>
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_survey_option_feedback" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_survey_option_feedback t
+    where t.id_ = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="delete" parameterType="map">
+    delete from ujcms_survey_option_feedback
+    where id_ = #{id,jdbcType=INTEGER}
+  </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
+    update ujcms_survey_option_feedback
+    set survey_option_id_ = #{surveyOptionId,jdbcType=INTEGER},
+      survey_feedback_id_ = #{surveyFeedbackId,jdbcType=INTEGER},
+      survey_id_ = #{surveyId,jdbcType=INTEGER},
+      survey_item_id_ = #{surveyItemId,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
+    insert into ujcms_survey_option_feedback (id_, survey_option_id_, survey_feedback_id_, survey_id_, survey_item_id_)
+    values (#{id,jdbcType=INTEGER}, #{surveyOptionId,jdbcType=INTEGER}, #{surveyFeedbackId,jdbcType=INTEGER}, #{surveyId,jdbcType=INTEGER}, #{surveyItemId,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.survey_option_id_, t.survey_feedback_id_, t.survey_id_, t.survey_item_id_
+  </sql></mapper>

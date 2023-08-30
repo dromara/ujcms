@@ -13,11 +13,18 @@ import java.util.Map;
  */
 public class OrgArgs extends BaseQueryArgs {
     @Nullable
-    private Integer parentId;
+    private Integer ancestorId;
+
+    public OrgArgs ancestorId(@Nullable Integer ancestorId) {
+        if (ancestorId != null) {
+            this.ancestorId = ancestorId;
+        }
+        return this;
+    }
 
     public OrgArgs parentId(@Nullable Integer parentId) {
         if (parentId != null) {
-            this.parentId = parentId;
+            queryMap.put("EQ_parentId_Int", parentId);
         }
         return this;
     }
@@ -35,7 +42,7 @@ public class OrgArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Integer getParentId() {
-        return parentId;
+    public Integer getAncestorId() {
+        return ancestorId;
     }
 }

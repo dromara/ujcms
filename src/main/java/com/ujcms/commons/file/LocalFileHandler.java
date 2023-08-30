@@ -123,7 +123,7 @@ public class LocalFileHandler implements FileHandler {
         File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
         try {
             FileUtils.forceMkdirParent(dest);
-            FileUtils.copyInputStreamToFile(source, dest);
+            FileUtils.copyToFile(source, dest);
             if (!dest.setReadable(true, false)) {
                 logger.info(SET_READABLE_FAILED);
             }

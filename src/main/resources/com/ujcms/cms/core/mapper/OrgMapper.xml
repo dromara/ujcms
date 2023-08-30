@@ -11,10 +11,10 @@
     <result column="order_" jdbcType="INTEGER" property="order" />
   </resultMap>
     <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+    <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.Org">
+    </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Org">
         <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Org" property="parent" select="select" />
-        <collection column="id_" ofType="com.ujcms.cms.core.domain.Org" property="children" select="listChildren" />
-        <collection column="id_" ofType="int" property="descendants" select="com.ujcms.cms.core.mapper.OrgTreeMapper.listByAncestorId" />
     </resultMap>
     <select id="listChildren" resultMap="ResultMap">
         select
@@ -47,19 +47,25 @@
         where exists(select * from ujcms_org_tree t where t.ancestor_id_ = #{parentId,jdbcType=INTEGER} and t.descendant_id_ = id_)
     </update>
     <sql id="selectAllJoin">
-        <if test="parentId != null">
+        <if test="ancestorId != null">
             join ujcms_org_tree orgTree on t.id_ = orgTree.descendant_id_
         </if>
     </sql>
     <sql id="selectAllWhere">
-        <if test="parentId != null">
-            and orgTree.ancestor_id_ = #{parentId}
+        <if test="ancestorId != null">
+            and orgTree.ancestor_id_ = #{ancestorId}
         </if>
     </sql>
     <select id="selectAll" resultMap="ResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_org" />
         </include>
+    </select>
+    <select id="selectRefer" parameterType="java.lang.Integer" resultMap="ReferResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_org t
+        where id_ = #{id,jdbcType=INTEGER}
     </select>
     <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
         select

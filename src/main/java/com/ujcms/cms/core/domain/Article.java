@@ -157,8 +157,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     @Override
     public String getDynamicUrl(int page) {
-        if (StringUtils.isNotBlank(getLinkUrl())) {
-            return getSite().assembleLinkUrl(getLinkUrl());
+        String linkUrl = getLinkUrl();
+        if (StringUtils.isNotBlank(linkUrl)) {
+            return getSite().assembleLinkUrl(linkUrl);
         }
         StringBuilder buff = new StringBuilder(getSite().getDynamicUrl());
         String prefix = Optional.ofNullable(getSite().getConfig().getArticleUrl()).orElse(UrlConstants.ARTICLE);
@@ -174,8 +175,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     public String getStaticUrl(int page) {
-        if (StringUtils.isNotBlank(getLinkUrl())) {
-            return getSite().assembleLinkUrl(getLinkUrl());
+        String linkUrl = getLinkUrl();
+        if (StringUtils.isNotBlank(linkUrl)) {
+            return getSite().assembleLinkUrl(linkUrl);
         }
         return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
     }
@@ -228,17 +230,17 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
      * 图片列表
      */
     @Nullable
-    private List<ArticleImage> imageList;
+    private transient List<ArticleImage> imageList;
     /**
      * 文件列表
      */
     @Nullable
-    private List<ArticleFile> fileList;
+    private transient List<ArticleFile> fileList;
     /**
      * 自定义字段
      */
     @Nullable
-    private Map<String, Object> customs;
+    private transient Map<String, Object> customs;
 
     public List<ArticleImage> getImageList() {
         if (imageList == null) {
@@ -247,7 +249,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
                     imageList = Constants.MAPPER.readValue(getImageListJson(), new TypeReference<List<ArticleImage>>() {
                     });
                 } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
             } else {
                 imageList = Collections.emptyList();
@@ -261,7 +263,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         try {
             setImageListJson(Constants.MAPPER.writeValueAsString(imageList));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of List<ArticleImage>", e);
+            throw new IllegalStateException("Cannot write value of List<ArticleImage>", e);
         }
     }
 
@@ -272,7 +274,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
                     fileList = Constants.MAPPER.readValue(getFileListJson(), new TypeReference<List<ArticleFile>>() {
                     });
                 } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
             } else {
                 fileList = Collections.emptyList();
@@ -286,7 +288,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         try {
             setFileListJson(Constants.MAPPER.writeValueAsString(fileList));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot write value of List<ArticleFile>", e);
+            throw new IllegalStateException("Cannot write value of List<ArticleFile>", e);
         }
     }
 
@@ -516,8 +518,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     @Nullable
     @Pattern(regexp = "^(http|/).*$")
     public String getLinkUrl() {
-        if (getType() == TYPE_REFER && getSrc() != null) {
-            return getSrc().getUrl();
+        Article articleSrc = getSrc();
+        if (getType() == TYPE_REFER && articleSrc != null) {
+            return articleSrc.getUrl();
         }
         return getExt().getLinkUrl();
     }
@@ -813,12 +816,11 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     @Schema(description = "修改日期")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Nullable
     public OffsetDateTime getModified() {
         return getExt().getModified();
     }
 
-    public void setModified(@Nullable OffsetDateTime modified) {
+    public void setModified(OffsetDateTime modified) {
         getExt().setModified(modified);
     }
 
@@ -1046,6 +1048,18 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     }
 
     // region StaticFields
+    /**
+     * 动作类型：顶踩
+     */
+    public static final String ACTION_TYPE_UP_DOWN = "ArticleUpDown";
+    /**
+     * 动作选项：顶
+     */
+    public static final String ACTION_OPTION_UP = "up";
+    /**
+     * 动作选项：踩
+     */
+    public static final String ACTION_OPTION_DOWN = "down";
     /**
      * 文章审核流程类型
      */

@@ -57,7 +57,7 @@ public class LuceneOperations {
                 searcherManager.release(searcher);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene searching.", e);
+            throw new IllegalStateException("Error during lucene searching.", e);
         }
     }
 
@@ -83,7 +83,7 @@ public class LuceneOperations {
                 searcherManager.release(searcher);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene searching.", e);
+            throw new IllegalStateException("Error during lucene searching.", e);
         }
     }
 
@@ -94,7 +94,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene adding a document.", e);
+            throw new IllegalStateException("Error during lucene adding a document.", e);
         }
     }
 
@@ -105,7 +105,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene adding a document.", e);
+            throw new IllegalStateException("Error during lucene adding a document.", e);
         }
 
     }
@@ -117,7 +117,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene updating a document.", e);
+            throw new IllegalStateException("Error during lucene updating a document.", e);
         }
     }
 
@@ -128,7 +128,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException("Error during lucene deleting a document.", e);
         }
     }
 
@@ -139,7 +139,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException("Error during lucene deleting a document.", e);
         }
     }
 
@@ -150,7 +150,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException("Error during lucene deleting a document.", e);
         }
     }
 
@@ -161,7 +161,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException("Error during lucene deleting a document.", e);
         }
     }
 
@@ -172,7 +172,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException("Error during lucene deleting a document.", e);
         }
     }
 

@@ -82,6 +82,7 @@ public class ScheduleConfig {
             Assert.notNull(visitService, "VisitService must not be null");
             visitService.updateStat();
             visitService.deleteStatHistory();
+            visitService.updateOnlineVisitors();
         }
     }
 }

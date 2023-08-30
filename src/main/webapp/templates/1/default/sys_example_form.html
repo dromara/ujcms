@@ -1,0 +1,107 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>我要留言 - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}">
+  <meta name="_csrf_header" content="${_csrf.headerName}">
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="container">
+  <div class="row">
+    <div class="col mt-3">
+      <div class="d-flex align-items-center py-1 border-bottom">
+        <div class="flex-grow-1 h5 mb-0"><a href="${dy}/example/create">我要提交示例</a></div>
+        <div><a href="${dy}/example" role="button">示例列表</a></div>
+      </div>
+      <div class="mt-3">
+        <form id="validForm" action="${api}/example" method="post" class="bg-light p-3 mb-3">
+          <div class="form-group row">
+            <label for="name" class="col-sm-2 col-form-label">名称<strong class="text-danger">*</strong></label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="name" name="name" maxlength="30" title="请填写名称" required>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="description" class="col-sm-2 col-form-label">描述<strong class="text-danger">*</strong></label>
+            <div class="col-sm-10">
+              <textarea type="text" class="form-control" id="description" name="description" maxlength="150" rows="8" title="请填写描述" required></textarea>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="captcha" class="col-sm-2 col-form-label">图形验证码<strong class="text-danger">*</strong></label>
+            <div class="col-sm-10">
+              <div class="input-group">
+                <input type="text" class="form-control" id="captcha" name="captcha" autocomplete="off"
+                       data-rule-required="true" data-msg-required="请输入验证码"
+                       data-msg-remote="验证码错误">
+                <div class="input-group-append">
+                  <img id="captchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="input-group-text"
+                       style="cursor:pointer;padding:0;" title="点击重新获取验证码" alt="验证码"
+                       onclick="fetchCaptcha();$('#captcha').focus();">
+                  <input type="hidden" id="captchaToken" name="captchaToken">
+                  <script>
+                    function fetchCaptcha() {
+                      axios.get('${api}/captcha').then(function (response) {
+                        var data = response.data;
+                        if (data == null) return;
+                        $('#captchaImg').attr('src', 'data:image/png;base64,' + data.image);
+                        $('#captchaToken').val(data.token);
+                      });
+                    }
+
+                    fetchCaptcha();
+                  </script>
+                </div>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" name="siteId" value="${site.id?c}">
+          <button type="submit" class="btn btn-primary">确认提交</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+<script>
+  $('#successModal').on('hidden.bs.modal', function () {
+    location.href = '${dy}/example';
+  });
+
+  $(function () {
+    $('#title').focus().select();
+    $('#validForm').validate({
+      rules: {
+        captcha: {
+          remote: {
+            url: '${api}/captcha/try', data: {
+              token: function () {
+                return $('#captchaToken').val();
+              }
+            }
+          }
+        }
+      },
+      submitHandler: function (form) {
+        request.post(form.action, $(form).serializeJSON()).then(function (response) {
+          var data = response.data;
+          if (data.status === 0) {
+            showSuccess();
+            location.href = '${dy}/example';
+          }
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
+[/#escape]

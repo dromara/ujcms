@@ -9,7 +9,12 @@
     <select id="listByAncestorId" resultType="int">
         select t.descendant_id_
         from ujcms_org_tree t
-        where t.ancestor_id_ = #{AncestorId}
+        where t.ancestor_id_ = #{ancestorId}
+    </select>
+    <select id="countByAncestorId" resultType="int">
+        select count(*)
+        from ujcms_org_tree t
+        where t.ancestor_id_ = #{ancestorId} and t.descendant_id_ = #{descendantId}
     </select>
     <select id="countByOrgId" resultType="int">
         select count(*)

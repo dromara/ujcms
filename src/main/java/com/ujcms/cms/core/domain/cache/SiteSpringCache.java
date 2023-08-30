@@ -29,9 +29,9 @@ public class SiteSpringCache implements ApplicationContextAware {
      */
     public static final int EXPIRES = 10;
     /**
-     * 最大缓存数量。默认 4096
+     * 最大缓存数量。默认 50000
      */
-    public static final int MAXIMUM_SIZE = 4096;
+    public static final int MAXIMUM_SIZE = 50000;
 
     @Cacheable
     @Nullable

@@ -1,8 +1,9 @@
 package com.ujcms.cms.core.service;
 
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.OrgTree;
+import com.ujcms.cms.core.domain.base.OrgBase;
 import com.ujcms.cms.core.listener.OrgDeleteListener;
 import com.ujcms.cms.core.mapper.OrgMapper;
 import com.ujcms.cms.core.mapper.OrgTreeMapper;
@@ -41,7 +42,7 @@ public class OrgService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Org bean) {
-        bean.setId(seqService.getNextVal(Org.TABLE_NAME));
+        bean.setId(seqService.getNextVal(OrgBase.TABLE_NAME));
         treeService.insert(bean);
     }
 
@@ -66,9 +67,8 @@ public class OrgService {
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(Org bean) {
-        int count = bean.getChildren().stream().mapToInt(item -> delete(item.getId())).sum();
         deleteListeners.forEach(it -> it.preOrgDelete(bean.getId()));
-        return treeService.delete(bean.getId(), bean.getOrder()) + count;
+        return treeService.delete(bean.getId(), bean.getOrder());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -82,12 +82,16 @@ public class OrgService {
     }
 
     public List<Org> selectList(OrgArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Org.TABLE_NAME, "order,id");
-        return mapper.selectAll(queryInfo, args.getParentId());
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), OrgBase.TABLE_NAME, "order,id");
+        return mapper.selectAll(queryInfo, args.getAncestorId());
     }
 
     public List<Org> selectList(OrgArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+    }
+
+    public List<Org> listChildren(Integer parentId) {
+        return mapper.listChildren(parentId);
     }
 
     public List<Integer> listByAncestorId(Integer ancestorId) {
@@ -102,7 +106,19 @@ public class OrgService {
      * @return 存在返回 {@code true}，不存在返回 {@code false}
      */
     public boolean hasRelationship(Integer userOrgId, Integer siteOrgId) {
-        return PageHelper.offsetPage(0, 1).doCount(() -> treeMapper.countByOrgId(userOrgId, siteOrgId)) > 0;
+        return PageMethod.offsetPage(0, 1).doCount(() -> treeMapper.countByOrgId(userOrgId, siteOrgId)) > 0;
+    }
+
+    /**
+     * 是否后代
+     *
+     * @param ancestorId   祖先ID
+     * @param descendantId 后代ID
+     * @return 是否后代
+     */
+    public boolean isDescendant(Integer ancestorId, Integer descendantId) {
+        return PageMethod.offsetPage(0, 1).doCount(() ->
+                treeMapper.countByOrgId(ancestorId, descendantId)) > 0;
     }
 
     private List<OrgDeleteListener> deleteListeners = Collections.emptyList();

@@ -211,7 +211,7 @@
         function voteUp() {
           axios.post('${api}/article/up/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
-              alert("你已经顶过一次！");
+              alert("您已经参与过一次！");
               return;
             }
             $('#ups').text(response.data);
@@ -221,7 +221,7 @@
         function voteDown() {
           axios.post('${api}/article/down/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
-              alert("你已经踩过一次！");
+              alert("您已经参与过一次！");
               return;
             }
             $('#downs').text(response.data);

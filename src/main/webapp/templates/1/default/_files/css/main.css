@@ -68,6 +68,20 @@
 .cm-link:hover {
   color: #0062cc;
 }
+.cm-dot-primary{
+  margin-left: 12px;
+}
+.cm-dot-primary::before {
+  content: " ";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #007bff;
+  display: inline-block;
+  position: absolute;
+  left: 0;
+  top: 48%;
+}
 
 .es-highlight em {
   color: #dc3545;

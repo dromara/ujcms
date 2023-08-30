@@ -20,5 +20,8 @@ databaseChangeLog:
   - include:
       file: db.changelog-7.0.yaml
       relativeToChangelogFile: true
+  - include:
+      file: db.changelog-8.0.yaml
+      relativeToChangelogFile: true
 
 

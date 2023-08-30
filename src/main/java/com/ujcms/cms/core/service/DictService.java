@@ -1,7 +1,9 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Dict;
+import com.ujcms.cms.core.domain.base.DictBase;
 import com.ujcms.cms.core.mapper.DictMapper;
 import com.ujcms.cms.core.service.args.DictArgs;
 import com.ujcms.commons.query.QueryInfo;
@@ -69,12 +71,12 @@ public class DictService {
     }
 
     public List<Dict> selectList(DictArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Dict.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), DictBase.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 
     public List<Dict> selectList(DictArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public List<Dict> listByTypeId(Integer typeId) {

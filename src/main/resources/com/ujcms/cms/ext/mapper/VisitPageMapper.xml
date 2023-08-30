@@ -76,8 +76,7 @@
         delete
         from ujcms_visit_page
         where id_ = #{id,jdbcType=BIGINT}
-    </delete>
-<update id="update" parameterType="com.ujcms.cms.ext.domain.VisitPage">
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.VisitPage">
     update ujcms_visit_page
     set site_id_ = #{siteId,jdbcType=INTEGER},
       url_ = #{url,jdbcType=VARCHAR},

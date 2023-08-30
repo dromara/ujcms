@@ -66,6 +66,14 @@ public class VisitLogBase implements Serializable {
     private String source = "";
 
     /**
+     * 来源类型(DIRECT:直接访问,INNER:内部链接,OUTER:外部链接,SEARCH:搜索引擎)
+     */
+    @Length(max = 20)
+    @NotNull
+    @Schema(description="来源类型(DIRECT:直接访问,INNER:内部链接,OUTER:外部链接,SEARCH:搜索引擎)")
+    private String sourceType = "DIRECT";
+
+    /**
      * 国家
      */
     @Length(max = 50)
@@ -209,6 +217,14 @@ public class VisitLogBase implements Serializable {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
     }
 
     public String getCountry() {

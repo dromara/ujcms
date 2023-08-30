@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.VoteOptionMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.VoteOption">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="vote_id_" jdbcType="INTEGER" property="voteId" />
+    <result column="title_" jdbcType="VARCHAR" property="title" />
+    <result column="count_" jdbcType="INTEGER" property="count" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.VoteOption">
+        <association column="vote_id_" javaType="com.ujcms.cms.ext.domain.Vote" property="vote" select="com.ujcms.cms.ext.mapper.VoteMapper.select" />
+    </resultMap>
+    <update id="cast">
+        update ujcms_vote_option
+        set count_ = count_ + 1
+        where vote_id_ = #{voteId,jdbcType=INTEGER}
+        <foreach close=")" collection="optionIds" item="item" nullable="true" open="and id_ in (" separator=",">
+            #{item}
+        </foreach>
+    </update>
+    <delete id="deleteByVoteId">
+        delete
+        from ujcms_vote_option
+        where vote_id_ = #{voteId}
+        <foreach close=")" collection="ids" item="item" nullable="true" open="and id_ not in (" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_vote_option
+        where exists(select * from ujcms_vote t where t.id_ = ujcms_vote_option.vote_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+    </delete>
+    <select id="listByVoteId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_vote_option t
+        where t.vote_id_ = #{voteId,jdbcType=INTEGER}
+        order by t.order_, t.id_
+    </select>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_vote_option" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_vote_option t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete
+        from ujcms_vote_option
+        where id_ = #{id,jdbcType=INTEGER}
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.VoteOption">
+    update ujcms_vote_option
+    set vote_id_ = #{voteId,jdbcType=INTEGER},
+      title_ = #{title,jdbcType=VARCHAR},
+      count_ = #{count,jdbcType=INTEGER},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VoteOption">
+    insert into ujcms_vote_option (id_, vote_id_, title_, count_, order_)
+    values (#{id,jdbcType=INTEGER}, #{voteId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{order,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.vote_id_, t.title_, t.count_, t.order_
+  </sql></mapper>

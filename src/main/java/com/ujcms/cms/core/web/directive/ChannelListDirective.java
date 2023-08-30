@@ -29,13 +29,13 @@ public class ChannelListDirective implements TemplateDirectiveModel {
      */
     private static final String SITE_ID = "siteId";
     /**
-     * 上级栏目别名。字符串（String）
+     * 上级栏目ID。整型（Integer）
      */
     private static final String PARENT_ID = "parentId";
     /**
-     * 上级栏目ID。整型（Integer）
+     * 上级栏目别名。字符串（String）
      */
-    private static final String PARENT = "parentId";
+    private static final String PARENT = "parent";
     /**
      * 是否导航。布尔型（Boolean）
      */
@@ -55,9 +55,7 @@ public class ChannelListDirective implements TemplateDirectiveModel {
             String parentAlias = Directives.getString(params, PARENT);
             if (StringUtils.isNotBlank(parentAlias)) {
                 Channel parent = channelService.findBySiteIdAndAlias(siteId, parentAlias);
-                if (parent != null) {
-                    parentId = parent.getId();
-                }
+                parentId = parent != null ? parent.getId() : Integer.MIN_VALUE;
             }
         }
         if (parentId != null) {
@@ -92,12 +90,7 @@ public class ChannelListDirective implements TemplateDirectiveModel {
     public static List<Channel> selectList(ChannelService channelService, ChannelArgs args, Map<String, String> params) {
         int offset = Directives.getOffset(params);
         int limit = Directives.getLimit(params);
-        List<Channel> list = channelService.selectList(args, offset, limit);
-        list.forEach(channel -> {
-            channel.getPaths().forEach(channelService::fetchFirstData);
-            channel.getChildren().forEach(channelService::fetchFirstData);
-        });
-        return list;
+        return channelService.selectList(args, offset, limit);
     }
 
     private final ChannelService channelService;

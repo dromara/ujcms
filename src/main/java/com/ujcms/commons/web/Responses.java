@@ -66,6 +66,13 @@ public final class Responses {
     }
 
     /**
+     * 操作成功
+     */
+    public static ResponseEntity<Body> failure(Map<String, Object> result) {
+        return ResponseEntity.ok().body(new Body(Body.FAILURE, result));
+    }
+
+    /**
      * 操作失败
      */
     public static ResponseEntity<Body> failure(String message) {
@@ -310,15 +317,6 @@ public final class Responses {
         return null;
     }
 
-    // /**
-    //  * 用于浏览器访问。未登录。
-    //  */
-    // public static String unauthorized(HttpServletRequest request, HttpServletResponse response, String loginUrl) throws IOException {
-    //     WebUtils.saveRequest(request);
-    //     response.sendError(SC_UNAUTHORIZED);
-    //     return "redirect:" + loginUrl;
-    // }
-
     /**
      * 工具类不允许创建对象
      */
@@ -336,7 +334,12 @@ public final class Responses {
          */
         public static final int FAILURE = -1;
         /**
-         * 逻辑状态码。0:成功, -1:失败。其它状态可以根据自己的实际逻辑随意使用
+         * 逻辑状态码。0:成功, -1:失败。其它状态可以根据自己的实际逻辑随意使用，也可按以下建议方式使用：
+         * <ul>
+         * <li>1-99 为成功状态码。如评论提交成功，但需管理员审核等情况</li>
+         * <li>100-999 为全局错误状态码。如验证码错误等情况</li>
+         * <li>1000-9999 为特定错误状态码。如投票未启用等情况</li>
+         * </ul>
          */
         @Schema(description = "逻辑状态码。0:成功, -1:失败。其它状态可以根据自己的实际逻辑随意使用")
         private int status = SUCCESS;
@@ -384,7 +387,8 @@ public final class Responses {
 
         @Override
         public String toString() {
-            return "Body{" + "status=" + status + ", result=" + result + ", message='" + message + '\'' + ", exception='" + exception + '\'' + '}';
+            return "Body{" + "status=" + status + ", result=" + result + "," +
+                    " message='" + message + '\'' + ", exception='" + exception + '\'' + '}';
         }
 
         public int getStatus() {

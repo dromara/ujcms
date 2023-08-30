@@ -19,6 +19,7 @@
         <include refid="Column_List" />
         from ujcms_channel_custom t
         where t.channel_id_ = #{channelId,jdbcType=INTEGER}
+        order by t.id_
     </select>
     <delete id="deleteByChannelId" parameterType="int">
         delete

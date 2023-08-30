@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ErrorWordMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ErrorWord">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="correct_" jdbcType="VARCHAR" property="correct" />
+    <result column="enabled_" jdbcType="CHAR" property="enabled" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ErrorWord" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_error_word" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_error_word t
+    where t.id_ = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="delete" parameterType="java.lang.Integer">
+    delete from ujcms_error_word
+    where id_ = #{id,jdbcType=INTEGER}
+  </delete><update id="update" parameterType="com.ujcms.cms.core.domain.ErrorWord">
+    update ujcms_error_word
+    set name_ = #{name,jdbcType=VARCHAR},
+      correct_ = #{correct,jdbcType=VARCHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ErrorWord">
+    insert into ujcms_error_word (id_, name_, correct_, enabled_)
+    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{correct,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.name_, t.correct_, t.enabled_
+  </sql></mapper>

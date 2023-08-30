@@ -12,18 +12,10 @@ import com.ujcms.commons.web.Entities;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
 import com.ujcms.commons.web.exception.Http403Exception;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -50,13 +42,19 @@ public class OrgController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('org:list','*')")
     public Object list(@RequestParam(defaultValue = "false") boolean current,
+                       @RequestParam(defaultValue = "true") boolean allDescendant,
                        @Nullable Integer parentId, HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
-        boolean needParentId = current || !user.hasGlobalPermission();
+        boolean needParentId = current || !user.hasGlobalPermission() || !allDescendant;
         if (parentId == null && needParentId) {
             parentId = Contexts.getCurrentSite().getOrgId();
         }
-        OrgArgs args = OrgArgs.of(getQueryMap(request.getQueryString())).parentId(parentId);
+        OrgArgs args = OrgArgs.of(getQueryMap(request.getQueryString()));
+        if (allDescendant) {
+            args.ancestorId(parentId);
+        } else {
+            args.parentId(parentId);
+        }
         return service.selectList(args);
     }
 
@@ -65,7 +63,7 @@ public class OrgController {
     public Object show(@PathVariable Integer id) {
         Org bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("Org not found. ID = " + id);
+            return Responses.notFound(ORG_NOT_FOUND + id);
         }
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
@@ -94,7 +92,7 @@ public class OrgController {
     public ResponseEntity<Body> update(@RequestBody Org bean) {
         Org org = service.select(bean.getId());
         if (org == null) {
-            return Responses.notFound("Org not found. ID = " + bean.getId());
+            return Responses.notFound(ORG_NOT_FOUND + bean.getId());
         }
         Integer origParentId = org.getParentId();
         Entities.copy(bean, org, "parentId", "order");
@@ -124,7 +122,7 @@ public class OrgController {
         for (Integer id : ids) {
             Org bean = service.select(id);
             if (bean == null) {
-                return Responses.notFound("Org not found. ID = " + id);
+                continue;
             }
             validateDataPermission(orgIds, user, bean.getId());
             list.add(bean);
@@ -143,12 +141,27 @@ public class OrgController {
         for (Integer id : ids) {
             Org bean = service.select(id);
             if (bean == null) {
-                return Responses.notFound("Org not found. ID = " + id);
+                continue;
             }
             validateDataPermission(orgIds, user, bean.getId());
-            service.delete(id);
+            delete(bean);
         }
         return Responses.ok();
+    }
+
+    /**
+     * 递归删除组织。不能放到Service里面递归，这样会因事务太大，导致性能低下。
+     *
+     * @param bean 组织
+     * @return 删除条数
+     */
+    private int delete(Org bean) {
+        int deleted = 0;
+        for (Org o : service.listChildren(bean.getId())) {
+            deleted += delete(o);
+        }
+        deleted = service.delete(bean);
+        return deleted;
     }
 
     private void validateDataPermission(List<Integer> permissionOrgIds, User currentUser, Integer... orgIds) {
@@ -161,4 +174,6 @@ public class OrgController {
             }
         }
     }
+
+    private static final String ORG_NOT_FOUND = "Org not found. ID = ";
 }

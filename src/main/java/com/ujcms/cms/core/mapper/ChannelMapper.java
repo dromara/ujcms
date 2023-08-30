@@ -20,6 +20,23 @@ import java.util.List;
 @Repository
 public interface ChannelMapper extends TreeEntityMapper<Channel> {
     /**
+     * 根据主键获取引用对象（不包括关联对象属性）
+     *
+     * @param id 主键ID
+     * @return 实体对象。没有找到数据，则返回 {@code null}
+     */
+    @Nullable
+    Channel selectReferParent(Integer id);
+    /**
+     * 根据主键获取引用对象（不包括关联对象属性）
+     *
+     * @param id 主键ID
+     * @return 实体对象。没有找到数据，则返回 {@code null}
+     */
+    @Nullable
+    Channel selectRefer(Integer id);
+
+    /**
      * 根据查询条件获取列表
      *
      * @param queryInfo        查询条件
@@ -36,6 +53,15 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 栏目数量
      */
     int countByModelId(Integer modelId);
+
+    /**
+     * 根据 栏目别名 查询栏目数量
+     *
+     * @param alias  栏目别名
+     * @param siteId 站点ID
+     * @return 栏目数量
+     */
+    int countByAlias(String alias, Integer siteId);
 
     /**
      * 统计栏目数量
@@ -62,6 +88,14 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 子栏目列表
      */
     List<Channel> listChildren(Integer parentId);
+
+    /**
+     * 根据父栏目ID获取子栏目列表（不包括关联对象属性）
+     *
+     * @param parentId 父栏目ID
+     * @return 子栏目列表
+     */
+    List<Channel> listChildrenLink(Integer parentId);
 
     /**
      * 查询栏目用于sitemap。sitemap查询的数据量较大，只获取必须的字段。

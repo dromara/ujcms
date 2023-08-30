@@ -2,7 +2,10 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.LoginLog;
+import com.ujcms.cms.core.domain.base.LoginLogBase;
+import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.LoginLogMapper;
 import com.ujcms.cms.core.service.args.LoginLogArgs;
 import com.ujcms.commons.query.QueryInfo;
@@ -20,7 +23,7 @@ import java.util.Objects;
  * @author PONY
  */
 @Service
-public class LoginLogService {
+public class LoginLogService implements UserDeleteListener {
     private final LoginLogMapper mapper;
     private final SeqService seqService;
 
@@ -56,7 +59,7 @@ public class LoginLogService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(LoginLog bean) {
-        bean.setId(seqService.getNextVal(LoginLog.TABLE_NAME));
+        bean.setId(seqService.getNextVal(LoginLogBase.TABLE_NAME));
         mapper.insert(bean);
     }
 
@@ -81,15 +84,20 @@ public class LoginLogService {
     }
 
     public List<LoginLog> selectList(LoginLogArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), LoginLog.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), LoginLogBase.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 
     public List<LoginLog> selectList(LoginLogArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public Page<LoginLog> selectPage(LoginLogArgs args, int page, int pageSize) {
-        return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+    }
+
+    @Override
+    public void preUserDelete(Integer userId) {
+        mapper.deleteByUserId(userId);
     }
 }

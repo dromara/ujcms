@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="default" targetRuntime="com.ujcms.generator.mybatis.IntrospectedTableSimpleImpl">
+        <plugin type="com.ujcms.generator.mybatis.plugin.NamingPlugin"/>
+        <plugin type="com.ujcms.generator.mybatis.plugin.JavaAnnotationPlugin"/>
+        <commentGenerator>
+            <property name="suppressAllComments" value="true"/>
+            <!--<property name="addRemarkComments" value="true"/>-->
+        </commentGenerator>
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver" connectionURL="jdbc:mysql://localhost:3306/ujcms?serverTimezone=UTC"
+                        userId="ujcms" password="password"/>
+
+        <javaTypeResolver type="com.ujcms.generator.mybatis.Java8TypeResolver">
+            <property name="useJSR310Types" value="true"/>
+        </javaTypeResolver>
+
+        <javaModelGenerator targetPackage="com.ujcms.cms.core.domain" targetProject="src/main/java">
+            <property name="swagger" value="true"/>
+        </javaModelGenerator>
+
+        <sqlMapGenerator targetPackage="com.ujcms.cms.core.mapper" targetProject="src/main/resources"/>
+
+        <javaClientGenerator targetPackage="com.ujcms.cms.core.mapper" targetProject="src/main/java" type="XMLMAPPER"/>
+
+        <table tableName="ujcms_seq" domainObjectName="Seq">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_config" domainObjectName="Config">
+            <property name="serviceArgs" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_global" domainObjectName="Global">
+            <property name="serviceArgs" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_org" domainObjectName="Org">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_org_tree" domainObjectName="OrgTree">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_group" domainObjectName="Group">
+            <property name="pageable" value="false"/>
+        </table>
+        <table tableName="ujcms_user" domainObjectName="User"/>
+        <table tableName="ujcms_user_ext" domainObjectName="UserExt">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_user_openid" domainObjectName="UserOpenid">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_role" domainObjectName="Role">
+            <property name="pageable" value="false"/>
+        </table>
+        <table tableName="ujcms_user_role" domainObjectName="UserRole">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_storage" domainObjectName="Storage"/>
+        <table tableName="ujcms_site" domainObjectName="Site">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_site_tree" domainObjectName="SiteTree">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_site_buffer" domainObjectName="SiteBuffer">
+            <property name="serviceArgs" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_site_custom" domainObjectName="SiteCustom">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_model" domainObjectName="Model"/>
+        <table tableName="ujcms_channel" domainObjectName="Channel"/>
+        <table tableName="ujcms_channel_ext" domainObjectName="ChannelExt">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_channel_tree" domainObjectName="ChannelTree">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_channel_buffer" domainObjectName="ChannelBuffer">
+            <property name="serviceArgs" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_channel_custom" domainObjectName="ChannelCustom">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_group_access" domainObjectName="GroupAccess">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_role_article" domainObjectName="RoleArticle">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_role_channel" domainObjectName="RoleChannel">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_tag" domainObjectName="Tag"/>
+        <table tableName="ujcms_article" domainObjectName="Article"/>
+        <table tableName="ujcms_article_ext" domainObjectName="ArticleExt">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_article_buffer" domainObjectName="ArticleBuffer">
+            <property name="serviceArgs" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_article_stat" domainObjectName="ArticleStat">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_article_custom" domainObjectName="ArticleCustom">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_article_tag" domainObjectName="ArticleTag">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_dict_type" domainObjectName="DictType">
+            <property name="pageable" value="false"/>
+        </table>
+        <table tableName="ujcms_dict" domainObjectName="Dict">
+            <property name="pageable" value="false"/>
+        </table>
+        <table tableName="ujcms_block" domainObjectName="Block">
+            <property name="pageable" value="false"/>
+        </table>
+        <table tableName="ujcms_block_item" domainObjectName="BlockItem">
+            <property name="pageable" value="false"/>
+        </table>
+        <table tableName="ujcms_attachment" domainObjectName="Attachment"/>
+        <table tableName="ujcms_attachment_refer" domainObjectName="AttachmentRefer">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_task" domainObjectName="Task"/>
+        <table tableName="ujcms_short_message" domainObjectName="ShortMessage"/>
+        <table tableName="ujcms_login_log" domainObjectName="LoginLog">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_operation_log" domainObjectName="OperationLog">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_operation_log_ext" domainObjectName="OperationLogExt">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_sensitive_word" domainObjectName="SensitiveWord">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_error_word" domainObjectName="ErrorWord">
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_action" domainObjectName="Action">
+            <property name="controller" value="false"/>
+        </table>
+    </context>
+</generatorConfiguration>

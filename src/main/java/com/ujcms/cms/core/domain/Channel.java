@@ -1,16 +1,16 @@
 package com.ujcms.cms.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.annotation.*;
+import com.ujcms.cms.Application;
 import com.ujcms.cms.core.domain.base.ChannelBase;
+import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.commons.db.tree.TreeEntity;
 import com.ujcms.commons.web.HtmlParserUtils;
 import com.ujcms.commons.web.PageUrlResolver;
+import com.ujcms.commons.web.Views;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
@@ -18,13 +18,7 @@ import org.springframework.lang.Nullable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +57,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "栏目层级。从一级栏目到当前栏目的列表")
+    @JsonView(Views.Whole.class)
     @JsonIncludeProperties({"id", "name", "url"})
     public List<Channel> getPaths() {
         LinkedList<Channel> parents = new LinkedList<>();
@@ -87,11 +82,36 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     @JsonIgnore
     public List<String> getAttachmentUrls() {
         List<String> urls = new ArrayList<>();
-        Optional.ofNullable(getExt().getImage()).ifPresent(urls::add);
+        Optional.ofNullable(getImage()).ifPresent(urls::add);
         // 获取正文中的附件url
         urls.addAll(HtmlParserUtils.getUrls(getExt().getText()));
         getChannelModel().handleCustoms(getCustomList(), new Model.GetUrlsHandle(urls));
         return urls;
+    }
+
+    @Nullable
+    @Schema(description = "文章模板")
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    @Override
+    public String getArticleTemplate() {
+        return super.getArticleTemplate();
+    }
+
+
+    @Nullable
+    @Schema(description = "栏目模板")
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    @Override
+    public String getChannelTemplate() {
+        return super.getChannelTemplate();
+    }
+
+    @Nullable
+    @Schema(description = "转向链接")
+    @Pattern(regexp = "^(http|/).*$")
+    @Override
+    public String getLinkUrl() {
+        return super.getLinkUrl();
     }
 
     @Override
@@ -140,11 +160,8 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         if (getType() == TYPE_LINK && StringUtils.isNotBlank(linkUrl)) {
             return getSite().assembleLinkUrl(linkUrl);
         }
-        if (getType() == TYPE_LINK_ARTICLE) {
-            return Optional.ofNullable(getFirstArticle()).map(article -> article.getDynamicUrl(page)).orElse("");
-        }
         if (getType() == TYPE_LINK_CHILD) {
-            return Optional.ofNullable(getFirstChild()).map(channel -> channel.getDynamicUrl(page)).orElse("");
+            return getFirstChannel(getId()).map(channel -> channel.getDynamicUrl(page)).orElse("");
         }
         String prefix = Optional.ofNullable(getSite().getConfig().getChannelUrl()).orElse(UrlConstants.CHANNEL);
         String url = getSite().getDynamicUrl() + prefix + "/" + getAlias();
@@ -163,17 +180,20 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         if (getType() == TYPE_LINK && StringUtils.isNotBlank(linkUrl)) {
             return getSite().assembleLinkUrl(linkUrl);
         }
-        if (getType() == TYPE_LINK_ARTICLE) {
-            return Optional.ofNullable(getFirstArticle()).map(article -> article.getStaticUrl(page)).orElse("");
-        }
         if (getType() == TYPE_LINK_CHILD) {
-            return Optional.ofNullable(getFirstChild()).map(channel -> channel.getStaticUrl(page)).orElse("");
+            return getFirstChannel(getId()).map(channel -> channel.getStaticUrl(page)).orElse("");
         }
         // 如果页数大于最大静态化页数，则使用动态页
         if (page > getSite().getHtml().getListPages()) {
             return getDynamicUrl(page);
         }
         return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
+    }
+
+    private Optional<Channel> getFirstChannel(Integer channelId) {
+        return Optional.ofNullable(Application.getApplicationContext())
+                .map((applicationContext -> applicationContext.getBean(ChannelService.class)))
+                .map(channelService -> channelService.findFirstChild(channelId));
     }
 
     public String getNormalStaticUrl(int page) {
@@ -205,7 +225,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
      */
     @Schema(description = "是否链接")
     public boolean isLink() {
-        return getType() == TYPE_LINK || getType() == TYPE_LINK_ARTICLE || getType() == TYPE_LINK_CHILD;
+        return getType() == TYPE_LINK || getType() == TYPE_LINK_CHILD;
     }
     // endregion
 
@@ -268,14 +288,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
      */
     private Model articleModel = new Model();
 
-    @Nullable
-    private Article firstArticle;
-
-    @Nullable
-    private Channel firstChild;
-
-    private boolean fetchedFirstData = false;
-
     @JsonIgnore
     public ChannelExt getExt() {
         return ext;
@@ -295,6 +307,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "子栏目列表")
+    @JsonView(Views.Whole.class)
     @JsonIncludeProperties({"id", "name", "url", "image"})
     public List<Channel> getChildren() {
         return children;
@@ -354,35 +367,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     public void setArticleModel(Model articleModel) {
         this.articleModel = articleModel;
     }
-
-    @JsonIgnore
-    @Nullable
-    public Article getFirstArticle() {
-        return firstArticle;
-    }
-
-    public void setFirstArticle(@Nullable Article firstArticle) {
-        this.firstArticle = firstArticle;
-    }
-
-    @JsonIgnore
-    @Nullable
-    public Channel getFirstChild() {
-        return firstChild;
-    }
-
-    public void setFirstChild(@Nullable Channel firstChild) {
-        this.firstChild = firstChild;
-    }
-
-    @JsonIgnore
-    public boolean isFetchedFirstData() {
-        return fetchedFirstData;
-    }
-
-    public void setFetchedFirstData(boolean fetchedFirstData) {
-        this.fetchedFirstData = fetchedFirstData;
-    }
     // endregion
 
     // region ChannelBase
@@ -428,28 +412,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         getExt().setSeoDescription(seoDescription);
     }
 
-    @Schema(description = "文章模板")
-    @Nullable
-    @Pattern(regexp = "^(?!.*\\.\\.).*$")
-    public String getArticleTemplate() {
-        return getExt().getArticleTemplate();
-    }
-
-    public void setArticleTemplate(@Nullable String articleTemplate) {
-        getExt().setArticleTemplate(articleTemplate);
-    }
-
-    @Schema(description = "栏目模板")
-    @Nullable
-    @Pattern(regexp = "^(?!.*\\.\\.).*$")
-    public String getChannelTemplate() {
-        return getExt().getChannelTemplate();
-    }
-
-    public void setChannelTemplate(@Nullable String channelTemplate) {
-        getExt().setChannelTemplate(channelTemplate);
-    }
-
     @Schema(description = "每页条数")
     public Short getPageSize() {
         return getExt().getPageSize();
@@ -457,37 +419,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     public void setPageSize(Short pageSize) {
         getExt().setPageSize(pageSize);
-    }
-
-    @Schema(description = "图片")
-    @Nullable
-    public String getImage() {
-        return getExt().getImage();
-    }
-
-    public void setImage(@Nullable String image) {
-        getExt().setImage(image);
-    }
-
-    @Schema(description = "转向链接")
-    @Nullable
-    @Pattern(regexp = "^(http|/).*$")
-    public String getLinkUrl() {
-        return getExt().getLinkUrl();
-    }
-
-    public void setLinkUrl(@Nullable String linkUrl) {
-        getExt().setLinkUrl(linkUrl);
-    }
-
-    @Schema(description = "是否新窗口打开")
-    @Override
-    public Boolean getTargetBlank() {
-        return getExt().getTargetBlank();
-    }
-
-    public void setTargetBlank(boolean targetBlank) {
-        getExt().setTargetBlank(targetBlank);
     }
 
     @Schema(description = "是否允许评论")
@@ -546,6 +477,25 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     public void setText(@Nullable String text) {
         getExt().setText(text);
     }
+
+    @Schema(description = "正文（Markdown格式）")
+    @Nullable
+    public String getMarkdown() {
+        return getExt().getMarkdown();
+    }
+
+    public void setMarkdown(@Nullable String markdown) {
+        getExt().setMarkdown(markdown);
+    }
+
+    @Schema(description = "正文编辑器类型")
+    public Short getEditorType() {
+        return getExt().getEditorType();
+    }
+
+    public void setEditorType(Short editorType) {
+        getExt().setEditorType(editorType);
+    }
     // endregion
 
     // region ChannelBuffer
@@ -574,12 +524,8 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
      */
     public static final short TYPE_LINK = 3;
     /**
-     * 链接到第一篇文章
-     */
-    public static final short TYPE_LINK_ARTICLE = 4;
-    /**
      * 链接到第一个子栏目
      */
-    public static final short TYPE_LINK_CHILD = 5;
+    public static final short TYPE_LINK_CHILD = 4;
     // endregion
 }

@@ -167,7 +167,6 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(Channel bean) {
-        int count = bean.getChildren().stream().mapToInt(item -> delete(item.getId())).sum();
         deleteListeners.forEach(it -> it.preChannelDelete(bean.getId()));
         attachmentService.deleteRefer(ChannelBase.TABLE_NAME, bean.getId());
         groupAccessMapper.deleteByChannelId(bean.getId());
@@ -176,12 +175,11 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         customMapper.deleteByChannelId(bean.getId());
         bufferMapper.delete(bean.getId());
         extMapper.delete(bean.getId());
-        count += treeService.delete(bean.getId(), bean.getOrder(), bean.getSiteId());
+        int count = treeService.delete(bean.getId(), bean.getOrder(), bean.getSiteId());
         htmlService.deleteChannelHtml(bean);
         return count;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public int delete(List<Integer> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
@@ -189,19 +187,6 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     @Nullable
     public Channel select(Integer id) {
         return mapper.select(id);
-    }
-
-    public void fetchFirstData(Channel channel) {
-        if (channel.getType() == Channel.TYPE_LINK_ARTICLE
-                && !channel.isFetchedFirstData() && channel.getFirstArticle() == null) {
-            channel.setFirstArticle(findFirstArticle(channel.getId()));
-            channel.setFetchedFirstData(true);
-        }
-        if (channel.getType() == Channel.TYPE_LINK_CHILD
-                && !channel.isFetchedFirstData() && channel.getFirstChild() == null) {
-            channel.setFirstChild(findFirstChild(channel.getId()));
-            channel.setFetchedFirstData(true);
-        }
     }
 
     @Nullable
@@ -248,23 +233,28 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         return mapper.listByChannelForSitemap(siteId);
     }
 
+    public List<Channel> listChildren(Integer parentId) {
+        return mapper.listChildren(parentId);
+    }
+
     public List<Channel> selectList(ChannelArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ChannelBase.TABLE_NAME, "order,id");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
-        List<Channel> list = mapper.selectAll(queryInfo, customsCondition);
-        list.forEach(this::fetchFirstData);
-        return list;
+        return mapper.selectAll(queryInfo, customsCondition);
     }
 
     public List<Channel> selectList(ChannelArgs args, int offset, int limit) {
-        List<Channel> list = PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
-        list.forEach(this::fetchFirstData);
-        return list;
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public boolean existsByModelId(Integer modelId) {
         return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByModelId(modelId)).iterator().next().intValue() > 0;
+    }
+
+    public boolean existsByAlias(String alias, Integer siteId) {
+        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+                mapper.countByAlias(alias, siteId)).iterator().next().intValue() > 0;
     }
 
     /**

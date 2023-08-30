@@ -14,6 +14,7 @@ import com.ujcms.cms.ext.mapper.VisitLogMapper;
 import com.ujcms.cms.ext.service.args.VisitLogArgs;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,6 +84,16 @@ public class VisitLogService implements SiteDeleteListener, UserDeleteListener {
         return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
     }
 
+    /**
+     * 统计访客数
+     *
+     * @param date 在此日期后
+     * @return 访客数
+     */
+    public int countVisitors(OffsetDateTime date) {
+        return mapper.countVisitors(date);
+    }
+
     public List<VisitStat> statByType(short type, OffsetDateTime begin, OffsetDateTime end) {
         switch (type) {
             case VisitStat.TYPE_VISITOR:
@@ -99,6 +110,8 @@ public class VisitLogService implements SiteDeleteListener, UserDeleteListener {
                 return statOs(begin, end);
             case VisitStat.TYPE_BROWSER:
                 return statBrowser(begin, end);
+            case VisitStat.TYPE_SOURCE_TYPE:
+                return statSourceType(begin, end);
             default:
                 throw new IllegalArgumentException("Unsupported type: " + type);
         }
@@ -126,6 +139,18 @@ public class VisitLogService implements SiteDeleteListener, UserDeleteListener {
     public List<VisitStat> statSource(OffsetDateTime begin, OffsetDateTime end) {
         return PageMethod.offsetPage(0, STAT_MAX_SIZE, false).doSelectPage(
                 () -> mapper.statByName("source_", begin, end));
+    }
+
+    /**
+     * 统计来源分类
+     *
+     * @param begin 开始日期
+     * @param end   介绍日期
+     * @return 统计结果
+     */
+    public List<VisitStat> statSourceType(OffsetDateTime begin, OffsetDateTime end) {
+        return PageMethod.offsetPage(0, STAT_MAX_SIZE, false).doSelectPage(
+                () -> mapper.statByName("source_type_", begin, end));
     }
 
     /**

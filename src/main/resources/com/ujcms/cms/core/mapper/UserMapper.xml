@@ -10,16 +10,20 @@
     <result column="mobile_" jdbcType="VARCHAR" property="mobile" />
     <result column="alias_" jdbcType="VARCHAR" property="alias" />
     <result column="nickname_" jdbcType="VARCHAR" property="nickname" />
+    <result column="real_name_" jdbcType="VARCHAR" property="realName" />
+    <result column="gender_" jdbcType="SMALLINT" property="gender" />
     <result column="avatar_" jdbcType="VARCHAR" property="avatar" />
     <result column="password_modified_" jdbcType="TIMESTAMP" property="passwordModified" />
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
   </resultMap>
+    <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.User">
+    </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.User">
         <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.UserExt" property="ext" select="com.ujcms.cms.core.mapper.UserExtMapper.select" />
         <association column="group_id_" javaType="com.ujcms.cms.core.domain.Group" property="group" select="com.ujcms.cms.core.mapper.GroupMapper.select" />
-        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.select" />
+        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.selectRefer" />
         <collection column="id_" fetchType="lazy" javaType="ArrayList" property="roleList" select="com.ujcms.cms.core.mapper.RoleMapper.listByUserId" />
     </resultMap>
 
@@ -92,6 +96,12 @@
         WHERE ur.role_id_ = #{roleId}
           AND not exists(select * from ujcms_org_tree ot where t.org_id_ = ot.descendant_id_ and ot.ancestor_id_ = #{notOrgId})
     </select>
+    <select id="selectRefer" parameterType="int" resultMap="ReferResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_user t
+        where t.id_ = #{id,jdbcType=INTEGER}
+    </select>
     <select id="select" parameterType="int" resultMap="ResultMap">
         select
         <include refid="Column_List" />
@@ -112,6 +122,8 @@
       mobile_ = #{mobile,jdbcType=VARCHAR},
       alias_ = #{alias,jdbcType=VARCHAR},
       nickname_ = #{nickname,jdbcType=VARCHAR},
+      real_name_ = #{realName,jdbcType=VARCHAR},
+      gender_ = #{gender,jdbcType=SMALLINT},
       avatar_ = #{avatar,jdbcType=VARCHAR},
       password_modified_ = #{passwordModified,jdbcType=TIMESTAMP},
       rank_ = #{rank,jdbcType=SMALLINT},
@@ -119,8 +131,8 @@
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.User">
-    insert into ujcms_user (id_, group_id_, org_id_, username_, password_, email_, mobile_, alias_, nickname_, avatar_, password_modified_, rank_, type_, status_)
-    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+    insert into ujcms_user (id_, group_id_, org_id_, username_, password_, email_, mobile_, alias_, nickname_, real_name_, gender_, avatar_, password_modified_, rank_, type_, status_)
+    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
-    t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.email_, t.mobile_, t.alias_, t.nickname_, t.avatar_, t.password_modified_, t.rank_, t.type_, t.status_
+    t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.email_, t.mobile_, t.alias_, t.nickname_, t.real_name_, t.gender_, t.avatar_, t.password_modified_, t.rank_, t.type_, t.status_
   </sql></mapper>

@@ -32,9 +32,9 @@ public class SiteController {
         this.viewCountService = viewCountService;
     }
 
-    @Operation(summary = "获取网站浏览次数")
+    @Operation(summary = "获取站点缓冲对象，并记录浏览量")
     @GetMapping("/view/{id:[\\d]+}")
-    public long view(@Parameter(description = "站点ID") @PathVariable Integer id) {
+    public SiteBuffer view(@Parameter(description = "站点ID") @PathVariable Integer id) {
         return viewCountService.viewSite(id);
     }
 

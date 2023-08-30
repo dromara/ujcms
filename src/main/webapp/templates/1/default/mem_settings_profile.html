@@ -9,7 +9,6 @@
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
-  [#include 'inc_js_validation.html'/]
   <link rel="stylesheet" href="${files}/vendor/flatpickr/dist/flatpickr.min.css">
   <script src="${files}/vendor/flatpickr/dist/flatpickr.min.js"></script>
   <script src="${files}/vendor/flatpickr/dist/l10n/index.js"></script>
@@ -40,9 +39,9 @@
         <div class="form-group">
           <label for="gender">性别</label>
           <select class="form-control" id="gender" name="gender">
-            <option value="n">保密</option>
-            <option value="m"[#if user.ext.gender=='m'] selected[/#if]>男</option>
-            <option value="f"[#if user.ext.gender=='f'] selected[/#if]>女</option>
+            <option value="0">保密</option>
+            <option value="1"[#if user.ext.gender==1] selected[/#if]>男</option>
+            <option value="2"[#if user.ext.gender==2] selected[/#if]>女</option>
           </select>
         </div>
         <div class="form-group">

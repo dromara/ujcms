@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ActionMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Action">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <result column="ip_" jdbcType="VARCHAR" property="ip" />
+    <result column="cookie_" jdbcType="BIGINT" property="cookie" />
+    <result column="ref_type_" jdbcType="VARCHAR" property="refType" />
+    <result column="ref_id_" jdbcType="BIGINT" property="refId" />
+    <result column="ref_option_" jdbcType="VARCHAR" property="refOption" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Action" />
+
+    <select id="countBy" resultType="int">
+        select count(*)
+        from ujcms_action t
+        <where>
+            <trim prefix="(" prefixOverrides="or" suffix=")">
+                <if test="userId != null">or t.user_id_ = #{userId}</if>
+                <if test="ip != null">or t.ip_ = #{ip}</if>
+                <if test="cookie != null">or t.cookie_ = #{cookie}</if>
+            </trim>
+            <if test="refType != null">
+                and t.ref_type_ = #{refType}
+            </if>
+            <if test="refId != null">
+                and t.ref_id_ = #{refId}
+            </if>
+            <if test="refOption != null">
+                and t.ref_option_ = #{refOption}
+            </if>
+            <if test="date != null">
+                and t.created_ &gt; #{date}
+            </if>
+        </where>
+    </select>
+    <delete id="deleteBySiteId" parameterType="int">
+        delete
+        from ujcms_action
+        where site_id_ = #{siteId,jdbcType=INTEGER}
+    </delete>
+    <delete id="deleteByUserId" parameterType="int">
+        delete
+        from ujcms_action
+        where user_id_ = #{userId,jdbcType=INTEGER}
+    </delete>
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_action" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_action t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_action
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Action">
+    update ujcms_action
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      user_id_ = #{userId,jdbcType=INTEGER},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      cookie_ = #{cookie,jdbcType=BIGINT},
+      ref_type_ = #{refType,jdbcType=VARCHAR},
+      ref_id_ = #{refId,jdbcType=BIGINT},
+      ref_option_ = #{refOption,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Action">
+    insert into ujcms_action (id_, site_id_, user_id_, ip_, cookie_, ref_type_, ref_id_, ref_option_, created_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{ip,jdbcType=VARCHAR}, #{cookie,jdbcType=BIGINT}, #{refType,jdbcType=VARCHAR}, #{refId,jdbcType=BIGINT}, #{refOption,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.user_id_, t.ip_, t.cookie_, t.ref_type_, t.ref_id_, t.ref_option_, t.created_
+  </sql></mapper>

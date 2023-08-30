@@ -52,50 +52,11 @@ public class ChannelExtBase implements Serializable {
     private String seoDescription;
 
     /**
-     * 文章模板
-     */
-    @Length(max = 255)
-    @Nullable
-    @Schema(description="文章模板")
-    private String articleTemplate;
-
-    /**
-     * 栏目模板
-     */
-    @Length(max = 255)
-    @Nullable
-    @Schema(description="栏目模板")
-    private String channelTemplate;
-
-    /**
      * 每页条数
      */
     @NotNull
     @Schema(description="每页条数")
     private Short pageSize = 20;
-
-    /**
-     * 图片
-     */
-    @Length(max = 255)
-    @Nullable
-    @Schema(description="图片")
-    private String image;
-
-    /**
-     * 转向链接地址
-     */
-    @Length(max = 255)
-    @Nullable
-    @Schema(description="转向链接地址")
-    private String linkUrl;
-
-    /**
-     * 是否新窗口打开
-     */
-    @NotNull
-    @Schema(description="是否新窗口打开")
-    private Boolean targetBlank = false;
 
     /**
      * 是否允许评论
@@ -119,6 +80,20 @@ public class ChannelExtBase implements Serializable {
     private Boolean allowSearch = true;
 
     /**
+     * 创建日期
+     */
+    @NotNull
+    @Schema(description="创建日期")
+    private OffsetDateTime created = OffsetDateTime.now();
+
+    /**
+     * 修改日期
+     */
+    @NotNull
+    @Schema(description="修改日期")
+    private OffsetDateTime modified = OffsetDateTime.now();
+
+    /**
      * 静态页文件
      */
     @Length(max = 255)
@@ -135,18 +110,11 @@ public class ChannelExtBase implements Serializable {
     private String mobileStaticFile;
 
     /**
-     * 创建日期
+     * 编辑器类型(1:富文本编辑器,2:Markdown编辑器)
      */
     @NotNull
-    @Schema(description="创建日期")
-    private OffsetDateTime created = OffsetDateTime.now();
-
-    /**
-     * 修改日期
-     */
-    @NotNull
-    @Schema(description="修改日期")
-    private OffsetDateTime modified = OffsetDateTime.now();
+    @Schema(description="编辑器类型(1:富文本编辑器,2:Markdown编辑器)")
+    private Short editorType = 1;
 
     /**
      * 正文
@@ -154,6 +122,13 @@ public class ChannelExtBase implements Serializable {
     @Nullable
     @Schema(description="正文")
     private String text;
+
+    /**
+     * Markdown正文
+     */
+    @Nullable
+    @Schema(description="Markdown正文")
+    private String markdown;
 
     public Integer getId() {
         return id;
@@ -190,56 +165,12 @@ public class ChannelExtBase implements Serializable {
         this.seoDescription = seoDescription;
     }
 
-    @Nullable
-    public String getArticleTemplate() {
-        return articleTemplate;
-    }
-
-    public void setArticleTemplate(@Nullable String articleTemplate) {
-        this.articleTemplate = articleTemplate;
-    }
-
-    @Nullable
-    public String getChannelTemplate() {
-        return channelTemplate;
-    }
-
-    public void setChannelTemplate(@Nullable String channelTemplate) {
-        this.channelTemplate = channelTemplate;
-    }
-
     public Short getPageSize() {
         return pageSize;
     }
 
     public void setPageSize(Short pageSize) {
         this.pageSize = pageSize;
-    }
-
-    @Nullable
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(@Nullable String image) {
-        this.image = image;
-    }
-
-    @Nullable
-    public String getLinkUrl() {
-        return linkUrl;
-    }
-
-    public void setLinkUrl(@Nullable String linkUrl) {
-        this.linkUrl = linkUrl;
-    }
-
-    public Boolean getTargetBlank() {
-        return targetBlank;
-    }
-
-    public void setTargetBlank(Boolean targetBlank) {
-        this.targetBlank = targetBlank;
     }
 
     public Boolean getAllowComment() {
@@ -266,6 +197,22 @@ public class ChannelExtBase implements Serializable {
         this.allowSearch = allowSearch;
     }
 
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    public OffsetDateTime getModified() {
+        return modified;
+    }
+
+    public void setModified(OffsetDateTime modified) {
+        this.modified = modified;
+    }
+
     @Nullable
     public String getStaticFile() {
         return staticFile;
@@ -284,20 +231,12 @@ public class ChannelExtBase implements Serializable {
         this.mobileStaticFile = mobileStaticFile;
     }
 
-    public OffsetDateTime getCreated() {
-        return created;
+    public Short getEditorType() {
+        return editorType;
     }
 
-    public void setCreated(OffsetDateTime created) {
-        this.created = created;
-    }
-
-    public OffsetDateTime getModified() {
-        return modified;
-    }
-
-    public void setModified(OffsetDateTime modified) {
-        this.modified = modified;
+    public void setEditorType(Short editorType) {
+        this.editorType = editorType;
     }
 
     @Nullable
@@ -307,5 +246,14 @@ public class ChannelExtBase implements Serializable {
 
     public void setText(@Nullable String text) {
         this.text = text;
+    }
+
+    @Nullable
+    public String getMarkdown() {
+        return markdown;
+    }
+
+    public void setMarkdown(@Nullable String markdown) {
+        this.markdown = markdown;
     }
 }

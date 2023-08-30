@@ -17,7 +17,6 @@
     }
   </style>
   [#include 'inc_js.html'/]
-  [#include 'inc_js_validation.html'/]
 </head>
 <body>
 [#assign headerShadow=true /]
@@ -159,7 +158,6 @@
       submitHandler: function (form) {
         var body = $(form).serializeJSON();
         request.post(form.action, body).then(function (response) {
-          console.log(response);
           var url = response.data.url;
           var image = url.substring(url.lastIndexOf('/') + 1);
           request.post('${api}/settings/avatar?_method=put', {image}).then(function () {

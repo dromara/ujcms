@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.Article;
+import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -20,6 +21,15 @@ import java.util.Map;
 @Mapper
 @Repository
 public interface ArticleMapper {
+    /**
+     * 根据主键获取引用对象（不包括关联对象属性）
+     *
+     * @param id 主键ID
+     * @return 实体对象。没有找到数据，则返回 {@code null}
+     */
+    @Nullable
+    Article selectRefer(Integer id);
+
     /**
      * 插入数据
      *
@@ -168,6 +178,14 @@ public interface ArticleMapper {
      * @return 最大的ID值
      */
     Map<String, Object> statForSitemap(@Param("siteId") Integer siteId, @Param("status") Collection<Short> status);
+
+    /**
+     * 更新文章修改人员
+     *
+     * @param modifiedUserId 修改用户ID
+     * @return 被更新的条数
+     */
+    int updateModifiedUser(Integer modifiedUserId);
 
     /**
      * 根据栏目ID删除数据

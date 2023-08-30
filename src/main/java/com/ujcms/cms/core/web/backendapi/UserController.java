@@ -3,6 +3,7 @@ package com.ujcms.cms.core.web.backendapi;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.RoleService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.service.args.UserArgs;
@@ -46,11 +47,13 @@ import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 @RequestMapping(BACKEND_API + "/core/user")
 public class UserController {
     private final RoleService roleService;
+    private final OrgService orgService;
     private final UserService service;
     private final Props props;
 
-    public UserController(RoleService roleService, UserService service, Props props) {
+    public UserController(RoleService roleService, OrgService orgService, UserService service, Props props) {
         this.roleService = roleService;
+        this.orgService = orgService;
         this.service = service;
         this.props = props;
     }
@@ -71,7 +74,7 @@ public class UserController {
     public User show(@PathVariable Integer id) {
         User bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception("User not found. ID = " + id);
+            throw new Http404Exception(USER_NOT_FOUND + id);
         }
         return bean;
     }
@@ -83,6 +86,7 @@ public class UserController {
         User currentUser = Contexts.getCurrentUser();
         User user = new User();
         Entities.copy(bean, user, EXCLUDE_FIELDS);
+        user.setRank((short) (currentUser.getRank() + 1));
         validateBean(user, user.getRank(), null, null, null, currentUser);
         service.insert(user, user.getExt());
         return Responses.ok();
@@ -94,7 +98,7 @@ public class UserController {
     public ResponseEntity<Body> update(@RequestBody User bean) {
         User user = service.select(bean.getId());
         if (user == null) {
-            return Responses.notFound("User not found. ID = " + bean.getId());
+            return Responses.notFound(USER_NOT_FOUND + bean.getId());
         }
         User currentUser = Contexts.getCurrentUser();
         Short origRank = user.getRank();
@@ -114,7 +118,7 @@ public class UserController {
         User currentUser = Contexts.getCurrentUser();
         User user = service.select(bean.getId());
         if (user == null) {
-            return Responses.notFound("User not found. ID = " + bean.getId());
+            return Responses.notFound(USER_NOT_FOUND + bean.getId());
         }
         Entities.copyIncludes(bean, user, PERMISSION_FIELDS);
         validatePermission(user.getOrgId(), user.getRank(), currentUser);
@@ -164,7 +168,7 @@ public class UserController {
     public ResponseEntity<Body> updatePassword(@RequestBody @Valid UpdatePasswordParams params) {
         User user = service.select(params.id);
         if (user == null) {
-            return Responses.notFound("User not found. ID = " + params.id);
+            return Responses.notFound(USER_NOT_FOUND + params.id);
         }
         String password = Secures.sm2Decrypt(params.password, props.getClientSm2PrivateKey());
         service.updatePassword(user, user.getExt(), password);
@@ -199,7 +203,8 @@ public class UserController {
 
     private void validatePermission(Integer orgId, Short rank, User currentUser) {
         // 没有全局权限且用户不属于当前组织
-        if (!currentUser.hasGlobalPermission() && !currentUser.getOrg().getDescendants().contains(orgId)) {
+        if (!currentUser.hasGlobalPermission() &&
+                !orgService.isDescendant(currentUser.getOrg().getId(), orgId)) {
             throw new Http403Exception(String.format("user org(ID=%d) not in current org(ID=%d)",
                     orgId, currentUser.getOrgId()));
         }
@@ -234,4 +239,6 @@ public class UserController {
      * 权限字段
      */
     private static final String[] PERMISSION_FIELDS = {"rank"};
+
+    private static final String USER_NOT_FOUND = "User not found. ID = ";
 }

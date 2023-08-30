@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 留言版查询参数
+ * 留言板 查询参数
  *
  * @author PONY
  */

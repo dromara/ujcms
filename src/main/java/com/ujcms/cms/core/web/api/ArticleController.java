@@ -3,11 +3,10 @@ package com.ujcms.cms.core.web.api;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.component.ViewCountService;
 import com.ujcms.cms.core.domain.*;
-import com.ujcms.cms.core.service.ArticleBufferService;
-import com.ujcms.cms.core.service.ArticleService;
-import com.ujcms.cms.core.service.ChannelService;
-import com.ujcms.cms.core.service.GroupService;
+import com.ujcms.cms.core.domain.base.UserBase;
+import com.ujcms.cms.core.service.*;
 import com.ujcms.cms.core.service.args.ArticleArgs;
+import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.Utils;
@@ -16,6 +15,7 @@ import com.ujcms.cms.core.web.directive.ArticleNextDirective;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.commons.query.QueryUtils;
+import com.ujcms.commons.web.Servlets;
 import com.ujcms.commons.web.Views;
 import com.ujcms.commons.web.exception.Http401Exception;
 import com.ujcms.commons.web.exception.Http403Exception;
@@ -27,12 +27,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
@@ -50,6 +53,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
 @RequestMapping({API + "/article", FRONTEND_API + "/article"})
 public class ArticleController {
     private final SiteResolver siteResolver;
+    private final ActionService actionService;
     private final GroupService groupService;
     private final ChannelService channelService;
     private final ArticleService articleService;
@@ -57,10 +61,12 @@ public class ArticleController {
     private final ViewCountService viewCountService;
     private final Props props;
 
-    public ArticleController(SiteResolver siteResolver, GroupService groupService,
+    @Autowired
+    public ArticleController(SiteResolver siteResolver, ActionService actionService, GroupService groupService,
                              ChannelService channelService, ArticleService articleService,
                              ArticleBufferService bufferService, ViewCountService viewCountService, Props props) {
         this.siteResolver = siteResolver;
+        this.actionService = actionService;
         this.groupService = groupService;
         this.channelService = channelService;
         this.articleService = articleService;
@@ -115,9 +121,7 @@ public class ArticleController {
         return query(request, (args, params) -> {
             int offset = Directives.getOffset(params);
             int limit = Directives.getLimit(params);
-            List<Article> list = articleService.selectList(args, offset, limit);
-            list.forEach(article -> article.getChannel().getPaths().forEach(channelService::fetchFirstData));
-            return list;
+            return articleService.selectList(args, offset, limit);
         });
     }
 
@@ -158,10 +162,7 @@ public class ArticleController {
         return query(request, (args, params) -> {
             int page = Directives.getPage(params);
             int pageSize = Directives.getPageSize(params);
-            Page<Article> pagedList = springPage(articleService.selectPage(args, page, pageSize));
-            pagedList.getContent().forEach(article ->
-                    article.getChannel().getPaths().forEach(channelService::fetchFirstData));
-            return pagedList;
+            return springPage(articleService.selectPage(args, page, pageSize));
         });
     }
 
@@ -176,7 +177,6 @@ public class ArticleController {
         if (!article.isNormal()) {
             throw new Http403Exception("Article status forbidden. ID: " + id);
         }
-        article.getChannel().getPaths().forEach(channelService::fetchFirstData);
         User user = Contexts.findCurrentUser();
         return checkAccessPermission(id, article, user, groupService);
     }
@@ -237,10 +237,14 @@ public class ArticleController {
     @Operation(summary = "顶文章")
     @ApiResponses(value = {@ApiResponse(description = "文章总顶次数")})
     @PostMapping("/up/{id:[\\d]+}")
-    public int up(@Parameter(description = "文章ID") @PathVariable Integer id) {
+    public int up(@Parameter(description = "文章ID") @PathVariable Integer id,
+                  HttpServletRequest request, HttpServletResponse response) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             return 0;
+        }
+        if (actionExist(id, Article.ACTION_OPTION_UP, request, response)) {
+            return -1;
         }
         int ups = buffer.getUps() + 1;
         buffer.setUps(ups);
@@ -251,15 +255,32 @@ public class ArticleController {
     @Operation(summary = "踩文章")
     @ApiResponses(value = {@ApiResponse(description = "文章总踩次数")})
     @PostMapping("/down/{id:[\\d]+}")
-    public int down(@Parameter(description = "文章ID") @PathVariable Integer id) {
+    public int down(@Parameter(description = "文章ID") @PathVariable Integer id,
+                    HttpServletRequest request, HttpServletResponse response) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             return 0;
+        }
+        if (actionExist(id, Article.ACTION_OPTION_DOWN, request, response)) {
+            return -1;
         }
         int downs = buffer.getDowns() + 1;
         buffer.setDowns(downs);
         bufferService.update(buffer);
         return downs;
+    }
+
+    private boolean actionExist(Integer id, String option, HttpServletRequest request, HttpServletResponse response) {
+        Site site = siteResolver.resolve(request);
+        long cookie = Constants.retrieveIdentityCookie(request, response);
+        String ip = Servlets.getRemoteAddr(request);
+        Integer userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
+        if (actionService.existsBy(Article.ACTION_TYPE_UP_DOWN, id.longValue(), null, null, null, ip, cookie)) {
+            return true;
+        }
+        actionService.insert(new Action(Article.ACTION_TYPE_UP_DOWN, id.longValue(),
+                option, site.getId(), userId, ip, cookie));
+        return false;
     }
 
     @Operation(summary = "获取下载参数")

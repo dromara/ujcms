@@ -43,7 +43,7 @@
         [/#list]
       </div>
       [/#if]
-      <div class="mt-2 pb-2 border-bottom text-muted">
+      <div class="mt-2 pb-2 border-bottom small text-muted">
         <span>${format(article.publishDate, 'yyyy-MM-dd HH:mm')}</span>
         [#if article.source??]<span class="ml-2">${article.source}</span>[/#if]
         [#if article.author??]<span class="ml-2">${article.author}</span>[/#if]
@@ -104,7 +104,7 @@
         function voteUp() {
           request.post('${api}/article/up/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
-              alert("你已经顶过一次！");
+              alert("您已经参与过一次！");
               return;
             }
             $('#ups').text(response.data);
@@ -114,7 +114,7 @@
         function voteDown() {
           request.post('${api}/article/down/${article.id?c}').then(function (response) {
             if (response.data <= 0) {
-              alert("你已经踩过一次！");
+              alert("您已经参与过一次！");
               return;
             }
             $('#downs').text(response.data);

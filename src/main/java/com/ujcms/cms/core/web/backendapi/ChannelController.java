@@ -1,15 +1,19 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.domain.base.GroupBase;
+import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.generator.HtmlGenerator;
 import com.ujcms.cms.core.mapper.GroupAccessMapper;
 import com.ujcms.cms.core.mapper.RoleArticleMapper;
 import com.ujcms.cms.core.mapper.RoleChannelMapper;
 import com.ujcms.cms.core.service.ChannelService;
+import com.ujcms.cms.core.service.GroupService;
 import com.ujcms.cms.core.service.RoleService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
 import com.ujcms.cms.core.support.Constants;
@@ -20,7 +24,9 @@ import com.ujcms.commons.web.Entities;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
 import com.ujcms.commons.web.Servlets;
+import com.ujcms.commons.web.Views;
 import com.ujcms.commons.web.exception.Http404Exception;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -29,11 +35,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
 import static com.ujcms.commons.query.QueryUtils.getQueryMap;
@@ -47,6 +54,7 @@ import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 @RequestMapping(UrlConstants.BACKEND_API + "/core/channel")
 public class ChannelController {
     private final HtmlGenerator generator;
+    private final GroupService groupService;
     private final RoleService roleService;
     private final ChannelService service;
     private final GroupAccessMapper groupAccessMapper;
@@ -54,10 +62,13 @@ public class ChannelController {
     private final RoleChannelMapper roleChannelMapper;
     private final ResourceLoader resourceLoader;
 
-    public ChannelController(HtmlGenerator generator, RoleService roleService, ChannelService service,
+    @Autowired
+    public ChannelController(HtmlGenerator generator, GroupService groupService, RoleService roleService,
+                             ChannelService service,
                              GroupAccessMapper groupAccessMapper, RoleArticleMapper roleArticleMapper,
                              RoleChannelMapper roleChannelMapper, ResourceLoader resourceLoader) {
         this.generator = generator;
+        this.groupService = groupService;
         this.roleService = roleService;
         this.service = service;
         this.groupAccessMapper = groupAccessMapper;
@@ -67,6 +78,7 @@ public class ChannelController {
     }
 
     @GetMapping
+    @JsonView(Views.List.class)
     @PreAuthorize("hasAnyAuthority('channel:list','*')")
     public List<Channel> list(@RequestParam(defaultValue = "false") boolean isArticlePermission, Integer siteId,
                               HttpServletRequest request) {
@@ -87,7 +99,7 @@ public class ChannelController {
     public Channel show(@PathVariable Integer id) {
         Channel bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception("Channel not found. ID = " + id);
+            throw new Http404Exception(CHANNEL_NOT_FOUND + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
@@ -102,12 +114,17 @@ public class ChannelController {
         bean.setSiteId(site.getId());
         Channel channel = new Channel();
         Entities.copy(bean, channel);
-        List<Integer> groupIds = Collections.emptyList();
-        List<Integer> articleRoleIds = Collections.emptyList();
-        List<Integer> channelRoleIds = Collections.emptyList();
-        if (bean.getParentId() != null) {
+        // 默认给所有用户组、角色权限
+        List<Integer> groupIds = groupService.listNotAllAccessPermission().stream()
+                .map(GroupBase::getId).collect(Collectors.toList());
+        List<Integer> articleRoleIds = roleService.listNotAllArticlePermission(site.getId()).stream()
+                .map(RoleBase::getId).collect(Collectors.toList());
+        List<Integer> channelRoleIds = roleService.listNotAllChannelPermission(site.getId()).stream()
+                .map(RoleBase::getId).collect(Collectors.toList());
+        Integer parentId = bean.getParentId();
+        if (parentId != null) {
             // 按上级栏目给权限
-            Channel parent = service.select(bean.getParentId());
+            Channel parent = service.select(parentId);
             if (parent != null) {
                 groupIds = groupAccessMapper.listGroupByChannelId(parent.getId(), null);
                 articleRoleIds = roleArticleMapper.listRoleByChannelId(parent.getId(), null);
@@ -129,7 +146,7 @@ public class ChannelController {
         Site site = Contexts.getCurrentSite();
         Channel channel = service.select(bean.getId());
         if (channel == null) {
-            return Responses.notFound("Channel not found. ID = " + bean.getId());
+            return Responses.notFound(CHANNEL_NOT_FOUND + bean.getId());
         }
         ValidUtils.dataInSite(bean.getSiteId(), site.getId());
         User user = Contexts.getCurrentUser();
@@ -151,7 +168,7 @@ public class ChannelController {
         for (Integer id : ids) {
             Channel bean = service.select(id);
             if (bean == null) {
-                return Responses.notFound("Org not found. ID = " + id);
+                return Responses.notFound(CHANNEL_NOT_FOUND + id);
             }
             ValidUtils.dataInSite(bean.getSiteId(), siteId);
             list.add(bean);
@@ -166,19 +183,34 @@ public class ChannelController {
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
-        ids.forEach(id -> {
+        for (Integer id : ids) {
             Channel bean = service.select(id);
             if (bean == null) {
-                return;
+                continue;
             }
             ValidUtils.dataInSite(bean.getSiteId(), site.getId());
-            service.delete(bean);
-        });
+            delete(bean);
+        }
         if (site.getHtml().isAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.all");
             generator.updateAllHtml(site.getId(), user.getId(), taskName, site);
         }
         return Responses.ok();
+    }
+
+    /**
+     * 递归删除栏目。不能放到Service里面递归，这样会因事务太大，导致性能低下。
+     *
+     * @param bean 栏目
+     * @return 删除条数
+     */
+    private int delete(Channel bean) {
+        int deleted = 0;
+        for (Channel c : service.listChildren(bean.getId())) {
+            deleted += delete(c);
+        }
+        deleted = service.delete(bean);
+        return deleted;
     }
 
     @GetMapping("channel-templates")
@@ -204,6 +236,14 @@ public class ChannelController {
         return roleService.listChannelPermissions(user.fetchRoleIds(), siteId != null ? siteId : getCurrentSiteId());
     }
 
+    @GetMapping("alias-exist")
+    public boolean aliasExist(@NotBlank String alias, Integer siteId) {
+        if (siteId == null) {
+            siteId = Contexts.getCurrentSiteId();
+        }
+        return service.existsByAlias(alias, siteId);
+    }
+
     private List<String> getTemplates(String theme, String startWitch) throws IOException {
         List<String> themeList = new ArrayList<>();
         File file = resourceLoader.getResource(theme).getFile();
@@ -221,4 +261,6 @@ public class ChannelController {
         }
         return themeList;
     }
+
+    private static final String CHANNEL_NOT_FOUND = "Channel not found. ID = ";
 }

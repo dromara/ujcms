@@ -14,6 +14,7 @@
         <include refid="Column_List" />
         from ujcms_site_custom t
         where t.site_id_ = #{siteId,jdbcType=INTEGER}
+        order by t.id_
     </select>
     <delete id="deleteBySiteId" parameterType="int">
         delete

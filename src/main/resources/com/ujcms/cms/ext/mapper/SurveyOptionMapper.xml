@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.SurveyOptionMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.SurveyOption">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="survey_id_" jdbcType="INTEGER" property="surveyId" />
+    <result column="item_id_" jdbcType="INTEGER" property="itemId" />
+    <result column="title_" jdbcType="VARCHAR" property="title" />
+    <result column="count_" jdbcType="INTEGER" property="count" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.SurveyOption">
+    <association column="item_id_" javaType="com.ujcms.cms.ext.domain.SurveyItem" property="item" select="com.ujcms.cms.ext.mapper.SurveyItemMapper.select" />
+  </resultMap>
+  <update id="cast">
+    update ujcms_survey_option
+    set count_ = count_ + 1
+    where item_id_ = #{itemId,jdbcType=INTEGER}
+    <foreach close=")" collection="optionIds" item="item" nullable="true" open="and id_ in (" separator=",">
+      #{item}
+    </foreach>
+  </update>
+  <select id="listByItemId" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_survey_option t
+    where t.item_id_ = #{itemId,jdbcType=INTEGER}
+    order by t.order_, t.id_
+  </select>
+  <delete id="deleteByItemId" parameterType="int">
+    delete
+    from ujcms_survey_option
+    where item_id_ = #{itemId,jdbcType=INTEGER}
+    <foreach close=")" collection="ids" item="item" nullable="true" open="and id_ not in (" separator=",">
+      #{item}
+    </foreach>
+  </delete>
+  <delete id="deleteBySurveyId" parameterType="int">
+    delete
+    from ujcms_survey_option
+    where survey_id_ = #{surveyId,jdbcType=INTEGER}
+    <foreach close=")" collection="itemIds" item="item" nullable="true" open="and item_id_ not in (" separator=",">
+      #{item}
+    </foreach>
+  </delete>
+  <delete id="deleteBySiteId" parameterType="int">
+    delete
+    from ujcms_survey_option
+    where site_id_ = #{siteId,jdbcType=INTEGER}
+  </delete>
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_survey_option" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_survey_option t
+    where t.id_ = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="delete" parameterType="java.lang.Integer">
+    delete from ujcms_survey_option
+    where id_ = #{id,jdbcType=INTEGER}
+  </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.SurveyOption">
+    update ujcms_survey_option
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      survey_id_ = #{surveyId,jdbcType=INTEGER},
+      item_id_ = #{itemId,jdbcType=INTEGER},
+      title_ = #{title,jdbcType=VARCHAR},
+      count_ = #{count,jdbcType=INTEGER},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyOption">
+    insert into ujcms_survey_option (id_, site_id_, survey_id_, item_id_, title_, count_, order_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{surveyId,jdbcType=INTEGER}, #{itemId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{order,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.survey_id_, t.item_id_, t.title_, t.count_, t.order_
+  </sql></mapper>

@@ -28,21 +28,6 @@ public class UserExtBase implements Serializable {
     private Integer id = 0;
 
     /**
-     * 真实姓名
-     */
-    @Length(max = 50)
-    @Nullable
-    @Schema(description="真实姓名")
-    private String realName;
-
-    /**
-     * 性别(0:保密,1:男,2:女)
-     */
-    @NotNull
-    @Schema(description="性别(0:保密,1:男,2:女)")
-    private Short gender = 1;
-
-    /**
      * 出生日期
      */
     @Nullable
@@ -122,23 +107,6 @@ public class UserExtBase implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    @Nullable
-    public String getRealName() {
-        return realName;
-    }
-
-    public void setRealName(@Nullable String realName) {
-        this.realName = realName;
-    }
-
-    public Short getGender() {
-        return gender;
-    }
-
-    public void setGender(Short gender) {
-        this.gender = gender;
     }
 
     @Nullable

@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.domain.Config.Security.SSRF_WILDCARD;
+import static com.ujcms.commons.file.FilesEx.SLASH;
 import static com.ujcms.commons.web.Uploads.*;
 
 /**
@@ -127,7 +128,7 @@ public class UploadController extends AbstractUploadController {
             File imageFile = Files.createTempFile(null, "." + ext).toFile();
             try {
                 MediaUtils.renderOneImage(multimediaObject, duration, imageFile);
-                String path = site.getBasePath("/" + IMAGE_TYPE) + Uploads.getRandomFilename(ext);
+                String path = site.getBasePath(SLASH + IMAGE_TYPE) + Uploads.getRandomFilename(ext);
                 String url = fileHandler.getDisplayPrefix() + path;
                 fileHandler.store(path, imageFile);
                 attachmentService.insert(new Attachment(site.getId(), userId, baseName + "." + ext,
@@ -184,13 +185,13 @@ public class UploadController extends AbstractUploadController {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         FileHandler fileHandler = site.getConfig().getUploadStorage().getFileHandler(pathResolver);
-        String src = fileHandler.getName(params.url);
+        String src = fileHandler.getName(params.getUrl());
         if (src == null) {
-            throw new Http400Exception("external url not support: " + params.url);
+            throw new Http400Exception("external url not support: " + params.getUrl());
         }
         // 图片裁剪。图片任意裁剪，生成新图片。
         String extension = FilenameUtils.getExtension(src);
-        String pathname = site.getBasePath("/" + IMAGE_TYPE) + Uploads.getRandomFilename(extension);
+        String pathname = site.getBasePath(SLASH + IMAGE_TYPE) + Uploads.getRandomFilename(extension);
         String url = fileHandler.getDisplayPrefix() + pathname;
         File file = fileHandler.getFile(src);
         if (file == null) {
@@ -202,7 +203,7 @@ public class UploadController extends AbstractUploadController {
             crop(fileHandler, file, tempFile, pathname, params);
             // 缩略图。图集需要缩略图，其他一般不需要。
             thumbnail(imageHandler, fileHandler, tempFile, Uploads.getThumbnailName(pathname), extension,
-                    params.thumbnailWidth, params.thumbnailHeight);
+                    params.getThumbnailWidth(), params.getThumbnailHeight());
             String name = src.substring(src.lastIndexOf("/") + 1);
             attachmentService.insert(new Attachment(site.getId(), user.getId(),
                     name, pathname, url, tempFile.length()));
@@ -234,7 +235,8 @@ public class UploadController extends AbstractUploadController {
             URL src = new URL(source);
             // 只支持 http 和 https 协议
             String protocol = src.getProtocol();
-            String httpProtocol = "http", httpsProtocol = "https";
+            String httpProtocol = "http";
+            String httpsProtocol = "https";
             if (!httpProtocol.equals(protocol) && !httpsProtocol.equals(protocol)) {
                 return Responses.failure("Only supports http and https protocols: " + protocol);
             }
@@ -283,7 +285,7 @@ public class UploadController extends AbstractUploadController {
                 return Responses.failure("Only supports image contentType: " + contentType);
             }
             // 获得存储路径和显示路径
-            String pathname = site.getBasePath("/" + IMAGE_TYPE) + Uploads.getRandomFilename(extension);
+            String pathname = site.getBasePath(SLASH + IMAGE_TYPE) + Uploads.getRandomFilename(extension);
             String url = fileHandler.getDisplayPrefix() + pathname;
             try (InputStream is = conn.getInputStream()) {
                 fileHandler.store(pathname, is);

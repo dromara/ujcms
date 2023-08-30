@@ -127,6 +127,14 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
+    public ArticleArgs q(@Nullable String q) {
+        if (StringUtils.isNotBlank(q)) {
+            queryMap.put("Contains_1_@articleExt-title", q);
+            queryMap.put("Contains_1_@articleExt-text", q);
+        }
+        return this;
+    }
+
     public ArticleArgs containsTitle(@Nullable String title) {
         if (StringUtils.isNotBlank(title)) {
             queryMap.put("Contains_@articleExt-title", title);

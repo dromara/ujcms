@@ -31,9 +31,6 @@ public class ArticleDirective implements TemplateDirectiveModel {
         Integer id = Directives.getIntegerRequired(params, ID);
 
         Article article = articleService.select(id);
-        if (article != null) {
-            article.getChannel().getPaths().forEach(channelService::fetchFirstData);
-        }
         loopVars[0] = env.getObjectWrapper().wrap(article);
         body.render(env.getOut());
     }

@@ -142,6 +142,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
         deleteListeners.forEach(it -> it.preUserDelete(id));
+        userRoleMapper.deleteByUserId(id);
         attachmentService.deleteRefer(UserBase.TABLE_NAME, id);
         openidMapper.deleteByUserId(id);
         extMapper.delete(id);

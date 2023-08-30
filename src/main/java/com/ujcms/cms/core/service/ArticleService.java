@@ -368,6 +368,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         if (existsByUserId(userId)) {
             throw new LogicException("error.refer.article");
         }
+        mapper.updateModifiedUser(User.ANONYMOUS_ID);
     }
 
     @Override

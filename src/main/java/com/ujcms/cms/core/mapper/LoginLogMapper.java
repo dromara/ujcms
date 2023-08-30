@@ -2,7 +2,9 @@ package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.LoginLog;
 import com.ujcms.commons.query.QueryInfo;
+
 import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
@@ -51,4 +53,12 @@ public interface LoginLogMapper {
      * @return 数据列表
      */
     List<LoginLog> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
+
+    /**
+     * 根据用户ID删除数据
+     *
+     * @param userId 用户ID
+     * @return 被删除的数据条数
+     */
+    int deleteByUserId(Integer userId);
 }

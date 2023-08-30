@@ -5,14 +5,21 @@
 <script src="${files}/vendor/axios/dist/axios.min.js"></script>
 <script src="${files}/vendor/js-cookie/dist/js.cookie.min.js"></script>
 <script src="${files}/vendor/dayjs/dayjs.min.js"></script>
+
+<script src="${files}/vendor/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="${files}/vendor/jquery-validation/dist/additional-methods.js"></script>
+<script src="${files}/vendor/jquery-validation/dist/localization/messages_zh.js"></script>
+<script src="${files}/vendor/jquery-serializejson/jquery.serializejson.min.js"></script>
+<script src="${files}/js/jquery-validation-bootstrap4.js"></script>
 [#--
 <script src="${files}/js/main.js"></script>
 --]
 <script>
   const visitApi = "${api}";
-  const visitSiteId = "${site.id}";
-  const csrfName = "${_csrf.parameterName}";
-  const csrfValue = "${_csrf.token}";
+  const visitDy = "${dy}";
+  const visitSiteId = "${site.id?c}";
+  let csrfName = "${_csrf.parameterName}";
+  let csrfValue = "${_csrf.token}";
   (function () {
     const visit = document.createElement("script");
     visit.src = "${files}/js/visit.js";

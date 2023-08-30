@@ -1,0 +1,40 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${example.title} - ${site.title}</title>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item"><a href="${dy}/example">示例列表</a></li>
+      </ol>
+    </nav>
+    <div class="text-right"><a class="btn btn-primary btn-sm" href="${dy}/example/create" role="button">我要提交示例</a></div>
+  </div>
+</div>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-12">
+      <h3 class="cm-ff-yh">${example.name}</h3>
+      <div class="mt-4">${example.description}</div>
+      <div class="mt-4">身高：${example.height}</div>
+      <div class="mt-4">出生日期：[#if example.birthday??]${format(example.birthday, 'yyyy-MM-dd HH:mm:ss')}[#else]无[/#if]</div>
+      <div class="mt-4">是否启用：${example.enabled?string('是','否')}</div>
+    </div>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+</body>
+</html>
+[/#escape]

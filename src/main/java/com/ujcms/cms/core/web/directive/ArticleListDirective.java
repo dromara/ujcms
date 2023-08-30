@@ -15,6 +15,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.lang.Nullable;
 
 import java.io.IOException;
 import java.util.*;
@@ -58,6 +59,10 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_WITH_IMAGE = "isWithImage";
     /**
+     * 标题或正文。字符串(String)。
+     */
+    public static final String Q = "q";
+    /**
      * 标题。字符串(String)。
      */
     public static final String TITLE = "title";
@@ -82,6 +87,24 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_ALL_SITE = "isAllSite";
 
+    private static Collection<Integer> getChannelIds(
+            Map<String, ?> params, @Nullable Integer siteId, Boolean isIncludeSubSite, ChannelService channelService) {
+        Collection<Integer> channelIds = Optional.ofNullable(getIntegers(params, CHANNEL_ID))
+                .orElse(Collections.emptyList());
+        if (CollectionUtils.isEmpty(channelIds)) {
+            Collection<String> channelAlias = getStrings(params, CHANNEL);
+            if (CollectionUtils.isNotEmpty(channelAlias)) {
+                channelIds = channelService.listBySiteIdAndAlias(siteId, channelAlias, isIncludeSubSite)
+                        .stream().map(ChannelBase::getId).collect(Collectors.toList());
+                // 传了栏目别名，却一个栏目ID都没找到，就不显示数据（给一个不存在的ID）
+                if (channelIds.isEmpty()) {
+                    channelIds = Collections.singletonList(Integer.MIN_VALUE);
+                }
+            }
+        }
+        return channelIds;
+    }
+
     public static void assemble(ArticleArgs args, Map<String, ?> params, Integer defaultSiteId,
                                 ChannelService channelService) {
         Integer siteId = getInteger(params, SITE_ID);
@@ -91,14 +114,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         }
         Boolean isIncludeSubSite = getBoolean(params, IS_INCLUDE_SUB_SITE, false);
 
-        Collection<Integer> channelIds = getIntegers(params, CHANNEL_ID);
-        if (CollectionUtils.isEmpty(channelIds)) {
-            Collection<String> channelAlias = getStrings(params, CHANNEL);
-            if (CollectionUtils.isNotEmpty(channelAlias)) {
-                channelIds = channelService.listBySiteIdAndAlias(siteId, channelAlias, isIncludeSubSite)
-                        .stream().map(ChannelBase::getId).collect(Collectors.toList());
-            }
-        }
+        Collection<Integer> channelIds = getChannelIds(params, siteId, isIncludeSubSite, channelService);
         if (CollectionUtils.isNotEmpty(channelIds)) {
             if (Boolean.TRUE.equals(getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true))) {
                 args.inSubChannelIds(channelIds);
@@ -117,6 +133,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         Optional.ofNullable(Directives.getOffsetDateTime(params, BEGIN_PUBLISH_DATE)).ifPresent(args::gePublishDate);
         Optional.ofNullable(Directives.getOffsetDateTime(params, END_PUBLISH_DATE)).ifPresent(args::lePublishDate);
         Optional.ofNullable(getBoolean(params, IS_WITH_IMAGE)).ifPresent(args::isWithImage);
+        Optional.ofNullable(Directives.getString(params, Q)).ifPresent(args::q);
         Optional.ofNullable(Directives.getString(params, TITLE)).ifPresent(args::containsTitle);
         Optional.ofNullable(Directives.getString(params, TEXT)).ifPresent(args::containText);
         Optional.ofNullable(Directives.getIntegers(params, EXCLUDE_ID)).ifPresent(args::excludeIds);

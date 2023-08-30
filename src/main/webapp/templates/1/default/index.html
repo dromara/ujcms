@@ -6,6 +6,8 @@
   <title>${site.title}</title>
   <meta name="keywords" content="${site.seoKeywords}">
   <meta name="description" content="${site.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
@@ -20,7 +22,7 @@
         <div id="carouselCaptions" class="carousel slide" data-ride="carousel">
           <ol class="carousel-indicators">
             [#list beans as bean]
-              <li data-target="#carouselCaptions" data-slide-to="${bean_index}" class="[#if bean_index==0]active[/#if]"></li>
+              <li data-target="#carouselCaptions" data-slide-to="${bean_index?c}" class="[#if bean_index==0]active[/#if]"></li>
             [/#list]
           </ol>
           <div class="carousel-inner rounded-sm">
@@ -77,7 +79,7 @@
   </div>
 </div>
 [#include 'inc_footer.html'/]
-<script>axios.get('${api}/site/view/${site.id?c}');</script>
+[#include 'inc_message_box.html'/]
 </body>
 </html>
 [/#escape]

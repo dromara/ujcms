@@ -9,7 +9,6 @@
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
-  [#include 'inc_js_validation.html'/]
 </head>
 <body>
 [#assign headerShadow=true/]
@@ -29,8 +28,8 @@
               [@DictList type='sys_message_board_type'; list]
                 [#list list as type]
                   <div class="custom-control custom-radio custom-control-inline">
-                    <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index}" value="${type.id?c}" required [#if type_index==0]checked[/#if]>
-                    <label class="custom-control-label" for="typeId${type_index}">${type.name}</label>
+                    <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index?c}" value="${type.id?c}" required [#if type_index==0]checked[/#if]>
+                    <label class="custom-control-label" for="typeId${type_index?c}">${type.name}</label>
                   </div>
                 [/#list]
               [/@DictList]

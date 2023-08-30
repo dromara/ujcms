@@ -95,6 +95,14 @@ public interface VisitLogMapper {
     int deleteByUserId(@Param("userId") Integer userId);
 
     /**
+     * 统计访客数
+     *
+     * @param date 在此日期后
+     * @return 访客数
+     */
+    int countVisitors(@Param("date") OffsetDateTime date);
+
+    /**
      * 根据字段名称统计
      *
      * @param name  统计的字段名称

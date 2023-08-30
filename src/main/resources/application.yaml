@@ -106,6 +106,7 @@ server.error.include-stacktrace: ALWAYS
 logging.level.root: ERROR
 # 显示 MyBatis SQL 日志
 #logging.level.com.ujcms.cms.core.mapper: DEBUG
+#logging.level.com.ujcms.cms.ext.mapper: DEBUG
 # 显示tomcat启动信息
 logging.level.org.springframework.boot.web.embedded.tomcat.TomcatWebServer: INFO
 logging.level.com.ujcms.cms.Application: INFO

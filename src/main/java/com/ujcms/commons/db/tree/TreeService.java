@@ -12,8 +12,8 @@ import java.util.Optional;
  * @author PONY
  */
 public class TreeService<T extends TreeEntity, U extends TreeRelation> {
-    private TreeEntityMapper<T> entityMapper;
-    private TreeRelationMapper<U> relationMapper;
+    private final TreeEntityMapper<T> entityMapper;
+    private final TreeRelationMapper<U> relationMapper;
 
     public TreeService(TreeEntityMapper<T> entityMapper, TreeRelationMapper<U> relationMapper) {
         this.entityMapper = entityMapper;
@@ -46,10 +46,12 @@ public class TreeService<T extends TreeEntity, U extends TreeRelation> {
 
     public void update(T bean, @Nullable Integer parentId, @Nullable Integer siteId) {
         // 处理树结构关系
-        int origDepth = 0, newDepth = 0;
+        int origDepth = 0;
+        int newDepth = 0;
         if (!Objects.equals(bean.getParentId(), parentId)) {
-            if (bean.getParent() != null) {
-                origDepth = bean.getParent().getDepth();
+            TreeEntity parent = bean.getParent();
+            if (parent != null) {
+                origDepth = parent.getDepth();
             }
             // 增
             int max = Optional.ofNullable(entityMapper.maxOrder(bean.getId(), siteId)).orElse(0);
@@ -90,11 +92,29 @@ public class TreeService<T extends TreeEntity, U extends TreeRelation> {
         }
     }
 
+    /**
+     * 已排序数组中是否有重复数值
+     *
+     * @param orders 已排序数组
+     * @return 是否有重复数值
+     */
+    private static boolean isDuplicate(int[] orders) {
+        for (int i = 0, len = orders.length; i < len - 1; i += 1) {
+            if (orders[i] == orders[i + 1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void updateOrder(List<T> list) {
         int[] orders = list.stream().mapToInt(T::getOrder).sorted().toArray();
+        boolean duplicate = isDuplicate(orders);
         for (int i = 0, len = list.size(); i < len; i += 1) {
             T bean = list.get(i);
-            entityMapper.updateOrderByParentId(bean.getId(), orders[i] - bean.getOrder());
+            // 有重复值，代表顺序已乱，按照i的顺序
+            int diff = duplicate ? i - bean.getOrder() : orders[i] - bean.getOrder();
+            entityMapper.updateOrderByParentId(bean.getId(), diff);
             bean.setOrder(orders[i]);
         }
     }
