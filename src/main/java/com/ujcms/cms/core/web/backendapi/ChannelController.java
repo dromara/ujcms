@@ -80,17 +80,34 @@ public class ChannelController {
     @GetMapping
     @JsonView(Views.List.class)
     @PreAuthorize("hasAnyAuthority('channel:list','*')")
-    public List<Channel> list(@RequestParam(defaultValue = "false") boolean isArticlePermission, Integer siteId,
+    public List<Channel> list(@RequestParam(defaultValue = "false") boolean isArticlePermission,
+                              @RequestParam(defaultValue = "true") boolean isIncludeChildren,
+                              @RequestParam(defaultValue = "false") boolean isOnlyParent,
+                              Integer parentId, Integer siteId,
                               HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
         ChannelArgs args = ChannelArgs.of(getQueryMap(request.getQueryString()));
         if (isArticlePermission && !user.hasAllArticlePermission()) {
-            args.inArticleRoleIds(user.fetchRoleIds());
+            args.articleRoleIds(user.fetchRoleIds());
         }
         if (siteId == null) {
             siteId = Contexts.getCurrentSiteId();
         }
-        args.siteId(siteId);
+        if (isIncludeChildren) {
+            if (parentId != null) {
+                args.ancestorId(parentId);
+            } else {
+                args.siteId(siteId);
+            }
+        } else {
+            if (parentId != null) {
+                args.parentId(parentId);
+            } else {
+                args.siteId(siteId);
+                args.parentIdIsNull();
+            }
+        }
+        args.setOnlyParent(isOnlyParent);
         return service.selectList(args);
     }
 
@@ -132,7 +149,8 @@ public class ChannelController {
             }
         }
         service.insert(channel, channel.getExt(), groupIds, articleRoleIds, channelRoleIds, bean.getCustoms());
-        if (site.getHtml().isAuto()) {
+
+        if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.channelRelated");
             generator.updateChannelRelatedHtml(channel.getSiteId(), user.getId(), taskName, channel.getId());
         }
@@ -152,7 +170,7 @@ public class ChannelController {
         User user = Contexts.getCurrentUser();
         Entities.copy(bean, channel, "siteId", "parentId", "order");
         service.update(channel, channel.getExt(), bean.getParentId(), null, null, null, bean.getCustoms());
-        if (site.getHtml().isAuto()) {
+        if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.channelRelated");
             generator.updateChannelRelatedHtml(channel.getSiteId(), user.getId(), taskName, channel.getId());
         }
@@ -191,7 +209,7 @@ public class ChannelController {
             ValidUtils.dataInSite(bean.getSiteId(), site.getId());
             delete(bean);
         }
-        if (site.getHtml().isAuto()) {
+        if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.all");
             generator.updateAllHtml(site.getId(), user.getId(), taskName, site);
         }

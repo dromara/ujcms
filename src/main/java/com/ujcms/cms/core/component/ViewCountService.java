@@ -59,7 +59,7 @@ public class ViewCountService {
         // 增加文章浏览次数
         Optional.ofNullable(getCurrentArticleViewsCache().get(id, key -> new AtomicInteger()))
                 .ifPresent(AtomicInteger::incrementAndGet);
-        return article.getBuffer().getViews();
+        return article.getViews();
     }
 
     public long viewChannel(Integer id) {
@@ -70,7 +70,7 @@ public class ViewCountService {
         incrementChannelViews(channel);
         // 增加栏目自身浏览次数
         getCurrentChannelSelfViewsMap().computeIfAbsent(id, key -> new AtomicInteger()).incrementAndGet();
-        return channel.getBuffer().getSelfViews();
+        return channel.getSelfViews();
     }
 
     private static void incrementChannelViews(Channel channel) {

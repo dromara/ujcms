@@ -12,7 +12,9 @@ import org.springframework.lang.Nullable;
 import java.io.File;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -79,14 +81,14 @@ public class WebFile {
     public void fillWithFile(File file) {
         this.setDirectory(file.isDirectory());
         this.setLastModified(OffsetDateTime.ofInstant(Instant.ofEpochMilli(file.lastModified()),
-                ZoneOffset.systemDefault()));
+                ZoneId.systemDefault()));
         this.setLength(file.length());
     }
 
     public void fillWithFtp(FTPFile file) {
         this.setDirectory(file.isDirectory());
         this.setLastModified(OffsetDateTime.ofInstant(Instant.ofEpochMilli(file.getTimestamp().getTimeInMillis()),
-                ZoneOffset.systemDefault()));
+                ZoneId.systemDefault()));
         this.setLength(file.getSize());
     }
 
@@ -190,17 +192,17 @@ public class WebFile {
 
     public FileType getFileType() {
         if (isDirectory()) {
-            return FileType.directory;
+            return FileType.DIRECTORY;
         }
         String extension = getExtension();
         if (Images.isImageExtension(extension)) {
-            return FileType.image;
-        } else if (StringUtils.equalsAnyIgnoreCase(extension, TEXT_EXTENSIONS)) {
-            return FileType.text;
+            return FileType.IMAGE;
+        } else if (StringUtils.equalsAnyIgnoreCase(extension, TEXT_EXTENSIONS.toArray(new String[0]))) {
+            return FileType.TEXT;
         } else if (StringUtils.equalsIgnoreCase(extension, ZIP_EXTENSION)) {
-            return FileType.zip;
+            return FileType.ZIP;
         } else {
-            return FileType.file;
+            return FileType.FILE;
         }
     }
 
@@ -217,41 +219,41 @@ public class WebFile {
     }
 
     public boolean isEditable() {
-        return getFileType() == FileType.text;
+        return getFileType() == FileType.TEXT;
     }
 
     public boolean isImage() {
-        return getFileType() == FileType.image;
+        return getFileType() == FileType.IMAGE;
     }
 
     public boolean isZip() {
-        return getFileType() == FileType.zip;
+        return getFileType() == FileType.ZIP;
     }
 
     public enum FileType {
         /**
          * 文件夹
          */
-        directory,
+        DIRECTORY,
         /**
          * ZIP文件
          */
-        zip,
+        ZIP,
         /**
          * 文本文件
          */
-        text,
+        TEXT,
         /**
          * 图片
          */
-        image,
+        IMAGE,
         /**
          * 文件
          */
-        file
+        FILE
     }
 
-    public static Comparator<WebFile> NAME_ASC = (file1, file2) -> {
+    public static final Comparator<WebFile> NAME_ASC = (file1, file2) -> {
         if (file1.isDirectory() && !file2.isDirectory()) {
             return -1;
         } else if (!file1.isDirectory() && file2.isDirectory()) {
@@ -261,7 +263,7 @@ public class WebFile {
         String name2 = file2.getName().toLowerCase();
         return name1.compareTo(name2);
     };
-    public static Comparator<WebFile> NAME_DESC = (file1, file2) -> {
+    public static final Comparator<WebFile> NAME_DESC = (file1, file2) -> {
         if (file1.isDirectory() && !file2.isDirectory()) {
             return 1;
         } else if (!file1.isDirectory() && file2.isDirectory()) {
@@ -269,9 +271,9 @@ public class WebFile {
         }
         String name1 = file1.getName().toLowerCase();
         String name2 = file2.getName().toLowerCase();
-        return -name1.compareTo(name2);
+        return name2.compareTo(name1);
     };
-    public static Comparator<WebFile> LAST_MODIFIED_ASC = (file1, file2) -> {
+    public static final Comparator<WebFile> LAST_MODIFIED_ASC = (file1, file2) -> {
         if (file1.isDirectory() || file1.getLastModified() == null) {
             return -1;
         }
@@ -282,7 +284,7 @@ public class WebFile {
         long lastModified2 = file2.getLastModified().toInstant().toEpochMilli();
         return (int) (lastModified1 - lastModified2);
     };
-    public static Comparator<WebFile> LAST_MODIFIED_DESC = (file1, file2) -> {
+    public static final Comparator<WebFile> LAST_MODIFIED_DESC = (file1, file2) -> {
         if (file1.isDirectory() || file1.getLastModified() == null) {
             return -1;
         }
@@ -293,7 +295,7 @@ public class WebFile {
         long lastModified2 = file2.getLastModified().toInstant().toEpochMilli();
         return -(int) (lastModified1 - lastModified2);
     };
-    public static Comparator<WebFile> FILE_TYPE_ASC = (file1, file2) -> {
+    public static final Comparator<WebFile> FILE_TYPE_ASC = (file1, file2) -> {
         if (file1.isDirectory() && !file2.isDirectory()) {
             return -1;
         } else if (!file1.isDirectory() && file2.isDirectory()) {
@@ -313,7 +315,7 @@ public class WebFile {
         }
         return num;
     };
-    public static Comparator<WebFile> FILE_TYPE_DESC = (file1, file2) -> {
+    public static final Comparator<WebFile> FILE_TYPE_DESC = (file1, file2) -> {
         if (file1.isDirectory() && !file2.isDirectory()) {
             return 1;
         } else if (!file1.isDirectory() && file2.isDirectory()) {
@@ -321,7 +323,7 @@ public class WebFile {
         } else if (file1.isDirectory() && file2.isDirectory()) {
             String name1 = file1.getName().toLowerCase();
             String name2 = file2.getName().toLowerCase();
-            return -name1.compareTo(name2);
+            return name2.compareTo(name1);
         }
         FileType type1 = file1.getFileType();
         FileType type2 = file2.getFileType();
@@ -333,7 +335,7 @@ public class WebFile {
         }
         return -num;
     };
-    public static Comparator<WebFile> LENGTH_ASC = (file1, file2) -> {
+    public static final Comparator<WebFile> LENGTH_ASC = (file1, file2) -> {
         if (file1.isDirectory() && !file2.isDirectory()) {
             return -1;
         } else if (!file1.isDirectory() && file2.isDirectory()) {
@@ -345,7 +347,7 @@ public class WebFile {
         long length2 = file2.getLength();
         return (int) (length1 - length2);
     };
-    public static Comparator<WebFile> LENGTH_DESC = (file1, file2) -> {
+    public static final Comparator<WebFile> LENGTH_DESC = (file1, file2) -> {
         if (file1.isDirectory() && !file2.isDirectory()) {
             return 1;
         } else if (!file1.isDirectory() && file2.isDirectory()) {
@@ -380,7 +382,8 @@ public class WebFile {
         list.sort(comp);
     }
 
-    public static final String[] TEXT_EXTENSIONS = {"html", "htm", "js", "css", "txt", "xml", "ftl", "vm",
-            "jsp", "jspx", "asp", "aspx", "php", "sql", "tag", "tld", "properties", "yaml", "yml"};
+    public static final List<String> TEXT_EXTENSIONS = Collections.unmodifiableList(
+            Arrays.asList("html", "htm", "js", "css", "txt", "xml", "ftl", "vm", "jsp", "jspx",
+                    "asp", "aspx", "php", "sql", "tag", "tld", "properties", "yaml", "yml"));
     public static final String ZIP_EXTENSION = "zip";
 }

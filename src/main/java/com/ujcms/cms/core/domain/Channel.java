@@ -56,8 +56,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         return getSite().assembleTemplate(template);
     }
 
-    @Schema(description = "栏目层级。从一级栏目到当前栏目的列表")
-    @JsonView(Views.Whole.class)
+    @Schema(description = "栏目层级。从一级栏目到当前栏目的列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性只包含当前栏目")
     @JsonIncludeProperties({"id", "name", "url"})
     public List<Channel> getPaths() {
         LinkedList<Channel> parents = new LinkedList<>();
@@ -69,7 +68,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         return parents;
     }
 
-    @Schema(description = "栏目层级名称。从一级栏目到当前栏目的名称列表")
+    @Schema(description = "栏目层级名称。从一级栏目到当前栏目的名称列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性只包含当前栏目名称")
     public List<String> getNames() {
         return getPaths().stream().map(ChannelBase::getName).collect(Collectors.toList());
     }
@@ -133,7 +132,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     @Override
     public String toString() {
-        return "Channel{id=" + getId() + ", name=" + getName() + ", site=" + getSite().getName() + '}';
+        return "Channel{id=" + getId() + ", name=" + getName() + "}";
     }
     // endregion
     // region Urls
@@ -255,40 +254,63 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     // region Associations
     /**
+     * 是否有子栏目
+     */
+    @Nullable
+    private Boolean hasChildren;
+    /**
      * 栏目扩展对象
      */
+    @JsonIgnore
     private ChannelExt ext = new ChannelExt();
     /**
-     * 缓冲对象
+     * 子栏目列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性为`null`
      */
-    private ChannelBuffer buffer = new ChannelBuffer();
-    /**
-     * 子栏目列表
-     */
-    private List<Channel> children = Collections.emptyList();
+    @JsonIncludeProperties({"id", "name", "url", "image", "nav"})
+    @Nullable
+    private List<Channel> children;
     /**
      * 自定义字段列表
      */
+    @JsonIgnore
     private List<ChannelCustom> customList = Collections.emptyList();
     /**
-     * 上级栏目
+     * 上级栏目。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性为`null`
      */
+    @JsonIncludeProperties({"id", "name", "url"})
     @Nullable
     private Channel parent;
     /**
      * 站点
      */
+    @JsonIncludeProperties({"id", "name"})
     private Site site = new Site();
     /**
      * 栏目模型
      */
+    @JsonIncludeProperties({"id", "name"})
     private Model channelModel = new Model();
     /**
      * 文章模型
      */
+    @JsonIncludeProperties({"id", "name"})
     private Model articleModel = new Model();
+    /**
+     * 绩效类型
+     */
+    @JsonIncludeProperties({"id", "name"})
+    @Nullable
+    private PerformanceType performanceType;
 
-    @JsonIgnore
+    @Nullable
+    public Boolean getHasChildren() {
+        return hasChildren;
+    }
+
+    public void setHasChildren(@Nullable Boolean hasChildren) {
+        this.hasChildren = hasChildren;
+    }
+
     public ChannelExt getExt() {
         return ext;
     }
@@ -297,27 +319,15 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.ext = ext;
     }
 
-    @JsonIgnore
-    public ChannelBuffer getBuffer() {
-        return buffer;
-    }
-
-    public void setBuffer(ChannelBuffer buffer) {
-        this.buffer = buffer;
-    }
-
-    @Schema(description = "子栏目列表")
-    @JsonView(Views.Whole.class)
-    @JsonIncludeProperties({"id", "name", "url", "image"})
+    @Nullable
     public List<Channel> getChildren() {
         return children;
     }
 
-    public void setChildren(List<Channel> children) {
+    public void setChildren(@Nullable List<Channel> children) {
         this.children = children;
     }
 
-    @JsonIgnore
     public List<ChannelCustom> getCustomList() {
         return customList;
     }
@@ -326,8 +336,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.customList = customList;
     }
 
-    @Schema(description = "上级栏目")
-    @JsonIncludeProperties({"id", "name", "url"})
     @Nullable
     @Override
     public Channel getParent() {
@@ -338,8 +346,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.parent = parent;
     }
 
-    @Schema(description = "站点")
-    @JsonIncludeProperties({"id", "name"})
     public Site getSite() {
         return site;
     }
@@ -348,8 +354,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.site = site;
     }
 
-    @Schema(description = "栏目模型")
-    @JsonIncludeProperties({"id", "name"})
     public Model getChannelModel() {
         return channelModel;
     }
@@ -358,14 +362,21 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.channelModel = channelModel;
     }
 
-    @Schema(description = "文章模型")
-    @JsonIncludeProperties({"id", "name"})
     public Model getArticleModel() {
         return articleModel;
     }
 
     public void setArticleModel(Model articleModel) {
         this.articleModel = articleModel;
+    }
+
+    @Nullable
+    public PerformanceType getPerformanceType() {
+        return performanceType;
+    }
+
+    public void setPerformanceType(@Nullable PerformanceType performanceType) {
+        this.performanceType = performanceType;
     }
     // endregion
 
@@ -383,6 +394,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     // region ChannelExt
 
     @Schema(description = "SEO标题")
+    @JsonView(Views.Whole.class)
     @Nullable
     public String getSeoTitle() {
         return getExt().getSeoTitle();
@@ -393,6 +405,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "SEO关键词")
+    @JsonView(Views.Whole.class)
     @Nullable
     public String getSeoKeywords() {
         return getExt().getSeoKeywords();
@@ -403,6 +416,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "SEO描述")
+    @JsonView(Views.Whole.class)
     @Nullable
     public String getSeoDescription() {
         return getExt().getSeoDescription();
@@ -410,42 +424,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     public void setSeoDescription(@Nullable String seoDescription) {
         getExt().setSeoDescription(seoDescription);
-    }
-
-    @Schema(description = "每页条数")
-    public Short getPageSize() {
-        return getExt().getPageSize();
-    }
-
-    public void setPageSize(Short pageSize) {
-        getExt().setPageSize(pageSize);
-    }
-
-    @Schema(description = "是否允许评论")
-    public Boolean getAllowComment() {
-        return getExt().getAllowComment();
-    }
-
-    public void setAllowComment(boolean allowComment) {
-        getExt().setAllowComment(allowComment);
-    }
-
-    @Schema(description = "是否允许投稿")
-    public Boolean isAllowContribute() {
-        return getExt().getAllowContribute();
-    }
-
-    public void setAllowContribute(boolean allowContribute) {
-        getExt().setAllowContribute(allowContribute);
-    }
-
-    @Schema(description = "是否允许搜索")
-    public Boolean isAllowSearch() {
-        return getExt().getAllowSearch();
-    }
-
-    public void setAllowSearch(boolean allowSearch) {
-        getExt().setAllowSearch(allowSearch);
     }
 
     @JsonIgnore
@@ -469,6 +447,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "正文（HTML格式）")
+    @JsonView(Views.Whole.class)
     @Nullable
     public String getText() {
         return getExt().getText();
@@ -479,6 +458,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "正文（Markdown格式）")
+    @JsonView(Views.Whole.class)
     @Nullable
     public String getMarkdown() {
         return getExt().getMarkdown();
@@ -489,24 +469,13 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "正文编辑器类型")
+    @JsonView(Views.Whole.class)
     public Short getEditorType() {
         return getExt().getEditorType();
     }
 
     public void setEditorType(Short editorType) {
         getExt().setEditorType(editorType);
-    }
-    // endregion
-
-    // region ChannelBuffer
-
-    @Schema(description = "浏览次数")
-    public long getViews() {
-        return getBuffer().getViews();
-    }
-
-    public void setViews(long views) {
-        getBuffer().setViews(views);
     }
     // endregion
 

@@ -1,8 +1,8 @@
 package com.ujcms.cms.core.web.directive;
 
-import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.service.ArticleService;
+import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.commons.freemarker.Freemarkers;
 import com.ujcms.commons.function.Function3;
 import freemarker.core.Environment;
@@ -13,7 +13,6 @@ import freemarker.template.TemplateModel;
 import org.springframework.lang.Nullable;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
 import java.util.Map;
 
 /**
@@ -27,20 +26,24 @@ public class ArticleNextDirective implements TemplateDirectiveModel {
      */
     private static final String ID = "id";
     /**
-     * 文章发布时间
+     * 文章排序值
      */
-    private static final String PUBLISH_DATE = "publishDate";
+    private static final String ORDER = "order";
     /**
      * 文章栏目ID
      */
     private static final String CHANNEL_ID = "channelId";
+    /**
+     * 是否倒序
+     */
+    public static final String IS_DESC = "isDesc";
 
     @Nullable
-    public static Article query(Map<String, ?> params, Function3<Integer, OffsetDateTime, Integer, Article> handle) {
+    public static Article query(Map<String, ?> params, Function3<Integer, Long, Integer, Article> handle) {
         Integer id = Directives.getIntegerRequired(params, ID);
-        OffsetDateTime publishDate = Directives.getOffsetDateTimeRequired(params, PUBLISH_DATE);
+        Long order = Directives.getLongRequired(params, ORDER);
         Integer channelId = Directives.getIntegerRequired(params, CHANNEL_ID);
-        return handle.apply(id, publishDate, channelId);
+        return handle.apply(id, order, channelId);
     }
 
     @SuppressWarnings("unchecked")
@@ -50,7 +53,8 @@ public class ArticleNextDirective implements TemplateDirectiveModel {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
 
-        Article article = query(params, articleService::findNext);
+        boolean isDesc = Directives.getBoolean(params, IS_DESC, true);
+        Article article = query(params, isDesc ? articleService::findNext : articleService::findPrev);
 
         loopVars[0] = env.getObjectWrapper().wrap(article);
         body.render(env.getOut());

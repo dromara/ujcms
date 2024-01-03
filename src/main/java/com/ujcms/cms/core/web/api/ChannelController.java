@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.web.api;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.component.ViewCountService;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.ChannelBuffer;
@@ -10,6 +11,7 @@ import com.ujcms.cms.core.service.args.ChannelArgs;
 import com.ujcms.cms.core.web.directive.ChannelListDirective;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.commons.query.QueryUtils;
+import com.ujcms.commons.web.Views;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -52,7 +54,7 @@ public class ChannelController {
         this.viewCountService = viewCountService;
     }
 
-    @Operation(summary = "获取栏目列表")
+    @Operation(summary = "获取栏目列表（ChannelList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "parent", description = "上级栏目别名",
@@ -67,6 +69,7 @@ public class ChannelController {
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
             schema = @Schema(type = "integer", format = "int32"))
+    @JsonView(Views.List.class)
     @GetMapping
     public List<Channel> list(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);
@@ -77,14 +80,14 @@ public class ChannelController {
         return ChannelListDirective.selectList(channelService, args, params);
     }
 
-    @Operation(summary = "获取栏目对象")
+    @Operation(summary = "获取栏目对象（Channel标签）")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/{id:[\\d]+}")
     public Channel show(@Parameter(description = "栏目ID") @PathVariable Integer id) {
         return channelService.select(id);
     }
 
-    @Operation(summary = "获取栏目对象")
+    @Operation(summary = "获取栏目对象（Channel标签）")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/alias/{alias}")
     public Channel alias(@Parameter(description = "栏目别名") @PathVariable String alias,

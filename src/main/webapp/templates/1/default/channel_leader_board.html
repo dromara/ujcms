@@ -23,7 +23,7 @@
       [/@LeaderBoardList]
 
       <h3 class="mt-3">文章浏览量排行</h3>
-      [@ArticleList orderBy='@articleBuffer-yearViews_desc' limit='10'; beans]
+      [@ArticleList orderBy='@articleExt-yearViews_desc' limit='10'; beans]
       [#list beans as bean]
       <div>${bean.title} / ${bean.yearViews}</div>
       [/#list]

@@ -31,13 +31,14 @@
   <delete id="deleteByUserId" parameterType="int">
     delete
     from ujcms_survey_item_feedback
-    where exists(select * from ujcms_survey_feedback t where t.id_ = ujcms_survey_item_feedback.survey_id_ and t.user_id_ = #{userId,jdbcType=INTEGER})
+    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.user_id_ = #{userId,jdbcType=INTEGER})
   </delete>
   <delete id="deleteBySiteId" parameterType="int">
     delete
     from ujcms_survey_item_feedback
-    where exists(select * from ujcms_survey_feedback t where t.id_ = ujcms_survey_item_feedback.survey_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.site_id_ = #{siteId,jdbcType=INTEGER})
   </delete>
+  <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
   <select id="selectAll" resultMap="ResultMap">

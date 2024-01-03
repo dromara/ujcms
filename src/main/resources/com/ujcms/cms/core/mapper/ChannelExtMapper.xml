@@ -5,12 +5,6 @@
     <result column="seo_title_" jdbcType="VARCHAR" property="seoTitle" />
     <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
     <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
-    <result column="page_size_" jdbcType="SMALLINT" property="pageSize" />
-    <result column="allow_comment_" jdbcType="CHAR" property="allowComment" />
-    <result column="allow_contribute_" jdbcType="CHAR" property="allowContribute" />
-    <result column="allow_search_" jdbcType="CHAR" property="allowSearch" />
-    <result column="created_" jdbcType="TIMESTAMP" property="created" />
-    <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
     <result column="static_file_" jdbcType="VARCHAR" property="staticFile" />
     <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile" />
     <result column="editor_type_" jdbcType="SMALLINT" property="editorType" />
@@ -22,8 +16,9 @@
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_channel_ext
-        where exists(select * from ujcms_channel t where t.id_ = ujcms_channel_ext.id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where id_ in (select t.id_ from ujcms_channel t where t.site_id_ = #{siteId,jdbcType=INTEGER})
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">
@@ -46,12 +41,6 @@
     set seo_title_ = #{seoTitle,jdbcType=VARCHAR},
       seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
       seo_description_ = #{seoDescription,jdbcType=VARCHAR},
-      page_size_ = #{pageSize,jdbcType=SMALLINT},
-      allow_comment_ = #{allowComment,jdbcType=CHAR},
-      allow_contribute_ = #{allowContribute,jdbcType=CHAR},
-      allow_search_ = #{allowSearch,jdbcType=CHAR},
-      created_ = #{created,jdbcType=TIMESTAMP},
-      modified_ = #{modified,jdbcType=TIMESTAMP},
       static_file_ = #{staticFile,jdbcType=VARCHAR},
       mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
       editor_type_ = #{editorType,jdbcType=SMALLINT},
@@ -59,8 +48,8 @@
       markdown_ = #{markdown,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ChannelExt">
-    insert into ujcms_channel_ext (id_, seo_title_, seo_keywords_, seo_description_, page_size_, allow_comment_, allow_contribute_, allow_search_, created_, modified_, static_file_, mobile_static_file_, editor_type_, text_, markdown_)
-    values (#{id,jdbcType=INTEGER}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{allowComment,jdbcType=CHAR}, #{allowContribute,jdbcType=CHAR}, #{allowSearch,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{editorType,jdbcType=SMALLINT}, #{text,jdbcType=LONGVARCHAR}, #{markdown,jdbcType=LONGVARCHAR})
+    insert into ujcms_channel_ext (id_, seo_title_, seo_keywords_, seo_description_, static_file_, mobile_static_file_, editor_type_, text_, markdown_)
+    values (#{id,jdbcType=INTEGER}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{editorType,jdbcType=SMALLINT}, #{text,jdbcType=LONGVARCHAR}, #{markdown,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.page_size_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.created_, t.modified_, t.static_file_, t.mobile_static_file_, t.editor_type_, t.text_, t.markdown_
+    t.id_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.static_file_, t.mobile_static_file_, t.editor_type_, t.text_, t.markdown_
   </sql></mapper>

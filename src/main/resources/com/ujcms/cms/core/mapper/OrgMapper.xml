@@ -13,6 +13,9 @@
     <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.Org">
     </resultMap>
+    <resultMap extends="BaseResultMap" id="ListResultMap" type="com.ujcms.cms.core.domain.Org">
+        <result column="has_children_" jdbcType="CHAR" property="hasChildren" />
+    </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Org">
         <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Org" property="parent" select="select" />
     </resultMap>
@@ -44,8 +47,14 @@
     <update id="updateOrderByParentId">
         update ujcms_org
         set order_ = order_ + #{num,jdbcType=INTEGER}
-        where exists(select * from ujcms_org_tree t where t.ancestor_id_ = #{parentId,jdbcType=INTEGER} and t.descendant_id_ = id_)
+        where id_ in (select t.descendant_id_ from ujcms_org_tree t where t.ancestor_id_ = #{parentId,jdbcType=INTEGER})
     </update>
+    <sql id="selectAllSelect">
+        <if test="isQueryHasChildren">
+            , CASE WHEN exists(select * from ujcms_org t_org_ where t_org_.parent_id_ = t.id_) THEN '1' ELSE '0' END
+            as has_children_
+        </if>
+    </sql>
     <sql id="selectAllJoin">
         <if test="ancestorId != null">
             join ujcms_org_tree orgTree on t.id_ = orgTree.descendant_id_
@@ -56,7 +65,7 @@
             and orgTree.ancestor_id_ = #{ancestorId}
         </if>
     </sql>
-    <select id="selectAll" resultMap="ResultMap">
+    <select id="selectAll" resultMap="ListResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_org" />
         </include>
@@ -77,15 +86,14 @@
         delete
         from ujcms_org
         where id_ = #{id,jdbcType=INTEGER}
-    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Org">
+    </delete>
+<update id="update" parameterType="com.ujcms.cms.core.domain.Org">
     update ujcms_org
     set parent_id_ = #{parentId,jdbcType=INTEGER},
       name_ = #{name,jdbcType=VARCHAR},
       phone_ = #{phone,jdbcType=VARCHAR},
       address_ = #{address,jdbcType=VARCHAR},
-      contacts_ = #{contacts,jdbcType=VARCHAR},
-      depth_ = #{depth,jdbcType=SMALLINT},
-      order_ = #{order,jdbcType=INTEGER}
+      contacts_ = #{contacts,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Org">
     insert into ujcms_org (id_, parent_id_, name_, phone_, address_, contacts_, depth_, order_)

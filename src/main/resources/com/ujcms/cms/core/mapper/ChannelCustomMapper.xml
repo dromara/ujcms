@@ -12,7 +12,7 @@
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_channel_custom
-        where exists(select * from ujcms_channel t where t.id_ = ujcms_channel_custom.channel_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where channel_id_ in (select t.id_ from ujcms_channel t where t.site_id_ = #{siteId,jdbcType=INTEGER})
     </delete>
     <select id="listByChannelId" resultMap="ResultMap">
         select
@@ -26,6 +26,7 @@
         from ujcms_channel_custom
         where channel_id_ = #{channelId,jdbcType=INTEGER}
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

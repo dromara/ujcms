@@ -60,7 +60,7 @@ public class ChannelListDirective implements TemplateDirectiveModel {
         }
         if (parentId != null) {
             if (isIncludeChildren) {
-                args.subParentId(parentId);
+                args.ancestorId(parentId);
             } else {
                 args.parentId(parentId);
             }

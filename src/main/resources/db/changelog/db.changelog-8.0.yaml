@@ -429,36 +429,6 @@ databaseChangeLog:
             remarks: 调查问卷选项表
             tableName: ujcms_survey_option
   - changeSet:
-      id: 1689738319551-4
-      author: PONY (generated)
-      changes:
-        - createIndex:
-            columns:
-              - column:
-                  name: item_id_
-            indexName: fk_surveyoption_item
-            tableName: ujcms_survey_option
-  - changeSet:
-      id: 1689738319551-5
-      author: PONY (generated)
-      changes:
-        - createIndex:
-            columns:
-              - column:
-                  name: site_id_
-            indexName: fk_surveyoption_site
-            tableName: ujcms_survey_option
-  - changeSet:
-      id: 1689738319551-6
-      author: PONY (generated)
-      changes:
-        - createIndex:
-            columns:
-              - column:
-                  name: survey_id_
-            indexName: fk_surveyoption_survey
-            tableName: ujcms_survey_option
-  - changeSet:
       id: 1689738319551-7
       author: PONY (generated)
       changes:
@@ -1368,5 +1338,9 @@ databaseChangeLog:
         - dropColumn:
             columnName: real_name_
             tableName: ujcms_user_ext
-
-
+  - changeSet:
+      id: 8.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v8.0

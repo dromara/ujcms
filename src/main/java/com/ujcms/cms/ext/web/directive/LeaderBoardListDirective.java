@@ -7,6 +7,7 @@ import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.ext.domain.LeaderBoard;
 import com.ujcms.cms.ext.service.LeaderBoardService;
+import com.ujcms.cms.ext.service.args.LeaderBoardArgs;
 import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
@@ -23,9 +24,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalAdjusters;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.ujcms.cms.core.web.support.Directives.getBoolean;
 import static com.ujcms.cms.core.web.support.Directives.getInteger;
@@ -38,7 +37,7 @@ import static com.ujcms.commons.db.MyBatis.springPage;
  */
 public class LeaderBoardListDirective implements TemplateDirectiveModel {
     /**
-     * 类型。枚举(String)。channel：栏目排行榜；org：组织排行榜；user：用户排行榜。默认：栏目。
+     * 类型。枚举(String)。channel:栏目排行榜, org: 组织排行榜, user:用户排行榜。默认：栏目。
      */
     public static final String TYPE = "type";
     /**
@@ -46,11 +45,11 @@ public class LeaderBoardListDirective implements TemplateDirectiveModel {
      */
     public static final String SITE_ID = "siteId";
     /**
-     * 是否发布。布尔型(Boolean)。true：已发布文章；false：全部文章。默认：false。
+     * 是否发布。布尔型(Boolean)。`true`:已发布文章, `false`:全部文章。默认：`false`。
      */
     public static final String IS_PUBLISHED = "isPublished";
     /**
-     * 期间。枚举型(String)。none：无期间，即所有；today：当天；week：本周；month：本月；quarter：本季；year：本年。默认：none。
+     * 期间。枚举型(String)。none:无期间，即所有, today:当天, week:本周, month:本月, quarter:本季, year:本年。默认: none。
      */
     public static final String PERIOD = "period";
     /**
@@ -62,23 +61,19 @@ public class LeaderBoardListDirective implements TemplateDirectiveModel {
      */
     public static final String END = "end";
     /**
-     * 是否获取所有站点的投票。布尔型(Boolean)。默认：false。
+     * 是否获取所有站点的数据。布尔型(Boolean)。默认：false。
      */
     public static final String IS_ALL_SITE = "isAllSite";
 
-    protected void doExecute(Environment env, Map<String, TemplateModel> params, TemplateModel[] loopVars,
-                             TemplateDirectiveBody body, boolean isPage) throws TemplateException, IOException {
-        Freemarkers.requireLoopVars(loopVars);
-        Freemarkers.requireBody(body);
 
-        String type = Directives.getString(params, TYPE, TYPE_CHANNEL);
+    public static void assemble(LeaderBoardArgs args, Map<String, ?> params, Integer defaultSiteId) {
         Integer siteId = getInteger(params, SITE_ID);
         // 不获取所有站点，则给默认站点ID
         if (siteId == null && !getBoolean(params, IS_ALL_SITE, false)) {
-            siteId = Frontends.getSiteId(env);
+            siteId = defaultSiteId;
         }
-        short[] status = Boolean.TRUE.equals(getBoolean(params, IS_PUBLISHED, false)) ?
-                new short[]{Article.STATUS_PUBLISHED} : new short[0];
+        Collection<Short> status = Boolean.TRUE.equals(getBoolean(params, IS_PUBLISHED, false)) ?
+                Collections.singleton(Article.STATUS_PUBLISHED) : Collections.emptyList();
         OffsetDateTime begin = Directives.getOffsetDateTime(params, BEGIN);
         OffsetDateTime end = Directives.getOffsetDateTime(params, END);
         if (begin == null && end == null) {
@@ -86,48 +81,72 @@ public class LeaderBoardListDirective implements TemplateDirectiveModel {
             begin = beginPeriod(period);
             end = endPeriod(period);
         }
+        args.setSiteId(siteId);
+        args.setStatus(status);
+        args.setBegin(begin);
+        args.setEnd(end);
+    }
+
+    protected void doExecute(Environment env, Map<String, TemplateModel> params, TemplateModel[] loopVars,
+                             TemplateDirectiveBody body, boolean isPage) throws TemplateException, IOException {
+        Freemarkers.requireLoopVars(loopVars);
+        Freemarkers.requireBody(body);
+
+        String type = Directives.getString(params, TYPE, TYPE_CHANNEL);
+
+        LeaderBoardArgs args = LeaderBoardArgs.of();
+        assemble(args, params, Frontends.getSiteId(env));
+
         if (isPage) {
             int page = Directives.getPage(params, env);
             int pageSize = Directives.getPageSize(params, env);
-            Page<LeaderBoard> pagedList;
-            switch (type) {
-                case TYPE_CHANNEL:
-                    pagedList = springPage(
-                            service.channelLeaderBoardPage(siteId, status, begin, end, page, pageSize));
-                    break;
-                case TYPE_ORG:
-                    pagedList = springPage(
-                            service.orgLeaderBoardPage(getOrgId(siteId), status, begin, end, page, pageSize));
-                    break;
-                case TYPE_USER:
-                    pagedList = springPage(
-                            service.userLeaderBoardPage(getOrgId(siteId), status, begin, end, page, pageSize));
-                    break;
-                default:
-                    throw new IllegalArgumentException("Type not support: " + type);
-            }
+            Page<LeaderBoard> pagedList = fetchPage(service, siteService, type, args, page, pageSize);
             Directives.setTotalPages(pagedList.getTotalPages());
             loopVars[0] = env.getObjectWrapper().wrap(pagedList);
         } else {
             int offset = Directives.getOffset(params);
             int limit = Directives.getLimit(params);
-            List<LeaderBoard> list;
-            switch (type) {
-                case TYPE_CHANNEL:
-                    list = service.channelLeaderBoardList(siteId, status, begin, end, offset, limit);
-                    break;
-                case TYPE_ORG:
-                    list = service.orgLeaderBoardList(getOrgId(siteId), status, begin, end, offset, limit);
-                    break;
-                case TYPE_USER:
-                    list = service.userLeaderBoardList(getOrgId(siteId), status, begin, end, offset, limit);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Type not support: " + type);
-            }
+            List<LeaderBoard> list = fetchList(service, siteService, type, args, offset, limit);
             loopVars[0] = env.getObjectWrapper().wrap(list);
         }
         body.render(env.getOut());
+    }
+
+    public static Page<LeaderBoard> fetchPage(LeaderBoardService service, SiteService siteService,
+                                              String type, LeaderBoardArgs args, int page, int pageSize) {
+        switch (type) {
+            case TYPE_CHANNEL:
+                return springPage(
+                        service.channelLeaderBoardPage(args.getSiteId(), args.getStatus(),
+                                args.getBegin(), args.getEnd(), page, pageSize));
+            case TYPE_ORG:
+                return springPage(
+                        service.orgLeaderBoardPage(fetchOrgId(siteService, args.getSiteId()), args.getStatus(),
+                                args.getBegin(), args.getEnd(), page, pageSize));
+            case TYPE_USER:
+                return springPage(
+                        service.userLeaderBoardPage(fetchOrgId(siteService, args.getSiteId()), args.getStatus(),
+                                args.getBegin(), args.getEnd(), page, pageSize));
+            default:
+                throw new IllegalArgumentException("Type not support: " + type);
+        }
+    }
+
+    public static List<LeaderBoard> fetchList(LeaderBoardService service, SiteService siteService,
+                                              String type, LeaderBoardArgs args, int offset, int limit) {
+        switch (type) {
+            case TYPE_CHANNEL:
+                return service.channelLeaderBoardList(args.getSiteId(), args.getStatus(),
+                        args.getBegin(), args.getEnd(), offset, limit);
+            case TYPE_ORG:
+                return service.orgLeaderBoardList(fetchOrgId(siteService, args.getSiteId()), args.getStatus(),
+                        args.getBegin(), args.getEnd(), offset, limit);
+            case TYPE_USER:
+                return service.userLeaderBoardList(fetchOrgId(siteService, args.getSiteId()), args.getStatus(),
+                        args.getBegin(), args.getEnd(), offset, limit);
+            default:
+                throw new IllegalArgumentException("Type not support: " + type);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -138,7 +157,7 @@ public class LeaderBoardListDirective implements TemplateDirectiveModel {
     }
 
     @Nullable
-    private Integer getOrgId(@Nullable Integer siteId) {
+    private static Integer fetchOrgId(SiteService siteService, @Nullable Integer siteId) {
         return Optional.ofNullable(siteId).map(siteService::select).map(SiteBase::getOrgId).orElse(null);
     }
 

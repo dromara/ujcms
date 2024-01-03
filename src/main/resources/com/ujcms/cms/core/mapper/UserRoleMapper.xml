@@ -20,7 +20,7 @@
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_user_role
-        where exists(select * from ujcms_role t where t.id_ = ujcms_user_role.role_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where role_id_ in (select t.id_ from ujcms_role t where t.site_id_ = #{siteId,jdbcType=INTEGER})
     </delete>
     <select id="select" parameterType="map" resultMap="ResultMap">
         select

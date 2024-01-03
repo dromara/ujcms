@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.Channel;
+import com.ujcms.commons.db.order.OrderEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -20,7 +20,7 @@ import java.util.Map;
  */
 @Mapper
 @Repository
-public interface ArticleMapper {
+public interface ArticleMapper extends OrderEntityMapper {
     /**
      * 根据主键获取引用对象（不包括关联对象属性）
      *
@@ -61,21 +61,24 @@ public interface ArticleMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
+    @Override
     Article select(Integer id);
 
     /**
      * 根据查询条件获取列表
      *
-     * @param queryInfo        查询条件
-     * @param customsCondition 自定义字段查询条件
-     * @param channelId        栏目ID
-     * @param orgId            组织ID
+     * @param queryInfo          查询条件
+     * @param customsCondition   自定义字段查询条件
+     * @param orgAncestorId      组织ID
+     * @param channelAncestorIds 栏目ID列表
+     * @param roleIds            角色ID列表
      * @return 数据列表
      */
     List<Article> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
                             @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
-                            @Nullable @Param("channelId") Integer channelId,
-                            @Nullable @Param("orgId") Integer orgId);
+                            @Nullable @Param("orgAncestorId") Integer orgAncestorId,
+                            @Nullable @Param("channelAncestorIds") Collection<Integer> channelAncestorIds,
+                            @Nullable @Param("roleIds") Collection<Integer> roleIds);
 
     /**
      * 根据 id 列表查询
@@ -113,25 +116,25 @@ public interface ArticleMapper {
     /**
      * 查询下一条文章
      *
-     * @param id          文章ID
-     * @param publishDate 文章发布时间
-     * @param channelId   栏目ID
-     * @param status      状态
+     * @param id        文章ID
+     * @param order     文章排序值
+     * @param channelId 栏目ID
+     * @param status    状态
      * @return 下一条文章
      */
-    List<Article> findNext(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate,
+    List<Article> findNext(@Param("id") Integer id, @Param("order") Long order,
                            @Param("channelId") Integer channelId, @Param("status") Collection<Short> status);
 
     /**
      * 查询上一条文章
      *
-     * @param id          文章ID
-     * @param publishDate 文章发布时间
-     * @param channelId   栏目ID
-     * @param status      状态
+     * @param id        文章ID
+     * @param order     文章排序值
+     * @param channelId 栏目ID
+     * @param status    状态
      * @return 上一条文章
      */
-    List<Article> findPrev(@Param("id") Integer id, @Param("publishDate") OffsetDateTime publishDate,
+    List<Article> findPrev(@Param("id") Integer id, @Param("order") Long order,
                            @Param("channelId") Integer channelId, @Param("status") Collection<Short> status);
 
     /**
@@ -140,15 +143,15 @@ public interface ArticleMapper {
      * @param channelId 栏目ID
      * @return 文章数量
      */
-    int countByChannelId(@Param("channelId") Integer channelId);
+    int existsByChannelId(@Param("channelId") Integer channelId);
 
     /**
-     * 根据 用户ID 查询文章数量
+     * 根据 用户ID 查询文章是否存在
      *
      * @param userId 用户ID
-     * @return 文章数量
+     * @return 文章是否存在。0代表不存在，1代表存在
      */
-    int countByUserId(Integer userId);
+    int existsByUserId(Integer userId);
 
     /**
      * 根据 站点ID 查询文章数量
@@ -186,6 +189,36 @@ public interface ArticleMapper {
      * @return 被更新的条数
      */
     int updateModifiedUser(Integer modifiedUserId);
+
+    /**
+     * 更新置顶日期。所有已到期的置顶文章，将置顶设置成`0`，并将置顶日期设置为`null`
+     *
+     * @param now 当前时间
+     * @return 被更新的条数
+     */
+    int updateStickyDate(OffsetDateTime now);
+
+    /**
+     * 更新文章的上线状态。状态为`ready`，并且已到上线日期的文章，更新为`published`
+     *
+     * @param now       当前时间
+     * @param ready     待发布状态码
+     * @param published 已发布状态码
+     * @return 被更新的条数
+     */
+    int updateOnlineStatus(@Param("now") OffsetDateTime now,
+                           @Param("ready") short ready, @Param("published") short published);
+
+    /**
+     * 更新文章的上线状态。状态为`ready`，并且已到上线日期的文章，更新为`published`
+     *
+     * @param now     当前时间
+     * @param normals 已发布和已归档状态码
+     * @param offline 已下线状态码
+     * @return 被更新的条数
+     */
+    int updateOfflineStatus(@Param("now") OffsetDateTime now,
+                            @Param("normals") Collection<Short> normals, @Param("offline") short offline);
 
     /**
      * 根据栏目ID删除数据

@@ -6,7 +6,7 @@ import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.mapper.ArticleExtMapper;
 import com.ujcms.cms.core.mapper.ChannelExtMapper;
-import com.ujcms.cms.core.service.SiteService;
+import com.ujcms.cms.core.mapper.SiteMapper;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
@@ -34,16 +34,16 @@ import static com.ujcms.cms.core.support.Frontends.PAGE_SIZE;
  */
 @Service
 public class HtmlService {
-    private final SiteService siteService;
+    private final SiteMapper siteMapper;
     private final ArticleExtMapper articleExtMapper;
     private final ChannelExtMapper channelExtMapper;
     private final PathResolver pathResolver;
     private final Configuration configuration;
     private final FreeMarkerProperties properties;
 
-    public HtmlService(SiteService siteService, ArticleExtMapper articleExtMapper, ChannelExtMapper channelExtMapper,
+    public HtmlService(SiteMapper siteMapper, ArticleExtMapper articleExtMapper, ChannelExtMapper channelExtMapper,
                        PathResolver pathResolver, Configuration configuration, FreeMarkerProperties properties) {
-        this.siteService = siteService;
+        this.siteMapper = siteMapper;
         this.articleExtMapper = articleExtMapper;
         this.channelExtMapper = channelExtMapper;
         this.pathResolver = pathResolver;
@@ -58,7 +58,7 @@ public class HtmlService {
             return;
         }
         Map<String, Object> dataModel = new HashMap<>(16);
-        Site defaultSite = siteService.getDefaultSite(site.getConfig().getDefaultSiteId());
+        Site defaultSite = getDefaultSite(site.getConfig().getDefaultSiteId());
         Frontends.setDate(dataModel, site, defaultSite, site.getUrl(), 1, null);
         dataModel.put(PAGE_SIZE, site.getPageSize());
         dataModel.put("isHome", true);
@@ -75,7 +75,7 @@ public class HtmlService {
                 fileHandler.store(filename, resolveTemplate(site.getTemplate()), dataModel);
                 site.setMobileStaticFile(filename);
             }
-            siteService.update(site);
+            siteMapper.update(site);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         } finally {
@@ -99,12 +99,10 @@ public class HtmlService {
     @Transactional(rollbackFor = Exception.class)
     public void updateArticleHtml(Article article) {
         deleteArticleHtml(article);
-
-        if (!article.getSite().getHtml().isEnabled()) {
-            return;
-        }
         // 跳转连接不用静态化
-        if (StringUtils.isNotBlank(article.getLinkUrl())) {
+        if (!article.getSite().getHtml().isEnabled()
+                || !StringUtils.isBlank(article.getLinkUrl())
+                || !article.isNormal()) {
             return;
         }
         Site site = article.getSite();
@@ -112,7 +110,7 @@ public class HtmlService {
         dataModel.put("article", article);
         dataModel.put("channel", article.getChannel());
         int page = 1;
-        Site defaultSite = siteService.getDefaultSite(site.getConfig().getDefaultSiteId());
+        Site defaultSite = getDefaultSite(site.getConfig().getDefaultSiteId());
         Frontends.setDate(dataModel, site, defaultSite, article.getUrl(page), page, article);
         try {
             ArticleExt ext = article.getExt();
@@ -177,7 +175,7 @@ public class HtmlService {
 
     private void doMakeChannelHtml(Channel channel) throws IOException {
         Site site = channel.getSite();
-        Site defaultSite = siteService.getDefaultSite(site.getConfig().getDefaultSiteId());
+        Site defaultSite = getDefaultSite(site.getConfig().getDefaultSiteId());
         Map<String, Object> dataModel = new HashMap<>(16);
         dataModel.put("channel", channel);
         dataModel.put(PAGE_SIZE, channel.getPageSize());
@@ -234,5 +232,10 @@ public class HtmlService {
 
     private Template resolveTemplate(String template) throws IOException {
         return configuration.getTemplate(properties.getPrefix() + template + properties.getSuffix());
+    }
+
+    private Site getDefaultSite(Integer defaultSiteId) {
+        return Optional.ofNullable(siteMapper.select(defaultSiteId))
+                .orElseThrow(() -> new IllegalStateException("default site not exist. id: " + defaultSiteId));
     }
 }

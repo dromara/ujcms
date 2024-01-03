@@ -32,7 +32,7 @@ public class ThumbnailatorHandler implements ImageHandler {
                     .scale(1).toFile(new File(dest));
             return true;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -81,7 +81,7 @@ public class ThumbnailatorHandler implements ImageHandler {
             }
             return true;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -120,7 +120,7 @@ public class ThumbnailatorHandler implements ImageHandler {
             default:
                 pos = Positions.BOTTOM_RIGHT;
         }
-        float opacity = ((float) dissolve) / 100f;
+        float opacity = (dissolve) / 100f;
         try {
             BufferedImage buff = ImageIO.read(new File(src));
             if (buff.getWidth() < minWidth || buff.getHeight() < minHeight) {
@@ -129,7 +129,7 @@ public class ThumbnailatorHandler implements ImageHandler {
             Thumbnails.of(buff).watermark(pos, ImageIO.read(new File(overlay)), opacity).scale(1).toFile(dest);
             return true;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }

@@ -83,7 +83,7 @@ public class OrgService {
 
     public List<Org> selectList(OrgArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), OrgBase.TABLE_NAME, "order,id");
-        return mapper.selectAll(queryInfo, args.getAncestorId());
+        return mapper.selectAll(queryInfo, args.getAncestorId(), args.isQueryHasChildren());
     }
 
     public List<Org> selectList(OrgArgs args, int offset, int limit) {

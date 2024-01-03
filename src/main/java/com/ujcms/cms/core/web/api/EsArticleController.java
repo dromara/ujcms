@@ -48,7 +48,7 @@ public class EsArticleController {
         return EsArticleListDirective.query(params, defaultSiteId, pageable, articleLucene);
     }
 
-    @Operation(summary = "获取文章列表")
+    @Operation(summary = "获取全文检索文章列表（EsArticleList）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
@@ -67,6 +67,8 @@ public class EsArticleController {
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
             schema = @Schema(type = "string", format = "int32 array"))
+    @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回。默认：0（已发布）",
+            schema = @Schema(type = "string", format = "int16 array"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
@@ -87,7 +89,7 @@ public class EsArticleController {
         return pagedList.getContent();
     }
 
-    @Operation(summary = "获取文章分页")
+    @Operation(summary = "获取全文检索文章分页（EsArticlePage）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",

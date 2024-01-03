@@ -37,7 +37,7 @@ public class SurveyListDirective implements TemplateDirectiveModel {
      */
     public static final String SITE_ID = "siteId";
     /**
-     * 是否获取所有站点的投票。布尔型(Boolean)。默认：false。
+     * 是否获取所有站点的数据。布尔型(Boolean)。默认：false。
      */
     public static final String IS_ALL_SITE = "isAllSite";
 

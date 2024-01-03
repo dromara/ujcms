@@ -76,7 +76,7 @@
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN COUNT(DISTINCT t.uv_) ELSE 0 END AS uv_count_
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN COUNT(DISTINCT t.ip_) ELSE 0 END AS ip_count_
                    , CASE
-                         WHEN SUM(t.count_) &gt; 0 AND COUNT(t.new_visitor_ = '1') &gt; 0 THEN 1
+                         WHEN SUM(t.count_) &gt; 0 AND SUM(CASE WHEN t.new_visitor_ = '1' THEN 1 ELSE 0 END) &gt; 0 THEN 1
                          ELSE 0 END                                                       AS nv_count_
                    , MAX(duration_)                                                       AS duration_
                    , CASE WHEN SUM(t.count_) = 1 THEN 1 ELSE 0 END                        AS bounce_count_
@@ -101,7 +101,7 @@
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN COUNT(DISTINCT t.uv_) ELSE 0 END AS uv_count_
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN COUNT(DISTINCT t.ip_) ELSE 0 END AS ip_count_
                    , CASE
-                         WHEN SUM(t.count_) &gt; 0 AND COUNT(t.new_visitor_ = '1') &gt; 0 THEN 1
+                         WHEN SUM(t.count_) &gt; 0 AND SUM(CASE WHEN t.new_visitor_ = '1' THEN 1 ELSE 0 END) &gt; 0 THEN 1
                          ELSE 0 END                                                       AS nv_count_
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN MAX(duration_) ELSE 0 END        AS duration_
                    , CASE WHEN SUM(t.count_) = 1 THEN 1 ELSE 0 END                        AS bounce_count_
@@ -150,7 +150,7 @@
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN COUNT(DISTINCT t.uv_) ELSE 0 END AS uv_count_
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN COUNT(DISTINCT t.ip_) ELSE 0 END AS ip_count_
                    , CASE
-                         WHEN SUM(t.count_) &gt; 0 AND COUNT(t.new_visitor_ = '1') &gt; 0 THEN 1
+                         WHEN SUM(t.count_) &gt; 0 AND SUM(CASE WHEN t.new_visitor_ = '1' THEN 1 ELSE 0 END) &gt; 0 THEN 1
                          ELSE 0 END                                                       AS nv_count_
                    , CASE WHEN SUM(t.count_) &gt; 0 THEN MAX(duration_) ELSE 0 END        AS duration_
                    , CASE WHEN SUM(t.count_) = 1 THEN 1 ELSE 0 END                        AS bounce_count_
@@ -161,6 +161,7 @@
         GROUP BY site_id_
     </select>
 
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

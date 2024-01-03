@@ -32,6 +32,7 @@
     where t.survey_id_ = #{surveyId,jdbcType=INTEGER}
     order by t.order_, t.id_
   </select>
+  <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
   <select id="selectAll" resultMap="ResultMap">

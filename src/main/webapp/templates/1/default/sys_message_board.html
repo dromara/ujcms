@@ -10,6 +10,8 @@
   [#include 'inc_js.html'/]
 </head>
 <body>
+[#-- 用于当前栏目高亮显示 --]
+[#assign channelAlias='message-board'/]
 [#assign headerShadow=true/]
 [#include 'inc_header.html'/]
 <div class="container">
@@ -25,12 +27,12 @@
         <a href="${addParam('message-board','message-board','isReplied','false')}" class="btn btn-sm [#if Params.isReplied! =='false']btn-secondary[#else]btn-link text-reset[/#if]">未回复留言</a>
       </div>
       <div class="py-1 border-bottom">
-        [@DictList type='sys_message_board_type'; list]
+        [@MessageBoardTypeList; list]
           <a href="${addParam('message-board','message-board','typeId')}" class="btn btn-sm[#if !Params.typeId??] btn-secondary[#else] btn-link text-reset[/#if]">全部类别</a>
           [#list list as type]
             <a href="${addParam('message-board','message-board','typeId',type.id)}" class="btn btn-sm [#if Params.typeId! == type.id?string]btn-secondary[#else]btn-link text-reset[/#if]">${type.name}</a>
           [/#list]
-        [/@DictList]
+        [/@MessageBoardTypeList]
       </div>
       [@MessageBoardPage typeId=Params.typeId isReplied=Params.isReplied status='0' limit='10';pagedList]
         <ul class="list-unstyled">
@@ -44,7 +46,7 @@
               <p class="small text-muted my-2 cm-truncate2">${substring(bean.text,400,'...')}</p>
               <div class="small text-black-50 mt-2 clearfix">
                 <div class="float-left"><i class="far fa-user"></i> ${bean.user.username!bean.nickname!"匿名网友"}</div>
-                <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.created.format('yyyy-MM-dd')}</div>
+                <div class="float-right"><i class="ml-2 far fa-clock"></i> ${format(bean.created, 'yyyy-MM-dd')}</div>
               </div>
             </li>
           [/#list]

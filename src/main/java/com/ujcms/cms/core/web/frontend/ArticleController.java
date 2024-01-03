@@ -69,10 +69,11 @@ public class ArticleController {
             "/{subDir:[\\w-]+}" + UrlConstants.ARTICLE + "/{id}/{alias:[\\w-]+}/{page:[\\d]+}"})
     public String article(@PathVariable Integer id, @PathVariable(required = false) String subDir,
                           @PathVariable(required = false) String alias, @PathVariable(required = false) Integer page,
+                          @RequestParam(defaultValue = "false") boolean preview,
                           HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
         User user = Contexts.findCurrentUser();
-        Article article = validateArticle(id, site, user);
+        Article article = validateArticle(id, site, user, preview);
         if (!StringUtils.equals(article.getExt().getAlias(), alias)) {
             return "redirect:" + article.getUrl();
         }
@@ -88,6 +89,7 @@ public class ArticleController {
     public void download(@PathVariable Integer id, @PathVariable(required = false) Integer index,
                          @PathVariable(required = false) String subDir,
                          @RequestParam long time, @NotNull String key,
+                         @RequestParam(defaultValue = "false") boolean preview,
                          HttpServletRequest request, HttpServletResponse response) throws IOException {
         Site site = siteResolver.resolve(request, subDir);
         if (!Utils.validateDownloadKey(key, id, time, props.getDownloadSecret())) {
@@ -98,7 +100,7 @@ public class ArticleController {
             throw new Http403Exception("Download Key Expired");
         }
         User user = Contexts.findCurrentUser();
-        Article article = validateArticle(id, site, user);
+        Article article = validateArticle(id, site, user, preview);
         String fileUrl;
         String fileName;
         if (index != null) {
@@ -116,7 +118,7 @@ public class ArticleController {
         if (StringUtils.isBlank(fileUrl)) {
             throw new Http404Exception("Article file not exist. id=" + id);
         }
-        ArticleBuffer buffer = article.getBuffer();
+        ArticleBuffer buffer = ArticleBuffer.of(article);
         int downloads = buffer.getDownloads() + 1;
         buffer.setDownloads(downloads);
         bufferService.update(buffer);
@@ -127,7 +129,7 @@ public class ArticleController {
             response.sendRedirect(fileUrl);
             return;
         }
-        if (!fileHandler.exist(filename)) {
+        if (!fileHandler.isFile(filename)) {
             throw new Http404Exception("Article file not found: " + fileUrl);
         }
         Servlets.setAttachmentHeader(request, response,
@@ -138,18 +140,16 @@ public class ArticleController {
         }
     }
 
-    private Article validateArticle(Integer id, Site site, User user) {
+    private Article validateArticle(Integer id, Site site, User user, boolean preview) {
         Article article = articleService.select(id);
         if (article == null) {
             throw new Http404Exception("Article not found. ID=" + id);
-        }
-        if (!article.isNormal()) {
-            throw new Http403Exception("Article status forbidden. ID: " + id);
         }
         if (!site.getId().equals(article.getSiteId())) {
             throw new Http404Exception("error.notInSite",
                     String.valueOf(article.getSiteId()), String.valueOf(site.getId()));
         }
-        return checkAccessPermission(id, article, user, groupService);
+        checkAccessPermission(article, user, groupService, channelService, preview);
+        return article;
     }
 }

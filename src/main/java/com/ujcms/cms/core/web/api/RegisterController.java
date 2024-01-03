@@ -104,6 +104,7 @@ public class RegisterController {
         user.setStatus(verifyMode == VERIFY_MODE_MANUAL ? STATUS_INACTIVATED : STATUS_ENABLED);
         user.setGroupId(Group.MEMBER_GROUP_ID);
         user.setOrgId(Org.MEMBER_ORG_ID);
+        user.setType(User.TYPE_MEMBER);
         userService.insert(user, user.getExt());
         String password = Secures.sm2Decrypt(params.getPassword(), props.getClientSm2PrivateKey());
         userService.updatePassword(user, user.getExt(), password);
@@ -121,10 +122,12 @@ public class RegisterController {
         if (userService.selectByUsername(params.getUsername()) != null) {
             throw new Http400Exception("username already exists");
         }
-        if (StringUtils.isNotBlank(params.getMobile()) && userService.selectByMobile(params.getMobile()) != null) {
+        String mobile = params.getMobile();
+        if (StringUtils.isNotBlank(mobile) && userService.selectByMobile(mobile) != null) {
             throw new Http400Exception("mobile already exists");
         }
-        if (StringUtils.isNotBlank(params.getEmail()) && userService.selectByEmail(params.getEmail()) != null) {
+        String email = params.getEmail();
+        if (StringUtils.isNotBlank(email) && userService.selectByEmail(email) != null) {
             throw new Http400Exception("mobile already exists");
         }
     }

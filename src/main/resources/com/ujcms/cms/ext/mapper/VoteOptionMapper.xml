@@ -29,7 +29,7 @@
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_vote_option
-        where exists(select * from ujcms_vote t where t.id_ = ujcms_vote_option.vote_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where vote_id_ in (select t.id_ from ujcms_vote t where t.site_id_ = #{siteId,jdbcType=INTEGER})
     </delete>
     <select id="listByVoteId" resultMap="ResultMap">
         select
@@ -38,6 +38,7 @@
         where t.vote_id_ = #{voteId,jdbcType=INTEGER}
         order by t.order_, t.id_
     </select>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

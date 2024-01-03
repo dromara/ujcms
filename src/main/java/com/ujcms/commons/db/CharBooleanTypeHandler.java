@@ -21,7 +21,7 @@ import java.sql.SQLException;
  *
  * @author PONY
  */
-@MappedJdbcTypes(JdbcType.BOOLEAN)
+@MappedJdbcTypes(JdbcType.CHAR)
 public class CharBooleanTypeHandler extends BaseTypeHandler<Boolean> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Boolean parameter, JdbcType jdbcType)

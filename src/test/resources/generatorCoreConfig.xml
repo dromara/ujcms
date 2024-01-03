@@ -38,6 +38,7 @@
         <table tableName="ujcms_org" domainObjectName="Org">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
+            <property name="updateExcludes" value="depth_,order_"/>
         </table>
         <table tableName="ujcms_org_tree" domainObjectName="OrgTree">
             <property name="service" value="false"/>
@@ -66,13 +67,10 @@
         <table tableName="ujcms_site" domainObjectName="Site">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
+            <property name="updateExcludes" value="depth_,order_,views_,self_views_,today_views_,yesterday_views_,max_views_,max_date_"/>
         </table>
         <table tableName="ujcms_site_tree" domainObjectName="SiteTree">
             <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_site_buffer" domainObjectName="SiteBuffer">
-            <property name="serviceArgs" value="false"/>
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_site_custom" domainObjectName="SiteCustom">
@@ -80,7 +78,9 @@
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_model" domainObjectName="Model"/>
-        <table tableName="ujcms_channel" domainObjectName="Channel"/>
+        <table tableName="ujcms_channel" domainObjectName="Channel">
+            <property name="updateExcludes" value="depth_,order_,views_,self_views_"/>
+        </table>
         <table tableName="ujcms_channel_ext" domainObjectName="ChannelExt">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
@@ -89,12 +89,13 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
-        <table tableName="ujcms_channel_buffer" domainObjectName="ChannelBuffer">
-            <property name="serviceArgs" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
         <table tableName="ujcms_channel_custom" domainObjectName="ChannelCustom">
             <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_performance_type" domainObjectName="PerformanceType">
+            <property name="pageable" value="false"/>
+            <property name="order" value="true"/>
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_group_access" domainObjectName="GroupAccess">
@@ -114,10 +115,7 @@
         <table tableName="ujcms_article_ext" domainObjectName="ArticleExt">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_article_buffer" domainObjectName="ArticleBuffer">
-            <property name="serviceArgs" value="false"/>
-            <property name="controller" value="false"/>
+            <property name="updateExcludes" value="comments_,downloads_,favorites_,ups_,downs_,views_,day_views_,week_views_,month_views_,quarter_views_,year_views_"/>
         </table>
         <table tableName="ujcms_article_stat" domainObjectName="ArticleStat">
             <property name="service" value="false"/>

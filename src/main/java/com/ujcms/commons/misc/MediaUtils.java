@@ -31,11 +31,14 @@ public class MediaUtils {
      */
     public static void renderOneImage(MultimediaObject multimediaObject, long duration, File outputFile) throws EncoderException {
         // 最大20秒
-        long max = 20 * 1000;
+        long max = 20 * 1000L;
         // 加 1 防止为 0
         long millis = (duration / 4) + 1;
         if (millis > max) {
             millis = max;
+        }
+        if (millis < duration) {
+            millis = duration;
         }
         ScreenExtractor instance = new ScreenExtractor();
         instance.renderOneImage(multimediaObject, -1, -1, millis, outputFile, 1, true);

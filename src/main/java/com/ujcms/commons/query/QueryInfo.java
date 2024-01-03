@@ -15,6 +15,8 @@ import java.util.Map;
 public class QueryInfo {
     @Nullable
     private String orderBy;
+    @Nullable
+    private String selectOrderBy;
     private String mainTable;
     private String tablePrefix;
     private boolean distinct = false;
@@ -39,6 +41,16 @@ public class QueryInfo {
     public void setOrderBy(@Nullable String orderBy) {
         QueryUtils.validateOrderBy(orderBy);
         this.orderBy = orderBy;
+    }
+
+    @Nullable
+    public String getSelectOrderBy() {
+        return selectOrderBy;
+    }
+
+    public void setSelectOrderBy(@Nullable String selectOrderBy) {
+        QueryUtils.validateOrderBy(selectOrderBy);
+        this.selectOrderBy = selectOrderBy;
     }
 
     public String getMainTable() {

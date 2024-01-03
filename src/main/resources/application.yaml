@@ -16,6 +16,10 @@ spring.datasource.password: password
 #spring.datasource.driver-class-name: com.mysql.cj.jdbc.Driver
 # 执行初始化脚本的数据库类型。
 ujcms.data-sql-platform: mysql
+# 数据库类型（用于数据库备份）。支持 mysql、postgresql、kingbase、opengauss
+ujcms.databaseType: mysql
+# 数据库命令所在目录（用于数据库备份）。如果已加入环境变量则留空即可。
+ujcms.databaseBinPath:
 
 # PostgreSQL数据库
 #spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
@@ -23,13 +27,36 @@ ujcms.data-sql-platform: mysql
 #spring.datasource.password: password
 #spring.datasource.driver-class-name: org.postgresql.Driver
 #ujcms.data-sql-platform: postgresql
+#ujcms.databaseType: postgresql
+#ujcms.databaseBinPath:
 
-# 人大金仓数据库
-#spring.datasource.url: jdbc:kingbase8://192.168.0.241:54321/ujcms
-#spring.datasource.username: ujcms
+# 人大金仓数据库（PostgreSQL驱动，官方推荐方式。不能使用 kingbase8 驱动）
+#spring.datasource.url: jdbc:postgresql://localhost:54321/ujcms
+#spring.datasource.username: postgres
 #spring.datasource.password: password
-#spring.datasource.driver-class-name: com.kingbase8.Driver
+#spring.datasource.driver-class-name: org.postgresql.Driver
 #ujcms.data-sql-platform: postgresql
+#ujcms.databaseType: kingbase
+#ujcms.databaseBinPath:
+
+# openGauss高斯数据库（使用仿 PostgreSQL 版驱动 org.opengauss:opengauss-jdbc:5.0.0，并删除 PostgreSQL 驱动）
+# 直接使用 PostgreSQL 驱动，会报 Invalid or unsupported by client SCRAM mechanisms 错误
+#spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
+#spring.datasource.username: gaussdb
+#spring.datasource.password: openGauss@123
+#spring.datasource.driver-class-name: org.postgresql.Driver
+#ujcms.data-sql-platform: postgresql
+#ujcms.databaseType: opengauss
+#ujcms.databaseBinPath:
+
+# 瀚高数据库（不能使用PostgreSQL原版驱动）
+#spring.datasource.url: jdbc:highgo://localhost:5866/ujcms
+#spring.datasource.username: highgo
+#spring.datasource.password: password
+#spring.datasource.driver-class-name: com.highgo.jdbc.Driver
+#ujcms.data-sql-platform: postgresql
+#ujcms.databaseType: postgresql
+#ujcms.databaseBinPath:
 
 # 达梦数据库
 #spring.datasource.url: jdbc:dm://192.168.0.240:5236/UJCMS
@@ -37,6 +64,8 @@ ujcms.data-sql-platform: mysql
 #spring.datasource.password: pass@0000
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
 #ujcms.data-sql-platform: dm
+# 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
+#flowable.database-schema: UJCMS
 
 # 集群环境需要使用jdbc。默认：memory
 #spring.quartz.job-store-type: jdbc
@@ -123,14 +152,17 @@ springdoc.swagger-ui.enabled: false
 mybatis.configuration.default-fetch-size: 100
 mybatis.configuration.default-statement-timeout: 30
 # MyBatis分页方言。多个配置用';'分号分开。默认支持以下国产数据库(https://github.com/pagehelper/Mybatis-PageHelper)：
+# com.github.pagehelper.page.PageAutoDialect
 # 达梦数据库(dm): OracleDialect
 # 阿里云PPAS数据库(edb): OracleDialect
 # 神通数据库(oscar): OscarDialect
 # 瀚高数据库(highgo): HsqldbDialect
 # 虚谷数据库(xugu): HsqldbDialect
+# 行云数据库(xcloud): CirroDataDialect
 # 人大金仓版本(kingbase): PostgreSqlDialect
-# 人大金仓新版本(kingbase8): PostgreSqlDialect (pagehelper5.3.2没有这项，需等待pagehelper升级)
-pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDialect;kingbase8=com.github.pagehelper.dialect.helper.PostgreSqlDialect;opengauss=com.github.pagehelper.dialect.helper.PostgreSqlDialect
+# 人大金仓新版本(kingbase8): PostgreSqlDialect
+# openGauss数据库(opengauss): PostgreSqlDialect
+pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDialect
 # Jackson配置
 spring.jackson.deserialization.FAIL_ON_UNKNOWN_PROPERTIES: false
 spring.jackson.serialization.FAIL_ON_EMPTY_BEANS: false
@@ -155,8 +187,13 @@ spring.task.execution.pool.max-size: 16
 # 线程等待队列，等待队列满后，则会根据 "max-size" 创建新线程。默认值是 Integer.MAX_VALUE。为避免内存溢出，应该设置一个值。
 spring.task.execution.pool.queue-capacity: 2048
 
+# 模板保存路径。一般模板保存在项目根目录的/templates目录下，也可以将模板保存在其他地方。
+# 模板目录下通常包含img、css、js等文件，需确保能够被浏览器访问到。
 # 结尾必须带'/'，否则 error 页面找不到模板。
 spring.freemarker.template-loader-path: /templates/
+#spring.freemarker.template-loader-path: file:d:/ujcms/templates/
+#spring.freemarker.template-loader-path: file:/my/dir/templates/
+
 # 必须指定后缀，否则 error 页面找不到模板。后缀使用html，方便其它编辑器识别文件格式。
 spring.freemarker.suffix: .html
 # 指定输出格式为HTML，会自动开启 html scape，防止 XSS 注入。（使用该模式后，模板中就不可以使用[#escape]标签，导致无法处理空值。所以不使用该功能）
@@ -174,6 +211,11 @@ spring.freemarker.settings.log_template_exceptions: false
 # 此项配置禁止模板创建类的实例
 # 官方文档：https://freemarker.apache.org/docs/ref_builtins_expert.html#ref_builtin_new
 spring.freemarker.settings.new_builtin_class_resolver: allows_nothing
+
+# 官方文档：https://www.flowable.com/open-source/docs/bpmn/ch05a-Spring-Boot#flowable-application-properties
+# Whether the async executor should be activated.
+# 是否启用工作流异步执行器。在不需要工作流功能的情况下，可以设置成 false。默认：true
+#flowable.process.async-executor-activate: false
 
 # 如果需要将静态资源放到程序目录之外，且不想另外配置tomcat虚拟路径或nginx服务，则可通过static-locations配置，由程序提供静态资源服务。
 # 需注意，Tomcat必须要有相应目录的访问权限。
@@ -196,13 +238,6 @@ ujcms.sequence-cache-size: 50
 # 比如： {@code /jsp/example.jsp} 文件的访问地址依然为 {@code /example.jsp}
 # 这样可以防止所有 {@code /jsp} 目录之外的 JSP 文件被访问，降低安全风险。
 ujcms.jsp-allowed: false
-# 模板保存路径。一般模板保存在项目根目录的/templates目录下，也可以将模板保存在其他地方。
-# 模板目录下通常包含img、css、js等文件，需确保能够被浏览器访问到。
-#ujcms.template-path: file:d:\\ujcms\\templates
-#ujcms.template-path: file:/my/dir/templates
-#ujcms.template-path: /templates
-# 模板访问的路径
-#ujcms.template-url: /templates
 
 # ElasticSearch 前缀。默认：ujcms
 #ujcms.es-prefix: ujcms
@@ -213,7 +248,7 @@ ujcms.lucene-path: /WEB-INF/lucene
 # 开发环境上传的图片无法立即访问，需要等待1至5秒不等。可能是因为上传后，开发工具需要将图片同步到实际 tomcat 的运行路径下。
 # 正确此配置可使开发环境上传的图片能立即访问
 ujcms.uploads-location: /uploads
-# 储存点文件前缀。配置该项可以允许储存点使用file:前缀访问程序的其它目录，多项使用逗号分割。如 file:/data/ujcms,file:d:/my/dir
+# 储存点文件前缀。配置该项可以允许储存点使用`file:`前缀访问程序的其它目录及其子目录。多项使用逗号分割。如 file:/data/ujcms,file:d:/my/dir
 #ujcms.storageFilePrefix: file:/data/ujcms,file:d:/my/dir
 
 # JWT密钥。单机环境可以不设置，会默认生成一个64位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个长度不少于64位的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。

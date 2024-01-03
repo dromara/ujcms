@@ -17,6 +17,7 @@
         join ujcms_group_access ga on t.id_ = ga.group_id_
         where ga.channel_id_ = #{channelId}
     </select>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

@@ -7,6 +7,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public interface LeaderBoardMapper {
      * @return 统计结果
      */
     List<LeaderBoard> channelLeaderBoard(@Param("siteId") @Nullable Integer siteId,
-                                         @Param("status") short[] status,
+                                         @Param("status") @Nullable Collection<Short> status,
                                          @Param("begin") @Nullable OffsetDateTime begin,
                                          @Param("end") @Nullable OffsetDateTime end);
 
@@ -41,7 +42,7 @@ public interface LeaderBoardMapper {
      * @return 统计结果
      */
     List<LeaderBoard> orgLeaderBoard(@Param("orgId") @Nullable Integer orgId,
-                                     @Param("status") short[] status,
+                                     @Param("status") @Nullable Collection<Short> status,
                                      @Param("begin") @Nullable OffsetDateTime begin,
                                      @Param("end") @Nullable OffsetDateTime end);
 
@@ -55,7 +56,7 @@ public interface LeaderBoardMapper {
      * @return 统计结果
      */
     List<LeaderBoard> userLeaderBoard(@Param("orgId") @Nullable Integer orgId,
-                                      @Param("status") short[] status,
+                                      @Param("status") @Nullable Collection<Short> status,
                                       @Param("begin") @Nullable OffsetDateTime begin,
                                       @Param("end") @Nullable OffsetDateTime end);
 }

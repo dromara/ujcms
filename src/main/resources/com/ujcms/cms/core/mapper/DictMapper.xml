@@ -13,11 +13,22 @@
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Dict" />
 
+    <select id="existsByTypeId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_dict
+                           WHERE type_id_ = #{typeId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_dict
-        where exists(select * from ujcms_dict_type t where t.id_ = ujcms_dict.type_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where type_id_ in(select t.id_ from ujcms_dict_type t where t.site_id_ = #{siteId,jdbcType=INTEGER})
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

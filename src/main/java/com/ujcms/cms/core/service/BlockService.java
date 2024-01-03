@@ -1,7 +1,8 @@
 package com.ujcms.cms.core.service;
 
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Block;
+import com.ujcms.cms.core.domain.base.BlockBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.BlockItemMapper;
 import com.ujcms.cms.core.mapper.BlockMapper;
@@ -34,7 +35,7 @@ public class BlockService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Block bean, Integer siteId) {
-        bean.setId(seqService.getNextVal(Block.TABLE_NAME));
+        bean.setId(seqService.getNextVal(BlockBase.TABLE_NAME));
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.insert(bean);
@@ -68,23 +69,33 @@ public class BlockService implements SiteDeleteListener {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void copyBySite(Integer siteId, Integer fromSiteId) {
+        for (Block block : listBySiteId(fromSiteId)) {
+            insert(block, siteId);
+        }
+    }
+
     @Nullable
     public Block select(Integer id) {
         return mapper.select(id);
     }
 
     public List<Block> selectList(BlockArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Block.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), BlockBase.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 
     public List<Block> selectList(BlockArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+    }
+
+    public List<Block> listBySiteId(Integer siteId) {
+        return selectList(BlockArgs.of().siteId(siteId));
     }
 
     public boolean existsByAlias(String alias, @Nullable Integer siteId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countByAlias(alias, siteId)).iterator().next().intValue() > 0;
+        return mapper.existsByAlias(alias, siteId) > 0;
     }
 
     @Override

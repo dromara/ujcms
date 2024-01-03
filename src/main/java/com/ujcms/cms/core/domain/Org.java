@@ -50,6 +50,21 @@ public class Org extends OrgBase implements TreeEntity, Serializable {
     }
 
     /**
+     * 是否有子组织
+     */
+    @Nullable
+    private Boolean hasChildren;
+
+    @Nullable
+    public Boolean getHasChildren() {
+        return hasChildren;
+    }
+
+    public void setHasChildren(@Nullable Boolean hasChildren) {
+        this.hasChildren = hasChildren;
+    }
+
+    /**
      * 上级组织
      */
     @JsonIgnore

@@ -39,7 +39,7 @@ public class BlockItemController {
         this.service = service;
     }
 
-    @Operation(summary = "获取区块项列表")
+    @Operation(summary = "获取区块项列表（BlockItemList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "block", description = "区块别名",

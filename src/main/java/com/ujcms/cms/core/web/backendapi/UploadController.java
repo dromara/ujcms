@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import ws.schild.jave.EncoderException;
 import ws.schild.jave.MultimediaObject;
@@ -130,10 +131,12 @@ public class UploadController extends AbstractUploadController {
                 MediaUtils.renderOneImage(multimediaObject, duration, imageFile);
                 String path = site.getBasePath(SLASH + IMAGE_TYPE) + Uploads.getRandomFilename(ext);
                 String url = fileHandler.getDisplayPrefix() + path;
-                fileHandler.store(path, imageFile);
-                attachmentService.insert(new Attachment(site.getId(), userId, baseName + "." + ext,
-                        path, url, imageFile.length()));
-                result.put("image", url);
+                if (imageFile.exists()) {
+                    fileHandler.store(path, imageFile);
+                    attachmentService.insert(new Attachment(site.getId(), userId, baseName + "." + ext,
+                            path, url, imageFile.length()));
+                    result.put("image", url);
+                }
             } finally {
                 FileUtils.deleteQuietly(imageFile);
             }
@@ -148,6 +151,28 @@ public class UploadController extends AbstractUploadController {
         ExtraHandle extraHandle = (tempFile, baseName, extension, pathname, fileHandler, site, userId, result) ->
                 result.put("duration", MediaUtils.getDuration(new MultimediaObject(tempFile)) / 1000);
         return doUpload(request, upload.getAudioLimitByte(), upload.getAudioTypes(), AUDIO_TYPE, extraHandle);
+    }
+
+    /**
+     * Tinymce 编辑器上传多媒体时，视频和音频混合上传，使用同一个接口。这里要根据文件后缀名进行判断，区分上传的是视频还是音频。
+     * 并且不需要做提取视频图片、获取音频时长等额外处理。
+     */
+    @PostMapping("media-upload")
+    @PreAuthorize("hasAnyAuthority('backend','*')")
+    public Map<String, Object> mediaUpload(HttpServletRequest request) throws IOException, EncoderException {
+        Config.Upload upload = configService.getUnique().getUpload();
+        MultipartFile multipart = getMultipart(request);
+        String extension = FilenameUtils.getExtension(multipart.getOriginalFilename());
+        String videoTypes = upload.getVideoTypes();
+        String audioTypes = upload.getAudioTypes();
+        if (Uploads.isValidType(videoTypes, extension)) {
+            return doUpload(request, upload.getVideoLimitByte(), videoTypes, VIDEO_TYPE, null);
+        } else if (Uploads.isValidType(audioTypes, extension)) {
+            return doUpload(request, upload.getAudioLimitByte(), audioTypes, AUDIO_TYPE, null);
+        } else {
+            throw new Http400Exception(String.format("file extension not allowed: '%s'. allowed extension: '%s' or '%s",
+                    extension, videoTypes, audioTypes));
+        }
     }
 
     @PostMapping("doc-upload")

@@ -1,6 +1,8 @@
 package com.ujcms.cms.core.web.directive;
 
+import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.lucene.ArticleLucene;
+import com.ujcms.cms.core.lucene.ArticleLuceneArgs;
 import com.ujcms.cms.core.lucene.domain.EsArticle;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.ujcms.cms.core.web.directive.ArticleListDirective.*;
@@ -35,6 +38,8 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_OPERATOR_AND = "isOperatorAnd";
     public static final String IS_INCLUDE_BODY = "isIncludeBody";
+    public static final String IS_INCLUDE_DISABLED = "isIncludeDisabled";
+    public static final String FRAGMENT_SIZE = "fragmentSize";
     public static final String K1 = "k1";
     public static final String K2 = "k2";
     public static final String K3 = "k3";
@@ -66,27 +71,58 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         Integer channelId = getInteger(params, CHANNEL_ID);
         Boolean isIncludeSubChannel = getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true);
 
+
         String q = getString(params, Q);
+        Integer fragmentSize = getInteger(params, FRAGMENT_SIZE, 100);
         Boolean isIncludeBody = getBoolean(params, IS_INCLUDE_BODY, true);
         Boolean isOperatorAnd = getBoolean(params, IS_OPERATOR_AND, false);
         OffsetDateTime beginPublishDate = getOffsetDateTime(params, BEGIN_PUBLISH_DATE);
         OffsetDateTime endPublishDate = getOffsetDateTime(params, END_PUBLISH_DATE);
         Boolean isWithImage = getBoolean(params, IS_WITH_IMAGE);
         Collection<Integer> excludeIds = getIntegers(params, EXCLUDE_ID);
+        Collection<Integer> status = getIntegers(params, STATUS);
+        if (status == null) {
+            status = Collections.singletonList((int) Article.STATUS_PUBLISHED);
+        }
 
-        return articleLucene.findAll(q, isIncludeBody, isOperatorAnd,
-                siteId, isIncludeSubSite, channelId, isIncludeSubChannel,
-                beginPublishDate, endPublishDate, isWithImage, excludeIds,
-                getString(params, K1), getString(params, K2),
-                getString(params, K3), getString(params, K4),
-                getString(params, K5), getString(params, K6),
-                getString(params, K7), getString(params, K8),
-                getString(params, S1), getString(params, S2),
-                getString(params, S3), getString(params, S4),
-                getString(params, S5), getString(params, S6),
-                getBoolean(params, B1), getBoolean(params, B2),
-                getBoolean(params, B3), getBoolean(params, B4),
-                null, pageable);
+        ArticleLuceneArgs args = new ArticleLuceneArgs();
+        args.setTitle(q);
+        if (Boolean.TRUE.equals(isIncludeBody)) {
+            args.setBody(q);
+        }
+        if (Boolean.FALSE.equals(getBoolean(params, IS_INCLUDE_DISABLED, false))) {
+            args.setEnabled(true);
+        }
+        args.setOperatorAnd(Boolean.TRUE.equals(isOperatorAnd));
+        args.setFragmentSize(fragmentSize);
+        args.setSiteId(siteId);
+        args.setIncludeSubSite(Boolean.TRUE.equals(isIncludeSubSite));
+        args.setChannelId(channelId);
+        args.setIncludeSubChannel(Boolean.TRUE.equals(isIncludeSubChannel));
+        args.setBeginPublishDate(beginPublishDate);
+        args.setEndPublishDate(endPublishDate);
+        args.setWithImage(isWithImage);
+        args.setExcludeIds(excludeIds);
+        args.setStatus(status);
+        args.setK1(getString(params, K1));
+        args.setK2(getString(params, K2));
+        args.setK3(getString(params, K3));
+        args.setK4(getString(params, K4));
+        args.setK5(getString(params, K5));
+        args.setK6(getString(params, K6));
+        args.setK7(getString(params, K7));
+        args.setK8(getString(params, K8));
+        args.setS1(getString(params, S1));
+        args.setS2(getString(params, S2));
+        args.setS3(getString(params, S3));
+        args.setS4(getString(params, S4));
+        args.setS5(getString(params, S5));
+        args.setS6(getString(params, S6));
+        args.setB1(getBoolean(params, B1));
+        args.setB2(getBoolean(params, B2));
+        args.setB3(getBoolean(params, B3));
+        args.setB4(getBoolean(params, B4));
+        return articleLucene.findAll(args, null, pageable);
     }
 
     protected void doExecute(Environment env, Map<String, TemplateModel> params, TemplateModel[] loopVars,

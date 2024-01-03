@@ -17,10 +17,15 @@ import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static com.ujcms.commons.file.FilesEx.SLASH;
 import static com.ujcms.commons.file.FilesEx.normalize;
@@ -47,7 +52,7 @@ public class LocalFileHandler implements FileHandler {
     public LocalFileHandler(PathResolver pathResolver, String storePrefix, String displayPrefix) {
         this.pathResolver = pathResolver;
         this.storePrefix = normalize(storePrefix);
-        this.displayPrefix = normalize(displayPrefix);
+        this.displayPrefix = displayPrefix;
     }
 
     @Override
@@ -154,31 +159,71 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void unzip(MultipartFile zipPart, String destDir, String... ignoredExtensions) {
-        try {
-            ZipUtils.decompress(zipPart.getInputStream(),
-                    (entryName, zipIn) -> {
-                        String filename = UrlBuilder.of(destDir).appendPath(entryName).toString();
-                        // 防止写入WEB-INF目录
-                        String webInf = "/WEB-INF";
-                        if (FilesEx.containsDir(filename, webInf)) {
-                            return;
-                        }
-                        store(filename, zipIn);
-                    },
-                    entryName -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
-                    ignoredExtensions);
+        try (InputStream inputStream = zipPart.getInputStream()) {
+            unzip(inputStream, destDir, ignoredExtensions);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
     @Override
-    public void zip(String dir, String[] names, OutputStream out) {
-        ZipUtils.zip(dir, names, out,
-                filename -> new File(pathResolver.getRealPath(filename, storePrefix)).isDirectory(),
-                filename -> Optional.ofNullable(new File(pathResolver.getRealPath(filename, storePrefix)).list())
-                        .orElse(new String[]{}),
-                this::writeOutputStream);
+    public void unzip(InputStream inputStream, String destDir, String... ignoredExtensions) {
+        ZipUtils.decompress(inputStream,
+                (entryName, zipIn) -> {
+                    String filename = UrlBuilder.of(destDir).appendPath(entryName).toString();
+                    // 防止写入WEB-INF目录
+                    String webInf = "/WEB-INF";
+                    if (FilesEx.containsDir(filename, webInf)) {
+                        return;
+                    }
+                    store(filename, zipIn);
+                },
+                entryName -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
+                ignoredExtensions);
+    }
+
+
+    @Override
+    public void zip(String dir, String[] names, OutputStream out,
+                    BiPredicate<String, Long> isAddEntry, Predicate<String> isAddDirEntry) {
+        ZipUtils.zip(dir, names, out, new ZipHandler() {
+            @Override
+            public boolean isDir(String filename) {
+                return new File(pathResolver.getRealPath(filename, storePrefix)).isDirectory();
+            }
+
+            @Override
+            public String[] listChildren(String filename) {
+                return Optional.ofNullable(new File(pathResolver.getRealPath(filename, storePrefix)).list())
+                        .orElse(new String[]{});
+            }
+
+            @Override
+            public void addDirEntry(String entryName, ZipOutputStream zipOut) throws IOException {
+                if (isAddDirEntry.test(entryName)) {
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipOut.putNextEntry(zipEntry);
+                    zipOut.closeEntry();
+                }
+            }
+
+            @Override
+            public void addEntry(String filename, String entryName, ZipOutputStream zipOut) throws IOException {
+                File file = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+                if (!file.exists()) {
+                    return;
+                }
+                long lastModified = file.lastModified();
+                if (isAddEntry.test(entryName, lastModified)) {
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipEntry.setLastModifiedTime(FileTime.fromMillis(lastModified));
+                    zipOut.putNextEntry(zipEntry);
+                    try (FileInputStream in = new FileInputStream(file)) {
+                        IOUtils.copyLarge(in, zipOut);
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -213,7 +258,19 @@ public class LocalFileHandler implements FileHandler {
     @Override
     public boolean exist(String filename) {
         File file = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
-        return file.exists() && !file.isDirectory();
+        return file.exists();
+    }
+
+    @Override
+    public boolean isFile(String filename) {
+        File file = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        return file.isFile();
+    }
+
+    @Override
+    public boolean isDirectory(String filename) {
+        File file = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        return file.isDirectory();
     }
 
     @Override

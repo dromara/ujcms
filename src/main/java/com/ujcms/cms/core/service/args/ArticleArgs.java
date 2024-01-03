@@ -7,6 +7,7 @@ import org.springframework.lang.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,32 +20,34 @@ public class ArticleArgs extends BaseQueryArgs {
     @Nullable
     private Map<String, String> customsQueryMap;
     @Nullable
-    private Integer subChannelId;
+    private Integer orgAncestorId;
     @Nullable
-    private Integer subOrgId;
+    private Collection<Integer> channelAncestorIds;
+    @Nullable
+    private Collection<Integer> roleIds;
 
     public ArticleArgs customsQueryMap(Map<String, String> customsQueryMap) {
         this.customsQueryMap = customsQueryMap;
         return this;
     }
 
-    public ArticleArgs subChannelId(@Nullable Integer subChannelId) {
-        if (subChannelId != null) {
-            this.subChannelId = subChannelId;
+    public ArticleArgs channelAncestorId(@Nullable Integer channelAncestorId) {
+        if (channelAncestorId != null) {
+            this.channelAncestorIds = Collections.singleton(channelAncestorId);
         }
         return this;
     }
 
-    public ArticleArgs subOrgId(@Nullable Integer subOrgId) {
-        if (subOrgId != null) {
-            this.subOrgId = subOrgId;
+    public ArticleArgs orgAncestorId(@Nullable Integer orgAncestorId) {
+        if (orgAncestorId != null) {
+            this.orgAncestorId = orgAncestorId;
         }
         return this;
     }
 
-    public ArticleArgs inSubChannelIds(@Nullable Collection<Integer> subChannelIds) {
-        if (CollectionUtils.isNotEmpty(subChannelIds)) {
-            queryMap.put("In_channel@ChannelTree@descendant-ancestorId_Int", subChannelIds);
+    public ArticleArgs channelAncestorIds(@Nullable Collection<Integer> channelAncestorIds) {
+        if (channelAncestorIds != null) {
+            this.channelAncestorIds = channelAncestorIds;
         }
         return this;
     }
@@ -64,16 +67,17 @@ public class ArticleArgs extends BaseQueryArgs {
     }
 
     public ArticleArgs inRoleIds(@Nullable Collection<Integer> roleIds) {
-        if (CollectionUtils.isNotEmpty(roleIds)) {
-            queryMap.put("In_channel-channel@RoleArticle-roleId_Int", roleIds);
+        // 允许 roleIds.size() == 0，代表没有角色权限，将不会返回任何数据
+        if (roleIds != null) {
+            this.roleIds = roleIds;
         }
         return this;
 
     }
 
-    public ArticleArgs subSiteId(@Nullable Integer siteId) {
-        if (siteId != null) {
-            queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Int", siteId);
+    public ArticleArgs siteAncestorId(@Nullable Integer siteAncestorId) {
+        if (siteAncestorId != null) {
+            queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Int", siteAncestorId);
         }
         return this;
     }
@@ -149,6 +153,35 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
+    public ArticleArgs geSticky(@Nullable Short sticky) {
+        if (sticky != null) {
+            queryMap.put("GE_sticky_Short", sticky);
+        }
+        return this;
+    }
+
+    public ArticleArgs leStickyDate(@Nullable OffsetDateTime stickyDate) {
+        if (stickyDate != null) {
+            queryMap.put("LE_stickyDate_DateTime", stickyDate);
+        }
+        return this;
+    }
+
+    public ArticleArgs geOnlineDateOrNull(@Nullable OffsetDateTime onlineDate) {
+        if (onlineDate != null) {
+            queryMap.put("GE_1_stickyDate_DateTime", onlineDate);
+            queryMap.put("IsNull_1_stickyDate_DateTime", null);
+        }
+        return this;
+    }
+
+    public ArticleArgs geOfflineDate(@Nullable OffsetDateTime offlineDate) {
+        if (offlineDate != null) {
+            queryMap.put("GE_offlineDate_DateTime", offlineDate);
+        }
+        return this;
+    }
+
     public ArticleArgs excludeIds(@Nullable Collection<Integer> excludeIds) {
         if (CollectionUtils.isNotEmpty(excludeIds)) {
             queryMap.put("NotIn_id", excludeIds);
@@ -186,12 +219,21 @@ public class ArticleArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Integer getSubChannelId() {
-        return subChannelId;
+    public Collection<Integer> getChannelAncestorIds() {
+        return channelAncestorIds;
+    }
+
+    public void setChannelAncestorIds(@Nullable Collection<Integer> channelAncestorIds) {
+        this.channelAncestorIds = channelAncestorIds;
     }
 
     @Nullable
-    public Integer getSubOrgId() {
-        return subOrgId;
+    public Integer getOrgAncestorId() {
+        return orgAncestorId;
+    }
+
+    @Nullable
+    public Collection<Integer> getRoleIds() {
+        return roleIds;
     }
 }

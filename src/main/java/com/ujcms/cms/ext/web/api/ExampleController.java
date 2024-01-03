@@ -49,7 +49,7 @@ public class ExampleController {
         this.service = service;
     }
 
-    @Operation(summary = "获取示例列表")
+    @Operation(summary = "获取示例列表（ExampleList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "name", description = "示例名称",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
@@ -73,7 +73,7 @@ public class ExampleController {
         return service.selectList(args, offset, limit);
     }
 
-    @Operation(summary = "获取示例分页")
+    @Operation(summary = "获取示例分页（ExamplePage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "name", description = "示例名称",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "page", description = "第几页",
@@ -97,7 +97,7 @@ public class ExampleController {
         return springPage(service.selectPage(args, page, pageSize));
     }
 
-    @Operation(summary = "获取示例对象")
+    @Operation(summary = "获取示例对象（Example标签）")
     @ApiResponses(value = {@ApiResponse(description = "投票对象")})
     @GetMapping("/{id:[\\d]+}")
     public Example show(@Parameter(description = "示例ID") @PathVariable Integer id) {

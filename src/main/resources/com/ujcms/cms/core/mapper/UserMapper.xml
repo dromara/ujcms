@@ -39,6 +39,7 @@
             </if>
         </where>
     </select>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin">
         <if test="orgId != null">
             join ujcms_org_tree orgTree on t.org_id_ = orgTree.descendant_id_
@@ -76,25 +77,40 @@
         SELECT
         <include refid="Column_List" />
         FROM ujcms_user t
-             JOIN ujcms_user_openid o ON t.id_ = o.user_id_
+        JOIN ujcms_user_openid o ON t.id_ = o.user_id_
         WHERE o.provider_ = #{provider} and o.openid_ = #{openid}
     </select>
-    <select id="countByOrgId" resultType="int">
-        SELECT COUNT(*)
-        FROM ujcms_user
-        WHERE org_id_ = #{orgId}
+    <select id="existsByOrgId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_user
+                           WHERE org_id_ = #{orgId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
     </select>
-    <select id="countByGroupId" resultType="int">
-        SELECT COUNT(*)
-        FROM ujcms_user
-        WHERE group_id_ = #{groupId}
+    <select id="existsByGroupId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_user
+                           WHERE group_id_ = #{groupId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
     </select>
-    <select id="countByRoleId" resultType="int">
-        SELECT COUNT(*)
-        FROM ujcms_user t
-             JOIN ujcms_user_role ur ON t.id_ = ur.user_id_
-        WHERE ur.role_id_ = #{roleId}
-          AND not exists(select * from ujcms_org_tree ot where t.org_id_ = ot.descendant_id_ and ot.ancestor_id_ = #{notOrgId})
+    <select id="existsByRoleId" resultType="int">
+        select case
+                   when exists(
+                           select *
+                           from ujcms_user t
+                           where t.id_ in (select ur.user_id_ from ujcms_user_role ur where ur.role_id_ = #{roleId})
+                             and t.org_id_ not in
+                                 (select ot.descendant_id_ from ujcms_org_tree ot where ot.ancestor_id_ = #{notOrgId})
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
     </select>
     <select id="selectRefer" parameterType="int" resultMap="ReferResultMap">
         select

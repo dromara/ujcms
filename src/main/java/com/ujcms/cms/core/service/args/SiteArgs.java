@@ -1,8 +1,10 @@
 package com.ujcms.cms.core.service.args;
 
 import com.ujcms.commons.query.BaseQueryArgs;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.lang.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,9 +17,8 @@ public class SiteArgs extends BaseQueryArgs {
     @Nullable
     private Map<String, String> customsQueryMap;
     @Nullable
-    private Integer parentId;
-    @Nullable
     private Integer fullOrgId;
+    private boolean isQueryHasChildren = false;
 
     public SiteArgs customsQueryMap(Map<String, String> customsQueryMap) {
         this.customsQueryMap = customsQueryMap;
@@ -26,15 +27,35 @@ public class SiteArgs extends BaseQueryArgs {
 
     public SiteArgs parentId(@Nullable Integer parentId) {
         if (parentId != null) {
-            this.parentId = parentId;
+            queryMap.put("EQ_parentId_Int", parentId);
+            isQueryHasChildren = true;
         }
+        return this;
+    }
+
+    public SiteArgs ancestorId(@Nullable Integer ancestorId) {
+        if (ancestorId != null) {
+            queryMap.put("EQ_descendant@SiteTree-ancestorId_Int", ancestorId);
+        }
+        return this;
+    }
+
+    public SiteArgs parentIdIsNull() {
+        queryMap.put("IsNull_parentId", null);
+        isQueryHasChildren = true;
         return this;
     }
 
     public SiteArgs fullOrgId(@Nullable Integer fullOrgId) {
         if (fullOrgId != null) {
             this.fullOrgId = fullOrgId;
-            queryMap.put("Distinct", true);
+        }
+        return this;
+    }
+
+    public SiteArgs status(@Nullable Collection<Short> status) {
+        if (CollectionUtils.isNotEmpty(status)) {
+            queryMap.put("In_status_Short", status);
         }
         return this;
     }
@@ -57,12 +78,15 @@ public class SiteArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Integer getParentId() {
-        return parentId;
-    }
-
-    @Nullable
     public Integer getFullOrgId() {
         return fullOrgId;
+    }
+
+    public boolean isQueryHasChildren() {
+        return isQueryHasChildren;
+    }
+
+    public void setQueryHasChildren(boolean queryHasChildren) {
+        isQueryHasChildren = queryHasChildren;
     }
 }

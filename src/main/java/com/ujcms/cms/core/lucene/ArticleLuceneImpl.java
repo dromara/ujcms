@@ -21,7 +21,6 @@ import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Collection;
 import java.util.Map;
 
 import static com.ujcms.cms.core.lucene.domain.EsArticle.*;
@@ -51,17 +50,17 @@ public class ArticleLuceneImpl implements ArticleLucene {
 
     @Override
     public void update(EsArticle entity) {
-        operations.updateDocument(new Term(EsArticle.ID, String.valueOf(entity.getId())), entity.toDocument());
+        operations.updateDocument(new Term(EsArticle.FIELD_ID, String.valueOf(entity.getId())), entity.toDocument());
     }
 
     @Override
     public void deleteById(Integer id) {
-        operations.deleteDocuments(new Term(EsArticle.ID, String.valueOf(id)));
+        operations.deleteDocuments(new Term(EsArticle.FIELD_ID, String.valueOf(id)));
     }
 
     @Override
     public void deleteBySiteId(Integer siteId) {
-        operations.deleteDocuments(IntPoint.newExactQuery(SITE_ID, siteId));
+        operations.deleteDocuments(IntPoint.newExactQuery(FIELD_SITE_ID, siteId));
     }
 
     @Override
@@ -70,59 +69,63 @@ public class ArticleLuceneImpl implements ArticleLucene {
     }
 
     @Override
-    public Page<EsArticle> findAll(@Nullable String q, boolean isIncludeBody, boolean isOperatorAnd,
-                                   @Nullable Integer siteId, boolean isIncludeSubSite,
-                                   @Nullable Integer channelId, boolean isIncludeSubChannel,
-                                   @Nullable OffsetDateTime beginPublishDate, @Nullable OffsetDateTime endPublishDate,
-                                   @Nullable Boolean isWithImage, @Nullable Collection<Integer> excludeIds,
-                                   @Nullable String k1, @Nullable String k2, @Nullable String k3, @Nullable String k4,
-                                   @Nullable String k5, @Nullable String k6, @Nullable String k7, @Nullable String k8,
-                                   @Nullable String s1, @Nullable String s2, @Nullable String s3, @Nullable String s4,
-                                   @Nullable String s5, @Nullable String s6,
-                                   @Nullable Boolean b1, @Nullable Boolean b2,
-                                   @Nullable Boolean b3, @Nullable Boolean b4,
-                                   @Nullable Map<String, Object> queryMap, Pageable pageable) {
+    public Page<EsArticle> findAll(ArticleLuceneArgs args, @Nullable Map<String, Object> queryMap, Pageable pageable) {
         BooleanQuery.Builder bool = new BooleanQuery.Builder();
-        Operator operator = isOperatorAnd ? Operator.AND : Operator.OR;
+        Operator operator = args.isOperatorAnd() ? Operator.AND : Operator.OR;
         try {
-            if (StringUtils.isNotBlank(q)) {
-                q = QueryParserBase.escape(q);
-                QueryParser titleParser = new QueryParser(TITLE, smartAnalyzer);
-                titleParser.setDefaultOperator(operator);
-                BooleanQuery.Builder sub = new BooleanQuery.Builder()
-                        // 标题比正文的权重高 5 倍
-                        .add(new BoostQuery(titleParser.parse(q), 5), Occur.SHOULD);
-                if (isIncludeBody) {
-                    QueryParser bodyParser = new QueryParser(BODY, smartAnalyzer);
+            if (StringUtils.isNotBlank(args.getTitle()) || StringUtils.isNotBlank(args.getBody())) {
+                BooleanQuery.Builder sub = new BooleanQuery.Builder();
+                if (StringUtils.isNotBlank(args.getTitle())) {
+                    QueryParser titleParser = new QueryParser(FIELD_TITLE, smartAnalyzer);
+                    titleParser.setDefaultOperator(operator);
+                    // 标题比正文的权重高 5 倍
+                    sub.add(new BoostQuery(titleParser.parse(QueryParserBase.escape(args.getTitle())), 5), Occur.SHOULD);
+                }
+                if (StringUtils.isNotBlank(args.getBody())) {
+                    QueryParser bodyParser = new QueryParser(FIELD_BODY, smartAnalyzer);
                     bodyParser.setDefaultOperator(operator);
-                    sub.add(bodyParser.parse(q), Occur.SHOULD);
+                    sub.add(bodyParser.parse(QueryParserBase.escape(args.getBody())), Occur.SHOULD);
                 }
                 bool.add(sub.build(), Occur.MUST);
             }
 
-            if (channelId != null) {
-                bool.add(IntPoint.newExactQuery(isIncludeSubChannel ? CHANNEL_PATHS_ID : CHANNEL_ID, channelId),
-                        Occur.MUST);
-            } else if (siteId != null) {
-                bool.add(IntPoint.newExactQuery(isIncludeSubSite ? SITE_PATHS_ID : SITE_ID, siteId), Occur.MUST);
+            if (args.getChannelId() != null) {
+                bool.add(IntPoint.newExactQuery(args.isIncludeSubChannel() ? FIELD_CHANNEL_PATHS_ID : FIELD_CHANNEL_ID,
+                        args.getChannelId()), Occur.MUST);
+            } else if (args.getSiteId() != null) {
+                bool.add(IntPoint.newExactQuery(args.isIncludeSubSite() ? FIELD_SITE_PATHS_ID : FIELD_SITE_ID,
+                        args.getSiteId()), Occur.MUST);
             }
 
+            OffsetDateTime beginPublishDate = args.getBeginPublishDate();
+            OffsetDateTime endPublishDate = args.getEndPublishDate();
             if (beginPublishDate != null || endPublishDate != null) {
-                bool.add(LongPoint.newRangeQuery(EsArticle.PUBLISH_DATE,
+                bool.add(LongPoint.newRangeQuery(EsArticle.FIELD_PUBLISH_DATE,
                         beginPublishDate != null ? beginPublishDate.toInstant().toEpochMilli() : Long.MIN_VALUE,
                         endPublishDate != null ? endPublishDate.toInstant().toEpochMilli() - 1 : Long.MAX_VALUE),
                         Occur.MUST);
             }
 
-            if (isWithImage != null) {
-                bool.add(new NormsFieldExistsQuery(IMAGE), Occur.MUST);
+            if (args.getWithImage() != null) {
+                bool.add(new NormsFieldExistsQuery(FIELD_IMAGE),
+                        Boolean.TRUE.equals(args.getWithImage()) ? Occur.MUST : Occur.MUST_NOT);
             }
 
-            if (CollectionUtils.isNotEmpty(excludeIds)) {
-                bool.add(IntPoint.newSetQuery(EsArticle.ID, excludeIds), Occur.MUST_NOT);
+            if (CollectionUtils.isNotEmpty(args.getExcludeIds())) {
+                bool.add(IntPoint.newSetQuery(EsArticle.FIELD_ID, args.getExcludeIds()), Occur.MUST_NOT);
             }
 
-            String[] strings = new String[]{s1, s2, s3, s4, s5, s6};
+            if (CollectionUtils.isNotEmpty(args.getStatus())) {
+                bool.add(IntPoint.newSetQuery(FIELD_STATUS, args.getStatus()), Occur.MUST);
+            }
+
+            if (args.getEnabled() != null) {
+                bool.add(IntPoint.newExactQuery(FIELD_ENABLED,
+                        Boolean.TRUE.equals(args.getEnabled()) ? 1 : 0), Occur.MUST);
+            }
+
+            String[] strings = new String[]{args.getS1(), args.getS2(), args.getS3(),
+                    args.getS4(), args.getS5(), args.getS6()};
             for (int i = 0, len = strings.length; i < len; i++) {
                 if (strings[i] != null) {
                     QueryParser parser = new QueryParser("s" + i, smartAnalyzer);
@@ -131,8 +134,9 @@ public class ArticleLuceneImpl implements ArticleLucene {
                 }
             }
 
-            keywordQuery(bool, new String[]{k1, k2, k3, k4, k5, k6, k7, k8});
-            booleanQuery(bool, new Boolean[]{b1, b2, b3, b4});
+            keywordQuery(bool, new String[]{args.getK1(), args.getK2(), args.getK3(), args.getK4(),
+                    args.getK5(), args.getK6(), args.getK7(), args.getK8()});
+            booleanQuery(bool, new Boolean[]{args.getB1(), args.getB2(), args.getB3(), args.getB4()});
             queryMapQuery(bool, queryMap);
 
             Query query = bool.build();
@@ -140,17 +144,19 @@ public class ArticleLuceneImpl implements ArticleLucene {
             // 处理高亮
             SimpleHTMLFormatter formatter = new SimpleHTMLFormatter("<em>", "</em>");
             Highlighter highlighter = new Highlighter(formatter, new QueryScorer(query));
-            highlighter.setTextFragmenter(new SimpleFragmenter());
+            highlighter.setTextFragmenter(new SimpleFragmenter(args.getFragmentSize()));
             for (EsArticle esArticle : page.getContent()) {
-                esArticle.setHighlightTitle(highlighter.getBestFragment(analyzer, TITLE, esArticle.getTitle()));
+                esArticle.setHighlightTitle(highlighter.getBestFragment(analyzer, FIELD_TITLE, esArticle.getTitle()));
                 if (StringUtils.isNotBlank(esArticle.getBody())) {
-                    esArticle.setHighlightBody(highlighter.getBestFragment(analyzer, BODY, esArticle.getBody()));
+                    esArticle.setHighlightBody(highlighter.getBestFragment(analyzer, FIELD_BODY, esArticle.getBody()));
                 }
             }
             return page;
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             throw new IllegalStateException("Lucene parse exception", e);
         }
+
     }
 
     private static void keywordQuery(BooleanQuery.Builder bool, String[] values) {

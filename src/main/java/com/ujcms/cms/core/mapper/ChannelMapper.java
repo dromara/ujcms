@@ -9,6 +9,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      */
     @Nullable
     Channel selectReferParent(Integer id);
+
     /**
      * 根据主键获取引用对象（不包括关联对象属性）
      *
@@ -39,12 +41,18 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     /**
      * 根据查询条件获取列表
      *
-     * @param queryInfo        查询条件
-     * @param customsCondition 自定义字段查询条件
+     * @param queryInfo          查询条件
+     * @param customsCondition   自定义字段查询条件
+     * @param isQueryHasChildren 是否查询包含子栏目
+     * @param isOnlyParent       是否只获取父栏目
+     * @param articleRoleIds     文章角色IDs
      * @return 数据列表
      */
     List<Channel> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
-                            @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition);
+                            @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
+                            @Param("isQueryHasChildren") boolean isQueryHasChildren,
+                            @Param("isOnlyParent") boolean isOnlyParent,
+                            @Nullable @Param("articleRoleIds") Collection<Integer> articleRoleIds);
 
     /**
      * 根据 模型ID 查询栏目数量
@@ -52,7 +60,7 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @param modelId 模型ID
      * @return 栏目数量
      */
-    int countByModelId(Integer modelId);
+    int existsByModelId(Integer modelId);
 
     /**
      * 根据 栏目别名 查询栏目数量
@@ -61,7 +69,16 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @param siteId 站点ID
      * @return 栏目数量
      */
-    int countByAlias(String alias, Integer siteId);
+    int existsByAlias(@Param("alias") String alias, @Param("siteId") Integer siteId);
+
+    /**
+     * 根据 角色ID列表 查询文章权限是否存在
+     *
+     * @param channelId 栏目ID
+     * @param roleIds   角色ID列表
+     * @return 1:存在; 0:不存在
+     */
+    int existsByArticleRoleId(@Param("channelId") Integer channelId, @Param("roleIds") Collection<Integer> roleIds);
 
     /**
      * 统计栏目数量
@@ -80,6 +97,15 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      */
     @Nullable
     Channel findFirstByParentId(Integer parentId);
+
+    /**
+     * 根据父栏目ID获取子栏目列表
+     *
+     * @param siteId 站点ID
+     * @param alias  栏目别名
+     * @return 栏目列表
+     */
+    List<Channel> findBySiteIdAndAlias(@Param("siteId") Integer siteId, @Param("alias") String alias);
 
     /**
      * 根据父栏目ID获取子栏目列表
@@ -113,6 +139,14 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 栏目列表
      */
     List<Channel> listByChannelForSitemap(Integer siteId);
+
+    /**
+     * 设置绩效类型ID为NULL
+     *
+     * @param performanceTypeId 绩效类型ID
+     * @return 更新条数
+     */
+    int updatePerformanceTypeIdToNull(@Param("performanceTypeId") Integer performanceTypeId);
 
     /**
      * 根据站点ID设置父栏目ID为NULL

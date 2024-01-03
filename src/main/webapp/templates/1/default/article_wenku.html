@@ -9,8 +9,32 @@
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
+  <link rel="stylesheet" href="${files}/vendor/pdfjs-dist/legacy/web/pdf_viewer.min.css">
+  <style>
+
+    #viewerWrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .viewerWrapperNormal {
+      height: 960px;
+    }
+
+    .viewerWrapperFull {
+      height: calc(100% - 46px);
+    }
+
+    #viewerContainer {
+      outline: none;
+      overflow: auto;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
-<body>
+<body tabindex="1">
 [#include 'inc_header.html'/]
 <div class="bg-gray-200">
   <div class="container">
@@ -18,8 +42,8 @@
       <ol class="col list-inline my-2">
         <li class="list-inline-item"><a href="${site.url}">首页</a></li>
         [#list channel.paths as c]
-          <li class="list-inline-item">/</li>
-          <li class="list-inline-item">[@A bean=c/]</li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item">[@A bean=c/]</li>
         [/#list]
       </ol>
     </nav>
@@ -41,166 +65,160 @@
         </script>
       </div>
       [#if article.doc??]
-        <div id="full-container" class="mt-3 mb-3 p-1 text-center bg-dark">
-          <div id="toolbar" class="sticky-top mb-2">
-            <button class="btn btn-secondary" onclick="zoomIn()">-</button>
-            <button class="btn btn-secondary ml-2" onclick="zoomOut()">+</button>
-            <button id="fullscreenButton" class="btn btn-secondary ml-2" onclick="fullscreen()">全屏</button>
-            <button id="exitFullscreenButton" class="btn btn-secondary ml-2 hidden" onclick="exitFullscreen()">退出</button>
-          </div>
-          <div id="container" class="overflow-auto"></div>
+      <div id="fullContainer" class="mt-3 text-center bg-secondary border">
+        <div id="toolbar" class="position-relative sticky-top p-1">
+          <button class="btn btn-outline-light" onclick="pdfViewer.decreaseScale()">-</button>
+          <button class="btn btn-outline-light ml-2" onclick="pdfViewer.increaseScale()">+</button>
+          <button id="fullscreenButton" class="btn btn-outline-light ml-2" onclick="fullscreen()">全屏</button>
+          <button id="exitFullscreenButton" class="btn btn-outline-light ml-2 cm-hidden" onclick="exitFullscreen()">退出</button>
         </div>
-        <script src="${files}/vendor/pdfjs-dist/build/pdf.js"></script>
-        <script>
-          var url = '${article.doc}';
-          // Loaded via <script> tag, create shortcut to access PDF.js exports.
-          var pdfjsLib = window['pdfjs-dist/build/pdf'];
-          // The workerSrc property shall be specified.
-          pdfjsLib.GlobalWorkerOptions.workerSrc = '${files}/vendor/pdfjs-dist/build/pdf.worker.js';
+        <div id="viewerWrapper" class="bg-secondary viewerWrapperNormal">
+          <div id="viewerContainer" tabindex="0">
+            <div id="viewer" class="pdfViewer"></div>
+          </div>
+        </div>
+      </div>
+      <script src="${files}/vendor/pdfjs-dist/legacy/build/pdf.min.js"></script>
+      <script src="${files}/vendor/pdfjs-dist/legacy/web/pdf_viewer.min.js"></script>
+      <script>
+        if (!pdfjsLib.getDocument || !pdfjsViewer.PDFViewer) {
+          // eslint-disable-next-line no-alert
+          alert("Please build the pdfjs-dist library using\n  `gulp dist-install`");
+        }
 
-          var pdfDoc;
-          var canvas = [], context = [];
-          var fullContainer = document.getElementById('full-container');
-          var container = document.getElementById('container');
-          var containerWidth = $(container).width();
-          var scale;
-          var numPages;
-          var pageRendering = 0;
-          var scalePending = null;
+        // The workerSrc property shall be specified.
+        //
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "${files}/vendor/pdfjs-dist/legacy/build/pdf.worker.min.js";
 
-          function renderPDF(pageNumber) {
-            pdfDoc.getPage(pageNumber).then(function (page) {
-              console.log('Page loaded');
-              var viewport;
-              if (!scale) {
-                viewport = page.getViewport({scale: 1});
-                scale = containerWidth / viewport.width;
-              }
-              viewport = page.getViewport({scale: scale});
-              canvas[pageNumber - 1].height = viewport.height;
-              canvas[pageNumber - 1].width = viewport.width;
+        // Some PDFs need external cmaps.
+        //
+        const CMAP_URL = "${files}/vendor/pdfjs-dist/cmaps/";
+        const CMAP_PACKED = true;
 
-              // Render PDF page into canvas context
-              var renderContext = {
-                canvasContext: context[pageNumber - 1],
-                viewport: viewport
-              };
-              var renderTask = page.render(renderContext);
-              renderTask.promise.then(function () {
-                console.log('Page rendered');
-                pageRendering--;
-                if (scalePending && pageRendering === 0) {
-                  scale = scalePending;
-                  scalePending = null;
-                  renderPDFs();
-                }
-              });
-            });
+        const DEFAULT_URL = "${article.doc}";
+        // To test the AcroForm and/or scripting functionality, try e.g. this file:
+        // "../../test/pdfs/160F-2019.pdf"
+
+        const ENABLE_XFA = true;
+        const SEARCH_FOR = ""; // try "Mozilla";
+
+        const SANDBOX_BUNDLE_SRC = "${files}/vendor/pdfjs-dist/legacy/build/pdf.sandbox.js";
+
+        const container = document.getElementById("viewerContainer");
+
+        const eventBus = new pdfjsViewer.EventBus();
+
+        // (Optionally) enable hyperlinks within PDF files.
+        const pdfLinkService = new pdfjsViewer.PDFLinkService({
+          eventBus,
+        });
+
+        // (Optionally) enable find controller.
+        const pdfFindController = new pdfjsViewer.PDFFindController({
+          eventBus,
+          linkService: pdfLinkService,
+        });
+
+        // (Optionally) enable scripting support.
+        const pdfScriptingManager = new pdfjsViewer.PDFScriptingManager({
+          eventBus,
+          sandboxBundleSrc: SANDBOX_BUNDLE_SRC,
+        });
+
+        const pdfViewer = new pdfjsViewer.PDFViewer({
+          container,
+          eventBus,
+          linkService: pdfLinkService,
+          findController: pdfFindController,
+          scriptingManager: pdfScriptingManager,
+        });
+        pdfLinkService.setViewer(pdfViewer);
+        pdfScriptingManager.setViewer(pdfViewer);
+
+        eventBus.on("pagesinit", function () {
+          // We can use pdfViewer now, e.g. let's change default scale.
+          pdfViewer.currentScaleValue = "page-width";
+
+          // We can try searching for things.
+          if (SEARCH_FOR) {
+            eventBus.dispatch("find", {type: "", query: SEARCH_FOR});
           }
+        });
 
-          function renderPDFs() {
-            pageRendering = numPages;
-            for (var i = 1; i <= numPages; i++) {
-              renderPDF(i);
-            }
+        // Loading document.
+        const loadingTask = pdfjsLib.getDocument({
+          url: DEFAULT_URL,
+          cMapUrl: CMAP_URL,
+          cMapPacked: CMAP_PACKED,
+          enableXfa: ENABLE_XFA,
+        });
+        (async function () {
+          const pdfDocument = await loadingTask.promise;
+          // Document loaded, specifying document for the viewer and
+          // the (optional) linkService.
+          pdfViewer.setDocument(pdfDocument);
+
+          pdfLinkService.setDocument(pdfDocument, null);
+        })();
+
+
+        var fullContainer = document.getElementById('fullContainer');
+        var viewerWrapper = document.getElementById('viewerWrapper');
+
+        // 进入全屏
+        function fullscreen() {
+          if (fullContainer.requestFullscreen) {
+            fullContainer.requestFullscreen();
+          } else if (fullContainer.mozRequestFullScreen) {
+            fullContainer.mozRequestFullScreen();
+          } else if (fullContainer.webkitRequestFullscreen) {
+            fullContainer.webkitRequestFullscreen();
+          } else if (fullContainer.msRequestFullscreen) {
+            fullContainer.msRequestFullscreen();
           }
-
-          function zoomIn() {
-            if (scale <= 0.3 || (scalePending && scalePending <= 0.3)) return;
-            if (pageRendering > 0) {
-              if (scalePending) {
-                scalePending = scalePending - 0.2
-              } else {
-                scalePending = scale - 0.2;
-              }
-            } else{
-              scale -= 0.2;
-              renderPDFs();
-            }
+        }
+        // 退出全屏
+        function exitFullscreen() {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
           }
+        }
 
-          function zoomOut() {
-            if (pageRendering > 0) {
-              if (scalePending) {
-                scalePending = scalePending + 0.2
-              } else {
-                scalePending = scale + 0.2;
-              }
-            } else{
-              scale += 0.2;
-              renderPDFs();
-            }
+        function isFullscreen() {
+          return !!(document.fullscreenElement || document.mozFullScreen || document.webkitIsFullScreen || document.msFullscreenElement);
+        }
+
+        function _fullscreenChange() {
+          if (isFullscreen()) {
+            $('#fullscreenButton').hide();
+            $('#exitFullscreenButton').show();
+            $(fullContainer).addClass('overflow-auto');
+            $(viewerWrapper).addClass('viewerWrapperFull').removeClass('viewerWrapperNormal');
+            $('#viewerContainer').focus();
+          } else {
+            $('#fullscreenButton').show();
+            $('#exitFullscreenButton').hide();
+            $(fullContainer).removeClass('overflow-auto');
+            $(viewerWrapper).addClass('viewerWrapperNormal').removeClass('viewerWrapperFull');
           }
+        }
 
-          // 进入全屏
-          function fullscreen() {
-            if (fullContainer.requestFullscreen) {
-              fullContainer.requestFullscreen();
-            } else if (fullContainer.mozRequestFullScreen) {
-              fullContainer.mozRequestFullScreen();
-            } else if (fullContainer.webkitRequestFullscreen) {
-              fullContainer.webkitRequestFullscreen();
-            } else if (fullContainer.msRequestFullscreen) {
-              fullContainer.msRequestFullscreen();
-            }
-          }
-          // 退出全屏
-          function exitFullscreen() {
-            if (document.exitFullscreen) {
-              document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-              document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) {
-              document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-              document.msExitFullscreen();
-            }
-          }
+        function _addFullscreenChangeListeners() {
+          window.addEventListener("fullscreenchange", _fullscreenChange);
+          window.addEventListener("mozfullscreenchange", _fullscreenChange);
+          window.addEventListener("webkitfullscreenchange", _fullscreenChange);
+          window.addEventListener("MSFullscreenChange", _fullscreenChange);
+        }
 
-          function isFullscreen() {
-            return !!(document.fullscreenElement || document.mozFullScreen || document.webkitIsFullScreen || document.msFullscreenElement);
-          }
-
-          function _fullscreenChange() {
-            if (isFullscreen()) {
-              $('#fullscreenButton').hide();
-              $('#exitFullscreenButton').show();
-              $(fullContainer).addClass('overflow-auto');
-            } else {
-              $('#fullscreenButton').show();
-              $('#exitFullscreenButton').hide();
-              $(fullContainer).removeClass('overflow-auto');
-            }
-          }
-
-          function _addFullscreenChangeListeners() {
-            window.addEventListener("fullscreenchange", _fullscreenChange);
-            window.addEventListener("mozfullscreenchange", _fullscreenChange);
-            window.addEventListener("webkitfullscreenchange", _fullscreenChange);
-            window.addEventListener("MSFullscreenChange", _fullscreenChange);
-          }
-
-          _addFullscreenChangeListeners();
-
-          // Asynchronous download of PDF
-          pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
-            pdfDoc = pdfDoc_;
-            console.log('PDF loaded');
-            numPages = pdfDoc.numPages;
-            for (var i = 1; i <= numPages; i++) {
-              var pageDiv = document.createElement('div');
-              pageDiv.setAttribute('id', 'pdf-page-' + i);
-              container.appendChild(pageDiv);
-              canvas[i - 1] = document.createElement('canvas');
-              pageDiv.appendChild(canvas[i - 1]);
-              context[i - 1] = canvas[i - 1].getContext('2d');
-            }
-            renderPDFs();
-          }, function (reason) {
-            // PDF loading error
-            console.error(reason);
-          });
-        </script>
+        _addFullscreenChangeListeners();
+      </script>
       [/#if]
       <div class="mt-4" id="articleText">[#noescape]${article.text!}[/#noescape]</div>
       <div class="lead d-flex justify-content-center text-info">
@@ -236,25 +254,25 @@
       </script>
 
       <ul class="mt-4 list-unstyled">
-        [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
-          <li class="text-truncate mt-2">
-            <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
-          </li>
+        [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
+        <li class="text-truncate mt-2">
+          <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
+        </li>
         [/@ArticleNext]
-        [@ArticlePrev id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
-          <li class="text-truncate mt-2">
-            <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
-          </li>
+        [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
+        <li class="text-truncate mt-2">
+          <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
+        </li>
         [/@ArticlePrev]
       </ul>
 
       <h5 class="mt-4 border-bottom"><span class="cm-block-head-bottom">相关新闻</span></h5>
       [@EsArticleList q=article.title excludeId=article.id limit=5; list]
-        <ul class="list-unstyled mt-3">
-          [#list list as bean]
-            <li class="text-truncate mt-2">[@A bean=bean class="cm-link"/]</li>
-          [/#list]
-        </ul>
+      <ul class="list-unstyled mt-3">
+        [#list list as bean]
+        <li class="text-truncate mt-2">[@A bean=bean class="cm-link"/]</li>
+        [/#list]
+      </ul>
       [/@EsArticleList]
     </div>
   </div>

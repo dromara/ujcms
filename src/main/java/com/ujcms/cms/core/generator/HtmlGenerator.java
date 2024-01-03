@@ -13,10 +13,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * HTML 静态页生成
@@ -58,51 +57,56 @@ public class HtmlGenerator extends AbstractGenerator {
      * @param taskSiteId    任务站点ID
      * @param taskUserId    任务用户ID
      * @param taskName      任务名称
-     * @param articleId     文章ID
+     * @param articleList   文章列表
      * @param origChannelId 文章原栏目
      */
-    public void updateArticleRelatedHtml(Integer taskSiteId, Integer taskUserId, String taskName, Integer articleId,
-                                         @Nullable Integer origChannelId) {
-        // 上一篇、下一篇、所属栏目、所属栏目的上级栏目、首页
-        Article article = articleService.select(articleId);
-        if (article == null) {
+    public void updateArticleRelatedHtml(Integer taskSiteId, Integer taskUserId, String taskName,
+                                         Collection<Article> articleList, @Nullable Integer origChannelId) {
+        Set<Article> articles = new HashSet<>(articleList.size());
+        for (Article article : articleList) {
+            Integer articleId = article.getId();
+            Integer channelId = article.getChannelId();
+            Long order = article.getOrder();
+            // 当前文章
+            Optional.ofNullable(articleService.select(articleId))
+                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+            // 上一篇文章
+            Optional.ofNullable(articleService.findPrev(articleId, order, channelId))
+                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+            // 下一篇文章
+            Optional.ofNullable(articleService.findNext(articleId, order, channelId))
+                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+            // 原栏目 上一篇、下一篇 文章
+            if (origChannelId != null && !origChannelId.equals(channelId)) {
+                Optional.ofNullable(articleService.findPrev(articleId, order, origChannelId))
+                        .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+                Optional.ofNullable(articleService.findNext(articleId, order, origChannelId))
+                        .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+            }
+        }
+        if (articles.isEmpty()) {
             return;
         }
-        Integer channelId = article.getChannelId();
-        OffsetDateTime publishDate = article.getPublishDate();
+        Set<Channel> channels = new HashSet<>(articles.size());
+        for (Channel channel : articles.stream().map(Article::getChannel).collect(Collectors.toSet())) {
+            do {
+                // 文章所属栏目及上级栏目
+                channels.add(channel);
+                channel = channel.getParent();
+            } while (channel != null);
+        }
+        // 原栏目
+        Optional.ofNullable(origChannelId).map(channelService::select).ifPresent(channels::add);
+        Set<Site> sites = channels.stream().map(Channel::getSite).collect(Collectors.toSet());
+
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, true,
                 taskId -> {
-                    // 当前文章
-                    htmlService.updateArticleHtml(article);
-                    // 上一篇文章
-                    Optional.ofNullable(articleService.findPrev(articleId, publishDate, channelId))
-                            .ifPresent(htmlService::updateArticleHtml);
-                    // 下一篇文章
-                    Optional.ofNullable(articleService.findNext(articleId, publishDate, channelId))
-                            .ifPresent(htmlService::updateArticleHtml);
-                    // 原栏目 上一篇、下一篇 文章
-                    if (origChannelId != null && !origChannelId.equals(channelId)) {
-                        Optional.ofNullable(articleService.findPrev(articleId, publishDate, origChannelId))
-                                .ifPresent(htmlService::updateArticleHtml);
-                        Optional.ofNullable(articleService.findNext(articleId, publishDate, origChannelId))
-                                .ifPresent(htmlService::updateArticleHtml);
-                    }
-                    // 文章所属栏目
-                    Channel channel = article.getChannel();
-                    do {
-                        htmlService.updateChannelHtml(channel);
-                        channel = channel.getParent();
-                    } while (channel != null);
-                    // 文章原所属栏目
-                    if (origChannelId != null && !origChannelId.equals(channelId)) {
-                        channel = channelService.select(origChannelId);
-                        while (channel != null) {
-                            htmlService.updateChannelHtml(channel);
-                            channel = channel.getParent();
-                        }
-                    }
-                    // 首页
-                    htmlService.updateHomeHtml(article.getSite());
+                    // 更新文章HTML
+                    articles.forEach(htmlService::updateArticleHtml);
+                    // 更新栏目HTML
+                    channels.forEach(htmlService::updateChannelHtml);
+                    // 更新首页HTML
+                    sites.forEach(htmlService::updateHomeHtml);
                 }
         );
     }

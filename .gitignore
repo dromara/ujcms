@@ -23,6 +23,9 @@
 /src/main/webapp/WEB-INF/lucene
 /src/main/webapp/WEB-INF/lucene_test
 
+# Backup
+/src/main/webapp/WEB-INF/backup
+
 # Uploads
 /src/main/webapp/uploads_test
 

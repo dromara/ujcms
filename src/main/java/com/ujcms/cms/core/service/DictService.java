@@ -1,6 +1,5 @@
 package com.ujcms.cms.core.service;
 
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Dict;
 import com.ujcms.cms.core.domain.base.DictBase;
@@ -36,7 +35,7 @@ public class DictService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Dict bean) {
-        bean.setId(seqService.getNextVal(Dict.TABLE_NAME));
+        bean.setId(seqService.getNextVal(DictBase.TABLE_NAME));
         mapper.insert(bean);
     }
 
@@ -57,6 +56,7 @@ public class DictService {
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
+
         return mapper.delete(id);
     }
 

@@ -2,6 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.SiteBase;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Constants;
@@ -40,10 +41,12 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @Schema(description = "动态地址，含部署路径、子目录，不含域名、端口。如：{@code /contextPath/subDir}")
     public String getDy() {
-        return UrlBuilder.of()
-                .appendPath(getConfig().getContextPath())
-                .appendPath(getSubDir())
-                .toString();
+        UrlBuilder buff = UrlBuilder.of()
+                .appendPath(getConfig().getContextPath());
+        if (StringUtils.isNotBlank(getSubDir())) {
+            buff.appendPath(SLASH).appendPath(getSubDir());
+        }
+        return buff.toString();
     }
 
     /**
@@ -93,7 +96,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return UrlBuilder.of()
                 .appendPath(getConfig().getContextPath())
                 .appendPath(getConfig().getTemplateStorage().getUrl())
-                .appendPath(getTheme())
+                .appendPath(Contexts.isMobile() ? getMobileTheme() : getTheme())
                 .appendPath(Constants.TEMPLATE_FILES)
                 .toString();
     }
@@ -145,6 +148,23 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     public boolean hasMobileTheme() {
         return !getTheme().equals(getMobileTheme());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Site bean = (Site) o;
+        return Objects.equals(getId(), bean.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 
     /**
@@ -374,6 +394,35 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             throw new IllegalStateException("Cannot write value of MessageBoard", e);
         }
     }
+
+    @Nullable
+    private transient Map<String, Object> editor;
+
+    public Map<String, Object> getEditor() {
+        if (editor != null) {
+            return editor;
+        }
+        String settings = getEditorSettings();
+        if (StringUtils.isBlank(settings)) {
+            return Collections.emptyMap();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, new TypeReference<Map<String, Object>>() {
+            });
+        } catch (JsonProcessingException e) {
+            return Collections.emptyMap();
+        }
+    }
+
+    public void setEditor(Map<String, Object> editor) {
+        this.editor = editor;
+        try {
+            setEditorSettings(Constants.MAPPER.writeValueAsString(editor));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Editor", e);
+        }
+    }
+
     // endregion
 
     // region TempFields
@@ -414,6 +463,11 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     // region Associations
     /**
+     * 是否有子站点
+     */
+    @Nullable
+    private Boolean hasChildren;
+    /**
      * 子站点列表
      */
     @JsonIgnore
@@ -423,11 +477,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @JsonIgnore
     private List<SiteCustom> customList = new ArrayList<>();
-    /**
-     * 站点缓冲对象
-     */
-    @JsonIgnore
-    private SiteBuffer buffer = new SiteBuffer();
     /**
      * 全局对象
      */
@@ -449,6 +498,15 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     @JsonIncludeProperties({"id", "name"})
     private Model model = new Model();
 
+    @Nullable
+    public Boolean getHasChildren() {
+        return hasChildren;
+    }
+
+    public void setHasChildren(@Nullable Boolean hasChildren) {
+        this.hasChildren = hasChildren;
+    }
+
     public List<Site> getChildren() {
         return children;
     }
@@ -463,14 +521,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     public void setCustomList(List<SiteCustom> customList) {
         this.customList = customList;
-    }
-
-    public SiteBuffer getBuffer() {
-        return buffer;
-    }
-
-    public void setBuffer(SiteBuffer buffer) {
-        this.buffer = buffer;
     }
 
     public Config getConfig() {
@@ -527,14 +577,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     @Pattern(regexp = "^(?!(uploads|templates|WEB-INF|cp)$)[\\w-]*", flags = Pattern.Flag.CASE_INSENSITIVE)
     public String getSubDir() {
         return super.getSubDir();
-    }
-    // endregion
-
-    // region SiteBuffer
-
-    @Schema(description = "浏览次数")
-    public long getViews() {
-        return getBuffer().getViews();
     }
     // endregion
 
@@ -632,6 +674,10 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         public static final String DEFAULT_PAGE = "/index.html";
         @SuppressWarnings("java:S1075")
         public static final String MOBILE_PATH = "/m";
+
+        public boolean isEnabledAndAuto() {
+            return this.enabled && this.auto;
+        }
 
         /**
          * 是否开启
@@ -764,4 +810,15 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             this.loginRequired = loginRequired;
         }
     }
+
+    // region StaticFields
+    /**
+     * 状态：正常
+     */
+    public static final short STATUS_NORMAL = 0;
+    /**
+     * 状态：关闭
+     */
+    public static final short STATUS_DISABLED = 1;
+    // endregion
 }

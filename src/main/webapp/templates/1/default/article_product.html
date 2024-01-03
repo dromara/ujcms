@@ -56,12 +56,12 @@
       <div class="article-content mt-3">[#noescape]${article.customs['specifications']!}[/#noescape]</div>
       <script>$('.article-content img').addClass('img-fluid');</script>
       <ul class="mt-4 pt-2 list-unstyled border-top">
-        [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+        [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
           <li class="text-truncate mt-2">
             <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>
         [/@ArticleNext]
-        [@ArticlePrev id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+        [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
           <li class="text-truncate mt-2">
             <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>

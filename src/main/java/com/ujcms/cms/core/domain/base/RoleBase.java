@@ -92,6 +92,13 @@ public class RoleBase implements Serializable {
     private Short dataScope = 1;
 
     /**
+     * 所有状态权限
+     */
+    @NotNull
+    @Schema(description="所有状态权限")
+    private Boolean allStatusPermission = false;
+
+    /**
      * 等级
      */
     @NotNull
@@ -213,6 +220,14 @@ public class RoleBase implements Serializable {
 
     public void setDataScope(Short dataScope) {
         this.dataScope = dataScope;
+    }
+
+    public Boolean getAllStatusPermission() {
+        return allStatusPermission;
+    }
+
+    public void setAllStatusPermission(Boolean allStatusPermission) {
+        this.allStatusPermission = allStatusPermission;
     }
 
     public Short getRank() {

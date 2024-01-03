@@ -48,7 +48,7 @@
         [/#list]
       </div>
       [/#if]
-      [@ArticlePage channelId=channel.id isIncludeSubChannel='true' customs=customsQueryMap orderBy="sticky_desc,publishDate_desc,id_desc"; pagedList]
+      [@ArticlePage channelId=channel.id isIncludeSubChannel='true' customs=customsQueryMap orderBy=channel.orderDesc?string("sticky_desc,order_desc","sticky_desc,order_asc"); pagedList]
         <div class="row mx-n1 mb-3">
           [#list pagedList.content as bean]
             <div class="col-lg-3 col-6 px-1 mt-3">

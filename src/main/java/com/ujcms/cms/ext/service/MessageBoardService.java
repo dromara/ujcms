@@ -8,6 +8,7 @@ import com.ujcms.cms.ext.domain.MessageBoard;
 import com.ujcms.cms.ext.domain.base.MessageBoardBase;
 import com.ujcms.cms.ext.mapper.MessageBoardMapper;
 import com.ujcms.cms.ext.service.args.MessageBoardArgs;
+import com.ujcms.cms.ext.service.args.SurveyArgs;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.apache.commons.lang3.StringUtils;
@@ -77,5 +78,9 @@ public class MessageBoardService {
 
     public Page<MessageBoard> selectPage(MessageBoardArgs args, int page, int pageSize) {
         return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+    }
+
+    public long count(MessageBoardArgs args) {
+        return PageMethod.count(() -> selectList(args));
     }
 }

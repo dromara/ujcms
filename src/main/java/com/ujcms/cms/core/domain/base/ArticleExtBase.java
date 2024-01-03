@@ -2,7 +2,6 @@ package com.ujcms.cms.core.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
-import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -113,20 +112,6 @@ public class ArticleExtBase implements Serializable {
     @Nullable
     @Schema(description="来源")
     private String source;
-
-    /**
-     * 下线日期
-     */
-    @Nullable
-    @Schema(description="下线日期")
-    private OffsetDateTime offlineDate;
-
-    /**
-     * 置顶时间
-     */
-    @Nullable
-    @Schema(description="置顶时间")
-    private OffsetDateTime stickyDate;
 
     /**
      * 图片
@@ -268,20 +253,6 @@ public class ArticleExtBase implements Serializable {
     private String mobileStaticFile;
 
     /**
-     * 创建日期
-     */
-    @NotNull
-    @Schema(description="创建日期")
-    private OffsetDateTime created = OffsetDateTime.now();
-
-    /**
-     * 修改日期
-     */
-    @NotNull
-    @Schema(description="修改日期")
-    private OffsetDateTime modified = OffsetDateTime.now();
-
-    /**
      * 流程实例ID
      */
     @Length(max = 64)
@@ -310,6 +281,83 @@ public class ArticleExtBase implements Serializable {
     @NotNull
     @Schema(description="编辑器类型(1:富文本编辑器,2:Markdown编辑器)")
     private Short editorType = 1;
+
+    /**
+     * 评论次数
+     */
+    @NotNull
+    @Schema(description="评论次数")
+    private Integer comments = 0;
+
+    /**
+     * 下载次数
+     */
+    @NotNull
+    @Schema(description="下载次数")
+    private Integer downloads = 0;
+
+    /**
+     * 收藏次数
+     */
+    @NotNull
+    @Schema(description="收藏次数")
+    private Integer favorites = 0;
+
+    /**
+     * 顶
+     */
+    @NotNull
+    @Schema(description="顶")
+    private Integer ups = 0;
+
+    /**
+     * 踩
+     */
+    @NotNull
+    @Schema(description="踩")
+    private Integer downs = 0;
+
+    /**
+     * 浏览次数
+     */
+    @NotNull
+    @Schema(description="浏览次数")
+    private Long views = 0L;
+
+    /**
+     * 日浏览次数
+     */
+    @NotNull
+    @Schema(description="日浏览次数")
+    private Integer dayViews = 0;
+
+    /**
+     * 周浏览次数
+     */
+    @NotNull
+    @Schema(description="周浏览次数")
+    private Integer weekViews = 0;
+
+    /**
+     * 月浏览次数
+     */
+    @NotNull
+    @Schema(description="月浏览次数")
+    private Integer monthViews = 0;
+
+    /**
+     * 季浏览次数
+     */
+    @NotNull
+    @Schema(description="季浏览次数")
+    private Integer quarterViews = 0;
+
+    /**
+     * 年浏览次数
+     */
+    @NotNull
+    @Schema(description="年浏览次数")
+    private Long yearViews = 0L;
 
     /**
      * 图片集JSON
@@ -442,24 +490,6 @@ public class ArticleExtBase implements Serializable {
 
     public void setSource(@Nullable String source) {
         this.source = source;
-    }
-
-    @Nullable
-    public OffsetDateTime getOfflineDate() {
-        return offlineDate;
-    }
-
-    public void setOfflineDate(@Nullable OffsetDateTime offlineDate) {
-        this.offlineDate = offlineDate;
-    }
-
-    @Nullable
-    public OffsetDateTime getStickyDate() {
-        return stickyDate;
-    }
-
-    public void setStickyDate(@Nullable OffsetDateTime stickyDate) {
-        this.stickyDate = stickyDate;
     }
 
     @Nullable
@@ -623,22 +653,6 @@ public class ArticleExtBase implements Serializable {
         this.mobileStaticFile = mobileStaticFile;
     }
 
-    public OffsetDateTime getCreated() {
-        return created;
-    }
-
-    public void setCreated(OffsetDateTime created) {
-        this.created = created;
-    }
-
-    public OffsetDateTime getModified() {
-        return modified;
-    }
-
-    public void setModified(OffsetDateTime modified) {
-        this.modified = modified;
-    }
-
     @Nullable
     public String getProcessInstanceId() {
         return processInstanceId;
@@ -671,6 +685,94 @@ public class ArticleExtBase implements Serializable {
 
     public void setEditorType(Short editorType) {
         this.editorType = editorType;
+    }
+
+    public Integer getComments() {
+        return comments;
+    }
+
+    public void setComments(Integer comments) {
+        this.comments = comments;
+    }
+
+    public Integer getDownloads() {
+        return downloads;
+    }
+
+    public void setDownloads(Integer downloads) {
+        this.downloads = downloads;
+    }
+
+    public Integer getFavorites() {
+        return favorites;
+    }
+
+    public void setFavorites(Integer favorites) {
+        this.favorites = favorites;
+    }
+
+    public Integer getUps() {
+        return ups;
+    }
+
+    public void setUps(Integer ups) {
+        this.ups = ups;
+    }
+
+    public Integer getDowns() {
+        return downs;
+    }
+
+    public void setDowns(Integer downs) {
+        this.downs = downs;
+    }
+
+    public Long getViews() {
+        return views;
+    }
+
+    public void setViews(Long views) {
+        this.views = views;
+    }
+
+    public Integer getDayViews() {
+        return dayViews;
+    }
+
+    public void setDayViews(Integer dayViews) {
+        this.dayViews = dayViews;
+    }
+
+    public Integer getWeekViews() {
+        return weekViews;
+    }
+
+    public void setWeekViews(Integer weekViews) {
+        this.weekViews = weekViews;
+    }
+
+    public Integer getMonthViews() {
+        return monthViews;
+    }
+
+    public void setMonthViews(Integer monthViews) {
+        this.monthViews = monthViews;
+    }
+
+    public Integer getQuarterViews() {
+        return quarterViews;
+    }
+
+    public void setQuarterViews(Integer quarterViews) {
+        this.quarterViews = quarterViews;
+    }
+
+    public Long getYearViews() {
+        return yearViews;
+    }
+
+    public void setYearViews(Long yearViews) {
+        this.yearViews = yearViews;
     }
 
     @Nullable

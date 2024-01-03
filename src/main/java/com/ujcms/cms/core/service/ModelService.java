@@ -1,7 +1,8 @@
 package com.ujcms.cms.core.service;
 
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Model;
+import com.ujcms.cms.core.domain.base.ModelBase;
 import com.ujcms.cms.core.listener.ModelDeleteListener;
 import com.ujcms.cms.core.mapper.ModelMapper;
 import com.ujcms.cms.core.service.args.ModelArgs;
@@ -13,9 +14,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 模型 Service
@@ -34,7 +33,7 @@ public class ModelService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Model bean, @Nullable Integer siteId) {
-        bean.setId(seqService.getNextVal(Model.TABLE_NAME));
+        bean.setId(seqService.getNextVal(ModelBase.TABLE_NAME));
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.insert(bean);
@@ -57,6 +56,7 @@ public class ModelService {
         }
     }
 
+
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
         deleteListeners.forEach(it -> it.preModelDelete(id));
@@ -71,6 +71,30 @@ public class ModelService {
     @Transactional(rollbackFor = Exception.class)
     public int deleteBySiteId(Integer siteId) {
         return mapper.deleteBySiteId(siteId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Model copyOfSite(Model model) {
+        if (!model.isGlobal()) {
+            insert(model, null);
+        }
+        return model;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Map<Integer, Integer> copyBySite(Integer siteId, Integer fromSiteId) {
+        List<Model> list = listBySiteId(fromSiteId);
+        Map<Integer, Integer> pairMap = new HashMap<>(16);
+        for (Model bean : list) {
+            Integer origId = bean.getId();
+            insert(bean, siteId);
+            pairMap.put(origId, bean.getId());
+        }
+        return pairMap;
+    }
+
+    public List<Model> listBySiteId(Integer siteId) {
+        return selectList(ModelArgs.of().siteId(siteId));
     }
 
     @Nullable
@@ -95,12 +119,12 @@ public class ModelService {
     }
 
     public List<Model> selectList(ModelArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Model.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ModelBase.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 
     public List<Model> selectList(ModelArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     private List<ModelDeleteListener> deleteListeners = Collections.emptyList();

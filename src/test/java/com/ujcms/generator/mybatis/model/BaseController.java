@@ -82,11 +82,11 @@ public class BaseController extends AbstractJavaGenerator {
         topLevelClass.addImportedType(getArgsType());
         topLevelClass.addImportedType("com.ujcms.cms.core.aop.annotations.OperationLog");
         topLevelClass.addImportedType("com.ujcms.cms.core.aop.enums.OperationType");
-        topLevelClass.addImportedType("com.ujcms.cms.core.support.Contexts");
         topLevelClass.addImportedType("com.ujcms.commons.web.Entities");
         topLevelClass.addImportedType("com.ujcms.commons.web.Responses");
         topLevelClass.addImportedType("com.ujcms.commons.web.Responses.Body");
         topLevelClass.addImportedType("com.ujcms.commons.web.exception.Http404Exception");
+        topLevelClass.addImportedType("com.ujcms.commons.web.exception.Http400Exception");
         if (pageable) {
             topLevelClass.addImportedType("org.springframework.data.domain.Page");
             topLevelClass.addStaticImport("com.ujcms.commons.db.MyBatis.springPage");
@@ -95,20 +95,29 @@ public class BaseController extends AbstractJavaGenerator {
         }
         topLevelClass.addImportedType("org.springframework.http.ResponseEntity");
         topLevelClass.addImportedType("org.springframework.web.bind.annotation.*");
-        topLevelClass.addImportedType("javax.servlet.http.HttpServletRequest");
-        topLevelClass.addImportedType("java.util.List");
-        topLevelClass.addImportedType("javax.validation.Valid");
         topLevelClass.addImportedType("org.springframework.security.access.prepost.PreAuthorize");
+        topLevelClass.addImportedType("javax.servlet.http.HttpServletRequest");
+        topLevelClass.addImportedType("javax.validation.Valid");
+        topLevelClass.addImportedType("java.util.List");
+        topLevelClass.addImportedType("java.util.Optional");
+
         topLevelClass.addStaticImport("com.ujcms.cms.core.support.UrlConstants.BACKEND_API");
         topLevelClass.addStaticImport("com.ujcms.commons.query.QueryUtils.getQueryMap");
         // @Service 注解
-        topLevelClass.addAnnotation("@RestController(\"" + "backend" + getModelType() + "Controller" + "\")");
+        topLevelClass.addAnnotation("@RestController(\"backend" + getModelType() + "Controller" + "\")");
         topLevelClass.addAnnotation("@RequestMapping(BACKEND_API + \"" + getRequestMapping() + "\")");
         // Mapper 属性
         Field service = new Field("service", new FullyQualifiedJavaType(getServiceType()));
         service.setVisibility(JavaVisibility.PRIVATE);
         service.setFinal(true);
         topLevelClass.addField(service);
+        // NotFound 属性
+        Field notFound = new Field("NOT_FOUND", new FullyQualifiedJavaType("String"));
+        notFound.setVisibility(JavaVisibility.PRIVATE);
+        notFound.setStatic(true);
+        notFound.setFinal(true);
+        notFound.setInitializationString("\"" + getModelType() + " not found. ID = \"");
+        topLevelClass.addField(notFound);
         // 构造器
         Method constructor = new Method(topLevelClass.getType().getShortName());
         constructor.setConstructor(true);
@@ -157,12 +166,8 @@ public class BaseController extends AbstractJavaGenerator {
         Parameter idParam = new Parameter(new FullyQualifiedJavaType("int"), "id");
         idParam.addAnnotation("@PathVariable(\"id\")");
         show.addParameter(idParam);
-        // show.addParameter(requestParam);
-        show.addBodyLine(getModelType() + " bean = service.select(id);");
-        show.addBodyLine("if (bean == null) {");
-        show.addBodyLine("throw new Http404Exception(\"" + getModelType() + " not found. ID = \" + id);");
-        show.addBodyLine("}");
-        show.addBodyLine("return bean;");
+        show.addBodyLine("return Optional.ofNullable(service.select(id))");
+        show.addBodyLine(".orElseThrow(() -> new Http404Exception(NOT_FOUND + id));");
         topLevelClass.addMethod(show);
 
         // 返回类型 ResponseEntity<Body>
@@ -192,15 +197,37 @@ public class BaseController extends AbstractJavaGenerator {
                 "\", operation = \"update\", type = OperationType.UPDATE)");
         update.setReturnType(returnType);
         update.addParameter(beanParam);
-        // update.addParameter(requestParam);
-        update.addBodyLine(getModelType() + " " + getModelTypeLowerCamel() + " = service.select(bean.getId());");
-        update.addBodyLine("if (" + getModelTypeLowerCamel() + " == null) {");
-        update.addBodyLine("throw new Http404Exception(\"" + getModelType() + " not found. ID = \" + bean.getId());");
-        update.addBodyLine("}");
+        update.addBodyLine(getModelType() + " " + getModelTypeLowerCamel() + " = Optional.ofNullable(service.select(bean.getId()))");
+        update.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + bean.getId()));");
         update.addBodyLine("Entities.copy(bean, " + getModelTypeLowerCamel() + ");");
         update.addBodyLine("service.update(" + getModelTypeLowerCamel() + ");");
         update.addBodyLine("return Responses.ok();");
         topLevelClass.addMethod(update);
+        // updateOrder 方法
+        if ("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            Method updateOrder = new Method("updateOrder");
+            updateOrder.setVisibility(JavaVisibility.PUBLIC);
+            updateOrder.addAnnotation("@PostMapping(\"update-order\")");
+            updateOrder.addAnnotation("@PreAuthorize(\"hasAnyAuthority('" + getModelTypeLowerCamel() + ":update','*')\")");
+            updateOrder.addAnnotation("@OperationLog(module = \"" + getModelTypeLowerCamel() +
+                    "\", operation = \"updateOrder\", type = OperationType.UPDATE)");
+            updateOrder.setReturnType(returnType);
+
+            topLevelClass.addImportedType("com.ujcms.commons.db.order.MoveOrderParams");
+            Parameter moveOrderParam = new Parameter(new FullyQualifiedJavaType("MoveOrderParams"), "params");
+            moveOrderParam.addAnnotation("@RequestBody");
+            moveOrderParam.addAnnotation("@Valid");
+            updateOrder.addParameter(moveOrderParam);
+
+            updateOrder.addBodyLine(getModelType() + " fromBean = Optional.ofNullable(service.select(params.getFromId()))");
+            updateOrder.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getFromId()));");
+            updateOrder.addBodyLine(getModelType() + " toBean = Optional.ofNullable(service.select(params.getToId()))");
+            updateOrder.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getToId()));");
+
+            updateOrder.addBodyLine("service.moveOrder(fromBean.getId(), toBean.getId());");
+            updateOrder.addBodyLine("return Responses.ok();");
+            topLevelClass.addMethod(updateOrder);
+        }
         // delete 方法
         Method delete = new Method("delete");
         delete.setVisibility(JavaVisibility.PUBLIC);
@@ -214,8 +241,11 @@ public class BaseController extends AbstractJavaGenerator {
         Parameter idsParam = new Parameter(idsType, "ids");
         idsParam.addAnnotation("@RequestBody");
         delete.addParameter(idsParam);
-        // delete.addParameter(requestParam);
-        delete.addBodyLine("service.delete(ids);");
+        delete.addBodyLine("for (Integer id : ids) {");
+        delete.addBodyLine(getModelType() + " bean = Optional.ofNullable(service.select(id))");
+        delete.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + id));");
+        delete.addBodyLine("service.delete(bean.getId());");
+        delete.addBodyLine("}");
         delete.addBodyLine("return Responses.ok();");
         topLevelClass.addMethod(delete);
 

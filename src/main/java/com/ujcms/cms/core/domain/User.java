@@ -237,6 +237,22 @@ public class User extends UserBase implements UserDetails, Serializable {
     }
 
     /**
+     * 是否拥有所有状态数据权限
+     */
+    @JsonIgnore
+    public boolean hasAllStatusPermission() {
+        if (isRoot()) {
+            return true;
+        }
+        for (Role role : getRoleList()) {
+            if (Boolean.TRUE.equals(role.getAllStatusPermission())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 是否拥有所有栏目数据权限
      */
     @JsonIgnore
@@ -250,17 +266,6 @@ public class User extends UserBase implements UserDetails, Serializable {
             }
         }
         return false;
-    }
-
-    /**
-     * 是否拥有所有文章的浏览权限
-     */
-    @JsonIgnore
-    public boolean hasAllAccessPermission() {
-        if (isRoot()) {
-            return true;
-        }
-        return getGroup().getAllAccessPermission();
     }
 
     @JsonIgnore

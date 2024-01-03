@@ -41,7 +41,7 @@ public class MessageBoardArgs extends BaseQueryArgs {
         return this;
     }
 
-    public MessageBoardArgs status(Collection<Integer> status) {
+    public MessageBoardArgs status(Collection<Short> status) {
         if (!status.isEmpty()) {
             queryMap.put("In_status_Short", status);
         }

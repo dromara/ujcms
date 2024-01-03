@@ -12,7 +12,7 @@
           <span>[#list bean.channel.paths as c][@A bean=c/][#if c_has_next] > [/#if][/#list]</span>
           <i class="ml-2 far fa-eye"></i> ${bean.views}
         </div>
-        <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.publishDate.format('yyyy-MM-dd')}</div>
+        <div class="float-right"><i class="ml-2 far fa-clock"></i> ${format(bean.publishDate, 'yyyy-MM-dd')}</div>
       </div>
     </div>
   </li>

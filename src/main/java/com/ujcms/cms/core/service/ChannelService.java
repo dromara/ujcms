@@ -39,7 +39,6 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     private final ModelService modelService;
     private final ChannelMapper mapper;
     private final ChannelExtMapper extMapper;
-    private final ChannelBufferMapper bufferMapper;
     private final ChannelTreeMapper treeMapper;
     private final ArticleMapper articleMapper;
     private final GroupAccessMapper groupAccessMapper;
@@ -49,18 +48,15 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     private final SeqService seqService;
     private final TreeService<Channel, ChannelTree> treeService;
 
-    public ChannelService(HtmlService htmlService, PolicyFactory policyFactory, AttachmentService attachmentService,
-                          ModelService modelService, ChannelMapper mapper, ChannelExtMapper extMapper,
-                          ChannelBufferMapper bufferMapper, ChannelTreeMapper treeMapper,
-                          ArticleMapper articleMapper, GroupAccessMapper groupAccessMapper,
-                          RoleArticleMapper roleArticleMapper, RoleChannelMapper roleChannelMapper,
-                          ChannelCustomMapper customMapper,
-                          SeqService seqService) {
+    public ChannelService(
+            HtmlService htmlService, PolicyFactory policyFactory, AttachmentService attachmentService,
+            ModelService modelService, ChannelMapper mapper, ChannelExtMapper extMapper, ChannelTreeMapper treeMapper,
+            ArticleMapper articleMapper, GroupAccessMapper groupAccessMapper, RoleArticleMapper roleArticleMapper,
+            RoleChannelMapper roleChannelMapper, ChannelCustomMapper customMapper, SeqService seqService) {
         this.htmlService = htmlService;
         this.policyFactory = policyFactory;
         this.attachmentService = attachmentService;
         this.modelService = modelService;
-        this.bufferMapper = bufferMapper;
         this.articleMapper = articleMapper;
         this.groupAccessMapper = groupAccessMapper;
         this.mapper = mapper;
@@ -83,7 +79,6 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         treeService.insert(bean, bean.getSiteId());
         ext.setId(bean.getId());
         extMapper.insert(ext);
-        bufferMapper.insert(new ChannelBuffer(bean.getId()));
         insertGroupIds(groupIds, bean.getId(), bean.getSiteId());
         insertArticleRoleIds(articleRoleIds, bean.getId(), bean.getSiteId());
         insertChannelRoleIds(channelRoleIds, bean.getId(), bean.getSiteId());
@@ -173,7 +168,6 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         roleArticleMapper.deleteByChannelId(bean.getId());
         roleChannelMapper.deleteByChannelId(bean.getId());
         customMapper.deleteByChannelId(bean.getId());
-        bufferMapper.delete(bean.getId());
         extMapper.delete(bean.getId());
         int count = treeService.delete(bean.getId(), bean.getOrder(), bean.getSiteId());
         htmlService.deleteChannelHtml(bean);
@@ -182,6 +176,38 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     public int delete(List<Integer> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
+    }
+
+    public Map<Integer, Integer> copyBySite(Integer siteId, Integer fromSiteId, Map<Integer, Integer> modelPairMap) {
+        Map<Integer, Integer> channelPairMap = new HashMap<>(32);
+        for (Channel channel : listBySiteId(fromSiteId)) {
+            copy(channel, null, siteId, modelPairMap, channelPairMap);
+        }
+        return channelPairMap;
+    }
+
+    private void copy(Channel channel, @Nullable Integer parentId, Integer siteId, Map<Integer, Integer> modelPairMap,
+                      Map<Integer, Integer> channelPairMap) {
+        channel.setSiteId(siteId);
+        channel.setParentId(parentId);
+        Optional.ofNullable(modelPairMap.get(channel.getChannelModelId())).ifPresent(channel::setChannelModelId);
+        Optional.ofNullable(modelPairMap.get(channel.getArticleModelId())).ifPresent(channel::setArticleModelId);
+
+        channel.setStaticFile(null);
+        channel.setMobileStaticFile(null);
+        channel.setViews(0L);
+        channel.setSelfViews(0L);
+        Integer origId = channel.getId();
+        List<Integer> groupIds = groupAccessMapper.listGroupByChannelId(channel.getId(), null);
+        List<Integer> articleRoleIds = roleArticleMapper.listRoleByChannelId(channel.getId(), null);
+        List<Integer> channelRoleIds = roleChannelMapper.listRoleByChannelId(channel.getId(), null);
+
+        insert(channel, channel.getExt(), groupIds, articleRoleIds, channelRoleIds, channel.getCustoms());
+        channelPairMap.put(origId, channel.getId());
+        for (Channel child : listChildren(origId)) {
+            copy(child, channel.getId(), siteId, modelPairMap, channelPairMap);
+        }
+
     }
 
     @Nullable
@@ -211,18 +237,23 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     @Nullable
     public Channel findBySiteIdAndAlias(Integer siteId, String alias) {
-        List<Channel> list = listBySiteIdAndAlias(siteId, Collections.singletonList(alias), false);
+        List<Channel> list = PageMethod.offsetPage(0, 1, false).doSelectPage(() ->
+                mapper.findBySiteIdAndAlias(siteId, alias));
         if (list.isEmpty()) {
             return null;
         }
         return list.get(0);
     }
 
+    public List<Channel> listBySiteId(Integer siteId) {
+        return selectList(ChannelArgs.of().siteId(siteId).parentIdIsNull());
+    }
+
     public List<Channel> listBySiteIdAndAlias(@Nullable Integer siteId, Collection<String> aliases,
                                               boolean isIncludeSubSite) {
         ChannelArgs args = ChannelArgs.of().inAliases(aliases);
         if (isIncludeSubSite) {
-            args.subSiteId(siteId);
+            args.siteAncestorId(siteId);
         } else {
             args.siteId(siteId);
         }
@@ -240,7 +271,8 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     public List<Channel> selectList(ChannelArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ChannelBase.TABLE_NAME, "order,id");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
-        return mapper.selectAll(queryInfo, customsCondition);
+        return mapper.selectAll(queryInfo, customsCondition, args.isQueryHasChildren(), args.isOnlyParent(),
+                args.getArticleRoleIds());
     }
 
     public List<Channel> selectList(ChannelArgs args, int offset, int limit) {
@@ -248,13 +280,15 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     }
 
     public boolean existsByModelId(Integer modelId) {
-        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countByModelId(modelId)).iterator().next().intValue() > 0;
+        return mapper.existsByModelId(modelId) > 0;
     }
 
     public boolean existsByAlias(String alias, Integer siteId) {
-        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countByAlias(alias, siteId)).iterator().next().intValue() > 0;
+        return mapper.existsByAlias(alias, siteId) > 0;
+    }
+
+    public boolean existsByArticleRoleId(Integer channelId, Collection<Integer> roleIds) {
+        return mapper.existsByArticleRoleId(channelId, roleIds) > 0;
     }
 
     /**
@@ -277,7 +311,6 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
 
     @Override
     public void preSiteDelete(Integer siteId) {
-        bufferMapper.deleteBySiteId(siteId);
         customMapper.deleteBySiteId(siteId);
         extMapper.deleteBySiteId(siteId);
         treeMapper.deleteBySiteId(siteId);

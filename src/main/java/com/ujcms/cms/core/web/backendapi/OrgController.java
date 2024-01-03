@@ -42,18 +42,22 @@ public class OrgController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('org:list','*')")
     public Object list(@RequestParam(defaultValue = "false") boolean current,
-                       @RequestParam(defaultValue = "true") boolean allDescendant,
+                       @RequestParam(defaultValue = "true") boolean isIncludeChildren,
                        @Nullable Integer parentId, HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
-        boolean needParentId = current || !user.hasGlobalPermission() || !allDescendant;
+        boolean needParentId = current || !user.hasGlobalPermission();
         if (parentId == null && needParentId) {
             parentId = Contexts.getCurrentSite().getOrgId();
         }
         OrgArgs args = OrgArgs.of(getQueryMap(request.getQueryString()));
-        if (allDescendant) {
+        if (isIncludeChildren) {
             args.ancestorId(parentId);
         } else {
-            args.parentId(parentId);
+            if (parentId != null) {
+                args.parentId(parentId);
+            } else {
+                args.parentIdIsNull();
+            }
         }
         return service.selectList(args);
     }

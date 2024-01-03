@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 /**
  * 文件处理接口
@@ -108,13 +110,36 @@ public interface FileHandler {
     void unzip(MultipartFile zipPart, String destDir, String... ignoredExtensions);
 
     /**
+     * 解压文件
+     *
+     * @param inputStream       zip 文件输入流
+     * @param destDir           解压目录
+     * @param ignoredExtensions 需要忽略的扩展名
+     */
+    void unzip(InputStream inputStream, String destDir, String... ignoredExtensions);
+
+    /**
      * 压缩文件
      *
      * @param dir   需要压缩的文件夹
      * @param names 需压缩的文件名
      * @param out   压缩后的zip输出流
      */
-    void zip(String dir, String[] names, OutputStream out);
+    default void zip(String dir, String[] names, OutputStream out) {
+        zip(dir, names, out, (entryName, lastModified) -> true, entryName -> true);
+    }
+
+    /**
+     * 压缩文件
+     *
+     * @param dir           需要压缩的文件夹
+     * @param names         需压缩的文件名
+     * @param out           压缩后的zip输出流
+     * @param isAddEntry    文件是否加入压缩包
+     * @param isAddDirEntry 文件夹是否加入压缩包
+     */
+    void zip(String dir, String[] names, OutputStream out,
+             BiPredicate<String, Long> isAddEntry, Predicate<String> isAddDirEntry);
 
     /**
      * 重命名
@@ -143,12 +168,28 @@ public interface FileHandler {
     void moveTo(String dir, String[] names, String destDir);
 
     /**
-     * 文件是否存在，且不是文件夹
+     * 文件是否存在。包括文件和文件夹
      *
      * @param filename 文件名
-     * @return 是否操作
+     * @return 是否存在
      */
     boolean exist(String filename);
+
+    /**
+     * 是否文件
+     *
+     * @param filename 文件名
+     * @return 是否文件
+     */
+    boolean isFile(String filename);
+
+    /**
+     * 是否文件夹
+     *
+     * @param filename 文件名
+     * @return 是否文件夹
+     */
+    boolean isDirectory(String filename);
 
     /**
      * 获取本地文件

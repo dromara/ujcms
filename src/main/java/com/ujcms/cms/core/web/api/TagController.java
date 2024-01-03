@@ -57,7 +57,7 @@ public class TagController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取Tag列表")
+    @Operation(summary = "获取Tag列表（TagList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "name", description = "标签名称",
@@ -79,7 +79,7 @@ public class TagController {
         });
     }
 
-    @Operation(summary = "获取Tag分页")
+    @Operation(summary = "获取Tag分页（TagPage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "name", description = "标签名称",

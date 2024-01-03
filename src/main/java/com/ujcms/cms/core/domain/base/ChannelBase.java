@@ -2,6 +2,7 @@ package com.ujcms.cms.core.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -53,6 +54,13 @@ public class ChannelBase implements Serializable {
     @NotNull
     @Schema(description="文章模型ID")
     private Integer articleModelId = 0;
+
+    /**
+     * 绩效类型ID
+     */
+    @Nullable
+    @Schema(description="绩效类型ID")
+    private Integer performanceTypeId;
 
     /**
      * 名称
@@ -132,6 +140,69 @@ public class ChannelBase implements Serializable {
     private Boolean nav = true;
 
     /**
+     * 每页条数
+     */
+    @NotNull
+    @Schema(description="每页条数")
+    private Short pageSize = 20;
+
+    /**
+     * 是否倒序排序
+     */
+    @NotNull
+    @Schema(description="是否倒序排序")
+    private Boolean orderDesc = true;
+
+    /**
+     * 是否允许评论
+     */
+    @NotNull
+    @Schema(description="是否允许评论")
+    private Boolean allowComment = true;
+
+    /**
+     * 是否允许投稿
+     */
+    @NotNull
+    @Schema(description="是否允许投稿")
+    private Boolean allowContribute = false;
+
+    /**
+     * 是否允许搜索
+     */
+    @NotNull
+    @Schema(description="是否允许搜索")
+    private Boolean allowSearch = true;
+
+    /**
+     * 创建日期
+     */
+    @NotNull
+    @Schema(description="创建日期")
+    private OffsetDateTime created = OffsetDateTime.now();
+
+    /**
+     * 修改日期
+     */
+    @NotNull
+    @Schema(description="修改日期")
+    private OffsetDateTime modified = OffsetDateTime.now();
+
+    /**
+     * 浏览次数
+     */
+    @NotNull
+    @Schema(description="浏览次数")
+    private Long views = 0L;
+
+    /**
+     * 栏目页浏览次数
+     */
+    @NotNull
+    @Schema(description="栏目页浏览次数")
+    private Long selfViews = 0L;
+
+    /**
      * 层级
      */
     @NotNull
@@ -184,6 +255,15 @@ public class ChannelBase implements Serializable {
 
     public void setArticleModelId(Integer articleModelId) {
         this.articleModelId = articleModelId;
+    }
+
+    @Nullable
+    public Integer getPerformanceTypeId() {
+        return performanceTypeId;
+    }
+
+    public void setPerformanceTypeId(@Nullable Integer performanceTypeId) {
+        this.performanceTypeId = performanceTypeId;
     }
 
     public String getName() {
@@ -269,6 +349,78 @@ public class ChannelBase implements Serializable {
 
     public void setNav(Boolean nav) {
         this.nav = nav;
+    }
+
+    public Short getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Short pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public Boolean getOrderDesc() {
+        return orderDesc;
+    }
+
+    public void setOrderDesc(Boolean orderDesc) {
+        this.orderDesc = orderDesc;
+    }
+
+    public Boolean getAllowComment() {
+        return allowComment;
+    }
+
+    public void setAllowComment(Boolean allowComment) {
+        this.allowComment = allowComment;
+    }
+
+    public Boolean getAllowContribute() {
+        return allowContribute;
+    }
+
+    public void setAllowContribute(Boolean allowContribute) {
+        this.allowContribute = allowContribute;
+    }
+
+    public Boolean getAllowSearch() {
+        return allowSearch;
+    }
+
+    public void setAllowSearch(Boolean allowSearch) {
+        this.allowSearch = allowSearch;
+    }
+
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    public OffsetDateTime getModified() {
+        return modified;
+    }
+
+    public void setModified(OffsetDateTime modified) {
+        this.modified = modified;
+    }
+
+    public Long getViews() {
+        return views;
+    }
+
+    public void setViews(Long views) {
+        this.views = views;
+    }
+
+    public Long getSelfViews() {
+        return selfViews;
+    }
+
+    public void setSelfViews(Long selfViews) {
+        this.selfViews = selfViews;
     }
 
     public Short getDepth() {

@@ -24,31 +24,38 @@
         delete
         from ujcms_site_tree
         where descendant_id_ in
-              (select t1.descendant_id_ from (select descendant_id_ from ujcms_site_tree where ancestor_id_ = #{id,jdbcType=INTEGER}) t1)
+              (select temp1_.descendant_id_
+               from (select descendant_id_ from ujcms_site_tree where ancestor_id_ = #{id,jdbcType=INTEGER}) temp1_)
           and ancestor_id_ in
-              (select t2.ancestor_id_
-               from (select ancestor_id_ from ujcms_site_tree where descendant_id_ = #{id,jdbcType=INTEGER} and ancestor_id_ &lt;&gt; descendant_id_) t2)
+              (select temp2.ancestor_id_
+               from (select ancestor_id_
+                     from ujcms_site_tree
+                     where descendant_id_ = #{id,jdbcType=INTEGER}
+                       and ancestor_id_ &lt;&gt; descendant_id_) temp2)
     </delete>
     <insert id="append">
         insert into ujcms_site_tree (ancestor_id_, descendant_id_)
         select supertree.ancestor_id_, subtree.descendant_id_
         from ujcms_site_tree supertree
-             cross join ujcms_site_tree subtree
+                 cross join ujcms_site_tree subtree
         where supertree.descendant_id_ = #{parentId,jdbcType=INTEGER}
           and subtree.ancestor_id_ = #{id,jdbcType=INTEGER}
     </insert>
-    <delete id="deleteByAncestorId" parameterType="map">
+    <delete id="deleteByAncestorId">
         delete
         from ujcms_site_tree
-        where descendant_id_ in
-              (select tt.descendant_id_ from (select t.descendant_id_ from ujcms_site_tree t where t.ancestor_id_ = #{ancestorId,jdbcType=INTEGER}) tt)
+        where descendant_id_ in (
+            select temp_.descendant_id_
+            from (select t.descendant_id_ from ujcms_site_tree t where t.ancestor_id_ = #{ancestorId}) temp_
+        )
     </delete>
-    <delete id="delete" parameterType="map">
+    <delete id="delete">
         delete
         from ujcms_site_tree
         where ancestor_id_ = #{ancestorId,jdbcType=INTEGER}
           and descendant_id_ = #{descendantId,jdbcType=INTEGER}
-    </delete><insert id="insert" parameterType="com.ujcms.cms.core.domain.SiteTree">
+    </delete>
+<insert id="insert" parameterType="com.ujcms.cms.core.domain.SiteTree">
     insert into ujcms_site_tree (ancestor_id_, descendant_id_)
     values (#{ancestorId,jdbcType=INTEGER}, #{descendantId,jdbcType=INTEGER})
   </insert><sql id="Column_List">

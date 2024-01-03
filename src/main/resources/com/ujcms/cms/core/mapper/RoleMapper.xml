@@ -11,6 +11,7 @@
     <result column="all_article_permission_" jdbcType="CHAR" property="allArticlePermission" />
     <result column="all_channel_permission_" jdbcType="CHAR" property="allChannelPermission" />
     <result column="data_scope_" jdbcType="SMALLINT" property="dataScope" />
+    <result column="all_status_permission_" jdbcType="CHAR" property="allStatusPermission" />
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="scope_" jdbcType="SMALLINT" property="scope" />
@@ -48,6 +49,7 @@
         from ujcms_role
         where site_id_ = #{siteId,jdbcType=INTEGER}
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">
@@ -76,6 +78,7 @@
       all_article_permission_ = #{allArticlePermission,jdbcType=CHAR},
       all_channel_permission_ = #{allChannelPermission,jdbcType=CHAR},
       data_scope_ = #{dataScope,jdbcType=SMALLINT},
+      all_status_permission_ = #{allStatusPermission,jdbcType=CHAR},
       rank_ = #{rank,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
       scope_ = #{scope,jdbcType=SMALLINT},
@@ -84,8 +87,8 @@
       grant_permission_ = #{grantPermission,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=INTEGER}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Role">
-    insert into ujcms_role (id_, site_id_, name_, description_, all_permission_, all_grant_permission_, global_permission_, all_article_permission_, all_channel_permission_, data_scope_, rank_, type_, scope_, order_, permission_, grant_permission_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allPermission,jdbcType=CHAR}, #{allGrantPermission,jdbcType=CHAR}, #{globalPermission,jdbcType=CHAR}, #{allArticlePermission,jdbcType=CHAR}, #{allChannelPermission,jdbcType=CHAR}, #{dataScope,jdbcType=SMALLINT}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{permission,jdbcType=LONGVARCHAR}, #{grantPermission,jdbcType=LONGVARCHAR})
+    insert into ujcms_role (id_, site_id_, name_, description_, all_permission_, all_grant_permission_, global_permission_, all_article_permission_, all_channel_permission_, data_scope_, all_status_permission_, rank_, type_, scope_, order_, permission_, grant_permission_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allPermission,jdbcType=CHAR}, #{allGrantPermission,jdbcType=CHAR}, #{globalPermission,jdbcType=CHAR}, #{allArticlePermission,jdbcType=CHAR}, #{allChannelPermission,jdbcType=CHAR}, #{dataScope,jdbcType=SMALLINT}, #{allStatusPermission,jdbcType=CHAR}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{permission,jdbcType=LONGVARCHAR}, #{grantPermission,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.name_, t.description_, t.all_permission_, t.all_grant_permission_, t.global_permission_, t.all_article_permission_, t.all_channel_permission_, t.data_scope_, t.rank_, t.type_, t.scope_, t.order_, t.permission_, t.grant_permission_
+    t.id_, t.site_id_, t.name_, t.description_, t.all_permission_, t.all_grant_permission_, t.global_permission_, t.all_article_permission_, t.all_channel_permission_, t.data_scope_, t.all_status_permission_, t.rank_, t.type_, t.scope_, t.order_, t.permission_, t.grant_permission_
   </sql></mapper>

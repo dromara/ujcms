@@ -22,7 +22,7 @@ public class CaptchaCache {
 
     @Cacheable
     public int getAttempts(String sign) {
-        logger.info("getAttempts: {}", sign);
+        logger.debug("getAttempts({})", sign);
         return 0;
     }
 

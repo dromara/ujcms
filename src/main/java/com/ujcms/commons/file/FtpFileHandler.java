@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.ujcms.commons.web.UrlBuilder;
 import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,8 +18,13 @@ import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static com.ujcms.commons.file.FilesEx.SLASH;
 import static com.ujcms.commons.file.FilesEx.normalize;
@@ -134,23 +140,69 @@ public class FtpFileHandler implements FileHandler {
 
     @Override
     public void unzip(MultipartFile zipPart, String destDir, String... ignoredExtensions) {
-        try {
-            ZipUtils.decompress(zipPart.getInputStream(),
-                    (entryName, zipIn) -> store(UrlBuilder.of(destDir).appendPath(entryName).toString(), zipIn),
-                    (entryName) -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
-                    ignoredExtensions);
+        try (InputStream inputStream = zipPart.getInputStream()) {
+            unzip(inputStream, destDir, ignoredExtensions);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
     @Override
-    public void zip(String dir, String[] names, OutputStream out) {
-        ZipUtils.zip(dir, names, out,
-                (filename) -> execute(ftp -> ftp.changeWorkingDirectory(getStoreName(filename))),
-                (filename) -> execute(ftp ->
-                        Optional.ofNullable(ftp.listNames(getStoreName(filename))).orElse(new String[]{})),
-                this::writeOutputStream);
+    public void unzip(InputStream inputStream, String destDir, String... ignoredExtensions) {
+        ZipUtils.decompress(inputStream,
+                (entryName, zipIn) -> store(UrlBuilder.of(destDir).appendPath(entryName).toString(), zipIn),
+                entryName -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
+                ignoredExtensions);
+    }
+
+    @Override
+    public void zip(String dir, String[] names, OutputStream out,
+                    BiPredicate<String, Long> isAddEntry, Predicate<String> isAddDirEntry) {
+        ZipUtils.zip(dir, names, out, new ZipHandler() {
+            @Override
+            public boolean isDir(String filename) {
+                return execute(ftp -> ftp.changeWorkingDirectory(getStoreName(filename)));
+            }
+
+            @Override
+            public String[] listChildren(String filename) {
+                return execute(ftp -> Optional.ofNullable(ftp.listNames(getStoreName(filename)))
+                        .orElse(new String[]{}));
+            }
+
+            @Override
+            public void addDirEntry(String entryName, ZipOutputStream zipOut) throws IOException {
+                if (isAddDirEntry.test(entryName)) {
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipOut.putNextEntry(zipEntry);
+                    zipOut.closeEntry();
+                }
+            }
+
+            @Override
+            public void addEntry(String filename, String entryName, ZipOutputStream zipOut) {
+                execute(ftp -> {
+                    String storeName = getStoreName(filename);
+                    if (ftp.changeWorkingDirectory(storeName)) {
+                        return Optional.empty();
+                    }
+                    FTPFile[] files = ftp.listFiles(storeName);
+                    if (files.length <= 0) {
+                        return Optional.empty();
+                    }
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    long lastModified = files[0].getTimestamp().getTimeInMillis();
+
+                    if (isAddEntry.test(entryName, lastModified)) {
+                        zipEntry.setLastModifiedTime(FileTime.fromMillis(lastModified));
+                        zipOut.putNextEntry(zipEntry);
+                        ftp.retrieveFile(storeName, zipOut);
+                    }
+                    return Optional.empty();
+                });
+
+            }
+        });
     }
 
     @Override
@@ -182,9 +234,28 @@ public class FtpFileHandler implements FileHandler {
         return execute(ftp -> {
             String storeName = getStoreName(filename);
             if (ftp.changeWorkingDirectory(storeName)) {
+                return true;
+            }
+            return ftp.listFiles(storeName).length == 1;
+        });
+    }
+
+    @Override
+    public boolean isFile(String filename) {
+        return execute(ftp -> {
+            String storeName = getStoreName(filename);
+            if (ftp.changeWorkingDirectory(storeName)) {
                 return false;
             }
             return ftp.listFiles(storeName).length == 1;
+        });
+    }
+
+    @Override
+    public boolean isDirectory(String filename) {
+        return execute(ftp -> {
+            String storeName = getStoreName(filename);
+            return ftp.changeWorkingDirectory(storeName);
         });
     }
 
@@ -200,7 +271,7 @@ public class FtpFileHandler implements FileHandler {
                 return tempFile;
             } catch (Exception e) {
                 FileUtils.deleteQuietly(tempFile);
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         });
         return file.exists() ? file : null;
@@ -379,7 +450,7 @@ public class FtpFileHandler implements FileHandler {
                 pool.returnObject(ftp);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -389,9 +460,10 @@ public class FtpFileHandler implements FileHandler {
          *
          * @param ftp 准备好的
          * @return 返回需要的结果，如果需要返回null，可考虑使用Optional
-         * @throws Exception 抛出的异常
+         * @throws IOException       IO异常
+         * @throws TemplateException 模板异常
          */
-        T accept(FTPClient ftp) throws Exception;
+        T accept(FTPClient ftp) throws IOException, TemplateException;
     }
 
     private static final Cache<String, FtpClientPool> POOL_CACHE = Caffeine.newBuilder()

@@ -28,6 +28,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,6 +59,15 @@ public class MessageBoardController {
         MessageBoardArgs args = MessageBoardArgs.of(getQueryMap(request.getQueryString()))
                 .siteId(Contexts.getCurrentSiteId());
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
+    }
+
+    @GetMapping("unreviewed-count")
+    @PreAuthorize("hasAnyAuthority('messageBoard:list','*')")
+    public long unreviewedCount() {
+        MessageBoardArgs args = MessageBoardArgs.of();
+        args.siteId(Contexts.getCurrentSiteId());
+        args.status(Collections.singleton(MessageBoard.STATUS_UNREVIEWED));
+        return service.count(args);
     }
 
     @GetMapping("{id}")

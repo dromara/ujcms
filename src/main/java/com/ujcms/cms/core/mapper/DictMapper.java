@@ -59,6 +59,14 @@ public interface DictMapper {
     List<Dict> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
 
     /**
+     * 根据 字典类型ID 查询字典是否存在
+     *
+     * @param typeId 字典类型ID
+     * @return 数据是否存在。0: 不存在, 1: 存在。
+     */
+    int existsByTypeId(Integer typeId);
+
+    /**
      * 根据站点ID删除数据
      *
      * @param siteId 站点ID

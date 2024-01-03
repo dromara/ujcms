@@ -24,7 +24,7 @@
     </p>
     <p>
       [#if site.customs['gongan_icp']??]
-        <span class="ml-2"><img src="https://www.beian.gov.cn/img/new/gongan.png" style="width:16px;height:16px;" alt="gongan beian"><a href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${site.customs['gongan_code']}" target="_blank" class="text-reset">${site.customs['gongan_icp']}</a></span>
+        <span class="ml-2"><img src="${files}/img/gongan.png" style="width:16px;height:16px;" alt="gongan beian"><a href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${site.customs['gongan_code']}" target="_blank" class="text-reset">${site.customs['gongan_icp']}</a></span>
       [/#if]
       <span class="ml-2"><a href="https://beian.miit.gov.cn" target="_blank" class="text-reset">${site.customs['icp']}</a></span>
     </p>

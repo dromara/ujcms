@@ -11,6 +11,8 @@
   [#include 'inc_js.html'/]
 </head>
 <body>
+[#-- 用于当前栏目高亮显示 --]
+[#assign channelAlias='message-board'/]
 [#assign headerShadow=true/]
 [#include 'inc_header.html'/]
 <div class="container">
@@ -25,14 +27,14 @@
           <fieldset class="form-group row">
             <legend class="col-form-label col-sm-2 float-sm-left pt-0">留言类别<strong class="text-danger">*</strong></legend>
             <div class="col-sm-10">
-              [@DictList type='sys_message_board_type'; list]
+              [@MessageBoardTypeList; list]
                 [#list list as type]
                   <div class="custom-control custom-radio custom-control-inline">
                     <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index?c}" value="${type.id?c}" required [#if type_index==0]checked[/#if]>
                     <label class="custom-control-label" for="typeId${type_index?c}">${type.name}</label>
                   </div>
                 [/#list]
-              [/@DictList]
+              [/@MessageBoardTypeList]
             </div>
           </fieldset>
           <div class="form-group row">

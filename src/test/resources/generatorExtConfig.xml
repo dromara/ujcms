@@ -23,8 +23,10 @@
 
         <javaClientGenerator targetPackage="com.ujcms.cms.ext.mapper" targetProject="src/main/java" type="XMLMAPPER"/>
 
-        <table tableName="ujcms_message_board" domainObjectName="MessageBoard">
-            <property name="controller" value="false"/>
+        <table tableName="ujcms_message_board" domainObjectName="MessageBoard"/>
+        <table tableName="ujcms_message_board_type" domainObjectName="MessageBoardType">
+            <property name="pageable" value="false"/>
+            <property name="order" value="true"/>
         </table>
         <table tableName="ujcms_visit_log" domainObjectName="VisitLog">
             <property name="controller" value="false"/>

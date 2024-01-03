@@ -9,6 +9,8 @@
   [#include 'inc_js.html'/]
 </head>
 <body>
+[#-- 用于当前栏目高亮显示 --]
+[#assign channelAlias='message-board'/]
 [#assign headerShadow=true/]
 [#include 'inc_header.html'/]
 <div class="container">
@@ -26,14 +28,14 @@
         </h5>
         <div class="small text-black-50 mt-2 pb-2 border-bottom">
           <i class="far fa-user"></i> ${messageBoard.user.username!messageBoard.nickname!"匿名网友"}
-          <i class="ml-2 far fa-clock"></i> ${messageBoard.created.format('yyyy-MM-dd')}
+          <i class="ml-2 far fa-clock"></i> ${format(messageBoard.created, 'yyyy-MM-dd')}
         </div>
         <div class="mt-2">[#noescape]${bbcode(messageBoard.text)}[/#noescape]</div>
       </div>
       [#if messageBoard.replyText??]
         <div class="border border-warning p-2 my-3">
           <h5 class="text-danger"><i class="fas fa-comment-dots"></i> 官方回复</h5>
-          <div class="small text-muted"><i class="far fa-user"></i> ${messageBoard.replyUser.username} <i class="ml-2 far fa-clock"></i> ${messageBoard.replyDate.format('yyyy-MM-dd')}</div>
+          <div class="small text-muted"><i class="far fa-user"></i> ${messageBoard.replyUser.username} <i class="ml-2 far fa-clock"></i> ${format(messageBoard.replyDate, 'yyyy-MM-dd')}</div>
           <div class="my-2">[#noescape]${messageBoard.replyText!}[/#noescape]</div>
         </div>
       [/#if]

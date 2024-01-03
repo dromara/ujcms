@@ -12,6 +12,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -29,7 +30,7 @@ import static com.ujcms.cms.ext.domain.VisitStat.*;
  * @author PONY
  */
 @RestController("backendVisitController")
-@RequestMapping(UrlConstants.BACKEND_API + "/core/visit")
+@RequestMapping(UrlConstants.BACKEND_API + "/ext/visit")
 public class VisitController {
     private final VisitTrendService visitTrendService;
     private final VisitStatService visitStatService;
@@ -41,8 +42,9 @@ public class VisitController {
 
     @GetMapping("trend-stat")
     @PreAuthorize("hasAnyAuthority('visitTrend:list','backend','*')")
-    public List<VisitTrend> trendStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime begin,
-                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end) {
+    public List<VisitTrend> trendStat(
+            @RequestParam(name = "begin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime begin,
+            @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end) {
         Site site = Contexts.getCurrentSite();
         // 12 时
         int maxForMinute = 12 * 60 * 60;
@@ -75,8 +77,9 @@ public class VisitController {
 
     @GetMapping("visitor-stat")
     @PreAuthorize("hasAnyAuthority('visitVisitor:list','backend','*')")
-    public Map<String, VisitStat> visitorStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
-                                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+    public Map<String, VisitStat> visitorStat(
+            @RequestParam(name = "begin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+            @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
         List<VisitStat> list = stat(TYPE_VISITOR, begin, end);
         String newVisitorName = "1";
         String oldVisitorName = "0";
@@ -92,22 +95,25 @@ public class VisitController {
 
     @GetMapping("province-stat")
     @PreAuthorize("hasAnyAuthority('visitProvince:list','backend','*')")
-    public List<VisitStat> provinceStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
-                                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+    public List<VisitStat> provinceStat(
+            @RequestParam(name = "begin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+            @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
         return stat(TYPE_PROVINCE, begin, end);
     }
 
     @GetMapping("country-stat")
     @PreAuthorize("hasAnyAuthority('visitCountry:list','backend','*')")
-    public List<VisitStat> countryStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
-                                       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+    public List<VisitStat> countryStat(
+            @RequestParam(name = "begin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+            @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
         return stat(TYPE_COUNTRY, begin, end);
     }
 
     @GetMapping("source-type-stat")
     @PreAuthorize("hasAnyAuthority('visitSourceType:list','backend','*')")
-    public List<VisitStat> sourceTypeStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
-                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+    public List<VisitStat> sourceTypeStat(
+            @RequestParam(name = "begin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+            @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
         return stat(TYPE_SOURCE_TYPE, begin, end);
     }
 

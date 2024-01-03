@@ -76,6 +76,14 @@ public interface BlockItemMapper {
     List<BlockItem> listByArticleId(Integer articleId);
 
     /**
+     * 根据 文章ID 删除数据
+     *
+     * @param articleId 文章ID
+     * @return 删除条数
+     */
+    int deleteByArticleId(Integer articleId);
+
+    /**
      * 根据 区块ID 删除数据
      *
      * @param blockId 区块ID
@@ -90,7 +98,7 @@ public interface BlockItemMapper {
      * @param notSiteId 非本站点ID
      * @return 数据条数
      */
-    int countByBlockId(@Param("blockId") Integer blockId, @Param("notSiteId") Integer notSiteId);
+    int existsByBlockId(@Param("blockId") Integer blockId, @Param("notSiteId") Integer notSiteId);
 
     /**
      * 根据栏目ID删除数据

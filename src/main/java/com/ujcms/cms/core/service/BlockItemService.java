@@ -1,7 +1,8 @@
 package com.ujcms.cms.core.service;
 
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.BlockItem;
+import com.ujcms.cms.core.domain.base.BlockItemBase;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.BlockItemMapper;
@@ -34,21 +35,21 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
     }
 
     public boolean countByBlockIdAndArticleId(@Param("blockId") Integer blockId, @Param("articleId") Integer articleId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
+        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByBlockIdAndArticleId(blockId, articleId)).iterator().next().intValue() > 0;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(BlockItem bean) {
-        bean.setId(seqService.getNextVal(BlockItem.TABLE_NAME));
+        bean.setId(seqService.getNextVal(BlockItemBase.TABLE_NAME));
         mapper.insert(bean);
-        attachmentService.insertRefer(BlockItem.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.insertRefer(BlockItemBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void update(BlockItem bean) {
         mapper.update(bean);
-        attachmentService.updateRefer(BlockItem.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.updateRefer(BlockItemBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -63,7 +64,7 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
-        attachmentService.deleteRefer(BlockItem.TABLE_NAME, id);
+        attachmentService.deleteRefer(BlockItemBase.TABLE_NAME, id);
         return mapper.delete(id);
     }
 
@@ -78,17 +79,20 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
     }
 
     public List<BlockItem> selectList(BlockItemArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), BlockItem.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), BlockItemBase.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 
     public List<BlockItem> selectList(BlockItemArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public boolean existsByBlockId(Integer blockId, Integer notSiteId) {
-        return PageHelper.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countByBlockId(blockId, notSiteId)).iterator().next().intValue() > 0;
+        return mapper.existsByBlockId(blockId, notSiteId) > 0;
+    }
+
+    public int deleteByArticleId(Integer articleId) {
+        return mapper.deleteByArticleId(articleId);
     }
 
     @Override

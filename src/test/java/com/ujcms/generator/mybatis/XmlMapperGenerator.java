@@ -9,7 +9,6 @@ import org.mybatis.generator.codegen.AbstractXmlGenerator;
 import org.mybatis.generator.codegen.XmlConstants;
 import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.AbstractXmlElementGenerator;
 import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.DeleteByPrimaryKeyElementGenerator;
-import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.UpdateByPrimaryKeyWithoutBLOBsElementGenerator;
 
 import static org.mybatis.generator.internal.util.messages.Messages.getString;
 
@@ -30,14 +29,28 @@ public class XmlMapperGenerator extends AbstractXmlGenerator {
 
         addBaseResultMapElement(answer);
         addResultMapElement(answer);
+
+        if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            AbstractXmlElementGenerator moveUpGenerator = new XmlMoveUpElement();
+            initializeAndExecuteGenerator(moveUpGenerator, answer);
+
+            AbstractXmlElementGenerator moveDownGenerator = new XmlMoveDownElement();
+            initializeAndExecuteGenerator(moveDownGenerator, answer);
+
+            AbstractXmlElementGenerator updateOrderGenerator = new XmlUpdateOrderElement();
+            initializeAndExecuteGenerator(updateOrderGenerator, answer);
+        }
+
+        addSelectAllSelectElement(answer);
         addSelectAllJoinElement(answer);
         addSelectAllWhereElement(answer);
         addSelectAllElement(answer);
         addSelectByPrimaryKeyElement(answer);
         addDeleteByPrimaryKeyElement(answer);
-        addUpdateByPrimaryKeyElement(answer);
+        addUpdateElement(answer);
         addInsertElement(answer);
         addColumnListElement(answer);
+
 
         return answer;
     }
@@ -61,6 +74,11 @@ public class XmlMapperGenerator extends AbstractXmlGenerator {
             AbstractXmlElementGenerator elementGenerator = new XmlSelectElement();
             initializeAndExecuteGenerator(elementGenerator, parentElement);
         }
+    }
+
+    protected void addSelectAllSelectElement(XmlElement parentElement) {
+        AbstractXmlElementGenerator elementGenerator = new XmlSelectAllSelectElement();
+        initializeAndExecuteGenerator(elementGenerator, parentElement);
     }
 
     protected void addSelectAllJoinElement(XmlElement parentElement) {
@@ -92,9 +110,9 @@ public class XmlMapperGenerator extends AbstractXmlGenerator {
         }
     }
 
-    protected void addUpdateByPrimaryKeyElement(XmlElement parentElement) {
+    protected void addUpdateElement(XmlElement parentElement) {
         if (introspectedTable.getRules().generateUpdateByPrimaryKeySelective()) {
-            AbstractXmlElementGenerator elementGenerator = new UpdateByPrimaryKeyWithoutBLOBsElementGenerator(true);
+            AbstractXmlElementGenerator elementGenerator = new XmlUpdateElement(true);
             initializeAndExecuteGenerator(elementGenerator, parentElement);
         }
     }

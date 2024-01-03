@@ -35,11 +35,13 @@
     <sql id="selectAllCustomsFieldWhere">
         <if test="customsCondition != null">
             <foreach collection="customsCondition" index="index" item="condition">
-                and custom${index}.name_ = #{condition.column} and custom${index}.value_ ${condition.operator} #{condition.value}
+                and custom${index}.name_ = #{condition.column} and custom${index}.value_ ${condition.operator}
+                #{condition.value}
             </foreach>
         </if>
     </sql>
     <!-- 这两个sql防止下面的include在编辑器里报错，没有其它用处。真正被包含的页面在使用Select_All的xml文件。 -->
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <!-- 通用的列表和分页查询。必须放在一个已经映射Mapper文件里。 -->
@@ -47,6 +49,11 @@
         SELECT
         <if test="queryInfo != null and queryInfo.distinct">DISTINCT</if>
         <include refid="Column_List" />
+        <include refid="selectAllSelect" />
+        <!-- 防止使用DISTINCT时，order by字段不在select字段里 -->
+        <if test="queryInfo != null and queryInfo.distinct and queryInfo.selectOrderBy != null">
+            ${queryInfo.selectOrderBy}
+        </if>
         FROM
         <choose>
             <when test="queryInfo != null">${queryInfo.tableName}</when>
@@ -100,7 +107,8 @@
         <if test="queryInfo!=null and queryInfo.orderBy!=null">
             ORDER BY ${queryInfo.orderBy}
         </if>
-    </sql><update id="update" parameterType="com.ujcms.cms.core.domain.Seq">
+    </sql>
+<update id="update" parameterType="com.ujcms.cms.core.domain.Seq">
     update ujcms_seq
     set next_val_ = #{nextVal,jdbcType=BIGINT},
       cache_size_ = #{cacheSize,jdbcType=INTEGER}

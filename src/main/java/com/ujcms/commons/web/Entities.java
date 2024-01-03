@@ -11,11 +11,7 @@ import org.springframework.util.Assert;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 实体类工具。用于 Controller 拷贝属性。
@@ -35,7 +31,7 @@ public final class Entities {
                     if ("".equals(readMethod.invoke(bean))) {
                         writeMethod.invoke(bean, (Object) null);
                     }
-                } catch (Throwable ex) {
+                } catch (Exception ex) {
                     throw new FatalBeanException(
                             "Could not copy property '" + targetPd.getName() + "' from source to target", ex);
                 }
@@ -47,8 +43,16 @@ public final class Entities {
         copy(source, target, Collections.emptyList(), Arrays.asList(excludes));
     }
 
+    public static <T> void copy(T source, T target, List<String> excludes) {
+        copy(source, target, Collections.emptyList(), excludes);
+    }
+
     public static <T> void copyIncludes(T source, T target, String... includes) {
         copy(source, target, Arrays.asList(includes), Collections.emptyList());
+    }
+
+    public static <T> void copyIncludes(T source, T target, List<String> includes) {
+        copy(source, target, includes, Collections.emptyList());
     }
 
     public static <T> void copy(T source, T target, Collection<String> includes, Collection<String> excludes) {
@@ -71,7 +75,7 @@ public final class Entities {
                     Object value = readMethod.invoke(source);
                     // 将空串转为 null。因为 oracle 的 varchar2 会自动把空串转为 null，在此统一各数据库行为。
                     writeMethod.invoke(target, "".equals(value) ? null : value);
-                } catch (Throwable ex) {
+                } catch (Exception ex) {
                     throw new FatalBeanException(
                             "Could not copy property '" + sourcePdName + "' from source to target", ex);
                 }
@@ -107,7 +111,7 @@ public final class Entities {
                 String json = mapper.writeValueAsString(validFields);
                 mapper.readerForUpdating(bean).readValue(json);
             } catch (IOException e) {
-                throw new RuntimeException("copy fields to entity properties error.", e);
+                throw new IllegalStateException("copy fields to entity properties error.", e);
             }
         }
     }
@@ -124,4 +128,7 @@ public final class Entities {
         copy(fields, bean, Arrays.asList(includes), Collections.emptyList());
     }
 
+    private Entities() {
+        throw new IllegalStateException("Utility class");
+    }
 }

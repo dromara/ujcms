@@ -54,7 +54,7 @@ public class LuceneConfig {
     }
 
     /**
-     * Lucene IK smart 分词器
+     * Lucene IK smart 分词器。ikAnalyzer 分词结果不完全包含 ikSmartAnalyzer，会导致某些内容无法搜索出结果，必须统一使用 ikAnalyzer。
      */
     @Bean(destroyMethod = "close")
     public IKAnalyzer ikSmartAnalyzer() {
@@ -96,7 +96,8 @@ public class LuceneConfig {
     @Bean
     @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public ArticleLucene articleLucene() throws IOException {
-        return new ArticleLuceneImpl(luceneOperations(), ikAnalyzer(), ikSmartAnalyzer());
+        // 全部使用最细分词。不可一个最细一个智能，因为最细分词不完全包含智能分词，导致某些内容无法搜索出结果。
+        return new ArticleLuceneImpl(luceneOperations(), ikAnalyzer(), ikAnalyzer());
     }
 
 }

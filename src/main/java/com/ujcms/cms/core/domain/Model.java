@@ -187,7 +187,7 @@ public class Model extends ModelBase implements Serializable {
             return Constants.MAPPER.readValue(customs, new TypeReference<List<Model.Field>>() {
             });
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

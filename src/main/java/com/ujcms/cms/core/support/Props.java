@@ -48,7 +48,19 @@ public class Props {
     /**
      * Lucene 索引文件保存目录
      */
-    private String lucenePath = "WEB-INF/lucene";
+    private String lucenePath = "/WEB-INF/lucene";
+    /**
+     * 备份保存目录
+     */
+    private String backupPath = "/WEB-INF/backup";
+    /**
+     * 数据库类型。支持 mysql、postgresql、kingbase、opengauss
+     */
+    private String databaseType = "";
+    /**
+     * 数据库的 bin 目录，用于定位备份和恢复命令。如果备份恢复命令加入环境变量path，就必须指定该项。
+     */
+    private String databaseBinPath = "";
     /**
      * 使用URL作为模板加载地址。使用对象存储保存模板时，需使用这种方式加载模板。
      */
@@ -201,6 +213,30 @@ public class Props {
 
     public void setLucenePath(String lucenePath) {
         this.lucenePath = lucenePath;
+    }
+
+    public String getBackupPath() {
+        return backupPath;
+    }
+
+    public void setBackupPath(String backupPath) {
+        this.backupPath = backupPath;
+    }
+
+    public String getDatabaseType() {
+        return databaseType;
+    }
+
+    public void setDatabaseType(String databaseType) {
+        this.databaseType = databaseType;
+    }
+
+    public String getDatabaseBinPath() {
+        return databaseBinPath;
+    }
+
+    public void setDatabaseBinPath(String databaseBinPath) {
+        this.databaseBinPath = databaseBinPath;
     }
 
     @Nullable

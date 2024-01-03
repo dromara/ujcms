@@ -53,8 +53,9 @@ public class UrlBuilder implements CharSequence {
 
     public UrlBuilder appendPath(@Nullable String path) {
         if (StringUtils.isNotBlank(path)) {
+            // 为支持不需要 / 开头的路径，先要判断当前路径是否为空
             if (StringUtils.isNotBlank(this) && !StringUtils.endsWith(this, SLASH)
-                    && !StringUtils.startsWithAny(path, SLASH)) {
+                    && !StringUtils.startsWith(path, SLASH)) {
                 // 没有 / 则补上
                 append(SLASH);
             } else if (StringUtils.endsWith(this, SLASH) && StringUtils.startsWith(path, SLASH)) {

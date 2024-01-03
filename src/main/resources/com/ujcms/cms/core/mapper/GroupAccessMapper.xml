@@ -32,8 +32,9 @@
   <delete id="deleteBySiteId" parameterType="int">
     delete
     from ujcms_group_access
-    where exists(select * from ujcms_channel t where t.id_ = ujcms_group_access.channel_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+    where channel_id_ in (select t.id_ from ujcms_channel t where t.site_id_ = #{siteId,jdbcType=INTEGER})
   </delete>
+  <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
   <select id="selectAll" resultMap="ResultMap">

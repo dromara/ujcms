@@ -24,4 +24,21 @@ public class ArticleBuffer extends ArticleBufferBase implements Serializable {
     public ArticleBuffer(Integer id) {
         setId(id);
     }
+
+    public static ArticleBuffer of(Article article) {
+        ArticleBuffer bean = new ArticleBuffer();
+        bean.setId(article.getId());
+        bean.setComments(article.getComments());
+        bean.setDownloads(article.getDownloads());
+        bean.setDowns(article.getDowns());
+        bean.setDayViews(article.getDayViews());
+        bean.setFavorites(article.getFavorites());
+        bean.setMonthViews(article.getMonthViews());
+        bean.setQuarterViews(article.getQuarterViews());
+        bean.setUps(article.getUps());
+        bean.setViews(article.getViews());
+        bean.setWeekViews(article.getWeekViews());
+        bean.setYearViews(article.getYearViews());
+        return bean;
+    }
 }

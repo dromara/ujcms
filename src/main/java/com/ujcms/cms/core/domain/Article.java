@@ -8,6 +8,7 @@ import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.commons.db.order.OrderEntity;
 import com.ujcms.commons.file.FilesEx;
 import com.ujcms.commons.web.HtmlParserUtils;
 import com.ujcms.commons.web.PageUrlResolver;
@@ -35,8 +36,9 @@ import static com.ujcms.commons.web.Strings.formatDuration;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Article extends ArticleBase implements PageUrlResolver, Anchor, Serializable {
+public class Article extends ArticleBase implements PageUrlResolver, Anchor, OrderEntity, Serializable {
     private static final long serialVersionUID = 1L;
+
     // region Normal
 
     @JsonIgnore
@@ -134,6 +136,64 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         return StringUtils.isBlank(getChannel().getProcessKey()) ||
                 (getStatus() != STATUS_PUBLISHED && getStatus() != STATUS_ARCHIVED && getStatus() != STATUS_READY
                         && getStatus() != STATUS_REVIEWING);
+    }
+
+
+    /**
+     * 根据上下线日期调整状态。
+     *
+     * <li>如果状态为已发布、已归档，则根据上下线时间调整为待发布、已下线或保持不变
+     * <li>如果状态待发布，则根据上下线时间调整为已发布、已下线，或保持不变
+     * <li>其它状态保持不变。
+     *
+     * @param status 状态
+     */
+    public void adjustStatus(Short status) {
+        setStatus(status);
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime onlineDate = getOnlineDate();
+        OffsetDateTime offlineDate = getOfflineDate();
+        if (status == STATUS_PUBLISHED || status == STATUS_ARCHIVED) {
+            if (onlineDate != null && onlineDate.compareTo(now) < 0) {
+                setStatus(STATUS_READY);
+            }
+            if (offlineDate != null && offlineDate.compareTo(now) > 0) {
+                setStatus(STATUS_OFFLINE);
+            }
+        } else if (status == STATUS_READY) {
+            if (onlineDate == null || onlineDate.compareTo(now) >= 0) {
+                setStatus(STATUS_PUBLISHED);
+            }
+            if (offlineDate != null && offlineDate.compareTo(now) > 0) {
+                setStatus(STATUS_OFFLINE);
+            }
+        }
+    }
+
+    /**
+     * 根据上下线日期调整自身的状态
+     *
+     * @see #adjustStatus(Short)
+     */
+    public void adjustStatus() {
+        adjustStatus(getStatus());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Article bean = (Article) o;
+        return Objects.equals(getId(), bean.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
     // endregion
 
@@ -323,11 +383,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     @JsonIgnore
     private ArticleExt ext = new ArticleExt();
     /**
-     * 文章缓冲对象
-     */
-    @JsonIgnore
-    private ArticleBuffer buffer = new ArticleBuffer();
-    /**
      * 站点
      */
     @JsonIncludeProperties({"id", "name", "url"})
@@ -335,7 +390,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
     /**
      * 栏目
      */
-    @JsonIncludeProperties({"id", "name", "url", "paths", "articleModelId"})
+    @JsonIncludeProperties({"id", "name", "url", "paths", "articleModelId", "nav", "orderDesc"})
     private Channel channel = new Channel();
     /**
      * 组织
@@ -389,14 +444,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     public void setExt(ArticleExt ext) {
         this.ext = ext;
-    }
-
-    public ArticleBuffer getBuffer() {
-        return buffer;
-    }
-
-    public void setBuffer(ArticleBuffer buffer) {
-        this.buffer = buffer;
     }
 
     public Site getSite() {
@@ -587,26 +634,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     public void setSource(@Nullable String source) {
         getExt().setSource(source);
-    }
-
-    @Schema(description = "下线日期")
-    @Nullable
-    public OffsetDateTime getOfflineDate() {
-        return getExt().getOfflineDate();
-    }
-
-    public void setOfflineDate(@Nullable OffsetDateTime offlineDate) {
-        getExt().setOfflineDate(offlineDate);
-    }
-
-    @Schema(description = "置顶日期")
-    @Nullable
-    public OffsetDateTime getStickyDate() {
-        return getExt().getStickyDate();
-    }
-
-    public void setStickyDate(@Nullable OffsetDateTime stickyDate) {
-        getExt().setStickyDate(stickyDate);
     }
 
     @JsonIgnore
@@ -804,26 +831,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
         getExt().setMobileStaticFile(mobileStaticFile);
     }
 
-    @Schema(description = "创建日期")
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    public OffsetDateTime getCreated() {
-        return getExt().getCreated();
-    }
-
-    public void setCreated(OffsetDateTime created) {
-        getExt().setCreated(created);
-    }
-
-    @Schema(description = "修改日期")
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    public OffsetDateTime getModified() {
-        return getExt().getModified();
-    }
-
-    public void setModified(OffsetDateTime modified) {
-        getExt().setModified(modified);
-    }
-
     @Schema(description = "流程实例ID")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Nullable
@@ -892,61 +899,61 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ser
 
     @Schema(description = "评论次数")
     public int getComments() {
-        return getBuffer().getComments();
+        return getExt().getComments();
     }
 
     @Schema(description = "下载次数")
     public int getDownloads() {
-        return getBuffer().getDownloads();
+        return getExt().getDownloads();
     }
 
     @Schema(description = "收藏次数")
     public int getFavorites() {
-        return getBuffer().getFavorites();
+        return getExt().getFavorites();
     }
 
     @Schema(description = "顶次数")
     public int getUps() {
-        return getBuffer().getUps();
+        return getExt().getUps();
     }
 
     @Schema(description = "踩次数")
     public int getDowns() {
-        return getBuffer().getDowns();
+        return getExt().getDowns();
     }
 
     @Schema(description = "浏览次数")
     public long getViews() {
-        return getBuffer().getViews();
+        return getExt().getViews();
     }
 
     public void setViews(long views) {
-        getBuffer().setViews(views);
+        getExt().setViews(views);
     }
 
     @Schema(description = "日浏览次数")
     public int getDayViews() {
-        return getBuffer().getDayViews();
+        return getExt().getDayViews();
     }
 
     @Schema(description = "周浏览次数")
     public int getWeekViews() {
-        return getBuffer().getWeekViews();
+        return getExt().getWeekViews();
     }
 
     @Schema(description = "月浏览次数")
     public int getMonthViews() {
-        return getBuffer().getMonthViews();
+        return getExt().getMonthViews();
     }
 
     @Schema(description = "季浏览次数")
     public int getQuarterViews() {
-        return getBuffer().getQuarterViews();
+        return getExt().getQuarterViews();
     }
 
     @Schema(description = "年浏览次数")
     public long getYearViews() {
-        return getBuffer().getYearViews();
+        return getExt().getYearViews();
     }
     // endregion
 

@@ -98,12 +98,12 @@
       <div class="article-content">[#noescape]${article.text!}[/#noescape]</div>
       <script>$('.article-content img').addClass('img-fluid');</script>
       <ul class="border-top list-unstyled mt-3 pt-3">
-        [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+        [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
           <li class="text-truncate mt-2">
             <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>
         [/@ArticleNext]
-        [@ArticlePrev id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+        [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
           <li class="text-truncate mt-2">
             <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>

@@ -76,6 +76,16 @@ public class SiteSettingsController {
         return Responses.ok();
     }
 
+    @PutMapping("editor")
+    @PreAuthorize("hasAnyAuthority('siteSettings:editor:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateMessageBoard", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updateEditor(@RequestBody Map<String, Object> bean) {
+        Site site = Contexts.getCurrentSite();
+        site.setEditor(bean);
+        service.update(site, null);
+        return Responses.ok();
+    }
+
     @PutMapping("customs")
     @PreAuthorize("hasAnyAuthority('siteSettings:customs:update','*')")
     @OperationLog(module = "siteSettings", operation = "updateCustoms", type = OperationType.UPDATE)

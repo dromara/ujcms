@@ -54,29 +54,32 @@ public class ChannelController {
         validateChannel(channel);
         modelMap.put("channel", channel);
         modelMap.put(PAGE, Constants.validPage(page));
-        modelMap.put(PAGE_SIZE, channel.getExt().getPageSize());
+        modelMap.put(PAGE_SIZE, channel.getPageSize());
         modelMap.put(PAGE_URL_RESOLVER, channel);
         return channel.getTemplate();
+    }
+
+    public static boolean hasAccessPermission(Group group, Integer siteId, Integer channelId,
+                                              GroupService groupService) {
+        if (Boolean.TRUE.equals(group.getAllAccessPermission())) {
+            return true;
+        }
+        List<Integer> channelIds = groupService.listAccessPermissions(group.getId(), siteId);
+        return channelIds.contains(channelId);
     }
 
     private void validateChannel(Channel channel) {
         User user = Contexts.findCurrentUser();
         if (user == null) {
-            Group anonymous = groupService.getAnonymous();
-            if (!anonymous.getAllAccessPermission()) {
-                List<Integer> anonChannelIds = groupService.listAccessPermissions(Group.ANONYMOUS_ID, channel.getSiteId());
-                if (!anonChannelIds.contains(channel.getId())) {
-                    throw new Http401Exception();
-                }
+            Group anonGroup = groupService.getAnonymous();
+            if (!hasAccessPermission(anonGroup, channel.getSiteId(), channel.getId(), groupService)) {
+                throw new Http401Exception();
             }
-            return;
-        }
-        if (user.hasAllAccessPermission()) {
-            return;
-        }
-        List<Integer> channelIds = groupService.listAccessPermissions(user.getGroupId(), channel.getSiteId());
-        if (!channelIds.contains(channel.getId())) {
-            throw new Http403Exception("Channel access forbidden. ID: " + channel.getId());
+        } else {
+            Group userGroup = user.getGroup();
+            if (!hasAccessPermission(userGroup, channel.getSiteId(), channel.getId(), groupService)) {
+                throw new Http403Exception("Channel access forbidden. ID: " + channel.getId());
+            }
         }
     }
 }

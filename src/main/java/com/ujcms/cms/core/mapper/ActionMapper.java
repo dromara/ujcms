@@ -72,7 +72,7 @@ public interface ActionMapper {
      * @param cookie    cookie标识
      * @return 数据数量
      */
-    int countBy(@Nullable @Param("refType") String refType,
+    int existsBy(@Nullable @Param("refType") String refType,
                 @Nullable @Param("refId") Long refId,
                 @Nullable @Param("refOption") String refOption,
                 @Nullable @Param("date") OffsetDateTime date,

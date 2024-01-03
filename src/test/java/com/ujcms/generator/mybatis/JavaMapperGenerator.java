@@ -48,6 +48,12 @@ public class JavaMapperGenerator extends AbstractJavaClientGenerator {
             interfaze.addImportedType(fqjt);
         }
 
+        if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            FullyQualifiedJavaType orderEntityMapper = new FullyQualifiedJavaType("com.ujcms.commons.db.order.OrderEntityMapper");
+            interfaze.addSuperInterface(orderEntityMapper);
+            interfaze.addImportedType(orderEntityMapper);
+        }
+
         addInsertMethod(interfaze);
         addUpdateByPrimaryKeyMethod(interfaze);
         addDeleteByPrimaryKeyMethod(interfaze);

@@ -12,6 +12,7 @@
     <result column="status_" jdbcType="SMALLINT" property="status" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ShortMessage" />
+  <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
   <select id="selectAll" resultMap="ResultMap">

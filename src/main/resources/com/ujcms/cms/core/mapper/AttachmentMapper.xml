@@ -29,7 +29,7 @@
         select
         <include refid="Column_List" />
         from ujcms_attachment t
-        where t.url_= #{url,jdbcType=VARCHAR}
+        where t.url_ = #{url,jdbcType=VARCHAR}
     </select>
     <delete id="deleteBySiteId" parameterType="int">
         delete
@@ -38,12 +38,13 @@
     </delete>
 
     <update id="updateUsed">
-        update ujcms_attachment t
-        set t.used_ = CASE WHEN exists(select * from ujcms_attachment_refer refer where refer.attachment_id_ = t.id_) THEN 1 ELSE 0 END
-        where t.id_ in
+        update ujcms_attachment
+        set used_ = CASE WHEN exists(select * from ujcms_attachment_refer refer where refer.attachment_id_ = id_) THEN 1 ELSE 0 END
+        where id_ in
         <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
     </update>
 
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

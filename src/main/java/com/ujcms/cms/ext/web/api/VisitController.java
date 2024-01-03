@@ -13,6 +13,7 @@ import com.ujcms.commons.web.Servlets;
 import eu.bitwalker.useragentutils.Browser;
 import eu.bitwalker.useragentutils.UserAgent;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -52,9 +53,18 @@ public class VisitController {
         return globalService.selectGlobalDataOrInit(new GlobalVisitorCount(), GlobalVisitorCount.class).getVisitor();
     }
 
+    @Operation(summary = "记录访问统计接口")
     @PostMapping("{siteId}")
-    public void visit(@PathVariable Integer siteId, String url, String entryUrl, String referrer, Long si, Long uv,
-                      Boolean newVisitor, Integer count, Integer duration, HttpServletRequest request) {
+    public void visit(@Parameter(description = "站点ID") @PathVariable Integer siteId,
+                      @Parameter(description = "受访URL地址。即需要记录的访问地址。js中可以使用`document.location.href`获取") String url,
+                      @Parameter(description = "入口地址。用户每次浏览网站，通常会浏览多个页面，第一个打开的页面即为入口页面") String entryUrl,
+                      @Parameter(description = "来源页面。当前页面的上一个页面。js中可以使用`document.referrer`获取") String referrer,
+                      @Parameter(description = "会话ID(Session ID)。可以在页面中使用随机数生成会话ID，同一个会话访问需确保会话ID相同") Long si,
+                      @Parameter(description = "访客ID(Unique Visitor)。可以在页面中使用随机数生成访客ID，同一个访客访问需确保访客ID相同") Long uv,
+                      @Parameter(description = "是否新访客。如果用户是第一次访问网站，本次会话的所有访问都应为新访客访问") Boolean newVisitor,
+                      @Parameter(description = "访问计数。正常访问为`1`，关闭页面结束访问为`0`") Integer count,
+                      @Parameter(description = "持续时间。本次访问会话的持续时间，从本次会话访问的第一个页面开始计算时间。单位：秒") Integer duration,
+                      HttpServletRequest request) {
         String host = UriComponentsBuilder.fromHttpUrl(url).build().getHost();
         String source = VisitStat.SOURCE_DIRECT;
         String sourceType = VisitStat.SOURCE_DIRECT;

@@ -35,25 +35,25 @@ public class MessageBoardBase implements Serializable {
     private Integer siteId = 0;
 
     /**
-     * 留言用户
+     * 类别ID
      */
     @NotNull
-    @Schema(description="留言用户")
+    @Schema(description="类别ID")
+    private Integer typeId = 0;
+
+    /**
+     * 留言用户ID
+     */
+    @NotNull
+    @Schema(description="留言用户ID")
     private Integer userId = 0;
 
     /**
-     * 回复用户
+     * 回复用户ID
      */
     @Nullable
-    @Schema(description="回复用户")
+    @Schema(description="回复用户ID")
     private Integer replyUserId;
-
-    /**
-     * 类型
-     */
-    @NotNull
-    @Schema(description="类型")
-    private Integer typeId = 0;
 
     /**
      * 留言标题
@@ -183,6 +183,14 @@ public class MessageBoardBase implements Serializable {
         this.siteId = siteId;
     }
 
+    public Integer getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(Integer typeId) {
+        this.typeId = typeId;
+    }
+
     public Integer getUserId() {
         return userId;
     }
@@ -198,14 +206,6 @@ public class MessageBoardBase implements Serializable {
 
     public void setReplyUserId(@Nullable Integer replyUserId) {
         this.replyUserId = replyUserId;
-    }
-
-    public Integer getTypeId() {
-        return typeId;
-    }
-
-    public void setTypeId(Integer typeId) {
-        this.typeId = typeId;
     }
 
     public String getTitle() {

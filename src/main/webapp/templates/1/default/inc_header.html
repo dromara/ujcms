@@ -34,7 +34,7 @@
           [@ChannelList isNav='true' offset='0'; list]
             [#list list as item]
               <li class="nav-item">
-                <a class="nav-link[#if channel?? && channel.paths[0].id == item.id] active[/#if]" href="${item.url}"[#if item.targetBlank] target="_blank"[/#if]>${item.name}</a>
+                <a class="nav-link[#if (channel?? && channel.paths[0].id == item.id) || (channelAlias?? && channelAlias == item.alias)] active[/#if]" href="${item.url}"[#if item.targetBlank] target="_blank"[/#if]>${item.name}</a>
               </li>
             [/#list]
           [/@ChannelList]

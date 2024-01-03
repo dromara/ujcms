@@ -59,12 +59,13 @@ public class ContextConfig implements InitializingBean {
         // 支持 java.time API
         configuration.setObjectWrapper(new Java8ObjectWrapper(freemarker.template.Configuration.VERSION_2_3_31));
         // 标签
+        configuration.setSharedVariable("SiteList", new SiteListDirective(siteService));
         configuration.setSharedVariable("Site", new SiteDirective(siteService));
         configuration.setSharedVariable("ChannelList", new ChannelListDirective(channelService));
         configuration.setSharedVariable("Channel", new ChannelDirective(channelService));
         configuration.setSharedVariable("ArticleList", new ArticleListDirective(articleService, channelService));
         configuration.setSharedVariable("ArticlePage", new ArticlePageDirective(articleService, channelService));
-        configuration.setSharedVariable("Article", new ArticleDirective(articleService, channelService));
+        configuration.setSharedVariable("Article", new ArticleDirective(articleService));
         configuration.setSharedVariable("ArticlePrev", new ArticlePrevDirective(articleService));
         configuration.setSharedVariable("ArticleNext", new ArticleNextDirective(articleService));
         configuration.setSharedVariable("DictList", new DictListDirective(dictService));

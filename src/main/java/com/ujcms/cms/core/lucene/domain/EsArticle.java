@@ -4,7 +4,6 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.support.Anchor;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.NumericDocValuesField;
@@ -40,14 +39,15 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
         setDiscType("Article");
     }
 
-    public static final String ID = "id";
-    public static final String PUBLISH_DATE = "publishDate";
-    public static final String CHANNEL_ID = "channel.id";
-    public static final String CHANNEL_NAME = "channel.name";
-    public static final String CHANNEL_URL = "channel.url";
-    public static final String CHANNEL_PATHS_ID = "channel.paths.id";
-    public static final String CHANNEL_PATHS_NAME = "channel.paths.name";
-    public static final String CHANNEL_PATHS_URL = "channel.paths.url";
+    public static final String FIELD_ID = "id";
+    public static final String FIELD_STATUS = "status";
+    public static final String FIELD_PUBLISH_DATE = "publishDate";
+    public static final String FIELD_CHANNEL_ID = "channel.id";
+    public static final String FIELD_CHANNEL_NAME = "channel.name";
+    public static final String FIELD_CHANNEL_URL = "channel.url";
+    public static final String FIELD_CHANNEL_PATHS_ID = "channel.paths.id";
+    public static final String FIELD_CHANNEL_PATHS_NAME = "channel.paths.name";
+    public static final String FIELD_CHANNEL_PATHS_URL = "channel.paths.url";
 
     public static EsArticle of(org.apache.lucene.document.Document doc) {
         EsArticle bean = new EsArticle();
@@ -58,16 +58,17 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     @Override
     protected void fillWithDocument(org.apache.lucene.document.Document doc) {
         super.fillWithDocument(doc);
-        setId(doc.getField(ID).numericValue().intValue());
-        long publishMilli = doc.getField(PUBLISH_DATE).numericValue().longValue();
+        setId(doc.getField(FIELD_ID).numericValue().intValue());
+        setStatus(doc.getField(FIELD_STATUS).numericValue().shortValue());
+        long publishMilli = doc.getField(FIELD_PUBLISH_DATE).numericValue().longValue();
         setPublishDate(OffsetDateTime.ofInstant(Instant.ofEpochMilli(publishMilli), ZoneId.systemDefault()));
 
-        getChannel().setId(doc.getField(CHANNEL_ID).numericValue().intValue());
-        getChannel().setName(doc.get(CHANNEL_NAME));
-        getChannel().setUrl(doc.get(CHANNEL_URL));
-        IndexableField[] pathIds = doc.getFields(CHANNEL_PATHS_ID);
-        IndexableField[] pathNames = doc.getFields(CHANNEL_PATHS_NAME);
-        IndexableField[] pathUrls = doc.getFields(CHANNEL_PATHS_URL);
+        getChannel().setId(doc.getField(FIELD_CHANNEL_ID).numericValue().intValue());
+        getChannel().setName(doc.get(FIELD_CHANNEL_NAME));
+        getChannel().setUrl(doc.get(FIELD_CHANNEL_URL));
+        IndexableField[] pathIds = doc.getFields(FIELD_CHANNEL_PATHS_ID);
+        IndexableField[] pathNames = doc.getFields(FIELD_CHANNEL_PATHS_NAME);
+        IndexableField[] pathUrls = doc.getFields(FIELD_CHANNEL_PATHS_URL);
         for (int i = 0, len = pathIds.length; i < len; i++) {
             ChannelBaseInner channelBaseInner = new ChannelBaseInner();
             channelBaseInner.setId(pathIds[i].numericValue().intValue());
@@ -80,23 +81,27 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     @Override
     public org.apache.lucene.document.Document toDocument() {
         org.apache.lucene.document.Document doc = super.toDocument();
-        doc.add(new IntPoint(ID, id));
-        doc.add(new StringField(ID, String.valueOf(id), Store.NO));
-        doc.add(new StoredField(ID, id));
-        long publishMilli = publishDate.toInstant().toEpochMilli();
-        doc.add(new LongPoint(PUBLISH_DATE, publishMilli));
-        doc.add(new StoredField(PUBLISH_DATE, publishMilli));
-        doc.add(new NumericDocValuesField(PUBLISH_DATE, publishMilli));
+        doc.add(new IntPoint(FIELD_ID, id));
+        doc.add(new StringField(FIELD_ID, String.valueOf(id), Store.NO));
+        doc.add(new StoredField(FIELD_ID, id));
 
-        doc.add(new IntPoint(CHANNEL_ID, getChannel().getId()));
-        doc.add(new StoredField(CHANNEL_ID, getChannel().getId()));
-        doc.add(new StoredField(CHANNEL_NAME, getChannel().getName()));
-        doc.add(new StoredField(CHANNEL_URL, getChannel().getUrl()));
+        doc.add(new IntPoint(FIELD_STATUS, status));
+        doc.add(new StoredField(FIELD_STATUS, status));
+
+        long publishMilli = publishDate.toInstant().toEpochMilli();
+        doc.add(new LongPoint(FIELD_PUBLISH_DATE, publishMilli));
+        doc.add(new StoredField(FIELD_PUBLISH_DATE, publishMilli));
+        doc.add(new NumericDocValuesField(FIELD_PUBLISH_DATE, publishMilli));
+
+        doc.add(new IntPoint(FIELD_CHANNEL_ID, getChannel().getId()));
+        doc.add(new StoredField(FIELD_CHANNEL_ID, getChannel().getId()));
+        doc.add(new StoredField(FIELD_CHANNEL_NAME, getChannel().getName()));
+        doc.add(new StoredField(FIELD_CHANNEL_URL, getChannel().getUrl()));
         for (ChannelBaseInner bean : getChannel().getPaths()) {
-            doc.add(new IntPoint(CHANNEL_PATHS_ID, bean.getId()));
-            doc.add(new StoredField(CHANNEL_PATHS_ID, bean.getId()));
-            doc.add(new StoredField(CHANNEL_PATHS_NAME, bean.getName()));
-            doc.add(new StoredField(CHANNEL_PATHS_URL, bean.getUrl()));
+            doc.add(new IntPoint(FIELD_CHANNEL_PATHS_ID, bean.getId()));
+            doc.add(new StoredField(FIELD_CHANNEL_PATHS_ID, bean.getId()));
+            doc.add(new StoredField(FIELD_CHANNEL_PATHS_NAME, bean.getName()));
+            doc.add(new StoredField(FIELD_CHANNEL_PATHS_URL, bean.getUrl()));
         }
         return doc;
     }
@@ -104,13 +109,11 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     public static EsArticle of(Article article) {
         EsArticle bean = new EsArticle();
         bean.setId(article.getId());
+        bean.setStatus(article.getStatus());
+        bean.setEnabled(article.getChannel().getAllowSearch());
         bean.setTitle(article.getTitle());
-        StringBuilder bodyBuff = new StringBuilder();
-        if (StringUtils.isNotBlank(article.getSeoDescription())) {
-            bodyBuff.append(article.getSeoDescription());
-        }
-        bodyBuff.append(article.getPlainText());
-        bean.setBody(bodyBuff.toString());
+        bean.setDescription(article.getSeoDescription());
+        bean.setBody(article.getPlainText());
         bean.setUrl(article.getUrl());
         bean.setPublishDate(article.getPublishDate());
         bean.setImage(article.getImage());
@@ -125,6 +128,11 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     @Id
     @Field
     private Integer id = 0;
+    /**
+     * 状态
+     */
+    @Field(type = FieldType.Short)
+    private Short status = 0;
     /**
      * 发布日期
      */
@@ -142,6 +150,14 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Short getStatus() {
+        return status;
+    }
+
+    public void setStatus(Short status) {
+        this.status = status;
     }
 
     public OffsetDateTime getPublishDate() {
@@ -164,7 +180,9 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
      * 全文检索栏目基础实体类
      */
     @Schema(name = "EsArticle.ChannelBaseInner", description = "全文检索栏目基础实体类")
-    public static class ChannelBaseInner implements Anchor {
+    public static class ChannelBaseInner implements Anchor, Serializable {
+        private static final long serialVersionUID = 1L;
+
         public static ChannelBaseInner of(Channel channel) {
             ChannelBaseInner bean = new ChannelInner();
             bean.setId(channel.getId());
@@ -220,7 +238,9 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
      * 全文检索栏目实体类
      */
     @Schema(name = "EsArticle.ChannelInner", description = "全文检索栏目实体类")
-    public static class ChannelInner extends ChannelBaseInner {
+    public static class ChannelInner extends ChannelBaseInner implements Serializable {
+        private static final long serialVersionUID = 1L;
+
         public static ChannelInner of(Channel channel) {
             ChannelInner bean = new ChannelInner();
             bean.setId(channel.getId());

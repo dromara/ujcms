@@ -32,7 +32,11 @@ public class BaseModel extends AbstractJavaGenerator {
         topLevelClass.setSuperClass(superClass);
         topLevelClass.addImportedType(superClass);
         topLevelClass.addImportedType(new FullyQualifiedJavaType("java.io.Serializable"));
-        topLevelClass.addSuperInterface(new FullyQualifiedJavaType("java.io.Serializable"));
+        topLevelClass.addSuperInterface(new FullyQualifiedJavaType("Serializable"));
+        if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            topLevelClass.addImportedType(new FullyQualifiedJavaType("com.ujcms.commons.db.order.OrderEntity"));
+            topLevelClass.addSuperInterface(new FullyQualifiedJavaType("OrderEntity"));
+        }
 
         Field serialVersionField = new Field("serialVersionUID",new FullyQualifiedJavaType("long"));
         serialVersionField.setVisibility(JavaVisibility.PRIVATE);
@@ -42,10 +46,10 @@ public class BaseModel extends AbstractJavaGenerator {
         topLevelClass.addField(serialVersionField);
 
         JavaModelGeneratorConfiguration config = context.getJavaModelGeneratorConfiguration();
-        if ("true".equalsIgnoreCase(config.getProperty("swagger"))) {
-            topLevelClass.addImportedType(new FullyQualifiedJavaType("io.swagger.v3.oas.annotations.media.Schema"));
+        // if ("true".equalsIgnoreCase(config.getProperty("swagger"))) {
+            // topLevelClass.addImportedType(new FullyQualifiedJavaType("io.swagger.v3.oas.annotations.media.Schema"));
             // topLevelClass.addAnnotation("@Schema(description=\"" + topLevelClass.getType().getShortName() + "\")");
-        }
+        // }
 
         // 无法获取到表的remark，应该是MyBatis生成器有BUG。应该获取TABLE_COMMENT。
         // topLevelClass.addAnnotation("@Schema(description=\"" + introspectedTable.getRemarks() + "\")");

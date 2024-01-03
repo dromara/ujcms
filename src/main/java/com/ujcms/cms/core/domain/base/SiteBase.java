@@ -2,6 +2,7 @@ package com.ujcms.cms.core.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -151,6 +152,14 @@ public class SiteBase implements Serializable {
     private String mobileStaticFile;
 
     /**
+     * 编辑器设置
+     */
+    @Length(max = 1000)
+    @Nullable
+    @Schema(description="编辑器设置")
+    private String editorSettings;
+
+    /**
      * 水印设置
      */
     @Length(max = 1000)
@@ -175,6 +184,55 @@ public class SiteBase implements Serializable {
     private String messageBoardSettings;
 
     /**
+     * 浏览次数
+     */
+    @NotNull
+    @Schema(description="浏览次数")
+    private Long views = 0L;
+
+    /**
+     * 首页浏览次数
+     */
+    @NotNull
+    @Schema(description="首页浏览次数")
+    private Long selfViews = 0L;
+
+    /**
+     * 今日浏览次数
+     */
+    @NotNull
+    @Schema(description="今日浏览次数")
+    private Integer todayViews = 0;
+
+    /**
+     * 昨日浏览次数
+     */
+    @NotNull
+    @Schema(description="昨日浏览次数")
+    private Integer yesterdayViews = 0;
+
+    /**
+     * 最高浏览次数
+     */
+    @NotNull
+    @Schema(description="最高浏览次数")
+    private Integer maxViews = 0;
+
+    /**
+     * 最高浏览日期
+     */
+    @NotNull
+    @Schema(description="最高浏览日期")
+    private OffsetDateTime maxDate = OffsetDateTime.now();
+
+    /**
+     * 状态(0:正常,1:关闭)
+     */
+    @NotNull
+    @Schema(description="状态(0:正常,1:关闭)")
+    private Short status = 0;
+
+    /**
      * 层级
      */
     @NotNull
@@ -187,13 +245,6 @@ public class SiteBase implements Serializable {
     @NotNull
     @Schema(description="排序")
     private Integer order = 999999;
-
-    /**
-     * 状态(0:正常,1:关闭)
-     */
-    @NotNull
-    @Schema(description="状态(0:正常,1:关闭)")
-    private Short status = 0;
 
     public Integer getId() {
         return id;
@@ -340,6 +391,15 @@ public class SiteBase implements Serializable {
     }
 
     @Nullable
+    public String getEditorSettings() {
+        return editorSettings;
+    }
+
+    public void setEditorSettings(@Nullable String editorSettings) {
+        this.editorSettings = editorSettings;
+    }
+
+    @Nullable
     public String getWatermarkSettings() {
         return watermarkSettings;
     }
@@ -366,6 +426,62 @@ public class SiteBase implements Serializable {
         this.messageBoardSettings = messageBoardSettings;
     }
 
+    public Long getViews() {
+        return views;
+    }
+
+    public void setViews(Long views) {
+        this.views = views;
+    }
+
+    public Long getSelfViews() {
+        return selfViews;
+    }
+
+    public void setSelfViews(Long selfViews) {
+        this.selfViews = selfViews;
+    }
+
+    public Integer getTodayViews() {
+        return todayViews;
+    }
+
+    public void setTodayViews(Integer todayViews) {
+        this.todayViews = todayViews;
+    }
+
+    public Integer getYesterdayViews() {
+        return yesterdayViews;
+    }
+
+    public void setYesterdayViews(Integer yesterdayViews) {
+        this.yesterdayViews = yesterdayViews;
+    }
+
+    public Integer getMaxViews() {
+        return maxViews;
+    }
+
+    public void setMaxViews(Integer maxViews) {
+        this.maxViews = maxViews;
+    }
+
+    public OffsetDateTime getMaxDate() {
+        return maxDate;
+    }
+
+    public void setMaxDate(OffsetDateTime maxDate) {
+        this.maxDate = maxDate;
+    }
+
+    public Short getStatus() {
+        return status;
+    }
+
+    public void setStatus(Short status) {
+        this.status = status;
+    }
+
     public Short getDepth() {
         return depth;
     }
@@ -380,13 +496,5 @@ public class SiteBase implements Serializable {
 
     public void setOrder(Integer order) {
         this.order = order;
-    }
-
-    public Short getStatus() {
-        return status;
-    }
-
-    public void setStatus(Short status) {
-        this.status = status;
     }
 }

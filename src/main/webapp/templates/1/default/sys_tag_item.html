@@ -42,7 +42,7 @@
                   <a href="${dy}/tag/${tag.id?c}" class="ml-1"><span class="badge badge-secondary">${tag.name}</span></a>
                   [/#list]
                 </div>
-                <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.publishDate.format('yyyy-MM-dd')}</div>
+                <div class="float-right"><i class="ml-2 far fa-clock"></i> ${format(bean.publishDate, 'yyyy-MM-dd')}</div>
               </div>
             </div>
           </li>

@@ -45,17 +45,25 @@ public class MessageBoardListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_REPLIED = "isReplied";
     /**
+     * 是否获取所有站点的数据。布尔型(Boolean)。默认：false。
+     */
+    public static final String IS_ALL_SITE = "isAllSite";
+    /**
      * 状态。布尔型。
      */
     public static final String STATUS = "status";
 
     public static void assemble(MessageBoardArgs args, Map<String, ?> params, Integer defaultSiteId) {
-        Integer siteId = Optional.ofNullable(getInteger(params, SITE_ID)).orElse(defaultSiteId);
+        Integer siteId = getInteger(params, SITE_ID);
+        // 不获取所有站点，则给默认站点ID
+        if (siteId == null && !getBoolean(params, IS_ALL_SITE, false)) {
+            siteId = defaultSiteId;
+        }
         args.siteId(siteId);
         Optional.ofNullable(Directives.getInteger(params, TYPE_ID)).ifPresent(args::typeId);
         Optional.ofNullable(getBoolean(params, IS_RECOMMENDED)).ifPresent(args::isRecommended);
         Optional.ofNullable(getBoolean(params, IS_REPLIED)).ifPresent(args::isReplied);
-        Optional.ofNullable(Directives.getIntegers(params, STATUS)).ifPresent(args::status);
+        Optional.ofNullable(Directives.getShorts(params, STATUS)).ifPresent(args::status);
         Directives.handleOrderBy(args.getQueryMap(), params, "created_desc,id_desc");
     }
 

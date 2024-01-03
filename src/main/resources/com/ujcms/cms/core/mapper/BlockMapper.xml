@@ -27,8 +27,9 @@
     <result column="order_" jdbcType="SMALLINT" property="order" />
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Block" />
-    <select id="countByAlias" resultType="int">
-        select count(*)
+    <select id="existsByAlias" resultType="int">
+        select case when exists(
+        select *
         from ujcms_block t
         where t.alias_ = #{alias}
         <choose>
@@ -39,12 +40,16 @@
                 and t.site_id_ is null
             </otherwise>
         </choose>
+        ) then 1
+        else 0
+        end as non_zero_exists
     </select>
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_block
         where site_id_ = #{siteId,jdbcType=INTEGER}
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

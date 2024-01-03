@@ -16,14 +16,20 @@ import java.awt.image.RenderedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static com.ujcms.commons.file.FilesEx.SLASH;
+import static com.ujcms.commons.file.FilesEx.normalize;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -143,22 +149,56 @@ public class MinIoFileHandler implements FileHandler {
 
     @Override
     public void unzip(MultipartFile zipPart, String destDir, String... ignoredExtensions) {
-        try {
-            ZipUtils.decompress(zipPart.getInputStream(),
-                    (entryName, zipIn) -> store(UrlBuilder.of(destDir).appendPath(entryName).toString(), zipIn),
-                    entryName -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
-                    ignoredExtensions);
+        try (InputStream inputStream = zipPart.getInputStream()) {
+            unzip(inputStream, destDir, ignoredExtensions);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
     @Override
-    public void zip(String dir, String[] names, OutputStream out) {
-        ZipUtils.zip(dir, names, out,
-                filename -> filename.endsWith(SLASH),
-                filename -> listFiles(filename).stream().map(WebFile::getOrigName).toArray(String[]::new),
-                this::writeOutputStream);
+    public void unzip(InputStream inputStream, String destDir, String... ignoredExtensions) {
+        ZipUtils.decompress(inputStream,
+                (entryName, zipIn) -> store(UrlBuilder.of(destDir).appendPath(entryName).toString(), zipIn),
+                entryName -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
+                ignoredExtensions);
+    }
+
+    @Override
+    public void zip(String dir, String[] names, OutputStream out,
+                    BiPredicate<String, Long> isAddEntry, Predicate<String> isAddDirEntry) {
+        ZipUtils.zip(dir, names, out, new ZipHandler() {
+            @Override
+            public boolean isDir(String filename) {
+                return filename.endsWith(SLASH);
+            }
+
+            @Override
+            public String[] listChildren(String filename) {
+                return listFiles(filename).stream().map(WebFile::getOrigName).toArray(String[]::new);
+            }
+
+            @Override
+            public void addDirEntry(String entryName, ZipOutputStream zipOut) throws IOException {
+                if (isAddDirEntry.test(entryName)) {
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipOut.putNextEntry(zipEntry);
+                    zipOut.closeEntry();
+                }
+            }
+
+            @Override
+            public void addEntry(String filename, String entryName, ZipOutputStream zipOut) throws IOException {
+                ObjectStat stat = getObjectStat(filename);
+                long lastModified = stat.createdTime().toInstant().toEpochMilli();
+                if (isAddEntry.test(entryName, lastModified)) {
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipEntry.setLastModifiedTime(FileTime.fromMillis(lastModified));
+                    zipOut.putNextEntry(zipEntry);
+                    writeOutputStream(filename, zipOut);
+                }
+            }
+        });
     }
 
     @Override
@@ -215,7 +255,17 @@ public class MinIoFileHandler implements FileHandler {
 
     @Override
     public boolean exist(String filename) {
-        return fileExist(getStoreName(filename));
+        return findStatObject(getStoreName(filename)) != null;
+    }
+
+    @Override
+    public boolean isFile(String filename) {
+        return !filename.endsWith(SLASH) && findStatObject(getStoreName(filename)) != null;
+    }
+
+    @Override
+    public boolean isDirectory(String filename) {
+        return filename.endsWith(SLASH) && findStatObject(getStoreName(filename)) != null;
     }
 
     @Nullable
@@ -242,23 +292,33 @@ public class MinIoFileHandler implements FileHandler {
         }
     }
 
-    @Override
-    public WebFile getWebFile(String filename) {
+    private ObjectStat getObjectStat(String filename) {
         try {
             String storeName = getStoreName(filename);
-            ObjectStat stat = client.statObject(StatObjectArgs.builder().bucket(bucket)
-                    .object(storeName).build());
-            WebFile webFile = new WebFile(filename, displayPrefix, stat);
-            if (webFile.isEditable()) {
-                try (InputStream in = client.getObject(
-                        GetObjectArgs.builder().bucket(bucket).object(storeName).build())) {
-                    webFile.setText(IOUtils.toString(in, UTF_8));
-                }
-            }
-            return webFile;
+            return client.statObject(StatObjectArgs.builder().bucket(bucket).object(storeName).build());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private String getObjectText(String filename) {
+        String storeName = getStoreName(filename);
+        try (InputStream in = client.getObject(
+                GetObjectArgs.builder().bucket(bucket).object(storeName).build())) {
+            return IOUtils.toString(in, UTF_8);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public WebFile getWebFile(String filename) {
+        ObjectStat stat = getObjectStat(filename);
+        WebFile webFile = new WebFile(normalize(filename), displayPrefix, stat);
+        if (webFile.isEditable()) {
+            webFile.setText(getObjectText(filename));
+        }
+        return webFile;
     }
 
     @Override
@@ -329,7 +389,7 @@ public class MinIoFileHandler implements FileHandler {
     public boolean deleteFile(String filename) {
         try {
             String storeName = getStoreName(filename);
-            if (!fileExist(storeName)) {
+            if (findStatObject(storeName) == null) {
                 return false;
             }
             client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(storeName).build());
@@ -353,12 +413,12 @@ public class MinIoFileHandler implements FileHandler {
         return true;
     }
 
-    private boolean fileExist(String storeName) {
+    @Nullable
+    private ObjectStat findStatObject(String storeName) {
         try {
-            client.statObject(StatObjectArgs.builder().bucket(bucket).object(storeName).build());
-            return true;
+            return client.statObject(StatObjectArgs.builder().bucket(bucket).object(storeName).build());
         } catch (ErrorResponseException e) {
-            return false;
+            return null;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -402,7 +462,7 @@ public class MinIoFileHandler implements FileHandler {
     }
 
     private String getStoreName(String filename) {
-        String storeName = UrlBuilder.of(storePrefix).appendPath(FilesEx.normalize(filename)).toString();
+        String storeName = UrlBuilder.of(storePrefix).appendPath(normalize(filename)).toString();
         if (storeName.startsWith(SLASH)) {
             return storeName.substring(1);
         }

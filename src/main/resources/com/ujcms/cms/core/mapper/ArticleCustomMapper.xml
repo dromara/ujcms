@@ -23,13 +23,14 @@
     <delete id="deleteByChannelId" parameterType="int">
         delete
         from ujcms_article_custom
-        where exists(select * from ujcms_article t where t.id_ = ujcms_article_custom.article_id_ and t.channel_id_ = #{channelId,jdbcType=INTEGER})
+        where article_id_ in (select t.id_ from ujcms_article t where t.channel_id_ = #{channelId,jdbcType=INTEGER})
     </delete>
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_article_custom
-        where exists(select * from ujcms_article t where t.id_ = ujcms_article_custom.article_id_ and t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where article_id_ in (select t.id_ from ujcms_article t where t.site_id_ = #{siteId,jdbcType=INTEGER})
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

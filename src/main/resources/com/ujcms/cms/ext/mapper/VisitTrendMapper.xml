@@ -59,6 +59,7 @@
         where site_id_ = #{siteId,jdbcType=INTEGER}
     </delete>
 
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

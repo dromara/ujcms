@@ -92,7 +92,7 @@ public class BlockItemController {
     }
 
     @PutMapping("order")
-    @PreAuthorize("hasAnyAuthority('block:update','*')")
+    @PreAuthorize("hasAnyAuthority('blockItem:update','*')")
     @OperationLog(module = "blockItem", operation = "updateOrder", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
         Integer siteId = Contexts.getCurrentSiteId();

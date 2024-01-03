@@ -1,6 +1,5 @@
 package com.ujcms.cms.core.mapper;
 
-import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.commons.db.tree.TreeEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
@@ -31,15 +30,15 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
     /**
      * 根据查询条件获取列表
      *
-     * @param queryInfo        查询条件
-     * @param customsCondition 自定义字段查询条件
-     * @param parentId         上级ID
-     * @param fullOrgId        组织ID。属于该组织的上级或下级的站点都符合条件
+     * @param queryInfo          查询条件
+     * @param customsCondition   自定义字段查询条件
+     * @param isQueryHasChildren 是否查询包含子站点
+     * @param fullOrgId          组织ID。属于该组织的上级或下级的站点都符合条件
      * @return 数据列表
      */
     List<Site> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
                          @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
-                         @Nullable @Param("parentId") Integer parentId,
+                         @Param("isQueryHasChildren") boolean isQueryHasChildren,
                          @Nullable @Param("fullOrgId") Integer fullOrgId);
 
     /**
@@ -65,6 +64,13 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
      * @return 站点ID列表
      */
     List<Integer> listIdByOrgId(Integer orgId);
+
+    /**
+     * 查询站点数量
+     *
+     * @return 站点数量
+     */
+    int count();
 
     /**
      * 根据域名查找站点

@@ -235,6 +235,27 @@ public class Directives {
     }
 
     @Nullable
+    public static Short getShort(Map<String, ?> params, String name) {
+        return getNumber(params, name, Short.class);
+    }
+
+    public static Short getShort(Map<String, ?> params, String name, Short defaultValue) {
+        return Optional.ofNullable(getShort(params, name)).orElse(defaultValue);
+    }
+
+    public static Short getShortRequired(Map<String, ?> params, String name) {
+        return getNumberRequired(params, name, Short.class);
+    }
+
+    /**
+     * 获取短整形数组。参数不存在则返回null；参数存在但为空串，则返回长度为0的数组。
+     */
+    @Nullable
+    public static Collection<Short> getShorts(Map<String, ?> params, String name) {
+        return getNumbers(params, name, Short.class);
+    }
+
+    @Nullable
     public static Integer getInteger(Map<String, ?> params, String name) {
         return getNumber(params, name, Integer.class);
     }

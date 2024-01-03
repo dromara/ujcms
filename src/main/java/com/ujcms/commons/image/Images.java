@@ -13,14 +13,15 @@ import java.util.Iterator;
 /**
  * 图片工具类
  *
+ * 目前浏览器支持的图片有：jpg(image/jpeg),gif(image/gif),png(image/png),bmp(image/png),svg(image/svg+xml),webp(image/webp)
+ * 谷歌超微型WebP图像格式可能成为主流格式，但IE不支持该格式。
+ * JDK支持的读取格式 ImageIO.getReaderFormatNames();
+ * JDK支持的写入格式 ImageIO.getWriterFormatNames();
+ * JDK8支持的格式有jpg, jpeg, png, gif, bmp, webp
+ *
  * @author liufang
  */
 public class Images {
-    // 目前浏览器支持的图片有：jpg(image/jpeg),gif(image/gif),png(image/png),bmp(image/png),svg(image/svg+xml),webp(image/webp)
-    // 谷歌超微型WebP图像格式可能成为主流格式，但IE不支持该格式。
-    // JDK支持的读取格式 ImageIO.getReaderFormatNames();
-    // JDK支持的写入格式 ImageIO.getWriterFormatNames();
-    // JDK8支持的格式有jpg, jpeg, png, gif, bmp, webp
     /**
      * 图片扩展名
      */
@@ -71,7 +72,7 @@ public class Images {
             }
             return formatName;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

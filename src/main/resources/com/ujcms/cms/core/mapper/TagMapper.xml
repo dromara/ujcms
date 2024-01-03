@@ -28,6 +28,7 @@
     delete from ujcms_tag
     where site_id_ = #{siteId}
   </delete>
+  <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
   <select id="selectAll" resultMap="ResultMap">

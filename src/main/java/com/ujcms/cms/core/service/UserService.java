@@ -208,18 +208,15 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     public boolean existsByOrgId(Integer orgId) {
-        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countByOrgId(orgId)).iterator().next().intValue() > 0;
+        return mapper.existsByOrgId(orgId) > 0;
     }
 
     public boolean existsByGroupId(Integer groupId) {
-        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countByGroupId(groupId)).iterator().next().intValue() > 0;
+        return mapper.existsByGroupId(groupId) > 0;
     }
 
     public boolean existsByRoleId(Integer roleId, Integer notOrgId) {
-        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countByRoleId(roleId, notOrgId)).iterator().next().intValue() > 0;
+        return mapper.existsByRoleId(roleId, notOrgId) > 0;
     }
 
     @Override

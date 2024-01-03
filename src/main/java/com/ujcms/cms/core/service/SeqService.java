@@ -28,7 +28,7 @@ public class SeqService {
     /**
      * 获取下一个序列值
      *
-     * @param name 序列名称
+     * @param name 序列名称。一般为表名。
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public int getNextVal(final String name) {
@@ -38,7 +38,7 @@ public class SeqService {
     /**
      * 获取下一个序列值
      *
-     * @param name 序列名称
+     * @param name 序列名称。一般为表名。
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public int getNextVal(final String name, final int cacheSize) {
@@ -48,7 +48,7 @@ public class SeqService {
     /**
      * 获取下一个长整型序列值
      *
-     * @param name 序列名称
+     * @param name 序列名称。一般为表名。
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public long getNextLongVal(final String name) {
@@ -58,7 +58,7 @@ public class SeqService {
     /**
      * 获取下一个长整型序列值
      *
-     * @param name 序列名称
+     * @param name 序列名称。一般为表名。
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public long getNextLongVal(final String name, final int cacheSize) {

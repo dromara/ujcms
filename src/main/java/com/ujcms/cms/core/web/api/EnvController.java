@@ -13,11 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
@@ -51,6 +47,7 @@ public class EnvController {
             return Collections.emptyMap();
         }
         Map<String, Object> result = new HashMap<>(16);
+        result.put("databaseType", props.getDatabaseType());
         result.put("username", user.getUsername());
         result.put("avatar", user.getAvatar());
         result.put("rank", user.getRank());
@@ -59,6 +56,7 @@ public class EnvController {
         result.put("globalPermission", user.hasGlobalPermission());
         result.put("allChannelPermission", user.hasAllChannelPermission());
         result.put("allArticlePermission", user.hasAllArticlePermission());
+        result.put("allStatusPermission", user.hasAllStatusPermission());
         result.put("loginDate", user.getLoginDate());
         result.put("loginIp", user.getLoginIp());
         result.put("epExcludes", StaticProps.getEpExcludes());

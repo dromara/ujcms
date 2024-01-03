@@ -445,6 +445,29 @@ public class Config extends ConfigBase implements Serializable {
             return joiner.toString();
         }
 
+        /**
+         * 媒体类型。取视频和音频的合集
+         */
+        public String getMediaTypes() {
+            StringBuilder buffer = new StringBuilder(getVideoTypes());
+            if (buffer.length() > 0) {
+                buffer.append(",");
+            }
+            buffer.append(getAudioTypes());
+            return buffer.toString();
+        }
+
+        /**
+         * 媒体大小限制。取视频和音频中值更大的那个。
+         */
+        public int getMediaLimit() {
+            // 0 为不限制，优先取 0
+            if (this.videoLimit == 0 || this.audioLimit == 0) {
+                return 0;
+            }
+            return Math.max(this.videoLimit, this.audioLimit);
+        }
+
         public String getImageInputAccept() {
             return toInputAccept(getImageTypes());
         }
@@ -455,6 +478,10 @@ public class Config extends ConfigBase implements Serializable {
 
         public String getAudioInputAccept() {
             return toInputAccept(getAudioTypes());
+        }
+
+        public String getMediaInputAccept() {
+            return toInputAccept(getMediaTypes());
         }
 
         public String getLibraryInputAccept() {
@@ -479,6 +506,10 @@ public class Config extends ConfigBase implements Serializable {
 
         public long getAudioLimitByte() {
             return this.audioLimit * 1024L * 1024L;
+        }
+
+        public long getMediaLimitByte() {
+            return getMediaLimit() * 1024L * 1024L;
         }
 
         public long getLibraryLimitByte() {
@@ -1485,7 +1516,7 @@ public class Config extends ConfigBase implements Serializable {
                         encoding, passive, encryption);
                 return new FtpFileHandler(properties, path, url);
             }
-            return new LocalFileHandler(pathResolver, getPath(), getUrl());
+            return new LocalFileHandler(pathResolver, path, url);
         }
 
         public int getType() {

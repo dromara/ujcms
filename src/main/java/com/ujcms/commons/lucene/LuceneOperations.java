@@ -4,19 +4,13 @@ import com.ujcms.commons.query.OffsetLimitRequest;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.SearcherManager;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -26,9 +20,9 @@ import java.util.function.Function;
  * @author PONY
  */
 public class LuceneOperations {
-    private boolean autoCommit;
-    private IndexWriter indexWriter;
-    private SearcherManager searcherManager;
+    private final boolean autoCommit;
+    private final IndexWriter indexWriter;
+    private final SearcherManager searcherManager;
 
     public LuceneOperations(IndexWriter indexWriter, SearcherManager searcherManager, boolean autoCommit) {
         this.indexWriter = indexWriter;
@@ -40,17 +34,17 @@ public class LuceneOperations {
         this(indexWriter, searcherManager, true);
     }
 
-    public <T> List<T> list(Query query, OffsetLimitRequest offsetLimit, Sort sort, Function<Document, T> handel) {
+    public <T> List<T> list(Query query, OffsetLimitRequest offsetLimit, Sort sort, Function<Document, T> handle) {
         try {
             searcherManager.maybeRefresh();
             IndexSearcher searcher = searcherManager.acquire();
             try {
                 int n = (int) offsetLimit.getOffset() + offsetLimit.getPageSize();
-                TopDocs results = searcher.search(query, n, sort);
+                TopFieldDocs results = searcher.search(query, n, sort);
                 int length = results.scoreDocs.length;
                 List<T> list = new ArrayList<>(length);
                 for (ScoreDoc hit : results.scoreDocs) {
-                    list.add(handel.apply(searcher.doc(hit.doc)));
+                    list.add(handle.apply(searcher.doc(hit.doc)));
                 }
                 return list;
             } finally {
@@ -61,21 +55,18 @@ public class LuceneOperations {
         }
     }
 
-    public <T> Page<T> page(Query query, Pageable pageable, Sort sort, Function<Document, T> handel) {
+    public <T> Page<T> page(Query query, Pageable pageable, Sort sort, Function<Document, T> handle) {
         try {
             searcherManager.maybeRefresh();
             IndexSearcher searcher = searcherManager.acquire();
             try {
                 int n = (int) pageable.getOffset() + pageable.getPageSize();
-                TopDocs results = searcher.search(query, n, sort);
+                TopFieldDocs results = searcher.search(query, n, sort);
                 int length = results.scoreDocs.length;
                 int size = length - (int) pageable.getOffset();
-                List<T> content = Collections.emptyList();
-                if (size > 0) {
-                    content = new ArrayList<>(size);
-                    for (int i = (int) pageable.getOffset(); i < length; i++) {
-                        content.add(handel.apply(searcher.doc(results.scoreDocs[i].doc)));
-                    }
+                List<T> content = new ArrayList<>(size);
+                for (int i = (int) pageable.getOffset(); i < length; i++) {
+                    content.add(handle.apply(searcher.doc(results.scoreDocs[i].doc)));
                 }
                 long total = results.totalHits.value;
                 return new PageImpl<>(content, pageable, total);
@@ -128,7 +119,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException(DELETE_ERROR, e);
         }
     }
 
@@ -139,7 +130,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException(DELETE_ERROR, e);
         }
     }
 
@@ -150,7 +141,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException(DELETE_ERROR, e);
         }
     }
 
@@ -161,7 +152,7 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException(DELETE_ERROR, e);
         }
     }
 
@@ -172,8 +163,9 @@ public class LuceneOperations {
                 indexWriter.commit();
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Error during lucene deleting a document.", e);
+            throw new IllegalStateException(DELETE_ERROR, e);
         }
     }
 
+    private static final String DELETE_ERROR = "Error during lucene deleting a document.";
 }

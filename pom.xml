@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>8.0.2</version>
+    <version>9.0.3</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -25,7 +25,7 @@
         <!-- mybatis-spring-boot-starter 2.0 以上版本 会引用 MyBatis 3.5 以上版本，导致OffsetDateTime出错。该问题与MySQL驱动有关，MySQL8.0.23驱动已解决这个问题。-->
         <!-- 相关参考资料：https://blog.csdn.net/zjcsuct/article/details/107754870 -->
         <mybatis-spring-boot-starter.version>2.3.0</mybatis-spring-boot-starter.version>
-        <pagehelper-spring-boot-starter.version>1.4.6</pagehelper-spring-boot-starter.version>
+        <pagehelper-spring-boot-starter.version>1.4.7</pagehelper-spring-boot-starter.version>
         <spring-boot-starter-mobile.version>1.5.22.RELEASE</spring-boot-starter-mobile.version>
         <!-- 工作流引擎 -->
         <flowable-spring-boot-starter>6.7.2</flowable-spring-boot-starter>
@@ -46,6 +46,8 @@
         <commons-validator.version>1.7</commons-validator.version>
         <!-- Apache公共网络组件 -->
         <commons-net.version>3.8.0</commons-net.version>
+        <!-- 字符串相似度组件 -->
+        <java-string-similarity.version>2.0.0</java-string-similarity.version>
         <!-- HTML解析组件 -->
         <jsoup.version>1.14.2</jsoup.version>
         <!-- 加密组件 -->
@@ -56,6 +58,8 @@
         <jcaptcha.version>2.0.0</jcaptcha.version>
         <!-- 纯 java 图片处理库 -->
         <thumbnailator.version>0.4.13</thumbnailator.version>
+        <!-- java webp 图片处理库 -->
+        <webp-imageio.version>0.1.6</webp-imageio.version>
         <!-- GraphicsMagick 原生图片处理库调用组件 -->
         <im4java.version>1.4.0</im4java.version>
         <!-- LibreOffice 转换器 -->
@@ -93,13 +97,13 @@
         <mybatis-generator-core.version>1.4.0</mybatis-generator-core.version>
 
         <!-- 达梦 JDBC驱动 -->
-        <DmJdbcDriver.version>18</DmJdbcDriver.version>
+        <DmJdbcDriver18.version>8.1.3.62</DmJdbcDriver18.version>
         <!-- 人大金仓 JDBC驱动 -->
         <kingbase8.version>8.6.0</kingbase8.version>
-        <!-- 南大通用 JDBC驱动 -->
-        <gbase-connector-java.version>8.3.81.53</gbase-connector-java.version>
-        <!-- 神州通用 JDBC驱动 -->
-        <oscarJDBC8.version>7.0</oscarJDBC8.version>
+        <!-- openGauss JDBC驱动 -->
+        <opengauss-jdbc.version>5.0.0</opengauss-jdbc.version>
+        <!-- 瀚高 JDBC驱动 -->
+        <HgdbJdbc.version>6.2.4</HgdbJdbc.version>
 
         <!-- 此项设置可以让IntelliJ IDEA自动识别Spring Boot工程，可以直接点击右上角运行按钮启动程序 -->
         <start-class>com.ujcms.cms.Application</start-class>
@@ -280,6 +284,11 @@
             <artifactId>commons-validator</artifactId>
             <version>${commons-validator.version}</version>
         </dependency>
+        <dependency>
+            <groupId>info.debatty</groupId>
+            <artifactId>java-string-similarity</artifactId>
+            <version>${java-string-similarity.version}</version>
+        </dependency>
         <!-- 加密库 -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -309,6 +318,11 @@
             <groupId>net.coobird</groupId>
             <artifactId>thumbnailator</artifactId>
             <version>${thumbnailator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.sejda.imageio</groupId>
+            <artifactId>webp-imageio</artifactId>
+            <version>${webp-imageio.version}</version>
         </dependency>
         <!-- 调用 gmagick 处理图片的接口库 -->
         <dependency>
@@ -460,6 +474,7 @@
             <version>${annotations.version}</version>
         </dependency>
 
+        <!-- 商业版要安装ujcms-ep-xxx.jar包，否则会失去商业版功能，变成普通版本。安装方法请参考 lib/readme.md 文件。注意：此项配置的 scope 不可改成 system，否则打包时不会包含这个jar文件，导致失去商业版功能 -->
         <!-- ujcms-enterprise
         <dependency>
             <groupId>com.ujcms</groupId>
@@ -484,28 +499,24 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.dameng</groupId>
+            <artifactId>DmJdbcDriver18</artifactId>
+            <version>${DmJdbcDriver18.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- openGauss 驱动，需将 postgresql 原版驱动删除 -->
         <!--<dependency>-->
-        <!--    <groupId>dm</groupId>-->
-        <!--    <artifactId>DmJdbcDriver</artifactId>-->
-        <!--    <version>${DmJdbcDriver.version}</version>-->
+        <!--    <groupId>org.opengauss</groupId>-->
+        <!--    <artifactId>opengauss-jdbc</artifactId>-->
+        <!--    <version>${opengauss-jdbc.version}</version>-->
         <!--    <scope>runtime</scope>-->
         <!--</dependency>-->
+        <!-- 瀚高数据库 驱动 -->
         <!--<dependency>-->
-        <!--    <groupId>com.kingbase</groupId>-->
-        <!--    <artifactId>kingbase8</artifactId>-->
-        <!--    <version>${kingbase8.version}</version>-->
-        <!--    <scope>runtime</scope>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>com.gbase</groupId>-->
-        <!--    <artifactId>gbase-connector-java</artifactId>-->
-        <!--    <version>${gbase-connector-java.version}</version>-->
-        <!--    <scope>runtime</scope>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>com.oscar</groupId>-->
-        <!--    <artifactId>oscarJDBC8</artifactId>-->
-        <!--    <version>${oscarJDBC8.version}</version>-->
+        <!--    <groupId>com.highgo</groupId>-->
+        <!--    <artifactId>HgdbJdbc</artifactId>-->
+        <!--    <version>${HgdbJdbc.version}</version>-->
         <!--    <scope>runtime</scope>-->
         <!--</dependency>-->
 

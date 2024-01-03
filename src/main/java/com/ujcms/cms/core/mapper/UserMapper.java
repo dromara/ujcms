@@ -121,7 +121,7 @@ public interface UserMapper {
      * @param orgId 组织ID
      * @return 用户数量
      */
-    int countByOrgId(Integer orgId);
+    int existsByOrgId(Integer orgId);
 
     /**
      * 根据用户组ID统计用户数量
@@ -129,7 +129,7 @@ public interface UserMapper {
      * @param groupId 用户组ID
      * @return 用户数量
      */
-    int countByGroupId(Integer groupId);
+    int existsByGroupId(Integer groupId);
 
     /**
      * 根据角色ID和组织ID统计数量
@@ -138,5 +138,5 @@ public interface UserMapper {
      * @param notOrgId 非本组织ID
      * @return 数据条数
      */
-    int countByRoleId(@Param("roleId") Integer roleId, @Param("notOrgId") Integer notOrgId);
+    int existsByRoleId(@Param("roleId") Integer roleId, @Param("notOrgId") Integer notOrgId);
 }

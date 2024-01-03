@@ -46,7 +46,7 @@
           [#assign customsQueryMap=customsQueryMap + {'EQ_'+param: Params[param]!}/]
         [/#list]
       </div>
-      [@ArticlePage channelId=channel.id isIncludeSubChannel='true' customs=customsQueryMap orderBy="sticky_desc,publishDate_desc,id_desc"; pagedList]
+      [@ArticlePage channelId=channel.id isIncludeSubChannel="true" customs=customsQueryMap orderBy=channel.orderDesc?string("sticky_desc,order_desc","sticky_desc,order_asc"); pagedList]
         <ul class="list-unstyled">
           [#list pagedList.content as bean]
             <li class="mt-3 media border-bottom position-relative pb-3">
@@ -61,7 +61,7 @@
                     <span>[#list bean.channel.paths as c][@A bean=c/][#if c_has_next] > [/#if][/#list]</span>
                     <i class="ml-2 far fa-eye"></i> ${bean.views}
                   </div>
-                  <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.publishDate.format('yyyy-MM-dd')}</div>
+                  <div class="float-right"><i class="ml-2 far fa-clock"></i> ${format(bean.publishDate, 'yyyy-MM-dd')}</div>
                 </div>
               </div>
             </li>

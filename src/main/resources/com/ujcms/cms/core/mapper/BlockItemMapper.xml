@@ -33,12 +33,22 @@
         from ujcms_block_item t
         where t.article_id_ = #{articleId,jdbcType=INTEGER}
     </select>
-    <select id="countByBlockId" resultType="int">
-        select count(*)
-        from ujcms_block_item t
-        where t.block_id_ = #{blockId}
-          and t.site_id_ &lt;&gt; #{notSiteId}
+    <select id="existsByBlockId" resultType="int">
+        select case
+                   when exists(
+                           select *
+                           from ujcms_block_item t
+                           where t.block_id_ = #{blockId}
+                             and t.site_id_ &lt;&gt; #{notSiteId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
     </select>
+    <delete id="deleteByArticleId" parameterType="int">
+        delete
+        from ujcms_block_item
+        where article_id_ = #{articleId,jdbcType=INTEGER}
+    </delete>
     <delete id="deleteByBlockId" parameterType="int">
         delete
         from ujcms_block_item
@@ -47,13 +57,14 @@
     <delete id="deleteByChannelId" parameterType="int">
         delete
         from ujcms_block_item
-        where exists(select * from ujcms_article t where t.id_ = ujcms_block_item.article_id_ and t.channel_id_ = #{siteId,jdbcType=INTEGER})
+        where article_id_ in (select t.id_ from ujcms_article t where t.channel_id_ = #{siteId,jdbcType=INTEGER})
     </delete>
     <delete id="deleteBySiteId" parameterType="int">
         delete
         from ujcms_block_item
         where site_id_ = #{siteId,jdbcType=INTEGER}
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

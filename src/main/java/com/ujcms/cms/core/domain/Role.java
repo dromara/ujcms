@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
@@ -79,8 +81,10 @@ public class Role extends RoleBase implements Serializable {
      */
     public static final String PERMISSION_BACKEND = "backend";
 
-    public static String[] PERMISSION_FIELDS = {"permission", "allPermission", "grantPermission",
-            "allGrantPermission", "globalPermission", "allArticlePermission", "allChannelPermission", "dataScope"};
+    public static final List<String> PERMISSION_FIELDS = Collections.unmodifiableList(Arrays.asList(
+            "permission", "allPermission", "grantPermission", "allGrantPermission", "globalPermission",
+            "allArticlePermission", "allChannelPermission", "allStatusPermission", "dataScope"));
+
     /**
      * 数据范围：所有
      */

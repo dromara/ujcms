@@ -1,9 +1,8 @@
 package com.ujcms.cms.core.web.directive;
 
-import com.ujcms.cms.core.service.ChannelService;
-import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.service.ArticleService;
+import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
@@ -36,10 +35,8 @@ public class ArticleDirective implements TemplateDirectiveModel {
     }
 
     private final ArticleService articleService;
-    private final ChannelService channelService;
 
-    public ArticleDirective(ArticleService articleService, ChannelService channelService) {
+    public ArticleDirective(ArticleService articleService) {
         this.articleService = articleService;
-        this.channelService = channelService;
     }
 }

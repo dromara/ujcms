@@ -13,12 +13,13 @@
   </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Action" />
 
-    <select id="countBy" resultType="int">
-        select count(*)
+    <select id="existsBy" resultType="int">
+        select case when exists(
+        select *
         from ujcms_action t
         <where>
             <trim prefix="(" prefixOverrides="or" suffix=")">
-                <if test="userId != null">or t.user_id_ = #{userId}</if>
+                <if test="userId != null">t.user_id_ = #{userId}</if>
                 <if test="ip != null">or t.ip_ = #{ip}</if>
                 <if test="cookie != null">or t.cookie_ = #{cookie}</if>
             </trim>
@@ -35,6 +36,9 @@
                 and t.created_ &gt; #{date}
             </if>
         </where>
+        ) then 1
+        else 0
+        end as non_zero_exists
     </select>
     <delete id="deleteBySiteId" parameterType="int">
         delete
@@ -46,6 +50,7 @@
         from ujcms_action
         where user_id_ = #{userId,jdbcType=INTEGER}
     </delete>
+    <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">

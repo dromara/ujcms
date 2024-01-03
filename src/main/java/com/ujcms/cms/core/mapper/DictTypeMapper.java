@@ -65,7 +65,7 @@ public interface DictTypeMapper {
      * @param siteId 站点ID
      * @return 数据条数
      */
-    int countByAlias(@Param("alias") String alias, @Param("siteId") @Nullable Integer siteId);
+    int existsByAlias(@Param("alias") String alias, @Param("siteId") @Nullable Integer siteId);
 
     /**
      * 根据站点ID删除数据

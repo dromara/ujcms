@@ -8,12 +8,16 @@ import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.ModelService;
 import com.ujcms.cms.core.service.ShortMessageService;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.commons.file.FilesEx;
 import com.ujcms.commons.security.Secures;
 import com.ujcms.commons.web.Entities;
+import com.ujcms.commons.web.PathResolver;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
 import com.ujcms.commons.web.Servlets;
+import com.ujcms.commons.web.exception.Http400Exception;
 import org.apache.commons.lang3.StringUtils;
 import org.owasp.html.PolicyFactory;
 import org.springframework.http.ResponseEntity;
@@ -36,13 +40,15 @@ public class GlobalSettingsController {
     private final ModelService modelService;
     private final ShortMessageService shortMessageService;
     private final ConfigService service;
+    private final Props props;
 
     public GlobalSettingsController(PolicyFactory policyFactory, ModelService modelService,
-                                    ShortMessageService shortMessageService, ConfigService service) {
+                                    ShortMessageService shortMessageService, ConfigService service, Props props) {
         this.policyFactory = policyFactory;
         this.modelService = modelService;
         this.shortMessageService = shortMessageService;
         this.service = service;
+        this.props = props;
     }
 
     @GetMapping
@@ -110,15 +116,16 @@ public class GlobalSettingsController {
     @OperationLog(module = "config", operation = "sendSms", type = OperationType.CREATE)
     public ResponseEntity<Body> sendSms(@RequestBody @Valid Config.Sms bean, HttpServletRequest request) {
         String ip = Servlets.getRemoteAddr(request);
-        if (StringUtils.isBlank(bean.getTestMobile())) {
+        String testMobile = bean.getTestMobile();
+        if (StringUtils.isBlank(testMobile)) {
             return Responses.badRequest("testMobile cannot be empty");
         }
         String code = Secures.randomNumeric(bean.getCodeLength());
-        String error = shortMessageService.sendMobileMessage(bean.getTestMobile(), code, bean);
+        String error = shortMessageService.sendMobileMessage(testMobile, code, bean);
         if (error != null) {
             return Responses.failure(error);
         }
-        shortMessageService.insertMobileMessage(bean.getTestMobile(), code, ip, ShortMessage.USAGE_TEST);
+        shortMessageService.insertMobileMessage(testMobile, code, ip, ShortMessage.USAGE_TEST);
         return Responses.ok();
     }
 
@@ -161,6 +168,7 @@ public class GlobalSettingsController {
     public ResponseEntity<Body> updateUploadStorage(@RequestBody @Valid Config.Storage bean) {
         Config config = service.getUnique();
         config.setUploadStorage(bean);
+        validateStoragePath(bean.getPath());
         service.update(config);
         return Responses.ok();
     }
@@ -178,6 +186,7 @@ public class GlobalSettingsController {
     public ResponseEntity<Body> updateHtmlStorage(@RequestBody @Valid Config.Storage bean) {
         Config config = service.getUnique();
         config.setHtmlStorage(bean);
+        validateStoragePath(bean.getPath());
         service.update(config);
         return Responses.ok();
     }
@@ -195,8 +204,32 @@ public class GlobalSettingsController {
     public ResponseEntity<Body> updateTemplateStorage(@RequestBody @Valid Config.Storage bean) {
         Config config = service.getUnique();
         config.setTemplateStorage(bean);
+        validateStoragePath(bean.getPath());
         service.update(config);
         return Responses.ok();
+    }
+
+    private void validateStoragePath(String path) {
+        if (!storagePathAllowed(path)) {
+            throw new Http400Exception("Storage path not allowed: " + path);
+        }
+    }
+
+    @GetMapping("storage-path-allowed")
+    public boolean storagePathAllowed(String path) {
+        if (StringUtils.isBlank(path)) {
+            return false;
+        }
+        path = path.trim();
+        if (!path.startsWith(PathResolver.FILE_PREFIX)) {
+            return true;
+        }
+        for (String prefix : props.getStorageFilePrefixList()) {
+            if (path.equals(prefix) || path.startsWith(prefix + FilesEx.SLASH)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @PutMapping("customs")

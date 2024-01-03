@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 验证码自动配置类
+ * OAuth自动配置类
  *
  * @author PONY
  */

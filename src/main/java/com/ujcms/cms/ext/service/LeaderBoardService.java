@@ -8,6 +8,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -32,7 +33,8 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public List<LeaderBoard> channelLeaderBoardList(@Nullable Integer siteId, short[] status,
+    public List<LeaderBoard> channelLeaderBoardList(@Nullable Integer siteId,
+                                                    @Nullable Collection<Short> status,
                                                     @Nullable final OffsetDateTime begin,
                                                     @Nullable final OffsetDateTime end,
                                                     int offset, int limit) {
@@ -49,7 +51,8 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public Page<LeaderBoard> channelLeaderBoardPage(@Nullable Integer siteId, short[] status,
+    public Page<LeaderBoard> channelLeaderBoardPage(@Nullable Integer siteId,
+                                                    @Nullable Collection<Short> status,
                                                     @Nullable final OffsetDateTime begin,
                                                     @Nullable final OffsetDateTime end,
                                                     int page, int pageSize) {
@@ -66,7 +69,8 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public List<LeaderBoard> orgLeaderBoardList(@Nullable Integer orgId, short[] status,
+    public List<LeaderBoard> orgLeaderBoardList(@Nullable Integer orgId,
+                                                @Nullable Collection<Short> status,
                                                 @Nullable OffsetDateTime begin,
                                                 @Nullable OffsetDateTime end,
                                                 int offset, int limit) {
@@ -83,7 +87,8 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public Page<LeaderBoard> orgLeaderBoardPage(@Nullable Integer orgId, short[] status,
+    public Page<LeaderBoard> orgLeaderBoardPage(@Nullable Integer orgId,
+                                                @Nullable Collection<Short> status,
                                                 @Nullable OffsetDateTime begin,
                                                 @Nullable OffsetDateTime end,
                                                 int page, int pageSize) {
@@ -100,7 +105,8 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public List<LeaderBoard> userLeaderBoardList(@Nullable Integer orgId, short[] status,
+    public List<LeaderBoard> userLeaderBoardList(@Nullable Integer orgId,
+                                                 @Nullable Collection<Short> status,
                                                  @Nullable OffsetDateTime begin,
                                                  @Nullable OffsetDateTime end,
                                                  int offset, int limit) {
@@ -117,7 +123,8 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public Page<LeaderBoard> userLeaderBoardPage(@Nullable Integer orgId, short[] status,
+    public Page<LeaderBoard> userLeaderBoardPage(@Nullable Integer orgId,
+                                                 @Nullable Collection<Short> status,
                                                  @Nullable OffsetDateTime begin, @Nullable OffsetDateTime end,
                                                  int page, int pageSize) {
         return PageMethod.startPage(page, pageSize).doSelectPage(() ->

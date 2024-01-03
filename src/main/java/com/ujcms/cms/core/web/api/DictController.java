@@ -35,7 +35,7 @@ public class DictController {
         this.dictService = dictService;
     }
 
-    @Operation(summary = "获取字典列表")
+    @Operation(summary = "获取字典列表（DictList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型别名",

@@ -2,7 +2,6 @@ package com.ujcms.cms.core.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
-import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
@@ -50,48 +49,6 @@ public class ChannelExtBase implements Serializable {
     @Nullable
     @Schema(description="SEO描述")
     private String seoDescription;
-
-    /**
-     * 每页条数
-     */
-    @NotNull
-    @Schema(description="每页条数")
-    private Short pageSize = 20;
-
-    /**
-     * 是否允许评论
-     */
-    @NotNull
-    @Schema(description="是否允许评论")
-    private Boolean allowComment = true;
-
-    /**
-     * 是否允许投稿
-     */
-    @NotNull
-    @Schema(description="是否允许投稿")
-    private Boolean allowContribute = false;
-
-    /**
-     * 是否允许搜索
-     */
-    @NotNull
-    @Schema(description="是否允许搜索")
-    private Boolean allowSearch = true;
-
-    /**
-     * 创建日期
-     */
-    @NotNull
-    @Schema(description="创建日期")
-    private OffsetDateTime created = OffsetDateTime.now();
-
-    /**
-     * 修改日期
-     */
-    @NotNull
-    @Schema(description="修改日期")
-    private OffsetDateTime modified = OffsetDateTime.now();
 
     /**
      * 静态页文件
@@ -163,54 +120,6 @@ public class ChannelExtBase implements Serializable {
 
     public void setSeoDescription(@Nullable String seoDescription) {
         this.seoDescription = seoDescription;
-    }
-
-    public Short getPageSize() {
-        return pageSize;
-    }
-
-    public void setPageSize(Short pageSize) {
-        this.pageSize = pageSize;
-    }
-
-    public Boolean getAllowComment() {
-        return allowComment;
-    }
-
-    public void setAllowComment(Boolean allowComment) {
-        this.allowComment = allowComment;
-    }
-
-    public Boolean getAllowContribute() {
-        return allowContribute;
-    }
-
-    public void setAllowContribute(Boolean allowContribute) {
-        this.allowContribute = allowContribute;
-    }
-
-    public Boolean getAllowSearch() {
-        return allowSearch;
-    }
-
-    public void setAllowSearch(Boolean allowSearch) {
-        this.allowSearch = allowSearch;
-    }
-
-    public OffsetDateTime getCreated() {
-        return created;
-    }
-
-    public void setCreated(OffsetDateTime created) {
-        this.created = created;
-    }
-
-    public OffsetDateTime getModified() {
-        return modified;
-    }
-
-    public void setModified(OffsetDateTime modified) {
-        this.modified = modified;
     }
 
     @Nullable

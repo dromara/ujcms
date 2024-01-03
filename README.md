@@ -2,11 +2,9 @@
 
 Java开源内容管理系统(java cms)。使用SpringBoot、MyBatis、Spring Security、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。
 
-UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统。针对原系统中的一些痛点问题，进行解决、优化和改进，并使用`GPL-2`开源协议发布，可免费商用。
+技术上尽量选择主流、先进、简单的架构，方便用户进行二次开发。设计上强调“简单”、“灵活”，避免繁杂的设计和实现，降低系统维护成本和二次开发难度。功能使用上也要求“简单”，避免复杂的使用逻辑。
 
-技术上尽量选择主流、先进、简单的架构，方便用户进行二次开发。持久化层用MyBatis替换了Hibernate；视图层用前后端分离的Vue3替换了JSP；数据库也进行了重新设计。设计上强调“简单”、“灵活”，避免繁杂的设计和实现，降低系统维护成本和二次开发难度。功能使用上也要求“简单”，避免复杂的使用逻辑。
-
-支持国产操作系统、国产数据库、国产中间件，支持信创适配。
+支持信创适配，支持国产服务器、国产操作系统、国产数据库、国产中间件。
 
 * 官网地址：[https://www.ujcms.com](https://www.ujcms.com)
 * 下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)。提供安装包下载。
@@ -20,7 +18,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 
 **自定义字段可视化设计**：自定义字段使用拖拽式的可视化设计，所见即所得。
 
-**URL地址SEO优化**：栏目和文章的动态地址可以通过系统的全局设置功能进行修改。默认的栏目和文章URL地址前缀为`/channel`和`/article`，可以根据自己的需要修改，如改为`/categories`和`/archives`。多站点的情况下，子站点URL地址也由原来的`www.example.com/site-abc`的形式改为更友好的`www.example.com/abc`的形式。
+**URL地址SEO优化**：栏目和文章的动态地址可以通过系统的全局设置功能进行修改。默认的栏目和文章URL地址前缀为`/channel`和`/article`，可以根据自己的需要修改，如改为`/categories`和`/archives`。多站点的情况下，子站点URL地址可为目录形式(`www.example.com/abc`)或次级域名形式(`abc.example.com`)。
 
 **清理垃圾附件**：系统使用时，可能会多传、误传图片等附件；在删除文章后，文章中的图片还保留在系统中，产生大量的未使用的垃圾图片和附件。系统中的附件管理可以查看所有未使用的图片和附件，并可对其进行删除。
 
@@ -39,7 +37,7 @@ UJCMS是在Jspxcms多年的开发经验上，重新设计开发的Java CMS系统
 * Tomcat 8.5、9.0 (Servlet 3.1+)。
 * Maven 3.5 或更高版本。
 * 系统后台兼容的浏览器：Chrome、Firefox、Edge。
-* 前台页面兼容的浏览器取决于模板，使用者可以完全控制模板，理论上可以支持任何浏览器。演示模板支持IE10+(文库功能除外)、Chrome、Firefox、Edge。
+* 前台页面兼容的浏览器取决于模板，使用者可以完全控制模板，理论上可以支持任何浏览器。演示模板支持Chrome、Firefox、Edge。
 
 ## 创建数据库
 
@@ -73,7 +71,9 @@ lower_case_table_names=2
 4. 使用 IntelliJ IDEA 开发的，步骤与 Eclipse 类似。打开工程后，等待Maven下载依赖，修改数据库连接，然后直接点击右上角的绿色三角图标(`Run 'Application'`)，即可直接运行。也可在左侧导航中找到`com.ujcms.cms.Application`类并右键点击，选择`Run 'Application'`。
 5. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`或`Waiting for changelog lock....`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
 6. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
-7. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于`Vue 3`开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+7. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+8. 默认访问地址是`http://localhost:8080/`，如需修改域名、端口等内容，可分别到后台`配置 - 系统设置`和`配置 - 站点设置`中修改。
+9. 如需关闭开源版中的商业版提示及功能，可以修改`/src/main/resources/application.yaml`文件中的`ujcms.ep-display: false`配置。
 
 ## 常见错误
 
@@ -83,7 +83,7 @@ lower_case_table_names=2
 
 * 使用maven进行打包`mvn package`。会生成`target/ujcms-***.war`文件和`target/ujcms-***`目录。
 * 用目录方式部署的，可以将`target/ujcms-***/`目录下文件复制到tomcat的`webapps/ROOT`目录下（请先删除原tomcat/webapps目录下所有文件夹）。复制完成后有类似`webapps/ROOT/uploads` `webapps/ROOT/templates` `webapps/ROOT/WEB-INF`等文件夹。
-* 也可使用war包部署，将`ujcms-***.war`更名为`ROOT.war`，复制到tomcat的`webapps`目录下（请先删除原tomcat/webapps目录下所有文件夹）。复制完成后文件地址为`webapps/ROOT.war`文件。war部署要使用解压模式，tomcat默认就是使用解压模式，如修改过tomcat配置，请检查`tomcat/conf/server.xml`配置文件中`<Host ... unpackWARs="true" ... >`的配置项。
+* 也可使用war包部署，将`ujcms-***.war`更名为`ROOT.war`（注意大小写），复制到tomcat的`webapps`目录下（请先删除原tomcat/webapps目录下所有文件夹）。复制完成后文件地址为`webapps/ROOT.war`文件。war部署要使用解压模式，tomcat默认就是使用解压模式，如修改过tomcat配置，请检查`tomcat/conf/server.xml`配置文件中`<Host ... unpackWARs="true" ... >`的配置项。
 * 需注意`/WEB-INF/classes/application.yaml`文件中的数据库地址、用户名、密码相关配置是否与部署环境的数据库一致。
 
 ## jar部署

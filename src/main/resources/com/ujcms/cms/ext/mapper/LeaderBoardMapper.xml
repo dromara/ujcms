@@ -22,7 +22,7 @@
             <if test="end != null">
                 and article_.publish_date_ &lt; #{end}
             </if>
-            <if test="status != null">
+            <if test="status != null and status.size &gt; 0">
                 <foreach collection="status" item="item" open="and article_.status_ in (" separator="," close=")">
                     #{item}
                 </foreach>
@@ -48,7 +48,7 @@
             <if test="end != null">
                 and article_.publish_date_ &lt; #{end}
             </if>
-            <if test="status != null">
+            <if test="status != null and status.size &gt; 0">
                 <foreach close=")" collection="status" index="index" item="item" open="and article_.status_ in ("
                          separator=",">
                     #{item}
@@ -75,7 +75,7 @@
             <if test="end != null">
                 and article_.publish_date_ &lt; #{end}
             </if>
-            <if test="status != null">
+            <if test="status != null and status.size &gt; 0">
                 <foreach close=")" collection="status" index="index" item="item" open="and article_.status_ in ("
                          separator=",">
                     #{item}

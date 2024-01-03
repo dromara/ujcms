@@ -102,6 +102,17 @@ public class BaseService extends AbstractJavaGenerator {
         update.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()), "bean"));
         update.addBodyLine("mapper.update(bean);");
         topLevelClass.addMethod(update);
+        // moveOrder 方法
+        if ("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            topLevelClass.addImportedType("com.ujcms.commons.db.order.OrderEntityUtils");
+            Method moveOrder = new Method("moveOrder");
+            moveOrder.setVisibility(JavaVisibility.PUBLIC);
+            moveOrder.addAnnotation("@Transactional(rollbackFor = Exception.class)");
+            moveOrder.addParameter(new Parameter(new FullyQualifiedJavaType("Integer"), "fromId"));
+            moveOrder.addParameter(new Parameter(new FullyQualifiedJavaType("Integer"), "toId"));
+            moveOrder.addBodyLine("OrderEntityUtils.move(mapper, fromId, toId);");
+            topLevelClass.addMethod(moveOrder);
+        }
         // delete 方法
         Method delete = new Method("delete");
         delete.setVisibility(JavaVisibility.PUBLIC);
@@ -152,7 +163,12 @@ public class BaseService extends AbstractJavaGenerator {
 
         Parameter args = new Parameter(new FullyQualifiedJavaType(getModelType() + "Args"), "args");
         method.addParameter(args);
-        method.addBodyLine("QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), " + getModelType() + "Base.TABLE_NAME, \"id_desc\");");
+        String orderBy = "id_desc";
+        if ("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            orderBy = "order_,id_";
+        }
+        method.addBodyLine("QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), "
+                + getModelType() + "Base.TABLE_NAME, \"" + orderBy + "\");");
         method.addBodyLine("return mapper.selectAll(queryInfo);");
         topLevelClass.addMethod(method);
     }

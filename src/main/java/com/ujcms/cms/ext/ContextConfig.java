@@ -18,17 +18,20 @@ public class ContextConfig implements InitializingBean {
     private final SiteService siteService;
     private final VoteService voteService;
     private final MessageBoardService messageBoardService;
+    private final MessageBoardTypeService messageBoardTypeService;
     private final SurveyService surveyService;
     private final LeaderBoardService leaderBoardService;
     private final ExampleService exampleService;
     private final freemarker.template.Configuration configuration;
 
     public ContextConfig(SiteService siteService, VoteService voteService, MessageBoardService messageBoardService,
-                         SurveyService surveyService, LeaderBoardService leaderBoardService,
+                         MessageBoardTypeService messageBoardTypeService, SurveyService surveyService,
+                         LeaderBoardService leaderBoardService,
                          ExampleService exampleService, freemarker.template.Configuration configuration) {
         this.siteService = siteService;
         this.voteService = voteService;
         this.messageBoardService = messageBoardService;
+        this.messageBoardTypeService = messageBoardTypeService;
         this.surveyService = surveyService;
         this.leaderBoardService = leaderBoardService;
         this.exampleService = exampleService;
@@ -42,6 +45,8 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("VotePage", new VotePageDirective(voteService));
         configuration.setSharedVariable("MessageBoardList", new MessageBoardListDirective(messageBoardService));
         configuration.setSharedVariable("MessageBoardPage", new MessageBoardPageDirective(messageBoardService));
+        configuration.setSharedVariable("MessageBoardTypeList",
+                new MessageBoardTypeListDirective(messageBoardTypeService));
         configuration.setSharedVariable("Survey", new SurveyDirective(surveyService));
         configuration.setSharedVariable("SurveyList", new SurveyListDirective(surveyService));
         configuration.setSharedVariable("SurveyPage", new SurveyPageDirective(surveyService));

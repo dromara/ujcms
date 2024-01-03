@@ -30,12 +30,14 @@ public interface OrgMapper extends TreeEntityMapper<Org> {
     /**
      * 根据查询条件获取列表
      *
-     * @param queryInfo  查询条件
-     * @param ancestorId 上级ID
+     * @param queryInfo          查询条件
+     * @param ancestorId         上级ID
+     * @param isQueryHasChildren 是否查询包含子组织
      * @return 数据列表
      */
     List<Org> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
-                        @Nullable @Param("ancestorId") Integer ancestorId);
+                        @Nullable @Param("ancestorId") Integer ancestorId,
+                        @Param("isQueryHasChildren") boolean isQueryHasChildren);
 
     /**
      * 根据父组织ID获取子组织列表

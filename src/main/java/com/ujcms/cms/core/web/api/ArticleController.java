@@ -40,6 +40,7 @@ import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
+import static com.ujcms.cms.core.web.frontend.ChannelController.hasAccessPermission;
 import static com.ujcms.commons.db.MyBatis.springPage;
 import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
 
@@ -84,7 +85,7 @@ public class ArticleController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取文章列表")
+    @Operation(summary = "获取文章列表（ArticleList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
@@ -105,6 +106,8 @@ public class ArticleController {
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
             schema = @Schema(type = "string", format = "int32 array"))
+    @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回。默认：0（已发布）",
+            schema = @Schema(type = "string", format = "int16 array"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
@@ -125,7 +128,7 @@ public class ArticleController {
         });
     }
 
-    @Operation(summary = "获取文章分页")
+    @Operation(summary = "获取文章分页（ArticlePage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
@@ -166,66 +169,80 @@ public class ArticleController {
         });
     }
 
-    @Operation(summary = "获取文章对象")
+    @Operation(summary = "获取文章对象（Article标签）")
     @ApiResponses(value = {@ApiResponse(description = "文章对象")})
     @GetMapping("/{id:[\\d]+}")
-    public Article show(@Parameter(description = "文章ID") @PathVariable Integer id) {
+    public Article show(@Parameter(description = "文章ID") @PathVariable Integer id,
+                        @Parameter(description = "是否后台预览") @RequestParam(defaultValue = "false") boolean preview) {
         Article article = articleService.select(id);
         if (article == null) {
             throw new Http404Exception("Article not found. ID: " + id);
         }
-        if (!article.isNormal()) {
-            throw new Http403Exception("Article status forbidden. ID: " + id);
-        }
         User user = Contexts.findCurrentUser();
-        return checkAccessPermission(id, article, user, groupService);
-    }
-
-    public static Article checkAccessPermission(Integer id, Article article, User user, GroupService groupService) {
-        if (user == null) {
-            Group anonymous = groupService.getAnonymous();
-            if (Boolean.FALSE.equals(anonymous.getAllAccessPermission())) {
-                List<Integer> anonChannelIds = groupService.listAccessPermissions(Group.ANONYMOUS_ID, article.getSiteId());
-                if (!anonChannelIds.contains(article.getChannelId())) {
-                    throw new Http401Exception();
-                }
-            }
-            return article;
-        }
-        if (user.hasAllAccessPermission()) {
-            return article;
-        }
-        List<Integer> channelIds = groupService.listAccessPermissions(user.getGroupId(), article.getSiteId());
-        if (!channelIds.contains(article.getChannelId())) {
-            throw new Http403Exception("Article access forbidden. ID: " + id);
-        }
+        checkAccessPermission(article, user, groupService, channelService, preview);
         return article;
     }
 
-    @Operation(summary = "获取下一篇文章")
-    @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
-            schema = @Schema(type = "integer", format = "int32"))
-    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
-            schema = @Schema(type = "integer", format = "int32"))
-    @Parameter(in = ParameterIn.QUERY, name = "publishDate", description = "文章发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-            schema = @Schema(type = "string", format = "date-time"))
-    @GetMapping("/next")
-    public Article next(HttpServletRequest request) {
-        Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        return ArticleNextDirective.query(params, articleService::findNext);
+    public static void checkAccessPermission(Article article, User user, GroupService groupService,
+                                             ChannelService channelService, boolean preview) {
+        if (preview) {
+            if (user == null) {
+                throw new Http401Exception();
+            }
+            if (user.hasAllArticlePermission()) {
+                return;
+            }
+            List<Integer> roleIds = user.fetchRoleIds();
+            if (roleIds.isEmpty() || !channelService.existsByArticleRoleId(article.getChannelId(), roleIds)) {
+                throw new Http403Exception("No preview permission. ID: " + article.getId());
+            }
+            return;
+        }
+        if (!article.isNormal()) {
+            throw new Http403Exception("Article status forbidden. ID: " + article.getId());
+        }
+        // 检查前台权限
+        if (user == null) {
+            Group anonGroup = groupService.getAnonymous();
+            if (!hasAccessPermission(anonGroup, article.getSiteId(), article.getChannelId(), groupService)) {
+                throw new Http401Exception();
+            }
+        } else {
+            Group userGroup = user.getGroup();
+            if (!hasAccessPermission(userGroup, article.getSiteId(), article.getChannelId(), groupService)) {
+                throw new Http403Exception("Article access forbidden. ID: " + article.getId());
+            }
+        }
     }
 
-    @Operation(summary = "获取上一篇文章")
+    @Operation(summary = "获取下一篇文章（ArticleNext标签）")
     @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
             schema = @Schema(type = "integer", format = "int32"))
-    @Parameter(in = ParameterIn.QUERY, name = "publishDate", description = "文章发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
-            schema = @Schema(type = "string", format = "date-time"))
-    @GetMapping("/prev")
-    public Article prev(HttpServletRequest request) {
+    @Parameter(in = ParameterIn.QUERY, name = "order", description = "文章排序值",
+            schema = @Schema(type = "integer", format = "int64"))
+    @Parameter(in = ParameterIn.QUERY, name = "isDesc", description = "是否倒序。默认 true",
+            schema = @Schema(type = "boolean"))
+    @GetMapping("/next")
+    public Article next(@RequestParam(defaultValue = "true") boolean isDesc, HttpServletRequest request) {
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        return ArticleNextDirective.query(params, articleService::findPrev);
+        return ArticleNextDirective.query(params, isDesc ? articleService::findNext : articleService::findPrev);
+    }
+
+    @Operation(summary = "获取上一篇文章（ArticlePrev标签）")
+    @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "order", description = "文章排序值",
+            schema = @Schema(type = "integer", format = "int64"))
+    @Parameter(in = ParameterIn.QUERY, name = "isDesc", description = "是否倒序。默认 true",
+            schema = @Schema(type = "boolean"))
+    @GetMapping("/prev")
+    public Article prev(@RequestParam(defaultValue = "true") boolean isDesc, HttpServletRequest request) {
+        Map<String, String> params = QueryUtils.getParams(request.getQueryString());
+        return ArticleNextDirective.query(params, isDesc ? articleService::findPrev : articleService::findNext);
     }
 
     @Operation(summary = "获取文章浏览次数")

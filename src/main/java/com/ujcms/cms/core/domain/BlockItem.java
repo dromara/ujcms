@@ -28,8 +28,9 @@ public class BlockItem extends BlockItemBase implements Anchor, Serializable {
     @Schema(description = "URL地址")
     @Override
     public String getUrl() {
-        if (getArticle() != null) {
-            return getArticle().getUrl();
+        Article referArticle = getArticle();
+        if (referArticle != null) {
+            return referArticle.getUrl();
         }
         return Optional.ofNullable(getLinkUrl()).map(linkUrl -> getSite().assembleLinkUrl(linkUrl)).orElse("");
     }

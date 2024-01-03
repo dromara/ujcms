@@ -15,6 +15,11 @@
   <link rel="stylesheet" href="${files}/vendor/photoswipe/dist/default-skin/default-skin.css">
   <script src="${files}/vendor/photoswipe/dist/photoswipe.min.js"></script>
   <script src="${files}/vendor/photoswipe/dist/photoswipe-ui-default.min.js"></script>
+  <style>
+    .article-content img{
+      max-width: 100%;
+    }
+  </style>
 </head>
 <body>
 [#include 'inc_header.html'/]
@@ -128,12 +133,12 @@
       </script>
 
       <ul class="mt-4 list-unstyled">
-        [@ArticleNext id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+        [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
           <li class="text-truncate mt-2">
             <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>
         [/@ArticleNext]
-        [@ArticlePrev id=article.id publishDate=article.publishDate channelId=article.channelId; bean]
+        [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
           <li class="text-truncate mt-2">
             <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
           </li>

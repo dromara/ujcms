@@ -69,6 +69,20 @@ public class ArticleBase implements Serializable {
     private Integer modifiedUserId = 0;
 
     /**
+     * 创建日期
+     */
+    @NotNull
+    @Schema(description="创建日期")
+    private OffsetDateTime created = OffsetDateTime.now();
+
+    /**
+     * 修改日期
+     */
+    @NotNull
+    @Schema(description="修改日期")
+    private OffsetDateTime modified = OffsetDateTime.now();
+
+    /**
      * 发布日期
      */
     @NotNull
@@ -76,11 +90,11 @@ public class ArticleBase implements Serializable {
     private OffsetDateTime publishDate = OffsetDateTime.now();
 
     /**
-     * 是否有图片
+     * 下线日期
      */
-    @NotNull
-    @Schema(description="是否有图片")
-    private Boolean withImage = false;
+    @Nullable
+    @Schema(description="下线日期")
+    private OffsetDateTime offlineDate;
 
     /**
      * 置顶
@@ -88,6 +102,20 @@ public class ArticleBase implements Serializable {
     @NotNull
     @Schema(description="置顶")
     private Short sticky = 0;
+
+    /**
+     * 置顶时间
+     */
+    @Nullable
+    @Schema(description="置顶时间")
+    private OffsetDateTime stickyDate;
+
+    /**
+     * 是否有图片
+     */
+    @NotNull
+    @Schema(description="是否有图片")
+    private Boolean withImage = false;
 
     /**
      * 录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站群推送)
@@ -109,6 +137,20 @@ public class ArticleBase implements Serializable {
     @NotNull
     @Schema(description="状态(0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回)")
     private Short status = 0;
+
+    /**
+     * 排序
+     */
+    @NotNull
+    @Schema(description="排序")
+    private Long order = 0L;
+
+    /**
+     * 上线日期
+     */
+    @Nullable
+    @Schema(description="上线日期")
+    private OffsetDateTime onlineDate;
 
     public Integer getId() {
         return id;
@@ -167,6 +209,22 @@ public class ArticleBase implements Serializable {
         this.modifiedUserId = modifiedUserId;
     }
 
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    public OffsetDateTime getModified() {
+        return modified;
+    }
+
+    public void setModified(OffsetDateTime modified) {
+        this.modified = modified;
+    }
+
     public OffsetDateTime getPublishDate() {
         return publishDate;
     }
@@ -175,12 +233,13 @@ public class ArticleBase implements Serializable {
         this.publishDate = publishDate;
     }
 
-    public Boolean getWithImage() {
-        return withImage;
+    @Nullable
+    public OffsetDateTime getOfflineDate() {
+        return offlineDate;
     }
 
-    public void setWithImage(Boolean withImage) {
-        this.withImage = withImage;
+    public void setOfflineDate(@Nullable OffsetDateTime offlineDate) {
+        this.offlineDate = offlineDate;
     }
 
     public Short getSticky() {
@@ -189,6 +248,23 @@ public class ArticleBase implements Serializable {
 
     public void setSticky(Short sticky) {
         this.sticky = sticky;
+    }
+
+    @Nullable
+    public OffsetDateTime getStickyDate() {
+        return stickyDate;
+    }
+
+    public void setStickyDate(@Nullable OffsetDateTime stickyDate) {
+        this.stickyDate = stickyDate;
+    }
+
+    public Boolean getWithImage() {
+        return withImage;
+    }
+
+    public void setWithImage(Boolean withImage) {
+        this.withImage = withImage;
     }
 
     public Short getInputType() {
@@ -213,5 +289,22 @@ public class ArticleBase implements Serializable {
 
     public void setStatus(Short status) {
         this.status = status;
+    }
+
+    public Long getOrder() {
+        return order;
+    }
+
+    public void setOrder(Long order) {
+        this.order = order;
+    }
+
+    @Nullable
+    public OffsetDateTime getOnlineDate() {
+        return onlineDate;
+    }
+
+    public void setOnlineDate(@Nullable OffsetDateTime onlineDate) {
+        this.onlineDate = onlineDate;
     }
 }

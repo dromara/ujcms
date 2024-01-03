@@ -10,7 +10,6 @@ import com.ujcms.cms.core.mapper.ActionMapper;
 import com.ujcms.cms.core.service.args.ActionArgs;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,8 +76,7 @@ public class ActionService implements SiteDeleteListener, UserDeleteListener {
     public boolean existsBy(@Nullable String refType, @Nullable Long refId, @Nullable String refOption,
                             @Nullable OffsetDateTime date,
                             @Nullable Integer userId, @Nullable String ip, @Nullable Long cookie) {
-        return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
-                mapper.countBy(refType, refId, refOption, date, userId, ip, cookie)).iterator().next().intValue() > 0;
+        return mapper.existsBy(refType, refId, refOption, date, userId, ip, cookie) > 0;
     }
 
     @Override

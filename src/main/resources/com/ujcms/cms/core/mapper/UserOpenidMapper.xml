@@ -16,6 +16,7 @@
         where user_id_ = #{userId,jdbcType=INTEGER}
     </delete>
 
+  <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
   <select id="selectAll" resultMap="ResultMap">

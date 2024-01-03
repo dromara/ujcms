@@ -75,6 +75,10 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String EXCLUDE_ID = "excludeId";
     /**
+     * 文章状态。短整型(Short)。多个用英文逗号分隔，如'1,2,5'。默认：0（已发布）
+     */
+    public static final String STATUS = "status";
+    /**
      * 是否包含子栏目的文章。布尔型(Boolean)。默认：true。
      */
     public static final String IS_INCLUDE_SUB_CHANNEL = "isIncludeSubChannel";
@@ -96,10 +100,6 @@ public class ArticleListDirective implements TemplateDirectiveModel {
             if (CollectionUtils.isNotEmpty(channelAlias)) {
                 channelIds = channelService.listBySiteIdAndAlias(siteId, channelAlias, isIncludeSubSite)
                         .stream().map(ChannelBase::getId).collect(Collectors.toList());
-                // 传了栏目别名，却一个栏目ID都没找到，就不显示数据（给一个不存在的ID）
-                if (channelIds.isEmpty()) {
-                    channelIds = Collections.singletonList(Integer.MIN_VALUE);
-                }
             }
         }
         return channelIds;
@@ -117,17 +117,23 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         Collection<Integer> channelIds = getChannelIds(params, siteId, isIncludeSubSite, channelService);
         if (CollectionUtils.isNotEmpty(channelIds)) {
             if (Boolean.TRUE.equals(getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true))) {
-                args.inSubChannelIds(channelIds);
+                args.channelAncestorIds(channelIds);
             } else {
                 args.inChannelIds(channelIds);
             }
         } else if (siteId != null) {
             if (Boolean.TRUE.equals(isIncludeSubSite)) {
-                args.subSiteId(siteId);
+                args.siteAncestorId(siteId);
             } else {
                 args.siteId(siteId);
             }
         }
+
+        Collection<Short> status = getShorts(params, STATUS);
+        if (status == null) {
+            status = Collections.singletonList(Article.STATUS_PUBLISHED);
+        }
+        args.status(status);
 
         Optional.ofNullable(Directives.getInteger(params, TAG_ID)).ifPresent(args::tagId);
         Optional.ofNullable(Directives.getOffsetDateTime(params, BEGIN_PUBLISH_DATE)).ifPresent(args::gePublishDate);
@@ -138,8 +144,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         Optional.ofNullable(Directives.getString(params, TEXT)).ifPresent(args::containText);
         Optional.ofNullable(Directives.getIntegers(params, EXCLUDE_ID)).ifPresent(args::excludeIds);
 
-        args.status(Collections.singletonList(Article.STATUS_PUBLISHED));
-        Directives.handleOrderBy(args.getQueryMap(), params, "publishDate_desc,id_desc");
+        Directives.handleOrderBy(args.getQueryMap(), params, "order_desc");
     }
 
     protected void doExecute(Environment env, Map<String, TemplateModel> params, TemplateModel[] loopVars,

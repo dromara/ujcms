@@ -9,6 +9,7 @@
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Example" />
+  <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
   <select id="selectAll" resultMap="ResultMap">

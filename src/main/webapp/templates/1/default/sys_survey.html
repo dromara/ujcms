@@ -13,6 +13,8 @@
   [#include 'inc_js.html'/]
 </head>
 <body>
+[#-- 用于当前栏目高亮显示 --]
+[#assign channelAlias='survey'/]
 [#assign headerShadow=true/]
 [#include 'inc_header.html'/]
 <div class="bg-gray-200">
@@ -48,7 +50,7 @@
             [/#if]
             <i class="ml-2 fas fa-vote-yea text-primary" title="参与人次"></i> <span>${bean.times}</span>
           </div>
-          <div class="float-right"><i class="ml-2 far fa-clock"></i> ${bean.created.format('yyyy-MM-dd')}</div>
+          <div class="float-right"><i class="ml-2 far fa-clock"></i> ${format(bean.created, 'yyyy-MM-dd')}</div>
         </div>
       </div>
     </li>

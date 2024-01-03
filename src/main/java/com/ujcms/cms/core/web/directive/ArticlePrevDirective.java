@@ -2,6 +2,7 @@ package com.ujcms.cms.core.web.directive;
 
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.service.ArticleService;
+import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
@@ -27,7 +28,8 @@ public class ArticlePrevDirective implements TemplateDirectiveModel {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
 
-        Article article = query(params, articleService::findPrev);
+        boolean isDesc = Directives.getBoolean(params, ArticleNextDirective.IS_DESC, true);
+        Article article = query(params, isDesc ? articleService::findPrev : articleService::findNext);
 
         loopVars[0] = env.getObjectWrapper().wrap(article);
         body.render(env.getOut());

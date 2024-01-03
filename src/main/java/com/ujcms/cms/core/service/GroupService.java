@@ -40,7 +40,7 @@ public class GroupService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Group bean) {
-        bean.setId(seqService.getNextVal(Group.TABLE_NAME));
+        bean.setId(seqService.getNextVal(GroupBase.TABLE_NAME));
         mapper.insert(bean);
     }
 

@@ -154,6 +154,7 @@ public class QueryParser {
             return;
         }
         StringBuilder buff = new StringBuilder();
+        StringBuilder selectBuff = new StringBuilder();
         String comma = ",";
         for (String orderBy : StringUtils.split(rawOrderBy, comma)) {
             orderBy = orderBy.trim();
@@ -165,9 +166,14 @@ public class QueryParser {
                 orderBy = orderBy.substring(0, index);
             }
             // order by 去掉 desc，用于生成 table join。
-            buff.append(parseJoinTable(info, orderBy)).append(" ").append(direction).append(comma);
+            String column = parseJoinTable(info, orderBy);
+            buff.append(column).append(" ").append(direction).append(comma);
+            if (!column.startsWith(MAIN_TABLE_ALIAS + ".")) {
+                selectBuff.append(comma).append(column);
+            }
         }
         info.setOrderBy(buff.length() > 0 ? buff.substring(0, buff.length() - 1) : null);
+        info.setSelectOrderBy(selectBuff.length() > 0 ? selectBuff.toString() : null);
     }
 
     private static void parseWhereCondition(QueryInfo info, String columnPart, String operator,

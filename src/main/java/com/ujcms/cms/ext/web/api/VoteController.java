@@ -71,7 +71,7 @@ public class VoteController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取投票列表")
+    @Operation(summary = "获取投票列表（VoteList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在投票期限内。如：`true` `false`",
@@ -92,7 +92,7 @@ public class VoteController {
         });
     }
 
-    @Operation(summary = "获取投票分页")
+    @Operation(summary = "获取投票分页（VotePage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在投票期限内。如：`true` `false`",
@@ -113,7 +113,7 @@ public class VoteController {
         });
     }
 
-    @Operation(summary = "获取投票对象")
+    @Operation(summary = "获取投票对象（Vote标签）")
     @ApiResponses(value = {@ApiResponse(description = "投票对象")})
     @GetMapping("/{id:[\\d]+}")
     public Vote show(@Parameter(description = "投票ID") @PathVariable Integer id) {

@@ -12,13 +12,17 @@ import java.util.List;
  */
 public class StaticProps {
     private static final List<String> EP_EXCLUDES = new ArrayList<>(
-            Arrays.asList("menu.system", "site:page",
+            Arrays.asList("menu.system",
+                    "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
                     "processModel:page", "processInstance:page", "processHistory:page",
                     "homepage:systemMonitor", "machine:code", "machine:license",
                     "generator:fulltext:reindexSite",
-                    "articleReview:page", "article:internalPush",
-                    "article:internalPush", "article.externalPush",
-                    "visitedPage:page", "entryPage:page", "visitSource:page", "visitEnv:page"));
+                    "articleReview:page", "article:internalPush", "article.externalPush",
+                    "survey:page", "sensitiveWord:page", "errorWord:page", "siteSettings:editor:update",
+                    "menu.stat.articleStat", "articleStatByUser:page", "articleStatByOrg:page", "articleStatByChannel:page",
+                    "visitedPage:page", "entryPage:page", "visitSource:page", "visitEnv:page",
+                    "performanceType:page", "menu.stat.performanceStat",
+                    "performanceStatByUser:page", "performanceStatByOrg:page"));
     private static boolean epDisplay = true;
     private static int epRank = 0;
     private static boolean epActivated = false;

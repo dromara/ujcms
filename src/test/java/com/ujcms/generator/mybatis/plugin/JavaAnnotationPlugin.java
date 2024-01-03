@@ -37,6 +37,10 @@ public class JavaAnnotationPlugin extends PluginAdapter {
     public boolean clientSelectByPrimaryKeyMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
         interfaze.addImportedType(new FullyQualifiedJavaType("org.springframework.lang.Nullable"));
         method.addAnnotation("@Nullable");
+
+        if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            method.addAnnotation("@Override");
+        }
         return true;
     }
 
@@ -87,7 +91,12 @@ public class JavaAnnotationPlugin extends PluginAdapter {
                     defaultValue = defaultValue + "L";
                     break;
                 case Types.DECIMAL:
-                    defaultValue = "new java.math.BigDecimal(\"" + defaultValue + "\")";
+                    String javaType = introspectedColumn.getFullyQualifiedJavaType().getFullyQualifiedName();
+                    if ("java.lang.Long".equals(javaType)) {
+                        defaultValue = defaultValue + "L";
+                    } else if ("java.math.BigDecimal".equals(javaType)) {
+                        defaultValue = "new java.math.BigDecimal(\"" + defaultValue + "\")";
+                    }
                     break;
                 case Types.DATE:
                 case Types.TIMESTAMP:
@@ -147,7 +156,14 @@ public class JavaAnnotationPlugin extends PluginAdapter {
                     field.setInitializationString("0L");
                     break;
                 case Types.DECIMAL:
-                    field.setInitializationString("new java.math.BigDecimal(0)");
+                    String javaType = introspectedColumn.getFullyQualifiedJavaType().getFullyQualifiedName();
+                    if ("java.lang.Long".equals(javaType)) {
+                        field.setInitializationString("0L");
+                    } else if ("java.math.BigDecimal".equals(javaType)) {
+                        field.setInitializationString("new java.math.BigDecimal(0)");
+                    } else {
+                        field.setInitializationString("0");
+                    }
                     break;
                 case Types.CHAR:
                 case Types.NCHAR:

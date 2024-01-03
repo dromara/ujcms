@@ -14,6 +14,7 @@ import java.util.Map;
 public class OrgArgs extends BaseQueryArgs {
     @Nullable
     private Integer ancestorId;
+    private boolean isQueryHasChildren = false;
 
     public OrgArgs ancestorId(@Nullable Integer ancestorId) {
         if (ancestorId != null) {
@@ -25,7 +26,14 @@ public class OrgArgs extends BaseQueryArgs {
     public OrgArgs parentId(@Nullable Integer parentId) {
         if (parentId != null) {
             queryMap.put("EQ_parentId_Int", parentId);
+            isQueryHasChildren = true;
         }
+        return this;
+    }
+
+    public OrgArgs parentIdIsNull() {
+        queryMap.put("IsNull_parentId", null);
+        isQueryHasChildren = true;
         return this;
     }
 
@@ -44,5 +52,13 @@ public class OrgArgs extends BaseQueryArgs {
     @Nullable
     public Integer getAncestorId() {
         return ancestorId;
+    }
+
+    public boolean isQueryHasChildren() {
+        return isQueryHasChildren;
+    }
+
+    public void setQueryHasChildren(boolean queryHasChildren) {
+        isQueryHasChildren = queryHasChildren;
     }
 }

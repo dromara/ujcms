@@ -16,20 +16,24 @@ import java.util.Map;
 public class ChannelArgs extends BaseQueryArgs {
     @Nullable
     private Map<String, String> customsQueryMap;
+    @Nullable
+    private Collection<Integer> articleRoleIds;
+    private boolean onlyParent = false;
+    private boolean queryHasChildren = false;
 
     public ChannelArgs customsQueryMap(Map<String, String> customsQueryMap) {
         this.customsQueryMap = customsQueryMap;
         return this;
     }
 
-    public ChannelArgs inArticleRoleIds(@Nullable Collection<Integer> roleIds) {
-        if (CollectionUtils.isNotEmpty(roleIds)) {
-            queryMap.put("In_channel@RoleArticle-roleId_Int", roleIds);
+    public ChannelArgs articleRoleIds(@Nullable Collection<Integer> articleRoleIds) {
+        if (articleRoleIds != null) {
+            this.articleRoleIds = articleRoleIds;
         }
         return this;
     }
 
-    public ChannelArgs subSiteId(@Nullable Integer siteId) {
+    public ChannelArgs siteAncestorId(@Nullable Integer siteId) {
         if (siteId != null) {
             queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Int", siteId);
         }
@@ -43,9 +47,9 @@ public class ChannelArgs extends BaseQueryArgs {
         return this;
     }
 
-    public ChannelArgs subParentId(@Nullable Integer parentId) {
-        if (parentId != null) {
-            queryMap.put("EQ_descendant@ChannelTree-ancestorId_Int", parentId);
+    public ChannelArgs ancestorId(@Nullable Integer ancestorId) {
+        if (ancestorId != null) {
+            queryMap.put("EQ_descendant@ChannelTree-ancestorId_Int", ancestorId);
         }
         return this;
     }
@@ -53,12 +57,14 @@ public class ChannelArgs extends BaseQueryArgs {
     public ChannelArgs parentId(@Nullable Integer parentId) {
         if (parentId != null) {
             queryMap.put("EQ_parentId_Int", parentId);
+            queryHasChildren = true;
         }
         return this;
     }
 
     public ChannelArgs parentIdIsNull() {
         queryMap.put("IsNull_parentId", null);
+        queryHasChildren = true;
         return this;
     }
 
@@ -91,5 +97,26 @@ public class ChannelArgs extends BaseQueryArgs {
     @Nullable
     public Map<String, String> getCustomsQueryMap() {
         return customsQueryMap;
+    }
+
+    public boolean isOnlyParent() {
+        return onlyParent;
+    }
+
+    public void setOnlyParent(boolean onlyParent) {
+        this.onlyParent = onlyParent;
+    }
+
+    public boolean isQueryHasChildren() {
+        return queryHasChildren;
+    }
+
+    public void setQueryHasChildren(boolean queryHasChildren) {
+        this.queryHasChildren = queryHasChildren;
+    }
+
+    @Nullable
+    public Collection<Integer> getArticleRoleIds() {
+        return articleRoleIds;
     }
 }

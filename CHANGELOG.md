@@ -1,5 +1,36 @@
 # UJCMS 发版说明
 
+## ujcms-9.0.3
+
+* 许可协议改为Apache-2.0
+* 新增webp图片格式支持
+* 新增一键排版功能
+* 新增重复标题检测
+* 新增文章排序功能
+* 新增数据库备份 
+* 新增上传备份
+* 新增上传增量备份
+* 新增模板备份功能
+* 新增文章工作量统计
+* 新增角色所有状态权限
+* 新增绩效统计功能
+* 新增留言类型管理功能
+* 新增待办事宜功能
+* 新增文章定时上下线功能
+* 新增文章指定过期时间
+* 新增限制储存点file:开头的目录的功能
+* 新增留言板和文章排行榜API
+* 新增站点列表API及标签
+* 优化大数据量下栏目的性能
+* 优化pdf.js性能
+
+### 升级指南
+
+* **注意**：留言表的留言类别从字典表迁移到独立的`ujcms_message_board_type`表中。如未使用到留言功能，可忽略该项。否则升级前请先导出留言表`ujcms_message_board`及字典表`ujcms_dict`的留言类型(`type_id_`为`10`)，并将`ujcms_message_board`表中数据删除，否则升级可能失败。升级后将数据导回相应表中。
+* **注意**：`ujcms_article_buffer`表并入`ujcms_article_ext`，`ujcms_channel_buffer`表并入`ujcms_channel`，`ujcms_site_buffer`表并入`ujcms_site`，模板中标签`orderBy='@articleBuffer-weekViews_desc'`需改为`orderBy='@articleExt-weekViews_desc'`。其它有用到和表相关的标签查询参数，也需将`@articleBuffer`改为`@articleExt`。
+* **注意**：栏目列表标签（或接口）取消子栏目列表`children`属性和父栏目`parent`属性；只有单独查询栏目时，才提供这两个属性。
+* **注意**：`ArticleNext`和`ArticlePrev`标签的`publishDate`参数更改为`order`，需要将`publishDate=article.publishDate`改为`order=article.order`。
+
 ## ujcms-8.0.2 (2023-08-30)
 
 * 新增栏目、组织、用户发文排行榜功能

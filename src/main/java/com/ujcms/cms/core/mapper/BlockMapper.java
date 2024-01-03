@@ -65,7 +65,7 @@ public interface BlockMapper {
      * @param siteId 站点ID
      * @return 数据条数
      */
-    int countByAlias(@Param("alias") String alias, @Param("siteId") @Nullable Integer siteId);
+    int existsByAlias(@Param("alias") String alias, @Param("siteId") @Nullable Integer siteId);
 
     /**
      * 根据 站点ID 删除数据
