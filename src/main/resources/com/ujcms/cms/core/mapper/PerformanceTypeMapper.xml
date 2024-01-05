@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.PerformanceTypeMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.PerformanceType">
+    <id column="id_" jdbcType="INTEGER" property="id" />
+    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="score_" jdbcType="INTEGER" property="score" />
+    <result column="order_" jdbcType="BIGINT" property="order" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.PerformanceType" />
+  <update id="moveUp">
+    update ujcms_performance_type
+    set order_ = order_ + 1
+    where order_ &lt; #{from} and order_ &gt;= #{to}
+  </update>
+  <update id="moveDown">
+    update ujcms_performance_type
+    set order_ = order_ - 1
+    where order_ &gt; #{from} and order_ &lt;= #{to}
+  </update>
+  <update id="updateOrder">
+    update ujcms_performance_type
+    set order_ = #{order}
+    where id_ = #{id}
+  </update>
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_performance_type" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_performance_type t
+    where t.id_ = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="delete" parameterType="java.lang.Integer">
+    delete from ujcms_performance_type
+    where id_ = #{id,jdbcType=INTEGER}
+  </delete><update id="update" parameterType="com.ujcms.cms.core.domain.PerformanceType">
+    update ujcms_performance_type
+    set site_id_ = #{siteId,jdbcType=INTEGER},
+      name_ = #{name,jdbcType=VARCHAR},
+      score_ = #{score,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=INTEGER}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.PerformanceType">
+    insert into ujcms_performance_type (id_, site_id_, name_, score_, order_)
+    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{score,jdbcType=INTEGER}, #{order,jdbcType=BIGINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.score_, t.order_
+  </sql></mapper>
