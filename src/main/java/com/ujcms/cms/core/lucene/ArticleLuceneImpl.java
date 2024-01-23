@@ -120,8 +120,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
             }
 
             if (args.getEnabled() != null) {
-                bool.add(IntPoint.newExactQuery(FIELD_ENABLED,
-                        Boolean.TRUE.equals(args.getEnabled()) ? 1 : 0), Occur.MUST);
+                bool.add(new TermQuery(new Term(FIELD_ENABLED, args.getEnabled().toString())), Occur.MUST);
             }
 
             String[] strings = new String[]{args.getS1(), args.getS2(), args.getS3(),

@@ -27,9 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-
 import java.util.Optional;
 
+import static com.ujcms.cms.core.support.Constants.DEMO_USER_ID;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 
@@ -82,6 +82,9 @@ public class PasswordController {
             ipLoginAttemptService.failure(ip);
             loginLogService.loginFailure(params.username, ip, LoginLog.STATUS_LOGIN_NAME_NOT_FOUND);
             return Responses.failure(request, "error.usernameNotExist");
+        }
+        if (props.isDemo() && DEMO_USER_ID == user.getId()) {
+            return Responses.failure(request, "error.demoUserForbidden");
         }
         return passwordService.updatePassword(user, params.password, params.newPassword, ip, security, request);
     }

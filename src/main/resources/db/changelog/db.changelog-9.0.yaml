@@ -391,6 +391,7 @@ databaseChangeLog:
       id: 1700802019080-1
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:b665d98a5b62312ccc985307065d8194
         - addColumn:
             columns:
               - column:
@@ -399,7 +400,7 @@ databaseChangeLog:
                   defaultValue: '0'
                   name: all_status_permission_
                   remarks: 所有状态权限
-                  type: CHAR(1 BYTE)
+                  type: CHAR(1)
             tableName: ujcms_role
   - changeSet:
       id: 1701247563114-1
@@ -510,6 +511,7 @@ databaseChangeLog:
       id: 1701597400042-2
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:cf9823132fb83ea3505db3c029e4d26c
         - addColumn:
             columns:
               - column:
@@ -518,12 +520,13 @@ databaseChangeLog:
                   defaultValue: '1'
                   name: order_desc_
                   remarks: 是否倒序排序
-                  type: CHAR(1 BYTE)
+                  type: CHAR(1)
             tableName: ujcms_channel
   - changeSet:
       id: 1701597400042-3
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:8dc791c0532f2cdfe5b74da151d8ead2
         - addColumn:
             columns:
               - column:
@@ -532,12 +535,13 @@ databaseChangeLog:
                   defaultValue: '1'
                   name: allow_comment_
                   remarks: 是否允许评论
-                  type: CHAR(1 BYTE)
+                  type: CHAR(1)
             tableName: ujcms_channel
   - changeSet:
       id: 1701597400042-4
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:a00a47b2970a24cdbc8b694d0ea5936a
         - addColumn:
             columns:
               - column:
@@ -546,12 +550,13 @@ databaseChangeLog:
                   defaultValue: '0'
                   name: allow_contribute_
                   remarks: 是否允许投稿
-                  type: CHAR(1 BYTE)
+                  type: CHAR(1)
             tableName: ujcms_channel
   - changeSet:
       id: 1701597400042-5
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:58df4203448dd5e61295b45db357b62a
         - addColumn:
             columns:
               - column:
@@ -560,7 +565,7 @@ databaseChangeLog:
                   defaultValue: '1'
                   name: allow_search_
                   remarks: 是否允许搜索
-                  type: CHAR(1 BYTE)
+                  type: CHAR(1)
             tableName: ujcms_channel
   - changeSet:
       id: 1701597400042-6
@@ -671,6 +676,7 @@ databaseChangeLog:
       id: 1701680249593-1
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:382ceaff31d17ea7cde08cd426457500
         - addColumn:
             columns:
               - column:
@@ -679,12 +685,13 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: views_
                   remarks: 浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_site
   - changeSet:
       id: 1701680249593-2
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:f22850502450442726a0c8a83c30655c
         - addColumn:
             columns:
               - column:
@@ -693,7 +700,7 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: self_views_
                   remarks: 首页浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_site
   - changeSet:
       id: 1701680249593-3
@@ -713,6 +720,7 @@ databaseChangeLog:
       id: 1701680249593-4
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:8d9a55792d416048107290ad991f6f3c
         - addColumn:
             columns:
               - column:
@@ -721,12 +729,13 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: views_
                   remarks: 浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_channel
   - changeSet:
       id: 1701680249593-5
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:2aa5767c1157eb2fbbc9e87c268e4362
         - addColumn:
             columns:
               - column:
@@ -735,7 +744,7 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: self_views_
                   remarks: 栏目页浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_channel
   - changeSet:
       id: 1701680249593-6
@@ -917,6 +926,7 @@ databaseChangeLog:
       id: 1701682230934-6
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:dc90f4357a1a1f20a8d1cf317a5696b4
         - addColumn:
             columns:
               - column:
@@ -925,7 +935,7 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: views_
                   remarks: 浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_article_ext
   - changeSet:
       id: 1701682230934-7
@@ -987,6 +997,7 @@ databaseChangeLog:
       id: 1701682230934-11
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:392882e3b9c8f65bf8f419558946cd34
         - addColumn:
             columns:
               - column:
@@ -995,7 +1006,7 @@ databaseChangeLog:
                   defaultValueNumeric: 0
                   name: year_views_
                   remarks: 年浏览次数
-                  type: BIGINT(19)
+                  type: BIGINT
             tableName: ujcms_article_ext
   - changeSet:
       id: 1701682230934-1-sql
@@ -1061,4 +1072,25 @@ databaseChangeLog:
                   remarks: 上线日期
                   type: DATETIME
             tableName: ujcms_article
-
+  - changeSet:
+      id: 1705651238012-8
+      author: PONY (generated)
+      changes:
+        - dropNotNullConstraint:
+            columnDataType: varchar(100)
+            columnName: password_
+            tableName: ujcms_user
+  - changeSet:
+      id: 1705651238012-9
+      author: PONY (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(100)
+            columnName: password_
+            tableName: ujcms_user
+  - changeSet:
+      id: 9.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v9.0

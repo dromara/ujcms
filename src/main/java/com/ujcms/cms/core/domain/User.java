@@ -113,14 +113,6 @@ public class User extends UserBase implements UserDetails, Serializable {
     }
 
     /**
-     * 是否设置密码（通过第三方注册的用户可能没有设置密码）
-     */
-    @Schema(description = "密码是否存在")
-    public boolean isPasswordExist() {
-        return !"0".equalsIgnoreCase(getPassword());
-    }
-
-    /**
      * 密码剩余天数
      *
      * @param maxDay 密码最长使用天数

@@ -18,6 +18,7 @@ import com.ujcms.cms.core.service.args.UserArgs;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import com.ujcms.commons.web.exception.LogicException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
@@ -107,9 +108,11 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     @Transactional(rollbackFor = Exception.class)
     public void updatePassword(User user, UserExt userExt, String password) {
         String origPassword = user.getPassword();
+        if(StringUtils.isNotBlank(origPassword)) {
+            user.addHistoryPassword(origPassword);
+        }
         user.setPassword(passwordEncoder.encode(password));
         user.setPasswordModified(OffsetDateTime.now());
-        user.addHistoryPassword(origPassword);
         userExt.setErrorCount(0);
         mapper.update(user);
         extMapper.update(userExt);

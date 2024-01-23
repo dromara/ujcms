@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
+import static com.ujcms.cms.core.support.Constants.DEMO_USER_ID;
+
 /**
  * 上下文拦截器
  *
@@ -55,9 +57,8 @@ public class BackendInterceptor implements HandlerInterceptor {
         Contexts.setCurrentSite(site);
         // 演示站的演示用户只能执行 GET 请求
         if (props.isDemo()) {
-            Integer demoId = 10;
             String allowedMethod = "GET";
-            if (demoId.equals(user.getId()) && !allowedMethod.equalsIgnoreCase(request.getMethod())) {
+            if (DEMO_USER_ID == user.getId() && !allowedMethod.equalsIgnoreCase(request.getMethod())) {
                 throw new Http403Exception("error.demoUserForbidden");
             }
         }

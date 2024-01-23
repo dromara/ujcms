@@ -40,8 +40,8 @@
           <label for="gender">性别</label>
           <select class="form-control" id="gender" name="gender">
             <option value="0">保密</option>
-            <option value="1"[#if user.gender==1] selected[/#if]>男</option>
-            <option value="2"[#if user.gender==2] selected[/#if]>女</option>
+            <option value="1" [#if user.gender==1]selected[/#if]>男</option>
+            <option value="2" [#if user.gender==2]selected[/#if]>女</option>
           </select>
         </div>
         <div class="form-group">
@@ -82,10 +82,12 @@
       submitHandler: function (form) {
         request.post(form.action, $(form).serializeJSON()).then(function (response) {
           var data = response.data;
-          if (data.status === 0) {
+          if (data.status !== 0) {
+            showAlert(data.message);
+          } else {
             showSuccess();
-            location.reload();
           }
+          location.reload();
         });
       }
     });

@@ -92,7 +92,8 @@
     }
 
     function plusOpens() {
-        if (getHiddenTime() != null && Date.now() - getHiddenTime() > 4 * 60 * 60 * 1000) {
+        // 超过2小时没有刷新页面或打开页面，重新计时
+        if (getHiddenTime() != null && Date.now() - getHiddenTime() > 2 * 60 * 60 * 1000) {
             resetCookie();
         }
         setHiddenTime(null);

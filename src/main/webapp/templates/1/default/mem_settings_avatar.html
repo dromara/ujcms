@@ -160,8 +160,14 @@
         request.post(form.action, body).then(function (response) {
           var url = response.data.url;
           var image = url.substring(url.lastIndexOf('/') + 1);
-          request.post('${api}/settings/avatar?_method=put', {image}).then(function () {
-            showSuccess();
+          request.post('${api}/settings/avatar?_method=put', {image}).then(function (response) {
+            var data = response.data;
+            if (data === null) return;
+            if (data.status !== 0) {
+              showAlert(data.message);
+            } else {
+              showSuccess();
+            }
             location.reload();
           });
         });

@@ -47,6 +47,10 @@ public final class Constants {
      * MinIO的listObjects最大也是1000条。{@link ListObjectsArgs.Builder#maxKeys(int)}
      */
     public static final int MAX_PAGE_SIZE = 1000;
+    /**
+     * 演示用户ID
+     */
+    public static final int DEMO_USER_ID = 10;
 
     public static final String IDENTITY_COOKIE_NAME = "ujcms-unique-visitor";
 

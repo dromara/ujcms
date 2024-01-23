@@ -31,6 +31,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import static com.ujcms.cms.core.support.Constants.DEMO_USER_ID;
+import static com.ujcms.cms.core.support.ErrorConstants.DEMO_USER_FORBIDDEN;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.commons.web.Uploads.AVATAR_TYPE;
@@ -67,8 +69,11 @@ public class SettingsController {
     @PutMapping("/profile")
     public ResponseEntity<Body> updateProfile(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "用户对象。不可用属性：\"nickname\", \"realName\", \"gender\", \"birthday\", \"location\", \"bio\"")
-            @RequestBody User bean) {
+            @RequestBody User bean, HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
+        if (props.isDemo() && DEMO_USER_ID == user.getId()) {
+            return Responses.failure(request, DEMO_USER_FORBIDDEN);
+        }
         Entities.copyIncludes(bean, user, "nickname", "realName", "gender", "birthday", "location", "bio");
         userService.update(user, user.getExt());
         return Responses.ok();
@@ -77,8 +82,11 @@ public class SettingsController {
     @Operation(summary = "更新个人头像")
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/avatar")
-    public ResponseEntity<Body> updateAvatar(@RequestBody @Valid AvatarParams params) {
+    public ResponseEntity<Body> updateAvatar(@RequestBody @Valid AvatarParams params, HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
+        if (props.isDemo() && DEMO_USER_ID == user.getId()) {
+            return Responses.failure(request, DEMO_USER_FORBIDDEN);
+        }
         Config config = configService.getUnique();
         FileHandler fileHandler = config.getUploadStorage().getFileHandler(pathResolver);
         String url = fileHandler.getDisplayPrefix() + "/" + AVATAR_TYPE + "/" + user.getId() + "/" + params.image;
@@ -92,16 +100,18 @@ public class SettingsController {
     @PutMapping("/email")
     public ResponseEntity<Body> updateEmail(@RequestBody EmailParams params, HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
+        if (props.isDemo() && DEMO_USER_ID == user.getId()) {
+            return Responses.failure(request, DEMO_USER_FORBIDDEN);
+        }
         Config config = configService.getUnique();
         Config.Security securityConfig = config.getSecurity();
         // 用户登录是否超过尝试次数
         if (user.isExcessiveAttempts(securityConfig.getUserMaxAttempts(), securityConfig.getUserLockMinutes())) {
             return Responses.failure(request, "error.userExcessiveAttempts");
         }
-        ResponseEntity<Body> result = validatePassword(params.password, props.getClientSm2PrivateKey(),
-                user, securityConfig, request);
-        if (result != null) {
-            return result;
+        ResponseEntity<Body> failure = validatePassword(params.password, props.getClientSm2PrivateKey(), user, securityConfig, request);
+        if (failure != null) {
+            return failure;
         }
         if (!shortMessageService.validateCode(params.emailMessageId, params.email, params.emailMessageValue,
                 config.getEmail().getCodeExpires())) {
@@ -116,13 +126,15 @@ public class SettingsController {
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/mobile")
     public ResponseEntity<Body> updateMobile(@RequestBody MobileParams params, HttpServletRequest request) {
+        User user = Contexts.getCurrentUser();
+        if (props.isDemo() && DEMO_USER_ID == user.getId()) {
+            return Responses.failure(request, DEMO_USER_FORBIDDEN);
+        }
         Config config = configService.getUnique();
         Config.Security securityConfig = config.getSecurity();
-        User user = Contexts.getCurrentUser();
-        ResponseEntity<Body> result = validatePassword(params.password, props.getClientSm2PrivateKey(),
-                user, securityConfig, request);
-        if (result != null) {
-            return result;
+        ResponseEntity<Body> failure = validatePassword(params.password, props.getClientSm2PrivateKey(), user, securityConfig, request);
+        if (failure != null) {
+            return failure;
         }
         if (!shortMessageService.validateCode(params.mobileMessageId, params.mobile, params.mobileMessageValue,
                 config.getSms().getCodeExpires())) {
@@ -135,14 +147,17 @@ public class SettingsController {
 
     private ResponseEntity<Body> validatePassword(String encryptedPassword, String privateKey, User user,
                                                   Config.Security securityConfig, HttpServletRequest request) {
-        if (StringUtils.isBlank(encryptedPassword) && user.isPasswordExist()) {
+        if (StringUtils.isBlank(encryptedPassword) && StringUtils.isNotBlank(user.getPassword())) {
             return Responses.failure("password cannot be null");
         }
-        String password = null;
+        String rawPassword = null;
         if (StringUtils.isNotBlank(encryptedPassword)) {
-            password = Secures.sm2Decrypt(encryptedPassword, privateKey);
+            rawPassword = Secures.sm2Decrypt(encryptedPassword, privateKey);
         }
-        if (password != null && !passwordEncoder.matches(password, user.getPassword())) {
+        String password = user.getPassword();
+        boolean isWrongPassword = rawPassword != null &&
+                (StringUtils.isBlank(password) || !passwordEncoder.matches(rawPassword, password));
+        if (isWrongPassword) {
             // 记录用户错误次数
             userService.loginFailure(user.getExt(), securityConfig.getUserLockMinutes());
             int maxAttempts = securityConfig.getUserMaxAttempts();

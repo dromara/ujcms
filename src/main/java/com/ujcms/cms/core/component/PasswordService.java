@@ -44,16 +44,15 @@ public class PasswordService {
             loginLogService.updatePasswordFailure(user.getId(), ip, LoginLog.STATUS_USER_EXCESSIVE_ATTEMPTS);
             return Responses.failure(request, "error.userExcessiveAttempts");
         }
-        if (StringUtils.isBlank(encryptedPassword) && user.isPasswordExist()) {
+        String rawPassword = StringUtils.isNotBlank(encryptedPassword) ?
+                Secures.sm2Decrypt(encryptedPassword, props.getClientSm2PrivateKey()) : null;
+        String password = user.getPassword();
+        if (rawPassword == null && StringUtils.isNotBlank(password)) {
             return Responses.failure("password cannot be null");
         }
-        String password = null;
-        if (StringUtils.isNotBlank(encryptedPassword)) {
-            password = Secures.sm2Decrypt(encryptedPassword, props.getClientSm2PrivateKey());
-        }
-        // 前台密码已通过SM2加密，此处进行解密
-        String newPassword = Secures.sm2Decrypt(newEncryptedPassword, props.getClientSm2PrivateKey());
-        if (password != null && !passwordEncoder.matches(password, user.getPassword())) {
+        boolean isWrongPassword = rawPassword != null &&
+                (StringUtils.isBlank(password) || !passwordEncoder.matches(rawPassword, password));
+        if (isWrongPassword) {
             // 记录用户错误次数
             userService.loginFailure(user.getExt(), security.getUserLockMinutes());
             loginLogService.updatePasswordFailure(user.getId(), ip, LoginLog.STATUS_PASSWORD_WRONG);
@@ -68,6 +67,8 @@ public class PasswordService {
         if (user.getPasswordDays() < security.getPasswordMinDays()) {
             return Responses.failure(request, "error.passwordNotReachedMinDays");
         }
+        // 前台密码已通过SM2加密，此处进行解密
+        String newPassword = Secures.sm2Decrypt(newEncryptedPassword, props.getClientSm2PrivateKey());
         // 是否使用历史密码
         int passwordMaxHistory = security.getPasswordMaxHistory();
         for (String historyPassword : user.getHistoryPasswordList(passwordMaxHistory)) {

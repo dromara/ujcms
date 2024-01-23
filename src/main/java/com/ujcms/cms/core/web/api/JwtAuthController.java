@@ -20,6 +20,7 @@ import com.ujcms.commons.web.Servlets;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,9 +110,10 @@ public class JwtAuthController {
             return Responses.failure(request, "error.mobileMessageIncorrect");
         }
         // 前台密码已通过SM2加密，此处进行解密
-        String password = Secures.sm2Decrypt(params.password, props.getClientSm2PrivateKey());
+        String rawPassword = Secures.sm2Decrypt(params.password, props.getClientSm2PrivateKey());
+        String password = user.getPassword();
         // 密码错误
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (StringUtils.isBlank(password) || !passwordEncoder.matches(rawPassword, password)) {
             return service.incorrectPassword(user, params.username, ip, security, request);
         }
         // 非正常状态用户
