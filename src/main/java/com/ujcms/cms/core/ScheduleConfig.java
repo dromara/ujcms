@@ -140,6 +140,10 @@ public class ScheduleConfig {
             List<Article> offlineArticles = articleService.listAndUpdateOfflineStatus();
             List<Article> articles = Stream.of(stickyArticles, onlineArticles, offlineArticles)
                     .flatMap(Collection::stream).collect(Collectors.toList());
+            for (Article article : articles) {
+                article.adjustStatus();
+                articleService.update(article);
+            }
             Integer siteId = configService.getUnique().getDefaultSiteId();
             String taskName = "task.html.articleRelated";
             htmlGenerator.updateArticleRelatedHtml(siteId, User.ANONYMOUS_ID, taskName, articles, null);

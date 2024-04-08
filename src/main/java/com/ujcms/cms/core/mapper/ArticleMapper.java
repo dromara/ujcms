@@ -183,12 +183,13 @@ public interface ArticleMapper extends OrderEntityMapper {
     Map<String, Object> statForSitemap(@Param("siteId") Integer siteId, @Param("status") Collection<Short> status);
 
     /**
-     * 更新文章修改人员
+     * 更新修改人员
      *
-     * @param modifiedUserId 修改用户ID
+     * @param fromUserId 原修改用户ID
+     * @param toUserId   新修改用户ID
      * @return 被更新的条数
      */
-    int updateModifiedUser(Integer modifiedUserId);
+    int updateModifiedUser(@Param("fromUserId") Integer fromUserId, @Param("toUserId") Integer toUserId);
 
     /**
      * 更新置顶日期。所有已到期的置顶文章，将置顶设置成`0`，并将置顶日期设置为`null`

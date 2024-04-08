@@ -67,9 +67,9 @@ public class HtmlGenerator extends AbstractGenerator {
             Integer articleId = article.getId();
             Integer channelId = article.getChannelId();
             Long order = article.getOrder();
-            // 当前文章
+            // 当前文章直接更新，以免导致404错误
             Optional.ofNullable(articleService.select(articleId))
-                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(htmlService::updateArticleHtml);
             // 上一篇文章
             Optional.ofNullable(articleService.findPrev(articleId, order, channelId))
                     .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);

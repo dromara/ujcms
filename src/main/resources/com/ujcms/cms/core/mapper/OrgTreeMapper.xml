@@ -6,7 +6,7 @@
   </resultMap>
     <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.OrgTree" />
-    <select id="listByAncestorId" resultType="map">
+    <select id="listByAncestorId" resultType="int">
         select t.descendant_id_
         from ujcms_org_tree t
         where t.ancestor_id_ = #{ancestorId}

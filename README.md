@@ -9,8 +9,13 @@ Java开源内容管理系统(java cms)。使用SpringBoot、MyBatis、Spring Sec
 * 官网地址：[https://www.ujcms.com](https://www.ujcms.com)
 * 下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)。提供安装包下载。
 * 演示站前台：[https://demo.ujcms.com](https://demo.ujcms.com)。使用手机访问或者浏览器手机模式访问前台，会自动呈现手机页面。
-* 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)。演示用户登录后只拥有后台浏览功能，所有操作功能点击后都会显示无权访问（403）。如需进行操作测试，可以下载软件到本地安装。
-* QQ交流群：626599871
+* 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)
+
+QQ交流群：626599871
+
+微信交流群：加作者微信拉入群
+
+![UJCMS交流群](docs/assets/images/wechat.png)
 
 ## 技术及功能亮点
 
@@ -81,14 +86,12 @@ lower_case_table_names=2
 
 ## 部署
 
-* 使用maven进行打包`mvn package`。会生成`target/ujcms-***.war`文件和`target/ujcms-***`目录。
+* 使用maven进行打包`mvn package -P war`。会生成`target/ujcms-***.war`文件和`target/ujcms-***`目录。
 * 用目录方式部署的，可以将`target/ujcms-***/`目录下文件复制到tomcat的`webapps/ROOT`目录下（请先删除原tomcat/webapps目录下所有文件夹）。复制完成后有类似`webapps/ROOT/uploads` `webapps/ROOT/templates` `webapps/ROOT/WEB-INF`等文件夹。
 * 也可使用war包部署，将`ujcms-***.war`更名为`ROOT.war`（注意大小写），复制到tomcat的`webapps`目录下（请先删除原tomcat/webapps目录下所有文件夹）。复制完成后文件地址为`webapps/ROOT.war`文件。war部署要使用解压模式，tomcat默认就是使用解压模式，如修改过tomcat配置，请检查`tomcat/conf/server.xml`配置文件中`<Host ... unpackWARs="true" ... >`的配置项。
 * 需注意`/WEB-INF/classes/application.yaml`文件中的数据库地址、用户名、密码相关配置是否与部署环境的数据库一致。
 
 ## jar部署
-
-程序默认打包为WAR格式。如需要使用springboot的jar方式启动，可按以下步骤修改：
 
 * 使用maven进行打包`mvn package -P jar`。
 * 将打包的`target/ujcms-***.jar`文件复制到部署目录。

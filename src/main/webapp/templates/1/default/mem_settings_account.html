@@ -28,7 +28,7 @@
       <div class="alert alert-danger d-none" id="passwordFormError" role="alert"></div>
       <form class="mt-3" id="passwordForm" action="${api}/update-password?_method=put" method="post">
         <!-- 如没有设置密码（通过 oauth 注册），则不显示输入旧密码 -->
-        [#if user.passwordExist]
+        [#if user.password??]
           <div class="form-group">
             <label for="password">原密码</label>
             <input type="password" class="form-control" id="password" name="password" required>

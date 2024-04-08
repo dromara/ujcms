@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.0.5</version>
+    <version>9.1.0</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -561,10 +561,16 @@
     </dependencies>
     <profiles>
         <profile>
-            <id>war</id>
+            <id>jar</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <properties>
+                <project.packaging>jar</project.packaging>
+            </properties>
+        </profile>
+        <profile>
+            <id>war</id>
             <properties>
                 <project.packaging>war</project.packaging>
             </properties>
@@ -573,7 +579,7 @@
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
-                    <scope>provided</scope>
+                     <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>

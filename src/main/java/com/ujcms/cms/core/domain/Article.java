@@ -154,17 +154,17 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         OffsetDateTime onlineDate = getOnlineDate();
         OffsetDateTime offlineDate = getOfflineDate();
         if (status == STATUS_PUBLISHED || status == STATUS_ARCHIVED) {
-            if (onlineDate != null && onlineDate.compareTo(now) < 0) {
+            if (onlineDate != null && onlineDate.compareTo(now) > 0) {
                 setStatus(STATUS_READY);
             }
-            if (offlineDate != null && offlineDate.compareTo(now) > 0) {
+            if (offlineDate != null && offlineDate.compareTo(now) <= 0) {
                 setStatus(STATUS_OFFLINE);
             }
         } else if (status == STATUS_READY) {
-            if (onlineDate == null || onlineDate.compareTo(now) >= 0) {
+            if (onlineDate == null || onlineDate.compareTo(now) <= 0) {
                 setStatus(STATUS_PUBLISHED);
             }
-            if (offlineDate != null && offlineDate.compareTo(now) > 0) {
+            if (offlineDate != null && offlineDate.compareTo(now) <= 0) {
                 setStatus(STATUS_OFFLINE);
             }
         }

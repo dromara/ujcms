@@ -183,7 +183,8 @@
     </select>
     <update id="updateModifiedUser">
         update ujcms_article
-        set modified_user_id_ = #{modifiedUserId}
+        set modified_user_id_ = #{toUserId}
+        where modified_user_id_ = ${fromUserId}
     </update>
     <update id="updateStickyDate">
         update ujcms_article

@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class StaticProps {
     private static final List<String> EP_EXCLUDES = new ArrayList<>(
-            Arrays.asList("menu.system",
+            Arrays.asList(
                     "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
                     "processModel:page", "processInstance:page", "processHistory:page",
                     "homepage:systemMonitor", "machine:code", "machine:license",
