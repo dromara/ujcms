@@ -1,15 +1,16 @@
 # UJCMS
 
-Java开源内容管理系统(java cms)。使用SpringBoot、MyBatis、Spring Security、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。
+Java开源内容管理系统(java cms)、Java建站系统。使用SpringBoot、MyBatis、Spring Security、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。支持多站点功能，在一套系统中管理多个网站。支持无头CMS，使用模板(Freemarker)+标签方式或使用Vue(React)+API方式制作网站均可。
+
+使用`Apache-2.0`开源协议，可免费用于商业网站。
 
 技术上尽量选择主流、先进、简单的架构，方便用户进行二次开发。设计上强调“简单”、“灵活”，避免繁杂的设计和实现，降低系统维护成本和二次开发难度。功能使用上也要求“简单”，避免复杂的使用逻辑。
 
-支持信创适配，支持国产服务器、国产操作系统、国产数据库、国产中间件。
-
 * 官网地址：[https://www.ujcms.com](https://www.ujcms.com)
-* 下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)。提供安装包下载。
+* 安装包下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)
 * 演示站前台：[https://demo.ujcms.com](https://demo.ujcms.com)。使用手机访问或者浏览器手机模式访问前台，会自动呈现手机页面。
 * 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)
+* API、标签及对象文档：[https://demo.ujcms.com/swagger-ui/index.html](https://demo.ujcms.com/swagger-ui/index.html)
 
 QQ交流群：626599871
 
@@ -19,9 +20,13 @@ QQ交流群：626599871
 
 ## 技术及功能亮点
 
-**自定义字段可查询**：所有的自定义字段都可查询增强了系统的灵活性。
+**自定义字段**：文章、栏目等模块都支持自定义字段，方便满足客户的不同需求。
+
+**自定义字段可查询**：支持自定义字段，且所有的自定义字段都可查询，极大地增强了系统的灵活性。
 
 **自定义字段可视化设计**：自定义字段使用拖拽式的可视化设计，所见即所得。
+
+**MyBatis参数化查询**：数据通常会需要通过不同字段进行搜索，对每个表都写大量的查询，无疑是一项繁重的工作。MyBatis参数化查询功能通过前台传递查询参数，即可实现任意字段及关联表的查询功能（如：Q_title=abc，Q_user-username=test），无需后台编写代码，大幅减少后端的开发工作量。后台开发和前台标签（API）均可使用参数化查询，因此标签（API）几乎可以实现任意查询效果。
 
 **URL地址SEO优化**：栏目和文章的动态地址可以通过系统的全局设置功能进行修改。默认的栏目和文章URL地址前缀为`/channel`和`/article`，可以根据自己的需要修改，如改为`/categories`和`/archives`。多站点的情况下，子站点URL地址可为目录形式(`www.example.com/abc`)或次级域名形式(`abc.example.com`)。
 
@@ -31,9 +36,7 @@ QQ交流群：626599871
 
 **模板文件和CSS、JS在同一目录**：模板文件和CSS、JS分开的目录结构，会给模板制作和部署带来很大的不便性。而将模板文件和CSS、JS放在一起的设计，会方便很多。
 
-**MyBatis参数化查询**：后台数据通常会需要通过不同字段进行搜索，对每个表都写大量的查询，无疑是一项繁重的工作。MyBatis参数化查询功能通过前台传递查询参数，即可实现任意字段及关联表的查询功能（如：Q_title=abc，Q_user-username=test），无需后台编写代码，大幅减少后端的开发工作量。
-
-**主副表拆分**：对查询量大的复杂表进行主副表拆分，把常用的查询字段放到主表，不常用的字段放到副表，提升大数据量下的性能表现。
+**主副表拆分**：对查询量大的复杂表进行主副表拆分，把常用查询字段放到主表，不常用的字段放到副表，提升大数据量下的性能表现。
 
 ## 环境要求
 
@@ -119,7 +122,7 @@ Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，�
 
 ## 前台模板
 
-网站前台模板位于`/src/main/webapp/templates`目录，使用`Freemarker`技术。通过修改模板文件，可以完全控制网站页面显示的内容。
+网站前台模板位于`/src/main/webapp/templates`目录，使用`Freemarker`技术。通过修改模板文件，可以完全控制网站页面显示的内容。也可使用Vue(React)+API的方式制作网站。
 
 ## 后端技术
 

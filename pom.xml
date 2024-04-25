@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.1.0</version>
+    <version>9.1.1</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -19,20 +19,20 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.14</version>
+        <version>2.7.18</version>
     </parent>
     <properties>
         <!-- mybatis-spring-boot-starter 2.0 以上版本 会引用 MyBatis 3.5 以上版本，导致OffsetDateTime出错。该问题与MySQL驱动有关，MySQL8.0.23驱动已解决这个问题。-->
         <!-- 相关参考资料：https://blog.csdn.net/zjcsuct/article/details/107754870 -->
-        <mybatis-spring-boot-starter.version>2.3.0</mybatis-spring-boot-starter.version>
-        <pagehelper-spring-boot-starter.version>1.4.7</pagehelper-spring-boot-starter.version>
+        <mybatis-spring-boot-starter.version>2.3.2</mybatis-spring-boot-starter.version>
+        <pagehelper-spring-boot-starter.version>2.1.0</pagehelper-spring-boot-starter.version>
         <spring-boot-starter-mobile.version>1.5.22.RELEASE</spring-boot-starter-mobile.version>
         <!-- 工作流引擎 -->
         <flowable-spring-boot-starter>6.7.2</flowable-spring-boot-starter>
         <!-- 全文索引组件 -->
         <lucene.version>8.11.1</lucene.version>
         <!-- 全文索引分词器 -->
-        <ik-analyzer.version>8.5.0</ik-analyzer.version>
+        <jcseg-analyzer.version>2.6.3</jcseg-analyzer.version>
         <!--<elasticsearch.version>7.15.2</elasticsearch.version>-->
         <!-- freemarker java8 日期组件 -->
         <freemarker-java8.version>2.0.0</freemarker-java8.version>
@@ -227,19 +227,15 @@
             <artifactId>flowable-spring-boot-starter-process</artifactId>
             <version>${flowable-spring-boot-starter}</version>
         </dependency>
-        <!-- IK 中文分词 -->
+        <!-- jcseg 中文分词 -->
         <dependency>
-            <groupId>com.github.magese</groupId>
-            <artifactId>ik-analyzer</artifactId>
-            <version>${ik-analyzer.version}</version>
+            <groupId>org.lionsoul</groupId>
+            <artifactId>jcseg-analyzer</artifactId>
+            <version>${jcseg-analyzer.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.lucene</groupId>
                     <artifactId>lucene-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.lucene</groupId>
-                    <artifactId>lucene-queryparser</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.apache.lucene</groupId>
@@ -579,15 +575,9 @@
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
-                     <scope>provided</scope>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
-        </profile>
-        <profile>
-            <id>jar</id>
-            <properties>
-                <project.packaging>jar</project.packaging>
-            </properties>
         </profile>
     </profiles>
     <build>
