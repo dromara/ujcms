@@ -93,8 +93,8 @@ public class RoleController {
         if (role == null) {
             throw new Http404Exception(ROLE_ID_NOT_FOUND + bean.getId());
         }
-        boolean origGlobal = bean.isGlobal();
-        Short origRank = bean.getRank();
+        boolean origGlobal = role.isGlobal();
+        Short origRank = role.getRank();
         Entities.copy(bean, role, Role.PERMISSION_FIELDS);
         validateBean(role, origGlobal, origRank, currentUser);
         service.update(role, getCurrentSiteId());
@@ -110,8 +110,9 @@ public class RoleController {
         if (role == null) {
             throw new Http404Exception(ROLE_ID_NOT_FOUND + bean.getId());
         }
+        Short origRank = role.getRank();
         Entities.copyIncludes(bean, role, Role.PERMISSION_FIELDS);
-        validateBean(role, false, role.getRank(), currentUser);
+        validateBean(role, false, origRank, currentUser);
         service.update(role, bean.getArticlePermissions(), bean.getChannelPermissions(), getCurrentSiteId());
         return Responses.ok();
     }
@@ -144,7 +145,7 @@ public class RoleController {
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
         User currentUser = Contexts.getCurrentUser();
         ids.forEach(id -> Optional.ofNullable(id).map(service::select).ifPresent(
-                bean -> validatePermission(bean.getSiteId(), bean.isGlobal(), bean.getRank(), currentUser)));
+                bean -> validatePermission(bean.getSiteId(), bean.isGlobal(), bean.getRank(), bean.getRank(), currentUser)));
         service.delete(ids);
         return Responses.ok();
     }
@@ -171,16 +172,15 @@ public class RoleController {
         return scope == SCOPE_PRIVATE && userService.existsByRoleId(roleId, site.getOrgId());
     }
 
-    private void validatePermission(Integer siteId, boolean isGlobal, Short rank, User currentUser) {
+    private void validatePermission(Integer siteId, boolean isGlobal, Short origRank, Short newRank, User currentUser) {
         dataInSite(siteId, getCurrentSiteId());
-        rankPermission(rank, currentUser.getRank());
+        rankPermission(origRank, newRank, currentUser.getRank());
         globalPermission(isGlobal, currentUser.hasGlobalPermission());
     }
 
     private void validateBean(Role role, boolean origGlobal, Short origRank, User currentUser) {
         boolean isGlobal = role.isGlobal() || origGlobal;
-        Short rank = origRank > role.getRank() ? origRank : role.getRank();
-        validatePermission(role.getSiteId(), isGlobal, rank, currentUser);
+        validatePermission(role.getSiteId(), isGlobal, origRank, role.getRank(), currentUser);
         if (scopeNotAllowed(role.getScope(), role.getId())) {
             throw new Http400Exception("scope not allowed " + role.getScope());
         }

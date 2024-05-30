@@ -264,6 +264,7 @@ ujcms.uploads-location: /uploads
 # 客户端SM2私钥。使用QD值，HEX编码。单机环境可以不设置，会默认生成随机私钥。
 #ujcms.client-sm2-private-key:
 # 密码胡椒。除非对加密密码安全要求特别高，否则不要修改此项。改动后用户密码将全部失效，需手动重置所有密码。一般不少于32个字符。密码胡椒将加在用户实际密码中，防止黑客在获取数据库数据后，对密码进行破解。
+#ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 
 # 是否启用Office功能（商业版功能）

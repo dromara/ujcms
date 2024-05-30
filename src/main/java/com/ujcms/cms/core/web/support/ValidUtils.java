@@ -37,10 +37,12 @@ public final class ValidUtils {
     /**
      * 校验用户等级是否低于数据等级
      *
-     * @param rank     数据等级
+     * @param origRank 数据原等级
+     * @param newRank  数据新等级
      * @param userRank 用户等级
      */
-    public static void rankPermission(Short rank, Short userRank) {
+    public static void rankPermission(Short origRank, Short newRank, Short userRank) {
+        short rank = origRank > newRank ? newRank : origRank;
         if (userRank > rank) {
             throw new Http403Exception(String.format("user rank(%d) below then data rank(%d)", userRank, rank));
         }

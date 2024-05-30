@@ -37,7 +37,7 @@ public class MediaUtils {
         if (millis > max) {
             millis = max;
         }
-        if (millis < duration) {
+        if (millis > duration) {
             millis = duration;
         }
         ScreenExtractor instance = new ScreenExtractor();

@@ -120,8 +120,9 @@ public class UserController {
         if (user == null) {
             return Responses.notFound(USER_NOT_FOUND + bean.getId());
         }
+        Short origRank = user.getRank();
         Entities.copyIncludes(bean, user, PERMISSION_FIELDS);
-        validatePermission(user.getOrgId(), user.getRank(), currentUser);
+        validatePermission(user.getOrgId(), user.getRank(), origRank, currentUser);
         bean.getRoleIds().stream().filter(Objects::nonNull).map(roleService::select)
                 .filter(Objects::nonNull).forEach(role -> {
             if (role.getRank() < user.getRank()) {
@@ -148,7 +149,7 @@ public class UserController {
     public ResponseEntity<Body> updateStatus(@RequestBody @Valid UpdateStatusParams params) {
         User currentUser = Contexts.getCurrentUser();
         params.ids.stream().filter(Objects::nonNull).map(service::select).filter(Objects::nonNull).forEach(user -> {
-            validatePermission(user.getOrgId(), user.getRank(), currentUser);
+            validatePermission(user.getOrgId(), user.getRank(), user.getRank(), currentUser);
             user.setStatus(params.status);
             service.update(user);
         });
@@ -166,10 +167,12 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('user:updatePassword','*')")
     @OperationLog(module = "user", operation = "updatePassword", type = OperationType.UPDATE)
     public ResponseEntity<Body> updatePassword(@RequestBody @Valid UpdatePasswordParams params) {
+        User currentUser = Contexts.getCurrentUser();
         User user = service.select(params.id);
         if (user == null) {
             return Responses.notFound(USER_NOT_FOUND + params.id);
         }
+        validatePermission(user.getOrgId(), user.getRank(), user.getRank(), currentUser);
         String password = Secures.sm2Decrypt(params.password, props.getClientSm2PrivateKey());
         service.updatePassword(user, user.getExt(), password);
         return Responses.ok();
@@ -181,7 +184,7 @@ public class UserController {
     public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
         User currentUser = Contexts.getCurrentUser();
         ids.stream().filter(Objects::nonNull).map(service::select).filter(Objects::nonNull).forEach(user ->
-                validatePermission(user.getOrgId(), user.getRank(), currentUser));
+                validatePermission(user.getOrgId(), user.getRank(), user.getRank(), currentUser));
         service.delete(ids);
         return Responses.ok();
     }
@@ -201,7 +204,7 @@ public class UserController {
         return service.selectByMobile(mobile) != null;
     }
 
-    private void validatePermission(Integer orgId, Short rank, User currentUser) {
+    private void validatePermission(Integer orgId, Short rank, Short origRank, User currentUser) {
         // 没有全局权限且用户不属于当前组织
         if (!currentUser.hasGlobalPermission() &&
                 !orgService.isDescendant(currentUser.getOrg().getId(), orgId)) {
@@ -209,13 +212,12 @@ public class UserController {
                     orgId, currentUser.getOrgId()));
         }
         // rank权限
-        rankPermission(rank, currentUser.getRank());
+        rankPermission(origRank, rank, currentUser.getRank());
     }
 
     private void validateBean(User user, Short origRank, @Nullable String origUsername, @Nullable String origEmail,
                               @Nullable String origMobile, User currentUser) {
-        Short rank = origRank > user.getRank() ? origRank : user.getRank();
-        validatePermission(user.getOrgId(), rank, currentUser);
+        validatePermission(user.getOrgId(), user.getRank(), origRank, currentUser);
         String username = user.getUsername();
         if (!Objects.equals(username, origUsername) && usernameExist(username)) {
             throw new Http400Exception("username exist: " + username);

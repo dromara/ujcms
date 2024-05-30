@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 /**
@@ -49,12 +50,27 @@ public class LuceneConfig {
         return FSDirectory.open(lucenePath);
     }
 
+    @Bean
     public SegmenterConfig segmenterConfig() {
-        return new SegmenterConfig(true);
+        return new SegmenterConfig();
     }
 
+    @Bean
     public ADictionary dictionary() {
-        return DictionaryFactory.createSingletonDictionary(segmenterConfig());
+        ADictionary dic = DictionaryFactory.createSingletonDictionary(segmenterConfig(), false);
+        String[] files = {"lex-admin", "lex-chars", "lex-cn-mz", "lex-company", "lex-dname-1", "lex-dname-2",
+                "lex-domain-suffix", "lex-english", "lex-festival", "lex-fname", "lex-food", "lex-lang", "lex-live",
+                "lex-ln-adorn", "lex-lname", "lex-main", "lex-mixed", "lex-nation", "lex-net", "lex-number-unit",
+                "lex-org", "lex-pinyin", "lex-place", "lex-sname", "lex-stopword", "lex-synonyms", "lex-time",
+                "lex-tourist", "lex-units"};
+        for (String file : files) {
+            try (InputStream is = resourceLoader.getResource("classpath:lexicon/" + file + ".lex").getInputStream()) {
+                dic.load(is);
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+        return dic;
     }
 
     @Primary
