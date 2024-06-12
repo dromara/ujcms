@@ -25,7 +25,7 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Site selectRefer(Integer id);
+    Site selectRefer(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -39,7 +39,7 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
     List<Site> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
                          @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
                          @Param("isQueryHasChildren") boolean isQueryHasChildren,
-                         @Nullable @Param("fullOrgId") Integer fullOrgId);
+                         @Nullable @Param("fullOrgId") Long fullOrgId);
 
     /**
      * 根据父站点ID获取子站点列表
@@ -47,15 +47,16 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
      * @param parentId 父站点ID
      * @return 子站点列表
      */
-    List<Site> listChildren(Integer parentId);
+    List<Site> listChildren(Long parentId);
 
     /**
-     * 根据组织ID查找站点
+     * 根据 用户ID 和 组织ID 查找站点
      *
-     * @param orgId 组织ID
+     * @param userId 用户ID
+     * @param orgId  组织ID
      * @return 站点列表
      */
-    List<Site> listByOrgId(Integer orgId);
+    List<Site> listByUserIdAndOrgId(@Param("userId") Long userId, @Param("orgId") Long orgId);
 
     /**
      * 根据组织ID查找站点ID
@@ -63,7 +64,7 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
      * @param orgId 组织ID
      * @return 站点ID列表
      */
-    List<Integer> listIdByOrgId(Integer orgId);
+    List<Long> listIdByOrgId(Long orgId);
 
     /**
      * 查询站点数量

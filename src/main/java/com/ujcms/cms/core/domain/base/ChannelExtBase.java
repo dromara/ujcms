@@ -24,7 +24,7 @@ public class ChannelExtBase implements Serializable {
      */
     @NotNull
     @Schema(description="栏目ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * SEO标题
@@ -87,11 +87,11 @@ public class ChannelExtBase implements Serializable {
     @Schema(description="Markdown正文")
     private String markdown;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -5,9 +5,9 @@
         <result column="total_" jdbcType="INTEGER" property="total"/>
         <result column="published_" jdbcType="INTEGER" property="published"/>
         <result column="unpublished_" jdbcType="INTEGER" property="unpublished"/>
-        <result column="user_id_" jdbcType="INTEGER" property="userId"/>
-        <result column="channel_id_" jdbcType="INTEGER" property="channelId"/>
-        <result column="org_id_" jdbcType="INTEGER" property="orgId"/>
+        <result column="user_id_" jdbcType="BIGINT" property="userId"/>
+        <result column="channel_id_" jdbcType="BIGINT" property="channelId"/>
+        <result column="org_id_" jdbcType="BIGINT" property="orgId"/>
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user"
                      select="com.ujcms.cms.core.mapper.UserMapper.select"/>
         <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org"

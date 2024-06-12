@@ -24,14 +24,14 @@ public class OrgBase implements Serializable {
      */
     @NotNull
     @Schema(description="组织ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 上级组织ID
      */
     @Nullable
     @Schema(description="上级组织ID")
-    private Integer parentId;
+    private Long parentId;
 
     /**
      * 名称
@@ -79,20 +79,20 @@ public class OrgBase implements Serializable {
     @Schema(description="排序")
     private Integer order = 999999;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Nullable
-    public Integer getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(@Nullable Integer parentId) {
+    public void setParentId(@Nullable Long parentId) {
         this.parentId = parentId;
     }
 

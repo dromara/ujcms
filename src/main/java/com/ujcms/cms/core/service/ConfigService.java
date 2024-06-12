@@ -27,7 +27,7 @@ public class ConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void update(Config bean) {
         mapper.update(bean);
-        attachmentService.updateRefer(ConfigBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.updateRefer(ConfigBase.TABLE_NAME, Long.valueOf(bean.getId()), bean.getAttachmentUrls());
     }
 
     public Config getUnique() {

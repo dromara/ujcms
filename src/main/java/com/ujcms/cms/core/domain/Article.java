@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ArticleBase;
 import com.ujcms.cms.core.support.Anchor;
-import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.commons.db.order.OrderEntity;
@@ -18,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.jsoup.Jsoup;
+import org.owasp.html.PolicyFactory;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotNull;
@@ -25,8 +25,8 @@ import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static com.ujcms.cms.core.support.Constants.MAPPER;
 import static com.ujcms.commons.web.Strings.formatDuration;
 
 /**
@@ -89,6 +89,10 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
      */
     @JsonIgnore
     public List<String> getAttachmentUrls() {
+        return getAttachmentUrls(getChannel().getArticleModel());
+    }
+
+    public List<String> getAttachmentUrls(Model model) {
         List<String> urls = new ArrayList<>();
         Optional.ofNullable(getExt().getImage()).ifPresent(urls::add);
         Optional.ofNullable(getExt().getVideo()).ifPresent(urls::add);
@@ -98,7 +102,8 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         getFileList().forEach(file -> urls.add(file.getUrl()));
         // 获取正文中的附件url
         urls.addAll(HtmlParserUtils.getUrls(getExt().getText()));
-        getChannel().getArticleModel().handleCustoms(getCustomList(), new Model.GetUrlsHandle(urls));
+        // 获取自定义字段中的url
+        urls.addAll(model.getUrlsFromMap(getCustoms()));
         return urls;
     }
 
@@ -110,20 +115,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
             blocks.add(item.getBlock());
         }
         return blocks;
-    }
-
-    @Schema(description = "TAG列表")
-    public List<Tag> getTags() {
-        List<Tag> tags = new ArrayList<>(getArticleTagList().size());
-        for (ArticleTag articleTag : getArticleTagList()) {
-            tags.add(articleTag.getTag());
-        }
-        return tags;
-    }
-
-    @Schema(description = "TAG名称列表")
-    public List<String> getTagNames() {
-        return getTags().stream().map(Tag::getName).collect(Collectors.toList());
     }
 
     @Schema(description = "是否正常状态（可访问）")
@@ -304,15 +295,15 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
 
     public List<ArticleImage> getImageList() {
         if (imageList == null) {
-            if (StringUtils.isNotBlank(getImageListJson())) {
-                try {
-                    imageList = Constants.MAPPER.readValue(getImageListJson(), new TypeReference<List<ArticleImage>>() {
-                    });
-                } catch (JsonProcessingException e) {
-                    throw new IllegalStateException(e);
-                }
-            } else {
-                imageList = Collections.emptyList();
+            String json = getImageListJson();
+            if (StringUtils.isBlank(json)) {
+                return Collections.emptyList();
+            }
+            try {
+                imageList = MAPPER.readValue(json, new TypeReference<List<ArticleImage>>() {
+                });
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
             }
         }
         return imageList;
@@ -321,7 +312,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     public void setImageList(List<ArticleImage> imageList) {
         this.imageList = imageList;
         try {
-            setImageListJson(Constants.MAPPER.writeValueAsString(imageList));
+            setImageListJson(MAPPER.writeValueAsString(imageList));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot write value of List<ArticleImage>", e);
         }
@@ -329,15 +320,15 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
 
     public List<ArticleFile> getFileList() {
         if (fileList == null) {
-            if (StringUtils.isNotBlank(getFileListJson())) {
-                try {
-                    fileList = Constants.MAPPER.readValue(getFileListJson(), new TypeReference<List<ArticleFile>>() {
-                    });
-                } catch (JsonProcessingException e) {
-                    throw new IllegalStateException(e);
-                }
-            } else {
-                fileList = Collections.emptyList();
+            String json = getFileListJson();
+            if (StringUtils.isBlank(json)) {
+                return Collections.emptyList();
+            }
+            try {
+                fileList = MAPPER.readValue(json, new TypeReference<List<ArticleFile>>() {
+                });
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
             }
         }
         return fileList;
@@ -346,16 +337,20 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     public void setFileList(List<ArticleFile> fileList) {
         this.fileList = fileList;
         try {
-            setFileListJson(Constants.MAPPER.writeValueAsString(fileList));
+            setFileListJson(MAPPER.writeValueAsString(fileList));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot write value of List<ArticleFile>", e);
         }
     }
 
     public Map<String, Object> getCustoms() {
-        if (customs == null) {
-            customs = getChannel().getArticleModel().assembleCustoms(getCustomList());
+        if (customs != null) {
+            return customs;
         }
+        customs = new HashMap<>(16);
+        Model model = getChannel().getArticleModel();
+        customs.putAll(model.assembleMap(getMainsJson()));
+        customs.putAll(model.assembleMap(getClobsJson()));
         return customs;
     }
 
@@ -363,11 +358,10 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         this.customs = customs;
     }
 
-    public static List<ArticleCustom> disassembleCustoms(Model model, Integer id, Map<String, Object> customs) {
-        List<ArticleCustom> list = new ArrayList<>();
-        model.disassembleCustoms(customs, (name, type, value) ->
-                list.add(new ArticleCustom(id, name, type, value)));
-        return list;
+    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+        setCustoms(map);
+        model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
     }
     // endregion
 
@@ -395,7 +389,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     /**
      * 组织
      */
-    @JsonIncludeProperties({"id", "name"})
+    @JsonIncludeProperties({"id", "name", "paths"})
     private Org org = new Org();
     /**
      * 创建者
@@ -408,11 +402,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     @JsonIncludeProperties({"id", "username"})
     private User modifiedUser = new User();
     /**
-     * 自定义字段列表
-     */
-    @JsonIgnore
-    private List<ArticleCustom> customList = Collections.emptyList();
-    /**
      * 区块项列表
      */
     @JsonIncludeProperties({"id", "title", "enabled", "block"})
@@ -420,8 +409,8 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     /**
      * TAG列表
      */
-    @JsonIgnore
-    private List<ArticleTag> articleTagList = new ArrayList<>();
+    @JsonIncludeProperties({"id", "name"})
+    private List<Tag> tags = new ArrayList<>();
     /**
      * 引用列表
      */
@@ -462,14 +451,6 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         this.channel = channel;
     }
 
-    public List<ArticleCustom> getCustomList() {
-        return customList;
-    }
-
-    public void setCustomList(List<ArticleCustom> customList) {
-        this.customList = customList;
-    }
-
     public Org getOrg() {
         return org;
     }
@@ -502,12 +483,12 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         this.blockItemList = blockItemList;
     }
 
-    public List<ArticleTag> getArticleTagList() {
-        return articleTagList;
+    public List<Tag> getTags() {
+        return tags;
     }
 
-    public void setArticleTagList(List<ArticleTag> articleTagList) {
-        this.articleTagList = articleTagList;
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
     }
 
     public List<Article> getDestList() {
@@ -893,6 +874,26 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     public void setEditorType(Short editorType) {
         getExt().setEditorType(editorType);
     }
+
+    @JsonIgnore
+    @Nullable
+    public String getMainsJson() {
+        return getExt().getMainsJson();
+    }
+
+    public void setMainsJson(String mainsJson) {
+        getExt().setMainsJson(mainsJson);
+    }
+
+    @JsonIgnore
+    @Nullable
+    public String getClobsJson() {
+        return getExt().getClobsJson();
+    }
+
+    public void setClobsJson(String clobsJson) {
+        getExt().setClobsJson(clobsJson);
+    }
     // endregion
 
     // region ArticleBuffer
@@ -1071,9 +1072,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
      * 文章审核流程类型
      */
     public static final String PROCESS_CATEGORY = "sys_article";
-    public static final String PROCESS_VARIABLE_CHANNEL_ID = "channelId";
-    public static final String PROCESS_VARIABLE_ORG_ID = "orgId";
-    public static final String PROCESS_VARIABLE_USER_ID = "userId";
+    public static final String PROCESS_VARIABLE_CHANNEL_ID = "processChannelId";
     /**
      * 状态：已发布
      */
@@ -1154,5 +1153,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
      * 录入类型：站群推送
      */
     public static final short INPUT_TYPE_EXTERNAL_PUSH = 5;
+
+    public static final String NOT_FOUND = "Article not found. ID : ";
     // endregion
 }

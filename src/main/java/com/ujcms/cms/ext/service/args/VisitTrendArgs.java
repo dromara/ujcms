@@ -18,9 +18,9 @@ public class VisitTrendArgs extends BaseQueryArgs {
         super(queryMap);
     }
 
-    public VisitTrendArgs siteId(@Nullable Integer siteId) {
+    public VisitTrendArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

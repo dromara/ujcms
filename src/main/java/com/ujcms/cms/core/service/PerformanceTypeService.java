@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.base.PerformanceTypeBase;
 import com.ujcms.cms.core.mapper.ChannelMapper;
 import com.ujcms.cms.core.mapper.PerformanceTypeMapper;
 import com.ujcms.cms.core.service.args.PerformanceTypeArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.db.order.OrderEntityUtils;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
@@ -26,18 +27,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class PerformanceTypeService {
     private final ChannelMapper channelMapper;
     private final PerformanceTypeMapper mapper;
+    private final SnowflakeSequence snowflakeSequence;
 
-    private final SeqService seqService;
-
-    public PerformanceTypeService(ChannelMapper channelMapper, PerformanceTypeMapper mapper, SeqService seqService) {
+    public PerformanceTypeService(ChannelMapper channelMapper, PerformanceTypeMapper mapper,
+                                  SnowflakeSequence snowflakeSequence) {
         this.channelMapper = channelMapper;
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(PerformanceType bean) {
-        bean.setId(seqService.getNextVal(PerformanceTypeBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
+        bean.setOrder(bean.getId());
         mapper.insert(bean);
     }
 
@@ -47,29 +49,29 @@ public class PerformanceTypeService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void moveOrder(Integer fromId, Integer toId) {
+    public void moveOrder(Long fromId, Long toId) {
         OrderEntityUtils.move(mapper, fromId, toId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         // 将栏目中引用该绩效类型的字段设置为null
         channelMapper.updatePerformanceTypeIdToNull(id);
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public PerformanceType select(Integer id) {
+    public PerformanceType select(Long id) {
         return mapper.select(id);
     }
 
     public List<PerformanceType> selectList(PerformanceTypeArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), PerformanceTypeBase.TABLE_NAME, "order_,id_");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), PerformanceTypeBase.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 
@@ -77,7 +79,7 @@ public class PerformanceTypeService {
         return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
-    public List<PerformanceType> listBySiteId(Integer siteId) {
+    public List<PerformanceType> listBySiteId(Long siteId) {
         return selectList(PerformanceTypeArgs.of().siteId(siteId));
     }
 }

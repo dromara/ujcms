@@ -16,11 +16,12 @@ public class UserOpenid extends UserOpenidBase implements Serializable {
     public UserOpenid() {
     }
 
-    public UserOpenid(Integer id, String provider) {
+    public UserOpenid(Long id, String provider) {
         setUserId(id);
+        setProvider(provider);
     }
 
-    public UserOpenid(Integer userId, OauthToken token) {
+    public UserOpenid(Long userId, OauthToken token) {
         setUserId(userId);
         setProvider(token.getProvider());
         setOpenid(token.getUnionidOrOpenId());

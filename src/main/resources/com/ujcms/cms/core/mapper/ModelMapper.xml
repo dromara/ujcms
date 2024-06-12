@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.ModelMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Model">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="type_" jdbcType="VARCHAR" property="type" />
     <result column="scope_" jdbcType="SMALLINT" property="scope" />
-    <result column="order_" jdbcType="SMALLINT" property="order" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Model">
     <result column="mains_" jdbcType="LONGVARCHAR" property="mains" />
     <result column="asides_" jdbcType="LONGVARCHAR" property="asides" />
     <result column="customs_" jdbcType="LONGVARCHAR" property="customs" />
   </resultMap>
     <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Model" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Model" />
     <select id="selectConfigModel" resultMap="ResultMap">
         select
         <include refid="Column_List" />
@@ -25,10 +26,10 @@
         from ujcms_model t
         where t.id_ = 2
     </select>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_model
-        where site_id_ = #{siteId,jdbcType=INTEGER}
+        where site_id_ = #{siteId,jdbcType=BIGINT}
     </delete>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
@@ -38,30 +39,30 @@
             <property name="tableName" value="ujcms_model" />
         </include>
     </select>
-    <select id="select" parameterType="int" resultMap="ResultMap">
+    <select id="select" parameterType="long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_model t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="int">
+    <delete id="delete" parameterType="long">
         delete
         from ujcms_model
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Model">
     update ujcms_model
-    set site_id_ = #{siteId,jdbcType=INTEGER},
+    set site_id_ = #{siteId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
       type_ = #{type,jdbcType=VARCHAR},
       scope_ = #{scope,jdbcType=SMALLINT},
-      order_ = #{order,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER},
       mains_ = #{mains,jdbcType=LONGVARCHAR},
       asides_ = #{asides,jdbcType=LONGVARCHAR},
       customs_ = #{customs,jdbcType=LONGVARCHAR}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Model">
     insert into ujcms_model (id_, site_id_, name_, type_, scope_, order_, mains_, asides_, customs_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT}, #{mains,jdbcType=LONGVARCHAR}, #{asides,jdbcType=LONGVARCHAR}, #{customs,jdbcType=LONGVARCHAR})
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{mains,jdbcType=LONGVARCHAR}, #{asides,jdbcType=LONGVARCHAR}, #{customs,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.name_, t.type_, t.scope_, t.order_, t.mains_, t.asides_, t.customs_
   </sql></mapper>

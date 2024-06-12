@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.DictMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Dict">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="type_id_" jdbcType="INTEGER" property="typeId" />
-    <result column="parent_id_" jdbcType="INTEGER" property="parentId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="type_id_" jdbcType="BIGINT" property="typeId" />
+    <result column="parent_id_" jdbcType="BIGINT" property="parentId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="value_" jdbcType="VARCHAR" property="value" />
     <result column="remark_" jdbcType="VARCHAR" property="remark" />
-    <result column="order_" jdbcType="SMALLINT" property="order" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
     <result column="sys_" jdbcType="CHAR" property="sys" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Dict" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Dict" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Dict" />
 
     <select id="existsByTypeId" resultType="int">
         select case
@@ -23,10 +23,10 @@
                    else 0
                    end as non_zero_exists
     </select>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_dict
-        where type_id_ in(select t.id_ from ujcms_dict_type t where t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where type_id_ in(select t.id_ from ujcms_dict_type t where t.site_id_ = #{siteId,jdbcType=BIGINT})
     </delete>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
@@ -36,30 +36,30 @@
             <property name="tableName" value="ujcms_dict" />
         </include>
     </select>
-    <select id="select" parameterType="int" resultMap="ResultMap">
+    <select id="select" parameterType="long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_dict t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="int">
+    <delete id="delete" parameterType="long">
         delete
         from ujcms_dict
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Dict">
     update ujcms_dict
-    set type_id_ = #{typeId,jdbcType=INTEGER},
-      parent_id_ = #{parentId,jdbcType=INTEGER},
+    set type_id_ = #{typeId,jdbcType=BIGINT},
+      parent_id_ = #{parentId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
       value_ = #{value,jdbcType=VARCHAR},
       remark_ = #{remark,jdbcType=VARCHAR},
-      order_ = #{order,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER},
       sys_ = #{sys,jdbcType=CHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Dict">
     insert into ujcms_dict (id_, type_id_, parent_id_, name_, value_, remark_, order_, sys_, enabled_)
-    values (#{id,jdbcType=INTEGER}, #{typeId,jdbcType=INTEGER}, #{parentId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{order,jdbcType=SMALLINT}, #{sys,jdbcType=CHAR}, #{enabled,jdbcType=CHAR})
+    values (#{id,jdbcType=BIGINT}, #{typeId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{order,jdbcType=INTEGER}, #{sys,jdbcType=CHAR}, #{enabled,jdbcType=CHAR})
   </insert><sql id="Column_List">
     t.id_, t.type_id_, t.parent_id_, t.name_, t.value_, t.remark_, t.order_, t.sys_, t.enabled_
   </sql></mapper>

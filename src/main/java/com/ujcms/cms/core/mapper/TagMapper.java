@@ -10,6 +10,11 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Tag Mapper
+ *
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface TagMapper {
@@ -35,7 +40,7 @@ public interface TagMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -44,7 +49,7 @@ public interface TagMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Tag select(Integer id);
+    Tag select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -55,6 +60,14 @@ public interface TagMapper {
     List<Tag> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
 
     /**
+     * 根据文章ID获取列表
+     *
+     * @param articleId 文章ID
+     * @return 数据列表
+     */
+    List<Tag> listByArticleId(@Param("articleId") Long articleId);
+
+    /**
      * 根据名称获取数据
      *
      * @param siteId 站点ID
@@ -62,7 +75,7 @@ public interface TagMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Tag selectByName(@Param("siteId") Integer siteId, @Param("name") String name);
+    Tag selectByName(@Param("siteId") Long siteId, @Param("name") String name);
 
     /**
      * 根据文章ID减少Tag的引用数
@@ -70,7 +83,7 @@ public interface TagMapper {
      * @param articleId 文章ID
      * @return 更新条数
      */
-    int reduceReferByArticleId(Integer articleId);
+    int reduceReferByArticleId(Long articleId);
 
     /**
      * 根据站点ID删除TAG
@@ -78,5 +91,5 @@ public interface TagMapper {
      * @param siteId 站点ID
      * @return 删除条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

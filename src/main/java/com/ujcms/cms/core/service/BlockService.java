@@ -7,6 +7,7 @@ import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.BlockItemMapper;
 import com.ujcms.cms.core.mapper.BlockMapper;
 import com.ujcms.cms.core.service.args.BlockArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -25,24 +26,24 @@ import java.util.Objects;
 public class BlockService implements SiteDeleteListener {
     private final BlockItemMapper itemMapper;
     private final BlockMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public BlockService(BlockItemMapper itemMapper, BlockMapper mapper, SeqService seqService) {
+    public BlockService(BlockItemMapper itemMapper, BlockMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.itemMapper = itemMapper;
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(Block bean, Integer siteId) {
-        bean.setId(seqService.getNextVal(BlockBase.TABLE_NAME));
+    public void insert(Block bean, Long siteId) {
+        bean.setId(snowflakeSequence.nextId());
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.insert(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Block bean, Integer siteId) {
+    public void update(Block bean, Long siteId) {
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.update(bean);
@@ -50,7 +51,7 @@ public class BlockService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void updateOrder(List<Block> list) {
-        short order = 1;
+        int order = 1;
         for (Block bean : list) {
             bean.setOrder(order);
             mapper.update(bean);
@@ -59,25 +60,18 @@ public class BlockService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         itemMapper.deleteByBlockId(id);
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public void copyBySite(Integer siteId, Integer fromSiteId) {
-        for (Block block : listBySiteId(fromSiteId)) {
-            insert(block, siteId);
-        }
-    }
-
     @Nullable
-    public Block select(Integer id) {
+    public Block select(Long id) {
         return mapper.select(id);
     }
 
@@ -90,16 +84,12 @@ public class BlockService implements SiteDeleteListener {
         return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
-    public List<Block> listBySiteId(Integer siteId) {
-        return selectList(BlockArgs.of().siteId(siteId));
-    }
-
-    public boolean existsByAlias(String alias, @Nullable Integer siteId) {
+    public boolean existsByAlias(String alias, @Nullable Long siteId) {
         return mapper.existsByAlias(alias, siteId) > 0;
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         mapper.deleteBySiteId(siteId);
     }
 

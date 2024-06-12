@@ -19,7 +19,7 @@ import java.io.Serializable;
 public class ChannelTree extends ChannelTreeBase implements TreeRelation, Serializable {
     private static final long serialVersionUID = 1L;
 
-    public ChannelTree(Integer ancestorId, Integer descendantId) {
+    public ChannelTree(Long ancestorId, Long descendantId) {
         setAncestorId(ancestorId);
         setDescendantId(descendantId);
     }

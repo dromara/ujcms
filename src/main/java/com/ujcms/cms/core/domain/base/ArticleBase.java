@@ -24,49 +24,49 @@ public class ArticleBase implements Serializable {
      */
     @NotNull
     @Schema(description="文章ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 源文章ID
      */
     @Nullable
     @Schema(description="源文章ID")
-    private Integer srcId;
+    private Long srcId;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 组织ID
      */
     @NotNull
     @Schema(description="组织ID")
-    private Integer orgId = 0;
+    private Long orgId = 0L;
 
     /**
      * 栏目ID
      */
     @NotNull
     @Schema(description="栏目ID")
-    private Integer channelId = 0;
+    private Long channelId = 0L;
 
     /**
      * 创建用户ID
      */
     @NotNull
     @Schema(description="创建用户ID")
-    private Integer userId = 0;
+    private Long userId = 0L;
 
     /**
      * 修改用户ID
      */
     @NotNull
     @Schema(description="修改用户ID")
-    private Integer modifiedUserId = 0;
+    private Long modifiedUserId = 0L;
 
     /**
      * 创建日期
@@ -88,6 +88,13 @@ public class ArticleBase implements Serializable {
     @NotNull
     @Schema(description="发布日期")
     private OffsetDateTime publishDate = OffsetDateTime.now();
+
+    /**
+     * 上线日期
+     */
+    @Nullable
+    @Schema(description="上线日期")
+    private OffsetDateTime onlineDate;
 
     /**
      * 下线日期
@@ -145,67 +152,60 @@ public class ArticleBase implements Serializable {
     @Schema(description="排序")
     private Long order = 0L;
 
-    /**
-     * 上线日期
-     */
-    @Nullable
-    @Schema(description="上线日期")
-    private OffsetDateTime onlineDate;
-
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Nullable
-    public Integer getSrcId() {
+    public Long getSrcId() {
         return srcId;
     }
 
-    public void setSrcId(@Nullable Integer srcId) {
+    public void setSrcId(@Nullable Long srcId) {
         this.srcId = srcId;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
-    public Integer getOrgId() {
+    public Long getOrgId() {
         return orgId;
     }
 
-    public void setOrgId(Integer orgId) {
+    public void setOrgId(Long orgId) {
         this.orgId = orgId;
     }
 
-    public Integer getChannelId() {
+    public Long getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(Integer channelId) {
+    public void setChannelId(Long channelId) {
         this.channelId = channelId;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public Integer getModifiedUserId() {
+    public Long getModifiedUserId() {
         return modifiedUserId;
     }
 
-    public void setModifiedUserId(Integer modifiedUserId) {
+    public void setModifiedUserId(Long modifiedUserId) {
         this.modifiedUserId = modifiedUserId;
     }
 
@@ -231,6 +231,15 @@ public class ArticleBase implements Serializable {
 
     public void setPublishDate(OffsetDateTime publishDate) {
         this.publishDate = publishDate;
+    }
+
+    @Nullable
+    public OffsetDateTime getOnlineDate() {
+        return onlineDate;
+    }
+
+    public void setOnlineDate(@Nullable OffsetDateTime onlineDate) {
+        this.onlineDate = onlineDate;
     }
 
     @Nullable
@@ -297,14 +306,5 @@ public class ArticleBase implements Serializable {
 
     public void setOrder(Long order) {
         this.order = order;
-    }
-
-    @Nullable
-    public OffsetDateTime getOnlineDate() {
-        return onlineDate;
-    }
-
-    public void setOnlineDate(@Nullable OffsetDateTime onlineDate) {
-        this.onlineDate = onlineDate;
     }
 }

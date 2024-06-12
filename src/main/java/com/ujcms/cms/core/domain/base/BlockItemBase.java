@@ -24,28 +24,28 @@ public class BlockItemBase implements Serializable {
      */
     @NotNull
     @Schema(description="区块项ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 区块ID
      */
     @NotNull
     @Schema(description="区块ID")
-    private Integer blockId = 0;
+    private Long blockId = 0L;
 
     /**
      * 文章ID
      */
     @Nullable
     @Schema(description="文章ID")
-    private Integer articleId;
+    private Long articleId;
 
     /**
      * 标题
@@ -122,38 +122,38 @@ public class BlockItemBase implements Serializable {
      */
     @NotNull
     @Schema(description="排序")
-    private Short order = 32767;
+    private Long order = 0L;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
-    public Integer getBlockId() {
+    public Long getBlockId() {
         return blockId;
     }
 
-    public void setBlockId(Integer blockId) {
+    public void setBlockId(Long blockId) {
         this.blockId = blockId;
     }
 
     @Nullable
-    public Integer getArticleId() {
+    public Long getArticleId() {
         return articleId;
     }
 
-    public void setArticleId(@Nullable Integer articleId) {
+    public void setArticleId(@Nullable Long articleId) {
         this.articleId = articleId;
     }
 
@@ -235,11 +235,11 @@ public class BlockItemBase implements Serializable {
         this.enabled = enabled;
     }
 
-    public Short getOrder() {
+    public Long getOrder() {
         return order;
     }
 
-    public void setOrder(Short order) {
+    public void setOrder(Long order) {
         this.order = order;
     }
 }

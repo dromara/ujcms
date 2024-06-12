@@ -7,6 +7,8 @@ import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.BlockItemMapper;
 import com.ujcms.cms.core.service.args.BlockItemArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
+import com.ujcms.commons.db.order.OrderEntityUtils;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.apache.ibatis.annotations.Param;
@@ -26,22 +28,23 @@ import java.util.Objects;
 public class BlockItemService implements SiteDeleteListener, ChannelDeleteListener {
     private final AttachmentService attachmentService;
     private final BlockItemMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public BlockItemService(AttachmentService attachmentService, BlockItemMapper mapper, SeqService seqService) {
+    public BlockItemService(AttachmentService attachmentService, BlockItemMapper mapper,
+                            SnowflakeSequence snowflakeSequence) {
         this.attachmentService = attachmentService;
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
-    public boolean countByBlockIdAndArticleId(@Param("blockId") Integer blockId, @Param("articleId") Integer articleId) {
+    public boolean countByBlockIdAndArticleId(@Param("blockId") Long blockId, @Param("articleId") Long articleId) {
         return PageMethod.offsetPage(0, 1, false).<Number>doSelectPage(() ->
                 mapper.countByBlockIdAndArticleId(blockId, articleId)).iterator().next().intValue() > 0;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(BlockItem bean) {
-        bean.setId(seqService.getNextVal(BlockItemBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
         attachmentService.insertRefer(BlockItemBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
@@ -53,28 +56,23 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateOrder(List<BlockItem> list) {
-        short order = 1;
-        for (BlockItem bean : list) {
-            bean.setOrder(order);
-            mapper.update(bean);
-            order += 1;
-        }
+    public void moveOrder(Long fromId, Long toId) {
+        OrderEntityUtils.move(mapper, fromId, toId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         attachmentService.deleteRefer(BlockItemBase.TABLE_NAME, id);
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public BlockItem select(Integer id) {
+    public BlockItem select(Long id) {
         return mapper.select(id);
     }
 
@@ -87,21 +85,21 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
         return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
-    public boolean existsByBlockId(Integer blockId, Integer notSiteId) {
+    public boolean existsByBlockId(Long blockId, Long notSiteId) {
         return mapper.existsByBlockId(blockId, notSiteId) > 0;
     }
 
-    public int deleteByArticleId(Integer articleId) {
+    public int deleteByArticleId(Long articleId) {
         return mapper.deleteByArticleId(articleId);
     }
 
     @Override
-    public void preChannelDelete(Integer channelId) {
+    public void preChannelDelete(Long channelId) {
         mapper.deleteByChannelId(channelId);
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         mapper.deleteBySiteId(siteId);
     }
 

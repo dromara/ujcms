@@ -1,8 +1,8 @@
 # UJCMS
 
-Java开源内容管理系统(java cms)、Java建站系统。使用SpringBoot、MyBatis、Spring Security、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。支持多站点功能，在一套系统中管理多个网站。支持无头CMS，使用模板(Freemarker)+标签方式或使用Vue(React)+API方式制作网站均可。
+Java开源网站内容管理系统(java cms)、Java建站系统。使用SpringBoot、MyBatis、Spring Security、Lucene、FreeMarker、TypeScript、Vue3、ElementPlus等技术开发。使用`Apache-2.0`开源协议，可免费用于商业网站。
 
-使用`Apache-2.0`开源协议，可免费用于商业网站。
+支持无头CMS，可使用模板(Freemarker)+标签或Vue(React)+API方式制作网站。支持自定义字段及字段可视化设计，自定义字段在前后端均可作为搜索条件。
 
 技术上尽量选择主流、先进、简单的架构，方便用户进行二次开发。设计上强调“简单”、“灵活”，避免繁杂的设计和实现，降低系统维护成本和二次开发难度。功能使用上也要求“简单”，避免复杂的使用逻辑。
 
@@ -38,10 +38,10 @@ QQ交流群：626599871
 
 ## 环境要求
 
-* JDK 8、11
-* MySQL 8.0、5.7.22+
-* Tomcat 9.0、8.5 (Servlet 3.1+)
-* Maven 3.5 或更高版本
+* JDK 11
+* MySQL 8.0 (5.7.22+)
+* Tomcat 9.0 (Servlet 3.1+)
+* Maven 3.6.3 (3.5.4)
 * 系统后台兼容的浏览器：Chrome、Firefox、Edge
 * 前台页面兼容的浏览器取决于模板，使用者可以完全控制模板，理论上可以支持任何浏览器。演示模板支持Chrome、Firefox、Edge
 
@@ -69,21 +69,25 @@ UJCMS系统的表名都为小写，不管在Window还是Linux下都没有问题�
 lower_case_table_names=2
 ```
 
+此配置必须在MySQL初始化之前设置。一旦MySQL已经启动或初始化，再修改该配置，MySQL将无法再次启动。
+
 ## 启动程序
 
-1. 在Eclipse中导入maven项目。点击Eclipse菜单`File` - `Import`，选择`Maven` - `Existing Maven Projects`。创建好maven项目后，会开始从maven服务器下载第三方jar包（如spring等），需要一定时间，请耐心等待。（另外：Eclipse中会出现红叉的错误警告，如是JavaScript或HTML报错则无需理会，不影响程序正常运行。这是由于Eclipse校验规则误判所致，可以在Eclipse中设置禁止对js文件进行错误校验。）
+1. 在IntelliJ IDEA中打开项目。点击`File` - `Open`，选择项目文件夹（有`pom.xml`的文件夹）。会开始从maven服务器下载第三方jar包（如spring等），需要一定时间，请耐心等待。
 2. 修改数据库连接。打开`/src/main/resources/application.yaml`文件，根据实际情况修改`spring.datasource.url`、`spring.datasource.username`、`spring.datasource.password`的值。其中`spring.datasource.url`中的数据库名要和上一步创建的数据库名一致。
-3. 启动程序。在eclipse中，右键点击项目名，选择`Run as` - `Java Application`，选择`Application - com.ujcms`，然后点击`OK`。也可在左侧导航中找到`com.ujcms.cms.Application`类并右键点击，选择`Run as` - `Java Application`即可直接运行。
-4. 使用 IntelliJ IDEA 开发的，步骤与 Eclipse 类似。打开工程后，等待Maven下载依赖，修改数据库连接，然后直接点击右上角的绿色三角图标(`Run 'Application'`)，即可直接运行。也可在左侧导航中找到`com.ujcms.cms.Application`类并右键点击，选择`Run 'Application'`。
-5. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`或`Waiting for changelog lock....`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
-6. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
-7. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
-8. 默认访问地址是`http://localhost:8080/`，如需修改域名、端口等内容，可分别到后台`配置 - 系统设置`和`配置 - 站点设置`中修改。
-9. 如需关闭开源版中的商业版提示及功能，可以修改`/src/main/resources/application.yaml`文件中的`ujcms.ep-display: false`配置。
+3. 启动程序。可在左侧`Project`导航中找到`/src/main/java/com/ujcms/cms/Application`类，右键点击，选择`Run 'Application'`。也可直接点击右上角的绿色三角图标(`Run 'Application'`)。
+4. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`或`Waiting for changelog lock....`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
+5. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
+6. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+7. 默认访问地址是`http://localhost:8080/`，如需修改域名、端口等内容，可分别到后台`配置 - 系统设置`和`配置 - 站点设置`中修改。
 
 ## 常见错误
 
-如出现`flowable-eventregistry-db-changelog.xml::1::flowable:` `Specified key was too long; max key length is 767 bytes`等错误信息，则 MySQL 5.7 需要设置`innodb_large_prefix=ON`；MySQL 5.6 需要设置`innodb_large_prefix=1`。从 mysql 5.7.7 开始，`innodb_large_prefix`的默认值就是`ON`，因此只要MySQL版本大于5.7.7即可避免这个问题。
+如程序无法正常编译，通常是因为Maven没有正确下载jar依赖包。可以尝试在IntelliJ IDEA的`Maven`窗口点击刷新按钮`Reload All Maven Projects`按钮，尝试重新下载jar依赖包，或者点击菜单`Build` - `Rebuild Project`重新编译项目。
+
+如首次使用IntelliJ IDEA，没有配置JDK，也会导致无法正常程序不能编译。可选中项目，点击`File` - `Project Structure...`，在`Project Settings - Project`处，配置`Project SDK`。
+
+如运行时出现`flowable-eventregistry-db-changelog.xml::1::flowable:` `Specified key was too long; max key length is 767 bytes`等错误信息，则 MySQL 5.7 需要设置`innodb_large_prefix=ON`；MySQL 5.6 需要设置`innodb_large_prefix=1`。从 mysql 5.7.7 开始，`innodb_large_prefix`的默认值就是`ON`，因此只要MySQL版本大于5.7.7即可避免这个问题。
 
 ## 部署
 
@@ -201,4 +205,3 @@ Eclipse默认的tomcat启动方式会将程序部署到特定目录再启动，�
 * gulpfile.js：前台构建文件。具有拷贝jquery、bootstrap等文件至前台模板目录`/src/main/webapp/template/1/default/_files`等功能。
 * package.json：前台模板依赖的js、css组件，如jquery、bootstrap等。
 * pom.xml：Maven配置文件。
-

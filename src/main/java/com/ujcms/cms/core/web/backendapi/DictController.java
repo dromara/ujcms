@@ -45,23 +45,23 @@ public class DictController {
     @GetMapping("list-by-alias")
     @PreAuthorize("hasAnyAuthority('dict:list','*')")
     public List<Dict> listByAlias(String alias, String name) {
-        Integer siteId = Contexts.getCurrentSiteId();
+        Long siteId = Contexts.getCurrentSiteId();
         return service.listByAlias(alias, name, siteId);
     }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('dict:list','*')")
-    public List<Dict> list(Integer typeId, HttpServletRequest request) {
+    public List<Dict> list(Long typeId, HttpServletRequest request) {
         DictArgs args = DictArgs.of(getQueryMap(request.getQueryString())).typeId(typeId);
         return service.selectList(args);
     }
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('dict:show','*')")
-    public Dict show(@PathVariable Integer id) {
+    public Dict show(@PathVariable Long id) {
         Dict bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception(DICT_NOT_FOUND + id);
+            throw new Http404Exception(Dict.NOT_FOUND + id);
         }
         return bean;
     }
@@ -83,7 +83,7 @@ public class DictController {
     public ResponseEntity<Body> update(@RequestBody @Valid Dict bean) {
         Dict dict = service.select(bean.getId());
         if (dict == null) {
-            throw new Http400Exception(DICT_NOT_FOUND + bean.getId());
+            throw new Http400Exception(Dict.NOT_FOUND + bean.getId());
         }
         validateBean(dict.getTypeId());
         Entities.copy(bean, dict);
@@ -94,12 +94,12 @@ public class DictController {
     @PutMapping("order")
     @PreAuthorize("hasAnyAuthority('dictType:update','*')")
     @OperationLog(module = "dict", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
         List<Dict> list = new ArrayList<>();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Dict bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception(DICT_NOT_FOUND + id);
+                throw new Http400Exception(Dict.NOT_FOUND + id);
             }
             validateBean(bean.getTypeId());
             list.add(bean);
@@ -111,11 +111,11 @@ public class DictController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('dict:delete','*')")
     @OperationLog(module = "dict", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         ids.forEach(id -> {
             Dict bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception(DICT_NOT_FOUND + id);
+                throw new Http400Exception(Dict.NOT_FOUND + id);
             }
             validateBean(bean.getTypeId());
             service.delete(id);
@@ -123,13 +123,11 @@ public class DictController {
         return Responses.ok();
     }
 
-    private void validateBean(Integer typeId) {
+    private void validateBean(Long typeId) {
         DictType type = typeService.select(typeId);
         if (type == null) {
-            throw new Http400Exception("Dict type not found. ID = " + typeId);
+            throw new Http400Exception(DictType.NOT_FOUND + typeId);
         }
         ValidUtils.dataInSite(type.getSiteId(), Contexts.getCurrentSiteId());
     }
-
-    private static final String DICT_NOT_FOUND = "Dict not found. ID = ";
 }

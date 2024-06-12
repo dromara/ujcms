@@ -45,7 +45,8 @@ public class Servlets {
 
     private static final String REMOTE_IP_HEADER = "X-Forwarded-For";
 
-    private static final Pattern INTERNAL_PROXIES_PATTERN = Pattern.compile("10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" +
+    private static final Pattern INTERNAL_PROXIES_PATTERN = Pattern.compile(
+            "10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" +
             "192\\.168\\.\\d{1,3}\\.\\d{1,3}|" +
             "169\\.254\\.\\d{1,3}\\.\\d{1,3}|" +
             "127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" +
@@ -202,7 +203,6 @@ public class Servlets {
             logger.error(ex.getMessage(), ex);
         }
     }
-
 
     /**
      * 输出 JSON。并禁止客户端缓存。

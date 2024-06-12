@@ -18,7 +18,7 @@ public class XmlSelectAllElement extends AbstractXmlElementGenerator {
         XmlElement answer = new XmlElement("select"); //$NON-NLS-1$
 
         answer.addAttribute(new Attribute("id", introspectedTable.getSelectAllStatementId())); //$NON-NLS-1$
-        answer.addAttribute(new Attribute("resultMap", introspectedTable.getResultMapWithBLOBsId()));
+        answer.addAttribute(new Attribute("resultMap", "ResultMap"));
 
         context.getCommentGenerator().addComment(answer);
 

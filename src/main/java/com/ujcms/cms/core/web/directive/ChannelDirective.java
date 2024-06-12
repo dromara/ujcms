@@ -31,7 +31,7 @@ public class ChannelDirective implements TemplateDirectiveModel {
             throws TemplateException, IOException {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
-        Integer id = Directives.getInteger(params, ID);
+        Long id = Directives.getLong(params, ID);
         Channel channel;
         if (id != null) {
             channel = channelService.select(id);
@@ -40,8 +40,8 @@ public class ChannelDirective implements TemplateDirectiveModel {
             if (StringUtils.isBlank(alias)) {
                 throw new IllegalArgumentException("Params id or alias is required.");
             }
-            Integer defaultSiteId = Frontends.getSiteId(env);
-            Integer siteId = Directives.getInteger(params, SITE_ID, defaultSiteId);
+            Long defaultSiteId = Frontends.getSiteId(env);
+            Long siteId = Directives.getLong(params, SITE_ID, defaultSiteId);
             channel = channelService.findBySiteIdAndAlias(siteId, alias);
         }
         loopVars[0] = env.getObjectWrapper().wrap(channel);

@@ -18,10 +18,7 @@ import java.io.Serializable;
 public class LoginLog extends LoginLogBase implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public LoginLog() {
-    }
-
-    public static LoginLog ofLoginFailure(@Nullable Integer userId, String loginName, String ip, short status) {
+    public static LoginLog ofLoginFailure(@Nullable Long userId, String loginName, String ip, short status) {
         LoginLog bean = new LoginLog();
         bean.setUserId(userId);
         bean.setLoginName(loginName);
@@ -31,7 +28,7 @@ public class LoginLog extends LoginLogBase implements Serializable {
         return bean;
     }
 
-    public static LoginLog ofChangePasswordFailure(Integer userId, String ip, short status) {
+    public static LoginLog ofChangePasswordFailure(Long userId, String ip, short status) {
         LoginLog bean = new LoginLog();
         bean.setUserId(userId);
         bean.setIp(ip);
@@ -40,7 +37,7 @@ public class LoginLog extends LoginLogBase implements Serializable {
         return bean;
     }
 
-    public static LoginLog ofLoginSuccess(@Nullable Integer userId, String loginName, String ip) {
+    public static LoginLog ofLoginSuccess(@Nullable Long userId, String loginName, String ip) {
         LoginLog bean = new LoginLog();
         bean.setUserId(userId);
         bean.setLoginName(loginName);
@@ -50,7 +47,7 @@ public class LoginLog extends LoginLogBase implements Serializable {
         return bean;
     }
 
-    public static LoginLog ofLogout(Integer userId, String ip) {
+    public static LoginLog ofLogout(Long userId, String ip) {
         LoginLog bean = new LoginLog();
         bean.setUserId(userId);
         bean.setIp(ip);

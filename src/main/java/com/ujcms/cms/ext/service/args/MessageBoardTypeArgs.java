@@ -24,9 +24,9 @@ public class MessageBoardTypeArgs extends BaseQueryArgs {
         return new MessageBoardTypeArgs(queryMap);
     }
 
-    public MessageBoardTypeArgs siteId(@Nullable Integer siteId) {
+    public MessageBoardTypeArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

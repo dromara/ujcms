@@ -25,28 +25,28 @@ public class SiteBase implements Serializable {
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 上级站点ID
      */
     @Nullable
     @Schema(description="上级站点ID")
-    private Integer parentId;
+    private Long parentId;
 
     /**
      * 组织ID
      */
     @NotNull
     @Schema(description="组织ID")
-    private Integer orgId = 0;
+    private Long orgId = 0L;
 
     /**
      * 模型ID
      */
     @NotNull
     @Schema(description="模型ID")
-    private Integer modelId = 0;
+    private Long modelId = 0L;
 
     /**
      * 名称
@@ -184,6 +184,27 @@ public class SiteBase implements Serializable {
     private String messageBoardSettings;
 
     /**
+     * 状态(0:正常,1:关闭)
+     */
+    @NotNull
+    @Schema(description="状态(0:正常,1:关闭)")
+    private Short status = 0;
+
+    /**
+     * 层级
+     */
+    @NotNull
+    @Schema(description="层级")
+    private Short depth = 1;
+
+    /**
+     * 排序
+     */
+    @NotNull
+    @Schema(description="排序")
+    private Integer order = 999999;
+
+    /**
      * 浏览次数
      */
     @NotNull
@@ -226,56 +247,49 @@ public class SiteBase implements Serializable {
     private OffsetDateTime maxDate = OffsetDateTime.now();
 
     /**
-     * 状态(0:正常,1:关闭)
+     * 自定义主字段JSON
      */
-    @NotNull
-    @Schema(description="状态(0:正常,1:关闭)")
-    private Short status = 0;
+    @Nullable
+    @Schema(description="自定义主字段JSON")
+    private String mainsJson;
 
     /**
-     * 层级
+     * 自定义大字段JSON
      */
-    @NotNull
-    @Schema(description="层级")
-    private Short depth = 1;
+    @Nullable
+    @Schema(description="自定义大字段JSON")
+    private String clobsJson;
 
-    /**
-     * 排序
-     */
-    @NotNull
-    @Schema(description="排序")
-    private Integer order = 999999;
-
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Nullable
-    public Integer getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(@Nullable Integer parentId) {
+    public void setParentId(@Nullable Long parentId) {
         this.parentId = parentId;
     }
 
-    public Integer getOrgId() {
+    public Long getOrgId() {
         return orgId;
     }
 
-    public void setOrgId(Integer orgId) {
+    public void setOrgId(Long orgId) {
         this.orgId = orgId;
     }
 
-    public Integer getModelId() {
+    public Long getModelId() {
         return modelId;
     }
 
-    public void setModelId(Integer modelId) {
+    public void setModelId(Long modelId) {
         this.modelId = modelId;
     }
 
@@ -426,6 +440,30 @@ public class SiteBase implements Serializable {
         this.messageBoardSettings = messageBoardSettings;
     }
 
+    public Short getStatus() {
+        return status;
+    }
+
+    public void setStatus(Short status) {
+        this.status = status;
+    }
+
+    public Short getDepth() {
+        return depth;
+    }
+
+    public void setDepth(Short depth) {
+        this.depth = depth;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
+
     public Long getViews() {
         return views;
     }
@@ -474,27 +512,21 @@ public class SiteBase implements Serializable {
         this.maxDate = maxDate;
     }
 
-    public Short getStatus() {
-        return status;
+    @Nullable
+    public String getMainsJson() {
+        return mainsJson;
     }
 
-    public void setStatus(Short status) {
-        this.status = status;
+    public void setMainsJson(@Nullable String mainsJson) {
+        this.mainsJson = mainsJson;
     }
 
-    public Short getDepth() {
-        return depth;
+    @Nullable
+    public String getClobsJson() {
+        return clobsJson;
     }
 
-    public void setDepth(Short depth) {
-        this.depth = depth;
-    }
-
-    public Integer getOrder() {
-        return order;
-    }
-
-    public void setOrder(Integer order) {
-        this.order = order;
+    public void setClobsJson(@Nullable String clobsJson) {
+        this.clobsJson = clobsJson;
     }
 }

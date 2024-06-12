@@ -2,8 +2,8 @@ package com.ujcms.cms.ext.domain;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.ext.domain.base.SurveyBase;
+import com.ujcms.commons.db.order.OrderEntity;
 import com.ujcms.commons.web.Views;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author PONY
  */
-public class Survey extends SurveyBase implements Serializable {
+public class Survey extends SurveyBase implements Serializable, OrderEntity {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -74,4 +74,6 @@ public class Survey extends SurveyBase implements Serializable {
      * 状态：已结束
      */
     public static final short STATUS_HAS_ENDED = 3;
+
+    public static final String NOT_FOUND = "Survey not found. ID: ";
 }

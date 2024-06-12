@@ -109,7 +109,7 @@ public class Frontends {
         }
     }
 
-    public static int getSiteId(Environment env) throws TemplateModelException {
+    public static Long getSiteId(Environment env) throws TemplateModelException {
         return getSite(env).getId();
     }
 

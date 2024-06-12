@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
     <session-config>
-        <!-- Session 过期时间。默认：30。单位：分钟。 -->
+        <!-- Session 过期时间。默认：30。单位：分钟。部分漏洞扫描软件会把session过期时间大于等于30分钟认定为漏洞，这里改为25分钟。 -->
         <session-timeout>25</session-timeout>
         <cookie-config>
             <http-only>true</http-only>

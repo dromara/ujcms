@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.SurveyFeedbackMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.SurveyFeedback">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
-    <result column="survey_id_" jdbcType="INTEGER" property="surveyId" />
-    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="survey_id_" jdbcType="BIGINT" property="surveyId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
     <result column="ip_" jdbcType="VARCHAR" property="ip" />
     <result column="cookie_" jdbcType="BIGINT" property="cookie" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.SurveyFeedback" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.SurveyFeedback" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.SurveyFeedback" />
 
-  <delete id="deleteBySurveyId" parameterType="int">
+  <delete id="deleteBySurveyId" parameterType="long">
     delete
     from ujcms_survey_feedback
-    where survey_id_ = #{surveyId,jdbcType=INTEGER}
+    where survey_id_ = #{surveyId,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByUserId" parameterType="int">
+  <delete id="deleteByUserId" parameterType="long">
     delete
     from ujcms_survey_feedback
-    where user_id_ = #{userId,jdbcType=INTEGER}
+    where user_id_ = #{userId,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteBySiteId" parameterType="int">
+  <delete id="deleteBySiteId" parameterType="long">
     delete
     from ujcms_survey_feedback
-    where site_id_ = #{siteId,jdbcType=INTEGER}
+    where site_id_ = #{siteId,jdbcType=BIGINT}
   </delete>
   <select id="countBy" resultType="int">
     select count(*)
@@ -51,27 +51,27 @@
       <property name="tableName" value="ujcms_survey_feedback" />
     </include>
   </select>
-  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
     select 
     <include refid="Column_List" />
     from ujcms_survey_feedback t
-    where t.id_ = #{id,jdbcType=INTEGER}
+    where t.id_ = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="delete" parameterType="java.lang.Integer">
+  <delete id="delete" parameterType="java.lang.Long">
     delete from ujcms_survey_feedback
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.SurveyFeedback">
     update ujcms_survey_feedback
-    set site_id_ = #{siteId,jdbcType=INTEGER},
-      survey_id_ = #{surveyId,jdbcType=INTEGER},
-      user_id_ = #{userId,jdbcType=INTEGER},
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      survey_id_ = #{surveyId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
       ip_ = #{ip,jdbcType=VARCHAR},
       cookie_ = #{cookie,jdbcType=BIGINT},
       created_ = #{created,jdbcType=TIMESTAMP}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyFeedback">
     insert into ujcms_survey_feedback (id_, site_id_, survey_id_, user_id_, ip_, cookie_, created_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{surveyId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{ip,jdbcType=VARCHAR}, #{cookie,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP})
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{surveyId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{ip,jdbcType=VARCHAR}, #{cookie,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.survey_id_, t.user_id_, t.ip_, t.cookie_, t.created_
   </sql></mapper>

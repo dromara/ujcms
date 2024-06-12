@@ -40,7 +40,7 @@ public class SiteListDirective implements TemplateDirectiveModel {
 
     public static void assemble(SiteArgs args, Map<String, ?> params) {
         boolean isIncludeChildren = Directives.getBoolean(params, IS_INCLUDE_CHILDREN, false);
-        Integer parentId = Directives.getInteger(params, PARENT_ID);
+        Long parentId = Directives.getLong(params, PARENT_ID);
         if (isIncludeChildren) {
             args.ancestorId(parentId);
         } else {

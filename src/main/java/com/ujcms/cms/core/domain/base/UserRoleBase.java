@@ -22,43 +22,43 @@ public class UserRoleBase implements Serializable {
      */
     @NotNull
     @Schema(description="用户ID")
-    private Integer userId = 0;
+    private Long userId = 0L;
 
     /**
      * 角色ID
      */
     @NotNull
     @Schema(description="角色ID")
-    private Integer roleId = 0;
+    private Long roleId = 0L;
 
     /**
      * 角色排序
      */
     @NotNull
     @Schema(description="角色排序")
-    private Short order = 32767;
+    private Integer order = 999999;
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public Integer getRoleId() {
+    public Long getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(Integer roleId) {
+    public void setRoleId(Long roleId) {
         this.roleId = roleId;
     }
 
-    public Short getOrder() {
+    public Integer getOrder() {
         return order;
     }
 
-    public void setOrder(Short order) {
+    public void setOrder(Integer order) {
         this.order = order;
     }
 }

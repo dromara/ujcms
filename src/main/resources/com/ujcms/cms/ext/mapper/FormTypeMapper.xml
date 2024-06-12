@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.FormTypeMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.FormType">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="model_id_" jdbcType="BIGINT" property="modelId" />
+    <result column="process_key_" jdbcType="VARCHAR" property="processKey" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="list_template_" jdbcType="VARCHAR" property="listTemplate" />
+    <result column="item_template_" jdbcType="VARCHAR" property="itemTemplate" />
+    <result column="mode_" jdbcType="SMALLINT" property="mode" />
+    <result column="viewable_" jdbcType="CHAR" property="viewable" />
+    <result column="order_" jdbcType="BIGINT" property="order" />
+    <result column="enabled_" jdbcType="CHAR" property="enabled" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.FormType" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.FormType">
+    <association column="model_id_" javaType="com.ujcms.cms.core.domain.Model" property="model" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+    <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+  </resultMap>
+  <update id="moveUp">
+    update ujcms_form_type
+    set order_ = order_ + 1
+    where order_ &lt; #{from} and order_ &gt;= #{to}
+  </update>
+  <update id="moveDown">
+    update ujcms_form_type
+    set order_ = order_ - 1
+    where order_ &gt; #{from} and order_ &lt;= #{to}
+  </update>
+  <update id="updateOrder">
+    update ujcms_form_type
+    set order_ = #{order}
+    where id_ = #{id}
+  </update>
+  <select id="existsByModelId" resultType="int">
+    select case
+             when exists(
+                     SELECT *
+                     FROM ujcms_form_type
+                     WHERE model_id_ = #{modelId}
+               ) then 1
+             else 0
+             end as non_zero_exists
+  </select>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_form_type
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_form_type" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_form_type t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="delete" parameterType="java.lang.Long">
+    delete from ujcms_form_type
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.FormType">
+    update ujcms_form_type
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      model_id_ = #{modelId,jdbcType=BIGINT},
+      process_key_ = #{processKey,jdbcType=VARCHAR},
+      name_ = #{name,jdbcType=VARCHAR},
+      list_template_ = #{listTemplate,jdbcType=VARCHAR},
+      item_template_ = #{itemTemplate,jdbcType=VARCHAR},
+      mode_ = #{mode,jdbcType=SMALLINT},
+      viewable_ = #{viewable,jdbcType=CHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.FormType">
+    insert into ujcms_form_type (id_, site_id_, model_id_, process_key_, name_, list_template_, item_template_, mode_, viewable_, order_, enabled_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{modelId,jdbcType=BIGINT}, #{processKey,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{listTemplate,jdbcType=VARCHAR}, #{itemTemplate,jdbcType=VARCHAR}, #{mode,jdbcType=SMALLINT}, #{viewable,jdbcType=CHAR}, #{order,jdbcType=BIGINT}, #{enabled,jdbcType=CHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.model_id_, t.process_key_, t.name_, t.list_template_, t.item_template_, t.mode_, t.viewable_, t.order_, t.enabled_
+  </sql></mapper>

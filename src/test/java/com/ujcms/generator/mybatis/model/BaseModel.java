@@ -1,13 +1,8 @@
 package com.ujcms.generator.mybatis.model;
 
 import org.mybatis.generator.api.FullyQualifiedTable;
-import org.mybatis.generator.api.dom.java.CompilationUnit;
-import org.mybatis.generator.api.dom.java.Field;
-import org.mybatis.generator.api.dom.java.FullyQualifiedJavaType;
-import org.mybatis.generator.api.dom.java.JavaVisibility;
-import org.mybatis.generator.api.dom.java.TopLevelClass;
+import org.mybatis.generator.api.dom.java.*;
 import org.mybatis.generator.codegen.AbstractJavaGenerator;
-import org.mybatis.generator.config.JavaModelGeneratorConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +40,15 @@ public class BaseModel extends AbstractJavaGenerator {
         serialVersionField.setInitializationString("1L");
         topLevelClass.addField(serialVersionField);
 
-        JavaModelGeneratorConfiguration config = context.getJavaModelGeneratorConfiguration();
+        // NotFound 属性
+        Field notFound = new Field("NOT_FOUND", new FullyQualifiedJavaType("String"));
+        notFound.setVisibility(JavaVisibility.PUBLIC);
+        notFound.setStatic(true);
+        notFound.setFinal(true);
+        notFound.setInitializationString("\"" + getModelType() + " not found. ID: \"");
+        topLevelClass.addField(notFound);
+
+        // JavaModelGeneratorConfiguration config = context.getJavaModelGeneratorConfiguration();
         // if ("true".equalsIgnoreCase(config.getProperty("swagger"))) {
             // topLevelClass.addImportedType(new FullyQualifiedJavaType("io.swagger.v3.oas.annotations.media.Schema"));
             // topLevelClass.addAnnotation("@Schema(description=\"" + topLevelClass.getType().getShortName() + "\")");
@@ -59,6 +62,10 @@ public class BaseModel extends AbstractJavaGenerator {
             answer.add(topLevelClass);
         }
         return answer;
+    }
+
+    protected String getModelType() {
+        return new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()).getShortName();
     }
 
     private FullyQualifiedJavaType getSuperClass() {

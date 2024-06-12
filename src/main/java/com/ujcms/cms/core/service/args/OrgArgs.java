@@ -13,19 +13,19 @@ import java.util.Map;
  */
 public class OrgArgs extends BaseQueryArgs {
     @Nullable
-    private Integer ancestorId;
+    private Long ancestorId;
     private boolean isQueryHasChildren = false;
 
-    public OrgArgs ancestorId(@Nullable Integer ancestorId) {
+    public OrgArgs ancestorId(@Nullable Long ancestorId) {
         if (ancestorId != null) {
             this.ancestorId = ancestorId;
         }
         return this;
     }
 
-    public OrgArgs parentId(@Nullable Integer parentId) {
+    public OrgArgs parentId(@Nullable Long parentId) {
         if (parentId != null) {
-            queryMap.put("EQ_parentId_Int", parentId);
+            queryMap.put("EQ_parentId_Long", parentId);
             isQueryHasChildren = true;
         }
         return this;
@@ -50,7 +50,7 @@ public class OrgArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Integer getAncestorId() {
+    public Long getAncestorId() {
         return ancestorId;
     }
 

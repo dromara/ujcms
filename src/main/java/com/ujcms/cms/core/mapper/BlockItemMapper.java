@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.BlockItem;
+import com.ujcms.commons.db.order.OrderEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -16,7 +17,7 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface BlockItemMapper {
+public interface BlockItemMapper extends OrderEntityMapper {
     /**
      * 插入数据
      *
@@ -39,7 +40,7 @@ public interface BlockItemMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +49,8 @@ public interface BlockItemMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    BlockItem select(Integer id);
+    @Override
+    BlockItem select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -65,7 +67,7 @@ public interface BlockItemMapper {
      * @param articleId 文章ID
      * @return 数据条数
      */
-    int countByBlockIdAndArticleId(@Param("blockId") Integer blockId, @Param("articleId") Integer articleId);
+    int countByBlockIdAndArticleId(@Param("blockId") Long blockId, @Param("articleId") Long articleId);
 
     /**
      * 根据 文章ID 获取列表
@@ -73,7 +75,7 @@ public interface BlockItemMapper {
      * @param articleId 文章ID
      * @return 数据列表
      */
-    List<BlockItem> listByArticleId(Integer articleId);
+    List<BlockItem> listByArticleId(Long articleId);
 
     /**
      * 根据 文章ID 删除数据
@@ -81,7 +83,7 @@ public interface BlockItemMapper {
      * @param articleId 文章ID
      * @return 删除条数
      */
-    int deleteByArticleId(Integer articleId);
+    int deleteByArticleId(Long articleId);
 
     /**
      * 根据 区块ID 删除数据
@@ -89,7 +91,7 @@ public interface BlockItemMapper {
      * @param blockId 区块ID
      * @return 删除条数
      */
-    int deleteByBlockId(Integer blockId);
+    int deleteByBlockId(Long blockId);
 
     /**
      * 根据区块ID和站点ID统计数量
@@ -98,7 +100,7 @@ public interface BlockItemMapper {
      * @param notSiteId 非本站点ID
      * @return 数据条数
      */
-    int existsByBlockId(@Param("blockId") Integer blockId, @Param("notSiteId") Integer notSiteId);
+    int existsByBlockId(@Param("blockId") Long blockId, @Param("notSiteId") Long notSiteId);
 
     /**
      * 根据栏目ID删除数据
@@ -106,7 +108,7 @@ public interface BlockItemMapper {
      * @param channelId 栏目ID
      * @return 被删除的数据条数
      */
-    int deleteByChannelId(Integer channelId);
+    int deleteByChannelId(Long channelId);
 
     /**
      * 根据 站点ID 删除数据
@@ -114,5 +116,5 @@ public interface BlockItemMapper {
      * @param siteId 站点ID
      * @return 删除条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

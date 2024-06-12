@@ -39,7 +39,7 @@ public interface DictTypeMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface DictTypeMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    DictType select(Integer id);
+    DictType select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -65,7 +65,7 @@ public interface DictTypeMapper {
      * @param siteId 站点ID
      * @return 数据条数
      */
-    int existsByAlias(@Param("alias") String alias, @Param("siteId") @Nullable Integer siteId);
+    int existsByAlias(@Param("alias") String alias, @Param("siteId") @Nullable Long siteId);
 
     /**
      * 根据站点ID删除数据
@@ -73,5 +73,5 @@ public interface DictTypeMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

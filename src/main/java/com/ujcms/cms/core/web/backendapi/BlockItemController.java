@@ -3,10 +3,12 @@ package com.ujcms.cms.core.web.backendapi;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.BlockItem;
+import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.BlockItemService;
 import com.ujcms.cms.core.service.args.BlockItemArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.web.support.ValidUtils;
+import com.ujcms.commons.db.order.MoveOrderParams;
 import com.ujcms.commons.web.Entities;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
@@ -14,20 +16,14 @@ import com.ujcms.commons.web.exception.Http400Exception;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static com.ujcms.cms.core.domain.BlockItem.NOT_FOUND;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
@@ -47,7 +43,7 @@ public class BlockItemController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('blockItem:list','*')")
-    public Object list(@Nullable Integer blockId, HttpServletRequest request) {
+    public Object list(@Nullable Long blockId, HttpServletRequest request) {
         BlockItemArgs args = BlockItemArgs.of(getQueryMap(request.getQueryString()))
                 .siteId(Contexts.getCurrentSiteId())
                 .blockId(blockId);
@@ -56,10 +52,10 @@ public class BlockItemController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('blockItem:show','*')")
-    public Object show(@PathVariable Integer id) {
+    public Object show(@PathVariable Long id) {
         BlockItem bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("BlockItem not found. ID = " + id);
+            return Responses.notFound(BlockItem.NOT_FOUND + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
@@ -91,43 +87,40 @@ public class BlockItemController {
         return Responses.ok();
     }
 
-    @PutMapping("order")
+    @PostMapping("update-order")
     @PreAuthorize("hasAnyAuthority('blockItem:update','*')")
     @OperationLog(module = "blockItem", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
-        List<BlockItem> list = new ArrayList<>();
-        for (Integer id : ids) {
-            BlockItem bean = service.select(id);
-            if (bean == null) {
-                return Responses.notFound("BlockItem not found. ID = " + id);
-            }
-            ValidUtils.dataInSite(bean.getSiteId(), siteId);
-            list.add(bean);
-        }
-        service.updateOrder(list);
+    public ResponseEntity<Body> updateOrder(@RequestBody @Valid MoveOrderParams params) {
+        Site site = Contexts.getCurrentSite();
+        BlockItem fromBean = Optional.ofNullable(service.select(params.getFromId()))
+                .orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getFromId()));
+        BlockItem toBean = Optional.ofNullable(service.select(params.getToId()))
+                .orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getToId()));
+        ValidUtils.dataInSite(fromBean.getSiteId(), site.getId());
+        ValidUtils.dataInSite(toBean.getSiteId(), site.getId());
+        service.moveOrder(fromBean.getId(), toBean.getId());
         return Responses.ok();
     }
 
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('blockItem:delete','*')")
     @OperationLog(module = "blockItem", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
-        ids.forEach(id -> {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
+        Long siteId = Contexts.getCurrentSiteId();
+        for (Long id : ids) {
             BlockItem bean = service.select(id);
             if (bean == null) {
-                return;
+                continue;
             }
             ValidUtils.dataInSite(bean.getSiteId(), siteId);
             service.delete(id);
-        });
+        }
         return Responses.ok();
     }
 
     private void validateBean(BlockItem bean) {
-        if (bean.getArticleId() != null
-                && service.countByBlockIdAndArticleId(bean.getBlockId(), bean.getArticleId())) {
+        Long articleId = bean.getArticleId();
+        if (articleId != null && service.countByBlockIdAndArticleId(bean.getBlockId(), articleId)) {
             throw new Http400Exception("BlockItem duplicate: blockId=" + bean.getBlockId()
                     + ", articleId=" + bean.getArticleId());
         }

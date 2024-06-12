@@ -11,5 +11,5 @@ public interface ModelDeleteListener {
      *
      * @param modelId 模型ID
      */
-    void preModelDelete(Integer modelId);
+    void preModelDelete(Long modelId);
 }

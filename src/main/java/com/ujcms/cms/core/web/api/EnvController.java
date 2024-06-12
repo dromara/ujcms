@@ -57,6 +57,7 @@ public class EnvController {
         result.put("allChannelPermission", user.hasAllChannelPermission());
         result.put("allArticlePermission", user.hasAllArticlePermission());
         result.put("allStatusPermission", user.hasAllStatusPermission());
+        result.put("dataScope", user.getDataScope());
         result.put("loginDate", user.getLoginDate());
         result.put("loginIp", user.getLoginIp());
         result.put("epExcludes", StaticProps.getEpExcludes());
@@ -75,7 +76,7 @@ public class EnvController {
         if (user == null) {
             return Collections.emptyList();
         }
-        return siteService.listByOrgId(user.getOrgId());
+        return siteService.listByUserIdAndOrgId(user.getId(), user.getOrgId());
     }
 
     /**

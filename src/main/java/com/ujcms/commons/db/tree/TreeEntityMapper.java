@@ -31,7 +31,7 @@ public interface TreeEntityMapper<T> {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -40,7 +40,7 @@ public interface TreeEntityMapper<T> {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    T select(Integer id);
+    T select(Long id);
 
     /**
      * 更新树形结构深度
@@ -49,7 +49,7 @@ public interface TreeEntityMapper<T> {
      * @param depth 深度
      * @return 更新条数
      */
-    int updateDepth(@Param("id") Integer id, @Param("depth") short depth);
+    int updateDepth(@Param("id") Long id, @Param("depth") short depth);
 
     /**
      * 获取最大的序号值
@@ -59,7 +59,7 @@ public interface TreeEntityMapper<T> {
      * @return 最大序号值。可能为 {@code null}
      */
     @Nullable
-    Integer maxOrder(@Param("parentId") @Nullable Integer parentId, @Param("siteId") @Nullable Integer siteId);
+    Integer maxOrder(@Param("parentId") @Nullable Long parentId, @Param("siteId") @Nullable Long siteId);
 
     /**
      * 更新序号值
@@ -70,7 +70,7 @@ public interface TreeEntityMapper<T> {
      * @param siteId 站点ID。可以为 {@code null}
      * @return 更新条数
      */
-    int updateOrder(@Param("begin") int begin, @Param("end") int end, @Param("num") int num, @Param("siteId") @Nullable Integer siteId);
+    int updateOrder(@Param("begin") int begin, @Param("end") int end, @Param("num") int num, @Param("siteId") @Nullable Long siteId);
 
     /**
      * 更新序号值
@@ -79,5 +79,5 @@ public interface TreeEntityMapper<T> {
      * @param num      变更数值。可以为负数
      * @return 更新条数
      */
-    int updateOrderByParentId(@Param("parentId") Integer parentId, @Param("num") int num);
+    int updateOrderByParentId(@Param("parentId") Long parentId, @Param("num") int num);
 }

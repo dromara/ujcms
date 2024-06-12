@@ -17,7 +17,7 @@ public class SiteArgs extends BaseQueryArgs {
     @Nullable
     private Map<String, String> customsQueryMap;
     @Nullable
-    private Integer fullOrgId;
+    private Long fullOrgId;
     private boolean isQueryHasChildren = false;
 
     public SiteArgs customsQueryMap(Map<String, String> customsQueryMap) {
@@ -25,17 +25,17 @@ public class SiteArgs extends BaseQueryArgs {
         return this;
     }
 
-    public SiteArgs parentId(@Nullable Integer parentId) {
+    public SiteArgs parentId(@Nullable Long parentId) {
         if (parentId != null) {
-            queryMap.put("EQ_parentId_Int", parentId);
+            queryMap.put("EQ_parentId_Long", parentId);
             isQueryHasChildren = true;
         }
         return this;
     }
 
-    public SiteArgs ancestorId(@Nullable Integer ancestorId) {
+    public SiteArgs ancestorId(@Nullable Long ancestorId) {
         if (ancestorId != null) {
-            queryMap.put("EQ_descendant@SiteTree-ancestorId_Int", ancestorId);
+            queryMap.put("EQ_descendant@SiteTree-ancestorId_Long", ancestorId);
         }
         return this;
     }
@@ -46,7 +46,7 @@ public class SiteArgs extends BaseQueryArgs {
         return this;
     }
 
-    public SiteArgs fullOrgId(@Nullable Integer fullOrgId) {
+    public SiteArgs fullOrgId(@Nullable Long fullOrgId) {
         if (fullOrgId != null) {
             this.fullOrgId = fullOrgId;
         }
@@ -78,7 +78,7 @@ public class SiteArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Integer getFullOrgId() {
+    public Long getFullOrgId() {
         return fullOrgId;
     }
 

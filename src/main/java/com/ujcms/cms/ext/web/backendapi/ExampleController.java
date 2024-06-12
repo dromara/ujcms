@@ -20,7 +20,6 @@ import java.util.List;
 
 import static com.ujcms.cms.core.support.Constants.validPage;
 import static com.ujcms.cms.core.support.Constants.validPageSize;
-import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 import static com.ujcms.commons.db.MyBatis.springPage;
 import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 
@@ -47,7 +46,7 @@ public class ExampleController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('example:show','*')")
-    public Example show(@PathVariable("id") int id) {
+    public Example show(@PathVariable("id") Long id) {
         Example bean = service.select(id);
         if (bean == null) {
             throw new Http404Exception("Example not found. ID = " + id);
@@ -81,7 +80,7 @@ public class ExampleController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('example:delete','*')")
     @OperationLog(module = "example", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         service.delete(ids);
         return Responses.ok();
     }

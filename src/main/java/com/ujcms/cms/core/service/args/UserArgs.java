@@ -13,9 +13,9 @@ import java.util.Map;
  */
 public class UserArgs extends BaseQueryArgs {
     @Nullable
-    private Integer orgId;
+    private Long orgId;
 
-    public UserArgs orgId(@Nullable Integer orgId) {
+    public UserArgs orgId(@Nullable Long orgId) {
         if (orgId != null) {
             this.orgId = orgId;
         }
@@ -35,7 +35,7 @@ public class UserArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Integer getOrgId() {
+    public Long getOrgId() {
         return orgId;
     }
 }

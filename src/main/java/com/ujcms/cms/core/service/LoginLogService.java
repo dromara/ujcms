@@ -1,13 +1,13 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.LoginLog;
 import com.ujcms.cms.core.domain.base.LoginLogBase;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.LoginLogMapper;
 import com.ujcms.cms.core.service.args.LoginLogArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -25,11 +25,11 @@ import java.util.Objects;
 @Service
 public class LoginLogService implements UserDeleteListener {
     private final LoginLogMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public LoginLogService(LoginLogMapper mapper, SeqService seqService) {
+    public LoginLogService(LoginLogMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -38,28 +38,28 @@ public class LoginLogService implements UserDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void loginFailure(Integer userId, String loginName, String ip, short status) {
+    public void loginFailure(Long userId, String loginName, String ip, short status) {
         insert(LoginLog.ofLoginFailure(userId, loginName, ip, status));
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updatePasswordFailure(Integer userId, String ip, short status) {
+    public void updatePasswordFailure(Long userId, String ip, short status) {
         insert(LoginLog.ofChangePasswordFailure(userId, ip, status));
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void loginSuccess(Integer userId, String loginName, String ip) {
+    public void loginSuccess(Long userId, String loginName, String ip) {
         insert(LoginLog.ofLoginSuccess(userId, loginName, ip));
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void logout(Integer userId, String ip) {
+    public void logout(Long userId, String ip) {
         insert(LoginLog.ofLogout(userId, ip));
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(LoginLog bean) {
-        bean.setId(seqService.getNextVal(LoginLogBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -69,17 +69,17 @@ public class LoginLogService implements UserDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public LoginLog select(int id) {
+    public LoginLog select(Long id) {
         return mapper.select(id);
     }
 
@@ -97,7 +97,7 @@ public class LoginLogService implements UserDeleteListener {
     }
 
     @Override
-    public void preUserDelete(Integer userId) {
+    public void preUserDelete(Long userId) {
         mapper.deleteByUserId(userId);
     }
 }

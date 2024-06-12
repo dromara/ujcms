@@ -30,7 +30,7 @@ public class VisitPageBase implements Serializable {
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 受访URL
@@ -84,11 +84,11 @@ public class VisitPageBase implements Serializable {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 

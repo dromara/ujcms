@@ -1,11 +1,11 @@
 package com.ujcms.cms.ext.service;
 
 import com.github.pagehelper.page.PageMethod;
-import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.MessageBoardType;
 import com.ujcms.cms.ext.domain.base.MessageBoardTypeBase;
 import com.ujcms.cms.ext.mapper.MessageBoardTypeMapper;
 import com.ujcms.cms.ext.service.args.MessageBoardTypeArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.db.order.OrderEntityUtils;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
@@ -24,18 +24,17 @@ import java.util.Objects;
 @Service
 public class MessageBoardTypeService {
     private final MessageBoardTypeMapper mapper;
+    private final SnowflakeSequence snowflakeSequence;
 
-    private final SeqService seqService;
-
-    public MessageBoardTypeService(MessageBoardTypeMapper mapper, SeqService seqService) {
+    public MessageBoardTypeService(MessageBoardTypeMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(MessageBoardType bean) {
-        bean.setId(seqService.getNextVal(MessageBoardTypeBase.TABLE_NAME));
-        bean.setOrder(System.currentTimeMillis());
+        bean.setId(snowflakeSequence.nextId());
+        bean.setOrder(bean.getId());
         mapper.insert(bean);
     }
 
@@ -45,27 +44,27 @@ public class MessageBoardTypeService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void moveOrder(Integer fromId, Integer toId) {
+    public void moveOrder(Long fromId, Long toId) {
         OrderEntityUtils.move(mapper, fromId, toId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public MessageBoardType select(Integer id) {
+    public MessageBoardType select(Long id) {
         return mapper.select(id);
     }
 
     public List<MessageBoardType> selectList(MessageBoardTypeArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), MessageBoardTypeBase.TABLE_NAME, "order");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), MessageBoardTypeBase.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

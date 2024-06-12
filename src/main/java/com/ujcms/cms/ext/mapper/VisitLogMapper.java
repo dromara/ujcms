@@ -84,7 +84,7 @@ public interface VisitLogMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(@Param("siteId") Integer siteId);
+    int deleteBySiteId(@Param("siteId") Long siteId);
 
     /**
      * 根据用户ID删除数据
@@ -92,7 +92,7 @@ public interface VisitLogMapper {
      * @param userId 用户ID
      * @return 被删除的数据条数
      */
-    int deleteByUserId(@Param("userId") Integer userId);
+    int deleteByUserId(@Param("userId") Long userId);
 
     /**
      * 统计访客数

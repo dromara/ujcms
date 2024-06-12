@@ -35,12 +35,12 @@ import static org.apache.lucene.search.BooleanClause.Occur;
 public class ArticleLuceneImpl implements ArticleLucene {
     private final LuceneOperations operations;
     private final Analyzer analyzer;
-    private final Analyzer smartAnalyzer;
+    private final Analyzer mostAnalyzer;
 
-    public ArticleLuceneImpl(LuceneOperations operations, Analyzer analyzer, Analyzer smartAnalyzer) {
+    public ArticleLuceneImpl(LuceneOperations operations, Analyzer analyzer, Analyzer mostAnalyzer) {
         this.operations = operations;
         this.analyzer = analyzer;
-        this.smartAnalyzer = smartAnalyzer;
+        this.mostAnalyzer = mostAnalyzer;
     }
 
     @Override
@@ -54,13 +54,13 @@ public class ArticleLuceneImpl implements ArticleLucene {
     }
 
     @Override
-    public void deleteById(Integer id) {
+    public void deleteById(Long id) {
         operations.deleteDocuments(new Term(EsArticle.FIELD_ID, String.valueOf(id)));
     }
 
     @Override
-    public void deleteBySiteId(Integer siteId) {
-        operations.deleteDocuments(IntPoint.newExactQuery(FIELD_SITE_ID, siteId));
+    public void deleteBySiteId(Long siteId) {
+        operations.deleteDocuments(LongPoint.newExactQuery(FIELD_SITE_ID, siteId));
     }
 
     @Override
@@ -76,13 +76,13 @@ public class ArticleLuceneImpl implements ArticleLucene {
             if (StringUtils.isNotBlank(args.getTitle()) || StringUtils.isNotBlank(args.getBody())) {
                 BooleanQuery.Builder sub = new BooleanQuery.Builder();
                 if (StringUtils.isNotBlank(args.getTitle())) {
-                    QueryParser titleParser = new QueryParser(FIELD_TITLE, smartAnalyzer);
+                    QueryParser titleParser = new QueryParser(FIELD_TITLE, analyzer);
                     titleParser.setDefaultOperator(operator);
                     // 标题比正文的权重高 5 倍
                     sub.add(new BoostQuery(titleParser.parse(QueryParserBase.escape(args.getTitle())), 5), Occur.SHOULD);
                 }
                 if (StringUtils.isNotBlank(args.getBody())) {
-                    QueryParser bodyParser = new QueryParser(FIELD_BODY, smartAnalyzer);
+                    QueryParser bodyParser = new QueryParser(FIELD_BODY, analyzer);
                     bodyParser.setDefaultOperator(operator);
                     sub.add(bodyParser.parse(QueryParserBase.escape(args.getBody())), Occur.SHOULD);
                 }
@@ -90,10 +90,10 @@ public class ArticleLuceneImpl implements ArticleLucene {
             }
 
             if (args.getChannelId() != null) {
-                bool.add(IntPoint.newExactQuery(args.isIncludeSubChannel() ? FIELD_CHANNEL_PATHS_ID : FIELD_CHANNEL_ID,
+                bool.add(LongPoint.newExactQuery(args.isIncludeSubChannel() ? FIELD_CHANNEL_PATHS_ID : FIELD_CHANNEL_ID,
                         args.getChannelId()), Occur.MUST);
             } else if (args.getSiteId() != null) {
-                bool.add(IntPoint.newExactQuery(args.isIncludeSubSite() ? FIELD_SITE_PATHS_ID : FIELD_SITE_ID,
+                bool.add(LongPoint.newExactQuery(args.isIncludeSubSite() ? FIELD_SITE_PATHS_ID : FIELD_SITE_ID,
                         args.getSiteId()), Occur.MUST);
             }
 
@@ -112,7 +112,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
             }
 
             if (CollectionUtils.isNotEmpty(args.getExcludeIds())) {
-                bool.add(IntPoint.newSetQuery(EsArticle.FIELD_ID, args.getExcludeIds()), Occur.MUST_NOT);
+                bool.add(LongPoint.newSetQuery(EsArticle.FIELD_ID, args.getExcludeIds()), Occur.MUST_NOT);
             }
 
             if (CollectionUtils.isNotEmpty(args.getStatus())) {
@@ -127,7 +127,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
                     args.getS4(), args.getS5(), args.getS6()};
             for (int i = 0, len = strings.length; i < len; i++) {
                 if (strings[i] != null) {
-                    QueryParser parser = new QueryParser("s" + i, smartAnalyzer);
+                    QueryParser parser = new QueryParser("s" + i, analyzer);
                     parser.setDefaultOperator(operator);
                     bool.add(parser.parse(strings[i]), Occur.MUST);
                 }
@@ -145,9 +145,9 @@ public class ArticleLuceneImpl implements ArticleLucene {
             Highlighter highlighter = new Highlighter(formatter, new QueryScorer(query));
             highlighter.setTextFragmenter(new SimpleFragmenter(args.getFragmentSize()));
             for (EsArticle esArticle : page.getContent()) {
-                esArticle.setHighlightTitle(highlighter.getBestFragment(analyzer, FIELD_TITLE, esArticle.getTitle()));
+                esArticle.setHighlightTitle(highlighter.getBestFragment(mostAnalyzer, FIELD_TITLE, esArticle.getTitle()));
                 if (StringUtils.isNotBlank(esArticle.getBody())) {
-                    esArticle.setHighlightBody(highlighter.getBestFragment(analyzer, FIELD_BODY, esArticle.getBody()));
+                    esArticle.setHighlightBody(highlighter.getBestFragment(mostAnalyzer, FIELD_BODY, esArticle.getBody()));
                 }
             }
             return page;

@@ -25,14 +25,14 @@ public class VoteBase implements Serializable {
      */
     @NotNull
     @Schema(description="投票ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 标题
@@ -63,13 +63,6 @@ public class VoteBase implements Serializable {
     @Nullable
     @Schema(description="结束日期")
     private OffsetDateTime endDate;
-
-    /**
-     * 排序日期
-     */
-    @NotNull
-    @Schema(description="排序日期")
-    private OffsetDateTime orderDate = OffsetDateTime.now();
 
     /**
      * 创建日期
@@ -113,19 +106,26 @@ public class VoteBase implements Serializable {
     @Schema(description="是否启用")
     private Boolean enabled = true;
 
-    public Integer getId() {
+    /**
+     * 排序
+     */
+    @NotNull
+    @Schema(description="排序")
+    private Long order = 0L;
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
@@ -162,14 +162,6 @@ public class VoteBase implements Serializable {
 
     public void setEndDate(@Nullable OffsetDateTime endDate) {
         this.endDate = endDate;
-    }
-
-    public OffsetDateTime getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(OffsetDateTime orderDate) {
-        this.orderDate = orderDate;
     }
 
     public OffsetDateTime getCreated() {
@@ -218,5 +210,13 @@ public class VoteBase implements Serializable {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public Long getOrder() {
+        return order;
+    }
+
+    public void setOrder(Long order) {
+        this.order = order;
     }
 }

@@ -15,7 +15,7 @@ public interface TreeRelationMapper<T> {
      * @param descendantId 后代ID
      * @return 插入条数
      */
-    int save(@Param("ancestorId") Integer ancestorId, @Param("descendantId") Integer descendantId);
+    int save(@Param("ancestorId") Long ancestorId, @Param("descendantId") Long descendantId);
 
     /**
      * 删除数据
@@ -24,7 +24,7 @@ public interface TreeRelationMapper<T> {
      * @param descendantId 后代ID
      * @return 删除条数
      */
-    int delete(@Param("ancestorId") Integer ancestorId, @Param("descendantId") Integer descendantId);
+    int delete(@Param("ancestorId") Long ancestorId, @Param("descendantId") Long descendantId);
 
     /**
      * 删除数据
@@ -32,7 +32,7 @@ public interface TreeRelationMapper<T> {
      * @param ancestorId 祖先ID
      * @return 删除条数
      */
-    int deleteByAncestorId(Integer ancestorId);
+    int deleteByAncestorId(Long ancestorId);
 
     /**
      * 移出数据
@@ -40,7 +40,7 @@ public interface TreeRelationMapper<T> {
      * @param id 待移出的ID
      * @return 删除条数
      */
-    int move(Integer id);
+    int move(Long id);
 
     /**
      * 移入数据
@@ -49,7 +49,7 @@ public interface TreeRelationMapper<T> {
      * @param parentId 移动到父节点ID
      * @return 插入条数
      */
-    int append(@Param("id") Integer id, @Param("parentId") Integer parentId);
+    int append(@Param("id") Long id, @Param("parentId") Long parentId);
 
     /**
      * 加入数据
@@ -58,5 +58,5 @@ public interface TreeRelationMapper<T> {
      * @param parentId 加入到父节点ID
      * @return 插入条数
      */
-    int add(@Param("id") Integer id, @Param("parentId") Integer parentId);
+    int add(@Param("id") Long id, @Param("parentId") Long parentId);
 }

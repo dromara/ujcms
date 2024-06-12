@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.UserMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.User">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="group_id_" jdbcType="INTEGER" property="groupId" />
-    <result column="org_id_" jdbcType="INTEGER" property="orgId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="group_id_" jdbcType="BIGINT" property="groupId" />
+    <result column="org_id_" jdbcType="BIGINT" property="orgId" />
     <result column="username_" jdbcType="VARCHAR" property="username" />
     <result column="password_" jdbcType="VARCHAR" property="password" />
     <result column="email_" jdbcType="VARCHAR" property="email" />
@@ -17,14 +17,15 @@
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
-  </resultMap>
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.User" />
     <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.User">
     </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.User">
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.User">
         <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.UserExt" property="ext" select="com.ujcms.cms.core.mapper.UserExtMapper.select" />
         <association column="group_id_" javaType="com.ujcms.cms.core.domain.Group" property="group" select="com.ujcms.cms.core.mapper.GroupMapper.select" />
-        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.selectRefer" />
+        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.select" />
         <collection column="id_" fetchType="lazy" javaType="ArrayList" property="roleList" select="com.ujcms.cms.core.mapper.RoleMapper.listByUserId" />
+        <collection column="id_" fetchType="lazy" javaType="ArrayList" property="orgList" select="com.ujcms.cms.core.mapper.OrgMapper.listByUserId" />
     </resultMap>
 
     <select id="countByCreated" resultType="int">
@@ -112,26 +113,26 @@
                    else 0
                    end as non_zero_exists
     </select>
-    <select id="selectRefer" parameterType="int" resultMap="ReferResultMap">
+    <select id="selectRefer" parameterType="long" resultMap="ReferResultMap">
         select
         <include refid="Column_List" />
         from ujcms_user t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <select id="select" parameterType="int" resultMap="ResultMap">
+    <select id="select" parameterType="long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_user t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="int">
+    <delete id="delete" parameterType="long">
         delete
         from ujcms_user
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.User">
     update ujcms_user
-    set group_id_ = #{groupId,jdbcType=INTEGER},
-      org_id_ = #{orgId,jdbcType=INTEGER},
+    set group_id_ = #{groupId,jdbcType=BIGINT},
+      org_id_ = #{orgId,jdbcType=BIGINT},
       username_ = #{username,jdbcType=VARCHAR},
       password_ = #{password,jdbcType=VARCHAR},
       email_ = #{email,jdbcType=VARCHAR},
@@ -145,10 +146,10 @@
       rank_ = #{rank,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.User">
     insert into ujcms_user (id_, group_id_, org_id_, username_, password_, email_, mobile_, alias_, nickname_, real_name_, gender_, avatar_, password_modified_, rank_, type_, status_)
-    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{orgId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.email_, t.mobile_, t.alias_, t.nickname_, t.real_name_, t.gender_, t.avatar_, t.password_modified_, t.rank_, t.type_, t.status_
   </sql></mapper>

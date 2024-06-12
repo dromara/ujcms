@@ -8,6 +8,7 @@ import com.ujcms.cms.ext.domain.VisitStat;
 import com.ujcms.cms.ext.domain.base.VisitStatBase;
 import com.ujcms.cms.ext.mapper.VisitStatMapper;
 import com.ujcms.cms.ext.service.args.VisitStatArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -28,16 +29,16 @@ import static com.ujcms.cms.ext.domain.VisitStat.DAY_FORMATTER;
 @Service
 public class VisitStatService implements SiteDeleteListener {
     private final VisitStatMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public VisitStatService(VisitStatMapper mapper, SeqService seqService) {
+    public VisitStatService(VisitStatMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(VisitStat bean) {
-        bean.setId(seqService.getNextVal(VisitStatBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -47,17 +48,17 @@ public class VisitStatService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public VisitStat select(Integer id) {
+    public VisitStat select(Long id) {
         return mapper.select(id);
     }
 
@@ -83,17 +84,17 @@ public class VisitStatService implements SiteDeleteListener {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public List<VisitStat> statByDate(Integer siteId, Short type, @Nullable String begin, @Nullable String end) {
+    public List<VisitStat> statByDate(Long siteId, Short type, @Nullable String begin, @Nullable String end) {
         return PageMethod.offsetPage(0, VisitStat.DISPLAY_MAX_SIZE, false)
                 .doSelectPage(() -> mapper.statByDate(siteId, type, begin, end));
     }
 
-    public Page<VisitStat> statByDate(Integer siteId, Short type, @Nullable String begin, @Nullable String end,
+    public Page<VisitStat> statByDate(Long siteId, Short type, @Nullable String begin, @Nullable String end,
                                       int page, int pageSize) {
         return PageMethod.startPage(page, pageSize).doSelectPage(() -> mapper.statByDate(siteId, type, begin, end));
     }
 
-    public List<VisitStat> selectFullList(@Nullable Integer siteId, @Nullable Short type,
+    public List<VisitStat> selectFullList(@Nullable Long siteId, @Nullable Short type,
                                           String begin, String end) {
         VisitStatArgs args = VisitStatArgs.of().siteId(siteId).type(type).begin(begin).end(end).orderByDateString();
         return VisitStat.fillEmptyDate(selectList(args), begin, end, DAY_FORMATTER, DAY_DISPLAY_FORMATTER,
@@ -116,7 +117,7 @@ public class VisitStatService implements SiteDeleteListener {
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         mapper.deleteBySiteId(siteId);
     }
 }

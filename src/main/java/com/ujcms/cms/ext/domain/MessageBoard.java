@@ -95,4 +95,6 @@ public class MessageBoard extends MessageBoardBase implements Serializable {
      * 状态：已屏蔽
      */
     public static final short STATUS_BLOCKED = 2;
+
+    public static final String NOT_FOUND = "MessageBoard not found. ID: ";
 }

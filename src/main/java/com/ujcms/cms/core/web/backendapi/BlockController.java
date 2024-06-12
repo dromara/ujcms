@@ -65,10 +65,10 @@ public class BlockController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('block:show','*')")
-    public Object show(@PathVariable Integer id) {
+    public Object show(@PathVariable Long id) {
         Block bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("Block not found. ID = " + id);
+            return Responses.notFound(Block.NOT_FOUND + id);
         }
         dataInSite(bean.getSiteId(), getCurrentSiteId());
         return bean;
@@ -93,7 +93,7 @@ public class BlockController {
         User user = Contexts.getCurrentUser();
         Block block = service.select(bean.getId());
         if (block == null) {
-            return Responses.notFound("Block not found. ID = " + bean.getId());
+            return Responses.notFound(Block.NOT_FOUND + bean.getId());
         }
         boolean origGlobal = block.isGlobal();
         String origAlias = block.getAlias();
@@ -106,13 +106,13 @@ public class BlockController {
     @PutMapping("order")
     @PreAuthorize("hasAnyAuthority('block:update','*')")
     @OperationLog(module = "block", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
         User currentUser = Contexts.getCurrentUser();
         List<Block> list = new ArrayList<>();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Block bean = service.select(id);
             if (bean == null) {
-                return Responses.notFound("Block not found. ID = " + id);
+                return Responses.notFound(Block.NOT_FOUND + id);
             }
             validatePermission(bean.getSiteId(), bean.isGlobal(), currentUser);
             list.add(bean);
@@ -124,7 +124,7 @@ public class BlockController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('block:delete','*')")
     @OperationLog(module = "block", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         User currentUser = Contexts.getCurrentUser();
         ids.forEach(id -> Optional.ofNullable(id).map(service::select).ifPresent(
                 bean -> validatePermission(bean.getSiteId(), bean.isGlobal(), currentUser)));
@@ -137,19 +137,19 @@ public class BlockController {
      */
     @GetMapping("scope-not-allowed")
     @PreAuthorize("hasAnyAuthority('block:validation','*')")
-    public boolean scopeNotAllowed(int scope, Integer blockId) {
-        Integer siteId = getCurrentSiteId();
+    public boolean scopeNotAllowed(int scope, Long blockId) {
+        Long siteId = getCurrentSiteId();
         return scope == SCOPE_PRIVATE && itemService.existsByBlockId(blockId, siteId);
     }
 
     @GetMapping("alias-exist")
     @PreAuthorize("hasAnyAuthority('block:validation','*')")
     public boolean aliasExist(@NotBlank String alias, int scope) {
-        Integer siteId = SCOPE_GLOBAL != scope ? getCurrentSiteId() : null;
+        Long siteId = SCOPE_GLOBAL != scope ? getCurrentSiteId() : null;
         return service.existsByAlias(alias, siteId);
     }
 
-    private void validatePermission(Integer siteId, boolean isGlobal, User currentUser) {
+    private void validatePermission(Long siteId, boolean isGlobal, User currentUser) {
         dataInSite(siteId, getCurrentSiteId());
         globalPermission(isGlobal, currentUser.hasGlobalPermission());
     }

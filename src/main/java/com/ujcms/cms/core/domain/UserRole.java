@@ -16,7 +16,7 @@ import java.io.Serializable;
 public class UserRole extends UserRoleBase implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public UserRole(Integer userId, Integer roleId) {
+    public UserRole(Long userId, Long roleId) {
         setUserId(userId);
         setRoleId(roleId);
     }

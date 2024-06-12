@@ -2,12 +2,19 @@ package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.ErrorWord;
 import com.ujcms.commons.query.QueryInfo;
+
 import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 易错词 Mapper
+ *
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface ErrorWordMapper {
@@ -33,7 +40,7 @@ public interface ErrorWordMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -42,7 +49,7 @@ public interface ErrorWordMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    ErrorWord select(Integer id);
+    ErrorWord select(Long id);
 
     /**
      * 根据查询条件获取列表

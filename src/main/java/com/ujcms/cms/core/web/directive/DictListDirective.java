@@ -39,7 +39,7 @@ public class DictListDirective implements TemplateDirectiveModel {
     public static List<Dict> query(Map<String, ?> params, DictService dictService) {
         DictArgs args = DictArgs.of();
 
-        Integer typeId = Directives.getInteger(params, TYPE_ID);
+        Long typeId = Directives.getLong(params, TYPE_ID);
         String typeAlias = Directives.getString(params, TYPE);
         if (typeId != null) {
             args.typeId(typeId);

@@ -34,7 +34,7 @@ public class ExampleDirective implements TemplateDirectiveModel {
         // 检查标签体是否存在
         Freemarkers.requireBody(body);
         // 获取id参数
-        Integer id = Directives.getIntegerRequired(params, ID);
+        Long id = Directives.getLongRequired(params, ID);
         // 查询数据
         Example bean = service.select(id);
         // 将查询结果放入返回参数中

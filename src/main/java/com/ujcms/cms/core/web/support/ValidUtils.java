@@ -16,7 +16,7 @@ public final class ValidUtils {
      * @param dataSiteId    数据站点ID
      * @param currentSiteId 当前站点ID
      */
-    public static void dataInSite(@Nullable Integer dataSiteId, Integer currentSiteId) {
+    public static void dataInSite(@Nullable Long dataSiteId, Long currentSiteId) {
         if (dataSiteId != null && !dataSiteId.equals(currentSiteId)) {
             throw new Http400Exception(String.format("data site id '%d' not in current site id '%d'", dataSiteId, currentSiteId));
         }

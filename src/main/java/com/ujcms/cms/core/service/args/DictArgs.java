@@ -13,16 +13,16 @@ import java.util.Map;
  * @author PONY
  */
 public class DictArgs extends BaseQueryArgs {
-    public DictArgs siteId(@Nullable Integer siteId) {
+    public DictArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }
 
-    public DictArgs typeId(@Nullable Integer typeId) {
+    public DictArgs typeId(@Nullable Long typeId) {
         if (typeId != null) {
-            queryMap.put("EQ_typeId", typeId);
+            queryMap.put("EQ_typeId_Long", typeId);
         }
         return this;
     }

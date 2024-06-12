@@ -56,10 +56,10 @@ public class RoleController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('role:show','*')")
-    public Role show(@PathVariable Integer id) {
+    public Role show(@PathVariable Long id) {
         Role bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception(ROLE_ID_NOT_FOUND + id);
+            throw new Http404Exception(ROLE_NOT_FOUND + id);
         }
         dataInSite(bean.getSiteId(), getCurrentSiteId());
         return bean;
@@ -91,7 +91,7 @@ public class RoleController {
         User currentUser = Contexts.getCurrentUser();
         Role role = service.select(bean.getId());
         if (role == null) {
-            throw new Http404Exception(ROLE_ID_NOT_FOUND + bean.getId());
+            throw new Http404Exception(ROLE_NOT_FOUND + bean.getId());
         }
         boolean origGlobal = role.isGlobal();
         Short origRank = role.getRank();
@@ -104,30 +104,31 @@ public class RoleController {
     @PutMapping("permission")
     @PreAuthorize("hasAnyAuthority('role:updatePermission','*')")
     @OperationLog(module = "role", operation = "updatePermission", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updatePermission(@RequestBody Role bean) {
+    public ResponseEntity<Body> updatePermission(@RequestBody RoleParams bean) {
         User currentUser = Contexts.getCurrentUser();
         Role role = service.select(bean.getId());
         if (role == null) {
-            throw new Http404Exception(ROLE_ID_NOT_FOUND + bean.getId());
+            throw new Http404Exception(ROLE_NOT_FOUND + bean.getId());
         }
         Short origRank = role.getRank();
         Entities.copyIncludes(bean, role, Role.PERMISSION_FIELDS);
         validateBean(role, false, origRank, currentUser);
-        service.update(role, bean.getArticlePermissions(), bean.getChannelPermissions(), getCurrentSiteId());
+        service.update(role, bean.getArticlePermissions(), bean.getChannelPermissions(), bean.getOrgPermissions(),
+                getCurrentSiteId());
         return Responses.ok();
     }
 
     @PutMapping("order")
     @PreAuthorize("hasAnyAuthority('role:update','*')")
     @OperationLog(module = "role", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
         User currentUser = Contexts.getCurrentUser();
         Site currentSite = Contexts.getCurrentSite();
         List<Role> list = new ArrayList<>();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Role role = service.select(id);
             if (role == null) {
-                throw new Http404Exception(ROLE_ID_NOT_FOUND + id);
+                throw new Http404Exception(ROLE_NOT_FOUND + id);
             }
             dataInSite(role.getSiteId(), currentSite.getId());
             if (role.isGlobal() && !currentUser.hasGlobalPermission()) {
@@ -142,7 +143,7 @@ public class RoleController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('role:delete','*')")
     @OperationLog(module = "role", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         User currentUser = Contexts.getCurrentUser();
         ids.forEach(id -> Optional.ofNullable(id).map(service::select).ifPresent(
                 bean -> validatePermission(bean.getSiteId(), bean.isGlobal(), bean.getRank(), bean.getRank(), currentUser)));
@@ -152,14 +153,20 @@ public class RoleController {
 
     @GetMapping("article-permissions")
     @PreAuthorize("hasAnyAuthority('role:list','*')")
-    public List<Integer> articlePermissions(Integer roleId, @Nullable Integer siteId) {
+    public List<Long> articlePermissions(Long roleId, @Nullable Long siteId) {
         return service.listArticlePermissions(roleId, siteId != null ? siteId : getCurrentSiteId());
     }
 
     @GetMapping("channel-permissions")
     @PreAuthorize("hasAnyAuthority('role:list','*')")
-    public List<Integer> channelPermissions(Integer roleId, @Nullable Integer siteId) {
+    public List<Long> channelPermissions(Long roleId, @Nullable Long siteId) {
         return service.listChannelPermissions(roleId, siteId != null ? siteId : getCurrentSiteId());
+    }
+
+    @GetMapping("org-permissions")
+    @PreAuthorize("hasAnyAuthority('role:list','*')")
+    public List<Long> orgPermissions(Long roleId, @Nullable Long siteId) {
+        return service.listOrgPermissions(roleId, siteId != null ? siteId : getCurrentSiteId());
     }
 
     /**
@@ -167,12 +174,12 @@ public class RoleController {
      */
     @GetMapping("scope-not-allowed")
     @PreAuthorize("hasAnyAuthority('role:validation','*')")
-    public boolean scopeNotAllowed(int scope, Integer roleId) {
+    public boolean scopeNotAllowed(int scope, Long roleId) {
         Site site = Contexts.getCurrentSite();
         return scope == SCOPE_PRIVATE && userService.existsByRoleId(roleId, site.getOrgId());
     }
 
-    private void validatePermission(Integer siteId, boolean isGlobal, Short origRank, Short newRank, User currentUser) {
+    private void validatePermission(Long siteId, boolean isGlobal, Short origRank, Short newRank, User currentUser) {
         dataInSite(siteId, getCurrentSiteId());
         rankPermission(origRank, newRank, currentUser.getRank());
         globalPermission(isGlobal, currentUser.hasGlobalPermission());
@@ -186,5 +193,45 @@ public class RoleController {
         }
     }
 
-    private static final String ROLE_ID_NOT_FOUND = "Role not found. ID = ";
+    private static final String ROLE_NOT_FOUND = "Role not found. ID = ";
+
+    public static class RoleParams extends Role {
+        private static final long serialVersionUID = 1L;
+        /**
+         * 文章权限，栏目ID列表
+         */
+        private List<Long> articlePermissions = new ArrayList<>();
+        /**
+         * 栏目权限，栏目ID列表
+         */
+        private List<Long> channelPermissions = new ArrayList<>();
+        /**
+         * 组织ID权限
+         */
+        private List<Long> orgPermissions = new ArrayList<>();
+
+        public List<Long> getArticlePermissions() {
+            return articlePermissions;
+        }
+
+        public void setArticlePermissions(List<Long> articlePermissions) {
+            this.articlePermissions = articlePermissions;
+        }
+
+        public List<Long> getChannelPermissions() {
+            return channelPermissions;
+        }
+
+        public void setChannelPermissions(List<Long> channelPermissions) {
+            this.channelPermissions = channelPermissions;
+        }
+
+        public List<Long> getOrgPermissions() {
+            return orgPermissions;
+        }
+
+        public void setOrgPermissions(List<Long> orgPermissions) {
+            this.orgPermissions = orgPermissions;
+        }
+    }
 }

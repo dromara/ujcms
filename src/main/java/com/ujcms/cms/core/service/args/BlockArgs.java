@@ -13,15 +13,15 @@ import java.util.Map;
  * @author PONY
  */
 public class BlockArgs extends BaseQueryArgs {
-    public BlockArgs scopeSiteId(@Nullable Integer siteId) {
+    public BlockArgs scopeSiteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_1_siteId_Int", siteId);
+            queryMap.put("EQ_1_siteId_Long", siteId);
             queryMap.put("EQ_1_scope_Short", String.valueOf(EntityConstants.SCOPE_GLOBAL));
         }
         return this;
     }
 
-    public BlockArgs siteId(@Nullable Integer siteId) {
+    public BlockArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
             queryMap.put("EQ_siteId_Int", siteId);
         }

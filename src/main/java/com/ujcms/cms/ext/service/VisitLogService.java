@@ -255,12 +255,12 @@ public class VisitLogService implements SiteDeleteListener, UserDeleteListener {
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         mapper.deleteBySiteId(siteId);
     }
 
     @Override
-    public void preUserDelete(Integer userId) {
+    public void preUserDelete(Long userId) {
         mapper.deleteByUserId(userId);
     }
 }

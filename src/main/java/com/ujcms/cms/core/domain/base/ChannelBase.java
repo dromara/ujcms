@@ -25,42 +25,42 @@ public class ChannelBase implements Serializable {
      */
     @NotNull
     @Schema(description="栏目ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 上级栏目ID
      */
     @Nullable
     @Schema(description="上级栏目ID")
-    private Integer parentId;
+    private Long parentId;
 
     /**
      * 栏目模型ID
      */
     @NotNull
     @Schema(description="栏目模型ID")
-    private Integer channelModelId = 0;
+    private Long channelModelId = 0L;
 
     /**
      * 文章模型ID
      */
     @NotNull
     @Schema(description="文章模型ID")
-    private Integer articleModelId = 0;
+    private Long articleModelId = 0L;
 
     /**
      * 绩效类型ID
      */
     @Nullable
     @Schema(description="绩效类型ID")
-    private Integer performanceTypeId;
+    private Long performanceTypeId;
 
     /**
      * 名称
@@ -189,6 +189,20 @@ public class ChannelBase implements Serializable {
     private OffsetDateTime modified = OffsetDateTime.now();
 
     /**
+     * 层级
+     */
+    @NotNull
+    @Schema(description="层级")
+    private Short depth = 1;
+
+    /**
+     * 排列顺序
+     */
+    @NotNull
+    @Schema(description="排列顺序")
+    private Integer order = 999999;
+
+    /**
      * 浏览次数
      */
     @NotNull
@@ -203,66 +217,66 @@ public class ChannelBase implements Serializable {
     private Long selfViews = 0L;
 
     /**
-     * 层级
+     * 自定义主字段JSON
      */
-    @NotNull
-    @Schema(description="层级")
-    private Short depth = 1;
+    @Nullable
+    @Schema(description="自定义主字段JSON")
+    private String mainsJson;
 
     /**
-     * 排列顺序
+     * 自定义大字段JSON
      */
-    @NotNull
-    @Schema(description="排列顺序")
-    private Integer order = 999999;
+    @Nullable
+    @Schema(description="自定义大字段JSON")
+    private String clobsJson;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
     @Nullable
-    public Integer getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(@Nullable Integer parentId) {
+    public void setParentId(@Nullable Long parentId) {
         this.parentId = parentId;
     }
 
-    public Integer getChannelModelId() {
+    public Long getChannelModelId() {
         return channelModelId;
     }
 
-    public void setChannelModelId(Integer channelModelId) {
+    public void setChannelModelId(Long channelModelId) {
         this.channelModelId = channelModelId;
     }
 
-    public Integer getArticleModelId() {
+    public Long getArticleModelId() {
         return articleModelId;
     }
 
-    public void setArticleModelId(Integer articleModelId) {
+    public void setArticleModelId(Long articleModelId) {
         this.articleModelId = articleModelId;
     }
 
     @Nullable
-    public Integer getPerformanceTypeId() {
+    public Long getPerformanceTypeId() {
         return performanceTypeId;
     }
 
-    public void setPerformanceTypeId(@Nullable Integer performanceTypeId) {
+    public void setPerformanceTypeId(@Nullable Long performanceTypeId) {
         this.performanceTypeId = performanceTypeId;
     }
 
@@ -407,6 +421,22 @@ public class ChannelBase implements Serializable {
         this.modified = modified;
     }
 
+    public Short getDepth() {
+        return depth;
+    }
+
+    public void setDepth(Short depth) {
+        this.depth = depth;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
+
     public Long getViews() {
         return views;
     }
@@ -423,19 +453,21 @@ public class ChannelBase implements Serializable {
         this.selfViews = selfViews;
     }
 
-    public Short getDepth() {
-        return depth;
+    @Nullable
+    public String getMainsJson() {
+        return mainsJson;
     }
 
-    public void setDepth(Short depth) {
-        this.depth = depth;
+    public void setMainsJson(@Nullable String mainsJson) {
+        this.mainsJson = mainsJson;
     }
 
-    public Integer getOrder() {
-        return order;
+    @Nullable
+    public String getClobsJson() {
+        return clobsJson;
     }
 
-    public void setOrder(Integer order) {
-        this.order = order;
+    public void setClobsJson(@Nullable String clobsJson) {
+        this.clobsJson = clobsJson;
     }
 }

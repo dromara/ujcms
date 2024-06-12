@@ -31,7 +31,7 @@ public class ArticleLuceneArgs {
      * 站点ID
      */
     @Nullable
-    private Integer siteId;
+    private Long siteId;
     /**
      * 是否包含子站点
      */
@@ -40,7 +40,7 @@ public class ArticleLuceneArgs {
      * 栏目ID
      */
     @Nullable
-    private Integer channelId;
+    private Long channelId;
     /**
      * 是否包含子栏目
      */
@@ -64,7 +64,7 @@ public class ArticleLuceneArgs {
      * 需排除的文章ID
      */
     @Nullable
-    private Collection<Integer> excludeIds;
+    private Collection<Long> excludeIds;
     /**
      * 状态
      */
@@ -148,11 +148,11 @@ public class ArticleLuceneArgs {
     }
 
     @Nullable
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(@Nullable Integer siteId) {
+    public void setSiteId(@Nullable Long siteId) {
         this.siteId = siteId;
     }
 
@@ -165,11 +165,11 @@ public class ArticleLuceneArgs {
     }
 
     @Nullable
-    public Integer getChannelId() {
+    public Long getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(@Nullable Integer channelId) {
+    public void setChannelId(@Nullable Long channelId) {
         this.channelId = channelId;
     }
 
@@ -209,11 +209,11 @@ public class ArticleLuceneArgs {
     }
 
     @Nullable
-    public Collection<Integer> getExcludeIds() {
+    public Collection<Long> getExcludeIds() {
         return excludeIds;
     }
 
-    public void setExcludeIds(@Nullable Collection<Integer> excludeIds) {
+    public void setExcludeIds(@Nullable Collection<Long> excludeIds) {
         this.excludeIds = excludeIds;
     }
 

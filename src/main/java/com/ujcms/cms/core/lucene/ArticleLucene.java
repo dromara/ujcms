@@ -34,14 +34,14 @@ public interface ArticleLucene {
      *
      * @param id 文章 ID
      */
-    void deleteById(Integer id);
+    void deleteById(Long id);
 
     /**
      * 根据 站点 ID 删除索引
      *
      * @param siteId 站点 ID
      */
-    void deleteBySiteId(Integer siteId);
+    void deleteBySiteId(Long siteId);
 
     /**
      * 删除整个索引

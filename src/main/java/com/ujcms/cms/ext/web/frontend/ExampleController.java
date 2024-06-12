@@ -5,7 +5,6 @@ import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.cms.ext.domain.Example;
 import com.ujcms.cms.ext.service.ExampleService;
 import com.ujcms.commons.web.exception.Http404Exception;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -44,7 +43,7 @@ public class ExampleController {
     }
 
     @GetMapping({"/example/{id}", "/{subDir:[\\w-]+}/example/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Integer id,
+    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
                        HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
         Example example = service.select(id);

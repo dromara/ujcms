@@ -19,9 +19,9 @@
         [#assign parent = channel.parent!channel/]
         <li class="list-inline-item"><a class="btn btn-sm [#if parent.id == channel.id]btn-primary[#else]btn-link[/#if]" href="${parent.url}">全部</a></li>
         [@ChannelList parentId=parent.id; list]
-          [#list list as bean]
-            <li class="list-inline-item"><a class="btn btn-sm [#if channel.id == bean.id]btn-primary[#else]btn-link[/#if]" href="${bean.url}">${bean.name}</a></li>
-          [/#list]
+        [#list list as bean]
+        <li class="list-inline-item"><a class="btn btn-sm [#if channel.id == bean.id]btn-primary[#else]btn-link[/#if]" href="${bean.url}">${bean.name}</a></li>
+        [/#list]
         [/@ChannelList]
       </ol>
     </nav>
@@ -34,35 +34,34 @@
       <div>
         [#assign customsQueryMap={}/]
         [#list channel.articleModel.fieldList?filter(field->['radio','checkbox','select','multipleSelect']?seqContains(field.type)) as field]
-          <div class="py-1 border-bottom">
-            [#assign param=field.code+'_key'/]
-            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="btn btn-sm[#if !Params[param]??] btn-secondary[#else] btn-link text-reset[/#if]">全部${field.name}</a>
-            [@DictList typeId=field.dictTypeId; list]
-              [#list list as dict]
-                <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}"
-                   class="btn btn-sm [#if Params[param]! == dict.value]btn-secondary[#else]btn-link text-reset[/#if]">${dict.name}</a>
-              [/#list]
-            [/@DictList]
-          </div>
-          [#assign customsQueryMap=customsQueryMap + {'EQ_'+param: Params[param]!}/]
+        <div class="py-1 border-bottom">
+          [#assign param=field.code+'Key'/]
+          <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="btn btn-sm[#if !Params[param]??] btn-secondary[#else] btn-link text-reset[/#if]">全部${field.name}</a>
+          [@DictList typeId=field.dictTypeId; list]
+          [#list list as dict]
+          <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}" class="btn btn-sm [#if Params[param]! == dict.value]btn-secondary[#else]btn-link text-reset[/#if]">${dict.name}</a>
+          [/#list]
+          [/@DictList]
+        </div>
+        [#assign customsQueryMap=customsQueryMap + {'ArrayEQ_@articleExt-mainsJson$'+param+(field.dataType != 'string')?string('_Int',''): Params[param]!}/]
         [/#list]
       </div>
       [/#if]
-      [@ArticlePage channelId=channel.id isIncludeSubChannel='true' customs=customsQueryMap orderBy=channel.orderDesc?string("sticky_desc,order_desc","sticky_desc,order_asc"); pagedList]
-        <div class="row mx-n1 mb-3">
-          [#list pagedList.content as bean]
-            <div class="col-lg-3 col-6 px-1 mt-3">
-              <div class="card">
-                <div class="p-3 text-center" style="height:180px;"><img src="${bean.image}" class="mw-100 mh-100" alt="${bean.title}"></div>
-                <div class="card-body p-2">
-                  <div class="card-text text-truncate">[@A bean=bean class="text-reset stretched-link"]${bean.title}[/@A]</div>
-                  <div class="card-text text-danger h5 mt-2"><small>￥</small>${bean.customs['price']}</div>
-                </div>
-              </div>
+      [@ArticlePage channelId=channel.id isIncludeSubChannel='true' Q_=customsQueryMap orderBy=channel.orderDesc?string("sticky_desc,order_desc","sticky_desc,order_asc"); pagedList]
+      <div class="row mx-n1 mb-3">
+        [#list pagedList.content as bean]
+        <div class="col-lg-3 col-6 px-1 mt-3">
+          <div class="card">
+            <div class="p-3 text-center" style="height:180px;"><img src="${bean.image}" class="mw-100 mh-100" alt="${bean.title}"></div>
+            <div class="card-body p-2">
+              <div class="card-text text-truncate">[@A bean=bean class="text-reset stretched-link"]${bean.title}[/@A]</div>
+              <div class="card-text text-danger h5 mt-2"><small>￥</small>${bean.customs['price']}</div>
             </div>
-          [/#list]
+          </div>
         </div>
-        [#include 'inc_page.html'/]
+        [/#list]
+      </div>
+      [#include 'inc_page.html'/]
       [/@ArticlePage]
     </div>
   </div>

@@ -4,12 +4,13 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Task;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.TaskService;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.LongConsumer;
 
 /**
  * 生成器抽象类
@@ -28,12 +29,12 @@ public abstract class AbstractGenerator {
         this.executor = executor;
     }
 
-    void execute(Integer taskSiteId, Integer taskUserId, String taskName, short taskType,
-                 boolean deleteOnFinished, IntConsumer consumer) {
+    void execute(Long taskSiteId, Long taskUserId, String taskName, short taskType,
+                 boolean deleteOnFinished, LongConsumer consumer) {
         Task task = new Task(taskSiteId, taskUserId, taskName, taskType);
         // 等待状态，在队列里等待线程池运行
         taskService.insert(task);
-        Integer taskId = task.getId();
+        Long taskId = task.getId();
         executor.execute(() -> {
             try {
                 Task bean = taskService.select(taskId);
@@ -70,8 +71,8 @@ public abstract class AbstractGenerator {
         });
     }
 
-    void handleArticle(Integer taskId, Integer siteId, Consumer<Article> consumer) {
-        Integer minId = 0;
+    void handleArticle(Long taskId, @Nullable Long siteId, Consumer<Article> consumer) {
+        Long minId = 0L;
         int offset = 0;
         int limit = 100;
         int size = limit;
@@ -98,7 +99,7 @@ public abstract class AbstractGenerator {
      * @param size   完成数量
      * @return 是否中止任务
      */
-    boolean updateTask(Integer taskId, int size) {
+    boolean updateTask(Long taskId, int size) {
         Task task = taskService.select(taskId);
         // 任务被删，中止任务
         if (task == null) {

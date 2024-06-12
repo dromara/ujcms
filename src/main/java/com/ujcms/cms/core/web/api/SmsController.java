@@ -105,7 +105,7 @@ public class SmsController {
 
     @Operation(summary = "验证手机短信是否正确")
     @GetMapping("/mobile/try")
-    public boolean tryMobile(@Parameter(description = "手机短信ID") Integer mobileMessageId,
+    public boolean tryMobile(@Parameter(description = "手机短信ID") Long mobileMessageId,
                              @Parameter(description = "手机号码") String mobile,
                              @Parameter(description = "手机验证码") String mobileMessageValue) {
         if (mobileMessageId == null || StringUtils.isBlank(mobileMessageValue)) {
@@ -118,7 +118,7 @@ public class SmsController {
 
     @Operation(summary = "验证邮件短信是否正确")
     @GetMapping("/email/try")
-    public boolean tryEmail(@Parameter(description = "邮件短信ID") Integer emailMessageId,
+    public boolean tryEmail(@Parameter(description = "邮件短信ID") Long emailMessageId,
                             @Parameter(description = "邮件号码") String email,
                             @Parameter(description = "邮件验证码") String emailMessageValue) {
         if (emailMessageId == null || StringUtils.isBlank(emailMessageValue)) {

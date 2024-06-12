@@ -12,9 +12,9 @@ import java.util.Map;
  * @author PONY
  */
 public class AttachmentArgs extends BaseQueryArgs {
-    public AttachmentArgs siteId(@Nullable Integer siteId) {
+    public AttachmentArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

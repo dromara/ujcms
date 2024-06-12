@@ -166,22 +166,24 @@ databaseChangeLog:
        id:  1684209496186-1-changes
        author:  PONY
        changes:
-         -  renameColumn:
-              columnDataType: CHAR(1 BYTE)
-              newColumnName: gender2_
-              oldColumnName: gender_
-              remarks: 性别(m:男,f:女,n:保密)
-              tableName: ujcms_user_ext
+         - validCheckSum: 8:1564c2874ccb1ce2f8ffcb8cf185dcd2
+         - renameColumn:
+             columnDataType: CHAR(1)
+             newColumnName: gender2_
+             oldColumnName: gender_
+             remarks: 性别(m:男,f:女,n:保密)
+             tableName: ujcms_user_ext
   -  changeSet:
        id:  1684209496186-2-changes
        author:  PONY
        changes:
-         -  renameColumn:
-              columnDataType: CHAR(1 BYTE)
-              newColumnName: gender2_
-              oldColumnName: gender_
-              remarks: 性别(m:男,f:女,n:保密)
-              tableName: ujcms_user_openid
+         - validCheckSum: 8:7b09364fb1682828208ca1c8aa5ac793
+         - renameColumn:
+             columnDataType: CHAR(1)
+             newColumnName: gender2_
+             oldColumnName: gender_
+             remarks: 性别(m:男,f:女,n:保密)
+             tableName: ujcms_user_openid
   - changeSet:
       id: 1684210936367-9
       author: PONY (generated)

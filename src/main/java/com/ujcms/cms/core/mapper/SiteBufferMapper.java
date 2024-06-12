@@ -32,7 +32,7 @@ public interface SiteBufferMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    SiteBuffer select(Integer id);
+    SiteBuffer select(Long id);
 
     /**
      * 批量更新浏览次数

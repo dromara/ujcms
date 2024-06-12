@@ -4,10 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ujcms.cms.core.domain.base.OrgBase;
 import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.domain.base.UserBase;
-import com.ujcms.commons.misc.BaseNum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,12 +20,7 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,11 +35,16 @@ public class User extends UserBase implements UserDetails, Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 字符串ID。用户个人主页地址使用字符串ID，不使用规则的整数，避免ID被探测
+     * 用户名和用户真实姓名
      */
-    @Schema(description = "字符串ID。用户个人主页地址使用字符串ID，不使用规则的整数，避免ID被探测")
-    public String getStringId() {
-        return BaseNum.base36().fromReverseInt(getId());
+    @Schema(description = "用户名和用户真实姓名")
+    public String getName() {
+        StringBuilder buff = new StringBuilder(getUsername());
+        String realName = getRealName();
+        if (StringUtils.isNotBlank(realName)) {
+            buff.append("(").append(realName).append(")");
+        }
+        return buff.toString();
     }
 
     /**
@@ -53,7 +52,7 @@ public class User extends UserBase implements UserDetails, Serializable {
      */
     @Schema(description = "个人主页")
     public String getHomepage() {
-        return "/users/" + getStringId();
+        return "/users/" + getId();
     }
 
     @Schema(description = "大头像")
@@ -261,8 +260,15 @@ public class User extends UserBase implements UserDetails, Serializable {
     }
 
     @JsonIgnore
-    public List<Integer> fetchRoleIds() {
+    public List<Long> fetchRoleIds() {
         return getRoleList().stream().map(Role::getId).collect(Collectors.toList());
+    }
+
+    @JsonIgnore
+    public Set<Long> fetchAllOrgIds() {
+        Set<Long> orgIds = getOrgList().stream().map(OrgBase::getId).collect(Collectors.toSet());
+        orgIds.add(getOrgId());
+        return orgIds;
     }
 
     @JsonIgnore
@@ -405,23 +411,6 @@ public class User extends UserBase implements UserDetails, Serializable {
     }
     // endregion
 
-    // region TempFields
-    /**
-     * 角色ID列表。用于获取前台提交的数据。
-     */
-    private List<Integer> roleIds = new ArrayList<>();
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    public List<Integer> getRoleIds() {
-        return roleIds;
-    }
-
-    @Schema(description = "角色ID列表")
-    public void setRoleIds(List<Integer> roleIds) {
-        this.roleIds = roleIds;
-    }
-    // endregion
-
     // region Associations
     /**
      * 用户扩展对象
@@ -443,6 +432,11 @@ public class User extends UserBase implements UserDetails, Serializable {
      */
     @JsonIncludeProperties({"id", "name"})
     private List<Role> roleList = new ArrayList<>();
+    /**
+     * 扩展组织列表
+     */
+    @JsonIncludeProperties({"id", "name"})
+    private List<Org> orgList = new ArrayList<>();
 
     public UserExt getExt() {
         return ext;
@@ -474,6 +468,14 @@ public class User extends UserBase implements UserDetails, Serializable {
 
     public void setRoleList(List<Role> roleList) {
         this.roleList = roleList;
+    }
+
+    public List<Org> getOrgList() {
+        return orgList;
+    }
+
+    public void setOrgList(List<Org> orgList) {
+        this.orgList = orgList;
     }
     // endregion
 
@@ -626,6 +628,8 @@ public class User extends UserBase implements UserDetails, Serializable {
     /**
      * 匿名用户ID
      */
-    public static final Integer ANONYMOUS_ID = 0;
+    public static final Long ANONYMOUS_ID = 0L;
+
+    public static final String NOT_FOUND = "User not found. ID: ";
     // endregion
 }

@@ -21,25 +21,32 @@ public class ContextConfig implements InitializingBean {
     private final MessageBoardTypeService messageBoardTypeService;
     private final SurveyService surveyService;
     private final LeaderBoardService leaderBoardService;
+    private final FormService formService;
+    private final FormTypeService formTypeService;
     private final ExampleService exampleService;
     private final freemarker.template.Configuration configuration;
 
     public ContextConfig(SiteService siteService, VoteService voteService, MessageBoardService messageBoardService,
                          MessageBoardTypeService messageBoardTypeService, SurveyService surveyService,
-                         LeaderBoardService leaderBoardService,
-                         ExampleService exampleService, freemarker.template.Configuration configuration) {
+                         LeaderBoardService leaderBoardService, FormService formService,
+                         FormTypeService formTypeService, ExampleService exampleService,
+                         freemarker.template.Configuration configuration) {
         this.siteService = siteService;
         this.voteService = voteService;
         this.messageBoardService = messageBoardService;
         this.messageBoardTypeService = messageBoardTypeService;
         this.surveyService = surveyService;
         this.leaderBoardService = leaderBoardService;
+        this.formService = formService;
+        this.formTypeService = formTypeService;
         this.exampleService = exampleService;
         this.configuration = configuration;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        configuration.setSharedVariable("FormList", new FormListDirective(formService, formTypeService));
+        configuration.setSharedVariable("FormPage", new FormPageDirective(formService, formTypeService));
         configuration.setSharedVariable("Vote", new VoteDirective(voteService));
         configuration.setSharedVariable("VoteList", new VoteListDirective(voteService));
         configuration.setSharedVariable("VotePage", new VotePageDirective(voteService));

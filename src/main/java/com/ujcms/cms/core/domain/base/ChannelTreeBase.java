@@ -22,28 +22,28 @@ public class ChannelTreeBase implements Serializable {
      */
     @NotNull
     @Schema(description="祖先ID")
-    private Integer ancestorId = 0;
+    private Long ancestorId = 0L;
 
     /**
      * 后代ID
      */
     @NotNull
     @Schema(description="后代ID")
-    private Integer descendantId = 0;
+    private Long descendantId = 0L;
 
-    public Integer getAncestorId() {
+    public Long getAncestorId() {
         return ancestorId;
     }
 
-    public void setAncestorId(Integer ancestorId) {
+    public void setAncestorId(Long ancestorId) {
         this.ancestorId = ancestorId;
     }
 
-    public Integer getDescendantId() {
+    public Long getDescendantId() {
         return descendantId;
     }
 
-    public void setDescendantId(Integer descendantId) {
+    public void setDescendantId(Long descendantId) {
         this.descendantId = descendantId;
     }
 }

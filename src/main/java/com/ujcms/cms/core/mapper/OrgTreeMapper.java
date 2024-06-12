@@ -23,7 +23,7 @@ public interface OrgTreeMapper extends TreeRelationMapper<OrgTree> {
      * @param siteOrgId 站点组织ID
      * @return 匹配数量。匹配数量大于0，代表存在上下级关系
      */
-    int countByOrgId(@Param("userOrgId") Integer userOrgId, @Param("siteOrgId") Integer siteOrgId);
+    int countByOrgId(@Param("userOrgId") Long userOrgId, @Param("siteOrgId") Long siteOrgId);
 
     /**
      * 查询是否存在上下级关系
@@ -32,7 +32,7 @@ public interface OrgTreeMapper extends TreeRelationMapper<OrgTree> {
      * @param descendantId 后代ID
      * @return 上下级关系数量
      */
-    int countByAncestorId(@Param("ancestorId") Integer ancestorId, @Param("descendantId") Integer descendantId);
+    int countByAncestorId(@Param("ancestorId") Long ancestorId, @Param("descendantId") Long descendantId);
 
     /**
      * 获取后代ID
@@ -40,5 +40,5 @@ public interface OrgTreeMapper extends TreeRelationMapper<OrgTree> {
      * @param ancestorId 祖先ID
      * @return 后代ID列表
      */
-    List<Integer> listByAncestorId(@Param("ancestorId") Integer ancestorId);
+    List<Long> listByAncestorId(@Param("ancestorId") Long ancestorId);
 }

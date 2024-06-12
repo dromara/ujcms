@@ -30,6 +30,11 @@ import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Tag Controller
+ *
+ * @author PONY
+ */
 @RestController("backendTagController")
 @RequestMapping(BACKEND_API + "/core/tag")
 public class TagController {
@@ -56,10 +61,10 @@ public class TagController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('tag:show','*')")
-    public Tag show(@PathVariable("id") int id) {
+    public Tag show(@PathVariable("id") Long id) {
         Tag bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception("Tag not found. ID = " + id);
+            throw new Http404Exception(Tag.NOT_FOUND + id);
         }
         return bean;
     }
@@ -85,7 +90,7 @@ public class TagController {
         Site site = Contexts.getCurrentSite();
         Tag tag = service.select(bean.getId());
         if (tag == null) {
-            throw new Http404Exception("Tag not found. ID = " + bean.getId());
+            throw new Http404Exception(Tag.NOT_FOUND + bean.getId());
         }
         ValidUtils.dataInSite(tag.getSiteId(), site.getId());
         Entities.copy(bean, tag, "siteId", "userId", "created", "refers");
@@ -96,16 +101,16 @@ public class TagController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('tag:delete','*')")
     @OperationLog(module = "tag", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         Site site = Contexts.getCurrentSite();
-        ids.forEach(id -> {
+        for (Long id : ids) {
             Tag bean = service.select(id);
             if (bean == null) {
-                throw new Http404Exception("Tag not found. ID = " + id);
+                throw new Http404Exception(Tag.NOT_FOUND + id);
             }
             ValidUtils.dataInSite(bean.getSiteId(), site.getId());
             service.delete(id);
-        });
+        }
         return Responses.ok();
     }
 }

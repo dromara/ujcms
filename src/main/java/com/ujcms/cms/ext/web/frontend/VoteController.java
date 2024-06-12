@@ -37,7 +37,7 @@ public class VoteController {
     }
 
     @GetMapping({"/vote/{id}", "/{subDir:[\\w-]+}/vote/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Integer id,
+    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
                        HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
         handleVote(id, modelMap);
@@ -45,14 +45,14 @@ public class VoteController {
     }
 
     @GetMapping({"/vote/{id}/result", "/{subDir:[\\w-]+}/vote/{id}/result"})
-    public String result(@PathVariable(required = false) String subDir, @PathVariable Integer id,
+    public String result(@PathVariable(required = false) String subDir, @PathVariable Long id,
                          HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
         handleVote(id, modelMap);
         return site.assembleTemplate(TEMPLATE_RESULT);
     }
 
-    private void handleVote(Integer id, Map<String, Object> modelMap) {
+    private void handleVote(Long id, Map<String, Object> modelMap) {
         Vote vote = service.select(id);
         com.ujcms.cms.ext.web.api.VoteController.validateVote(id, vote);
         modelMap.put("vote", vote);

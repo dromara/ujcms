@@ -30,7 +30,7 @@ public interface PerformanceStatMapper {
      */
     List<PerformanceStat> statBy(@Param("type") String type,
                                  @Param("performanceTypes") List<PerformanceType> performanceTypes,
-                                 @Param("siteId") @Nullable Integer siteId,
+                                 @Param("siteId") @Nullable Long siteId,
                                  @Param("begin") @Nullable OffsetDateTime begin,
                                  @Param("end") @Nullable OffsetDateTime end);
 }

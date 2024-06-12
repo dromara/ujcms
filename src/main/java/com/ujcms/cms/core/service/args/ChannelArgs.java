@@ -17,7 +17,9 @@ public class ChannelArgs extends BaseQueryArgs {
     @Nullable
     private Map<String, String> customsQueryMap;
     @Nullable
-    private Collection<Integer> articleRoleIds;
+    private Collection<Long> articleRoleIds;
+    @Nullable
+    private Collection<Long> articleOrgIds;
     private boolean onlyParent = false;
     private boolean queryHasChildren = false;
 
@@ -26,37 +28,36 @@ public class ChannelArgs extends BaseQueryArgs {
         return this;
     }
 
-    public ChannelArgs articleRoleIds(@Nullable Collection<Integer> articleRoleIds) {
-        if (articleRoleIds != null) {
-            this.articleRoleIds = articleRoleIds;
-        }
+    public ChannelArgs articlePermission(Collection<Long> articleRoleIds, Collection<Long> articleOrgIds) {
+        this.articleRoleIds = articleRoleIds;
+        this.articleOrgIds = articleOrgIds;
         return this;
     }
 
-    public ChannelArgs siteAncestorId(@Nullable Integer siteId) {
+    public ChannelArgs siteAncestorId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Int", siteId);
+            queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Long", siteId);
         }
         return this;
     }
 
-    public ChannelArgs siteId(@Nullable Integer siteId) {
+    public ChannelArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }
 
-    public ChannelArgs ancestorId(@Nullable Integer ancestorId) {
+    public ChannelArgs ancestorId(@Nullable Long ancestorId) {
         if (ancestorId != null) {
-            queryMap.put("EQ_descendant@ChannelTree-ancestorId_Int", ancestorId);
+            queryMap.put("EQ_descendant@ChannelTree-ancestorId_Long", ancestorId);
         }
         return this;
     }
 
-    public ChannelArgs parentId(@Nullable Integer parentId) {
+    public ChannelArgs parentId(@Nullable Long parentId) {
         if (parentId != null) {
-            queryMap.put("EQ_parentId_Int", parentId);
+            queryMap.put("EQ_parentId_Long", parentId);
             queryHasChildren = true;
         }
         return this;
@@ -116,7 +117,12 @@ public class ChannelArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Collection<Integer> getArticleRoleIds() {
+    public Collection<Long> getArticleRoleIds() {
         return articleRoleIds;
+    }
+
+    @Nullable
+    public Collection<Long> getArticleOrgIds() {
+        return articleOrgIds;
     }
 }

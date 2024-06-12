@@ -37,7 +37,7 @@ public interface UserRoleMapper {
      * @param roleId 角色ID
      * @return 删除条数
      */
-    int delete(@Param("userId") Integer userId, @Param("roleId") Integer roleId);
+    int delete(@Param("userId") Long userId, @Param("roleId") Long roleId);
 
     /**
      * 根据 用户ID 删除数据
@@ -45,7 +45,7 @@ public interface UserRoleMapper {
      * @param userId 用户ID
      * @return 删除条数
      */
-    int deleteByUserId(@Param("userId") Integer userId);
+    int deleteByUserId(@Param("userId") Long userId);
 
     /**
      * 根据 角色ID 删除数据
@@ -53,7 +53,7 @@ public interface UserRoleMapper {
      * @param roleId 角色ID
      * @return 删除条数
      */
-    int deleteByRoleId(@Param("roleId") Integer roleId);
+    int deleteByRoleId(@Param("roleId") Long roleId);
 
     /**
      * 根据站点ID删除数据
@@ -61,7 +61,7 @@ public interface UserRoleMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 
     /**
      * 根据主键获取数据
@@ -71,5 +71,5 @@ public interface UserRoleMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    UserRole select(@Param("userId") Integer userId, @Param("roleId") Integer roleId);
+    UserRole select(@Param("userId") Long userId, @Param("roleId") Long roleId);
 }

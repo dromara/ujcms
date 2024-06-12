@@ -1,0 +1,52 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${formType.name} - ${site.title}</title>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#include 'inc_header.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item"><a href="${dy}/form-list/${formType.id}">${formType.name}</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-3">
+  [@FormPage typeId=formType.id; pagedList]
+  <table class="table">
+    <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">创建人</th>
+      <th scope="col">创建日期</th>
+      <th scope="col">IP</th>
+    </tr>
+    </thead>
+    <tbody>
+    [#list pagedList.content as form]
+    <tr>
+      <th scope="row"><a href="${dy}/form-item/${form.id?c}">${form.id}</a></th>
+      <td>${form.user.username}</td>
+      <td>${format(form.created, 'yyyy-MM-dd HH:mm')}</td>
+      <td>${form.ip}</td>
+    </tr>
+    [/#list]
+    </tbody>
+  </table>
+  [#include 'inc_page.html'/]
+  [/@FormPage]
+</div>
+[#include 'inc_footer.html'/]
+</body>
+</html>
+[/#escape]

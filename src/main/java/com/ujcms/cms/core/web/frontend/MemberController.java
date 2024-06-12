@@ -6,7 +6,6 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.web.support.SiteResolver;
-import com.ujcms.commons.misc.BaseNum;
 import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * 会员 Controller
@@ -62,16 +59,12 @@ public class MemberController {
         return site.assembleTemplate(PASSWORD_RESET_TEMPLATE);
     }
 
-    @GetMapping({"/users/{stringId}", "/{subDir:[\\w-]+}/users/{stringId}"})
-    public String users(@PathVariable String stringId, @PathVariable(required = false) String subDir,
+    @GetMapping({"/users/{id}", "/{subDir:[\\w-]+}/users/{id}"})
+    public String users(@PathVariable Long id, @PathVariable(required = false) String subDir,
                         HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
-        byte[] idBytes = stringId.getBytes(UTF_8);
-        if (!BaseNum.isBase36Encoding(idBytes)) {
-            throw new Http404Exception("User not found. stringId: " + stringId);
-        }
-        User targetUser = Optional.ofNullable(userService.select(BaseNum.base36().toReverseInt(stringId)))
-                .orElseThrow(() -> new Http404Exception("User not found. stringId: " + stringId));
+        User targetUser = Optional.ofNullable(userService.select(id))
+                .orElseThrow(() -> new Http404Exception(User.NOT_FOUND + id));
         modelMap.put("targetUser", targetUser);
         return site.assembleTemplate(USER_TEMPLATE);
     }

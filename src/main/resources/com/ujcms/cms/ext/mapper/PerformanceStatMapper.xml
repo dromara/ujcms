@@ -5,8 +5,8 @@
     <resultMap id="ResultMap" type="com.ujcms.cms.ext.domain.PerformanceStat">
         <result column="total_count_" jdbcType="INTEGER" property="totalCount"/>
         <result column="total_score_" jdbcType="INTEGER" property="totalScore"/>
-        <result column="user_id_" jdbcType="INTEGER" property="userId"/>
-        <result column="org_id_" jdbcType="INTEGER" property="orgId"/>
+        <result column="user_id_" jdbcType="BIGINT" property="userId"/>
+        <result column="org_id_" jdbcType="BIGINT" property="orgId"/>
 
         <association columnPrefix="performance_type_" resultMap="PerformanceMap" property="performanceMap"/>
 

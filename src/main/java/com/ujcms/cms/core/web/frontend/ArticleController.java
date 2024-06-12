@@ -67,7 +67,7 @@ public class ArticleController {
             "/{subDir:[\\w-]+}" + UrlConstants.ARTICLE + "/{id}", "/{subDir:[\\w-]+}" + UrlConstants.ARTICLE + "/{id}_{page:[\\d]+}",
             "/{subDir:[\\w-]+}" + UrlConstants.ARTICLE + "/{id}/{alias:[\\w-]+}",
             "/{subDir:[\\w-]+}" + UrlConstants.ARTICLE + "/{id}/{alias:[\\w-]+}/{page:[\\d]+}"})
-    public String article(@PathVariable Integer id, @PathVariable(required = false) String subDir,
+    public String article(@PathVariable Long id, @PathVariable(required = false) String subDir,
                           @PathVariable(required = false) String alias, @PathVariable(required = false) Integer page,
                           @RequestParam(defaultValue = "false") boolean preview,
                           HttpServletRequest request, Map<String, Object> modelMap) {
@@ -86,7 +86,7 @@ public class ArticleController {
 
     @GetMapping({"/download-file/{id:[\\d]+}", "/download-file/{id:[\\d]+}/{index:[\\d]+}",
             "/{subDir:[\\w-]+}/download-file/{id:[\\d]+}", "/{subDir:[\\w-]+}/download-file/{id:[\\d]+}/{index:[\\d]+}"})
-    public void download(@PathVariable Integer id, @PathVariable(required = false) Integer index,
+    public void download(@PathVariable Long id, @PathVariable(required = false) Integer index,
                          @PathVariable(required = false) String subDir,
                          @RequestParam long time, @NotNull String key,
                          @RequestParam(defaultValue = "false") boolean preview,
@@ -140,7 +140,7 @@ public class ArticleController {
         }
     }
 
-    private Article validateArticle(Integer id, Site site, User user, boolean preview) {
+    private Article validateArticle(Long id, Site site, User user, boolean preview) {
         Article article = articleService.select(id);
         if (article == null) {
             throw new Http404Exception("Article not found. ID=" + id);

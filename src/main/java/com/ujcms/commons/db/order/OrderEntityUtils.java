@@ -6,7 +6,7 @@ package com.ujcms.commons.db.order;
  * @author PONY
  */
 public class OrderEntityUtils {
-    public static void move(OrderEntityMapper mapper, Integer fromId, Integer toId) {
+    public static void move(OrderEntityMapper mapper, Long fromId, Long toId) {
         OrderEntity fromBean = mapper.select(fromId);
         OrderEntity toBean = mapper.select(toId);
         if (fromBean == null || toBean == null) {

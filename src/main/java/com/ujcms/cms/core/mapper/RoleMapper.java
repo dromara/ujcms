@@ -39,7 +39,7 @@ public interface RoleMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface RoleMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Role select(Integer id);
+    Role select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -64,7 +64,7 @@ public interface RoleMapper {
      * @param userId 用户ID
      * @return 角色列表
      */
-    List<Role> listByUserId(Integer userId);
+    List<Role> listByUserId(Long userId);
 
     /**
      * 根据栏目ID获取文章角色列表
@@ -72,7 +72,7 @@ public interface RoleMapper {
      * @param channelId 栏目ID
      * @return 角色列表
      */
-    List<Role> articleRoleList(Integer channelId);
+    List<Role> articleRoleList(Long channelId);
 
     /**
      * 根据栏目ID获取栏目角色列表
@@ -80,7 +80,7 @@ public interface RoleMapper {
      * @param channelId 栏目ID
      * @return 角色列表
      */
-    List<Role> channelRoleList(Integer channelId);
+    List<Role> channelRoleList(Long channelId);
 
     /**
      * 根据站点ID删除数据
@@ -88,5 +88,5 @@ public interface RoleMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

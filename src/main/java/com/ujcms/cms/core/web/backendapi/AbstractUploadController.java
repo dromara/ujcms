@@ -231,7 +231,7 @@ public abstract class AbstractUploadController {
          * @throws EncoderException Encoding异常
          */
         void handle(File tempFile, String baseName, String extension, String pathname, FileHandler fileHandler,
-                    Site site, Integer userId, Map<String, Object> result) throws IOException, EncoderException;
+                    Site site, Long userId, Map<String, Object> result) throws IOException, EncoderException;
     }
 
     public static class CropParams {

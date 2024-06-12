@@ -25,35 +25,35 @@ public class MessageBoardBase implements Serializable {
      */
     @NotNull
     @Schema(description="留言ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 类别ID
      */
     @NotNull
     @Schema(description="类别ID")
-    private Integer typeId = 0;
+    private Long typeId = 0L;
 
     /**
      * 留言用户ID
      */
     @NotNull
     @Schema(description="留言用户ID")
-    private Integer userId = 0;
+    private Long userId = 0L;
 
     /**
      * 回复用户ID
      */
     @Nullable
     @Schema(description="回复用户ID")
-    private Integer replyUserId;
+    private Long replyUserId;
 
     /**
      * 留言标题
@@ -167,44 +167,44 @@ public class MessageBoardBase implements Serializable {
     @Schema(description="回复内容")
     private String replyText;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
-    public Integer getTypeId() {
+    public Long getTypeId() {
         return typeId;
     }
 
-    public void setTypeId(Integer typeId) {
+    public void setTypeId(Long typeId) {
         this.typeId = typeId;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
     @Nullable
-    public Integer getReplyUserId() {
+    public Long getReplyUserId() {
         return replyUserId;
     }
 
-    public void setReplyUserId(@Nullable Integer replyUserId) {
+    public void setReplyUserId(@Nullable Long replyUserId) {
         this.replyUserId = replyUserId;
     }
 

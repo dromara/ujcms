@@ -9,6 +9,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * 文章TAG关联 Mapper
+ *
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface ArticleTagMapper {
@@ -35,7 +40,7 @@ public interface ArticleTagMapper {
      * @param tagId     TagID
      * @return 删除条数
      */
-    int delete(@Param("articleId") Integer articleId, @Param("tagId") Integer tagId);
+    int delete(@Param("articleId") Long articleId, @Param("tagId") Long tagId);
 
     /**
      * 根据主键获取数据
@@ -45,7 +50,7 @@ public interface ArticleTagMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    ArticleTag select(@Param("articleId") Integer articleId, @Param("tagId") Integer tagId);
+    ArticleTag select(@Param("articleId") Long articleId, @Param("tagId") Long tagId);
 
     /**
      * 根据查询条件获取列表
@@ -61,7 +66,7 @@ public interface ArticleTagMapper {
      * @param articleId 文章ID
      * @return 数据列表
      */
-    List<ArticleTag> listByArticleId(Integer articleId);
+    List<ArticleTag> listByArticleId(Long articleId);
 
     /**
      * 根据文章ID删除数据
@@ -69,7 +74,7 @@ public interface ArticleTagMapper {
      * @param articleId 文章ID
      * @return 删除条数
      */
-    int deleteByArticleId(Integer articleId);
+    int deleteByArticleId(Long articleId);
 
     /**
      * 根据TagID删除数据
@@ -77,7 +82,7 @@ public interface ArticleTagMapper {
      * @param tagId TagID
      * @return 删除条数
      */
-    int deleteByTagId(Integer tagId);
+    int deleteByTagId(Long tagId);
 
     /**
      * 根据站点ID删除数据
@@ -85,7 +90,7 @@ public interface ArticleTagMapper {
      * @param siteId 站点ID
      * @return 删除条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 
 
 }

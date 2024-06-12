@@ -20,5 +20,5 @@ public interface ChannelTreeMapper extends TreeRelationMapper<ChannelTree> {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.base.ModelBase;
 import com.ujcms.cms.core.listener.ModelDeleteListener;
 import com.ujcms.cms.core.mapper.ModelMapper;
 import com.ujcms.cms.core.service.args.ModelArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +25,23 @@ import java.util.*;
 @Service
 public class ModelService {
     private final ModelMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public ModelService(ModelMapper mapper, SeqService seqService) {
+    public ModelService(ModelMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(Model bean, @Nullable Integer siteId) {
-        bean.setId(seqService.getNextVal(ModelBase.TABLE_NAME));
+    public void insert(Model bean, @Nullable Long siteId) {
+        bean.setId(snowflakeSequence.nextId());
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.insert(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Model bean, Integer siteId) {
+    public void update(Model bean, Long siteId) {
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.update(bean);
@@ -48,7 +49,7 @@ public class ModelService {
 
     @Transactional(rollbackFor = Exception.class)
     public void updateOrder(List<Model> list) {
-        short order = 1;
+        int order = 1;
         for (Model bean : list) {
             bean.setOrder(order);
             mapper.update(bean);
@@ -56,49 +57,19 @@ public class ModelService {
         }
     }
 
-
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         deleteListeners.forEach(it -> it.preModelDelete(id));
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public int deleteBySiteId(Integer siteId) {
-        return mapper.deleteBySiteId(siteId);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public Model copyOfSite(Model model) {
-        if (!model.isGlobal()) {
-            insert(model, null);
-        }
-        return model;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public Map<Integer, Integer> copyBySite(Integer siteId, Integer fromSiteId) {
-        List<Model> list = listBySiteId(fromSiteId);
-        Map<Integer, Integer> pairMap = new HashMap<>(16);
-        for (Model bean : list) {
-            Integer origId = bean.getId();
-            insert(bean, siteId);
-            pairMap.put(origId, bean.getId());
-        }
-        return pairMap;
-    }
-
-    public List<Model> listBySiteId(Integer siteId) {
-        return selectList(ModelArgs.of().siteId(siteId));
-    }
-
     @Nullable
-    public Model select(Integer id) {
+    public Model select(Long id) {
         return mapper.select(id);
     }
 
@@ -119,7 +90,7 @@ public class ModelService {
     }
 
     public List<Model> selectList(ModelArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ModelBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ModelBase.TABLE_NAME, "scope_desc,order,id");
         return mapper.selectAll(queryInfo);
     }
 

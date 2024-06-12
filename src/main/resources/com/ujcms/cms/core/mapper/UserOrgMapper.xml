@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.UserOrgMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.UserOrg">
+    <id column="user_id_" jdbcType="BIGINT" property="userId" />
+    <id column="org_id_" jdbcType="BIGINT" property="orgId" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.UserOrg" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.UserOrg" />
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+
+    <delete id="deleteByOrgId">
+        delete
+        from ujcms_user_org
+        where org_id_ = #{orgId}
+    </delete>
+    <delete id="deleteByUserId">
+        delete
+        from ujcms_user_org
+        where user_id_ = #{userId}
+    </delete>
+    <delete id="deleteByUserIdAndAncestorOrgId">
+        delete
+        from ujcms_user_org
+        where user_id_ = #{userId}
+          <if test="ancestorOrgId != null">
+          and org_id_ in (select orgTree.descendant_id_ from ujcms_org_tree orgTree where orgTree.ancestor_id_ = #{ancestorOrgId})
+          </if>
+    </delete>
+
+    <select id="select" parameterType="map" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_user_org t
+        where t.user_id_ = #{userId,jdbcType=BIGINT}
+        and t.org_id_ = #{orgId,jdbcType=BIGINT}
+    </select><update id="update" parameterType="com.ujcms.cms.core.domain.UserOrg">
+    update ujcms_user_org
+    set order_ = #{order,jdbcType=INTEGER}
+    where user_id_ = #{userId,jdbcType=BIGINT}
+      and org_id_ = #{orgId,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserOrg">
+    insert into ujcms_user_org (user_id_, org_id_, order_)
+    values (#{userId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.user_id_, t.org_id_, t.order_
+  </sql></mapper>

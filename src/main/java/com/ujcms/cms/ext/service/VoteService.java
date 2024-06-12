@@ -5,7 +5,6 @@ import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Action;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.service.ActionService;
-import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.Vote;
 import com.ujcms.cms.ext.domain.VoteOption;
 import com.ujcms.cms.ext.domain.base.VoteBase;
@@ -13,6 +12,8 @@ import com.ujcms.cms.ext.domain.base.VoteOptionBase;
 import com.ujcms.cms.ext.mapper.VoteMapper;
 import com.ujcms.cms.ext.mapper.VoteOptionMapper;
 import com.ujcms.cms.ext.service.args.VoteArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
+import com.ujcms.commons.db.order.OrderEntityUtils;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -34,17 +35,17 @@ public class VoteService implements SiteDeleteListener {
     private final ActionService actionService;
     private final VoteMapper mapper;
     private final VoteOptionMapper optionMapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
     public VoteService(ActionService actionService, VoteMapper mapper, VoteOptionMapper optionMapper,
-                       SeqService seqService) {
+                       SnowflakeSequence snowflakeSequence) {
         this.actionService = actionService;
         this.mapper = mapper;
         this.optionMapper = optionMapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
-    private void updateVoteOptions(Integer voteId, List<VoteOption> optionList) {
+    private void updateVoteOptions(Long voteId, List<VoteOption> optionList) {
         // 删除
         optionMapper.deleteByVoteId(voteId,
                 optionList.stream().map(VoteOptionBase::getId).filter(id -> id > 0).collect(Collectors.toList()));
@@ -58,7 +59,7 @@ public class VoteService implements SiteDeleteListener {
                 optionMapper.update(option);
             } else {
                 // 新增
-                option.setId(seqService.getNextVal(VoteOptionBase.TABLE_NAME));
+                option.setId(snowflakeSequence.nextId());
                 optionMapper.insert(option);
             }
         }
@@ -66,7 +67,8 @@ public class VoteService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Vote bean, List<VoteOption> options) {
-        bean.setId(seqService.getNextVal(VoteBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
+        bean.setOrder(bean.getId());
         mapper.insert(bean);
         updateVoteOptions(bean.getId(), options);
     }
@@ -78,23 +80,28 @@ public class VoteService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public void moveOrder(Long fromId, Long toId) {
+        OrderEntityUtils.move(mapper, fromId, toId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int delete(Long id) {
         optionMapper.deleteByVoteId(id, Collections.emptyList());
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public Vote select(Integer id) {
+    public Vote select(Long id) {
         return mapper.select(id);
     }
 
     public List<Vote> selectList(VoteArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), VoteBase.TABLE_NAME, "orderDate_desc,id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), VoteBase.TABLE_NAME, "order_desc,id_desc");
         return mapper.selectAll(queryInfo);
     }
 
@@ -107,10 +114,10 @@ public class VoteService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void cast(Integer id, List<Integer> optionIds,
-                     Integer siteId, @Nullable Integer userId, String ip, long cookie) {
+    public void cast(Long id, List<Long> optionIds,
+                     Long siteId, @Nullable Long userId, String ip, long cookie) {
         String refOption = optionIds.stream().map(Object::toString).collect(Collectors.joining(","));
-        actionService.insert(new Action(Vote.ACTION_TYPE, id.longValue(), refOption, siteId, userId, ip, cookie));
+        actionService.insert(new Action(Vote.ACTION_TYPE, id, refOption, siteId, userId, ip, cookie));
         mapper.cast(id);
         optionMapper.cast(id, optionIds);
     }
@@ -121,7 +128,7 @@ public class VoteService implements SiteDeleteListener {
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         optionMapper.deleteBySiteId(siteId);
         mapper.deleteBySiteId(siteId);
     }

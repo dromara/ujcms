@@ -2,8 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.VisitLogMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.VisitLog">
     <id column="id_" jdbcType="BIGINT" property="id" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
-    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
     <result column="url_" jdbcType="VARCHAR" property="url" />
     <result column="entry_url_" jdbcType="VARCHAR" property="entryUrl" />
     <result column="source_" jdbcType="VARCHAR" property="source" />
@@ -21,8 +21,8 @@
     <result column="date_" jdbcType="TIMESTAMP" property="date" />
     <result column="duration_" jdbcType="INTEGER" property="duration" />
     <result column="new_visitor_" jdbcType="CHAR" property="newVisitor" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.VisitLog" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.VisitLog" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.VisitLog" />
 
     <select id="countVisitors" resultType="int">
         select count(DISTINCT t.uv_)
@@ -34,8 +34,8 @@
         province_, device_, os_, browser_, user_agent_, count_, si_, uv_, ip_, date_, duration_, new_visitor_)
         values
         <foreach collection="list" item="item" separator=",">
-            (#{item.id,jdbcType=BIGINT}, #{item.siteId,jdbcType=INTEGER},
-            #{item.userId,jdbcType=INTEGER}, #{item.url,jdbcType=VARCHAR}, #{item.entryUrl,jdbcType=VARCHAR},
+            (#{item.id,jdbcType=BIGINT}, #{item.siteId,jdbcType=BIGINT},
+            #{item.userId,jdbcType=BIGINT}, #{item.url,jdbcType=VARCHAR}, #{item.entryUrl,jdbcType=VARCHAR},
             #{item.source,jdbcType=VARCHAR}, #{item.sourceType,jdbcType=VARCHAR},
             #{item.country,jdbcType=VARCHAR}, #{item.province,jdbcType=VARCHAR},
             #{item.device,jdbcType=VARCHAR}, #{item.os,jdbcType=VARCHAR}, #{item.browser,jdbcType=VARCHAR},
@@ -50,15 +50,15 @@
         from ujcms_visit_log
         where date_ &lt; #{date}
     </delete>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_visit_log
-        where site_id_ = #{siteId,jdbcType=INTEGER}
+        where site_id_ = #{siteId,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteByUserId" parameterType="int">
+    <delete id="deleteByUserId" parameterType="long">
         delete
         from ujcms_visit_log
-        where user_id_ = #{userId,jdbcType=INTEGER}
+        where user_id_ = #{userId,jdbcType=BIGINT}
     </delete>
 
     <select id="statByName" resultMap="com.ujcms.cms.ext.mapper.VisitStatMapper.ResultMap">
@@ -181,8 +181,8 @@
         where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.VisitLog">
     update ujcms_visit_log
-    set site_id_ = #{siteId,jdbcType=INTEGER},
-      user_id_ = #{userId,jdbcType=INTEGER},
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
       url_ = #{url,jdbcType=VARCHAR},
       entry_url_ = #{entryUrl,jdbcType=VARCHAR},
       source_ = #{source,jdbcType=VARCHAR},
@@ -203,7 +203,7 @@
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VisitLog">
     insert into ujcms_visit_log (id_, site_id_, user_id_, url_, entry_url_, source_, source_type_, country_, province_, device_, os_, browser_, user_agent_, count_, si_, uv_, ip_, date_, duration_, new_visitor_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{url,jdbcType=VARCHAR}, #{entryUrl,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{sourceType,jdbcType=VARCHAR}, #{country,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR}, #{device,jdbcType=VARCHAR}, #{os,jdbcType=VARCHAR}, #{browser,jdbcType=VARCHAR}, #{userAgent,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{si,jdbcType=BIGINT}, #{uv,jdbcType=BIGINT}, #{ip,jdbcType=VARCHAR}, #{date,jdbcType=TIMESTAMP}, #{duration,jdbcType=INTEGER}, #{newVisitor,jdbcType=CHAR})
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{url,jdbcType=VARCHAR}, #{entryUrl,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{sourceType,jdbcType=VARCHAR}, #{country,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR}, #{device,jdbcType=VARCHAR}, #{os,jdbcType=VARCHAR}, #{browser,jdbcType=VARCHAR}, #{userAgent,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{si,jdbcType=BIGINT}, #{uv,jdbcType=BIGINT}, #{ip,jdbcType=VARCHAR}, #{date,jdbcType=TIMESTAMP}, #{duration,jdbcType=INTEGER}, #{newVisitor,jdbcType=CHAR})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.user_id_, t.url_, t.entry_url_, t.source_, t.source_type_, t.country_, t.province_, t.device_, t.os_, t.browser_, t.user_agent_, t.count_, t.si_, t.uv_, t.ip_, t.date_, t.duration_, t.new_visitor_
   </sql></mapper>

@@ -4277,12 +4277,13 @@ databaseChangeLog:
       id: 1660037619910-1
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:f586c4bc14706f3fcc2c813634ed6a62
         - addColumn:
             columns:
               - column:
                   name: message_board_settings_
                   remarks: 留言板设置
-                  type: VARCHAR(1000 BYTE)
+                  type: VARCHAR(1000)
             tableName: ujcms_site
   - changeSet:
       id: 1661272274423-1
@@ -4447,12 +4448,13 @@ databaseChangeLog:
       id: 1666001569711-1
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:58a7a661ffe9742dbb7ff8a8b8cba92a
         - addColumn:
             columns:
               - column:
                   name: name_
                   remarks: 图片名称
-                  type: VARCHAR(450 BYTE)
+                  type: VARCHAR(450)
             tableName: ujcms_article_image
   - changeSet:
       id: 1666001569711-2
@@ -4654,12 +4656,13 @@ databaseChangeLog:
       id: 1666850212015-4
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:b92d97779b969d29b6e26de85098c845
         - addColumn:
             columns:
               - column:
                   name: video_
                   remarks: 视频
-                  type: VARCHAR(255 BYTE)
+                  type: VARCHAR(255)
             tableName: ujcms_block_item
   - changeSet:
       id: 1666850212015-5
@@ -4732,23 +4735,25 @@ databaseChangeLog:
       id: 1669960437926-1
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:a03bf54ee495d599a3833770e1395c30
         - addColumn:
             columns:
               - column:
                   name: nickname_
                   remarks: 昵称
-                  type: VARCHAR(150 BYTE)
+                  type: VARCHAR(150)
             tableName: ujcms_user_openid
   - changeSet:
       id: 1669960437926-2
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:afd7f5d61b411b6377f172233bf538db
         - addColumn:
             columns:
               - column:
                   name: nickname_
                   remarks: 昵称
-                  type: VARCHAR(150 BYTE)
+                  type: VARCHAR(150)
             tableName: ujcms_user
   - changeSet:
       id: 1669960437926-3

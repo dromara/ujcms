@@ -20,6 +20,14 @@ public class Props {
 
     private String version = "none";
     /**
+     * 雪花算法主键：数据中心ID。取值范围 0-31。为 -1 时，根据网卡mac地址和pid(进程ID)计算出一个相对随机的数值，一般情况下不会冲突。
+     */
+    private int datacenterId = -1;
+    /**
+     * 雪花算法主键：工作机器ID。取值范围 0-31。为 -1 时，根据网卡mac地址和pid(进程ID)计算出一个相对随机的数值，一般情况下不会冲突。
+     */
+    private int workerId = -1;
+    /**
      * 序列默认缓存数。如果数据库和程序均未指定缓存大小，则使用该值。JPA Table主键策略的默认缓存值也是 50
      */
     private int sequenceCacheSize = 50;
@@ -157,6 +165,22 @@ public class Props {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public int getDatacenterId() {
+        return datacenterId;
+    }
+
+    public void setDatacenterId(int datacenterId) {
+        this.datacenterId = datacenterId;
+    }
+
+    public int getWorkerId() {
+        return workerId;
+    }
+
+    public void setWorkerId(int workerId) {
+        this.workerId = workerId;
     }
 
     public int getSequenceCacheSize() {

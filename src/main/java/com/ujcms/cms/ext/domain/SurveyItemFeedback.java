@@ -16,7 +16,7 @@ public class SurveyItemFeedback extends SurveyItemFeedbackBase implements Serial
     public SurveyItemFeedback() {
     }
 
-    public SurveyItemFeedback(Integer surveyItemId, Integer surveyFeedbackId, Integer surveyId, String answer) {
+    public SurveyItemFeedback(Long surveyItemId, Long surveyFeedbackId, Long surveyId, String answer) {
         setSurveyItemId(surveyItemId);
         setSurveyFeedbackId(surveyFeedbackId);
         setSurveyId(surveyId);

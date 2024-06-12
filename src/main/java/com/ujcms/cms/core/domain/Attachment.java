@@ -23,7 +23,7 @@ public class Attachment extends AttachmentBase implements Serializable {
     public Attachment() {
     }
 
-    public Attachment(Integer siteId, Integer userId, String name, String path, String url, long length) {
+    public Attachment(Long siteId, Long userId, String name, String path, String url, long length) {
         setSiteId(siteId);
         setUserId(userId);
         setName(name);

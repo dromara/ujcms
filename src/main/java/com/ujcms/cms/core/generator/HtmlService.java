@@ -234,7 +234,7 @@ public class HtmlService {
         return configuration.getTemplate(properties.getPrefix() + template + properties.getSuffix());
     }
 
-    private Site getDefaultSite(Integer defaultSiteId) {
+    private Site getDefaultSite(Long defaultSiteId) {
         return Optional.ofNullable(siteMapper.select(defaultSiteId))
                 .orElseThrow(() -> new IllegalStateException("default site not exist. id: " + defaultSiteId));
     }

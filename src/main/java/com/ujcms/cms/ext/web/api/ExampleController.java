@@ -17,18 +17,18 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
-import static com.ujcms.cms.core.support.UrlConstants.API;
-import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.commons.db.MyBatis.springPage;
 import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
 
@@ -100,7 +100,7 @@ public class ExampleController {
     @Operation(summary = "获取示例对象（Example标签）")
     @ApiResponses(value = {@ApiResponse(description = "投票对象")})
     @GetMapping("/{id:[\\d]+}")
-    public Example show(@Parameter(description = "示例ID") @PathVariable Integer id) {
+    public Example show(@Parameter(description = "示例ID") @PathVariable Long id) {
         return service.select(id);
     }
 

@@ -28,7 +28,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Article selectRefer(Integer id);
+    Article selectRefer(Long id);
 
     /**
      * 插入数据
@@ -52,7 +52,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -62,23 +62,29 @@ public interface ArticleMapper extends OrderEntityMapper {
      */
     @Nullable
     @Override
-    Article select(Integer id);
+    Article select(Long id);
 
     /**
      * 根据查询条件获取列表
      *
      * @param queryInfo          查询条件
      * @param customsCondition   自定义字段查询条件
-     * @param orgAncestorId      组织ID
      * @param channelAncestorIds 栏目ID列表
-     * @param roleIds            角色ID列表
+     * @param orgIds             组织ID列表
+     * @param articleRoleIds     文章权限角色ID列表
+     * @param articleOrgIds      文章权限组织ID列表
+     * @param orgRoleIds         组织权限角色ID列表
+     * @param orgPermIds         组织权限组织ID列表
      * @return 数据列表
      */
     List<Article> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
                             @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
-                            @Nullable @Param("orgAncestorId") Integer orgAncestorId,
-                            @Nullable @Param("channelAncestorIds") Collection<Integer> channelAncestorIds,
-                            @Nullable @Param("roleIds") Collection<Integer> roleIds);
+                            @Nullable @Param("channelAncestorIds") Collection<Long> channelAncestorIds,
+                            @Nullable @Param("orgIds") Collection<Long> orgIds,
+                            @Nullable @Param("articleRoleIds") Collection<Long> articleRoleIds,
+                            @Nullable @Param("articleOrgIds") Collection<Long> articleOrgIds,
+                            @Nullable @Param("orgRoleIds") Collection<Long> orgRoleIds,
+                            @Nullable @Param("orgPermIds") Collection<Long> orgPermIds);
 
     /**
      * 根据 id 列表查询
@@ -86,7 +92,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param ids id 列表
      * @return 数据列表
      */
-    List<Article> listByIds(@Param("ids") Iterable<Integer> ids);
+    List<Article> listByIds(@Param("ids") Iterable<Long> ids);
 
     /**
      * 根据站点ID获取文章列表用于sitemap。由于sitemap获取的数据量较大，只查询必须字段。
@@ -95,7 +101,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param minId  最小的文章ID。从此文章ID开始获取数据。
      * @return 数据列表
      */
-    List<Article> listBySiteIdForSitemap(Integer siteId, @Nullable Integer minId);
+    List<Article> listBySiteIdForSitemap(Long siteId, @Nullable Long minId);
 
     /**
      * 根据栏目ID查询文章列表
@@ -103,7 +109,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param channelId 栏目ID
      * @return 文章列表
      */
-    List<Article> listByChannelId(@Param("channelId") Integer channelId);
+    List<Article> listByChannelId(@Param("channelId") Long channelId);
 
     /**
      * 根据源文章ID查询文章列表
@@ -111,7 +117,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param srcId 源文章ID
      * @return 文章列表
      */
-    List<Article> listBySrcId(@Param("srcId") Integer srcId);
+    List<Article> listBySrcId(@Param("srcId") Long srcId);
 
     /**
      * 查询下一条文章
@@ -122,8 +128,8 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param status    状态
      * @return 下一条文章
      */
-    List<Article> findNext(@Param("id") Integer id, @Param("order") Long order,
-                           @Param("channelId") Integer channelId, @Param("status") Collection<Short> status);
+    List<Article> findNext(@Param("id") Long id, @Param("order") Long order,
+                           @Param("channelId") Long channelId, @Param("status") Collection<Short> status);
 
     /**
      * 查询上一条文章
@@ -134,8 +140,8 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param status    状态
      * @return 上一条文章
      */
-    List<Article> findPrev(@Param("id") Integer id, @Param("order") Long order,
-                           @Param("channelId") Integer channelId, @Param("status") Collection<Short> status);
+    List<Article> findPrev(@Param("id") Long id, @Param("order") Long order,
+                           @Param("channelId") Long channelId, @Param("status") Collection<Short> status);
 
     /**
      * 根据 栏目ID 查询文章数量
@@ -143,7 +149,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param channelId 栏目ID
      * @return 文章数量
      */
-    int existsByChannelId(@Param("channelId") Integer channelId);
+    int existsByChannelId(@Param("channelId") Long channelId);
 
     /**
      * 根据 用户ID 查询文章是否存在
@@ -151,7 +157,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param userId 用户ID
      * @return 文章是否存在。0代表不存在，1代表存在
      */
-    int existsByUserId(Integer userId);
+    int existsByUserId(Long userId);
 
     /**
      * 根据 站点ID 查询文章数量
@@ -160,7 +166,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param status 文章状态
      * @return 文章数量
      */
-    int countBySiteId(@Param("siteId") Integer siteId, @Param("status") Collection<Short> status);
+    int countBySiteId(@Param("siteId") Long siteId, @Param("status") Collection<Short> status);
 
     /**
      * 统计文章数量
@@ -170,7 +176,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param status      状态
      * @return 文章数量
      */
-    int countByPublishDate(@Param("siteId") Integer siteId, @Param("publishDate") @Nullable OffsetDateTime publishDate,
+    int countByPublishDate(@Param("siteId") Long siteId, @Param("publishDate") @Nullable OffsetDateTime publishDate,
                            @Param("status") Collection<Short> status);
 
     /**
@@ -180,7 +186,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param status 文章状态
      * @return 最大的ID值
      */
-    Map<String, Object> statForSitemap(@Param("siteId") Integer siteId, @Param("status") Collection<Short> status);
+    Map<String, Object> statForSitemap(@Param("siteId") Long siteId, @Param("status") Collection<Short> status);
 
     /**
      * 更新修改人员
@@ -189,7 +195,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param toUserId   新修改用户ID
      * @return 被更新的条数
      */
-    int updateModifiedUser(@Param("fromUserId") Integer fromUserId, @Param("toUserId") Integer toUserId);
+    int updateModifiedUser(@Param("fromUserId") Long fromUserId, @Param("toUserId") Long toUserId);
 
     /**
      * 更新置顶日期。所有已到期的置顶文章，将置顶设置成`0`，并将置顶日期设置为`null`
@@ -227,7 +233,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param channelId 栏目ID
      * @return 被删除的数据条数
      */
-    int deleteByChannelId(Integer channelId);
+    int deleteByChannelId(Long channelId);
 
     /**
      * 根据站点ID删除数据
@@ -235,7 +241,7 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 
     /**
      * 根据栏目ID获取第一条文章
@@ -244,5 +250,5 @@ public interface ArticleMapper extends OrderEntityMapper {
      * @return 第一条文章
      */
     @Nullable
-    Article findFirstByChannelId(Integer channelId);
+    Article findFirstByChannelId(Long channelId);
 }

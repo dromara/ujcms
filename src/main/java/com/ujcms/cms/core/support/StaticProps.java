@@ -13,17 +13,29 @@ import java.util.List;
 public class StaticProps {
     private static final List<String> EP_EXCLUDES = new ArrayList<>(
             Arrays.asList(
-                    "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
-                    "processModel:page", "processInstance:page", "processHistory:page",
-                    "homepage:systemMonitor", "machine:code", "machine:license",
-                    "generator:fulltext:reindexSite",
-                    "articleReview:page", "article:internalPush", "article.externalPush",
-                    "survey:page", "sensitiveWord:page", "errorWord:page", "siteSettings:editor:update",
-                    "menu.stat.articleStat", "articleStatByUser:page", "articleStatByOrg:page", "articleStatByChannel:page",
+                    // r1
+                    "menu.log", "operationLog:page", "loginLog:page", "shortMessage:page",
+                    "menu.system", "processModel:page", "processInstance:page", "processHistory:page",
                     "visitedPage:page", "entryPage:page", "visitSource:page", "visitEnv:page",
+                    "generator:fulltext:reindexSite",
+                    "articleReview:page",
+                    // r2
+                    "article:internalPush", "survey:page", "site:page",
+                    "sensitiveWord:page", "errorWord:page", "siteSettings:editor:update",
+                    "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
+                    "menu.stat.articleStat", "articleStatByUser:page", "articleStatByOrg:page", "articleStatByChannel:page",
+                    // r3
+                    "homepage:systemMonitor", "article:externalPush",
                     "performanceType:page", "menu.stat.performanceStat",
-                    "performanceStatByUser:page", "performanceStatByOrg:page"));
-    private static boolean epDisplay = true;
+                    "menu.stat.performanceStat", "performanceStatByUser:page", "performanceStatByOrg:page",
+                    "form:page", "formType:page", "formReview:page",
+                    "formReview:back", "formReview:delegate", "formReview:transfer",
+                    "articleReview:back", "articleReview:delegate", "articleReview:transfer",
+                    "org:updatePermission",
+                    // end
+                    "machine:code", "machine:license"
+            ));
+    private static boolean epDisplay = false;
     private static int epRank = 0;
     private static boolean epActivated = false;
 

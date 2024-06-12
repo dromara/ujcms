@@ -48,10 +48,10 @@ public class TaskController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('task:show','*')")
-    public Task show(@PathVariable Integer id) {
+    public Task show(@PathVariable Long id) {
         Task bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception("Task not found. ID = " + id);
+            throw new Http404Exception(Task.NOT_FOUND + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
@@ -85,11 +85,11 @@ public class TaskController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('task:delete','*')")
     @OperationLog(module = "task", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        for (Integer id : ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
+        for (Long id : ids) {
             Task task = service.select(id);
             if (task == null) {
-                return Responses.notFound("Task not found. ID = " + id);
+                return Responses.notFound(Task.NOT_FOUND + id);
             }
             service.delete(id);
         }

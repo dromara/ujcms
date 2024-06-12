@@ -25,14 +25,14 @@ public class LoginLogBase implements Serializable {
      */
     @NotNull
     @Schema(description="登录日志ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 用户ID
      */
     @Nullable
     @Schema(description="用户ID")
-    private Integer userId;
+    private Long userId;
 
     /**
      * 登录名
@@ -71,20 +71,20 @@ public class LoginLogBase implements Serializable {
     @Schema(description="状态(0:成功,1:用户名不存在,2:密码错误,3:验证码错误,4:短信错误)")
     private Short status = 1;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Nullable
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(@Nullable Integer userId) {
+    public void setUserId(@Nullable Long userId) {
         this.userId = userId;
     }
 

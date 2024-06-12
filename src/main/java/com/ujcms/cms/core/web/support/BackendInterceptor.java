@@ -41,14 +41,14 @@ public class BackendInterceptor implements HandlerInterceptor {
                 .orElseThrow(Http401Exception::new);
         Contexts.setCurrentUser(user);
 
-        Site site = Optional.ofNullable(request.getHeader(BACKEND_SITE_HEADER)).map(Integer::valueOf)
+        Site site = Optional.ofNullable(request.getHeader(BACKEND_SITE_HEADER)).map(Long::valueOf)
                 .map(siteService::select).orElse(null);
         // 检测是否有站点权限
         if (site != null && !orgService.hasRelationship(user.getOrgId(), site.getOrgId())) {
             throw new SiteForbiddenException("error.siteForbidden", site.getName(), String.valueOf(site.getId()));
         }
         if (site == null) {
-            site = siteService.findFirstByOrgId(user.getOrgId());
+            site = siteService.findFirstByUserIdAndOrgId(user.getId(), user.getOrgId());
         }
         if (site == null) {
             throw new Http403Exception("error.noRelationSite", user.getOrg().getName(), String.valueOf(user.getOrg()));

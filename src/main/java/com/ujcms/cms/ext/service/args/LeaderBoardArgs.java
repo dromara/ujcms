@@ -12,7 +12,7 @@ import java.util.Collection;
  */
 public class LeaderBoardArgs {
     @Nullable
-    private Integer siteId;
+    private Long siteId;
     @Nullable
     private Collection<Short> status;
     @Nullable
@@ -21,11 +21,11 @@ public class LeaderBoardArgs {
     private OffsetDateTime end;
 
     @Nullable
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(@Nullable Integer siteId) {
+    public void setSiteId(@Nullable Long siteId) {
         this.siteId = siteId;
     }
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.VisitStatMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.VisitStat">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="pv_count_" jdbcType="BIGINT" property="pvCount" />
     <result column="uv_count_" jdbcType="BIGINT" property="uvCount" />
@@ -12,8 +12,8 @@
     <result column="duration_" jdbcType="INTEGER" property="duration" />
     <result column="date_string_" jdbcType="CHAR" property="dateString" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.VisitStat" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.VisitStat" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.VisitStat" />
 
     <select id="statByDate" resultMap="ResultMap">
         SELECT t.name_              AS name_,
@@ -40,7 +40,7 @@
         insert into ujcms_visit_stat (id_, site_id_, name_, pv_count_, uv_count_, ip_count_, nv_count_, bounce_count_, duration_, date_string_, type_)
         values
         <foreach collection="list" item="item" separator=",">
-            (#{item.id,jdbcType=INTEGER}, #{item.siteId,jdbcType=INTEGER}, #{item.name,jdbcType=VARCHAR},
+            (#{item.id,jdbcType=BIGINT}, #{item.siteId,jdbcType=BIGINT}, #{item.name,jdbcType=VARCHAR},
              #{item.pvCount,jdbcType=BIGINT}, #{item.uvCount,jdbcType=BIGINT}, #{item.ipCount,jdbcType=BIGINT},
              #{item.nvCount,jdbcType=BIGINT}, #{item.bounceCount,jdbcType=INTEGER}, #{item.duration,jdbcType=INTEGER},
              #{item.dateString,jdbcType=CHAR}, #{item.type,jdbcType=SMALLINT})
@@ -57,10 +57,10 @@
         where date_string_ = #{dateString}
         <if test="type != null">and type_ = #{type}</if>
     </delete>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_visit_stat
-        where site_id_ = #{siteId,jdbcType=INTEGER}
+        where site_id_ = #{siteId,jdbcType=BIGINT}
     </delete>
 
     <sql id="selectAllSelect" />
@@ -71,19 +71,19 @@
             <property name="tableName" value="ujcms_visit_stat" />
         </include>
     </select>
-    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_visit_stat t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="java.lang.Integer">
+    <delete id="delete" parameterType="java.lang.Long">
         delete
         from ujcms_visit_stat
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.VisitStat">
     update ujcms_visit_stat
-    set site_id_ = #{siteId,jdbcType=INTEGER},
+    set site_id_ = #{siteId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
       pv_count_ = #{pvCount,jdbcType=BIGINT},
       uv_count_ = #{uvCount,jdbcType=BIGINT},
@@ -93,10 +93,10 @@
       duration_ = #{duration,jdbcType=INTEGER},
       date_string_ = #{dateString,jdbcType=CHAR},
       type_ = #{type,jdbcType=SMALLINT}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VisitStat">
     insert into ujcms_visit_stat (id_, site_id_, name_, pv_count_, uv_count_, ip_count_, nv_count_, bounce_count_, duration_, date_string_, type_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{pvCount,jdbcType=BIGINT}, #{uvCount,jdbcType=BIGINT}, #{ipCount,jdbcType=BIGINT}, #{nvCount,jdbcType=BIGINT}, #{bounceCount,jdbcType=INTEGER}, #{duration,jdbcType=INTEGER}, #{dateString,jdbcType=CHAR}, #{type,jdbcType=SMALLINT})
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{pvCount,jdbcType=BIGINT}, #{uvCount,jdbcType=BIGINT}, #{ipCount,jdbcType=BIGINT}, #{nvCount,jdbcType=BIGINT}, #{bounceCount,jdbcType=INTEGER}, #{duration,jdbcType=INTEGER}, #{dateString,jdbcType=CHAR}, #{type,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.name_, t.pv_count_, t.uv_count_, t.ip_count_, t.nv_count_, t.bounce_count_, t.duration_, t.date_string_, t.type_
   </sql></mapper>

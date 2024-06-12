@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.SensitiveWord;
 import com.ujcms.cms.core.domain.base.SensitiveWordBase;
 import com.ujcms.cms.core.mapper.SensitiveWordMapper;
 import com.ujcms.cms.core.service.args.SensitiveWordArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 
@@ -24,17 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SensitiveWordService {
     private final SensitiveWordMapper mapper;
+    private final SnowflakeSequence snowflakeSequence;
 
-    private final SeqService seqService;
-
-    public SensitiveWordService(SensitiveWordMapper mapper, SeqService seqService) {
+    public SensitiveWordService(SensitiveWordMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(SensitiveWord bean) {
-        bean.setId(seqService.getNextVal(SensitiveWordBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -44,17 +44,17 @@ public class SensitiveWordService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public SensitiveWord select(Integer id) {
+    public SensitiveWord select(Long id) {
         return mapper.select(id);
     }
 

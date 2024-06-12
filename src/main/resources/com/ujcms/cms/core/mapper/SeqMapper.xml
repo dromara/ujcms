@@ -4,8 +4,8 @@
     <id column="name_" jdbcType="VARCHAR" property="name" />
     <result column="next_val_" jdbcType="BIGINT" property="nextVal" />
     <result column="cache_size_" jdbcType="INTEGER" property="cacheSize" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Seq" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Seq" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Seq" />
     <select id="selectForUpdate" parameterType="java.lang.String" resultMap="ResultMap">
         SELECT
         <include refid="Column_List" />
@@ -24,22 +24,6 @@
         from ujcms_seq
         where name_ = #{name,jdbcType=VARCHAR}
     </delete>
-    <!-- 自定义字段查询 -->
-    <sql id="selectAllCustomsFieldJoin">
-        <if test="customsCondition != null">
-            <foreach collection="customsCondition" index="index" item="condition">
-                join ${customsTable} custom${index} on custom${index}.${customsId} = t.id_
-            </foreach>
-        </if>
-    </sql>
-    <sql id="selectAllCustomsFieldWhere">
-        <if test="customsCondition != null">
-            <foreach collection="customsCondition" index="index" item="condition">
-                and custom${index}.name_ = #{condition.column} and custom${index}.value_ ${condition.operator}
-                #{condition.value}
-            </foreach>
-        </if>
-    </sql>
     <!-- 这两个sql防止下面的include在编辑器里报错，没有其它用处。真正被包含的页面在使用Select_All的xml文件。 -->
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
@@ -69,15 +53,8 @@
         <where>
             <if test="queryInfo != null">
                 <foreach collection="queryInfo.whereConditions" item="condition">
-                    AND ${condition.column} ${condition.operator}
-                    <choose>
-                        <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
-                            <foreach close=")" collection="condition.value" index="index" item="item" open="(" separator=",">
-                                #{item}
-                            </foreach>
-                        </when>
-                        <when test="condition.operator != 'IS NULL'">#{condition.value}</when>
-                    </choose>
+                    AND
+                    <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereCondition" />
                 </foreach>
                 <bind name="whereOrAndConditions" value="queryInfo.whereOrAndConditions" />
                 <foreach collection="whereOrAndConditions.keys" item="key">
@@ -87,15 +64,7 @@
                         <foreach collection="orAndConditions.keys" item="andKey" separator="OR">
                             <bind name="andConditions" value="orAndConditions[andKey]" />
                             <foreach close=")" collection="andConditions" item="condition" open="(" separator="AND">
-                                ${condition.column} ${condition.operator}
-                                <choose>
-                                    <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
-                                        <foreach close=")" collection="condition.value" index="index" item="item" open="(" separator=",">
-                                            #{item}
-                                        </foreach>
-                                    </when>
-                                    <when test="condition.operator != 'IS NULL'">#{condition.value}</when>
-                                </choose>
+                                <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereCondition" />
                             </foreach>
                         </foreach>
                     </if>
@@ -104,11 +73,265 @@
             </if>
             <include refid="selectAllWhere" />
         </where>
-        <if test="queryInfo!=null and queryInfo.orderBy!=null">
-            ORDER BY ${queryInfo.orderBy}
+        <if test="queryInfo!=null and queryInfo.orderByConditions!=null">
+            <foreach collection="queryInfo.orderByConditions" item="condition" open="ORDER BY " separator=",">
+                <choose>
+                    <when test="condition.jsonColumn != null">
+                        <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectOrderByJsonCondition" />
+                    </when>
+                    <otherwise>${condition.column}</otherwise>
+                </choose>
+                <if test="condition.direction != null">${condition.direction}</if>
+            </foreach>
         </if>
     </sql>
-<update id="update" parameterType="com.ujcms.cms.core.domain.Seq">
+    <sql id="selectOrderByJsonCondition">
+        <choose>
+            <when test="_databaseId == 'dm' or _databaseId == 'oracle'">
+                <choose>
+                    <when test="condition.type != null and condition.type == 'String'">
+                        json_value(${condition.column},'$.${condition.jsonColumn}')
+                    </when>
+                    <otherwise>
+                        json_value(${condition.column},'$.${condition.jsonColumn}' RETURNING NUMBER)
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="_databaseId == 'postgresql'">
+                ${condition.column} -&gt; '${condition.jsonColumn}'
+            </when>
+            <otherwise>
+                ${condition.column} -&gt; '$.${condition.jsonColumn}'
+            </otherwise>
+        </choose>
+    </sql>
+    <sql id="selectWhereCondition">
+        <choose>
+            <when test="condition.jsonColumn != null">
+                <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereJsonCondition" />
+            </when>
+            <otherwise>
+                <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereFieldCondition" />
+            </otherwise>
+        </choose>
+    </sql>
+    <sql id="selectWhereFieldCondition">
+        ${condition.column} ${condition.operator}
+        <choose>
+            <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
+                <foreach close=")" collection="condition.value" item="item" open="(" separator=",">
+                    #{item}
+                </foreach>
+            </when>
+            <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">#{condition.value}</when>
+        </choose>
+    </sql>
+    <sql id="selectWhereJsonCondition">
+        <choose>
+            <when test="_databaseId == 'dm'">
+                <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereJsonConditionDm" />
+            </when>
+            <when test="_databaseId == 'oracle'">
+                <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereJsonConditionOracle" />
+            </when>
+            <when test="_databaseId == 'postgresql'">
+                <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereJsonConditionPostgresql" />
+            </when>
+            <otherwise>
+                <include refid="com.ujcms.cms.core.mapper.SeqMapper.selectWhereJsonConditionMysql" />
+            </otherwise>
+        </choose>
+    </sql>
+    <sql id="selectWhereJsonConditionDm">
+        <choose>
+            <when test="condition.array">
+                exists (select * from
+                jsonb_array_elements_text(
+                json_query( ${condition.column},'$.${condition.jsonColumn}' WITH CONDITIONAL WRAPPER )
+                )
+                t_sub_${condition.jsonColumn}
+                where t_sub_${condition.jsonColumn}.value
+                <choose>
+                    <when test="condition.operator.equalsIgnoreCase('In')">
+                        <foreach close=")" collection="condition.value" item="item" open="in (" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        = #{condition.value}
+                    </otherwise>
+                </choose>
+                )
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="condition.type == 'String'">
+                        json_value(${condition.column},'$.${condition.jsonColumn}') ${condition.operator}
+                    </when>
+                    <when test="condition.type == 'Date' or condition.type == 'DateTime'">
+                        FROM_UNIXTIME(json_value(${condition.column},'$.${condition.jsonColumn}' RETURNING NUMBER))
+                        ${condition.operator}
+                    </when>
+                    <otherwise>
+                        json_value(${condition.column},'$.${condition.jsonColumn}' RETURNING NUMBER)
+                        ${condition.operator}
+                    </otherwise>
+                </choose>
+                <choose>
+                    <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
+                        <foreach close=")" collection="condition.value" item="item" open="(" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                        #{condition.value}
+                    </when>
+                </choose>
+            </otherwise>
+        </choose>
+    </sql>
+    <sql id="selectWhereJsonConditionOracle">
+        <choose>
+            <when test="condition.array">
+                exists (select * from
+                json_table(
+                json_query( ${condition.column},'$.${condition.jsonColumn}' WITH CONDITIONAL WRAPPER ),
+                '$[*]' COLUMNS (value VARCHAR2(1000) PATH '$')
+                )
+                t_sub_${condition.jsonColumn}
+                where t_sub_${condition.jsonColumn}.value
+                <choose>
+                    <when test="condition.operator.equalsIgnoreCase('In')">
+                        <foreach close=")" collection="condition.value" item="item" open="in (" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        = #{condition.value}
+                    </otherwise>
+                </choose>
+                )
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="condition.type == 'String'">
+                        json_value(${condition.column},'$.${condition.jsonColumn}') ${condition.operator}
+                    </when>
+                    <when test="condition.type == 'Date' or condition.type == 'DateTime'">
+                        FROM_UNIXTIME(json_value(${condition.column},'$.${condition.jsonColumn}' RETURNING NUMBER))
+                        ${condition.operator}
+                    </when>
+                    <otherwise>
+                        json_value(${condition.column},'$.${condition.jsonColumn}' RETURNING NUMBER)
+                        ${condition.operator}
+                    </otherwise>
+                </choose>
+                <choose>
+                    <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
+                        <foreach close=")" collection="condition.value" item="item" open="(" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                        #{condition.value}
+                    </when>
+                </choose>
+            </otherwise>
+        </choose>
+    </sql>
+    <sql id="selectWhereJsonConditionMysql">
+        <choose>
+            <when test="condition.array">
+                <choose>
+                    <when test="condition.operator.equalsIgnoreCase('In')">
+                        <!-- MySQL8.0可以使用 JSON_OVERLAPS("[1,3,5,7]", "[2,5,7]") -->
+                        <!--
+                        JSON_OVERLAPS(${condition.column} -gt; '$.${condition.jsonColumn}', "
+                        foreach close="]" collection="condition.value" item="item" open="[" separator=","
+                            #{item}
+                        /foreach
+                        ")
+                        -->
+                        <foreach close=")" collection="condition.value" item="item" open="(" separator="or">
+                            JSON_CONTAINS(${condition.column}, JSON_QUOTE(#{item}), '$.${condition.jsonColumn}')
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        JSON_CONTAINS(${condition.column}, JSON_QUOTE(#{condition.value}), '$.${condition.jsonColumn}')
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="condition.type == 'String'">
+                        <!-- JSON_UNQUOTE(JSON_EXTRACT(${condition.column},'$.${condition.jsonColumn}')) ${condition.operator} -->
+                        ${condition.column} -&gt;&gt; '$.${condition.jsonColumn}' ${condition.operator}
+                    </when>
+                    <when test="condition.type == 'Boolean'">
+                        CAST(${condition.column} -&gt; '$.${condition.jsonColumn}' AS SIGNED INTEGER) ${condition.operator}
+                    </when>
+                    <when test="condition.type == 'Date' or condition.type == 'DateTime'">
+                        FROM_UNIXTIME(${condition.column} -&gt; '$.${condition.jsonColumn}') ${condition.operator}
+                    </when>
+                    <otherwise>
+                        ${condition.column} -&gt; '$.${condition.jsonColumn}' ${condition.operator}
+                    </otherwise>
+                </choose>
+                <choose>
+                    <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
+                        <foreach close=")" collection="condition.value" item="item" open="(" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                        #{condition.value}
+                    </when>
+                </choose>
+            </otherwise>
+        </choose>
+    </sql>
+    <sql id="selectWhereJsonConditionPostgresql">
+        <choose>
+            <when test="condition.array">
+                <choose>
+                    <when test="condition.operator.equalsIgnoreCase('In')">
+                        <foreach close=")" collection="condition.value" item="item" open="(" separator="||">
+                            ${condition.column} -&gt; '${condition.jsonColumn}' @&gt; to_jsonb(#{item})
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        ${condition.column} -&gt; '${condition.jsonColumn}' @&gt; to_jsonb(#{condition.value})
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="condition.type == 'String'">
+                        ${condition.column} -&gt;&gt; '${condition.jsonColumn}' ${condition.operator}
+                    </when>
+                    <when test="condition.type == 'Boolean'">
+                        (${condition.column} -&gt; '${condition.jsonColumn}')::boolean::integer ${condition.operator}
+                    </when>
+                    <when test="condition.type == 'Date' or condition.type == 'DateTime'">
+                        to_timestamp((${condition.column} -&gt; '${condition.jsonColumn}')::numeric) ${condition.operator}
+                    </when>
+                    <otherwise>
+                        (${condition.column} -&gt; '${condition.jsonColumn}')::numeric ${condition.operator}
+                    </otherwise>
+                </choose>
+                <choose>
+                    <when test="condition.operator == 'IN' or condition.operator == 'NOT IN'">
+                        <foreach close=")" collection="condition.value" item="item" open="(" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                        #{condition.value}
+                    </when>
+                </choose>
+            </otherwise>
+        </choose>
+    </sql><update id="update" parameterType="com.ujcms.cms.core.domain.Seq">
     update ujcms_seq
     set next_val_ = #{nextVal,jdbcType=BIGINT},
       cache_size_ = #{cacheSize,jdbcType=INTEGER}

@@ -23,14 +23,14 @@ public class VisitStatBase implements Serializable {
      */
     @NotNull
     @Schema(description="访问_统计ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 名称
@@ -97,19 +97,19 @@ public class VisitStatBase implements Serializable {
     @Schema(description="统计类型(1:新老客户,2:来源,3:国家,4:省份,5:设备,6:操作系统,7:浏览器,8:来源类型)")
     private Short type = 1;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 

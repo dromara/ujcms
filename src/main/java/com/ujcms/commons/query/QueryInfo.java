@@ -14,8 +14,6 @@ import java.util.Map;
  */
 public class QueryInfo {
     @Nullable
-    private String orderBy;
-    @Nullable
     private String selectOrderBy;
     private String mainTable;
     private String tablePrefix;
@@ -23,6 +21,7 @@ public class QueryInfo {
     private List<JoinTable> joinTables = new ArrayList<>();
     private List<WhereCondition> whereConditions = new ArrayList<>();
     private Map<String, Map<String, List<WhereCondition>>> whereOrAndConditions = new HashMap<>();
+    private List<OrderByCondition> orderByConditions = new ArrayList<>();
 
     public QueryInfo(String mainTable, String tablePrefix) {
         this.mainTable = mainTable;
@@ -31,16 +30,6 @@ public class QueryInfo {
 
     public String getTableName() {
         return this.tablePrefix + this.mainTable;
-    }
-
-    @Nullable
-    public String getOrderBy() {
-        return orderBy;
-    }
-
-    public void setOrderBy(@Nullable String orderBy) {
-        QueryUtils.validateOrderBy(orderBy);
-        this.orderBy = orderBy;
     }
 
     @Nullable
@@ -101,17 +90,41 @@ public class QueryInfo {
         this.whereOrAndConditions = whereOrAndConditions;
     }
 
+    public List<OrderByCondition> getOrderByConditions() {
+        return orderByConditions;
+    }
+
+    public void setOrderByConditions(List<OrderByCondition> orderByConditions) {
+        this.orderByConditions = orderByConditions;
+    }
+
     public static class WhereCondition {
         private String column;
+        @Nullable
+        private String jsonColumn;
         private String operator;
+        private boolean array = false;
         @Nullable
         private Object value;
+        @Nullable
+        private String type;
 
         public WhereCondition(String column, String operator, @Nullable Object value) {
             QueryUtils.validateField(column);
             this.column = column;
             this.operator = operator;
             this.value = value;
+        }
+
+        public WhereCondition(String column, @Nullable String jsonColumn, String operator, boolean array,
+                              @Nullable Object value, @Nullable String type) {
+            this(column, operator, value);
+            if (jsonColumn != null) {
+                QueryUtils.validateJsonField(jsonColumn);
+                this.jsonColumn = jsonColumn;
+            }
+            this.array = array;
+            this.type = type;
         }
 
         public String getColumn() {
@@ -122,12 +135,29 @@ public class QueryInfo {
             this.column = column;
         }
 
+        @Nullable
+        public String getJsonColumn() {
+            return jsonColumn;
+        }
+
+        public void setJsonColumn(@Nullable String jsonColumn) {
+            this.jsonColumn = jsonColumn;
+        }
+
         public String getOperator() {
             return operator;
         }
 
         public void setOperator(String operator) {
             this.operator = operator;
+        }
+
+        public boolean isArray() {
+            return array;
+        }
+
+        public void setArray(boolean array) {
+            this.array = array;
         }
 
         @Nullable
@@ -139,12 +169,95 @@ public class QueryInfo {
             this.value = value;
         }
 
+        @Nullable
+        public String getType() {
+            return type;
+        }
+
+        public void setType(@Nullable String type) {
+            this.type = type;
+        }
+
         @Override
         public String toString() {
             return "WhereCondition{" +
                     "column='" + column + '\'' +
+                    ", jsonColumn='" + jsonColumn + '\'' +
                     ", operator='" + operator + '\'' +
+                    ", array=" + array +
                     ", value=" + value +
+                    ", type='" + type + '\'' +
+                    '}';
+        }
+    }
+
+    public static class OrderByCondition {
+        private String column;
+        @Nullable
+        private String jsonColumn;
+        @Nullable
+        private String type;
+        @Nullable
+        private String direction;
+
+        public OrderByCondition(String column, @Nullable String direction) {
+            QueryUtils.validateField(column);
+            this.column = column;
+            this.direction = direction;
+        }
+
+        public OrderByCondition(String column, @Nullable String direction,
+                                @Nullable String jsonColumn, @Nullable String type) {
+            this(column, direction);
+            if (jsonColumn != null) {
+                QueryUtils.validateJsonField(jsonColumn);
+                this.jsonColumn = jsonColumn;
+            }
+            this.type = type;
+        }
+
+        public String getColumn() {
+            return column;
+        }
+
+        public void setColumn(String column) {
+            this.column = column;
+        }
+
+        @Nullable
+        public String getJsonColumn() {
+            return jsonColumn;
+        }
+
+        public void setJsonColumn(@Nullable String jsonColumn) {
+            this.jsonColumn = jsonColumn;
+        }
+
+        @Nullable
+        public String getType() {
+            return type;
+        }
+
+        public void setType(@Nullable String type) {
+            this.type = type;
+        }
+
+        @Nullable
+        public String getDirection() {
+            return direction;
+        }
+
+        public void setDirection(@Nullable String direction) {
+            this.direction = direction;
+        }
+
+        @Override
+        public String toString() {
+            return "OrderByCondition{" +
+                    "column='" + column + '\'' +
+                    ", jsonColumn='" + jsonColumn + '\'' +
+                    ", type='" + type + '\'' +
+                    ", direction='" + direction + '\'' +
                     '}';
         }
     }

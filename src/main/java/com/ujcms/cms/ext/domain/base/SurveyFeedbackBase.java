@@ -25,28 +25,28 @@ public class SurveyFeedbackBase implements Serializable {
      */
     @NotNull
     @Schema(description="问卷反馈ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 问卷ID
      */
     @NotNull
     @Schema(description="问卷ID")
-    private Integer surveyId = 0;
+    private Long surveyId = 0L;
 
     /**
      * 用户ID
      */
     @Nullable
     @Schema(description="用户ID")
-    private Integer userId;
+    private Long userId;
 
     /**
      * IP地址
@@ -70,36 +70,36 @@ public class SurveyFeedbackBase implements Serializable {
     @Schema(description="创建日期")
     private OffsetDateTime created = OffsetDateTime.now();
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
-    public Integer getSurveyId() {
+    public Long getSurveyId() {
         return surveyId;
     }
 
-    public void setSurveyId(Integer surveyId) {
+    public void setSurveyId(Long surveyId) {
         this.surveyId = surveyId;
     }
 
     @Nullable
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(@Nullable Integer userId) {
+    public void setUserId(@Nullable Long userId) {
         this.userId = userId;
     }
 

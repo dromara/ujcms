@@ -24,7 +24,7 @@ public class ConfigBase implements Serializable {
      */
     @NotNull
     @Schema(description="ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 上下文路径
@@ -69,7 +69,7 @@ public class ConfigBase implements Serializable {
      */
     @NotNull
     @Schema(description="默认站点ID")
-    private Integer defaultSiteId = 0;
+    private Long defaultSiteId = 0L;
 
     /**
      * 上传设置
@@ -142,11 +142,11 @@ public class ConfigBase implements Serializable {
     @Schema(description="自定义设置")
     private String customsSettings;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -194,11 +194,11 @@ public class ConfigBase implements Serializable {
         this.articleUrl = articleUrl;
     }
 
-    public Integer getDefaultSiteId() {
+    public Long getDefaultSiteId() {
         return defaultSiteId;
     }
 
-    public void setDefaultSiteId(Integer defaultSiteId) {
+    public void setDefaultSiteId(Long defaultSiteId) {
         this.defaultSiteId = defaultSiteId;
     }
 

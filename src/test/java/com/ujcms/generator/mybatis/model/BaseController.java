@@ -111,13 +111,6 @@ public class BaseController extends AbstractJavaGenerator {
         service.setVisibility(JavaVisibility.PRIVATE);
         service.setFinal(true);
         topLevelClass.addField(service);
-        // NotFound 属性
-        Field notFound = new Field("NOT_FOUND", new FullyQualifiedJavaType("String"));
-        notFound.setVisibility(JavaVisibility.PRIVATE);
-        notFound.setStatic(true);
-        notFound.setFinal(true);
-        notFound.setInitializationString("\"" + getModelType() + " not found. ID = \"");
-        topLevelClass.addField(notFound);
         // 构造器
         Method constructor = new Method(topLevelClass.getType().getShortName());
         constructor.setConstructor(true);
@@ -167,7 +160,7 @@ public class BaseController extends AbstractJavaGenerator {
         idParam.addAnnotation("@PathVariable(\"id\")");
         show.addParameter(idParam);
         show.addBodyLine("return Optional.ofNullable(service.select(id))");
-        show.addBodyLine(".orElseThrow(() -> new Http404Exception(NOT_FOUND + id));");
+        show.addBodyLine(".orElseThrow(() -> new Http404Exception(" + getModelType() + ".NOT_FOUND + id));");
         topLevelClass.addMethod(show);
 
         // 返回类型 ResponseEntity<Body>

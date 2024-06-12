@@ -18,7 +18,7 @@ public class Utils {
      * @param secret 密钥
      * @return 使用 SM3 对 secret.id.time 杂凑
      */
-    public static String getDownloadKey(Integer id, long time, String secret) {
+    public static String getDownloadKey(Long id, long time, String secret) {
         return Secures.sm3Hex(secret + "." + id + "." + time);
     }
 
@@ -31,7 +31,7 @@ public class Utils {
      * @param secret 密钥
      * @return 是否合法
      */
-    public static boolean validateDownloadKey(String key, Integer id, long time, @Nullable String secret) {
+    public static boolean validateDownloadKey(String key, Long id, long time, @Nullable String secret) {
         if (StringUtils.isBlank(secret)) {
             return false;
         }

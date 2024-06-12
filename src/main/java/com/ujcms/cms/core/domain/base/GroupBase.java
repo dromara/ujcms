@@ -24,7 +24,7 @@ public class GroupBase implements Serializable {
      */
     @NotNull
     @Schema(description="用户组ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 名称
@@ -61,13 +61,13 @@ public class GroupBase implements Serializable {
      */
     @NotNull
     @Schema(description="排序")
-    private Short order = 32767;
+    private Integer order = 999999;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -104,11 +104,11 @@ public class GroupBase implements Serializable {
         this.type = type;
     }
 
-    public Short getOrder() {
+    public Integer getOrder() {
         return order;
     }
 
-    public void setOrder(Short order) {
+    public void setOrder(Integer order) {
         this.order = order;
     }
 }

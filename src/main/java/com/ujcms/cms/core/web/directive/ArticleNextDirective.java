@@ -39,10 +39,10 @@ public class ArticleNextDirective implements TemplateDirectiveModel {
     public static final String IS_DESC = "isDesc";
 
     @Nullable
-    public static Article query(Map<String, ?> params, Function3<Integer, Long, Integer, Article> handle) {
-        Integer id = Directives.getIntegerRequired(params, ID);
+    public static Article query(Map<String, ?> params, Function3<Long, Long, Long, Article> handle) {
+        Long id = Directives.getLongRequired(params, ID);
         Long order = Directives.getLongRequired(params, ORDER);
-        Integer channelId = Directives.getIntegerRequired(params, CHANNEL_ID);
+        Long channelId = Directives.getLongRequired(params, CHANNEL_ID);
         return handle.apply(id, order, channelId);
     }
 

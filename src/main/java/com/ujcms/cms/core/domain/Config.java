@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ConfigBase;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.StaticProps;
@@ -13,28 +12,20 @@ import com.ujcms.commons.web.PathResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
+import org.owasp.html.PolicyFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.domain.Config.Storage.TYPE_LOCAL;
+import static com.ujcms.cms.core.support.Constants.MAPPER;
 
 /**
  * 全局配置实体类
@@ -54,9 +45,7 @@ public class Config extends ConfigBase implements Serializable {
      */
     @JsonIgnore
     public List<String> getAttachmentUrls() {
-        List<String> urls = new ArrayList<>();
-        getModel().handleCustoms(getCustoms(), new Model.GetUrlsHandle(urls));
-        return urls;
+        return getModel().getUrlsFromMap(getCustoms());
     }
 
     /**
@@ -264,23 +253,23 @@ public class Config extends ConfigBase implements Serializable {
         if (customs != null) {
             return customs;
         }
-        String settings = getCustomsSettings();
-        if (StringUtils.isBlank(settings)) {
+        String json = getCustomsSettings();
+        if (StringUtils.isBlank(json)) {
             return Collections.emptyMap();
         }
-        try {
-            customs = Constants.MAPPER.readValue(settings, new TypeReference<Map<String, Object>>() {
-            });
-            return customs;
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
-        }
+        customs = getModel().assembleMap(json);
+        return customs;
     }
 
     public void setCustoms(Map<String, Object> customs) {
+        this.customs = customs;
+    }
+
+    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+        setCustoms(map);
         try {
-            setCustomsSettings(Constants.MAPPER.writeValueAsString(customs));
-            this.customs = null;
+            setCustomsSettings(MAPPER.writeValueAsString(map));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }

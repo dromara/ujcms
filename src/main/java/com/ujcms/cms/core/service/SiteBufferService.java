@@ -29,7 +29,7 @@ public class SiteBufferService {
     }
 
     @Nullable
-    public SiteBuffer select(Integer id) {
+    public SiteBuffer select(Long id) {
         return mapper.select(id);
     }
 

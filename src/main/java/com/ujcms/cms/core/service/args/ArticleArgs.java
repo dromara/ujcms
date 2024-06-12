@@ -20,92 +20,101 @@ public class ArticleArgs extends BaseQueryArgs {
     @Nullable
     private Map<String, String> customsQueryMap;
     @Nullable
-    private Integer orgAncestorId;
+    private Collection<Long> channelAncestorIds;
     @Nullable
-    private Collection<Integer> channelAncestorIds;
+    private Collection<Long> orgIds;
     @Nullable
-    private Collection<Integer> roleIds;
+    private Collection<Long> orgRoleIds;
+    @Nullable
+    private Collection<Long> orgPermIds;
+    @Nullable
+    private Collection<Long> articleRoleIds;
+    @Nullable
+    private Collection<Long> articleOrgIds;
 
     public ArticleArgs customsQueryMap(Map<String, String> customsQueryMap) {
         this.customsQueryMap = customsQueryMap;
         return this;
     }
 
-    public ArticleArgs channelAncestorId(@Nullable Integer channelAncestorId) {
+    public ArticleArgs channelAncestorId(@Nullable Long channelAncestorId) {
         if (channelAncestorId != null) {
             this.channelAncestorIds = Collections.singleton(channelAncestorId);
         }
         return this;
     }
 
-    public ArticleArgs orgAncestorId(@Nullable Integer orgAncestorId) {
-        if (orgAncestorId != null) {
-            this.orgAncestorId = orgAncestorId;
-        }
-        return this;
-    }
-
-    public ArticleArgs channelAncestorIds(@Nullable Collection<Integer> channelAncestorIds) {
+    public ArticleArgs channelAncestorIds(@Nullable Collection<Long> channelAncestorIds) {
         if (channelAncestorIds != null) {
             this.channelAncestorIds = channelAncestorIds;
         }
         return this;
     }
 
-    public ArticleArgs channelId(@Nullable Integer channelId) {
+    public ArticleArgs orgIds(@Nullable Collection<Long> orgIds) {
+        if (orgIds != null) {
+            this.orgIds = orgIds;
+        }
+        return this;
+    }
+
+    public ArticleArgs orgPermission(Collection<Long> orgRoleIds, Collection<Long> orgPermIds) {
+        this.orgRoleIds = orgRoleIds;
+        this.orgPermIds = orgPermIds;
+        return this;
+    }
+
+    public ArticleArgs articlePermission(Collection<Long> articleRoleIds, Collection<Long> articleOrgIds) {
+        this.articleRoleIds = articleRoleIds;
+        this.articleOrgIds = articleOrgIds;
+        return this;
+    }
+
+    public ArticleArgs channelId(@Nullable Long channelId) {
         if (channelId != null) {
-            queryMap.put("EQ_channelId_Int", channelId);
+            queryMap.put("EQ_channelId_Long", channelId);
         }
         return this;
     }
 
-    public ArticleArgs inChannelIds(@Nullable Collection<Integer> channelIds) {
+    public ArticleArgs inChannelIds(@Nullable Collection<Long> channelIds) {
         if (CollectionUtils.isNotEmpty(channelIds)) {
-            queryMap.put("In_channelId_Int", channelIds);
+            queryMap.put("In_channelId_Long", channelIds);
         }
         return this;
     }
 
-    public ArticleArgs inRoleIds(@Nullable Collection<Integer> roleIds) {
-        // 允许 roleIds.size() == 0，代表没有角色权限，将不会返回任何数据
-        if (roleIds != null) {
-            this.roleIds = roleIds;
-        }
-        return this;
-
-    }
-
-    public ArticleArgs siteAncestorId(@Nullable Integer siteAncestorId) {
+    public ArticleArgs siteAncestorId(@Nullable Long siteAncestorId) {
         if (siteAncestorId != null) {
-            queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Int", siteAncestorId);
+            queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Long", siteAncestorId);
         }
         return this;
     }
 
-    public ArticleArgs siteId(@Nullable Integer siteId) {
+    public ArticleArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }
 
-    public ArticleArgs tagId(@Nullable Integer tagId) {
+    public ArticleArgs tagId(@Nullable Long tagId) {
         if (tagId != null) {
-            queryMap.put("EQ_article@ArticleTag-tagId_Int", tagId);
+            queryMap.put("EQ_article@ArticleTag-tagId_Long", tagId);
         }
         return this;
     }
 
-    public ArticleArgs userId(@Nullable Integer userId) {
+    public ArticleArgs userId(@Nullable Long userId) {
         if (userId != null) {
-            queryMap.put("EQ_userId_Int", userId);
+            queryMap.put("EQ_userId_Long", userId);
         }
         return this;
     }
 
-    public ArticleArgs minId(@Nullable Integer minId) {
+    public ArticleArgs minId(@Nullable Long minId) {
         if (minId != null) {
-            queryMap.put("GT_id", minId);
+            queryMap.put("GT_id_Long", minId);
         }
         return this;
     }
@@ -182,7 +191,7 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
-    public ArticleArgs excludeIds(@Nullable Collection<Integer> excludeIds) {
+    public ArticleArgs excludeIds(@Nullable Collection<Long> excludeIds) {
         if (CollectionUtils.isNotEmpty(excludeIds)) {
             queryMap.put("NotIn_id", excludeIds);
         }
@@ -219,21 +228,36 @@ public class ArticleArgs extends BaseQueryArgs {
     }
 
     @Nullable
-    public Collection<Integer> getChannelAncestorIds() {
+    public Collection<Long> getChannelAncestorIds() {
         return channelAncestorIds;
     }
 
-    public void setChannelAncestorIds(@Nullable Collection<Integer> channelAncestorIds) {
+    @Nullable
+    public Collection<Long> getOrgIds() {
+        return orgIds;
+    }
+
+    public void setChannelAncestorIds(@Nullable Collection<Long> channelAncestorIds) {
         this.channelAncestorIds = channelAncestorIds;
     }
 
     @Nullable
-    public Integer getOrgAncestorId() {
-        return orgAncestorId;
+    public Collection<Long> getOrgRoleIds() {
+        return orgRoleIds;
     }
 
     @Nullable
-    public Collection<Integer> getRoleIds() {
-        return roleIds;
+    public Collection<Long> getOrgPermIds() {
+        return orgPermIds;
+    }
+
+    @Nullable
+    public Collection<Long> getArticleRoleIds() {
+        return articleRoleIds;
+    }
+
+    @Nullable
+    public Collection<Long> getArticleOrgIds() {
+        return articleOrgIds;
     }
 }

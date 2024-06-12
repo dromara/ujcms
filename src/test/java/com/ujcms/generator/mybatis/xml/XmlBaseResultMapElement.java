@@ -11,30 +11,13 @@ import java.util.List;
 import static org.mybatis.generator.internal.util.StringUtility.stringHasValue;
 
 public class XmlBaseResultMapElement extends AbstractXmlElementGenerator {
-
-    private final boolean isSimple;
-
-    public XmlBaseResultMapElement(boolean isSimple) {
-        super();
-        this.isSimple = isSimple;
-    }
-
     @Override
     public void addElements(XmlElement parentElement) {
         XmlElement answer = new XmlElement("resultMap"); //$NON-NLS-1$
         answer.addAttribute(new Attribute("id", //$NON-NLS-1$
                 introspectedTable.getBaseResultMapId()));
 
-        String returnType;
-        if (isSimple) {
-            returnType = introspectedTable.getBaseRecordType();
-        } else {
-            if (introspectedTable.getRules().generateBaseRecordClass()) {
-                returnType = introspectedTable.getBaseRecordType();
-            } else {
-                returnType = introspectedTable.getPrimaryKeyType();
-            }
-        }
+        String returnType = introspectedTable.getBaseRecordType();
 
         answer.addAttribute(new Attribute("type", //$NON-NLS-1$
                 returnType));
@@ -72,12 +55,7 @@ public class XmlBaseResultMapElement extends AbstractXmlElementGenerator {
             answer.addElement(resultElement);
         }
 
-        List<IntrospectedColumn> columns;
-        if (isSimple) {
-            columns = introspectedTable.getNonPrimaryKeyColumns();
-        } else {
-            columns = introspectedTable.getBaseColumns();
-        }
+        List<IntrospectedColumn> columns = introspectedTable.getBaseColumns();
         for (IntrospectedColumn introspectedColumn : columns) {
             XmlElement resultElement = new XmlElement("result"); //$NON-NLS-1$
 
@@ -118,12 +96,7 @@ public class XmlBaseResultMapElement extends AbstractXmlElementGenerator {
             constructor.addElement(resultElement);
         }
 
-        List<IntrospectedColumn> columns;
-        if (isSimple) {
-            columns = introspectedTable.getNonPrimaryKeyColumns();
-        } else {
-            columns = introspectedTable.getBaseColumns();
-        }
+        List<IntrospectedColumn> columns = introspectedTable.getBaseColumns();
         for (IntrospectedColumn introspectedColumn : columns) {
             XmlElement resultElement = new XmlElement("arg"); //$NON-NLS-1$
 

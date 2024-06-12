@@ -3,8 +3,12 @@ package com.ujcms.cms.core;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.commons.db.CharBooleanTypeHandler;
 import com.ujcms.commons.db.DataScriptInitializer;
+import com.ujcms.commons.db.JsonStringTypeHandler;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
+import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
+import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +18,9 @@ import org.springframework.core.io.ResourceLoader;
 import javax.sql.DataSource;
 import java.util.Properties;
 
+import static com.ujcms.commons.db.identifier.SnowflakeSequence.MAX_DATACENTER_ID;
+import static com.ujcms.commons.db.identifier.SnowflakeSequence.MAX_WORKER_ID;
+
 /**
  * MyBatis 配置
  *
@@ -22,11 +29,33 @@ import java.util.Properties;
 @Configuration
 public class MyBatisConfig {
     /**
+     * 雪花算法ID生成器
+     */
+    @Bean
+    public SnowflakeSequence snowflakeSequence(Props props) {
+        int datacenterId = props.getDatacenterId();
+        int workerId = props.getWorkerId();
+        if (datacenterId >= 0 && datacenterId <= MAX_DATACENTER_ID && workerId >= 0 && workerId <= MAX_WORKER_ID) {
+            return new SnowflakeSequence(datacenterId, workerId);
+        }
+        return new SnowflakeSequence(null);
+    }
+
+    /**
      * 数值型 boolean 类型处理
      */
     @Bean
     public TypeHandler<Boolean> charBooleanTypeHandler() {
         return new CharBooleanTypeHandler();
+    }
+
+    /**
+     * JSON 转 String 类型处理
+     */
+    @Bean
+    public ConfigurationCustomizer mybatisConfigurationCustomizer() {
+        return configuration -> configuration.getTypeHandlerRegistry()
+                .register(String.class, JdbcType.OTHER, new JsonStringTypeHandler(configuration));
     }
 
     /**

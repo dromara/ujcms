@@ -44,7 +44,7 @@ public class EsArticleController {
         this.siteResolver = siteResolver;
     }
 
-    private Page<EsArticle> query(Map<String, String> params, Integer defaultSiteId, Pageable pageable) {
+    private Page<EsArticle> query(Map<String, String> params, Long defaultSiteId, Pageable pageable) {
         return EsArticleListDirective.query(params, defaultSiteId, pageable, articleLucene);
     }
 

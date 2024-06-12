@@ -1,7 +1,6 @@
 package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.RoleArticle;
-import com.ujcms.commons.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
@@ -27,21 +26,31 @@ public interface RoleArticleMapper {
     int insert(RoleArticle bean);
 
     /**
+     * 更新数据
+     *
+     * @param bean 实体对象
+     * @return 更新条数
+     */
+    int update(RoleArticle bean);
+
+    /**
+     * 根据主键获取数据
+     *
+     * @param roleId    角色ID
+     * @param channelId 栏目ID
+     * @return 实体对象。没有找到数据，则返回 {@code null}
+     */
+    @Nullable
+    RoleArticle select(@Param("roleId") Long roleId, @Param("channelId") Long channelId);
+
+    /**
      * 删除数据
      *
      * @param channelId 栏目ID
      * @param roleId    角色ID
      * @return 删除条数
      */
-    int delete(@Param("channelId") Integer channelId, @Param("roleId") Integer roleId);
-
-    /**
-     * 根据查询条件获取列表
-     *
-     * @param queryInfo 查询条件
-     * @return 数据列表
-     */
-    List<RoleArticle> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo);
+    int delete(@Param("channelId") Long channelId, @Param("roleId") Long roleId);
 
     /**
      * 根据 角色ID 查询栏目ID列表
@@ -50,7 +59,7 @@ public interface RoleArticleMapper {
      * @param siteId 站点ID
      * @return 栏目ID列表
      */
-    List<Integer> listChannelByRoleId(@Param("roleId") Integer roleId, @Nullable @Param("siteId") Integer siteId);
+    List<Long> listChannelByRoleId(@Param("roleId") Long roleId, @Nullable @Param("siteId") Long siteId);
 
     /**
      * 根据 栏目ID 查询角色ID列表
@@ -59,7 +68,7 @@ public interface RoleArticleMapper {
      * @param siteId    站点ID
      * @return 角色ID列表
      */
-    List<Integer> listRoleByChannelId(@Param("channelId") Integer channelId, @Nullable @Param("siteId") Integer siteId);
+    List<Long> listRoleByChannelId(@Param("channelId") Long channelId, @Nullable @Param("siteId") Long siteId);
 
     /**
      * 根据 角色ID列表 查询栏目ID列表
@@ -68,16 +77,8 @@ public interface RoleArticleMapper {
      * @param siteId  站点ID
      * @return 栏目ID列表
      */
-    List<Integer> listChannelByRoleIds(@Param("roleIds") Collection<Integer> roleIds,
-                                       @Nullable @Param("siteId") Integer siteId);
-
-    /**
-     * 根据 栏目ID 删除数据
-     *
-     * @param channelId 栏目ID
-     * @return 删除条数
-     */
-    int deleteByChannelId(@Param("channelId") Integer channelId);
+    List<Integer> listChannelByRoleIds(@Param("roleIds") Collection<Long> roleIds,
+                                       @Nullable @Param("siteId") Long siteId);
 
     /**
      * 根据 角色ID 删除数据
@@ -86,7 +87,15 @@ public interface RoleArticleMapper {
      * @param siteId 站点ID
      * @return 删除条数
      */
-    int deleteByRoleId(@Param("roleId") Integer roleId, @Nullable @Param("siteId") Integer siteId);
+    int deleteByRoleId(@Param("roleId") Long roleId, @Nullable @Param("siteId") Long siteId);
+
+    /**
+     * 根据 栏目ID 删除数据
+     *
+     * @param channelId 栏目ID
+     * @return 删除条数
+     */
+    int deleteByChannelId(@Param("channelId") Long channelId);
 
     /**
      * 根据站点ID删除数据
@@ -94,5 +103,5 @@ public interface RoleArticleMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

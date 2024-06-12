@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.RoleOrgMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.RoleOrg">
+    <id column="role_id_" jdbcType="BIGINT" property="roleId" />
+    <id column="org_id_" jdbcType="BIGINT" property="orgId" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.RoleOrg" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.RoleOrg" />
+  <select id="listOrgByRoleId" resultType="long">
+    select t.org_id_
+    from ujcms_role_org t
+    where t.role_id_ = #{roleId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
+  <delete id="deleteByOrgId" parameterType="long">
+    delete
+    from ujcms_role_org
+    where org_id_ = #{orgId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByRoleId" parameterType="long">
+    delete
+    from ujcms_role_org
+    where role_id_ = #{roleId,jdbcType=BIGINT}
+    <if test="siteId != null">and site_id_ = #{siteId}</if>
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_role_org
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <select id="select" parameterType="map" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_role_org t
+    where t.role_id_ = #{roleId,jdbcType=BIGINT}
+      and t.org_id_ = #{orgId,jdbcType=BIGINT}
+  </select><update id="update" parameterType="com.ujcms.cms.core.domain.RoleOrg">
+    update ujcms_role_org
+    set site_id_ = #{siteId,jdbcType=BIGINT}
+    where role_id_ = #{roleId,jdbcType=BIGINT}
+      and org_id_ = #{orgId,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.RoleOrg">
+    insert into ujcms_role_org (role_id_, org_id_, site_id_)
+    values (#{roleId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT})
+  </insert><sql id="Column_List">
+    t.role_id_, t.org_id_, t.site_id_
+  </sql></mapper>

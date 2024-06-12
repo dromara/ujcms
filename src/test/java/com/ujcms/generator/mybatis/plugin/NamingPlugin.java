@@ -23,7 +23,7 @@ public class NamingPlugin extends PluginAdapter {
         introspectedTable.setDeleteByPrimaryKeyStatementId("delete");
         introspectedTable.setUpdateByPrimaryKeyStatementId("update");
         introspectedTable.setSelectByPrimaryKeyStatementId("select");
-        introspectedTable.setResultMapWithBLOBsId("ResultMap");
+        // introspectedTable.setResultMapWithBLOBsId("ResultMap");
         introspectedTable.setBaseColumnListId("Column_List");
     }
 }

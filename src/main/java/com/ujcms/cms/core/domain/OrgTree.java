@@ -17,7 +17,7 @@ import java.io.Serializable;
 public class OrgTree extends OrgTreeBase implements TreeRelation, Serializable {
     private static final long serialVersionUID = 1L;
 
-    public OrgTree(Integer ancestorId, Integer descendantId) {
+    public OrgTree(Long ancestorId, Long descendantId) {
         setAncestorId(ancestorId);
         setDescendantId(descendantId);
     }

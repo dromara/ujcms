@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.UserRoleMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.UserRole">
-    <id column="user_id_" jdbcType="INTEGER" property="userId" />
-    <id column="role_id_" jdbcType="INTEGER" property="roleId" />
-    <result column="order_" jdbcType="SMALLINT" property="order" />
-  </resultMap>
+    <id column="user_id_" jdbcType="BIGINT" property="userId" />
+    <id column="role_id_" jdbcType="BIGINT" property="roleId" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.UserRole" />
     <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.UserRole" />
-    <delete id="deleteByUserId" parameterType="int">
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.UserRole" />
+    <delete id="deleteByUserId" parameterType="long">
         delete
         from ujcms_user_role
-        where user_id_ = #{userId,jdbcType=INTEGER}
+        where user_id_ = #{userId,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteByRoleId" parameterType="int">
+    <delete id="deleteByRoleId" parameterType="long">
         delete
         from ujcms_user_role
-        where role_id_ = #{roleId,jdbcType=INTEGER}
+        where role_id_ = #{roleId,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_user_role
-        where role_id_ in (select t.id_ from ujcms_role t where t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where role_id_ in (select t.id_ from ujcms_role t where t.site_id_ = #{siteId,jdbcType=BIGINT})
     </delete>
     <select id="select" parameterType="map" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_user_role t
-        where t.user_id_ = #{userId,jdbcType=INTEGER}
-        and t.role_id_ = #{roleId,jdbcType=INTEGER}
+        where t.user_id_ = #{userId,jdbcType=BIGINT}
+        and t.role_id_ = #{roleId,jdbcType=BIGINT}
     </select>
     <delete id="delete" parameterType="map">
         delete
         from ujcms_user_role
-        where user_id_ = #{userId,jdbcType=INTEGER}
-          and role_id_ = #{roleId,jdbcType=INTEGER}
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and role_id_ = #{roleId,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.UserRole">
     update ujcms_user_role
-    set order_ = #{order,jdbcType=SMALLINT}
-    where user_id_ = #{userId,jdbcType=INTEGER}
-      and role_id_ = #{roleId,jdbcType=INTEGER}
+    set order_ = #{order,jdbcType=INTEGER}
+    where user_id_ = #{userId,jdbcType=BIGINT}
+      and role_id_ = #{roleId,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserRole">
     insert into ujcms_user_role (user_id_, role_id_, order_)
-    values (#{userId,jdbcType=INTEGER}, #{roleId,jdbcType=INTEGER}, #{order,jdbcType=SMALLINT})
+    values (#{userId,jdbcType=BIGINT}, #{roleId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER})
   </insert><sql id="Column_List">
     t.user_id_, t.role_id_, t.order_
   </sql></mapper>

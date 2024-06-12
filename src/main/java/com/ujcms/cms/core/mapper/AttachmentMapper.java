@@ -41,7 +41,7 @@ public interface AttachmentMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -50,7 +50,7 @@ public interface AttachmentMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Attachment select(Integer id);
+    Attachment select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -67,7 +67,7 @@ public interface AttachmentMapper {
      * @param created 创建日期
      * @return 附件数量
      */
-    int countByCreated(@Param("siteId") Integer siteId, @Param("created") @Nullable OffsetDateTime created);
+    int countByCreated(@Param("siteId") Long siteId, @Param("created") @Nullable OffsetDateTime created);
 
     /**
      * 根据 url 附件对象
@@ -84,7 +84,7 @@ public interface AttachmentMapper {
      * @param ids 附件ID集
      * @return 更新条数
      */
-    int updateUsed(@Param("ids") Set<Integer> ids);
+    int updateUsed(@Param("ids") Set<Long> ids);
 
     /**
      * 根据站点ID删除数据
@@ -92,5 +92,5 @@ public interface AttachmentMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

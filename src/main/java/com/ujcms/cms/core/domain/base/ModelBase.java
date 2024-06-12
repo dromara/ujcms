@@ -24,14 +24,14 @@ public class ModelBase implements Serializable {
      */
     @NotNull
     @Schema(description="模型ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @Nullable
     @Schema(description="站点ID")
-    private Integer siteId;
+    private Long siteId;
 
     /**
      * 名称
@@ -61,7 +61,7 @@ public class ModelBase implements Serializable {
      */
     @NotNull
     @Schema(description="排列顺序")
-    private Short order = 32767;
+    private Integer order = 999999;
 
     /**
      * 主字段集
@@ -84,20 +84,20 @@ public class ModelBase implements Serializable {
     @Schema(description="自定义字段集")
     private String customs;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Nullable
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(@Nullable Integer siteId) {
+    public void setSiteId(@Nullable Long siteId) {
         this.siteId = siteId;
     }
 
@@ -125,11 +125,11 @@ public class ModelBase implements Serializable {
         this.scope = scope;
     }
 
-    public Short getOrder() {
+    public Integer getOrder() {
         return order;
     }
 
-    public void setOrder(Short order) {
+    public void setOrder(Integer order) {
         this.order = order;
     }
 

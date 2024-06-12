@@ -39,7 +39,7 @@ public interface VisitStatMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface VisitStatMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    VisitStat select(Integer id);
+    VisitStat select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -67,7 +67,7 @@ public interface VisitStatMapper {
      * @param end    介绍日期
      * @return 统计结果
      */
-    List<VisitStat> statByDate(@Param("siteId") Integer siteId, @Param("type") Short type,
+    List<VisitStat> statByDate(@Param("siteId") Long siteId, @Param("type") Short type,
                                @Nullable @Param("begin") String begin, @Nullable @Param("end") String end);
 
     /**
@@ -101,5 +101,5 @@ public interface VisitStatMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(@Param("siteId") Integer siteId);
+    int deleteBySiteId(@Param("siteId") Long siteId);
 }

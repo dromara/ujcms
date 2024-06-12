@@ -3,6 +3,7 @@ package com.ujcms.commons.db;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
+import org.apache.ibatis.type.MappedTypes;
 import org.springframework.lang.Nullable;
 
 import java.sql.CallableStatement;
@@ -22,6 +23,7 @@ import java.sql.SQLException;
  * @author PONY
  */
 @MappedJdbcTypes(JdbcType.CHAR)
+@MappedTypes(Boolean.class)
 public class CharBooleanTypeHandler extends BaseTypeHandler<Boolean> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Boolean parameter, JdbcType jdbcType)

@@ -27,7 +27,8 @@ public class XmlMapperGenerator extends AbstractXmlGenerator {
 
         context.getCommentGenerator().addRootComment(answer);
 
-        addBaseResultMapElement(answer);
+        addResultMapWithoutBLOBsElement(answer);
+        addResultMapWithBLOBsElement(answer);
         addResultMapElement(answer);
 
         if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
@@ -51,13 +52,19 @@ public class XmlMapperGenerator extends AbstractXmlGenerator {
         addInsertElement(answer);
         addColumnListElement(answer);
 
-
         return answer;
     }
 
-    protected void addBaseResultMapElement(XmlElement parentElement) {
+    protected void addResultMapWithoutBLOBsElement(XmlElement parentElement) {
         if (introspectedTable.getRules().generateBaseResultMap()) {
-            AbstractXmlElementGenerator elementGenerator = new XmlBaseResultMapElement(true);
+            AbstractXmlElementGenerator elementGenerator = new XmlBaseResultMapElement();
+            initializeAndExecuteGenerator(elementGenerator, parentElement);
+        }
+    }
+
+    protected void addResultMapWithBLOBsElement(XmlElement parentElement) {
+        if (introspectedTable.getRules().generateBaseResultMap()) {
+            AbstractXmlElementGenerator elementGenerator = new XmlBlobResultMapElement();
             initializeAndExecuteGenerator(elementGenerator, parentElement);
         }
     }

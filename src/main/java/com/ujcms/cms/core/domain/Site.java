@@ -13,6 +13,7 @@ import com.ujcms.commons.web.UrlBuilder;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
+import org.owasp.html.PolicyFactory;
 import org.springframework.lang.Nullable;
 
 import javax.validation.Valid;
@@ -140,9 +141,14 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @JsonIgnore
     public List<String> getAttachmentUrls() {
+        return getAttachmentUrls(getModel());
+    }
+
+    public List<String> getAttachmentUrls(Model model) {
         List<String> urls = new ArrayList<>();
         Optional.ofNullable(getLogo()).ifPresent(urls::add);
-        getModel().handleCustoms(getCustomList(), new Model.GetUrlsHandle(urls));
+        // 获取正文中的附件url
+        urls.addAll(model.getUrlsFromMap(getCustoms()));
         return urls;
     }
 
@@ -278,17 +284,20 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     // endregion
 
     // region JsonFields
-
     /**
      * 自定义字段
      */
     @Nullable
     private transient Map<String, Object> customs;
 
+    @Schema(description = "自定义字段")
     public Map<String, Object> getCustoms() {
-        if (customs == null) {
-            customs = getModel().assembleCustoms(getCustomList());
+        if (customs != null) {
+            return customs;
         }
+        customs = new HashMap<>(16);
+        customs.putAll(getModel().assembleMap(getMainsJson()));
+        customs.putAll(getModel().assembleMap(getClobsJson()));
         return customs;
     }
 
@@ -296,11 +305,10 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         this.customs = customs;
     }
 
-    public List<SiteCustom> disassembleCustoms(Map<String, Object> customs) {
-        List<SiteCustom> list = new ArrayList<>();
-        getModel().disassembleCustoms(customs, (name, type, value) ->
-                list.add(new SiteCustom(getId(), name, type, value)));
-        return list;
+    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+        setCustoms(map);
+        model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
     }
 
     /**
@@ -431,7 +439,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      * 复制站点ID
      */
     @Nullable
-    private Integer copyFromId;
+    private Long copyFromId;
     /**
      * 复制数据
      */
@@ -439,11 +447,11 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     @Nullable
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    public Integer getCopyFromId() {
+    public Long getCopyFromId() {
         return copyFromId;
     }
 
-    public void setCopyFromId(@Nullable Integer copyFromId) {
+    public void setCopyFromId(@Nullable Long copyFromId) {
         this.copyFromId = copyFromId;
     }
 
@@ -472,11 +480,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     @JsonIgnore
     private List<Site> children = new ArrayList<>();
-    /**
-     * 自定义字段列表
-     */
-    @JsonIgnore
-    private List<SiteCustom> customList = new ArrayList<>();
     /**
      * 全局对象
      */
@@ -513,14 +516,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     public void setChildren(List<Site> children) {
         this.children = children;
-    }
-
-    public List<SiteCustom> getCustomList() {
-        return customList;
-    }
-
-    public void setCustomList(List<SiteCustom> customList) {
-        this.customList = customList;
     }
 
     public Config getConfig() {
@@ -704,7 +699,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         @Pattern(regexp = "^(?!.*\\.\\.)[\\w-{}/]*$")
         private String article = "/articles/{article_id}";
 
-        public String getChannelPath(Integer channelId, String channelAlias, int page) {
+        public String getChannelPath(Long channelId, String channelAlias, int page) {
             String path = StringUtils.replaceEach(channel,
                     new String[]{PATH_CHANNEL_ID, PATH_CHANNEL_ALIAS},
                     new String[]{String.valueOf(channelId), channelAlias});
@@ -714,7 +709,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             return path + SUFFIX;
         }
 
-        public String getChannelUrl(Integer channelId, String channelAlias, int page) {
+        public String getChannelUrl(Long channelId, String channelAlias, int page) {
             String path = getChannelPath(channelId, channelAlias, page);
             if (path.endsWith(DEFAULT_PAGE)) {
                 // /index.html 改为 / 结尾
@@ -723,7 +718,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             return path;
         }
 
-        public String getArticlePath(Integer channelId, String channelAlias, Integer articleId, @Nullable String articleAlias,
+        public String getArticlePath(Long channelId, String channelAlias, Long articleId, @Nullable String articleAlias,
                                      OffsetDateTime createdDate, int page) {
             String year = String.valueOf(createdDate.getYear());
             String month = StringUtils.leftPad(String.valueOf(createdDate.getMonthValue()), 2, '0');
@@ -820,5 +815,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      * 状态：关闭
      */
     public static final short STATUS_DISABLED = 1;
+
+    public static final String NOT_FOUND = "Site not found. ID = ";
     // endregion
 }

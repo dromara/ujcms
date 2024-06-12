@@ -24,7 +24,7 @@ public class TreeService<T extends TreeEntity, U extends TreeRelation> {
         insert(bean, null);
     }
 
-    public void insert(T bean, @Nullable Integer siteId) {
+    public void insert(T bean, @Nullable Long siteId) {
         if (bean.getParentId() != null) {
             T parent = entityMapper.select(bean.getParentId());
             bean.setDepth((short) ((parent != null ? parent.getDepth() : 0) + 1));
@@ -40,11 +40,11 @@ public class TreeService<T extends TreeEntity, U extends TreeRelation> {
         }
     }
 
-    public void update(T bean, @Nullable Integer parentId) {
+    public void update(T bean, @Nullable Long parentId) {
         update(bean, parentId, null);
     }
 
-    public void update(T bean, @Nullable Integer parentId, @Nullable Integer siteId) {
+    public void update(T bean, @Nullable Long parentId, @Nullable Long siteId) {
         // 处理树结构关系
         int origDepth = 0;
         int newDepth = 0;
@@ -119,11 +119,11 @@ public class TreeService<T extends TreeEntity, U extends TreeRelation> {
         }
     }
 
-    public int delete(Integer id, Integer order) {
+    public int delete(Long id, Integer order) {
         return delete(id, order, null);
     }
 
-    public int delete(Integer id, Integer order, @Nullable Integer siteId) {
+    public int delete(Long id, Integer order, @Nullable Long siteId) {
         relationMapper.deleteByAncestorId(id);
         // 后面的节点序号全部 -1
         entityMapper.updateOrder(order, Integer.MAX_VALUE, -1, siteId);

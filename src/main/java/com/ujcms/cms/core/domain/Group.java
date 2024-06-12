@@ -23,22 +23,24 @@ public class Group extends GroupBase implements Serializable {
      * 访问权限，栏目ID列表。非数据库属性，用于接收前台请求。
      */
     @Schema(description = "访问权限，栏目ID列表。非数据库属性，用于接收前台请求。")
-    private List<Integer> accessPermissions = new ArrayList<>();
+    private List<Long> accessPermissions = new ArrayList<>();
 
-    public List<Integer> getAccessPermissions() {
+    public List<Long> getAccessPermissions() {
         return accessPermissions;
     }
 
-    public void setAccessPermissions(List<Integer> accessPermissions) {
+    public void setAccessPermissions(List<Long> accessPermissions) {
         this.accessPermissions = accessPermissions;
     }
 
     /**
      * 游客组ID
      */
-    public static final Integer ANONYMOUS_ID = 1;
+    public static final Long ANONYMOUS_ID = 1L;
     /**
      * 默认会员组
      */
-    public static final Integer MEMBER_GROUP_ID = 10;
+    public static final Long MEMBER_GROUP_ID = 10L;
+
+    public static final String NOT_FOUND = "Group not found. ID: ";
 }

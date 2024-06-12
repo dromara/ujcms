@@ -23,28 +23,28 @@ public class SurveyItemFeedbackBase implements Serializable {
      */
     @NotNull
     @Schema(description="主键ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 问卷选项ID
      */
     @NotNull
     @Schema(description="问卷选项ID")
-    private Integer surveyItemId = 0;
+    private Long surveyItemId = 0L;
 
     /**
      * 问卷反馈ID
      */
     @NotNull
     @Schema(description="问卷反馈ID")
-    private Integer surveyFeedbackId = 0;
+    private Long surveyFeedbackId = 0L;
 
     /**
      * 问卷ID
      */
     @NotNull
     @Schema(description="问卷ID")
-    private Integer surveyId = 0;
+    private Long surveyId = 0L;
 
     /**
      * 回答
@@ -53,35 +53,35 @@ public class SurveyItemFeedbackBase implements Serializable {
     @Schema(description="回答")
     private String answer;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSurveyItemId() {
+    public Long getSurveyItemId() {
         return surveyItemId;
     }
 
-    public void setSurveyItemId(Integer surveyItemId) {
+    public void setSurveyItemId(Long surveyItemId) {
         this.surveyItemId = surveyItemId;
     }
 
-    public Integer getSurveyFeedbackId() {
+    public Long getSurveyFeedbackId() {
         return surveyFeedbackId;
     }
 
-    public void setSurveyFeedbackId(Integer surveyFeedbackId) {
+    public void setSurveyFeedbackId(Long surveyFeedbackId) {
         this.surveyFeedbackId = surveyFeedbackId;
     }
 
-    public Integer getSurveyId() {
+    public Long getSurveyId() {
         return surveyId;
     }
 
-    public void setSurveyId(Integer surveyId) {
+    public void setSurveyId(Long surveyId) {
         this.surveyId = surveyId;
     }
 

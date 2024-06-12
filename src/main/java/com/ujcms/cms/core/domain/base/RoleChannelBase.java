@@ -22,43 +22,43 @@ public class RoleChannelBase implements Serializable {
      */
     @NotNull
     @Schema(description="角色ID")
-    private Integer roleId = 0;
+    private Long roleId = 0L;
 
     /**
      * 栏目ID
      */
     @NotNull
     @Schema(description="栏目ID")
-    private Integer channelId = 0;
+    private Long channelId = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
-    public Integer getRoleId() {
+    public Long getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(Integer roleId) {
+    public void setRoleId(Long roleId) {
         this.roleId = roleId;
     }
 
-    public Integer getChannelId() {
+    public Long getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(Integer channelId) {
+    public void setChannelId(Long channelId) {
         this.channelId = channelId;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 }

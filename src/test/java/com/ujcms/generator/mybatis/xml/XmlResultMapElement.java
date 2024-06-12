@@ -15,7 +15,7 @@ public class XmlResultMapElement extends AbstractXmlElementGenerator {
     public void addElements(XmlElement parentElement) {
         XmlElement answer = new XmlElement("resultMap"); //$NON-NLS-1$
 
-        answer.addAttribute(new Attribute("id", introspectedTable.getResultMapWithBLOBsId()));
+        answer.addAttribute(new Attribute("id", "ResultMap"));
 
         String returnType;
         // if (introspectedTable.getRules().generateRecordWithBLOBsClass()) {
@@ -30,7 +30,7 @@ public class XmlResultMapElement extends AbstractXmlElementGenerator {
         answer.addAttribute(new Attribute("type", returnType));
 
         if (!introspectedTable.isConstructorBased()) {
-            answer.addAttribute(new Attribute("extends", introspectedTable.getBaseResultMapId()));
+            answer.addAttribute(new Attribute("extends", introspectedTable.getResultMapWithBLOBsId()));
         }
 
         context.getCommentGenerator().addComment(answer);

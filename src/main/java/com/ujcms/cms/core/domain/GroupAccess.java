@@ -19,7 +19,7 @@ public class GroupAccess extends GroupAccessBase implements Serializable {
     public GroupAccess() {
     }
 
-    public GroupAccess(Integer groupId, Integer channelId, Integer siteId) {
+    public GroupAccess(Long groupId, Long channelId, Long siteId) {
         setGroupId(groupId);
         setChannelId(channelId);
         setSiteId(siteId);

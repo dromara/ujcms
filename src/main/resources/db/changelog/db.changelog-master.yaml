@@ -29,4 +29,7 @@ databaseChangeLog:
   - include:
       file: liquibase.quartz.init.xml
       relativeToChangelogFile: true
+  - include:
+      file: db.changelog-9.5.yaml
+      relativeToChangelogFile: true
 

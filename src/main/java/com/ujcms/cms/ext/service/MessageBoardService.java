@@ -3,12 +3,11 @@ package com.ujcms.cms.ext.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.service.AttachmentService;
-import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.MessageBoard;
 import com.ujcms.cms.ext.domain.base.MessageBoardBase;
 import com.ujcms.cms.ext.mapper.MessageBoardMapper;
 import com.ujcms.cms.ext.service.args.MessageBoardArgs;
-import com.ujcms.cms.ext.service.args.SurveyArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.apache.commons.lang3.StringUtils;
@@ -28,21 +27,22 @@ import java.util.Objects;
 public class MessageBoardService {
     private final AttachmentService attachmentService;
     private final MessageBoardMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public MessageBoardService(AttachmentService attachmentService, MessageBoardMapper mapper, SeqService seqService) {
+    public MessageBoardService(AttachmentService attachmentService, MessageBoardMapper mapper,
+                               SnowflakeSequence snowflakeSequence) {
         this.attachmentService = attachmentService;
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(MessageBoard bean, Integer userId, String ip) {
-        bean.setId(seqService.getNextVal(MessageBoardBase.TABLE_NAME));
+    public void insert(MessageBoard bean, Long userId, String ip) {
+        bean.setId(snowflakeSequence.nextId());
         bean.setUserId(userId);
         bean.setIp(ip);
         mapper.insert(bean);
-        attachmentService.insertRefer(MessageBoardBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.insertRefer(MessageBoardBase.TABLE_NAME,bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -53,17 +53,17 @@ public class MessageBoardService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(int id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public MessageBoard select(int id) {
+    public MessageBoard select(Long id) {
         return mapper.select(id);
     }
 

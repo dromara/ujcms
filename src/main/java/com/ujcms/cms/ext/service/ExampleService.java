@@ -2,11 +2,11 @@ package com.ujcms.cms.ext.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
-import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.Example;
 import com.ujcms.cms.ext.domain.base.ExampleBase;
 import com.ujcms.cms.ext.mapper.ExampleMapper;
 import com.ujcms.cms.ext.service.args.ExampleArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 
@@ -25,16 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ExampleService {
     private final ExampleMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public ExampleService(ExampleMapper mapper, SeqService seqService) {
+    public ExampleService(ExampleMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Example bean) {
-        bean.setId(seqService.getNextVal(ExampleBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -44,17 +44,17 @@ public class ExampleService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public Example select(Integer id) {
+    public Example select(Long id) {
         return mapper.select(id);
     }
 

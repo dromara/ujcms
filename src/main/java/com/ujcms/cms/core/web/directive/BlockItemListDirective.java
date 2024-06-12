@@ -48,9 +48,9 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_ALL_SITE = "isAllSite";
 
-    public static List<BlockItem> query(Map<String, ?> params, Integer defaultSiteId, BlockItemService service) {
+    public static List<BlockItem> query(Map<String, ?> params, Long defaultSiteId, BlockItemService service) {
         BlockItemArgs args = BlockItemArgs.of();
-        Integer siteId = Directives.getInteger(params, SITE_ID);
+        Long siteId = Directives.getLong(params, SITE_ID);
 
         // 不获取所有站点，则给默认站点ID
         if (siteId == null && !getBoolean(params, IS_ALL_SITE, false)) {
@@ -58,7 +58,7 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
         }
         args.siteId(siteId);
 
-        Integer blockId = Directives.getInteger(params, BLOCK_ID);
+        Long blockId = Directives.getLong(params, BLOCK_ID);
         String blockAlias = Directives.getString(params, BLOCK);
         if (blockId != null) {
             args.blockId(blockId);

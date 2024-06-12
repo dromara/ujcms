@@ -69,6 +69,19 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
+        <table tableName="ujcms_form" domainObjectName="Form">
+            <property name="order" value="true"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_form_type" domainObjectName="FormType">
+            <property name="pageable" value="false"/>
+            <property name="order" value="true"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_form_ext" domainObjectName="FormExt">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
         <table tableName="ujcms_example" domainObjectName="Example"/>
     </context>
 </generatorConfiguration>

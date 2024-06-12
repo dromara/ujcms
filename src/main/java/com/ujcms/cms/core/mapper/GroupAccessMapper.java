@@ -32,7 +32,7 @@ public interface GroupAccessMapper {
      * @param channelId 栏目ID
      * @return 删除条数
      */
-    int delete(@Param("groupId") Integer groupId, @Param("channelId") Integer channelId);
+    int delete(@Param("groupId") Long groupId, @Param("channelId") Long channelId);
 
     /**
      * 根据查询条件获取列表
@@ -49,7 +49,7 @@ public interface GroupAccessMapper {
      * @param siteId  站点ID
      * @return 栏目ID列表
      */
-    List<Integer> listChannelByGroupId(@Param("groupId") Integer groupId, @Nullable @Param("siteId") Integer siteId);
+    List<Long> listChannelByGroupId(@Param("groupId") Long groupId, @Nullable @Param("siteId") Long siteId);
 
     /**
      * 根据 栏目ID 查询用户组ID列表
@@ -58,7 +58,7 @@ public interface GroupAccessMapper {
      * @param siteId    站点ID
      * @return 用户组ID列表
      */
-    List<Integer> listGroupByChannelId(@Param("channelId") Integer channelId, @Nullable @Param("siteId") Integer siteId);
+    List<Long> listGroupByChannelId(@Param("channelId") Long channelId, @Nullable @Param("siteId") Long siteId);
 
     /**
      * 根据 栏目ID 删除数据
@@ -66,7 +66,7 @@ public interface GroupAccessMapper {
      * @param channelId 栏目ID
      * @return 删除条数
      */
-    int deleteByChannelId(@Param("channelId") Integer channelId);
+    int deleteByChannelId(@Param("channelId") Long channelId);
 
     /**
      * 根据 用户组ID 删除数据
@@ -75,7 +75,7 @@ public interface GroupAccessMapper {
      * @param siteId  站点ID
      * @return 删除条数
      */
-    int deleteByGroupId(@Param("groupId") Integer groupId, @Nullable @Param("siteId") Integer siteId);
+    int deleteByGroupId(@Param("groupId") Long groupId, @Nullable @Param("siteId") Long siteId);
 
     /**
      * 根据站点ID删除数据
@@ -83,5 +83,5 @@ public interface GroupAccessMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

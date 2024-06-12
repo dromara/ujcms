@@ -3,7 +3,6 @@ package com.ujcms.cms.core.support;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ujcms.commons.security.Secures;
@@ -92,7 +91,7 @@ public final class Constants {
     public static final ObjectMapper MAPPER = JsonMapper.builder()
             .disable(MapperFeature.DEFAULT_VIEW_INCLUSION)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .addModule(new JavaTimeModule())
             .build();
 

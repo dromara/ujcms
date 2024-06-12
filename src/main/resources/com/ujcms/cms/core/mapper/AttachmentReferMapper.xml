@@ -2,42 +2,42 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.AttachmentReferMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.AttachmentRefer">
     <id column="id_" jdbcType="BIGINT" property="id" />
-    <result column="attachment_id_" jdbcType="INTEGER" property="attachmentId" />
+    <result column="attachment_id_" jdbcType="BIGINT" property="attachmentId" />
     <result column="refer_type_" jdbcType="VARCHAR" property="referType" />
-    <result column="refer_id_" jdbcType="INTEGER" property="referId" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.AttachmentRefer" />
+    <result column="refer_id_" jdbcType="BIGINT" property="referId" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.AttachmentRefer" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.AttachmentRefer" />
     <select id="listByAttachmentId" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_attachment_refer t
-        where t.attachment_id_ = #{attachmentId,jdbcType=INTEGER}
+        where t.attachment_id_ = #{attachmentId,jdbcType=BIGINT}
     </select>
     <select id="listByReferTypeAndReferId" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_attachment_refer t
         where t.refer_type_ = #{referType,jdbcType=VARCHAR}
-        and t.refer_id_ = #{referId,jdbcType=INTEGER}
+        and t.refer_id_ = #{referId,jdbcType=BIGINT}
     </select>
     <delete id="deleteByReferTypeAndReferId">
         delete
         from ujcms_attachment_refer
         where refer_type_ = #{referType,jdbcType=VARCHAR}
-          and refer_id_ = #{referId,jdbcType=INTEGER}
+          and refer_id_ = #{referId,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_attachment_refer
-        where attachment_id_ in (select t.id_ from ujcms_attachment t where t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where attachment_id_ in (select t.id_ from ujcms_attachment t where t.site_id_ = #{siteId,jdbcType=BIGINT})
     </delete>
     <select id="select" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_attachment_refer t
-        where t.attachment_id_ = #{attachmentId,jdbcType=INTEGER}
+        where t.attachment_id_ = #{attachmentId,jdbcType=BIGINT}
         and t.refer_type_ = #{referType,jdbcType=VARCHAR}
-        and t.refer_id_ = #{referId,jdbcType=INTEGER}
+        and t.refer_id_ = #{referId,jdbcType=BIGINT}
     </select>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
@@ -48,13 +48,13 @@
         </include>
     </select><update id="update" parameterType="com.ujcms.cms.core.domain.AttachmentRefer">
     update ujcms_attachment_refer
-    set attachment_id_ = #{attachmentId,jdbcType=INTEGER},
+    set attachment_id_ = #{attachmentId,jdbcType=BIGINT},
       refer_type_ = #{referType,jdbcType=VARCHAR},
-      refer_id_ = #{referId,jdbcType=INTEGER}
+      refer_id_ = #{referId,jdbcType=BIGINT}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.AttachmentRefer">
     insert into ujcms_attachment_refer (id_, attachment_id_, refer_type_, refer_id_)
-    values (#{id,jdbcType=BIGINT}, #{attachmentId,jdbcType=INTEGER}, #{referType,jdbcType=VARCHAR}, #{referId,jdbcType=INTEGER})
+    values (#{id,jdbcType=BIGINT}, #{attachmentId,jdbcType=BIGINT}, #{referType,jdbcType=VARCHAR}, #{referId,jdbcType=BIGINT})
   </insert><sql id="Column_List">
     t.id_, t.attachment_id_, t.refer_type_, t.refer_id_
   </sql></mapper>

@@ -23,14 +23,14 @@ public class VoteOptionBase implements Serializable {
      */
     @NotNull
     @Schema(description="投票选项ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 投票ID
      */
     @NotNull
     @Schema(description="投票ID")
-    private Integer voteId = 0;
+    private Long voteId = 0L;
 
     /**
      * 标题
@@ -52,21 +52,21 @@ public class VoteOptionBase implements Serializable {
      */
     @NotNull
     @Schema(description="排序")
-    private Integer order = 0;
+    private Integer order = 999999;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getVoteId() {
+    public Long getVoteId() {
         return voteId;
     }
 
-    public void setVoteId(Integer voteId) {
+    public void setVoteId(Long voteId) {
         this.voteId = voteId;
     }
 

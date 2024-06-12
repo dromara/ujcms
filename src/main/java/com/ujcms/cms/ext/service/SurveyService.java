@@ -38,32 +38,32 @@ public class SurveyService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void cast(Integer id, Map<Integer, List<Integer>> optionMap, Map<Integer, String> essayMap,
-                     Integer siteId, @Nullable Integer userId, String ip, long cookie) {
+    public void cast(Long id, Map<Long, List<Long>> optionMap, Map<Long, String> essayMap,
+                     Long siteId, @Nullable Long userId, String ip, long cookie) {
         mapper.cast(id);
         Survey survey = Optional.ofNullable(select(id)).orElseThrow(() ->
                 new IllegalStateException("Survey not found. ID: " + id));
         SurveyFeedback feedback = new SurveyFeedback(survey.getId(), siteId, userId, ip, cookie);
         feedbackService.insert(feedback);
-        for (Map.Entry<Integer, List<Integer>> option : optionMap.entrySet()) {
-            Integer itemId = option.getKey();
+        for (Map.Entry<Long, List<Long>> option : optionMap.entrySet()) {
+            Long itemId = option.getKey();
             optionMapper.cast(itemId, option.getValue());
             option.getValue().forEach(optionId -> feedbackService.insertOption(
                     new SurveyOptionFeedback(optionId, feedback.getId(), survey.getId(), itemId)));
         }
-        for (Map.Entry<Integer, String> essay : essayMap.entrySet()) {
+        for (Map.Entry<Long, String> essay : essayMap.entrySet()) {
             feedbackService.insertItem(new SurveyItemFeedback(essay.getKey(), feedback.getId(),
                     survey.getId(), essay.getValue()));
         }
     }
 
     @Nullable
-    public Survey select(Integer id) {
+    public Survey select(Long id) {
         return mapper.select(id);
     }
 
     public List<Survey> selectList(SurveyArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), SurveyBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), SurveyBase.TABLE_NAME, "order_desc,id_desc");
         return mapper.selectAll(queryInfo);
     }
 

@@ -3,6 +3,7 @@ package com.ujcms.cms.ext.domain;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.ext.domain.base.VoteBase;
 import com.ujcms.cms.ext.domain.base.VoteOptionBase;
+import com.ujcms.commons.db.order.OrderEntity;
 import com.ujcms.commons.web.Views;
 
 import java.io.Serializable;
@@ -15,7 +16,7 @@ import java.util.List;
  *
  * @author PONY
  */
-public class Vote extends VoteBase implements Serializable {
+public class Vote extends VoteBase implements Serializable, OrderEntity {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -83,4 +84,6 @@ public class Vote extends VoteBase implements Serializable {
      * 状态：已结束
      */
     public static final short STATUS_HAS_ENDED = 3;
+
+    public static final String NOT_FOUND = "Vote not found. ID: ";
 }

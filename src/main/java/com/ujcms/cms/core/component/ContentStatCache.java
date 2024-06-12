@@ -47,14 +47,14 @@ public class ContentStatCache {
     }
 
     @Cacheable(key = "'article'+#siteId")
-    public Map<String, Object> articleStat(Integer siteId) {
+    public Map<String, Object> articleStat(Long siteId) {
         int total = articleService.countByPublishDate(siteId, null, emptyList());
         int last7day = articleService.countByPublishDate(siteId, OffsetDateTime.now().minusDays(7), emptyList());
         return createResult(total, last7day);
     }
 
     @Cacheable(key = "'channel'+#siteId")
-    public Map<String, Object> channelStat(Integer siteId) {
+    public Map<String, Object> channelStat(Long siteId) {
         int total = channelService.countByCreated(siteId, null);
         int last7day = channelService.countByCreated(siteId, OffsetDateTime.now().minusDays(7));
         return createResult(total, last7day);
@@ -68,7 +68,7 @@ public class ContentStatCache {
     }
 
     @Cacheable(key = "'attachment'+#siteId")
-    public Map<String, Object> attachmentStat(Integer siteId) {
+    public Map<String, Object> attachmentStat(Long siteId) {
         int total = attachmentService.countByCreated(siteId, null);
         int last7day = attachmentService.countByCreated(siteId, OffsetDateTime.now().minusDays(7));
         return createResult(total, last7day);

@@ -22,43 +22,43 @@ public class GroupAccessBase implements Serializable {
      */
     @NotNull
     @Schema(description="用户组ID")
-    private Integer groupId = 0;
+    private Long groupId = 0L;
 
     /**
      * 栏目ID
      */
     @NotNull
     @Schema(description="栏目ID")
-    private Integer channelId = 0;
+    private Long channelId = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
-    public Integer getGroupId() {
+    public Long getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(Integer groupId) {
+    public void setGroupId(Long groupId) {
         this.groupId = groupId;
     }
 
-    public Integer getChannelId() {
+    public Long getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(Integer channelId) {
+    public void setChannelId(Long channelId) {
         this.channelId = channelId;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 }

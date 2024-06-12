@@ -17,7 +17,7 @@ public class Action extends ActionBase implements Serializable {
     }
 
     public Action(String refType, Long refId, String refOption,
-                  Integer siteId, @Nullable Integer userId, String ip, Long cookie) {
+                  Long siteId, @Nullable Long userId, String ip, Long cookie) {
         setRefType(refType);
         setRefId(refId);
         setRefOption(refOption);

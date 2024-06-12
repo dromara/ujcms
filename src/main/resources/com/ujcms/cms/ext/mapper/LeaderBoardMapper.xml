@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.LeaderBoardMapper">
-    <resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.LeaderBoard">
+    <resultMap id="ResultMap" type="com.ujcms.cms.ext.domain.LeaderBoard">
         <id column="id_" jdbcType="BIGINT" property="id"/>
         <result column="name_" jdbcType="VARCHAR" property="name"/>
         <result column="count_" jdbcType="BIGINT" property="count"/>
     </resultMap>
     <cache type="com.ujcms.cms.core.domain.cache.GlobalCache"/>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.LeaderBoard"/>
     <select id="channelLeaderBoard" resultMap="ResultMap">
         select t.id_, t.name_, count(article_.id_) AS count_
         from ujcms_channel t

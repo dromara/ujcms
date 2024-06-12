@@ -11,26 +11,26 @@ public interface TreeRelation {
      *
      * @return 祖先ID
      */
-    Integer getAncestorId();
+    Long getAncestorId();
 
     /**
      * 设置祖先ID
      *
      * @param ancestorId 祖先ID
      */
-    void setAncestorId(Integer ancestorId);
+    void setAncestorId(Long ancestorId);
 
     /**
      * 获取后代ID
      *
      * @return 后代ID
      */
-    Integer getDescendantId();
+    Long getDescendantId();
 
     /**
      * 设置后代ID
      *
      * @param descendantId 后代ID
      */
-    void setDescendantId(Integer descendantId);
+    void setDescendantId(Long descendantId);
 }

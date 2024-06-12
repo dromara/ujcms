@@ -16,4 +16,6 @@ import java.io.Serializable;
 @JsonIgnoreProperties("handler")
 public class Dict extends DictBase implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    public static final String NOT_FOUND = "Dict not found. ID: ";
 }

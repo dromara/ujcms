@@ -59,12 +59,12 @@ public class ChannelController {
         return channel.getTemplate();
     }
 
-    public static boolean hasAccessPermission(Group group, Integer siteId, Integer channelId,
+    public static boolean hasAccessPermission(Group group, Long siteId, Long channelId,
                                               GroupService groupService) {
         if (Boolean.TRUE.equals(group.getAllAccessPermission())) {
             return true;
         }
-        List<Integer> channelIds = groupService.listAccessPermissions(group.getId(), siteId);
+        List<Long> channelIds = groupService.listAccessPermissions(group.getId(), siteId);
         return channelIds.contains(channelId);
     }
 

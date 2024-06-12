@@ -51,7 +51,7 @@ public class MessageBoardTypeController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('messageBoardType:show','*')")
-    public MessageBoardType show(@PathVariable("id") int id) {
+    public MessageBoardType show(@PathVariable("id") Long id) {
         Site site = Contexts.getCurrentSite();
         MessageBoardType messageBoardType = Optional.ofNullable(service.select(id))
                 .orElseThrow(() -> new Http404Exception(NOT_FOUND + id));
@@ -102,9 +102,9 @@ public class MessageBoardTypeController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('messageBoardType:delete','*')")
     @OperationLog(module = "messageBoardType", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         Site site = Contexts.getCurrentSite();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             MessageBoardType bean = Optional.ofNullable(service.select(id))
                     .orElseThrow(() -> new Http400Exception(NOT_FOUND + id));
             ValidUtils.dataInSite(bean.getSiteId(), site.getId());

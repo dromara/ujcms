@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.site//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.GroupMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Group">
-    <id column="id_" jdbcType="INTEGER" property="id" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
     <result column="all_access_permission_" jdbcType="CHAR" property="allAccessPermission" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
-    <result column="order_" jdbcType="SMALLINT" property="order" />
-  </resultMap>
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Group" />
     <cache type="com.ujcms.cms.core.domain.cache.GroupCache" />
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Group" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Group" />
     <select id="listByChannelId" resultMap="ResultMap">
         select
         <include refid="Column_List" />
@@ -25,27 +25,27 @@
             <property name="tableName" value="ujcms_group" />
         </include>
     </select>
-    <select id="select" parameterType="int" resultMap="ResultMap">
+    <select id="select" parameterType="long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_group t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="int">
+    <delete id="delete" parameterType="long">
         delete
         from ujcms_group
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Group">
     update ujcms_group
     set name_ = #{name,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
       all_access_permission_ = #{allAccessPermission,jdbcType=CHAR},
       type_ = #{type,jdbcType=SMALLINT},
-      order_ = #{order,jdbcType=SMALLINT}
-    where id_ = #{id,jdbcType=INTEGER}
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Group">
     insert into ujcms_group (id_, name_, description_, all_access_permission_, type_, order_)
-    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allAccessPermission,jdbcType=CHAR}, #{type,jdbcType=SMALLINT}, #{order,jdbcType=SMALLINT})
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allAccessPermission,jdbcType=CHAR}, #{type,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER})
   </insert><sql id="Column_List">
     t.id_, t.name_, t.description_, t.all_access_permission_, t.type_, t.order_
   </sql></mapper>

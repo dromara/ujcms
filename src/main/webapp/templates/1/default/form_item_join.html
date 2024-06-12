@@ -1,0 +1,52 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>表单详情 - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#include 'inc_header.html'/]
+[#include 'inc_message_box.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item"><a href="${dy}/form-list/${formType.id?c}">${formType.name}</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-4">
+  <table class="table table-bordered">
+    <tbody>
+    <tr>
+      <th scope="row" class="w-25">联系人</th>
+      <td>${form.customs['contactPerson']}</td>
+    </tr>
+    <tr>
+      <th scope="row">联系电话</th>
+      <td>${form.customs['phone']}</td>
+    </tr>
+    <tr>
+      <th scope="row">联系地址</th>
+      <td>${form.customs['address']}</td>
+    </tr>
+    <tr>
+      <th scope="row">从业经历</th>
+      <td>${form.customs['experience']}</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+[#include 'inc_footer.html'/]
+</body>
+</html>
+[/#escape]

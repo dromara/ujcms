@@ -39,7 +39,7 @@ public interface TaskMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface TaskMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Task select(Integer id);
+    Task select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -64,7 +64,7 @@ public interface TaskMapper {
      * @param userId 用户ID
      * @return 删除条数
      */
-    int deleteByUserId(@Param("userId") Integer userId);
+    int deleteByUserId(@Param("userId") Long userId);
 
     /**
      * 根据站点ID删除数据
@@ -72,5 +72,5 @@ public interface TaskMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

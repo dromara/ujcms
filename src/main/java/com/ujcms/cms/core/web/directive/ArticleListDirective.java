@@ -91,9 +91,9 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_ALL_SITE = "isAllSite";
 
-    private static Collection<Integer> getChannelIds(
-            Map<String, ?> params, @Nullable Integer siteId, Boolean isIncludeSubSite, ChannelService channelService) {
-        Collection<Integer> channelIds = Optional.ofNullable(getIntegers(params, CHANNEL_ID))
+    private static Collection<Long> getChannelIds(
+            Map<String, ?> params, @Nullable Long siteId, Boolean isIncludeSubSite, ChannelService channelService) {
+        Collection<Long> channelIds = Optional.ofNullable(getLongs(params, CHANNEL_ID))
                 .orElse(Collections.emptyList());
         if (CollectionUtils.isEmpty(channelIds)) {
             Collection<String> channelAlias = getStrings(params, CHANNEL);
@@ -105,16 +105,16 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         return channelIds;
     }
 
-    public static void assemble(ArticleArgs args, Map<String, ?> params, Integer defaultSiteId,
+    public static void assemble(ArticleArgs args, Map<String, ?> params, Long defaultSiteId,
                                 ChannelService channelService) {
-        Integer siteId = getInteger(params, SITE_ID);
+        Long siteId = getLong(params, SITE_ID);
         // 不获取所有站点，则给默认站点ID
         if (siteId == null && !getBoolean(params, IS_ALL_SITE, false)) {
             siteId = defaultSiteId;
         }
         Boolean isIncludeSubSite = getBoolean(params, IS_INCLUDE_SUB_SITE, false);
 
-        Collection<Integer> channelIds = getChannelIds(params, siteId, isIncludeSubSite, channelService);
+        Collection<Long> channelIds = getChannelIds(params, siteId, isIncludeSubSite, channelService);
         if (CollectionUtils.isNotEmpty(channelIds)) {
             if (Boolean.TRUE.equals(getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true))) {
                 args.channelAncestorIds(channelIds);
@@ -135,14 +135,14 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         }
         args.status(status);
 
-        Optional.ofNullable(Directives.getInteger(params, TAG_ID)).ifPresent(args::tagId);
+        Optional.ofNullable(Directives.getLong(params, TAG_ID)).ifPresent(args::tagId);
         Optional.ofNullable(Directives.getOffsetDateTime(params, BEGIN_PUBLISH_DATE)).ifPresent(args::gePublishDate);
         Optional.ofNullable(Directives.getOffsetDateTime(params, END_PUBLISH_DATE)).ifPresent(args::lePublishDate);
         Optional.ofNullable(getBoolean(params, IS_WITH_IMAGE)).ifPresent(args::isWithImage);
         Optional.ofNullable(Directives.getString(params, Q)).ifPresent(args::q);
         Optional.ofNullable(Directives.getString(params, TITLE)).ifPresent(args::containsTitle);
         Optional.ofNullable(Directives.getString(params, TEXT)).ifPresent(args::containText);
-        Optional.ofNullable(Directives.getIntegers(params, EXCLUDE_ID)).ifPresent(args::excludeIds);
+        Optional.ofNullable(Directives.getLongs(params, EXCLUDE_ID)).ifPresent(args::excludeIds);
 
         Directives.handleOrderBy(args.getQueryMap(), params, "order_desc");
     }

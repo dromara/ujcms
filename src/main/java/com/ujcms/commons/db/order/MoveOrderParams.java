@@ -12,23 +12,23 @@ public class MoveOrderParams implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @NotNull
-    private Integer fromId;
+    private Long fromId;
     @NotNull
-    private Integer toId;
+    private Long toId;
 
-    public Integer getFromId() {
+    public Long getFromId() {
         return fromId;
     }
 
-    public void setFromId(Integer fromId) {
+    public void setFromId(Long fromId) {
         this.fromId = fromId;
     }
 
-    public Integer getToId() {
+    public Long getToId() {
         return toId;
     }
 
-    public void setToId(Integer toId) {
+    public void setToId(Long toId) {
         this.toId = toId;
     }
 }

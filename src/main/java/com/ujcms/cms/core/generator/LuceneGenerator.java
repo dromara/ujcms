@@ -25,15 +25,15 @@ public class LuceneGenerator extends AbstractGenerator {
         this.articleLucene = articleLucene;
     }
 
-    public void reindex(Integer taskSiteId, Integer taskUserId, String taskName) {
+    public void reindex(Long taskSiteId, Long taskUserId, String taskName) {
         reindex(taskSiteId, taskUserId, taskName, null);
     }
 
-    public void reindex(Integer taskSiteId, Integer taskUserId, String taskName, @Nullable Integer siteId) {
+    public void reindex(Long taskSiteId, Long taskUserId, String taskName, @Nullable Long siteId) {
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_LUCENE, false, taskId -> doReindex(taskId, siteId));
     }
 
-    private void doReindex(Integer taskId, @Nullable Integer siteId) {
+    private void doReindex(Long taskId, @Nullable Long siteId) {
         if (siteId != null) {
             articleLucene.deleteBySiteId(siteId);
         } else {

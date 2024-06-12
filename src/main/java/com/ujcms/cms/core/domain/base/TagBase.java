@@ -25,21 +25,21 @@ public class TagBase implements Serializable {
      */
     @NotNull
     @Schema(description="TagID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 创建用户ID
      */
     @NotNull
     @Schema(description="创建用户ID")
-    private Integer userId = 0;
+    private Long userId = 0L;
 
     /**
      * 名称
@@ -71,27 +71,27 @@ public class TagBase implements Serializable {
     @Schema(description="引用数量")
     private Integer refers = 0;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

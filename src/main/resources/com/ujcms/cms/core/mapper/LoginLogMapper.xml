@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.LoginLogMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.LoginLog">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
     <result column="login_name_" jdbcType="VARCHAR" property="loginName" />
     <result column="ip_" jdbcType="VARCHAR" property="ip" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.LoginLog">
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.LoginLog" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.LoginLog">
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
     </resultMap>
-    <delete id="deleteByUserId" parameterType="int">
+    <delete id="deleteByUserId" parameterType="long">
         delete
         from ujcms_login_log
-        where user_id_ = #{userId,jdbcType=INTEGER}
+        where user_id_ = #{userId,jdbcType=BIGINT}
     </delete>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
@@ -25,28 +25,28 @@
             <property name="tableName" value="ujcms_login_log" />
         </include>
     </select>
-    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_login_log t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="java.lang.Integer">
+    <delete id="delete" parameterType="java.lang.Long">
         delete
         from ujcms_login_log
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.LoginLog">
     update ujcms_login_log
-    set user_id_ = #{userId,jdbcType=INTEGER},
+    set user_id_ = #{userId,jdbcType=BIGINT},
       login_name_ = #{loginName,jdbcType=VARCHAR},
       ip_ = #{ip,jdbcType=VARCHAR},
       created_ = #{created,jdbcType=TIMESTAMP},
       type_ = #{type,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.LoginLog">
     insert into ujcms_login_log (id_, user_id_, login_name_, ip_, created_, type_, status_)
-    values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{loginName,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{loginName,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
   </insert><sql id="Column_List">
     t.id_, t.user_id_, t.login_name_, t.ip_, t.created_, t.type_, t.status_
   </sql></mapper>

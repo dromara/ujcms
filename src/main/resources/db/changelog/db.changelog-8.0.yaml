@@ -1053,6 +1053,7 @@ databaseChangeLog:
       id: 1691295938978-1
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:dff193fa8269826ae05a82ad6e030c62
         - addColumn:
             columns:
               - column:
@@ -1061,7 +1062,7 @@ databaseChangeLog:
                   defaultValue: DIRECT
                   name: source_type_
                   remarks: 来源类型(DIRECT:直接访问,INNER:内部链接,OUTER:外部链接,SEARCH:搜索引擎)
-                  type: VARCHAR(20 BYTE)
+                  type: VARCHAR(20)
             tableName: ujcms_visit_log
   - changeSet:
       id: 1691380534562-1
@@ -1283,12 +1284,13 @@ databaseChangeLog:
       id: 1693018299934-2
       author: PONY (generated)
       changes:
+        - validCheckSum: 8:952636977f5d7697808a3098bd1d8d60
         - addColumn:
             columns:
               - column:
                   name: real_name_
                   remarks: 真实姓名
-                  type: VARCHAR(150 BYTE)
+                  type: VARCHAR(150)
             tableName: ujcms_user
   - changeSet:
       id: 1693018299934-3

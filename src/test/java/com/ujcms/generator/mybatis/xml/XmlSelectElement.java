@@ -20,7 +20,7 @@ public class XmlSelectElement extends AbstractXmlElementGenerator {
         XmlElement answer = new XmlElement("select"); //$NON-NLS-1$
 
         answer.addAttribute(new Attribute("id", introspectedTable.getSelectByPrimaryKeyStatementId())); //$NON-NLS-1$
-        answer.addAttribute(new Attribute("resultMap", introspectedTable.getResultMapWithBLOBsId()));
+        answer.addAttribute(new Attribute("resultMap","ResultMap"));
 
         String parameterType;
         // PK fields are in the base class. If more than on PK

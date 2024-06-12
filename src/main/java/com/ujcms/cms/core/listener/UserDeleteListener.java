@@ -11,5 +11,5 @@ public interface UserDeleteListener {
      *
      * @param userId 用户ID
      */
-    void preUserDelete(Integer userId);
+    void preUserDelete(Long userId);
 }

@@ -26,4 +26,15 @@ public class DictType extends DictTypeBase implements Serializable {
     public boolean isGlobal() {
         return getScope() == SCOPE_GLOBAL;
     }
+
+    /**
+     * 数据类型：字符串
+     */
+    public static final short DATA_TYPE_STRING = 0;
+    /**
+     * 数据类型：整型
+     */
+    public static final short DATA_TYPE_INTEGER = 1;
+
+    public static final String NOT_FOUND = "DictType not found. ID: ";
 }

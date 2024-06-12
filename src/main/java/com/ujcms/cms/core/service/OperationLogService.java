@@ -10,6 +10,7 @@ import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.OperationLogExtMapper;
 import com.ujcms.cms.core.mapper.OperationLogMapper;
 import com.ujcms.cms.core.service.args.OperationLogArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -29,18 +30,19 @@ import java.util.Objects;
 public class OperationLogService implements SiteDeleteListener, UserDeleteListener {
     private final OperationLogExtMapper extMapper;
     private final OperationLogMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public OperationLogService(OperationLogExtMapper extMapper, OperationLogMapper mapper, SeqService seqService) {
+    public OperationLogService(OperationLogExtMapper extMapper, OperationLogMapper mapper,
+                               SnowflakeSequence snowflakeSequence) {
         this.extMapper = extMapper;
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void asyncInsert(OperationLog bean, OperationLogExt ext) {
-        bean.setId(seqService.getNextLongVal(OperationLogBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
         ext.setId(bean.getId());
         extMapper.insert(ext);
@@ -76,7 +78,7 @@ public class OperationLogService implements SiteDeleteListener, UserDeleteListen
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         extMapper.deleteBySiteId(siteId);
         mapper.deleteBySiteId(siteId);
     }
@@ -87,7 +89,7 @@ public class OperationLogService implements SiteDeleteListener, UserDeleteListen
     }
 
     @Override
-    public void preUserDelete(Integer userId) {
+    public void preUserDelete(Long userId) {
         extMapper.deleteByUserId(userId);
         mapper.deleteByUserId(userId);
     }

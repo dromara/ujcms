@@ -23,7 +23,7 @@ public class Task extends TaskBase implements Serializable {
     public Task() {
     }
 
-    public Task(Integer siteId, Integer userId, String name, short type) {
+    public Task(Long siteId, Long userId, String name, short type) {
         setSiteId(siteId);
         setUserId(userId);
         setName(name);
@@ -34,7 +34,8 @@ public class Task extends TaskBase implements Serializable {
      * 获取运行时间
      */
     public long getProcessedIn() {
-        long endMillis = getEndDate() != null ? getEndDate().toInstant().toEpochMilli() : System.currentTimeMillis();
+        OffsetDateTime endDate = getEndDate();
+        long endMillis = endDate != null ? endDate.toInstant().toEpochMilli() : System.currentTimeMillis();
         return (endMillis - getBeginDate().toInstant().toEpochMilli()) / 1000;
     }
 
@@ -88,4 +89,6 @@ public class Task extends TaskBase implements Serializable {
      * 状态：完成
      */
     public static final short STATUS_DONE = 4;
+
+    public static final String NOT_FOUND = "Task not found. ID: ";
 }

@@ -47,7 +47,7 @@ public class MessageBoardController {
     }
 
     @GetMapping({"/message-board/{id}", "/{subDir:[\\w-]+}/message-board/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Integer id,
+    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
                        HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
         validate(site);

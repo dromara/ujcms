@@ -11,5 +11,5 @@ public interface SiteDeleteListener extends DeleteListenerOrder {
      *
      * @param siteId 站点ID
      */
-    void preSiteDelete(Integer siteId);
+    void preSiteDelete(Long siteId);
 }

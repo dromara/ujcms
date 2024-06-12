@@ -19,7 +19,7 @@ public class RoleArticle extends RoleArticleBase implements Serializable {
     public RoleArticle() {
     }
 
-    public RoleArticle(Integer roleId, Integer channelId, Integer siteId) {
+    public RoleArticle(Long roleId, Long channelId, Long siteId) {
         setRoleId(roleId);
         setChannelId(channelId);
         setSiteId(siteId);

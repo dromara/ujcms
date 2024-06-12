@@ -12,9 +12,9 @@ import java.util.Map;
  * @author PONY
  */
 public class TaskArgs extends BaseQueryArgs {
-    public TaskArgs siteId(@Nullable Integer siteId) {
+    public TaskArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

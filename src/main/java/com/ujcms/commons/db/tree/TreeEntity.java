@@ -13,28 +13,28 @@ public interface TreeEntity {
      *
      * @return ID
      */
-    Integer getId();
+    Long getId();
 
     /**
      * 设置ID
      *
      * @param id ID
      */
-    void setId(Integer id);
+    void setId(Long id);
 
     /**
      * 获取上级节点ID
      *
      * @return 上级节点ID
      */
-    Integer getParentId();
+    Long getParentId();
 
     /**
      * 设置上级节点ID
      *
      * @param parentId 上级节点ID
      */
-    void setParentId(Integer parentId);
+    void setParentId(Long parentId);
 
     /**
      * 获取上级节点

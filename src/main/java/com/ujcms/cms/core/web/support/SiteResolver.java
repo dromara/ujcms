@@ -41,7 +41,7 @@ public class SiteResolver {
         return resolve(request);
     }
 
-    public Site resolve(HttpServletRequest request, @Nullable Integer siteId) {
+    public Site resolve(HttpServletRequest request, @Nullable Long siteId) {
         if (siteId != null) {
             Site site = Optional.ofNullable(siteService.select(siteId))
                     .orElseThrow(() -> {
@@ -58,7 +58,7 @@ public class SiteResolver {
         String domain = request.getServerName();
         Site site = siteService.findByDomain(domain);
         if (site == null) {
-            int defaultSiteId = configService.getUnique().getDefaultSiteId();
+            Long defaultSiteId = configService.getUnique().getDefaultSiteId();
             site = Optional.ofNullable(siteService.select(defaultSiteId))
                     .orElseThrow(() -> new IllegalStateException("Default site not found: " + defaultSiteId));
         }

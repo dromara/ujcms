@@ -118,7 +118,7 @@ public class XmlFileMerger {
             if (!(node instanceof Element)) continue;
             Element element = (Element) node;
             String id = element.getAttribute("id");
-            if (!"BaseResultMap".equals(id) && !"Column_List".equals(id) && !"insert".equals(id) && !"update".equals(id))
+            if (!"BaseResultMap".equals(id) && !"ResultMapWithBLOBs".equals(id) && !"Column_List".equals(id) && !"insert".equals(id) && !"update".equals(id))
                 continue;
             // don't add the last node if it is only white space
             if (i == length - 1 && isWhiteSpace(node)) {
@@ -127,7 +127,7 @@ public class XmlFileMerger {
 
             Node newNode = existingDocument.importNode(node, true);
             // BaseResultMap 放到第一位，其它放到最后。
-            if (firstChild != null && "BaseResultMap".equals(id)) {
+            if (firstChild != null && ("BaseResultMap".equals(id) || "ResultMapWithBLOBs".equals(id))) {
                 existingRootElement.insertBefore(newNode, firstChild);
             } else {
                 existingRootElement.appendChild(newNode);
@@ -148,7 +148,7 @@ public class XmlFileMerger {
         if (!(node instanceof Element)) return false;
         Element element = (Element) node;
         String id = element.getAttribute("id");
-        return "BaseResultMap".equals(id) || "Column_List".equals(id) || "insert".equals(id) || "update".equals(id);
+        return "BaseResultMap".equals(id) || "ResultMapWithBLOBs".equals(id) || "Column_List".equals(id) || "insert".equals(id) || "update".equals(id);
         // return node != null
         //         && node.getNodeType() == Node.ELEMENT_NODE
         //         && (isOldFormatNode(node) || isNewFormatNode(node));

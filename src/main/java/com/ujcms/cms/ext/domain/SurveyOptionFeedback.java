@@ -16,7 +16,7 @@ public class SurveyOptionFeedback extends SurveyOptionFeedbackBase implements Se
     public SurveyOptionFeedback() {
     }
 
-    public SurveyOptionFeedback(Integer surveyOptionId, Integer surveyFeedbackId, Integer surveyId, Integer surveyItemId) {
+    public SurveyOptionFeedback(Long surveyOptionId, Long surveyFeedbackId, Long surveyId, Long surveyItemId) {
         setSurveyOptionId(surveyOptionId);
         setSurveyFeedbackId(surveyFeedbackId);
         setSurveyId(surveyId);

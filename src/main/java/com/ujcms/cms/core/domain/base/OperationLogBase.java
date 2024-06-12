@@ -31,14 +31,14 @@ public class OperationLogBase implements Serializable {
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 用户ID
      */
     @NotNull
     @Schema(description="用户ID")
-    private Integer userId = 0;
+    private Long userId = 0L;
 
     /**
      * 名称
@@ -108,19 +108,19 @@ public class OperationLogBase implements Serializable {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

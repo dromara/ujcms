@@ -72,7 +72,7 @@ public class MessageBoardController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('messageBoard:show','*')")
-    public MessageBoard show(@PathVariable int id) {
+    public MessageBoard show(@PathVariable Long id) {
         MessageBoard bean = service.select(id);
         if (bean == null) {
             throw new Http404Exception("MessageBoard not found. ID = " + id);
@@ -120,7 +120,7 @@ public class MessageBoardController {
     @PreAuthorize("hasAnyAuthority('messageBoard:updateStatus','*')")
     @OperationLog(module = "messageBoard", operation = "updateStatus", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateStatus(@RequestBody @Valid UpdateStatusParams params) {
-        Integer siteId = Contexts.getCurrentSiteId();
+        Long siteId = Contexts.getCurrentSiteId();
         params.ids.stream().filter(Objects::nonNull).map(service::select)
                 .filter(Objects::nonNull).forEach(bean -> {
             ValidUtils.dataInSite(bean.getSiteId(), siteId);
@@ -133,12 +133,12 @@ public class MessageBoardController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('messageBoard:delete','*')")
     @OperationLog(module = "messageBoard", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
-        for (Integer id : ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
+        Long siteId = Contexts.getCurrentSiteId();
+        for (Long id : ids) {
             MessageBoard bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception("MessageBoard not found. id: " + id);
+                throw new Http400Exception(MessageBoard.NOT_FOUND + id);
             }
             ValidUtils.dataInSite(bean.getSiteId(), siteId);
             service.delete(id);
@@ -150,17 +150,17 @@ public class MessageBoardController {
         private static final long serialVersionUID = 1L;
 
         @NotNull
-        private List<Integer> ids;
+        private List<Long> ids;
         @NotNull
         @Min(0)
         @Max(2)
         private Short status;
 
-        public List<Integer> getIds() {
+        public List<Long> getIds() {
             return ids;
         }
 
-        public void setIds(List<Integer> ids) {
+        public void setIds(List<Long> ids) {
             this.ids = ids;
         }
 

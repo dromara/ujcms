@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.BlockItemMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.BlockItem">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
-    <result column="block_id_" jdbcType="INTEGER" property="blockId" />
-    <result column="article_id_" jdbcType="INTEGER" property="articleId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="block_id_" jdbcType="BIGINT" property="blockId" />
+    <result column="article_id_" jdbcType="BIGINT" property="articleId" />
     <result column="title_" jdbcType="VARCHAR" property="title" />
     <result column="subtitle_" jdbcType="VARCHAR" property="subtitle" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
@@ -14,9 +14,9 @@
     <result column="video_" jdbcType="VARCHAR" property="video" />
     <result column="target_blank_" jdbcType="CHAR" property="targetBlank" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
-    <result column="order_" jdbcType="SMALLINT" property="order" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.BlockItem">
+    <result column="order_" jdbcType="BIGINT" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.BlockItem" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.BlockItem">
         <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.select" />
         <association column="block_id_" javaType="com.ujcms.cms.core.domain.Block" property="block" select="com.ujcms.cms.core.mapper.BlockMapper.select" />
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
@@ -24,14 +24,14 @@
     <select id="countByBlockIdAndArticleId" resultType="int">
         select count(*)
         from ujcms_block_item t
-        where t.block_id_ = #{blockId,jdbcType=INTEGER}
-          and t.article_id_ = #{articleId,jdbcType=INTEGER}
+        where t.block_id_ = #{blockId}
+          and t.article_id_ = #{articleId}
     </select>
     <select id="listByArticleId" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_block_item t
-        where t.article_id_ = #{articleId,jdbcType=INTEGER}
+        where t.article_id_ = #{articleId,jdbcType=BIGINT}
     </select>
     <select id="existsByBlockId" resultType="int">
         select case
@@ -44,26 +44,41 @@
                    else 0
                    end as non_zero_exists
     </select>
-    <delete id="deleteByArticleId" parameterType="int">
+    <delete id="deleteByArticleId" parameterType="long">
         delete
         from ujcms_block_item
-        where article_id_ = #{articleId,jdbcType=INTEGER}
+        where article_id_ = #{articleId}
     </delete>
-    <delete id="deleteByBlockId" parameterType="int">
+    <delete id="deleteByBlockId" parameterType="long">
         delete
         from ujcms_block_item
-        where block_id_ = #{blockId,jdbcType=INTEGER}
+        where block_id_ = #{blockId,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteByChannelId" parameterType="int">
+    <delete id="deleteByChannelId" parameterType="long">
         delete
         from ujcms_block_item
-        where article_id_ in (select t.id_ from ujcms_article t where t.channel_id_ = #{siteId,jdbcType=INTEGER})
+        where article_id_ in (select t.id_ from ujcms_article t where t.channel_id_ = #{siteId,jdbcType=BIGINT})
     </delete>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_block_item
-        where site_id_ = #{siteId,jdbcType=INTEGER}
+        where site_id_ = #{siteId,jdbcType=BIGINT}
     </delete>
+    <update id="moveUp">
+        update ujcms_block_item
+        set order_ = order_ + 1
+        where order_ &lt; #{from} and order_ &gt;= #{to}
+    </update>
+    <update id="moveDown">
+        update ujcms_block_item
+        set order_ = order_ - 1
+        where order_ &gt; #{from} and order_ &lt;= #{to}
+    </update>
+    <update id="updateOrder">
+        update ujcms_block_item
+        set order_ = #{order}
+        where id_ = #{id}
+    </update>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
@@ -72,21 +87,21 @@
             <property name="tableName" value="ujcms_block_item" />
         </include>
     </select>
-    <select id="select" parameterType="int" resultMap="ResultMap">
+    <select id="select" parameterType="long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_block_item t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="int">
+    <delete id="delete" parameterType="long">
         delete
         from ujcms_block_item
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.BlockItem">
     update ujcms_block_item
-    set site_id_ = #{siteId,jdbcType=INTEGER},
-      block_id_ = #{blockId,jdbcType=INTEGER},
-      article_id_ = #{articleId,jdbcType=INTEGER},
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      block_id_ = #{blockId,jdbcType=BIGINT},
+      article_id_ = #{articleId,jdbcType=BIGINT},
       title_ = #{title,jdbcType=VARCHAR},
       subtitle_ = #{subtitle,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
@@ -95,12 +110,11 @@
       mobile_image_ = #{mobileImage,jdbcType=VARCHAR},
       video_ = #{video,jdbcType=VARCHAR},
       target_blank_ = #{targetBlank,jdbcType=CHAR},
-      enabled_ = #{enabled,jdbcType=CHAR},
-      order_ = #{order,jdbcType=SMALLINT}
-    where id_ = #{id,jdbcType=INTEGER}
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.BlockItem">
     insert into ujcms_block_item (id_, site_id_, block_id_, article_id_, title_, subtitle_, description_, link_url_, image_, mobile_image_, video_, target_blank_, enabled_, order_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{blockId,jdbcType=INTEGER}, #{articleId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{mobileImage,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=SMALLINT})
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{blockId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{mobileImage,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.block_id_, t.article_id_, t.title_, t.subtitle_, t.description_, t.link_url_, t.image_, t.mobile_image_, t.video_, t.target_blank_, t.enabled_, t.order_
   </sql></mapper>

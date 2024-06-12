@@ -61,10 +61,10 @@ public class DictTypeController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('dictType:show','*')")
-    public Object show(@PathVariable Integer id) {
+    public Object show(@PathVariable Long id) {
         DictType bean = service.select(id);
         if (bean == null) {
-            throw new Http400Exception("DictType not found. ID = " + id);
+            throw new Http400Exception(DictType.NOT_FOUND + id);
         }
         return bean;
     }
@@ -90,7 +90,7 @@ public class DictTypeController {
         User user = Contexts.getCurrentUser();
         DictType dictType = service.select(bean.getId());
         if (dictType == null) {
-            throw new Http400Exception("DictType not found. ID = " + bean.getId());
+            throw new Http400Exception(DictType.NOT_FOUND + bean.getId());
         }
         boolean origGlobal = dictType.isGlobal();
         String origAlias = dictType.getAlias();
@@ -103,14 +103,14 @@ public class DictTypeController {
     @PutMapping("order")
     @PreAuthorize("hasAnyAuthority('dictType:update','*')")
     @OperationLog(module = "dictType", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
+    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
+        Long siteId = Contexts.getCurrentSiteId();
         User user = Contexts.getCurrentUser();
         List<DictType> list = new ArrayList<>();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             DictType bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception("DictType not found. ID = " + id);
+                throw new Http400Exception(DictType.NOT_FOUND + id);
             }
             dataInSite(bean.getSiteId(), siteId);
             globalPermission(bean.isGlobal(), user.hasGlobalPermission());
@@ -123,25 +123,25 @@ public class DictTypeController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('dictType:delete','*')")
     @OperationLog(module = "dictType", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
+        Long siteId = Contexts.getCurrentSiteId();
         User user = Contexts.getCurrentUser();
-        ids.forEach(id -> {
+        for (Long id : ids) {
             DictType bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception("DictType not found. ID = " + id);
+                throw new Http400Exception(DictType.NOT_FOUND + id);
             }
             dataInSite(bean.getSiteId(), siteId);
             globalPermission(bean.isGlobal(), user.hasGlobalPermission());
             service.delete(id);
-        });
+        }
         return Responses.ok();
     }
 
     @GetMapping("alias-exist")
     @PreAuthorize("hasAnyAuthority('dictType:validation','*')")
     public boolean aliasExist(@NotBlank String alias, int scope) {
-        Integer siteId = SCOPE_GLOBAL != scope ? getCurrentSiteId() : null;
+        Long siteId = SCOPE_GLOBAL != scope ? getCurrentSiteId() : null;
         return service.existsByAlias(alias, siteId);
     }
 

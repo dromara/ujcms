@@ -24,9 +24,9 @@ public class OperationLogArgs extends BaseQueryArgs {
         super(queryMap);
     }
 
-    public OperationLogArgs siteId(@Nullable Integer siteId) {
+    public OperationLogArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

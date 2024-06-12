@@ -1,12 +1,9 @@
 package com.ujcms.cms.ext.web.directive;
 
-import com.ujcms.cms.core.domain.Dict;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
-import com.ujcms.cms.ext.domain.MessageBoard;
 import com.ujcms.cms.ext.domain.MessageBoardType;
 import com.ujcms.cms.ext.service.MessageBoardTypeService;
-import com.ujcms.cms.ext.service.args.MessageBoardArgs;
 import com.ujcms.cms.ext.service.args.MessageBoardTypeArgs;
 import com.ujcms.commons.freemarker.Freemarkers;
 import freemarker.core.Environment;
@@ -18,10 +15,8 @@ import freemarker.template.TemplateModel;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static com.ujcms.cms.core.web.support.Directives.getBoolean;
-import static com.ujcms.cms.core.web.support.Directives.getInteger;
+import static com.ujcms.cms.core.web.support.Directives.getLong;
 
 /**
  * 留言类型列表 标签
@@ -34,8 +29,8 @@ public class MessageBoardTypeListDirective implements TemplateDirectiveModel {
      */
     public static final String SITE_ID = "siteId";
 
-    public static void assemble(MessageBoardTypeArgs args, Map<String, ?> params, Integer defaultSiteId) {
-        Integer siteId = getInteger(params, SITE_ID);
+    public static void assemble(MessageBoardTypeArgs args, Map<String, ?> params, Long defaultSiteId) {
+        Long siteId = getLong(params, SITE_ID);
         if (siteId == null) {
             siteId = defaultSiteId;
         }

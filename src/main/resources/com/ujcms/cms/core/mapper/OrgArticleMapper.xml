@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.OrgArticleMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.OrgArticle">
+    <id column="org_id_" jdbcType="BIGINT" property="orgId" />
+    <id column="channel_id_" jdbcType="BIGINT" property="channelId" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.OrgArticle" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.OrgArticle" />
+  <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+
+  <select id="listChannelByOrgId" resultType="long">
+    select t.channel_id_
+    from ujcms_org_article t
+    where t.org_id_ = #{orgId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
+  <select id="listOrgByChannelId" resultType="long">
+    select t.org_id_
+    from ujcms_org_article t
+    where t.channel_id_ = #{channelId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
+
+  <delete id="deleteByOrgId">
+    delete
+    from ujcms_org_article
+    where org_id_ = #{orgId}
+    <if test="siteId != null">and site_id_ = #{siteId}</if>
+  </delete>
+  <delete id="deleteByChannelId" parameterType="long">
+    delete
+    from ujcms_org_article
+    where channel_id_ = #{channelId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_org_article
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+
+  <select id="select" parameterType="map" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_org_article t
+    where t.org_id_ = #{orgId,jdbcType=BIGINT}
+      and t.channel_id_ = #{channelId,jdbcType=BIGINT}
+  </select><update id="update" parameterType="com.ujcms.cms.core.domain.OrgArticle">
+    update ujcms_org_article
+    set site_id_ = #{siteId,jdbcType=BIGINT}
+    where org_id_ = #{orgId,jdbcType=BIGINT}
+      and channel_id_ = #{channelId,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.OrgArticle">
+    insert into ujcms_org_article (org_id_, channel_id_, site_id_)
+    values (#{orgId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT})
+  </insert><sql id="Column_List">
+    t.org_id_, t.channel_id_, t.site_id_
+  </sql></mapper>

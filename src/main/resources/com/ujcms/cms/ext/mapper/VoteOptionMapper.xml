@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.VoteOptionMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.VoteOption">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="vote_id_" jdbcType="INTEGER" property="voteId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="vote_id_" jdbcType="BIGINT" property="voteId" />
     <result column="title_" jdbcType="VARCHAR" property="title" />
     <result column="count_" jdbcType="INTEGER" property="count" />
     <result column="order_" jdbcType="INTEGER" property="order" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.VoteOption">
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.VoteOption" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.VoteOption">
         <association column="vote_id_" javaType="com.ujcms.cms.ext.domain.Vote" property="vote" select="com.ujcms.cms.ext.mapper.VoteMapper.select" />
     </resultMap>
     <update id="cast">
         update ujcms_vote_option
         set count_ = count_ + 1
-        where vote_id_ = #{voteId,jdbcType=INTEGER}
+        where vote_id_ = #{voteId,jdbcType=BIGINT}
         <foreach close=")" collection="optionIds" item="item" nullable="true" open="and id_ in (" separator=",">
             #{item}
         </foreach>
@@ -26,16 +26,16 @@
             #{item}
         </foreach>
     </delete>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_vote_option
-        where vote_id_ in (select t.id_ from ujcms_vote t where t.site_id_ = #{siteId,jdbcType=INTEGER})
+        where vote_id_ in (select t.id_ from ujcms_vote t where t.site_id_ = #{siteId,jdbcType=BIGINT})
     </delete>
     <select id="listByVoteId" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_vote_option t
-        where t.vote_id_ = #{voteId,jdbcType=INTEGER}
+        where t.vote_id_ = #{voteId,jdbcType=BIGINT}
         order by t.order_, t.id_
     </select>
     <sql id="selectAllSelect" />
@@ -46,26 +46,26 @@
             <property name="tableName" value="ujcms_vote_option" />
         </include>
     </select>
-    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_vote_option t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="java.lang.Integer">
+    <delete id="delete" parameterType="java.lang.Long">
         delete
         from ujcms_vote_option
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.VoteOption">
     update ujcms_vote_option
-    set vote_id_ = #{voteId,jdbcType=INTEGER},
+    set vote_id_ = #{voteId,jdbcType=BIGINT},
       title_ = #{title,jdbcType=VARCHAR},
       count_ = #{count,jdbcType=INTEGER},
       order_ = #{order,jdbcType=INTEGER}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VoteOption">
     insert into ujcms_vote_option (id_, vote_id_, title_, count_, order_)
-    values (#{id,jdbcType=INTEGER}, #{voteId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{order,jdbcType=INTEGER})
+    values (#{id,jdbcType=BIGINT}, #{voteId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{order,jdbcType=INTEGER})
   </insert><sql id="Column_List">
     t.id_, t.vote_id_, t.title_, t.count_, t.order_
   </sql></mapper>

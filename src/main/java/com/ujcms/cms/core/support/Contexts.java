@@ -74,7 +74,7 @@ public final class Contexts {
         SITE_HOLDER.remove();
     }
 
-    public static Integer getCurrentSiteId() {
+    public static Long getCurrentSiteId() {
         return getCurrentSite().getId();
     }
 

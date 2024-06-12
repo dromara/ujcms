@@ -11,5 +11,5 @@ public interface GroupDeleteListener {
      *
      * @param groupId 用户组ID
      */
-    void preGroupDelete(Integer groupId);
+    void preGroupDelete(Long groupId);
 }

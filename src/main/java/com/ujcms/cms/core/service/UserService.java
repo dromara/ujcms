@@ -2,19 +2,14 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
-import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.core.domain.UserExt;
-import com.ujcms.cms.core.domain.UserOpenid;
-import com.ujcms.cms.core.domain.UserRole;
+import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.domain.base.UserBase;
 import com.ujcms.cms.core.listener.GroupDeleteListener;
 import com.ujcms.cms.core.listener.OrgDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
-import com.ujcms.cms.core.mapper.UserExtMapper;
-import com.ujcms.cms.core.mapper.UserMapper;
-import com.ujcms.cms.core.mapper.UserOpenidMapper;
-import com.ujcms.cms.core.mapper.UserRoleMapper;
+import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.UserArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import com.ujcms.commons.web.exception.LogicException;
@@ -48,26 +43,42 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     private final UserExtMapper extMapper;
     private final UserOpenidMapper openidMapper;
     private final UserRoleMapper userRoleMapper;
-    private final SeqService seqService;
+    private final UserOrgMapper userOrgMapper;
+    private final OrgMapper orgMapper;
+    private final SnowflakeSequence snowflakeSequence;
 
     public UserService(PasswordEncoder passwordEncoder, AttachmentService attachmentService,
                        UserMapper mapper, UserExtMapper extMapper, UserOpenidMapper openidMapper,
-                       UserRoleMapper userRoleMapper, SeqService seqService) {
+                       UserRoleMapper userRoleMapper, UserOrgMapper userOrgMapper,
+                       OrgMapper orgMapper, SnowflakeSequence snowflakeSequence) {
         this.passwordEncoder = passwordEncoder;
         this.attachmentService = attachmentService;
         this.mapper = mapper;
         this.extMapper = extMapper;
         this.openidMapper = openidMapper;
         this.userRoleMapper = userRoleMapper;
-        this.seqService = seqService;
+        this.userOrgMapper = userOrgMapper;
+        this.orgMapper = orgMapper;
+        this.snowflakeSequence = snowflakeSequence;
+    }
+
+    private void insertUserOrg(Long userId, List<Long> orgIds) {
+        for (Long orgId : orgIds) {
+            Org org = orgMapper.select(orgId);
+            if (org == null || userOrgMapper.select(userId, orgId) != null) {
+                continue;
+            }
+            userOrgMapper.insert(new UserOrg(userId, orgId, org.getOrder()));
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(User bean, UserExt ext) {
-        bean.setId(seqService.getNextVal(UserBase.TABLE_NAME));
+    public void insert(User bean, UserExt ext, List<Long> orgIds) {
+        bean.setId(snowflakeSequence.nextId());
         ext.setId(bean.getId());
         mapper.insert(bean);
         extMapper.insert(ext);
+        insertUserOrg(bean.getId(), orgIds);
         attachmentService.insertRefer(UserBase.TABLE_NAME, bean.getId(), bean.getAvatarList());
     }
 
@@ -77,8 +88,16 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int deleteOpenid(Integer userId, String provider) {
+    public int deleteOpenid(Long userId, String provider) {
         return openidMapper.delete(userId, provider);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void update(User bean, UserExt ext, @Nullable Long ancestorOrgId, List<Long> orgIds) {
+        update(bean);
+        update(ext);
+        userOrgMapper.deleteByUserIdAndAncestorOrgId(bean.getId(), ancestorOrgId);
+        insertUserOrg(bean.getId(), orgIds);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -88,7 +107,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(User bean, List<Integer> roleIds) {
+    public void update(User bean, List<Long> roleIds) {
         update(bean);
         userRoleMapper.deleteByUserId(bean.getId());
         roleIds.forEach(roleId -> userRoleMapper.insert(new UserRole(bean.getId(), roleId)));
@@ -108,7 +127,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     @Transactional(rollbackFor = Exception.class)
     public void updatePassword(User user, UserExt userExt, String password) {
         String origPassword = user.getPassword();
-        if(StringUtils.isNotBlank(origPassword)) {
+        if (StringUtils.isNotBlank(origPassword)) {
             user.addHistoryPassword(origPassword);
         }
         user.setPassword(passwordEncoder.encode(password));
@@ -143,7 +162,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         deleteListeners.forEach(it -> it.preUserDelete(id));
         userRoleMapper.deleteByUserId(id);
         attachmentService.deleteRefer(UserBase.TABLE_NAME, id);
@@ -153,12 +172,12 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public User select(Integer id) {
+    public User select(Long id) {
         return mapper.select(id);
     }
 
@@ -210,27 +229,27 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
         return mapper.countByCreated(created);
     }
 
-    public boolean existsByOrgId(Integer orgId) {
+    public boolean existsByOrgId(Long orgId) {
         return mapper.existsByOrgId(orgId) > 0;
     }
 
-    public boolean existsByGroupId(Integer groupId) {
+    public boolean existsByGroupId(Long groupId) {
         return mapper.existsByGroupId(groupId) > 0;
     }
 
-    public boolean existsByRoleId(Integer roleId, Integer notOrgId) {
+    public boolean existsByRoleId(Long roleId, Long notOrgId) {
         return mapper.existsByRoleId(roleId, notOrgId) > 0;
     }
 
     @Override
-    public void preOrgDelete(Integer orgId) {
+    public void preOrgDelete(Long orgId) {
         if (existsByOrgId(orgId)) {
             throw new LogicException("error.refer.user");
         }
     }
 
     @Override
-    public void preGroupDelete(Integer groupId) {
+    public void preGroupDelete(Long groupId) {
         if (existsByGroupId(groupId)) {
             throw new LogicException("error.refer.user");
         }

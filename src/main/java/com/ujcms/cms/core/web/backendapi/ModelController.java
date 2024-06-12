@@ -57,11 +57,11 @@ public class ModelController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('model:show','*')")
-    public Object show(@PathVariable Integer id) {
+    public Object show(@PathVariable Long id) {
         User user = Contexts.getCurrentUser();
         Model bean = service.select(id);
         if (bean == null) {
-            return Responses.notFound("Model not found. ID = " + id);
+            return Responses.notFound(Model.NOT_FOUND + id);
         }
         dataInSite(bean.getSiteId(), getCurrentSiteId());
         globalPermission(bean.isGlobal(), user.hasGlobalPermission());
@@ -72,7 +72,7 @@ public class ModelController {
     @PreAuthorize("hasAnyAuthority('model:create','*')")
     @OperationLog(module = "model", operation = "create", type = OperationType.CREATE)
     public ResponseEntity<Body> create(@RequestBody Model bean) {
-        Integer siteId = Contexts.getCurrentSiteId();
+        Long siteId = Contexts.getCurrentSiteId();
         User user = Contexts.getCurrentUser();
         Model model = new Model();
         Entities.copy(bean, model);
@@ -85,11 +85,11 @@ public class ModelController {
     @PreAuthorize("hasAnyAuthority('model:update','*')")
     @OperationLog(module = "model", operation = "update", type = OperationType.UPDATE)
     public ResponseEntity<Body> update(@RequestBody Model bean) {
-        Integer siteId = Contexts.getCurrentSiteId();
+        Long siteId = Contexts.getCurrentSiteId();
         User user = Contexts.getCurrentUser();
         Model model = service.select(bean.getId());
         if (model == null) {
-            return Responses.notFound("Model not found. ID = " + bean.getId());
+            return Responses.notFound(Model.NOT_FOUND + bean.getId());
         }
         boolean origGlobal = model.isGlobal();
         Entities.copy(bean, model, "siteId");
@@ -102,14 +102,14 @@ public class ModelController {
     @PutMapping("order")
     @PreAuthorize("hasAnyAuthority('model:update','*')")
     @OperationLog(module = "model", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
+    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
+        Long siteId = Contexts.getCurrentSiteId();
         User user = Contexts.getCurrentUser();
         List<Model> list = new ArrayList<>();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Model bean = service.select(id);
             if (bean == null) {
-                return Responses.notFound("Model not found. ID = " + id);
+                return Responses.notFound(Model.NOT_FOUND + id);
             }
             dataInSite(bean.getSiteId(), siteId);
             globalPermission(bean.isGlobal(), user.hasGlobalPermission());
@@ -122,13 +122,13 @@ public class ModelController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('model:delete','*')")
     @OperationLog(module = "model", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
+        Long siteId = Contexts.getCurrentSiteId();
         User user = Contexts.getCurrentUser();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Model bean = service.select(id);
             if (bean == null) {
-                return Responses.notFound("Model not found. ID = " + id);
+                return Responses.notFound(Model.NOT_FOUND + id);
             }
             dataInSite(bean.getSiteId(), siteId);
             globalPermission(bean.isGlobal(), user.hasGlobalPermission());

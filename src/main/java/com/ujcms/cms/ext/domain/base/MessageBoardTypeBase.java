@@ -24,14 +24,14 @@ public class MessageBoardTypeBase implements Serializable {
      */
     @NotNull
     @Schema(description="留言类别ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @Nullable
     @Schema(description="站点ID")
-    private Integer siteId;
+    private Long siteId;
 
     /**
      * 名称
@@ -56,20 +56,20 @@ public class MessageBoardTypeBase implements Serializable {
     @Schema(description="排列顺序")
     private Long order = 0L;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Nullable
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(@Nullable Integer siteId) {
+    public void setSiteId(@Nullable Long siteId) {
         this.siteId = siteId;
     }
 

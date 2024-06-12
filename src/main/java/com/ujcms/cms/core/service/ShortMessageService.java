@@ -1,11 +1,12 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.mapper.ShortMessageMapper;
 import com.ujcms.cms.core.service.args.ShortMessageArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import com.ujcms.commons.sms.AliyunUtils;
@@ -29,11 +30,11 @@ import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_TENCENTCLOUD;
 @Service
 public class ShortMessageService {
     private final ShortMessageMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public ShortMessageService(ShortMessageMapper mapper, SeqService seqService) {
+    public ShortMessageService(ShortMessageMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     /**
@@ -45,7 +46,8 @@ public class ShortMessageService {
      * @param expires  过期时间
      * @return 是否验证成功
      */
-    public boolean validateCode(@Nullable Integer id, @Nullable String receiver, @Nullable String code, int expires) {
+    @Transactional(rollbackFor = Exception.class)
+    public boolean validateCode(@Nullable Long id, @Nullable String receiver, @Nullable String code, int expires) {
         if (id == null) {
             return false;
         }
@@ -74,7 +76,8 @@ public class ShortMessageService {
      * @param length   验证码长度。验证码长度不符，不计入错误次数。
      * @return 尝试是否成功
      */
-    public boolean tryCode(Integer id, String receiver, String code, int expires, int length) {
+    @Transactional(rollbackFor = Exception.class)
+    public boolean tryCode(Long id, String receiver, String code, int expires, int length) {
         if (code.length() != length) {
             return false;
         }
@@ -132,7 +135,7 @@ public class ShortMessageService {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(ShortMessage bean) {
-        bean.setId(seqService.getNextVal(ShortMessage.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -142,17 +145,17 @@ public class ShortMessageService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public ShortMessage select(Integer id) {
+    public ShortMessage select(Long id) {
         return mapper.select(id);
     }
 
@@ -162,10 +165,10 @@ public class ShortMessageService {
     }
 
     public List<ShortMessage> selectList(ShortMessageArgs args, int offset, int limit) {
-        return PageHelper.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
     public Page<ShortMessage> selectPage(ShortMessageArgs args, int page, int pageSize) {
-        return PageHelper.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
     }
 }

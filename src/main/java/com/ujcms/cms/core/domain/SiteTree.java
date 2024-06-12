@@ -19,7 +19,7 @@ import java.io.Serializable;
 public class SiteTree extends SiteTreeBase implements TreeRelation, Serializable {
     private static final long serialVersionUID = 1L;
 
-    public SiteTree(Integer ancestorId, Integer descendantId) {
+    public SiteTree(Long ancestorId, Long descendantId) {
         setAncestorId(ancestorId);
         setDescendantId(descendantId);
     }

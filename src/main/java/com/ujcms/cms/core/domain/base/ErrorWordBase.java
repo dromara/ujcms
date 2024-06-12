@@ -23,7 +23,7 @@ public class ErrorWordBase implements Serializable {
      */
     @NotNull
     @Schema(description="易错词ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 名称
@@ -48,11 +48,11 @@ public class ErrorWordBase implements Serializable {
     @Schema(description="是否启用")
     private Boolean enabled = true;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

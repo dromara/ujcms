@@ -1,0 +1,143 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${formType.name} - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}">
+  <meta name="_csrf_header" content="${_csrf.headerName}">
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#include 'inc_header.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item"><a href="${dy}/form-list/${formType.id}">${formType.name}</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-3">
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#formModal">
+    填写加盟意向
+  </button>
+  [@FormPage typeId=formType.id; pagedList]
+  <table class="table mt-3">
+    <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">联系人</th>
+      <th scope="col">联系电话</th>
+      <th scope="col">联系地址</th>
+    </tr>
+    </thead>
+    <tbody>
+    [#list pagedList.content as form]
+    <tr>
+      <th scope="row"><a href="${dy}/form-item/${form.id?c}">${form.id}</a></th>
+      <td>${form.customs['contactPerson']}</td>
+      <td>${form.customs['phone']}</td>
+      <td>${form.customs['address']}</td>
+    </tr>
+    [/#list]
+    </tbody>
+  </table>
+  [#include 'inc_page.html'/]
+  [/@FormPage]
+</div>
+
+<div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="formModalLabel">加盟意向</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="validForm" action="${api}/form" method="post">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="contactPerson">联系人<strong class="text-danger">*</strong></label>
+            <input type="text" class="form-control" id="contactPerson" name="customs[contactPerson]" maxlength="50" title="请填写联系人" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">联系电话<strong class="text-danger">*</strong></label>
+            <input type="text" class="form-control" id="phone" name="customs[phone]" maxlength="150" title="请填写联系电话" required>
+          </div>
+          <div class="form-group">
+            <label for="address">加盟地址</label>
+            <input type="text" class="form-control" id="address" name="customs[address]" maxlength="150">
+          </div>
+          <div class="form-group">
+            <label for="experience">从业经历</label>
+            <textarea class="form-control" id="experience" name="customs[experience]" maxlength="1500" rows="5"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="captcha">图形验证码<strong class="text-danger">*</strong></label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="captcha" name="captcha" autocomplete="off"
+                     data-rule-required="true" data-msg-required="请输入验证码"
+                     data-msg-remote="验证码错误">
+              <div class="input-group-append">
+                <img id="captchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="input-group-text"
+                     style="cursor:pointer;padding:0;" title="点击重新获取验证码" alt="验证码"
+                     onclick="fetchCaptcha();$('#captcha').focus();">
+                <input type="hidden" id="captchaToken" name="captchaToken">
+                <script>
+                  function fetchCaptcha() {
+                    axios.get('${api}/captcha').then(function (response) {
+                      var data = response.data;
+                      if (data == null) return;
+                      $('#captchaImg').attr('src', 'data:image/png;base64,' + data.image);
+                      $('#captchaToken').val(data.token);
+                    });
+                  }
+
+                  fetchCaptcha();
+                </script>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <input type="hidden" name="typeId" value="${formType.id}">
+          <input type="hidden" name="siteId" value="${site.id}">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+          <button type="submit" class="btn btn-primary">提交</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+
+<script>
+  $(function () {
+    $('#validForm').validate({
+      submitHandler: function (form) {
+        request.post(form.action, $(form).serializeJSON()).then(function (response) {
+          var data = response.data;
+          if (data.status !== 0) {
+            showAlert(data.message);
+          } else {
+            showSuccess();
+          }
+          location.reload();
+        });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
+[/#escape]

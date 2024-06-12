@@ -1,15 +1,10 @@
 package com.ujcms.cms.ext.component;
 
 import com.ujcms.cms.core.service.GlobalService;
-import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.VisitLog;
 import com.ujcms.cms.ext.domain.VisitPage;
 import com.ujcms.cms.ext.domain.VisitStat;
 import com.ujcms.cms.ext.domain.VisitTrend;
-import com.ujcms.cms.ext.domain.base.VisitLogBase;
-import com.ujcms.cms.ext.domain.base.VisitPageBase;
-import com.ujcms.cms.ext.domain.base.VisitStatBase;
-import com.ujcms.cms.ext.domain.base.VisitTrendBase;
 import com.ujcms.cms.ext.domain.global.GlobalVisitorCount;
 import com.ujcms.cms.ext.mapper.VisitLogMapper;
 import com.ujcms.cms.ext.mapper.VisitPageMapper;
@@ -19,6 +14,7 @@ import com.ujcms.cms.ext.service.VisitLogService;
 import com.ujcms.cms.ext.service.VisitPageService;
 import com.ujcms.cms.ext.service.VisitStatService;
 import com.ujcms.cms.ext.service.VisitTrendService;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -49,18 +45,19 @@ public class VisitService {
     private final VisitPageService visitPageService;
     private final VisitTrendService visitTrendService;
     private final GlobalService globalService;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
     private final SqlSessionTemplate sqlSessionTemplate;
 
     public VisitService(VisitLogService visitLogService, VisitStatService visitStatService,
                         VisitPageService visitPageService, VisitTrendService visitTrendService,
-                        GlobalService globalService, SeqService seqService, SqlSessionTemplate sqlSessionTemplate) {
+                        GlobalService globalService, SnowflakeSequence snowflakeSequence,
+                        SqlSessionTemplate sqlSessionTemplate) {
         this.visitLogService = visitLogService;
         this.visitStatService = visitStatService;
         this.visitPageService = visitPageService;
         this.visitTrendService = visitTrendService;
         this.globalService = globalService;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
         this.sqlSessionTemplate = sqlSessionTemplate;
     }
 
@@ -130,7 +127,7 @@ public class VisitService {
             VisitStatMapper visitStatMapper = session.getMapper(VisitStatMapper.class);
             // 插入最新统计数据
             batchOperator(session, list, FOREACH_SIZE, visitStatMapper::insertBatch, bean -> {
-                bean.setId(seqService.getNextVal(VisitStatBase.TABLE_NAME, list.size()));
+                bean.setId(snowflakeSequence.nextId());
                 bean.setType(type);
                 bean.setDateString(dateString);
                 return bean;
@@ -147,7 +144,7 @@ public class VisitService {
             VisitPageMapper visitPageMapper = session.getMapper(VisitPageMapper.class);
             // 插入最新统计数据
             batchOperator(session, list, FOREACH_SIZE, visitPageMapper::insertBatch, bean -> {
-                bean.setId(seqService.getNextLongVal(VisitPageBase.TABLE_NAME, list.size()));
+                bean.setId(snowflakeSequence.nextId());
                 bean.setDateString(dateString);
                 bean.setType(VisitPage.TYPE_VISITED_URL);
                 return bean;
@@ -164,7 +161,7 @@ public class VisitService {
             VisitPageMapper visitPageMapper = session.getMapper(VisitPageMapper.class);
             // 插入最新统计数据
             batchOperator(session, list, FOREACH_SIZE, visitPageMapper::insertBatch, bean -> {
-                bean.setId(seqService.getNextLongVal(VisitPageBase.TABLE_NAME, list.size()));
+                bean.setId(snowflakeSequence.nextId());
                 bean.setDateString(dateString);
                 bean.setType(VisitPage.TYPE_ENTRY_URL);
                 return bean;
@@ -209,7 +206,7 @@ public class VisitService {
             VisitTrendMapper visitTrendMapper = session.getMapper(VisitTrendMapper.class);
             // 插入最新统计数据
             batchOperator(session, list, FOREACH_SIZE, visitTrendMapper::insertBatch, bean -> {
-                bean.setId(seqService.getNextVal(VisitTrendBase.TABLE_NAME, list.size()));
+                bean.setId(snowflakeSequence.nextId());
                 bean.setDateString(dateString);
                 bean.setPeriod(period);
                 return bean;
@@ -244,7 +241,7 @@ public class VisitService {
             VisitLogMapper visitLogMapper = session.getMapper(VisitLogMapper.class);
             // 插入最新统计数据
             batchOperator(session, list, VisitLog.FOREACH_SIZE, visitLogMapper::insertBatch, bean -> {
-                bean.setId(seqService.getNextLongVal(VisitLogBase.TABLE_NAME, list.size()));
+                bean.setId(snowflakeSequence.nextId());
                 return bean;
             });
         }

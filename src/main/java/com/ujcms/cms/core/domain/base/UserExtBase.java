@@ -25,7 +25,7 @@ public class UserExtBase implements Serializable {
      */
     @NotNull
     @Schema(description="用户ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 出生日期
@@ -101,11 +101,11 @@ public class UserExtBase implements Serializable {
     @Schema(description="登录错误次数")
     private Integer errorCount = 0;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

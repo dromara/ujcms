@@ -23,28 +23,28 @@ public class SurveyOptionBase implements Serializable {
      */
     @NotNull
     @Schema(description="问卷选项ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 问卷ID
      */
     @NotNull
     @Schema(description="问卷ID")
-    private Integer surveyId = 0;
+    private Long surveyId = 0L;
 
     /**
      * 问卷条目ID
      */
     @NotNull
     @Schema(description="问卷条目ID")
-    private Integer itemId = 0;
+    private Long itemId = 0L;
 
     /**
      * 标题
@@ -66,37 +66,37 @@ public class SurveyOptionBase implements Serializable {
      */
     @NotNull
     @Schema(description="排序")
-    private Integer order = 0;
+    private Integer order = 999999;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
-    public Integer getSurveyId() {
+    public Long getSurveyId() {
         return surveyId;
     }
 
-    public void setSurveyId(Integer surveyId) {
+    public void setSurveyId(Long surveyId) {
         this.surveyId = surveyId;
     }
 
-    public Integer getItemId() {
+    public Long getItemId() {
         return itemId;
     }
 
-    public void setItemId(Integer itemId) {
+    public void setItemId(Long itemId) {
         this.itemId = itemId;
     }
 

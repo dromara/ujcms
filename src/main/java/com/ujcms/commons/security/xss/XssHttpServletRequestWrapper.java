@@ -96,6 +96,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
             @Override
             public void setReadListener(ReadListener listener) {
+                // unnecessary
             }
         };
     }

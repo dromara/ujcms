@@ -30,7 +30,7 @@ public class AttachmentReferBase implements Serializable {
      */
     @NotNull
     @Schema(description="附件ID")
-    private Integer attachmentId = 0;
+    private Long attachmentId = 0L;
 
     /**
      * 引用类型
@@ -45,7 +45,7 @@ public class AttachmentReferBase implements Serializable {
      */
     @NotNull
     @Schema(description="引用ID")
-    private Integer referId = 0;
+    private Long referId = 0L;
 
     public Long getId() {
         return id;
@@ -55,11 +55,11 @@ public class AttachmentReferBase implements Serializable {
         this.id = id;
     }
 
-    public Integer getAttachmentId() {
+    public Long getAttachmentId() {
         return attachmentId;
     }
 
-    public void setAttachmentId(Integer attachmentId) {
+    public void setAttachmentId(Long attachmentId) {
         this.attachmentId = attachmentId;
     }
 
@@ -71,11 +71,11 @@ public class AttachmentReferBase implements Serializable {
         this.referType = referType;
     }
 
-    public Integer getReferId() {
+    public Long getReferId() {
         return referId;
     }
 
-    public void setReferId(Integer referId) {
+    public void setReferId(Long referId) {
         this.referId = referId;
     }
 }

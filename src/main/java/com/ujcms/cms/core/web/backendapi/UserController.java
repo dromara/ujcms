@@ -2,6 +2,7 @@ package com.ujcms.cms.core.web.backendapi;
 
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
+import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.RoleService;
@@ -28,11 +29,12 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.ujcms.cms.core.support.Constants.validPage;
-import static com.ujcms.cms.core.support.Constants.validPageSize;
+import static com.ujcms.cms.core.support.Constants.*;
+import static com.ujcms.cms.core.support.Constants.validLimit;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 import static com.ujcms.cms.core.web.support.ValidUtils.rankPermission;
 import static com.ujcms.commons.db.MyBatis.springPage;
@@ -60,7 +62,7 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('user:list','*')")
-    public Page<User> list(@Nullable Integer orgId, @RequestParam(defaultValue = "false") boolean current,
+    public Page<User> page(@Nullable Long orgId, @RequestParam(defaultValue = "false") boolean current,
                            Integer page, Integer pageSize, HttpServletRequest request) {
         if (current && orgId == null) {
             orgId = Contexts.getCurrentSite().getOrgId();
@@ -69,9 +71,20 @@ public class UserController {
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }
 
+    @GetMapping("list")
+    @PreAuthorize("hasAnyAuthority('user:list','*')")
+    public List<User> list(@Nullable Long orgId, @RequestParam(defaultValue = "false") boolean current,
+                           @Nullable Integer offset, @Nullable Integer limit,HttpServletRequest request) {
+        if (current && orgId == null) {
+            orgId = Contexts.getCurrentSite().getOrgId();
+        }
+        UserArgs args = UserArgs.of(getQueryMap(request.getQueryString())).orgId(orgId);
+        return service.selectList(args, validOffset(offset), validLimit(limit));
+    }
+
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('user:show','*')")
-    public User show(@PathVariable Integer id) {
+    public User show(@PathVariable Long id) {
         User bean = service.select(id);
         if (bean == null) {
             throw new Http404Exception(USER_NOT_FOUND + id);
@@ -82,20 +95,21 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('user:create','*')")
     @OperationLog(module = "user", operation = "create", type = OperationType.CREATE)
-    public ResponseEntity<Body> create(@RequestBody User bean) {
+    public ResponseEntity<Body> create(@RequestBody UserParams bean) {
         User currentUser = Contexts.getCurrentUser();
         User user = new User();
         Entities.copy(bean, user, EXCLUDE_FIELDS);
         user.setRank((short) (currentUser.getRank() + 1));
         validateBean(user, user.getRank(), null, null, null, currentUser);
-        service.insert(user, user.getExt());
+        service.insert(user, user.getExt(), bean.getOrgIds());
         return Responses.ok();
     }
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('user:update','*')")
     @OperationLog(module = "user", operation = "update", type = OperationType.UPDATE)
-    public ResponseEntity<Body> update(@RequestBody User bean) {
+    public ResponseEntity<Body> update(@RequestBody UserParams bean) {
+        Site site = Contexts.getCurrentSite();
         User user = service.select(bean.getId());
         if (user == null) {
             return Responses.notFound(USER_NOT_FOUND + bean.getId());
@@ -107,14 +121,14 @@ public class UserController {
         String origEmail = user.getEmail();
         Entities.copy(bean, user, EXCLUDE_FIELDS);
         validateBean(user, origRank, origUsername, origEmail, origMobile, currentUser);
-        service.update(user, user.getExt());
+        service.update(user, user.getExt(), bean.isGlobal() ? null : site.getOrgId(), bean.getOrgIds());
         return Responses.ok();
     }
 
     @PutMapping("permission")
     @PreAuthorize("hasAnyAuthority('user:updatePermission','*')")
     @OperationLog(module = "user", operation = "updatePermission", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updatePermission(@RequestBody User bean) {
+    public ResponseEntity<Body> updatePermission(@RequestBody UserParams bean) {
         User currentUser = Contexts.getCurrentUser();
         User user = service.select(bean.getId());
         if (user == null) {
@@ -136,7 +150,7 @@ public class UserController {
 
     public static class UpdateStatusParams {
         @NotNull
-        public List<Integer> ids;
+        public List<Long> ids;
         @NotNull
         @Min(0)
         @Max(3)
@@ -158,7 +172,7 @@ public class UserController {
 
     public static class UpdatePasswordParams {
         @NotNull
-        public Integer id;
+        public Long id;
         @NotBlank
         public String password;
     }
@@ -181,7 +195,7 @@ public class UserController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('user:delete','*')")
     @OperationLog(module = "user", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         User currentUser = Contexts.getCurrentUser();
         ids.stream().filter(Objects::nonNull).map(service::select).filter(Objects::nonNull).forEach(user ->
                 validatePermission(user.getOrgId(), user.getRank(), user.getRank(), currentUser));
@@ -204,7 +218,7 @@ public class UserController {
         return service.selectByMobile(mobile) != null;
     }
 
-    private void validatePermission(Integer orgId, Short rank, Short origRank, User currentUser) {
+    private void validatePermission(Long orgId, Short rank, Short origRank, User currentUser) {
         // 没有全局权限且用户不属于当前组织
         if (!currentUser.hasGlobalPermission() &&
                 !orgService.isDescendant(currentUser.getOrg().getId(), orgId)) {
@@ -229,6 +243,38 @@ public class UserController {
         String mobile = user.getMobile();
         if (!Objects.equals(mobile, origMobile) && emailExist(mobile)) {
             throw new Http400Exception("mobile exist: " + mobile);
+        }
+    }
+
+    public static class UserParams extends User {
+        private static final long serialVersionUID = 1L;
+
+        private boolean global = false;
+        private List<Long> roleIds = new ArrayList<>();
+        private List<Long> orgIds = new ArrayList<>();
+
+        public boolean isGlobal() {
+            return global;
+        }
+
+        public void setGlobal(boolean global) {
+            this.global = global;
+        }
+
+        public List<Long> getRoleIds() {
+            return roleIds;
+        }
+
+        public void setRoleIds(List<Long> roleIds) {
+            this.roleIds = roleIds;
+        }
+
+        public List<Long> getOrgIds() {
+            return orgIds;
+        }
+
+        public void setOrgIds(List<Long> orgIds) {
+            this.orgIds = orgIds;
         }
     }
 

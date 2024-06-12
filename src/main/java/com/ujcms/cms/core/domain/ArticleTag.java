@@ -5,13 +5,18 @@ import com.ujcms.cms.core.domain.base.ArticleTagBase;
 
 import java.io.Serializable;
 
+/**
+ * 文章TAG关联实体类
+ *
+ * @author PONY
+ */
 public class ArticleTag extends ArticleTagBase implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public ArticleTag() {
     }
 
-    public ArticleTag(Integer articleId, Integer tagId, Short order) {
+    public ArticleTag(Long articleId, Long tagId, Integer order) {
         setArticleId(articleId);
         setTagId(tagId);
         setOrder(order);

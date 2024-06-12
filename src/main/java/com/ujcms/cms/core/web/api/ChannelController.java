@@ -83,7 +83,7 @@ public class ChannelController {
     @Operation(summary = "获取栏目对象（Channel标签）")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/{id:[\\d]+}")
-    public Channel show(@Parameter(description = "栏目ID") @PathVariable Integer id) {
+    public Channel show(@Parameter(description = "栏目ID") @PathVariable Long id) {
         return channelService.select(id);
     }
 
@@ -91,7 +91,7 @@ public class ChannelController {
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/alias/{alias}")
     public Channel alias(@Parameter(description = "栏目别名") @PathVariable String alias,
-                         @Parameter(description = "站点ID") Integer siteId,
+                         @Parameter(description = "站点ID") Long siteId,
                          HttpServletRequest request) {
         if (siteId == null) {
             siteId = siteResolver.resolve(request).getId();
@@ -101,7 +101,7 @@ public class ChannelController {
 
     @Operation(summary = "获取栏目浏览次数")
     @GetMapping("/view/{id:[\\d]+}")
-    public long view(@Parameter(description = "栏目ID") @PathVariable Integer id) {
+    public long view(@Parameter(description = "栏目ID") @PathVariable Long id) {
         return viewCountService.viewChannel(id);
     }
 

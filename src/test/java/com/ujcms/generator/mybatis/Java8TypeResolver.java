@@ -18,6 +18,12 @@ public class Java8TypeResolver extends JavaTypeResolverDefaultImpl {
                 new JdbcTypeInformation("BOOLEAN", new FullyQualifiedJavaType(Boolean.class.getName())));
         typeMap.put(Types.BIT,
                 new JdbcTypeInformation("BOOLEAN", new FullyQualifiedJavaType(Boolean.class.getName())));
+        // PostgreSQL 的 jsonb 数据类型时 OTHER 类型，按 MySQL 的 LONGVARCHAR 处理。
+        typeMap.put(Types.OTHER,
+                new JdbcTypeInformation("LONGVARCHAR", new FullyQualifiedJavaType(String.class.getName())));
+        // Oracle、DM 的 Clob 按 MySQL 的 LONGVARCHAR 处理。
+        typeMap.put(Types.CLOB,
+                new JdbcTypeInformation("LONGVARCHAR", new FullyQualifiedJavaType(String.class.getName())));
         // 默认为 LONGVARCHAR，使用 StringTypeHandler，兼容 PostgreSQL，没有问题
         // typeMap.put(Types.LONGVARCHAR,
         //         new JdbcTypeInformation("CLOB", new FullyQualifiedJavaType(String.class.getName())));

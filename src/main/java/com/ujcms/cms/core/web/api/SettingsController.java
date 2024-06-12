@@ -179,7 +179,7 @@ public class SettingsController {
         public String password;
         @Schema(description = "邮件短信ID")
         @NotNull
-        public Integer emailMessageId;
+        public Long emailMessageId;
         @Schema(description = "邮件验证码")
         @NotBlank
         public String emailMessageValue;
@@ -194,7 +194,7 @@ public class SettingsController {
         public String password;
         @Schema(description = "手机短信ID")
         @NotNull
-        public Integer mobileMessageId;
+        public Long mobileMessageId;
         @Schema(description = "手机验证码")
         @NotBlank
         public String mobileMessageValue;

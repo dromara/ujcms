@@ -1,6 +1,7 @@
 package com.ujcms.cms.ext.mapper;
 
 import com.ujcms.cms.ext.domain.Survey;
+import com.ujcms.commons.db.order.OrderEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
 
 import java.util.List;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Repository;
  */
 @Mapper
 @Repository
-public interface SurveyMapper {
+public interface SurveyMapper extends OrderEntityMapper {
     /**
      * 插入数据
      *
@@ -40,7 +41,7 @@ public interface SurveyMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -49,7 +50,8 @@ public interface SurveyMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Survey select(Integer id);
+    @Override
+    Survey select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -65,7 +67,7 @@ public interface SurveyMapper {
      * @param id 调查问卷ID
      * @return 更新条数
      */
-    int cast(@Param("id") Integer id);
+    int cast(@Param("id") Long id);
 
     /**
      * 根据站点ID删除数据
@@ -73,5 +75,5 @@ public interface SurveyMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

@@ -3,13 +3,12 @@ package com.ujcms.cms.core.service;
 import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.RoleArticle;
 import com.ujcms.cms.core.domain.RoleChannel;
+import com.ujcms.cms.core.domain.RoleOrg;
 import com.ujcms.cms.core.domain.base.RoleBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
-import com.ujcms.cms.core.mapper.RoleArticleMapper;
-import com.ujcms.cms.core.mapper.RoleChannelMapper;
-import com.ujcms.cms.core.mapper.RoleMapper;
-import com.ujcms.cms.core.mapper.UserRoleMapper;
+import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.RoleArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -29,63 +28,57 @@ import java.util.Objects;
 public class RoleService implements SiteDeleteListener {
     private final RoleChannelMapper roleChannelMapper;
     private final RoleArticleMapper roleArticleMapper;
+    private final RoleOrgMapper roleOrgMapper;
     private final UserRoleMapper userRoleMapper;
     private final RoleMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
     public RoleService(RoleChannelMapper roleChannelMapper, RoleArticleMapper roleArticleMapper,
-                       UserRoleMapper userRoleMapper, RoleMapper mapper, SeqService seqService) {
+                       RoleOrgMapper roleOrgMapper, UserRoleMapper userRoleMapper,
+                       RoleMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.roleChannelMapper = roleChannelMapper;
         this.roleArticleMapper = roleArticleMapper;
+        this.roleOrgMapper = roleOrgMapper;
         this.userRoleMapper = userRoleMapper;
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(Role bean, Integer siteId) {
-        bean.setId(seqService.getNextVal(RoleBase.TABLE_NAME));
+    public void insert(Role bean, Long siteId) {
+        bean.setId(snowflakeSequence.nextId());
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.insert(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(Role bean, Collection<Integer> articlePermissions, Integer siteId) {
-        insert(bean, siteId);
-        insertArticlePermissions(articlePermissions, bean.getId(), siteId);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public void update(Role bean, Integer siteId) {
+    public void update(Role bean, Long siteId) {
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.update(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Role bean, Collection<Integer> articlePermissions, Collection<Integer> channelPermissions,
-                       Integer siteId) {
+    public void update(Role bean, Collection<Long> articlePermissions, Collection<Long> channelPermissions,
+                       Collection<Long> orgPermissions, Long siteId) {
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.update(bean);
         roleArticleMapper.deleteByRoleId(bean.getId(), siteId);
         roleChannelMapper.deleteByRoleId(bean.getId(), siteId);
-        insertArticlePermissions(articlePermissions, bean.getId(), siteId);
-        insertChannelPermissions(channelPermissions, bean.getId(), siteId);
-    }
-
-    private void insertArticlePermissions(Collection<Integer> articlePermissions, Integer roleId, Integer siteId) {
-        articlePermissions.forEach(channelId -> roleArticleMapper.insert(new RoleArticle(roleId, channelId, siteId)));
-    }
-
-    private void insertChannelPermissions(Collection<Integer> channelPermissions, Integer roleId, Integer siteId) {
-        channelPermissions.forEach(channelId -> roleChannelMapper.insert(new RoleChannel(roleId, channelId, siteId)));
+        roleOrgMapper.deleteByRoleId(bean.getId(), siteId);
+        articlePermissions.forEach(channelId ->
+                roleArticleMapper.insert(new RoleArticle(bean.getId(), channelId, siteId)));
+        channelPermissions.forEach(channelId ->
+                roleChannelMapper.insert(new RoleChannel(bean.getId(), channelId, siteId)));
+        orgPermissions.forEach(orgId ->
+                roleOrgMapper.insert(new RoleOrg(bean.getId(), orgId, siteId)));
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void updateOrder(List<Role> list) {
-        short order = 1;
+        int order = 1;
         for (Role bean : list) {
             bean.setOrder(order);
             mapper.update(bean);
@@ -94,21 +87,22 @@ public class RoleService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         roleArticleMapper.deleteByRoleId(id, null);
         roleChannelMapper.deleteByRoleId(id, null);
+        roleOrgMapper.deleteByRoleId(id, null);
         userRoleMapper.deleteByRoleId(id);
         return mapper.delete(id);
     }
 
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public Role select(Integer id) {
+    public Role select(Long id) {
         return mapper.select(id);
     }
 
@@ -117,32 +111,33 @@ public class RoleService implements SiteDeleteListener {
         return mapper.selectAll(queryInfo);
     }
 
-    public List<Integer> listArticlePermissions(Integer roleId, @Nullable Integer siteId) {
+    public List<Long> listArticlePermissions(Long roleId, @Nullable Long siteId) {
         return roleArticleMapper.listChannelByRoleId(roleId, siteId);
     }
 
-    public List<Integer> listChannelPermissions(Integer roleId, @Nullable Integer siteId) {
+    public List<Long> listChannelPermissions(Long roleId, @Nullable Long siteId) {
         return roleChannelMapper.listChannelByRoleId(roleId, siteId);
     }
 
-    public List<Integer> listChannelPermissions(Collection<Integer> roleIds, @Nullable Integer siteId) {
-        return roleChannelMapper.listChannelByRoleIds(roleIds, siteId);
+    public List<Long> listOrgPermissions(Long roleId, @Nullable Long siteId) {
+        return roleOrgMapper.listOrgByRoleId(roleId, siteId);
     }
 
-    public List<Role> listNotAllArticlePermission(@Nullable Integer siteId) {
+    public List<Role> listNotAllArticlePermission(@Nullable Long siteId) {
         RoleArgs args = RoleArgs.of().allArticlePermission(false).scopeSiteId(siteId);
         return selectList(args);
     }
 
-    public List<Role> listNotAllChannelPermission(@Nullable Integer siteId) {
+    public List<Role> listNotAllChannelPermission(@Nullable Long siteId) {
         RoleArgs args = RoleArgs.of().allChannelPermission(false).scopeSiteId(siteId);
         return selectList(args);
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         roleChannelMapper.deleteBySiteId(siteId);
         roleArticleMapper.deleteBySiteId(siteId);
+        roleOrgMapper.deleteBySiteId(siteId);
         userRoleMapper.deleteBySiteId(siteId);
         mapper.deleteBySiteId(siteId);
     }

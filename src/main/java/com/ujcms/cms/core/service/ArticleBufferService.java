@@ -25,7 +25,7 @@ public class ArticleBufferService {
     }
 
     @Nullable
-    public ArticleBuffer select(Integer id) {
+    public ArticleBuffer select(Long id) {
         return mapper.select(id);
     }
 

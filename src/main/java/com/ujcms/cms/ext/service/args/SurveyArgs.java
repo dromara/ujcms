@@ -17,9 +17,9 @@ public class SurveyArgs extends BaseQueryArgs {
         super(queryMap);
     }
 
-    public SurveyArgs siteId(@Nullable Integer siteId) {
+    public SurveyArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

@@ -10,6 +10,11 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 用户Openid Mapper
+ *
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface UserOpenidMapper {
@@ -36,7 +41,7 @@ public interface UserOpenidMapper {
      * @param provider 提供商
      * @return 删除条数
      */
-    int delete(@Param("userId") Integer userId, @Param("provider") String provider);
+    int delete(@Param("userId") Long userId, @Param("provider") String provider);
 
     /**
      * 根据用户ID删除数据
@@ -44,7 +49,7 @@ public interface UserOpenidMapper {
      * @param userId 用户ID
      * @return 删除条数
      */
-    int deleteByUserId(@Param("userId") Integer userId);
+    int deleteByUserId(@Param("userId") Long userId);
 
     /**
      * 根据主键获取数据
@@ -54,7 +59,7 @@ public interface UserOpenidMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    UserOpenid select(@Param("userId") Integer userId, @Param("provider") String provider);
+    UserOpenid select(@Param("userId") Long userId, @Param("provider") String provider);
 
     /**
      * 根据查询条件获取列表

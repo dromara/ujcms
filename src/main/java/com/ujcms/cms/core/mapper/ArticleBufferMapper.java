@@ -30,7 +30,7 @@ public interface ArticleBufferMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    ArticleBuffer select(Integer id);
+    ArticleBuffer select(Long id);
 
     /**
      * 重置日浏览量

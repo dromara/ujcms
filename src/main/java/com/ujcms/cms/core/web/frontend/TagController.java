@@ -37,7 +37,7 @@ public class TagController {
     }
 
     @GetMapping({"/tag/{id}", "/{subDir:[\\w-]+}/tag/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Integer id,
+    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
                        HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
         Tag tag = service.select(id);

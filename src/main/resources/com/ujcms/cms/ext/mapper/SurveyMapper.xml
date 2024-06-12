@@ -1,32 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.SurveyMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Survey">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
     <result column="title_" jdbcType="VARCHAR" property="title" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
     <result column="begin_date_" jdbcType="TIMESTAMP" property="beginDate" />
     <result column="end_date_" jdbcType="TIMESTAMP" property="endDate" />
-    <result column="order_date_" jdbcType="TIMESTAMP" property="orderDate" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
     <result column="mode_" jdbcType="SMALLINT" property="mode" />
     <result column="times_" jdbcType="INTEGER" property="times" />
     <result column="interval_" jdbcType="INTEGER" property="interval" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
-  </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Survey">
+    <result column="order_" jdbcType="BIGINT" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.Survey" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.Survey">
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.ext.domain.SurveyItem" property="items" select="com.ujcms.cms.ext.mapper.SurveyItemMapper.listBySurveyId" />
     </resultMap>
     <update id="cast">
         update ujcms_survey
         set times_ = times_ + 1
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </update>
-    <delete id="deleteBySiteId" parameterType="int">
+    <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_survey
-        where site_id_ = #{siteId,jdbcType=INTEGER}
+        where site_id_ = #{siteId,jdbcType=BIGINT}
     </delete>
+    <update id="moveUp">
+        update ujcms_survey
+        set order_ = order_ + 1
+        where order_ &lt; #{from} and order_ &gt;= #{to}
+    </update>
+    <update id="moveDown">
+        update ujcms_survey
+        set order_ = order_ - 1
+        where order_ &gt; #{from} and order_ &lt;= #{to}
+    </update>
+    <update id="updateOrder">
+        update ujcms_survey
+        set order_ = #{order}
+        where id_ = #{id}
+    </update>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
@@ -35,33 +50,32 @@
             <property name="tableName" value="ujcms_survey" />
         </include>
     </select>
-    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_survey t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="java.lang.Integer">
+    <delete id="delete" parameterType="java.lang.Long">
         delete
         from ujcms_survey
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.Survey">
     update ujcms_survey
-    set site_id_ = #{siteId,jdbcType=INTEGER},
+    set site_id_ = #{siteId,jdbcType=BIGINT},
       title_ = #{title,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
       begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
       end_date_ = #{endDate,jdbcType=TIMESTAMP},
-      order_date_ = #{orderDate,jdbcType=TIMESTAMP},
       created_ = #{created,jdbcType=TIMESTAMP},
       mode_ = #{mode,jdbcType=SMALLINT},
       times_ = #{times,jdbcType=INTEGER},
       interval_ = #{interval,jdbcType=INTEGER},
       enabled_ = #{enabled,jdbcType=CHAR}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Survey">
-    insert into ujcms_survey (id_, site_id_, title_, description_, begin_date_, end_date_, order_date_, created_, mode_, times_, interval_, enabled_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{orderDate,jdbcType=TIMESTAMP}, #{created,jdbcType=TIMESTAMP}, #{mode,jdbcType=SMALLINT}, #{times,jdbcType=INTEGER}, #{interval,jdbcType=INTEGER}, #{enabled,jdbcType=CHAR})
+    insert into ujcms_survey (id_, site_id_, title_, description_, begin_date_, end_date_, created_, mode_, times_, interval_, enabled_, order_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{created,jdbcType=TIMESTAMP}, #{mode,jdbcType=SMALLINT}, #{times,jdbcType=INTEGER}, #{interval,jdbcType=INTEGER}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.title_, t.description_, t.begin_date_, t.end_date_, t.order_date_, t.created_, t.mode_, t.times_, t.interval_, t.enabled_
+    t.id_, t.site_id_, t.title_, t.description_, t.begin_date_, t.end_date_, t.created_, t.mode_, t.times_, t.interval_, t.enabled_, t.order_
   </sql></mapper>

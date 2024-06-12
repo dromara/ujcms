@@ -145,9 +145,9 @@ public class Directives {
             if (name.equals(QUERY_PREFIX)) {
                 queryMap.putAll(Freemarkers.getStringMap(params.get(QUERY_PREFIX)));
             } else if (name.startsWith(QUERY_PREFIX)) {
-                // Freemarker 标签参数不支持 @ 和 -，用 $ 代替 @ ，用 __ 代替 -
+                // Freemarker 标签参数不支持 @ 和 -，用 $$ 代替 @ ，用 __ 代替 -
                 name = name.substring(QUERY_PREFIX.length())
-                        .replace("$", "@").replace("__", "-");
+                        .replace("$$", "@").replace("__", "-");
                 queryMap.put(name, Freemarkers.getString(value));
             }
         }
@@ -282,6 +282,9 @@ public class Directives {
         return getNumber(params, name, Long.class);
     }
 
+    public static Long getLong(Map<String, ?> params, String name, Long defaultValue) {
+        return Optional.ofNullable(getLong(params, name)).orElse(defaultValue);
+    }
     public static Long getLongRequired(Map<String, ?> params, String name) {
         return getNumberRequired(params, name, Long.class);
     }

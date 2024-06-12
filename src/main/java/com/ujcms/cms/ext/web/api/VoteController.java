@@ -116,13 +116,13 @@ public class VoteController {
     @Operation(summary = "获取投票对象（Vote标签）")
     @ApiResponses(value = {@ApiResponse(description = "投票对象")})
     @GetMapping("/{id:[\\d]+}")
-    public Vote show(@Parameter(description = "投票ID") @PathVariable Integer id) {
+    public Vote show(@Parameter(description = "投票ID") @PathVariable Long id) {
         Vote vote = service.select(id);
         validateVote(id, vote);
         return vote;
     }
 
-    public static void validateVote(Integer id, Vote vote) {
+    public static void validateVote(Long id, Vote vote) {
         if (vote == null) {
             throw new Http404Exception("Vote not found. ID: " + id);
         }
@@ -141,7 +141,7 @@ public class VoteController {
     @PostMapping("/cast")
     public ResponseEntity<Responses.Body> cast(@RequestBody @Valid VoteParams params,
                                                HttpServletRequest request, HttpServletResponse response) {
-        List<Integer> optionIds = params.getOptionIds();
+        List<Long> optionIds = params.getOptionIds();
         Vote vote = service.select(params.id);
         if (vote == null) {
             throw new Http400Exception("Vote not found. id: " + params.id);
@@ -163,24 +163,24 @@ public class VoteController {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
         String ip = Servlets.getRemoteAddr(request);
-        Integer userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
+        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
         OffsetDateTime date = vote.getInterval() > 0 ? OffsetDateTime.now().minusDays(vote.getInterval()) : null;
         // 已经投过票
         boolean voted;
         switch (vote.getMode()) {
             case Vote.MODE_COOKIE:
-                voted = actionService.existsBy(Vote.ACTION_TYPE, vote.getId().longValue(), null, date,
+                voted = actionService.existsBy(Vote.ACTION_TYPE, vote.getId(), null, date,
                         null, null, cookie);
                 break;
             case Vote.MODE_IP:
-                voted = actionService.existsBy(Vote.ACTION_TYPE, vote.getId().longValue(), null, date,
+                voted = actionService.existsBy(Vote.ACTION_TYPE, vote.getId(), null, date,
                         null, ip, null);
                 break;
             case Vote.MODE_USER:
                 if (userId == null) {
                     return Responses.status(1003, request, "error.vote.notLogin");
                 }
-                voted = actionService.existsBy(Vote.ACTION_TYPE, vote.getId().longValue(), null, date,
+                voted = actionService.existsBy(Vote.ACTION_TYPE, vote.getId(), null, date,
                         userId, null, null);
                 break;
             default:
@@ -193,13 +193,13 @@ public class VoteController {
         return Responses.ok();
     }
 
-    private void validateCast(Vote vote, List<Integer> optionIds) {
+    private void validateCast(Vote vote, List<Long> optionIds) {
         if (optionIds == null) {
             throw new Http400Exception("'optionIds' can not be empty");
         }
-        List<Integer> voteOptionIds = vote.getOptions().stream().map(VoteOptionBase::getId)
+        List<Long> voteOptionIds = vote.getOptions().stream().map(VoteOptionBase::getId)
                 .collect(Collectors.toList());
-        for (Integer optionId : optionIds) {
+        for (Long optionId : optionIds) {
             if (!voteOptionIds.contains(optionId)) {
                 throw new Http400Exception("'optionId' does not belong vote. optionId: " + optionId);
             }
@@ -208,25 +208,25 @@ public class VoteController {
 
     public static class VoteParams {
         @NotNull
-        private Integer id;
+        private Long id;
         @NotNull
         private Object options;
 
-        public List<Integer> getOptionIds() {
+        public List<Long> getOptionIds() {
             if (options instanceof String[]) {
-                return Arrays.stream((String[]) options).map(Integer::valueOf).collect(Collectors.toList());
+                return Arrays.stream((String[]) options).map(Long::valueOf).collect(Collectors.toList());
             } else if (options instanceof String) {
-                return Collections.singletonList(Integer.valueOf((String) options));
+                return Collections.singletonList(Long.valueOf((String) options));
             } else {
                 throw new Http400Exception("options type must be String[] or String: " + options.getClass().getName());
             }
         }
 
-        public Integer getId() {
+        public Long getId() {
             return id;
         }
 
-        public void setId(Integer id) {
+        public void setId(Long id) {
             this.id = id;
         }
 

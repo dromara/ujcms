@@ -16,7 +16,7 @@ public interface OrderEntityMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    OrderEntity select(Integer id);
+    OrderEntity select(Long id);
 
     /**
      * 向上移动
@@ -43,5 +43,5 @@ public interface OrderEntityMapper {
      * @param order 排序值
      * @return 更新条数
      */
-    int updateOrder(@Param("id") Integer id, @Param("order") long order);
+    int updateOrder(@Param("id") Long id, @Param("order") long order);
 }

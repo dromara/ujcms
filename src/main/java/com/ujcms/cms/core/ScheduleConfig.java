@@ -144,7 +144,7 @@ public class ScheduleConfig {
                 article.adjustStatus();
                 articleService.update(article);
             }
-            Integer siteId = configService.getUnique().getDefaultSiteId();
+            Long siteId = configService.getUnique().getDefaultSiteId();
             String taskName = "task.html.articleRelated";
             htmlGenerator.updateArticleRelatedHtml(siteId, User.ANONYMOUS_ID, taskName, articles, null);
         }

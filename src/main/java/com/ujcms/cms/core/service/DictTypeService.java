@@ -1,13 +1,13 @@
 package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
-import com.ujcms.cms.core.domain.Dict;
 import com.ujcms.cms.core.domain.DictType;
 import com.ujcms.cms.core.domain.base.DictTypeBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.DictMapper;
 import com.ujcms.cms.core.mapper.DictTypeMapper;
 import com.ujcms.cms.core.service.args.DictTypeArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import com.ujcms.commons.web.exception.LogicException;
@@ -27,27 +27,24 @@ import java.util.Objects;
 public class DictTypeService implements SiteDeleteListener {
     private final DictTypeMapper mapper;
     private final DictMapper dictMapper;
-    private final DictService dictService;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public DictTypeService(DictTypeMapper mapper, DictMapper dictMapper,
-                           DictService dictService, SeqService seqService) {
+    public DictTypeService(DictTypeMapper mapper, DictMapper dictMapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
         this.dictMapper = dictMapper;
-        this.dictService = dictService;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(DictType bean, Integer siteId) {
-        bean.setId(seqService.getNextVal(DictTypeBase.TABLE_NAME));
+    public void insert(DictType bean, Long siteId) {
+        bean.setId(snowflakeSequence.nextId());
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.insert(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(DictType bean, Integer siteId) {
+    public void update(DictType bean, Long siteId) {
         // 全局共享数据的站点ID设置为null
         bean.setSiteId(bean.isGlobal() ? null : siteId);
         mapper.update(bean);
@@ -55,7 +52,7 @@ public class DictTypeService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void updateOrder(List<DictType> list) {
-        short order = 1;
+        int order = 1;
         for (DictType bean : list) {
             bean.setOrder(order);
             mapper.update(bean);
@@ -64,7 +61,7 @@ public class DictTypeService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         if (dictMapper.existsByTypeId(id) > 0) {
             throw new LogicException("error.refer.dict");
         }
@@ -72,27 +69,12 @@ public class DictTypeService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public void copyBySite(Integer siteId, Integer fromSiteId) {
-        List<DictType> list = listBySiteId(fromSiteId);
-        for (DictType type : list) {
-            Integer origTypeId = type.getId();
-            insert(type, siteId);
-            for (Dict dict : dictService.listByTypeId(origTypeId)) {
-                dict.setTypeId(type.getId());
-                // 暂不支持上下级结构
-                dict.setParentId(null);
-                dictService.insert(dict);
-            }
-        }
-    }
-
     @Nullable
-    public DictType select(Integer id) {
+    public DictType select(Long id) {
         return mapper.select(id);
     }
 
@@ -106,16 +88,16 @@ public class DictTypeService implements SiteDeleteListener {
         return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
 
-    public List<DictType> listBySiteId(Integer siteId) {
+    public List<DictType> listBySiteId(Long siteId) {
         return selectList(DictTypeArgs.of().siteId(siteId));
     }
 
-    public boolean existsByAlias(String alias, @Nullable Integer siteId) {
+    public boolean existsByAlias(String alias, @Nullable Long siteId) {
         return mapper.existsByAlias(alias, siteId) > 0;
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         dictMapper.deleteBySiteId(siteId);
         mapper.deleteBySiteId(siteId);
     }

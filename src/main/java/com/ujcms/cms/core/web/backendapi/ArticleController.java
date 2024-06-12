@@ -25,7 +25,6 @@ import com.ujcms.commons.web.exception.Http400Exception;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,10 +35,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.ujcms.cms.core.domain.Article.STATUS_DRAFT;
 import static com.ujcms.cms.core.domain.Article.STATUS_PUBLISHED;
@@ -72,7 +68,7 @@ public class ArticleController {
     @GetMapping
     @JsonView(Views.List.class)
     @PreAuthorize("hasAnyAuthority('article:list','*')")
-    public Page<Article> list(Integer subChannelId, Integer page, Integer pageSize, HttpServletRequest request) {
+    public Page<Article> list(Long subChannelId, Integer page, Integer pageSize, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         ArticleArgs args = ArticleArgs.of(getQueryMap(request.getQueryString()));
@@ -88,7 +84,7 @@ public class ArticleController {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         ArticleArgs args = ArticleArgs.of();
-        dataPermission(args, user);
+        args.userId(user.getId());
         args.siteId(site.getId());
         args.status(Collections.singleton(Article.STATUS_REJECTED));
         return service.count(args);
@@ -96,24 +92,30 @@ public class ArticleController {
 
     private void dataPermission(ArticleArgs args, User user) {
         // 数据范围
-        short dataScope = user.getDataScope();
-        if (dataScope == Role.DATA_SCOPE_ORG) {
-            args.orgAncestorId(user.getOrgId());
-        } else if (dataScope == Role.DATA_SCOPE_SELF) {
-            args.userId(user.getId());
+        switch (user.getDataScope()) {
+            case Role.DATA_SCOPE_PERM_ORG:
+                args.orgPermission(user.fetchRoleIds(), user.fetchAllOrgIds());
+                break;
+            case Role.DATA_SCOPE_ORG:
+                args.orgIds(user.fetchAllOrgIds());
+                break;
+            case Role.DATA_SCOPE_SELF:
+                args.userId(user.getId());
+                break;
+            default:
         }
         // 文章数据权限
         if (!user.hasAllArticlePermission()) {
-            args.inRoleIds(user.fetchRoleIds());
+            args.articlePermission(user.fetchRoleIds(), user.fetchAllOrgIds());
         }
     }
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('article:show','*')")
-    public Article show(@PathVariable Integer id) {
+    public Article show(@PathVariable Long id) {
         Article bean = service.select(id);
         if (bean == null) {
-            throw new Http400Exception(ARTICLE_NOT_FOUND + id);
+            throw new Http400Exception(Article.NOT_FOUND + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
@@ -127,12 +129,15 @@ public class ArticleController {
         User user = Contexts.getCurrentUser();
         Article article = new Article();
         Entities.copy(bean, article, EXCLUDE_FIELDS);
+        article.setCustoms(bean.getCustoms());
         article.setSiteId(site.getId());
+        if (article.getOrgId() == 0) {
+            article.setOrgId(user.getOrgId());
+        }
         // 如果不为草稿，就设置为已发布。不能为其它状态。
         article.adjustStatus(bean.getStatus() == STATUS_DRAFT ? STATUS_DRAFT : STATUS_PUBLISHED);
         validateBean(article.getExt());
-        service.insert(article, article.getExt(), user.getId(), user.getOrgId(),
-                bean.getTagNames(), bean.getCustoms());
+        service.insert(article, user.getId(), bean.getTagNames());
         if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, TASK_HTML_ARTICLE_RELATED);
             generator.updateArticleRelatedHtml(article.getSiteId(), user.getId(), taskName,
@@ -147,16 +152,15 @@ public class ArticleController {
     public ResponseEntity<Body> update(@RequestBody @Valid ArticleParams bean, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
-        Article article = service.select(bean.getId());
-        if (article == null) {
-            return Responses.notFound(ARTICLE_NOT_FOUND + bean.getId());
-        }
+        Article article = Optional.ofNullable(service.select(bean.getId()))
+                .orElseThrow(() -> new Http400Exception(Article.NOT_FOUND + bean.getId()));
         ValidUtils.dataInSite(article.getSiteId(), site.getId());
-        Integer origChannelId = article.getChannelId();
+        Long origChannelId = article.getChannelId();
         Entities.copy(bean, article, EXCLUDE_FIELDS);
+        article.setCustoms(bean.getCustoms());
         validateBean(article.getExt());
         article.adjustStatus();
-        service.update(article, article.getExt(), user.getId(), bean.getTagNames(), bean.getCustoms());
+        service.update(article, user.getId(), bean.getTagNames());
         if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, TASK_HTML_ARTICLE_RELATED);
             generator.updateArticleRelatedHtml(article.getSiteId(), user.getId(), taskName,
@@ -171,32 +175,27 @@ public class ArticleController {
     public ResponseEntity<Body> moveOrder(@RequestBody @Valid MoveOrderParams params, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
-        Article fromArticle = service.select(params.getFromId());
-        Article toArticle = service.select(params.getToId());
-        if (fromArticle == null) {
-            throw new Http400Exception(ARTICLE_NOT_FOUND + params.getFromId());
-        }
-        if (toArticle == null) {
-            throw new Http400Exception(ARTICLE_NOT_FOUND + params.getToId());
-        }
-        ValidUtils.dataInSite(fromArticle.getSiteId(), site.getId());
-        ValidUtils.dataInSite(toArticle.getSiteId(), site.getId());
-        service.moveOrder(fromArticle.getId(), toArticle.getId());
+        Article fromBean = Optional.ofNullable(service.select(params.getFromId()))
+                .orElseThrow(() -> new Http400Exception(Article.NOT_FOUND + params.getFromId()));
+        Article toBean = Optional.ofNullable(service.select(params.getToId()))
+                .orElseThrow(() -> new Http400Exception(Article.NOT_FOUND + params.getToId()));
+        ValidUtils.dataInSite(fromBean.getSiteId(), site.getId());
+        ValidUtils.dataInSite(toBean.getSiteId(), site.getId());
+        service.moveOrder(fromBean.getId(), toBean.getId());
         if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, TASK_HTML_ARTICLE_RELATED);
             generator.updateArticleRelatedHtml(site.getId(), user.getId(), taskName,
-                    Arrays.asList(fromArticle, toArticle), null);
+                    Arrays.asList(fromBean, toBean), null);
         }
         return Responses.ok();
     }
 
+    @SuppressWarnings("java:S2160")
     public static class ArticleParams extends Article {
         private static final long serialVersionUID = 1L;
 
         private List<String> tagNames = Collections.emptyList();
 
-        @NonNull
-        @Override
         public List<String> getTagNames() {
             return tagNames;
         }
@@ -209,17 +208,17 @@ public class ArticleController {
     public static class ArticleStickyParams implements Serializable {
         private static final long serialVersionUID = 1;
         @NotEmpty
-        private List<Integer> ids;
+        private List<Long> ids;
         @Min(0)
         @Max(999)
         private short sticky;
         private OffsetDateTime stickyDate;
 
-        public List<Integer> getIds() {
+        public List<Long> getIds() {
             return ids;
         }
 
-        public void setIds(List<Integer> ids) {
+        public void setIds(List<Long> ids) {
             this.ids = ids;
         }
 
@@ -247,7 +246,7 @@ public class ArticleController {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         List<Article> articles = new ArrayList<>(params.ids.size());
-        for (Integer id : params.ids) {
+        for (Long id : params.ids) {
             Article bean = service.select(id);
             if (bean == null) {
                 continue;
@@ -268,11 +267,11 @@ public class ArticleController {
     @PutMapping("/submit")
     @PreAuthorize("hasAnyAuthority('article:submit','*')")
     @OperationLog(module = "article", operation = "submit", type = OperationType.UPDATE)
-    public ResponseEntity<Body> submit(@RequestBody List<Integer> ids, HttpServletRequest request) {
+    public ResponseEntity<Body> submit(@RequestBody List<Long> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         List<Article> articles = new ArrayList<>(ids.size());
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Article bean = service.select(id);
             if (bean == null) {
                 continue;
@@ -291,11 +290,11 @@ public class ArticleController {
     @PutMapping("/archive")
     @PreAuthorize("hasAnyAuthority('article:archive','*')")
     @OperationLog(module = "article", operation = "archive", type = OperationType.UPDATE)
-    public ResponseEntity<Body> archive(@RequestBody List<Integer> ids, HttpServletRequest request) {
+    public ResponseEntity<Body> archive(@RequestBody List<Long> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         List<Article> articles = new ArrayList<>(ids.size());
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Article bean = service.select(id);
             if (bean == null) {
                 continue;
@@ -314,11 +313,11 @@ public class ArticleController {
     @PutMapping("/offline")
     @PreAuthorize("hasAnyAuthority('article:offline','*')")
     @OperationLog(module = "article", operation = "offline", type = OperationType.UPDATE)
-    public ResponseEntity<Body> offline(@RequestBody List<Integer> ids, HttpServletRequest request) {
+    public ResponseEntity<Body> offline(@RequestBody List<Long> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         List<Article> articles = new ArrayList<>(ids.size());
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Article bean = service.select(id);
             if (bean == null) {
                 continue;
@@ -337,11 +336,11 @@ public class ArticleController {
     @PutMapping("/delete")
     @PreAuthorize("hasAnyAuthority('article:delete','*')")
     @OperationLog(module = "article", operation = "delete", type = OperationType.UPDATE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids, HttpServletRequest request) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         List<Article> articles = new ArrayList<>(ids.size());
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Article bean = service.select(id);
             if (bean == null) {
                 continue;
@@ -360,11 +359,11 @@ public class ArticleController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('article:completelyDelete','*')")
     @OperationLog(module = "article", operation = "completelyDelete", type = OperationType.DELETE)
-    public ResponseEntity<Body> completelyDelete(@RequestBody List<Integer> ids, HttpServletRequest request) {
+    public ResponseEntity<Body> completelyDelete(@RequestBody List<Long> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         List<Article> articles = new ArrayList<>(ids.size());
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Article bean = service.select(id);
             if (bean == null) {
                 continue;
@@ -382,7 +381,7 @@ public class ArticleController {
 
     @GetMapping("title-similarity")
     @PreAuthorize("hasAnyAuthority('article:list','*')")
-    public List<EsArticle> titleSimilarity(double similarity, String title, Integer excludeId) {
+    public List<EsArticle> titleSimilarity(double similarity, String title, Long excludeId) {
         Site site = Contexts.getCurrentSite();
         return service.titleSimilarity(similarity, title, site.getId(), excludeId);
     }
@@ -403,10 +402,9 @@ public class ArticleController {
         }
     }
 
-    private static final String[] EXCLUDE_FIELDS = {"siteId", "srcId", "orgId", "userId", "modifiedUserId",
+    private static final String[] EXCLUDE_FIELDS = {"siteId", "srcId", "userId", "modifiedUserId",
             "withImage", "sticky", "inputType", "type", "status", "created", "modified", "stickyDate",
             "processInstanceId", "rejectReason", "baiduPush", "staticFile", "mobileStaticFile"};
 
-    private static final String ARTICLE_NOT_FOUND = "Article not found. ID = ";
     private static final String TASK_HTML_ARTICLE_RELATED = "task.html.articleRelated";
 }

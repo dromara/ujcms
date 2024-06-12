@@ -39,7 +39,7 @@ public interface ChannelExtMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface ChannelExtMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    ChannelExt select(Integer id);
+    ChannelExt select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -64,5 +64,5 @@ public interface ChannelExtMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 }

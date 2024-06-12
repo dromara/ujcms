@@ -24,14 +24,14 @@ public class DictTypeBase implements Serializable {
      */
     @NotNull
     @Schema(description="字典类型ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @Nullable
     @Schema(description="站点ID")
-    private Integer siteId;
+    private Long siteId;
 
     /**
      * 名称
@@ -65,11 +65,18 @@ public class DictTypeBase implements Serializable {
     private Short scope = 0;
 
     /**
+     * 数据类型(0:字符串,1:整型)
+     */
+    @NotNull
+    @Schema(description="数据类型(0:字符串,1:整型)")
+    private Short dataType = 0;
+
+    /**
      * 排列顺序
      */
     @NotNull
     @Schema(description="排列顺序")
-    private Short order = 32767;
+    private Integer order = 999999;
 
     /**
      * 是否系统字典
@@ -78,20 +85,20 @@ public class DictTypeBase implements Serializable {
     @Schema(description="是否系统字典")
     private Boolean sys = false;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Nullable
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(@Nullable Integer siteId) {
+    public void setSiteId(@Nullable Long siteId) {
         this.siteId = siteId;
     }
 
@@ -128,11 +135,19 @@ public class DictTypeBase implements Serializable {
         this.scope = scope;
     }
 
-    public Short getOrder() {
+    public Short getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(Short dataType) {
+        this.dataType = dataType;
+    }
+
+    public Integer getOrder() {
         return order;
     }
 
-    public void setOrder(Short order) {
+    public void setOrder(Integer order) {
         this.order = order;
     }
 

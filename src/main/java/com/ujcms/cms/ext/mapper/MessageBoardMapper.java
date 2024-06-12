@@ -33,7 +33,7 @@ public interface MessageBoardMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -42,7 +42,7 @@ public interface MessageBoardMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    MessageBoard select(Integer id);
+    MessageBoard select(Long id);
 
     /**
      * 根据查询条件获取列表

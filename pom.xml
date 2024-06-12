@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.1.4</version>
+    <version>9.5.0</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -28,7 +28,7 @@
         <pagehelper-spring-boot-starter.version>2.1.0</pagehelper-spring-boot-starter.version>
         <spring-boot-starter-mobile.version>1.5.22.RELEASE</spring-boot-starter-mobile.version>
         <!-- 工作流引擎 -->
-        <flowable-spring-boot-starter>6.7.2</flowable-spring-boot-starter>
+        <flowable-spring-boot-starter>6.8.1</flowable-spring-boot-starter>
         <!-- 全文索引组件 -->
         <lucene.version>8.11.1</lucene.version>
         <!-- 全文索引分词器 -->

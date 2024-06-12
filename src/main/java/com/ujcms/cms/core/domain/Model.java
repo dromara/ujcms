@@ -6,31 +6,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ModelBase;
-import com.ujcms.cms.core.domain.support.CustomBean;
 import com.ujcms.cms.core.support.Constants;
-import com.ujcms.commons.function.Consumer3;
 import com.ujcms.commons.web.HtmlParserUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.owasp.html.PolicyFactory;
 import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
+import static com.ujcms.cms.core.support.Constants.MAPPER;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 /**
@@ -51,130 +43,198 @@ public class Model extends ModelBase implements Serializable {
         return getScope() == SCOPE_GLOBAL;
     }
 
-    public Map<String, Object> assembleCustoms(List<? extends CustomBean> customList) {
+    private static void assembleNumber(Map<String, Object> assembled, @Nullable Integer precision,
+                                       String name, Object value) {
+        if (precision != null && precision > 0) {
+            if (value instanceof BigDecimal) {
+                assembled.put(name, value);
+            } else if (value instanceof Number || value instanceof String) {
+                assembled.put(name, new BigDecimal(value.toString()));
+            }
+        } else {
+            if (value instanceof Long) {
+                assembled.put(name, value);
+            } else if (value instanceof Number || value instanceof String) {
+                assembled.put(name, Long.valueOf(value.toString()));
+            }
+        }
+    }
+
+    private static void assembleList(Map<String, Object> assembled, String dataType,
+                                     String name, Object value, String nameKey, Object valueKey) {
+        if (value instanceof List) {
+            List<?> list = (List<?>) value;
+            assembled.put(name, list.stream().filter(Objects::nonNull).map(Object::toString)
+                    .collect(Collectors.toList()));
+        }
+        if (valueKey instanceof List) {
+            List<?> listKey = (List<?>) valueKey;
+            assembled.put(nameKey, listKey.stream().filter(Objects::nonNull).map(val -> {
+                if (DATA_TYPE_LONG.equals(dataType)) {
+                    return Long.valueOf(val.toString());
+                } else if (DATA_TYPE_DECIMAL.equals(dataType)) {
+                    return new BigDecimal(val.toString());
+                }
+                return val.toString();
+            }).collect(Collectors.toList()));
+        }
+    }
+
+    private static void assembleSelect(Map<String, Object> assembled, String dataType,
+                                       String name, Object value, String nameKey, Object valueKey) {
+        if (value instanceof String) {
+            assembled.put(name, value);
+        }
+        if (valueKey instanceof String || valueKey instanceof Number) {
+            if (DATA_TYPE_LONG.equals(dataType)) {
+                assembled.put(nameKey, Long.valueOf(valueKey.toString()));
+            } else if (DATA_TYPE_DECIMAL.equals(dataType)) {
+                assembled.put(nameKey, new BigDecimal(valueKey.toString()));
+            } else {
+                assembled.put(nameKey, valueKey.toString());
+            }
+        }
+    }
+
+    private static void assembleDate(Map<String, Object> assembled, String name, Object value) {
+        if (value instanceof OffsetDateTime) {
+            assembled.put(name, value);
+        } else if (value instanceof String) {
+            assembled.put(name, ISO_OFFSET_DATE_TIME.parse((String) value, OffsetDateTime::from));
+        } else if (value instanceof Number) {
+            assembled.put(name, OffsetDateTime.ofInstant(
+                    Instant.ofEpochSecond(((Number) value).longValue()), ZoneId.systemDefault()));
+        }
+    }
+
+    private static void assembleBoolean(Map<String, Object> assembled, String name, Object value) {
+        if (value instanceof Boolean) {
+            assembled.put(name, value);
+        } else if (value instanceof String) {
+            assembled.put(name, Boolean.valueOf((String) value));
+        }
+    }
+
+    public Map<String, Object> assembleMap(Map<String, Object> map) {
         Map<String, Model.Field> fieldMap = getFieldMap();
-        Map<String, Object> customs = new HashMap<>(16);
-        fieldMap.forEach((name, field) -> {
+        Map<String, Object> assembled = new HashMap<>(16);
+        for (Map.Entry<String, Model.Field> entry : fieldMap.entrySet()) {
+            String name = entry.getKey();
+            String nameKey = name + KEY_SUFFIX;
+            Model.Field field = entry.getValue();
             String type = field.getType();
-            List<CustomBean> list = customList.stream().filter(
-                    item -> Objects.equals(item.getName(), name) && compatibleType(item.getType(), type))
-                    .collect(Collectors.toList());
-            List<CustomBean> keyList = customList.stream().filter(
-                    item -> Objects.equals(item.getName(), name + KEY_SUFFIX) && compatibleType(item.getType(), type))
-                    .collect(Collectors.toList());
-            String value = list.isEmpty() ? null : list.iterator().next().getValue();
-            String valueKey = keyList.isEmpty() ? null : keyList.iterator().next().getValue();
-            switch (field.getType()) {
+            String dataType = field.getDataType();
+            Object value = map.get(name);
+            Object valueKey = map.get(nameKey);
+            switch (type) {
                 case Model.TYPE_NUMBER:
                 case Model.TYPE_SLIDER:
-                    if (NumberUtils.isCreatable(value)) {
-                        if (field.getPrecision() != null && field.getPrecision() > 0) {
-                            customs.put(name, new BigDecimal(value));
-                        } else {
-                            customs.put(name, Long.valueOf(value));
-                        }
-                    }
+                    assembleNumber(assembled, field.getPrecision(), name, value);
                     break;
                 case Model.TYPE_DATE:
-                    if (value != null) {
-                        customs.put(name, ISO_OFFSET_DATE_TIME.parse(value, OffsetDateTime::from));
-                    }
+                    assembleDate(assembled, name, value);
                     break;
                 case Model.TYPE_SWITCH:
-                    if (value != null) {
-                        customs.put(name, Boolean.valueOf(value));
-                    }
+                    assembleBoolean(assembled, name, value);
                     break;
                 case Model.TYPE_CHECKBOX:
                 case Model.TYPE_MULTIPLE_SELECT:
-                    customs.put(name, list.stream().map(CustomBean::getValue).filter(Objects::nonNull)
-                            .collect(Collectors.toList()));
-                    customs.put(name + KEY_SUFFIX, keyList.stream().map(CustomBean::getValue).filter(Objects::nonNull)
-                            .collect(Collectors.toList()));
+                    assembleList(assembled, dataType, name, value, nameKey, valueKey);
+                    break;
+                case Model.TYPE_RADIO:
+                case Model.TYPE_SELECT:
+                    assembleSelect(assembled, dataType, name, value, nameKey, valueKey);
                     break;
                 default:
+                    // 剩余数据都是必须是字符串
                     if (value != null) {
-                        customs.put(name, value);
-                    }
-                    if (valueKey != null) {
-                        customs.put(name + KEY_SUFFIX, valueKey);
+                        assembled.put(name, value.toString());
                     }
             }
-        });
-        return customs;
+        }
+        return assembled;
     }
 
-    public void disassembleCustoms(Map<String, Object> customs, Consumer3<String, String, String> consumer) {
-        customs.forEach((key, value) -> {
-            String origKey = key.endsWith(KEY_SUFFIX) ? key.substring(0, key.lastIndexOf(KEY_SUFFIX)) : key;
-            String type = Optional.ofNullable(getFieldMap().get(origKey)).map(Field::getType).orElse(null);
-            if (type == null) {
-                return;
-            }
-            if (value instanceof ArrayList) {
-                ((ArrayList<?>) value).forEach(val -> consumer.accept(key, type, String.valueOf(val)));
-                return;
-            }
-            Optional.ofNullable(value).map(String::valueOf).filter(StringUtils::isNotBlank)
-                    .ifPresent(it -> consumer.accept(key, type, it));
-        });
+    public Map<String, Object> assembleMap(@Nullable String json) {
+        if (StringUtils.isBlank(json)) {
+            return Collections.emptyMap();
+        }
+        try {
+            return assembleMap(MAPPER.readValue(json, new TypeReference<Map<String, Object>>() {
+            }));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
-    public void sanitizeCustoms(Map<String, Object> customs, PolicyFactory policyFactory) {
-        Set<String> toBeRemoved = new HashSet<>();
-        customs.forEach((key, value) -> {
-            String origKey = key.endsWith(KEY_SUFFIX) ? key.substring(0, key.lastIndexOf(KEY_SUFFIX)) : key;
-            String type = Optional.ofNullable(getFieldMap().get(origKey)).map(Field::getType).orElse(null);
-            if (type == null) {
-                toBeRemoved.add(key);
-                return;
-            }
-            if (TYPE_RICH_EDITOR.equals(type)) {
-                customs.put(type, policyFactory.sanitize(String.valueOf(value)));
-            }
-        });
-        toBeRemoved.forEach(customs::remove);
-    }
-
-
-    public void handleCustoms(List<? extends CustomBean> customList, CustomHandle handle) {
-        Map<String, Model.Field> fieldMap = getFieldMap();
-        customList.forEach(custom -> {
-            String value = custom.getValue();
-            if (value == null) {
-                return;
-            }
-            String name = custom.getName();
-            Model.Field field = fieldMap.get(name);
-            if (field == null) {
-                return;
-            }
-            handle.execute(name, value, field);
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    public void handleCustoms(Map<String, Object> customs, CustomHandle handle) {
-        Map<String, Model.Field> fieldMap = getFieldMap();
-        customs.forEach((name, obj) -> {
-            Model.Field field = fieldMap.get(name);
-            if (field == null) {
-                return;
-            }
-            if (obj instanceof List) {
-                List<String> list = (List<String>) obj;
-                list.forEach(value -> {
-                    if (StringUtils.isBlank(value)) {
-                        return;
-                    }
-                    handle.execute(name, value, field);
-                });
-            } else {
-                if (obj != null) {
-                    handle.execute(name, String.valueOf(obj), field);
+    public Map<String, Object> sanitizeMap(Map<String, Object> map, PolicyFactory policyFactory) {
+        Map<String, Object> assembledMap = assembleMap(map);
+        for (Field field : getFieldList()) {
+            if (TYPE_RICH_EDITOR.equals(field.getType())) {
+                String code = field.getCode();
+                Object obj = assembledMap.get(code);
+                if (obj instanceof String) {
+                    assembledMap.put(code, policyFactory.sanitize((String) obj));
                 }
             }
-        });
+        }
+        return assembledMap;
+    }
+
+    public List<String> getUrlsFromMap(Map<String, Object> map) {
+        List<String> list = new ArrayList<>();
+        for (Field field : getFieldList()) {
+            Object obj = map.get(field.getCode());
+            if (obj instanceof String) {
+                switch (field.getType()) {
+                    case Model.TYPE_RICH_EDITOR:
+                        list.addAll(HtmlParserUtils.getUrls((String) obj));
+                        break;
+                    case Model.TYPE_IMAGE_UPLOAD:
+                    case Model.TYPE_VIDEO_UPLOAD:
+                    case Model.TYPE_FILE_UPLOAD:
+                        list.add((String) obj);
+                        break;
+                    default:
+                }
+            }
+        }
+        return list;
+    }
+
+    public void disassembleMap(Map<String, Object> map, Consumer<String> mainsConsumer, Consumer<String> clobsConsumer) {
+        Map<String, Object> mainsMap = new HashMap<>(map.size());
+        Map<String, Object> clobsMap = new HashMap<>(map.size());
+        for (Field field : getFieldList()) {
+            String code = field.getCode();
+            String codeKey = code + KEY_SUFFIX;
+            Object value = map.get(code);
+            Object valueKey = map.get(codeKey);
+            if (value == null) {
+                continue;
+            }
+            if (field.isClob()) {
+                clobsMap.put(code, value);
+                if (valueKey != null) {
+                    clobsMap.put(codeKey, valueKey);
+                }
+            } else {
+                mainsMap.put(code, value);
+                if (valueKey != null) {
+                    mainsMap.put(codeKey, valueKey);
+                }
+            }
+        }
+        try {
+            if (!mainsMap.isEmpty()) {
+                mainsConsumer.accept(MAPPER.writeValueAsString(mainsMap));
+            }
+            if (!clobsMap.isEmpty()) {
+                clobsConsumer.accept(MAPPER.writeValueAsString(clobsMap));
+            }
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @JsonIgnore
@@ -207,33 +267,14 @@ public class Model extends ModelBase implements Serializable {
         void execute(String name, String value, Model.Field field);
     }
 
-    public static class GetUrlsHandle implements CustomHandle {
-        private final List<String> urls;
-
-        public GetUrlsHandle(List<String> urls) {
-            this.urls = urls;
-        }
-
-        @Override
-        public void execute(String name, String value, Field field) {
-            switch (field.getType()) {
-                case Model.TYPE_RICH_EDITOR:
-                    urls.addAll(HtmlParserUtils.getUrls(value));
-                    break;
-                case Model.TYPE_IMAGE_UPLOAD:
-                case Model.TYPE_VIDEO_UPLOAD:
-                case Model.TYPE_FILE_UPLOAD:
-                    urls.add(value);
-                    break;
-                default:
-            }
-        }
-    }
-
     public static final class Field {
         private String code = "";
         private String name = "";
         private String type = "";
+        private String dataType = DATA_TYPE_STRING;
+        private String luceneField = "";
+        private boolean clob = false;
+        private boolean showInList = false;
         @Nullable
         private Integer precision;
         @Nullable
@@ -280,9 +321,41 @@ public class Model extends ModelBase implements Serializable {
         public void setDictTypeId(@Nullable Integer dictTypeId) {
             this.dictTypeId = dictTypeId;
         }
+
+        public String getDataType() {
+            return dataType;
+        }
+
+        public void setDataType(String dataType) {
+            this.dataType = dataType;
+        }
+
+        public String getLuceneField() {
+            return luceneField;
+        }
+
+        public void setLuceneField(String luceneField) {
+            this.luceneField = luceneField;
+        }
+
+        public boolean isClob() {
+            return clob;
+        }
+
+        public void setClob(boolean clob) {
+            this.clob = clob;
+        }
+
+        public boolean isShowInList() {
+            return showInList;
+        }
+
+        public void setShowInList(boolean showInList) {
+            this.showInList = showInList;
+        }
     }
 
-    public static final String KEY_SUFFIX = "_key";
+    public static final String KEY_SUFFIX = "Key";
 
     public static final String TYPE_TEXT = "text";
     public static final String TYPE_TEXTAREA = "textarea";
@@ -302,23 +375,11 @@ public class Model extends ModelBase implements Serializable {
     public static final String TYPE_RICH_EDITOR = "richEditor";
     public static final String TYPE_MARKDOWN_EDITOR = "markdownEditor";
 
-    /**
-     * 每一个数组代表一组兼容的数据类型。数值和字符串都作为兼容数据。
-     */
-    private static final String[][] TYPE_GROUPS = {
-            {TYPE_TEXT, TYPE_TEXTAREA, TYPE_RADIO, TYPE_CHECKBOX, TYPE_SELECT, TYPE_MULTIPLE_SELECT,
-                    TYPE_NUMBER, TYPE_SLIDER}};
+    public static final String DATA_TYPE_STRING = "string";
+    public static final String DATA_TYPE_LONG = "long";
+    public static final String DATA_TYPE_DECIMAL = "decimal";
+    public static final String DATA_TYPE_DATETIME = "datetime";
+    public static final String DATA_TYPE_BOOLEAN = "boolean";
 
-    private boolean compatibleType(String type1, String type2) {
-        if (Objects.equals(type1, type2)) {
-            return true;
-        }
-        for (String[] group : TYPE_GROUPS) {
-            if (ArrayUtils.contains(group, type1) && ArrayUtils.contains(group, type2)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    public static final String NOT_FOUND = "Model not found. ID: ";
 }

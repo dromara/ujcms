@@ -253,7 +253,7 @@ public class JwtAuthController {
         @Schema(description = "图形验证码")
         public String captcha;
         @Schema(description = "短信ID")
-        public Integer shortMessageId;
+        public Long shortMessageId;
         @Schema(description = "短信验证码")
         public String shortMessageValue;
         @Schema(description = "是否浏览器访问")

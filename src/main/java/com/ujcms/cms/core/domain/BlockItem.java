@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.BlockItemBase;
 import com.ujcms.cms.core.support.Anchor;
+import com.ujcms.commons.db.order.OrderEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
@@ -22,7 +23,7 @@ import java.util.Optional;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class BlockItem extends BlockItemBase implements Anchor, Serializable {
+public class BlockItem extends BlockItemBase implements Anchor, OrderEntity, Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "URL地址")
@@ -94,4 +95,6 @@ public class BlockItem extends BlockItemBase implements Anchor, Serializable {
     public void setSite(Site site) {
         this.site = site;
     }
+
+    public static final String NOT_FOUND = "BlockItem not found. ID: ";
 }

@@ -7,6 +7,7 @@ import com.ujcms.cms.core.listener.GroupDeleteListener;
 import com.ujcms.cms.core.mapper.GroupAccessMapper;
 import com.ujcms.cms.core.mapper.GroupMapper;
 import com.ujcms.cms.core.service.args.GroupArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,18 +30,18 @@ import java.util.Objects;
 public class GroupService {
     private final GroupAccessMapper groupAccessMapper;
     private final GroupMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public GroupService(GroupAccessMapper groupAccessMapper, GroupMapper mapper, SeqService seqService) {
+    public GroupService(GroupAccessMapper groupAccessMapper, GroupMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.groupAccessMapper = groupAccessMapper;
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Group bean) {
-        bean.setId(seqService.getNextVal(GroupBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -50,20 +51,20 @@ public class GroupService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Group bean, Collection<Integer> accessPermissions, Integer siteId) {
+    public void update(Group bean, Collection<Long> accessPermissions, Long siteId) {
         mapper.update(bean);
         groupAccessMapper.deleteByGroupId(bean.getId(), siteId);
         insertAccessPermissions(accessPermissions, bean.getId(), siteId);
     }
 
-    private void insertAccessPermissions(Collection<Integer> accessPermissions, Integer groupId, Integer siteId) {
+    private void insertAccessPermissions(Collection<Long> accessPermissions, Long groupId, Long siteId) {
         accessPermissions.forEach(channelId -> groupAccessMapper.insert(new GroupAccess(groupId, channelId, siteId)));
     }
 
 
     @Transactional(rollbackFor = Exception.class)
     public void updateOrder(List<Group> list) {
-        short order = 1;
+        int order = 1;
         for (Group bean : list) {
             bean.setOrder(order);
             mapper.update(bean);
@@ -72,18 +73,18 @@ public class GroupService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         deleteListeners.forEach(it -> it.preGroupDelete(id));
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public Group select(Integer id) {
+    public Group select(Long id) {
         return mapper.select(id);
     }
 
@@ -97,7 +98,7 @@ public class GroupService {
         return selectList(args);
     }
 
-    public List<Integer> listAccessPermissions(Integer groupId, @Nullable Integer siteId) {
+    public List<Long> listAccessPermissions(Long groupId, @Nullable Long siteId) {
         return groupAccessMapper.listChannelByGroupId(groupId, siteId);
     }
 

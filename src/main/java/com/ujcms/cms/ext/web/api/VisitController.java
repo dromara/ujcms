@@ -55,7 +55,7 @@ public class VisitController {
 
     @Operation(summary = "记录访问统计接口")
     @PostMapping("{siteId}")
-    public void visit(@Parameter(description = "站点ID") @PathVariable Integer siteId,
+    public void visit(@Parameter(description = "站点ID") @PathVariable Long siteId,
                       @Parameter(description = "受访URL地址。即需要记录的访问地址。js中可以使用`document.location.href`获取") String url,
                       @Parameter(description = "入口地址。用户每次浏览网站，通常会浏览多个页面，第一个打开的页面即为入口页面") String entryUrl,
                       @Parameter(description = "来源页面。当前页面的上一个页面。js中可以使用`document.referrer`获取") String referrer,

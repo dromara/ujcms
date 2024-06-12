@@ -13,6 +13,7 @@ import com.ujcms.commons.web.PageUrlResolver;
 import com.ujcms.commons.web.Views;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
+import org.owasp.html.PolicyFactory;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotNull;
@@ -80,11 +81,15 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
      */
     @JsonIgnore
     public List<String> getAttachmentUrls() {
+        return getAttachmentUrls(getChannelModel());
+    }
+
+    public List<String> getAttachmentUrls(Model model) {
         List<String> urls = new ArrayList<>();
         Optional.ofNullable(getImage()).ifPresent(urls::add);
         // 获取正文中的附件url
         urls.addAll(HtmlParserUtils.getUrls(getExt().getText()));
-        getChannelModel().handleCustoms(getCustomList(), new Model.GetUrlsHandle(urls));
+        urls.addAll(model.getUrlsFromMap(getCustoms()));
         return urls;
     }
 
@@ -189,7 +194,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
     }
 
-    private Optional<Channel> getFirstChannel(Integer channelId) {
+    private Optional<Channel> getFirstChannel(Long channelId) {
         return Optional.ofNullable(Application.getApplicationContext())
                 .map((applicationContext -> applicationContext.getBean(ChannelService.class)))
                 .map(channelService -> channelService.findFirstChild(channelId));
@@ -230,11 +235,20 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     // region JsonFields
 
+    /**
+     * 自定义字段
+     */
+    @Nullable
+    private transient Map<String, Object> customs;
+
     @Schema(description = "自定义字段")
     public Map<String, Object> getCustoms() {
-        if (customs == null) {
-            customs = getChannelModel().assembleCustoms(getCustomList());
+        if (customs != null) {
+            return customs;
         }
+        customs = new HashMap<>(16);
+        customs.putAll(getChannelModel().assembleMap(getMainsJson()));
+        customs.putAll(getChannelModel().assembleMap(getClobsJson()));
         return customs;
     }
 
@@ -242,14 +256,11 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
         this.customs = customs;
     }
 
-    public static List<ChannelCustom> disassembleCustoms(Model model, Integer id, Map<String, Object> customs) {
-        List<ChannelCustom> list = new ArrayList<>();
-        model.disassembleCustoms(customs, (name, type, value) -> list.add(new ChannelCustom(id, name, type, value)));
-        return list;
+    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+        setCustoms(map);
+        model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
     }
-
-    @Nullable
-    private transient Map<String, Object> customs;
     // endregion
 
     // region Associations
@@ -269,11 +280,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     @JsonIncludeProperties({"id", "name", "url", "image", "nav"})
     @Nullable
     private List<Channel> children;
-    /**
-     * 自定义字段列表
-     */
-    @JsonIgnore
-    private List<ChannelCustom> customList = Collections.emptyList();
     /**
      * 上级栏目。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性为`null`
      */
@@ -326,14 +332,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     public void setChildren(@Nullable List<Channel> children) {
         this.children = children;
-    }
-
-    public List<ChannelCustom> getCustomList() {
-        return customList;
-    }
-
-    public void setCustomList(List<ChannelCustom> customList) {
-        this.customList = customList;
     }
 
     @Nullable
@@ -496,5 +494,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
      * 链接到第一个子栏目
      */
     public static final short TYPE_LINK_CHILD = 4;
+
+    public static final String NOT_FOUND = "Channel not found. ID: ";
     // endregion
 }

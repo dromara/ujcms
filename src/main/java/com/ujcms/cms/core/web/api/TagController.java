@@ -104,8 +104,8 @@ public class TagController {
     @Operation(summary = "获取Tag对象")
     @ApiResponses(value = {@ApiResponse(description = "Tag对象")})
     @GetMapping("/{id:[\\d]+}")
-    public Tag show(@Parameter(description = "TagID") @PathVariable Integer id) {
+    public Tag show(@Parameter(description = "TagID") @PathVariable Long id) {
         return Optional.ofNullable(service.select(id)).orElseThrow(() ->
-                new Http404Exception("Tag not found. ID: " + id));
+                new Http404Exception(Tag.NOT_FOUND + id));
     }
 }

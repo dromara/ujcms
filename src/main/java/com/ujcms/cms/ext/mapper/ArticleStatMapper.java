@@ -27,7 +27,7 @@ public interface ArticleStatMapper {
      * @return 统计结果
      */
     List<ArticleStat> statBy(@Param("type") String type,
-                             @Param("siteId") @Nullable Integer siteId,
+                             @Param("siteId") @Nullable Long siteId,
                              @Param("begin") @Nullable OffsetDateTime begin,
                              @Param("end") @Nullable OffsetDateTime end);
 }

@@ -59,16 +59,16 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
     public static final String B3 = "b3";
     public static final String B4 = "b4";
 
-    public static Page<EsArticle> query(Map<String, ?> params, Integer defaultSiteId,
+    public static Page<EsArticle> query(Map<String, ?> params, Long defaultSiteId,
                                         Pageable pageable, ArticleLucene articleLucene) {
-        Integer siteId = getInteger(params, SITE_ID);
+        Long siteId = getLong(params, SITE_ID);
         // 不获取所有站点，则给默认站点ID
         if (siteId == null && !getBoolean(params, IS_ALL_SITE, false)) {
             siteId = defaultSiteId;
         }
         Boolean isIncludeSubSite = getBoolean(params, IS_INCLUDE_SUB_SITE, false);
 
-        Integer channelId = getInteger(params, CHANNEL_ID);
+        Long channelId = getLong(params, CHANNEL_ID);
         Boolean isIncludeSubChannel = getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true);
 
 
@@ -79,7 +79,7 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         OffsetDateTime beginPublishDate = getOffsetDateTime(params, BEGIN_PUBLISH_DATE);
         OffsetDateTime endPublishDate = getOffsetDateTime(params, END_PUBLISH_DATE);
         Boolean isWithImage = getBoolean(params, IS_WITH_IMAGE);
-        Collection<Integer> excludeIds = getIntegers(params, EXCLUDE_ID);
+        Collection<Long> excludeIds = getLongs(params, EXCLUDE_ID);
         Collection<Integer> status = getIntegers(params, STATUS);
         if (status == null) {
             status = Collections.singletonList((int) Article.STATUS_PUBLISHED);
@@ -130,7 +130,7 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
 
-        Integer defaultSiteId = Frontends.getSiteId(env);
+        Long defaultSiteId = Frontends.getSiteId(env);
 
         if (isPage) {
             // spring-data 的 page 从 0 开始

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.FormMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Form">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="type_id_" jdbcType="BIGINT" property="typeId" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="org_id_" jdbcType="BIGINT" property="orgId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="modified_user_id_" jdbcType="BIGINT" property="modifiedUserId" />
+    <result column="process_instance_id_" jdbcType="VARCHAR" property="processInstanceId" />
+    <result column="reject_reason_" jdbcType="VARCHAR" property="rejectReason" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+    <result column="ip_" jdbcType="VARCHAR" property="ip" />
+    <result column="order_" jdbcType="BIGINT" property="order" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.Form">
+    <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
+  </resultMap>
+    <resultMap extends="ResultMapWithBLOBs" id="ListResultMap" type="com.ujcms.cms.ext.domain.Form">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.select" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+        <association column="modified_user_id_" javaType="com.ujcms.cms.core.domain.User" property="modifiedUser" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+        <association column="type_id_" javaType="com.ujcms.cms.ext.domain.FormType" property="type" select="com.ujcms.cms.ext.mapper.FormTypeMapper.select" />
+    </resultMap>
+    <resultMap extends="ListResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Form">
+        <association column="id_" javaType="com.ujcms.cms.ext.domain.FormExt" property="ext" select="com.ujcms.cms.ext.mapper.FormExtMapper.select" />
+    </resultMap>
+    <update id="moveUp">
+        update ujcms_form
+        set order_ = order_ + 1
+        where order_ &lt; #{from}
+          and order_ &gt;= #{to}
+    </update>
+    <update id="moveDown">
+        update ujcms_form
+        set order_ = order_ - 1
+        where order_ &gt; #{from}
+          and order_ &lt;= #{to}
+    </update>
+    <update id="updateOrder">
+        update ujcms_form
+        set order_ = #{order}
+        where id_ = #{id}
+    </update>
+    <select id="listByIds" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_form t
+        where t.id_ in
+        <foreach close=")" collection="ids" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+        order by t.order_,t.id_
+    </select>
+    <update id="updateModifiedUser">
+        update ujcms_form
+        set modified_user_id_ = #{toUserId}
+        where modified_user_id_ = ${fromUserId}
+    </update>
+    <select id="existsByOrgId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_form
+                           WHERE org_id_ = #{orgId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="existsByUserId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_form
+                           WHERE user_id_ = #{userId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="existsByTypeId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_form
+                           WHERE type_id_ = #{typeId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <delete id="deleteBySiteId" parameterType="long">
+        delete
+        from ujcms_form
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere">
+        <if test="orgIds != null and orgIds.size &gt; 0">
+            and t.org_id_ in
+            <foreach close=")" collection="orgIds" item="id" open="(" separator=",">#{id}</foreach>
+        </if>
+        <trim prefix="and(" prefixOverrides="and |or " suffix=")">
+            <if test="orgPermIds != null and orgPermIds.size &gt; 0">
+                t.org_id_ in
+                <foreach close=")" collection="orgPermIds" item="id" open="(" separator=",">#{id}</foreach>
+                or t.org_id_ in (select orgPerm.perm_org_id_ from ujcms_org_perm orgPerm
+                where orgPerm.org_id_ in <foreach close=")" collection="permOrgIds" item="id" open="(" separator=",">#{id}</foreach>)
+            </if>
+            <if test="orgRoleIds != null and orgRoleIds.size &gt; 0">
+                or t.org_id_ in (select roleOrg.org_id_ from ujcms_role_org roleOrg
+                where roleOrg.role_id_ in <foreach close=")" collection="orgRoleIds" item="id" open="(" separator=",">#{id}</foreach>)
+            </if>
+        </trim>
+    </sql>
+    <select id="selectAll" resultMap="ListResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_form" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_form t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_form
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.Form">
+    update ujcms_form
+    set type_id_ = #{typeId,jdbcType=BIGINT},
+      site_id_ = #{siteId,jdbcType=BIGINT},
+      org_id_ = #{orgId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      modified_user_id_ = #{modifiedUserId,jdbcType=BIGINT},
+      process_instance_id_ = #{processInstanceId,jdbcType=VARCHAR},
+      reject_reason_ = #{rejectReason,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      modified_ = #{modified,jdbcType=TIMESTAMP},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      status_ = #{status,jdbcType=SMALLINT},
+      mains_json_ = #{mainsJson,jdbcType=OTHER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Form">
+    insert into ujcms_form (id_, type_id_, site_id_, org_id_, user_id_, modified_user_id_, process_instance_id_, reject_reason_, created_, modified_, ip_, order_, status_, mains_json_)
+    values (#{id,jdbcType=BIGINT}, #{typeId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{modifiedUserId,jdbcType=BIGINT}, #{processInstanceId,jdbcType=VARCHAR}, #{rejectReason,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{ip,jdbcType=VARCHAR}, #{order,jdbcType=BIGINT}, #{status,jdbcType=SMALLINT}, #{mainsJson,jdbcType=OTHER})
+  </insert><sql id="Column_List">
+    t.id_, t.type_id_, t.site_id_, t.org_id_, t.user_id_, t.modified_user_id_, t.process_instance_id_, t.reject_reason_, t.created_, t.modified_, t.ip_, t.order_, t.status_, t.mains_json_
+  </sql></mapper>

@@ -68,8 +68,15 @@ public class XmlInsertElement extends AbstractXmlElementGenerator {
         for (int i = 0; i < columns.size(); i++) {
             IntrospectedColumn introspectedColumn = columns.get(i);
 
-            insertClause.append(MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn));
-            valuesClause.append(MyBatis3FormattingUtilities.getParameterClause(introspectedColumn));
+            String columnName = MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn);
+            String valueClause = MyBatis3FormattingUtilities.getParameterClause(introspectedColumn);
+            if (columnName.endsWith("_json_") &&
+                    (valueClause.contains("LONGVARCHAR") || valueClause.contains("CLOB"))) {
+                valueClause = valueClause.replace("LONGVARCHAR", "OTHER");
+                valueClause = valueClause.replace("CLOB", "OTHER");
+            }
+            insertClause.append(columnName);
+            valuesClause.append(valueClause);
             if (i + 1 < columns.size()) {
                 insertClause.append(", "); //$NON-NLS-1$
                 valuesClause.append(", "); //$NON-NLS-1$

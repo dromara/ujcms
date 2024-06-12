@@ -33,7 +33,7 @@ public interface SensitiveWordMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -42,7 +42,7 @@ public interface SensitiveWordMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    SensitiveWord select(Integer id);
+    SensitiveWord select(Long id);
 
     /**
      * 根据查询条件获取列表

@@ -13,16 +13,16 @@ import java.util.Map;
  * @author PONY
  */
 public class MessageBoardArgs extends BaseQueryArgs {
-    public MessageBoardArgs siteId(@Nullable Integer siteId) {
+    public MessageBoardArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }
 
-    public MessageBoardArgs typeId(@Nullable Integer typeId) {
+    public MessageBoardArgs typeId(@Nullable Long typeId) {
         if (typeId != null) {
-            queryMap.put("EQ_typeId_Int", typeId);
+            queryMap.put("EQ_typeId_Long", typeId);
         }
         return this;
     }

@@ -44,6 +44,18 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
+        <table tableName="ujcms_org_article" domainObjectName="OrgArticle">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_org_channel" domainObjectName="OrgChannel">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_org_perm" domainObjectName="OrgPerm">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
         <table tableName="ujcms_group" domainObjectName="Group">
             <property name="pageable" value="false"/>
         </table>
@@ -56,10 +68,26 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
+        <table tableName="ujcms_user_role" domainObjectName="UserRole">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_user_org" domainObjectName="UserOrg">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
         <table tableName="ujcms_role" domainObjectName="Role">
             <property name="pageable" value="false"/>
         </table>
-        <table tableName="ujcms_user_role" domainObjectName="UserRole">
+        <table tableName="ujcms_role_article" domainObjectName="RoleArticle">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_role_channel" domainObjectName="RoleChannel">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
+        <table tableName="ujcms_role_org" domainObjectName="RoleOrg">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
@@ -70,10 +98,6 @@
             <property name="updateExcludes" value="depth_,order_,views_,self_views_,today_views_,yesterday_views_,max_views_,max_date_"/>
         </table>
         <table tableName="ujcms_site_tree" domainObjectName="SiteTree">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_site_custom" domainObjectName="SiteCustom">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
@@ -89,24 +113,12 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
-        <table tableName="ujcms_channel_custom" domainObjectName="ChannelCustom">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
         <table tableName="ujcms_performance_type" domainObjectName="PerformanceType">
             <property name="pageable" value="false"/>
             <property name="order" value="true"/>
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_group_access" domainObjectName="GroupAccess">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_role_article" domainObjectName="RoleArticle">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_role_channel" domainObjectName="RoleChannel">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
@@ -118,10 +130,6 @@
             <property name="updateExcludes" value="comments_,downloads_,favorites_,ups_,downs_,views_,day_views_,week_views_,month_views_,quarter_views_,year_views_"/>
         </table>
         <table tableName="ujcms_article_stat" domainObjectName="ArticleStat">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_article_custom" domainObjectName="ArticleCustom">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>

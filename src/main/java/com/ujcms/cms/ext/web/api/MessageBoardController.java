@@ -123,7 +123,7 @@ public class MessageBoardController {
     @Operation(summary = "获取调查问卷对象")
     @ApiResponses(value = {@ApiResponse(description = "调查问卷对象")})
     @GetMapping("/{id:[\\d]+}")
-    public MessageBoard show(@Parameter(description = "调查问卷ID") @PathVariable Integer id) {
+    public MessageBoard show(@Parameter(description = "调查问卷ID") @PathVariable Long id) {
         MessageBoard bean = service.select(id);
         if (bean == null) {
             throw new Http404Exception("MessageBoard not found. ID: " + id);
@@ -146,7 +146,7 @@ public class MessageBoardController {
             throw new Http403Exception("MessageBoard is not enabled.");
         }
         User user = Contexts.findCurrentUser();
-        Integer userId;
+        Long userId;
         if (user == null) {
             if (site.getMessageBoard().isLoginRequired()) {
                 throw new Http401Exception("MessageBoard login required.");

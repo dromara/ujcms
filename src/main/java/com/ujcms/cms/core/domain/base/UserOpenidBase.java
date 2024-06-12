@@ -24,7 +24,7 @@ public class UserOpenidBase implements Serializable {
      */
     @NotNull
     @Schema(description="用户ID")
-    private Integer userId = 0;
+    private Long userId = 0L;
 
     /**
      * 提供商
@@ -73,11 +73,11 @@ public class UserOpenidBase implements Serializable {
     @Schema(description="大头像URL")
     private String largeAvatarUrl;
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

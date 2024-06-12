@@ -11,6 +11,11 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 调查反馈 Mapper
+ *
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface SurveyFeedbackMapper {
@@ -36,7 +41,7 @@ public interface SurveyFeedbackMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -45,7 +50,7 @@ public interface SurveyFeedbackMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    SurveyFeedback select(Integer id);
+    SurveyFeedback select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -61,7 +66,7 @@ public interface SurveyFeedbackMapper {
      * @param surveyId 调查问卷ID
      * @return 被删除的数据条数
      */
-    int deleteBySurveyId(Integer surveyId);
+    int deleteBySurveyId(Long surveyId);
 
     /**
      * 根据用户ID删除数据
@@ -69,7 +74,7 @@ public interface SurveyFeedbackMapper {
      * @param userId 用户ID
      * @return 被删除的数据条数
      */
-    int deleteByUserId(Integer userId);
+    int deleteByUserId(Long userId);
 
     /**
      * 根据站点ID删除数据
@@ -77,7 +82,7 @@ public interface SurveyFeedbackMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 
     /**
      * 统计反馈数量，用于判断是否已经参与过调查。
@@ -89,9 +94,9 @@ public interface SurveyFeedbackMapper {
      * @param cookie   cookie标识
      * @return 数据数量
      */
-    int countBy(@Nullable @Param("surveyId") Integer surveyId,
+    int countBy(@Nullable @Param("surveyId") Long surveyId,
                 @Nullable @Param("date") OffsetDateTime date,
-                @Nullable @Param("userId") Integer userId,
+                @Nullable @Param("userId") Long userId,
                 @Nullable @Param("ip") String ip,
                 @Nullable @Param("cookie") Long cookie);
 }

@@ -51,7 +51,7 @@ public class AttachmentController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('attachment:show','*')")
-    public Object show(@PathVariable Integer id) {
+    public Object show(@PathVariable Long id) {
         Attachment bean = service.select(id);
         if (bean == null) {
             return Responses.notFound("Attachment not found. ID = " + id);
@@ -63,16 +63,16 @@ public class AttachmentController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('attachment:delete','*')")
     @OperationLog(module = "attachment", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
-        ids.forEach(id -> {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
+        Long siteId = Contexts.getCurrentSiteId();
+        for (Long id : ids) {
             Attachment bean = service.select(id);
             if (bean == null) {
-                return;
+                continue;
             }
             ValidUtils.dataInSite(bean.getSiteId(), siteId);
             service.delete(bean);
-        });
+        }
         return Responses.ok();
     }
 }

@@ -19,7 +19,7 @@ public class RoleChannel extends RoleChannelBase implements Serializable {
     public RoleChannel() {
     }
 
-    public RoleChannel(Integer roleId, Integer channelId, Integer siteId) {
+    public RoleChannel(Long roleId, Long channelId, Long siteId) {
         setRoleId(roleId);
         setChannelId(channelId);
         setSiteId(siteId);

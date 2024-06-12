@@ -135,13 +135,13 @@ public class PasswordController {
         @Schema(description = "邮箱地址")
         public String email;
         @Schema(description = "邮件短信ID")
-        public Integer emailMessageId;
+        public Long emailMessageId;
         @Schema(description = "邮件验证码")
         public String emailMessageValue;
         @Schema(description = "手机号码")
         public String mobile;
         @Schema(description = "手机短信ID")
-        public Integer mobileMessageId;
+        public Long mobileMessageId;
         @Schema(description = "短信验证码")
         public String mobileMessageValue;
     }

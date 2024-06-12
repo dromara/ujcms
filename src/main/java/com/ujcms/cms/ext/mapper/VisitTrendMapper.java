@@ -39,7 +39,7 @@ public interface VisitTrendMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface VisitTrendMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    VisitTrend select(Integer id);
+    VisitTrend select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -100,5 +100,5 @@ public interface VisitTrendMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(@Param("siteId") Integer siteId);
+    int deleteBySiteId(@Param("siteId") Long siteId);
 }

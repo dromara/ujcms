@@ -65,7 +65,7 @@ public class UploadController extends AbstractUploadController {
         return doAvatarCrop(config, params);
     }
 
-    private Site getDefaultSite(Integer defaultSiteId) {
+    private Site getDefaultSite(Long defaultSiteId) {
         return Optional.ofNullable(siteService.select(defaultSiteId)).orElseThrow(() ->
                 new IllegalStateException("default site not found. ID: " + defaultSiteId));
     }

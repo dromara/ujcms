@@ -71,11 +71,16 @@ public class XmlUpdateElement extends AbstractXmlElementGenerator {
         for (Iterator<IntrospectedColumn> iter = columnList.iterator(); iter.hasNext(); ) {
             IntrospectedColumn introspectedColumn = iter.next();
 
-            sb.append(MyBatis3FormattingUtilities
-                    .getEscapedColumnName(introspectedColumn));
+            String columnName = MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn);
+            sb.append(columnName);
             sb.append(" = "); //$NON-NLS-1$
-            sb.append(MyBatis3FormattingUtilities
-                    .getParameterClause(introspectedColumn));
+            String parameterClause = MyBatis3FormattingUtilities.getParameterClause(introspectedColumn);
+            if (columnName.endsWith("_json_") &&
+                    (parameterClause.contains("LONGVARCHAR") || parameterClause.contains("CLOB"))) {
+                parameterClause = parameterClause.replace("LONGVARCHAR", "OTHER");
+                parameterClause = parameterClause.replace("CLOB", "OTHER");
+            }
+            sb.append(parameterClause);
 
             if (iter.hasNext()) {
                 sb.append(',');

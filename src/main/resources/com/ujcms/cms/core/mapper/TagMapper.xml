@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.TagMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Tag">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="site_id_" jdbcType="INTEGER" property="siteId" />
-    <result column="user_id_" jdbcType="INTEGER" property="userId" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
     <result column="refers_" jdbcType="INTEGER" property="refers" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Tag">
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Tag" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Tag">
     <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
     <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
   </resultMap>
+  <select id="listByArticleId" resultMap="BaseResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_tag t join ujcms_article_tag articleTag on t.id_ = articleTag.tag_id_
+    where articleTag.article_id_ = #{articleId}
+    order by articleTag.order_
+  </select>
   <select id="selectByName" resultMap="ResultMap">
     select
     <include refid="Column_List" />
@@ -36,27 +43,27 @@
       <property name="tableName" value="ujcms_tag" />
     </include>
   </select>
-  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
     select
     <include refid="Column_List" />
     from ujcms_tag t
-    where t.id_ = #{id,jdbcType=INTEGER}
+    where t.id_ = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="delete" parameterType="java.lang.Integer">
+  <delete id="delete" parameterType="java.lang.Long">
     delete from ujcms_tag
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Tag">
     update ujcms_tag
-    set site_id_ = #{siteId,jdbcType=INTEGER},
-      user_id_ = #{userId,jdbcType=INTEGER},
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
       created_ = #{created,jdbcType=TIMESTAMP},
       refers_ = #{refers,jdbcType=INTEGER}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Tag">
     insert into ujcms_tag (id_, site_id_, user_id_, name_, description_, created_, refers_)
-    values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{refers,jdbcType=INTEGER})
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{refers,jdbcType=INTEGER})
   </insert><sql id="Column_List">
     t.id_, t.site_id_, t.user_id_, t.name_, t.description_, t.created_, t.refers_
   </sql></mapper>

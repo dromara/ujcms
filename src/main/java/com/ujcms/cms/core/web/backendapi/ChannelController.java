@@ -3,6 +3,7 @@ package com.ujcms.cms.core.web.backendapi;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
+import com.ujcms.cms.core.component.TemplateService;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
@@ -16,7 +17,6 @@ import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.GroupService;
 import com.ujcms.cms.core.service.RoleService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
-import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.cms.core.web.support.ValidUtils;
@@ -27,7 +27,6 @@ import com.ujcms.commons.web.Servlets;
 import com.ujcms.commons.web.Views;
 import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,10 +35,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
@@ -60,13 +60,13 @@ public class ChannelController {
     private final GroupAccessMapper groupAccessMapper;
     private final RoleArticleMapper roleArticleMapper;
     private final RoleChannelMapper roleChannelMapper;
-    private final ResourceLoader resourceLoader;
+    private final TemplateService templateService;
 
     @Autowired
     public ChannelController(HtmlGenerator generator, GroupService groupService, RoleService roleService,
                              ChannelService service,
                              GroupAccessMapper groupAccessMapper, RoleArticleMapper roleArticleMapper,
-                             RoleChannelMapper roleChannelMapper, ResourceLoader resourceLoader) {
+                             RoleChannelMapper roleChannelMapper, TemplateService templateService) {
         this.generator = generator;
         this.groupService = groupService;
         this.roleService = roleService;
@@ -74,7 +74,7 @@ public class ChannelController {
         this.groupAccessMapper = groupAccessMapper;
         this.roleArticleMapper = roleArticleMapper;
         this.roleChannelMapper = roleChannelMapper;
-        this.resourceLoader = resourceLoader;
+        this.templateService = templateService;
     }
 
     @GetMapping
@@ -83,12 +83,12 @@ public class ChannelController {
     public List<Channel> list(@RequestParam(defaultValue = "false") boolean isArticlePermission,
                               @RequestParam(defaultValue = "true") boolean isIncludeChildren,
                               @RequestParam(defaultValue = "false") boolean isOnlyParent,
-                              Integer parentId, Integer siteId,
+                              Long parentId, Long siteId,
                               HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
         ChannelArgs args = ChannelArgs.of(getQueryMap(request.getQueryString()));
         if (isArticlePermission && !user.hasAllArticlePermission()) {
-            args.articleRoleIds(user.fetchRoleIds());
+            args.articlePermission(user.fetchRoleIds(), user.fetchAllOrgIds());
         }
         if (siteId == null) {
             siteId = Contexts.getCurrentSiteId();
@@ -113,7 +113,7 @@ public class ChannelController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('channel:show','*')")
-    public Channel show(@PathVariable Integer id) {
+    public Channel show(@PathVariable Long id) {
         Channel bean = service.select(id);
         if (bean == null) {
             throw new Http404Exception(CHANNEL_NOT_FOUND + id);
@@ -131,14 +131,15 @@ public class ChannelController {
         bean.setSiteId(site.getId());
         Channel channel = new Channel();
         Entities.copy(bean, channel);
+        channel.setCustoms(bean.getCustoms());
         // 默认给所有用户组、角色权限
-        List<Integer> groupIds = groupService.listNotAllAccessPermission().stream()
+        List<Long> groupIds = groupService.listNotAllAccessPermission().stream()
                 .map(GroupBase::getId).collect(Collectors.toList());
-        List<Integer> articleRoleIds = roleService.listNotAllArticlePermission(site.getId()).stream()
+        List<Long> articleRoleIds = roleService.listNotAllArticlePermission(site.getId()).stream()
                 .map(RoleBase::getId).collect(Collectors.toList());
-        List<Integer> channelRoleIds = roleService.listNotAllChannelPermission(site.getId()).stream()
+        List<Long> channelRoleIds = roleService.listNotAllChannelPermission(site.getId()).stream()
                 .map(RoleBase::getId).collect(Collectors.toList());
-        Integer parentId = bean.getParentId();
+        Long parentId = bean.getParentId();
         if (parentId != null) {
             // 按上级栏目给权限
             Channel parent = service.select(parentId);
@@ -148,7 +149,7 @@ public class ChannelController {
                 channelRoleIds = roleChannelMapper.listRoleByChannelId(parent.getId(), null);
             }
         }
-        service.insert(channel, channel.getExt(), groupIds, articleRoleIds, channelRoleIds, bean.getCustoms());
+        service.insert(channel, groupIds, articleRoleIds, channelRoleIds);
 
         if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.channelRelated");
@@ -169,7 +170,8 @@ public class ChannelController {
         ValidUtils.dataInSite(bean.getSiteId(), site.getId());
         User user = Contexts.getCurrentUser();
         Entities.copy(bean, channel, "siteId", "parentId", "order");
-        service.update(channel, channel.getExt(), bean.getParentId(), null, null, null, bean.getCustoms());
+        channel.setCustoms(bean.getCustoms());
+        service.update(channel, bean.getParentId(), null, null, null);
         if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.channelRelated");
             generator.updateChannelRelatedHtml(channel.getSiteId(), user.getId(), taskName, channel.getId());
@@ -180,10 +182,10 @@ public class ChannelController {
     @PutMapping("order")
     @PreAuthorize("hasAnyAuthority('channel:update','*')")
     @OperationLog(module = "channel", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
-        Integer siteId = Contexts.getCurrentSiteId();
+    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
+        Long siteId = Contexts.getCurrentSiteId();
         List<Channel> list = new ArrayList<>();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Channel bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound(CHANNEL_NOT_FOUND + id);
@@ -198,10 +200,10 @@ public class ChannelController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('channel:delete','*')")
     @OperationLog(module = "channel", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids, HttpServletRequest request) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids, HttpServletRequest request) {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Channel bean = service.select(id);
             if (bean == null) {
                 continue;
@@ -236,7 +238,7 @@ public class ChannelController {
     public List<String> channelTemplate() throws IOException {
         Site site = Contexts.getCurrentSite();
         String storagePath = site.getConfig().getTemplateStorage().getPath();
-        return getTemplates(storagePath + site.getTheme(), "channel");
+        return templateService.getTemplates(storagePath + site.getTheme(), "channel");
     }
 
     @GetMapping("article-templates")
@@ -244,40 +246,24 @@ public class ChannelController {
     public List<String> articleTemplate() throws IOException {
         Site site = Contexts.getCurrentSite();
         String storagePath = site.getConfig().getTemplateStorage().getPath();
-        return getTemplates(storagePath + site.getTheme(), "article");
+        return templateService.getTemplates(storagePath + site.getTheme(), "article");
     }
 
     @GetMapping("channel-permissions")
     @PreAuthorize("hasAnyAuthority('channel:list','*')")
-    public List<Integer> channelPermissions(@Nullable Integer siteId) {
+    public List<Long> channelPermissions(@Nullable Long siteId) {
         User user = Contexts.getCurrentUser();
-        return roleService.listChannelPermissions(user.fetchRoleIds(), siteId != null ? siteId : getCurrentSiteId());
+        Collection<Long> roleIds = user.fetchRoleIds();
+        Set<Long> orgIds = user.fetchAllOrgIds();
+        return service.listChannelPermissions(roleIds, orgIds, siteId != null ? siteId : getCurrentSiteId());
     }
 
     @GetMapping("alias-exist")
-    public boolean aliasExist(@NotBlank String alias, Integer siteId) {
+    public boolean aliasExist(@NotBlank String alias, Long siteId) {
         if (siteId == null) {
             siteId = Contexts.getCurrentSiteId();
         }
         return service.existsByAlias(alias, siteId);
-    }
-
-    private List<String> getTemplates(String theme, String startWitch) throws IOException {
-        List<String> themeList = new ArrayList<>();
-        File file = resourceLoader.getResource(theme).getFile();
-        if (!file.exists()) {
-            return themeList;
-        }
-        File[] themeFiles = file.listFiles((dir, name) ->
-                name.startsWith(startWitch) && name.endsWith(Constants.TEMPLATE_SUFFIX));
-        if (themeFiles == null) {
-            return themeList;
-        }
-        for (File themeFile : themeFiles) {
-            String name = themeFile.getName();
-            themeList.add(themeFile.getName().substring(0, name.indexOf(Constants.TEMPLATE_SUFFIX)));
-        }
-        return themeList;
     }
 
     private static final String CHANNEL_NOT_FOUND = "Channel not found. ID = ";

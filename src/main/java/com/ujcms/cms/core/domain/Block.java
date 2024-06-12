@@ -55,4 +55,6 @@ public class Block extends BlockBase implements Serializable {
     public int hashCode() {
         return Objects.hash(getId());
     }
+
+    public static final String NOT_FOUND = "Block not found. ID: ";
 }

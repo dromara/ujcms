@@ -24,21 +24,21 @@ public class DictBase implements Serializable {
      */
     @NotNull
     @Schema(description="字典ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 字典类型ID
      */
     @NotNull
     @Schema(description="字典类型ID")
-    private Integer typeId = 0;
+    private Long typeId = 0L;
 
     /**
      * 上级ID
      */
     @Nullable
     @Schema(description="上级ID")
-    private Integer parentId;
+    private Long parentId;
 
     /**
      * 名称
@@ -69,7 +69,7 @@ public class DictBase implements Serializable {
      */
     @NotNull
     @Schema(description="排列顺序")
-    private Short order = 32767;
+    private Integer order = 999999;
 
     /**
      * 是否系统字典
@@ -85,28 +85,28 @@ public class DictBase implements Serializable {
     @Schema(description="是否启用")
     private Boolean enabled = true;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getTypeId() {
+    public Long getTypeId() {
         return typeId;
     }
 
-    public void setTypeId(Integer typeId) {
+    public void setTypeId(Long typeId) {
         this.typeId = typeId;
     }
 
     @Nullable
-    public Integer getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(@Nullable Integer parentId) {
+    public void setParentId(@Nullable Long parentId) {
         this.parentId = parentId;
     }
 
@@ -135,11 +135,11 @@ public class DictBase implements Serializable {
         this.remark = remark;
     }
 
-    public Short getOrder() {
+    public Integer getOrder() {
         return order;
     }
 
-    public void setOrder(Short order) {
+    public void setOrder(Integer order) {
         this.order = order;
     }
 

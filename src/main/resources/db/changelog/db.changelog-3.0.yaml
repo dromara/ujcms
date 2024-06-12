@@ -57,7 +57,7 @@ databaseChangeLog:
               - column:
                   name: subtitle_
                   remarks: 副标题
-                  type: VARCHAR(450 BYTE)
+                  type: VARCHAR(450)
             tableName: ujcms_block_item
   - changeSet:
       id: 1648704231125-3
@@ -237,7 +237,7 @@ databaseChangeLog:
                   defaultValue: text
                   name: type_
                   remarks: 类型
-                  type: VARCHAR(32 BYTE)
+                  type: VARCHAR(32)
             tableName: ujcms_article_custom
   - changeSet:
       id: 1649749756341-3
@@ -251,7 +251,7 @@ databaseChangeLog:
                   defaultValue: text
                   name: type_
                   remarks: 类型
-                  type: VARCHAR(32 BYTE)
+                  type: VARCHAR(32)
             tableName: ujcms_channel_custom
   - changeSet:
       id: 1649749756341-4
@@ -265,7 +265,7 @@ databaseChangeLog:
                   defaultValue: text
                   name: type_
                   remarks: 类型
-                  type: VARCHAR(32 BYTE)
+                  type: VARCHAR(32)
             tableName: ujcms_site_custom
   - changeSet:
       id: 1649749756341-1
@@ -344,7 +344,7 @@ databaseChangeLog:
               - column:
                   name: doc_orig_
                   remarks: 文库原文档
-                  type: VARCHAR(255 BYTE)
+                  type: VARCHAR(255)
             tableName: ujcms_article_ext
   - changeSet:
       id: 1650703161425-1
@@ -355,7 +355,7 @@ databaseChangeLog:
               - column:
                   name: upload_storage_settings_
                   remarks: 附件存储点设置
-                  type: VARCHAR(1000 BYTE)
+                  type: VARCHAR(1000)
             tableName: ujcms_global
   - changeSet:
       id: 1650703161425-2
@@ -366,7 +366,7 @@ databaseChangeLog:
               - column:
                   name: html_storage_settings_
                   remarks: HTML存储点设置
-                  type: VARCHAR(1000 BYTE)
+                  type: VARCHAR(1000)
             tableName: ujcms_global
   - changeSet:
       id: 1650721981852-1
@@ -439,7 +439,7 @@ databaseChangeLog:
               - column:
                   name: template_storage_settings_
                   remarks: 模板存储点设置
-                  type: VARCHAR(1000 BYTE)
+                  type: VARCHAR(1000)
             tableName: ujcms_global
   - changeSet:
       id: 1651379997564-1

@@ -32,14 +32,14 @@ public class ActionBase implements Serializable {
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 用户ID
      */
     @Nullable
     @Schema(description="用户ID")
-    private Integer userId;
+    private Long userId;
 
     /**
      * IP
@@ -94,20 +94,20 @@ public class ActionBase implements Serializable {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 
     @Nullable
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(@Nullable Integer userId) {
+    public void setUserId(@Nullable Long userId) {
         this.userId = userId;
     }
 

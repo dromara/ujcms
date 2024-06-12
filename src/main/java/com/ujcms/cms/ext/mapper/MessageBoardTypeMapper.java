@@ -41,7 +41,7 @@ public interface MessageBoardTypeMapper extends OrderEntityMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -51,7 +51,7 @@ public interface MessageBoardTypeMapper extends OrderEntityMapper {
      */
     @Nullable
     @Override
-    MessageBoardType select(Integer id);
+    MessageBoardType select(Long id);
 
     /**
      * 根据查询条件获取列表

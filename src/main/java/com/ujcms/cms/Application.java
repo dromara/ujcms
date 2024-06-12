@@ -1,5 +1,6 @@
 package com.ujcms.cms;
 
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.nimbusds.jose.KeyLengthException;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.OrgService;
@@ -11,6 +12,7 @@ import com.ujcms.cms.core.web.support.*;
 import com.ujcms.commons.freemarker.OsTemplateLoader;
 import com.ujcms.commons.image.ImageHandler;
 import com.ujcms.commons.image.ThumbnailatorHandler;
+import com.ujcms.commons.misc.LongArrayToStringSerializer;
 import com.ujcms.commons.security.jwt.HmacSm3JwsSigner;
 import com.ujcms.commons.security.jwt.HmacSm3JwsVerifier;
 import com.ujcms.commons.security.jwt.JwtProperties;
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ApplicationContext;
@@ -86,6 +89,17 @@ public class Application extends SpringBootServletInitializer
     @Bean
     public ImageHandler imageHandler() {
         return new ThumbnailatorHandler();
+    }
+
+    /**
+     * JSON序列号：long转string
+     */
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+        return jacksonObjectMapperBuilder -> jacksonObjectMapperBuilder
+                .serializerByType(Long.class, ToStringSerializer.instance)
+                .serializerByType(Long.TYPE, ToStringSerializer.instance)
+                .serializerByType(long[].class, LongArrayToStringSerializer.INSTANCE);
     }
 
     @Configuration

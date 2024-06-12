@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 import static com.ujcms.cms.core.domain.Config.Register.*;
@@ -105,7 +106,7 @@ public class RegisterController {
         user.setGroupId(Group.MEMBER_GROUP_ID);
         user.setOrgId(Org.MEMBER_ORG_ID);
         user.setType(User.TYPE_MEMBER);
-        userService.insert(user, user.getExt());
+        userService.insert(user, user.getExt(), Collections.emptyList());
         String password = Secures.sm2Decrypt(params.getPassword(), props.getClientSm2PrivateKey());
         userService.updatePassword(user, user.getExt(), password);
         if (verifyMode == VERIFY_MODE_MANUAL) {
@@ -140,11 +141,11 @@ public class RegisterController {
         @Schema(description = "验证码")
         public String captcha;
         @Schema(description = "邮件短信ID")
-        public Integer emailMessageId;
+        public Long emailMessageId;
         @Schema(description = "邮件验证码")
         public String emailMessageValue;
         @Schema(description = "手机短信ID")
-        public Integer mobileMessageId;
+        public Long mobileMessageId;
         @Schema(description = "短信验证码")
         public String mobileMessageValue;
 
@@ -160,7 +161,7 @@ public class RegisterController {
         }
 
         @Override
-        public void setPassword(@NonNull String password) {
+        public void setPassword(String password) {
             this.password = password;
         }
     }

@@ -3,25 +3,17 @@ package com.ujcms.cms.core.web.backendapi;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.domain.SiteCustom;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.commons.web.Entities;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
-import org.owasp.html.PolicyFactory;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,11 +24,9 @@ import java.util.Map;
 @RestController("backendSiteSettingsController")
 @RequestMapping(UrlConstants.BACKEND_API + "/core/site-settings")
 public class SiteSettingsController {
-    private final PolicyFactory policyFactory;
     private final SiteService service;
 
-    public SiteSettingsController(PolicyFactory policyFactory, SiteService service) {
-        this.policyFactory = policyFactory;
+    public SiteSettingsController(SiteService service) {
         this.service = service;
     }
 
@@ -52,7 +42,7 @@ public class SiteSettingsController {
     public ResponseEntity<Body> updateBase(@RequestBody @Valid Site bean) {
         Site site = Contexts.getCurrentSite();
         Entities.copy(bean, site, "id", "parentId", "order", "watermark", "html", "customs");
-        service.update(site, null);
+        service.update(site);
         return Responses.ok();
     }
 
@@ -62,7 +52,7 @@ public class SiteSettingsController {
     public ResponseEntity<Body> updateWatermark(@RequestBody @Valid Site.Watermark bean) {
         Site site = Contexts.getCurrentSite();
         site.setWatermark(bean);
-        service.update(site, null);
+        service.update(site);
         return Responses.ok();
     }
 
@@ -72,7 +62,7 @@ public class SiteSettingsController {
     public ResponseEntity<Body> updateMessageBoard(@RequestBody @Valid Site.MessageBoard bean) {
         Site site = Contexts.getCurrentSite();
         site.setMessageBoard(bean);
-        service.update(site, null);
+        service.update(site);
         return Responses.ok();
     }
 
@@ -82,7 +72,7 @@ public class SiteSettingsController {
     public ResponseEntity<Body> updateEditor(@RequestBody Map<String, Object> bean) {
         Site site = Contexts.getCurrentSite();
         site.setEditor(bean);
-        service.update(site, null);
+        service.update(site);
         return Responses.ok();
     }
 
@@ -91,9 +81,8 @@ public class SiteSettingsController {
     @OperationLog(module = "siteSettings", operation = "updateCustoms", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateCustoms(@RequestBody Map<String, Object> customs) {
         Site site = Contexts.getCurrentSite();
-        site.getModel().sanitizeCustoms(customs, policyFactory);
-        List<SiteCustom> customList = site.disassembleCustoms(customs);
-        service.update(site, customList);
+        site.setCustoms(customs);
+        service.update(site);
         return Responses.ok();
     }
 
@@ -109,7 +98,7 @@ public class SiteSettingsController {
     public ResponseEntity<Body> updateHtml(@RequestBody @Valid Site.Html bean) {
         Site site = Contexts.getCurrentSite();
         site.setHtml(bean);
-        service.update(site, null);
+        service.update(site);
         return Responses.ok();
     }
 }

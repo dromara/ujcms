@@ -13,16 +13,16 @@ import java.util.Map;
  * @author PONY
  */
 public class BlockItemArgs extends BaseQueryArgs {
-    public BlockItemArgs siteId(@Nullable Integer siteId) {
+    public BlockItemArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }
 
-    public BlockItemArgs blockId(@Nullable Integer blockId) {
+    public BlockItemArgs blockId(@Nullable Long blockId) {
         if (blockId != null) {
-            queryMap.put("EQ_blockId_Int", blockId);
+            queryMap.put("EQ_blockId_Long", blockId);
         }
         return this;
     }

@@ -63,9 +63,10 @@ public class QueryUtils {
                 Collectors.toMap(entry -> entry.getKey().substring(CUSTOMS_PREFIX.length()), Map.Entry::getValue));
     }
 
-    private static final Pattern QUERY_PATTERN = Pattern.compile("[\\w@-]*");
+    private static final Pattern QUERY_PATTERN = Pattern.compile("[\\w@$-]*");
     private static final Pattern TABLE_PATTERN = Pattern.compile("[\\w]*");
     private static final Pattern FIELD_PATTERN = Pattern.compile("[\\w.]*");
+    private static final Pattern JSON_FIELD_PATTERN = Pattern.compile("[\\w]*");
     private static final Pattern ORDER_BY_PATTERN = Pattern.compile("[\\w ,.]*");
 
     /**
@@ -73,7 +74,7 @@ public class QueryUtils {
      */
     public static void validateQuery(String key) {
         if (!QUERY_PATTERN.matcher(key).matches()) {
-            throw new QueryException("QueryParser只允许 字母 数字 下划线 中划线 @：" + key);
+            throw new QueryException("QueryParser只允许 字母 数字 下划线 中划线 @ $：" + key);
         }
     }
 
@@ -98,6 +99,16 @@ public class QueryUtils {
     /**
      * 只允许 字母 数字 下划线
      */
+    public static void validateJsonField(String field) {
+        if (!JSON_FIELD_PATTERN.matcher(field).matches()) {
+            throw new QueryException("QueryParser json field 只允许 字母 数字 下划线：" + field);
+        }
+    }
+
+
+    /**
+     * 只允许 字母 数字 下划线
+     */
     public static void validateOrderBy(@Nullable String orderBy) {
         if (StringUtils.isBlank(orderBy)) {
             return;
@@ -111,13 +122,30 @@ public class QueryUtils {
     /**
      * 驼峰名转下划线
      *
-     * <p>如：editUser -> edit_user。可加前缀[prefix]，如 prefix = jspbb_，editUser -> jspbb_edit_user
+     * <p>如：editUser -> edit_user。可加前缀[prefix]，如 prefix = jspbb_，editUser -> jspbb_edit_user，mainsJson$abc -> mains_json_$abc
      */
     public static String camelToUnderscore(String name) {
         StringBuilder buff = new StringBuilder();
         for (char c : name.toCharArray()) {
-            if (Character.isUpperCase(c)) {
+            // 遇到 $ 符号
+            if (Character.isUpperCase(c) || c == '$') {
                 buff.append("_").append(Character.toLowerCase(c));
+            } else {
+                buff.append(c);
+            }
+        }
+        return buff.toString();
+    }
+
+    public static String underscoreToCamel(String name) {
+        StringBuilder buff = new StringBuilder();
+        boolean upperCase = false;
+        for (char c : name.toCharArray()) {
+            if (c == '_') {
+                upperCase = true;
+            } else if (upperCase) {
+                buff.append(Character.toUpperCase(c));
+                upperCase = false;
             } else {
                 buff.append(c);
             }
@@ -205,6 +233,19 @@ public class QueryUtils {
     public static final String OPERATOR_IS_NULL = "IsNull";
     public static final String OPERATOR_IS_NOT_NULL = "IsNotNull";
 
+    public static final String OPERATOR_ARRAY_EQ = "ArrayEQ";
+    public static final String OPERATOR_ARRAY_IN = "ArrayIn";
+
+    public static final String DIRECTION_ASC = "asc";
+    public static final String DIRECTION_DESC = "desc";
+
+    public static final String COMMA = ",";
+    public static final String DOLLAR = "$";
+    public static final String POINT = ".";
+    public static final String SPACE = " ";
+    public static final String DASH = "-";
+    public static final String UNDERLINE = "_";
+
     /**
      * 支持Like, Contain, StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE
      */
@@ -216,6 +257,7 @@ public class QueryUtils {
             case OPERATOR_ENDS_WITH:
                 return "LIKE";
             case OPERATOR_IN:
+            case OPERATOR_ARRAY_IN:
                 return "IN";
             case OPERATOR_NOT_IN:
                 return "NOT IN";
@@ -224,6 +266,7 @@ public class QueryUtils {
             case OPERATOR_IS_NOT_NULL:
                 return "IS NOT NULL";
             case OPERATOR_EQ:
+            case OPERATOR_ARRAY_EQ:
                 return "=";
             case OPERATOR_NE:
                 return "<>";
@@ -237,18 +280,24 @@ public class QueryUtils {
                 return "<=";
             default:
                 throw new QueryException("QueryParser operator '" + s + "' not supported. Support: Like, Contain, " +
-                        "StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE");
+                        "StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE, SubIn, SubEQ");
         }
     }
 
+    public static boolean isArrayQuery(String operator) {
+        return operator.equalsIgnoreCase(OPERATOR_ARRAY_IN) || operator.equalsIgnoreCase(OPERATOR_ARRAY_EQ);
+    }
+
     private static boolean isInOrNotInOperator(String operator) {
-        return operator.equalsIgnoreCase(OPERATOR_IN) || operator.equalsIgnoreCase(OPERATOR_NOT_IN);
+        return operator.equalsIgnoreCase(OPERATOR_IN) || operator.equalsIgnoreCase(OPERATOR_ARRAY_IN)
+                || operator.equalsIgnoreCase(OPERATOR_NOT_IN);
     }
 
     @Nullable
     private static Object getStringValue(@Nullable Object obj, String operator) {
         switch (operator) {
             case OPERATOR_IN:
+            case OPERATOR_ARRAY_IN:
             case OPERATOR_NOT_IN:
                 return parseStrings(obj);
             case OPERATOR_CONTAINS:

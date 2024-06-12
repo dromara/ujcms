@@ -45,12 +45,12 @@ public class ChannelListDirective implements TemplateDirectiveModel {
      */
     private static final String IS_INCLUDE_CHILDREN = "isIncludeChildren";
 
-    public static void assemble(ChannelArgs args, Map<String, ?> params, Integer defaultSiteId,
+    public static void assemble(ChannelArgs args, Map<String, ?> params, Long defaultSiteId,
                                 ChannelService channelService) {
-        Integer siteId = Directives.getInteger(params, SITE_ID, defaultSiteId);
+        Long siteId = Directives.getLong(params, SITE_ID, defaultSiteId);
         args.siteId(siteId);
         boolean isIncludeChildren = Directives.getBoolean(params, IS_INCLUDE_CHILDREN, false);
-        Integer parentId = Directives.getInteger(params, PARENT_ID);
+        Long parentId = Directives.getLong(params, PARENT_ID);
         if (parentId == null) {
             String parentAlias = Directives.getString(params, PARENT);
             if (StringUtils.isNotBlank(parentAlias)) {
@@ -77,7 +77,7 @@ public class ChannelListDirective implements TemplateDirectiveModel {
             throws TemplateException, IOException {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
-        Integer defaultSiteId = Frontends.getSiteId(env);
+        Long defaultSiteId = Frontends.getSiteId(env);
 
         ChannelArgs args = ChannelArgs.of(Directives.getQueryMap(params));
         assemble(args, params, defaultSiteId, channelService);

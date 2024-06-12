@@ -23,14 +23,14 @@ public class VisitTrendBase implements Serializable {
      */
     @NotNull
     @Schema(description="访问_趋势ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 站点ID
      */
     @NotNull
     @Schema(description="站点ID")
-    private Integer siteId = 0;
+    private Long siteId = 0L;
 
     /**
      * 访问量
@@ -89,19 +89,19 @@ public class VisitTrendBase implements Serializable {
     @Schema(description="统计周期(1:分,2:时,3:日,4:月)")
     private Short period = 1;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getSiteId() {
+    public Long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(Integer siteId) {
+    public void setSiteId(Long siteId) {
         this.siteId = siteId;
     }
 

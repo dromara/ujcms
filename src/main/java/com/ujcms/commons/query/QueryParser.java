@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ujcms.commons.query.QueryUtils.camelToUnderscore;
+import static com.ujcms.commons.query.QueryUtils.*;
 
 /**
  * Like_name
@@ -101,7 +101,7 @@ public class QueryParser {
             if (isContinueKey(info, key, value)) {
                 continue;
             }
-            int index = key.indexOf("_");
+            int index = key.indexOf(UNDERLINE);
             if (index == -1) {
                 throw new IllegalArgumentException("Illegal query key format: " + key);
             }
@@ -121,7 +121,7 @@ public class QueryParser {
             if (key.length() < 1) {
                 throw new IllegalArgumentException("Illegal query key format: " + key);
             }
-            index = key.indexOf("_", Character.isDigit(key.charAt(0)) ? key.indexOf("_") + 1 : 0);
+            index = key.indexOf(UNDERLINE, Character.isDigit(key.charAt(0)) ? key.indexOf(UNDERLINE) + 1 : 0);
             // 获取表及字段
             // price
             // username
@@ -155,24 +155,42 @@ public class QueryParser {
         }
         StringBuilder buff = new StringBuilder();
         StringBuilder selectBuff = new StringBuilder();
-        String comma = ",";
-        for (String orderBy : StringUtils.split(rawOrderBy, comma)) {
+        List<QueryInfo.OrderByCondition> orderByConditions = new ArrayList<>();
+        for (String orderBy : StringUtils.split(rawOrderBy, COMMA)) {
             orderBy = orderBy.trim();
             QueryUtils.validateQuery(orderBy);
+            String direction = null;
+            String type = null;
             int index = orderBy.indexOf("_");
-            String direction = "";
             if (index != -1) {
                 direction = orderBy.substring(index + 1);
                 orderBy = orderBy.substring(0, index);
+                if (DIRECTION_ASC.equals(direction) || DIRECTION_DESC.equals(direction)) {
+                    index = orderBy.indexOf(UNDERLINE);
+                    if (index != -1) {
+                        type = orderBy.substring(index + 1);
+                        orderBy = orderBy.substring(0, index);
+                    }
+                } else {
+                    type = direction;
+                    direction = null;
+                }
             }
             // order by 去掉 desc，用于生成 table join。
             String column = parseJoinTable(info, orderBy);
-            buff.append(column).append(" ").append(direction).append(comma);
-            if (!column.startsWith(MAIN_TABLE_ALIAS + ".")) {
-                selectBuff.append(comma).append(column);
+            String jsonColumn = null;
+            // 是否json查询
+            int jsonIndex = column.indexOf(DOLLAR);
+            if (jsonIndex >= 0) {
+                jsonColumn = underscoreToCamel(column.substring(jsonIndex + 1));
+                column = column.substring(0, jsonIndex);
+            }
+            orderByConditions.add(new QueryInfo.OrderByCondition(column, direction, jsonColumn, type));
+            if (!column.startsWith(MAIN_TABLE_ALIAS + POINT)) {
+                selectBuff.append(COMMA).append(column);
             }
         }
-        info.setOrderBy(buff.length() > 0 ? buff.substring(0, buff.length() - 1) : null);
+        info.setOrderByConditions(orderByConditions);
         info.setSelectOrderBy(selectBuff.length() > 0 ? selectBuff.toString() : null);
     }
 
@@ -187,29 +205,38 @@ public class QueryParser {
         // 1_status
 
         // 是否分组
-        int index = columnPart.indexOf("_");
+        int groupIndex = columnPart.indexOf("_");
         String group = null;
-        if (index >= 0) {
-            group = columnPart.substring(0, index);
-            columnPart = columnPart.substring(index + 1);
+        if (groupIndex >= 0) {
+            group = columnPart.substring(0, groupIndex);
+            columnPart = columnPart.substring(groupIndex + 1);
         }
         String column = parseJoinTable(info, columnPart);
+        String jsonColumn = null;
+        // 是否json查询
+        int jsonIndex = column.indexOf(DOLLAR);
+        if (jsonIndex >= 0) {
+            jsonColumn = underscoreToCamel(column.substring(jsonIndex + 1));
+            column = column.substring(0, jsonIndex);
+        }
         Object value = QueryUtils.getValue(type, obj, operator);
         if (group != null) {
-            index = group.indexOf("-");
+            groupIndex = group.indexOf("-");
             // 默认组
             String subGroup = String.valueOf(nextSubGroup);
-            if (index != -1) {
-                subGroup = group.substring(index + 1);
-                group = group.substring(0, index);
+            if (groupIndex != -1) {
+                subGroup = group.substring(groupIndex + 1);
+                group = group.substring(0, groupIndex);
             }
             Map<String, List<QueryInfo.WhereCondition>> orConditions =
                     info.getWhereOrAndConditions().computeIfAbsent(group, k -> new HashMap<>(16));
             List<QueryInfo.WhereCondition> orAndConditions =
                     orConditions.computeIfAbsent(subGroup, k -> new ArrayList<>());
-            orAndConditions.add(new QueryInfo.WhereCondition(column, QueryUtils.getOperator(operator), value));
+            orAndConditions.add(new QueryInfo.WhereCondition(column, jsonColumn,
+                    QueryUtils.getOperator(operator), QueryUtils.isArrayQuery(operator), value, type));
         } else {
-            info.getWhereConditions().add(new QueryInfo.WhereCondition(column, QueryUtils.getOperator(operator), value));
+            info.getWhereConditions().add(new QueryInfo.WhereCondition(column, jsonColumn,
+                    QueryUtils.getOperator(operator), QueryUtils.isArrayQuery(operator), value, type));
         }
     }
 
@@ -222,12 +249,12 @@ public class QueryParser {
         // 分组标识无需处理，需要去除标识。
         // 1级分组：1_questionExt-title 1_questionExt-markdown
         // 2级分组：1-1_status 1-1_username
-        int underIndex = columnPart.indexOf("_");
+        int underIndex = columnPart.indexOf(UNDERLINE);
         if (underIndex >= 0) {
             columnPart = columnPart.substring(underIndex + 1);
         }
         // tables = [editUser@user | userExt | username]
-        List<String> tables = Stream.of(columnPart.split("-")).collect(Collectors.toList());
+        List<String> tables = Stream.of(columnPart.split(DASH)).collect(Collectors.toList());
         // 最后一个是字段名，不是表名，去除
         // tables = [editUser@user | userExt]
         String column = tables.remove(tables.size() - 1);
@@ -248,8 +275,8 @@ public class QueryParser {
             parsedTable.upperCaseTable();
             parsedTable.leftIdAndRightId(leftTable);
 
-            String leftAliasId = leftAlias + "." + parsedTable.getLeftId();
-            String rightAliasId = parsedTable.getRightAlias() + "." + parsedTable.getRightId();
+            String leftAliasId = leftAlias + POINT + parsedTable.getLeftId();
+            String rightAliasId = parsedTable.getRightAlias() + POINT + parsedTable.getRightId();
             String finalRightAlias = parsedTable.getRightAlias();
             if (info.getJoinTables().stream().noneMatch(it -> it.getTableAlias().equalsIgnoreCase(finalRightAlias))) {
                 String tableName = info.getTablePrefix() + camelToUnderscore(parsedTable.getRightTable());
@@ -259,7 +286,7 @@ public class QueryParser {
             leftAlias = parsedTable.getRightAlias();
             leftTable = parsedTable.getRightTable();
         }
-        return leftAlias + "." + camelToUnderscore(column) + "_";
+        return leftAlias + POINT + camelToUnderscore(column) + UNDERLINE;
     }
 
     private static final String MAIN_TABLE_ALIAS = "t";

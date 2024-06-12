@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.SiteBufferMapper">
-    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.SiteBuffer">
-        <id column="id_" jdbcType="INTEGER" property="id"/>
+    <resultMap id="ResultMap" type="com.ujcms.cms.core.domain.SiteBuffer">
+        <id column="id_" jdbcType="BIGINT" property="id"/>
         <result column="views_" jdbcType="BIGINT" property="views"/>
         <result column="self_views_" jdbcType="BIGINT" property="selfViews"/>
         <result column="today_views_" jdbcType="INTEGER" property="todayViews"/>
@@ -10,7 +10,6 @@
         <result column="max_views_" jdbcType="INTEGER" property="maxViews"/>
         <result column="max_date_" jdbcType="TIMESTAMP" property="maxDate"/>
     </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.SiteBuffer"/>
 
     <update id="updateStat">
         update ujcms_site
@@ -41,14 +40,14 @@
         </trim>
         where id_ in
         <foreach close=")" collection="list" index="index" item="item" open="(" separator=",">
-            #{item.id,jdbcType=INTEGER}
+            #{item.id,jdbcType=BIGINT}
         </foreach>
     </update>
-    <select id="select" parameterType="int" resultMap="ResultMap">
+    <select id="select" parameterType="long" resultMap="ResultMap">
         select
         <include refid="Column_List"/>
         from ujcms_site t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
     <update id="update" parameterType="com.ujcms.cms.core.domain.SiteBuffer">
         update ujcms_site
@@ -58,7 +57,7 @@
             yesterday_views_ = #{yesterdayViews,jdbcType=INTEGER},
             max_views_       = #{maxViews,jdbcType=INTEGER},
             max_date_        = #{maxDate,jdbcType=TIMESTAMP}
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </update>
     <sql id="Column_List">
         t.id_, t.views_, t.self_views_, t.today_views_, t.yesterday_views_, t.max_views_, t.max_date_

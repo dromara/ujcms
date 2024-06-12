@@ -5,11 +5,11 @@ import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Attachment;
 import com.ujcms.cms.core.domain.AttachmentRefer;
 import com.ujcms.cms.core.domain.base.AttachmentBase;
-import com.ujcms.cms.core.domain.base.AttachmentReferBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.AttachmentMapper;
 import com.ujcms.cms.core.mapper.AttachmentReferMapper;
 import com.ujcms.cms.core.service.args.AttachmentArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.file.FileHandler;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
@@ -32,30 +32,30 @@ public class AttachmentService implements SiteDeleteListener {
     private final AttachmentMapper mapper;
     private final AttachmentReferMapper referMapper;
     private final PathResolver pathResolver;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
     public AttachmentService(AttachmentMapper mapper, AttachmentReferMapper referMapper, PathResolver pathResolver,
-                             SeqService seqService) {
+                             SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
         this.referMapper = referMapper;
         this.pathResolver = pathResolver;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insertRefer(String referType, Integer referId, List<String> urls) {
-        Set<Integer> ids = doInsertRefer(referType, referId, urls);
+    public void insertRefer(String referType, Long referId, List<String> urls) {
+        Set<Long> ids = doInsertRefer(referType, referId, urls);
         if (!ids.isEmpty()) {
             mapper.updateUsed(ids);
         }
     }
 
-    private Set<Integer> doInsertRefer(String referType, Integer referId, List<String> urls) {
-        Set<Integer> ids = new HashSet<>();
+    private Set<Long> doInsertRefer(String referType, Long referId, List<String> urls) {
+        Set<Long> ids = new HashSet<>();
         urls.forEach(url -> {
             Attachment attachment = mapper.findByUrl(url);
             if (attachment != null && referMapper.select(attachment.getId(), referType, referId) == null) {
-                Long id = seqService.getNextLongVal(AttachmentReferBase.TABLE_NAME);
+                Long id = snowflakeSequence.nextId();
                 referMapper.insert(new AttachmentRefer(id, attachment.getId(), referType, referId));
                 ids.add(attachment.getId());
             }
@@ -64,8 +64,8 @@ public class AttachmentService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateRefer(String referType, Integer referId, List<String> urls) {
-        Set<Integer> ids = findAttachmentIds(referType, referId);
+    public void updateRefer(String referType, Long referId, List<String> urls) {
+        Set<Long> ids = findAttachmentIds(referType, referId);
         doDeleteRefer(referType, referId);
         if (!urls.isEmpty()) {
             ids.addAll(doInsertRefer(referType, referId, urls));
@@ -75,28 +75,28 @@ public class AttachmentService implements SiteDeleteListener {
         }
     }
 
-    private Set<Integer> findAttachmentIds(String referType, Integer referId) {
-        Set<Integer> ids = new HashSet<>();
+    private Set<Long> findAttachmentIds(String referType, Long referId) {
+        Set<Long> ids = new HashSet<>();
         referMapper.listByReferTypeAndReferId(referType, referId).forEach(refer -> ids.add(refer.getAttachmentId()));
         return ids;
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void deleteRefer(String referType, Integer referId) {
-        Set<Integer> ids = findAttachmentIds(referType, referId);
+    public void deleteRefer(String referType, Long referId) {
+        Set<Long> ids = findAttachmentIds(referType, referId);
         doDeleteRefer(referType, referId);
         if (!ids.isEmpty()) {
             mapper.updateUsed(ids);
         }
     }
 
-    private void doDeleteRefer(String referType, Integer referId) {
+    private void doDeleteRefer(String referType, Long referId) {
         referMapper.deleteByReferTypeAndReferId(referType, referId);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Attachment bean) {
-        bean.setId(seqService.getNextVal(AttachmentBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -106,7 +106,7 @@ public class AttachmentService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         Attachment bean = select(id);
         if (bean != null) {
             return delete(bean);
@@ -128,12 +128,12 @@ public class AttachmentService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public Attachment select(Integer id) {
+    public Attachment select(Long id) {
         return mapper.select(id);
     }
 
@@ -157,12 +157,12 @@ public class AttachmentService implements SiteDeleteListener {
      * @param created 创建日期
      * @return 附件数量
      */
-    public int countByCreated(Integer siteId, @Nullable OffsetDateTime created) {
+    public int countByCreated(Long siteId, @Nullable OffsetDateTime created) {
         return mapper.countByCreated(siteId, created);
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         referMapper.deleteBySiteId(siteId);
         mapper.delete(siteId);
     }

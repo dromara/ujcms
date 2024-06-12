@@ -82,7 +82,7 @@ databaseChangeLog:
               - column:
                   name: process_key_
                   remarks: 流程标识
-                  type: VARCHAR(50 BYTE)
+                  type: VARCHAR(50)
             tableName: ujcms_channel
   - changeSet:
       id: 1655794419999-1
@@ -93,7 +93,7 @@ databaseChangeLog:
               - column:
                   name: process_instance_id_
                   remarks: 流程实例ID
-                  type: VARCHAR(64 BYTE)
+                  type: VARCHAR(64)
             tableName: ujcms_article_ext
   - changeSet:
       id: 1655869928177-1
@@ -104,7 +104,7 @@ databaseChangeLog:
               - column:
                   name: reject_reason_
                   remarks: 退回原因
-                  type: VARCHAR(900 BYTE)
+                  type: VARCHAR(900)
             tableName: ujcms_article_ext
   - changeSet:
       id: 1656408029750-1
@@ -488,7 +488,7 @@ databaseChangeLog:
               - column:
                   name: audio_
                   remarks: 音频
-                  type: VARCHAR(255 BYTE)
+                  type: VARCHAR(255)
             tableName: ujcms_article_ext
   - changeSet:
       id: 1656510509445-1
@@ -528,7 +528,7 @@ databaseChangeLog:
               - column:
                   name: security_settings_
                   remarks: 安全设置
-                  type: VARCHAR(1000 BYTE)
+                  type: VARCHAR(1000)
             tableName: ujcms_config
   - changeSet:
       id: 1656908870494-1
@@ -539,7 +539,7 @@ databaseChangeLog:
               - column:
                   name: video_orig_
                   remarks: 原视频
-                  type: VARCHAR(255 BYTE)
+                  type: VARCHAR(255)
             tableName: ujcms_article_ext
   - changeSet:
       id: 1656908870494-2
@@ -550,7 +550,7 @@ databaseChangeLog:
               - column:
                   name: audio_orig_
                   remarks: 原音频
-                  type: VARCHAR(255 BYTE)
+                  type: VARCHAR(255)
             tableName: ujcms_article_ext
   - changeSet:
       id: 1657165543809-2
@@ -561,7 +561,7 @@ databaseChangeLog:
               - column:
                   name: sms_settings_
                   remarks: 短信设置
-                  type: VARCHAR(1000 BYTE)
+                  type: VARCHAR(1000)
             tableName: ujcms_config
   - changeSet:
       id: 1657343139402-2
@@ -724,7 +724,7 @@ databaseChangeLog:
               - column:
                   name: history_password_
                   remarks: 历史密码(70*24)
-                  type: VARCHAR(3000 BYTE)
+                  type: VARCHAR(3000)
             tableName: ujcms_user_ext
 
 

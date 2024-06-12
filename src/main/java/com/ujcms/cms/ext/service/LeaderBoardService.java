@@ -33,7 +33,7 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public List<LeaderBoard> channelLeaderBoardList(@Nullable Integer siteId,
+    public List<LeaderBoard> channelLeaderBoardList(@Nullable Long siteId,
                                                     @Nullable Collection<Short> status,
                                                     @Nullable final OffsetDateTime begin,
                                                     @Nullable final OffsetDateTime end,
@@ -51,7 +51,7 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public Page<LeaderBoard> channelLeaderBoardPage(@Nullable Integer siteId,
+    public Page<LeaderBoard> channelLeaderBoardPage(@Nullable Long siteId,
                                                     @Nullable Collection<Short> status,
                                                     @Nullable final OffsetDateTime begin,
                                                     @Nullable final OffsetDateTime end,
@@ -69,7 +69,7 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public List<LeaderBoard> orgLeaderBoardList(@Nullable Integer orgId,
+    public List<LeaderBoard> orgLeaderBoardList(@Nullable Long orgId,
                                                 @Nullable Collection<Short> status,
                                                 @Nullable OffsetDateTime begin,
                                                 @Nullable OffsetDateTime end,
@@ -87,7 +87,7 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public Page<LeaderBoard> orgLeaderBoardPage(@Nullable Integer orgId,
+    public Page<LeaderBoard> orgLeaderBoardPage(@Nullable Long orgId,
                                                 @Nullable Collection<Short> status,
                                                 @Nullable OffsetDateTime begin,
                                                 @Nullable OffsetDateTime end,
@@ -105,7 +105,7 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public List<LeaderBoard> userLeaderBoardList(@Nullable Integer orgId,
+    public List<LeaderBoard> userLeaderBoardList(@Nullable Long orgId,
                                                  @Nullable Collection<Short> status,
                                                  @Nullable OffsetDateTime begin,
                                                  @Nullable OffsetDateTime end,
@@ -123,7 +123,7 @@ public class LeaderBoardService {
      * @param end    介绍日期
      * @return 统计结果
      */
-    public Page<LeaderBoard> userLeaderBoardPage(@Nullable Integer orgId,
+    public Page<LeaderBoard> userLeaderBoardPage(@Nullable Long orgId,
                                                  @Nullable Collection<Short> status,
                                                  @Nullable OffsetDateTime begin, @Nullable OffsetDateTime end,
                                                  int page, int pageSize) {

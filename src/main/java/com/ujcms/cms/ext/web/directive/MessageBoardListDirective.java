@@ -18,8 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.ujcms.cms.core.web.support.Directives.getBoolean;
-import static com.ujcms.cms.core.web.support.Directives.getInteger;
+import static com.ujcms.cms.core.web.support.Directives.*;
 import static com.ujcms.commons.db.MyBatis.springPage;
 
 /**
@@ -53,17 +52,17 @@ public class MessageBoardListDirective implements TemplateDirectiveModel {
      */
     public static final String STATUS = "status";
 
-    public static void assemble(MessageBoardArgs args, Map<String, ?> params, Integer defaultSiteId) {
-        Integer siteId = getInteger(params, SITE_ID);
+    public static void assemble(MessageBoardArgs args, Map<String, ?> params, Long defaultSiteId) {
+        Long siteId = getLong(params, SITE_ID);
         // 不获取所有站点，则给默认站点ID
         if (siteId == null && !getBoolean(params, IS_ALL_SITE, false)) {
             siteId = defaultSiteId;
         }
         args.siteId(siteId);
-        Optional.ofNullable(Directives.getInteger(params, TYPE_ID)).ifPresent(args::typeId);
+        Optional.ofNullable(getLong(params, TYPE_ID)).ifPresent(args::typeId);
         Optional.ofNullable(getBoolean(params, IS_RECOMMENDED)).ifPresent(args::isRecommended);
         Optional.ofNullable(getBoolean(params, IS_REPLIED)).ifPresent(args::isReplied);
-        Optional.ofNullable(Directives.getShorts(params, STATUS)).ifPresent(args::status);
+        Optional.ofNullable(getShorts(params, STATUS)).ifPresent(args::status);
         Directives.handleOrderBy(args.getQueryMap(), params, "created_desc,id_desc");
     }
 

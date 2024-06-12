@@ -13,17 +13,17 @@ import java.util.Map;
  * @author PONY
  */
 public class DictTypeArgs extends BaseQueryArgs {
-    public DictTypeArgs scopeSiteId(@Nullable Integer siteId) {
+    public DictTypeArgs scopeSiteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_1_siteId_Int", siteId);
+            queryMap.put("EQ_1_siteId_Long", siteId);
             queryMap.put("EQ_1_scope_Short", String.valueOf(EntityConstants.SCOPE_GLOBAL));
         }
         return this;
     }
 
-    public DictTypeArgs siteId(@Nullable Integer siteId) {
+    public DictTypeArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

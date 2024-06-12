@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ujcms.cms.ext.mapper.MessageBoardTypeMapper">
-    <resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.MessageBoardType">
-        <id column="id_" jdbcType="INTEGER" property="id"/>
-        <result column="site_id_" jdbcType="INTEGER" property="siteId"/>
-        <result column="name_" jdbcType="VARCHAR" property="name"/>
-        <result column="description_" jdbcType="VARCHAR" property="description"/>
-        <result column="order_" jdbcType="BIGINT" property="order"/>
-    </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.MessageBoardType"/>
+<mapper namespace="com.ujcms.cms.ext.mapper.MessageBoardTypeMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.MessageBoardType">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="order_" jdbcType="BIGINT" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.MessageBoardType" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.MessageBoardType" />
 
     <update id="moveUp">
         update ujcms_message_board_type
@@ -28,38 +27,33 @@
         where id_ = #{id}
     </update>
 
-    <sql id="selectAllSelect"/>
-    <sql id="selectAllJoin"/>
-    <sql id="selectAllWhere"/>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
     <select id="selectAll" resultMap="ResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
-            <property name="tableName" value="ujcms_message_board_type"/>
+            <property name="tableName" value="ujcms_message_board_type" />
         </include>
     </select>
-    <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_message_board_type t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="delete" parameterType="java.lang.Integer">
+    <delete id="delete" parameterType="java.lang.Long">
         delete
         from ujcms_message_board_type
-        where id_ = #{id,jdbcType=INTEGER}
-    </delete>
-    <update id="update" parameterType="com.ujcms.cms.ext.domain.MessageBoardType">
-        update ujcms_message_board_type
-        set site_id_     = #{siteId,jdbcType=INTEGER},
-            name_        = #{name,jdbcType=VARCHAR},
-            description_ = #{description,jdbcType=VARCHAR}
-        where id_ = #{id,jdbcType=INTEGER}
-    </update>
-    <insert id="insert" parameterType="com.ujcms.cms.ext.domain.MessageBoardType">
-        insert into ujcms_message_board_type (id_, site_id_, name_, description_, order_)
-        values (#{id,jdbcType=INTEGER}, #{siteId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR},
-                #{description,jdbcType=VARCHAR}, #{order,jdbcType=BIGINT})
-    </insert>
-    <sql id="Column_List">
-        t.id_, t.site_id_, t.name_, t.description_, t.order_
-    </sql>
-</mapper>
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.MessageBoardType">
+    update ujcms_message_board_type
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.MessageBoardType">
+    insert into ujcms_message_board_type (id_, site_id_, name_, description_, order_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{order,jdbcType=BIGINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.description_, t.order_
+  </sql></mapper>

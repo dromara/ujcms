@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.SensitiveWordMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.SensitiveWord">
-    <id column="id_" jdbcType="INTEGER" property="id" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.SensitiveWord" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.SensitiveWord" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.SensitiveWord" />
   <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
@@ -14,23 +14,23 @@
       <property name="tableName" value="ujcms_sensitive_word" />
     </include>
   </select>
-  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
     select 
     <include refid="Column_List" />
     from ujcms_sensitive_word t
-    where t.id_ = #{id,jdbcType=INTEGER}
+    where t.id_ = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="delete" parameterType="java.lang.Integer">
+  <delete id="delete" parameterType="java.lang.Long">
     delete from ujcms_sensitive_word
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </delete><update id="update" parameterType="com.ujcms.cms.core.domain.SensitiveWord">
     update ujcms_sensitive_word
     set name_ = #{name,jdbcType=VARCHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.SensitiveWord">
     insert into ujcms_sensitive_word (id_, name_, enabled_)
-    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR})
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR})
   </insert><sql id="Column_List">
     t.id_, t.name_, t.enabled_
   </sql></mapper>

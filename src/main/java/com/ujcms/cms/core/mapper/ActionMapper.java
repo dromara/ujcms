@@ -76,7 +76,7 @@ public interface ActionMapper {
                 @Nullable @Param("refId") Long refId,
                 @Nullable @Param("refOption") String refOption,
                 @Nullable @Param("date") OffsetDateTime date,
-                @Nullable @Param("userId") Integer userId,
+                @Nullable @Param("userId") Long userId,
                 @Nullable @Param("ip") String ip,
                 @Nullable @Param("cookie") Long cookie);
 
@@ -86,7 +86,7 @@ public interface ActionMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 
     /**
      * 根据用户ID删除数据
@@ -94,5 +94,5 @@ public interface ActionMapper {
      * @param userId 用户ID
      * @return 被删除的数据条数
      */
-    int deleteByUserId(Integer userId);
+    int deleteByUserId(Long userId);
 }

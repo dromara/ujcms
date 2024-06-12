@@ -11,5 +11,5 @@ public interface ChannelDeleteListener extends DeleteListenerOrder {
      *
      * @param channelId 栏目ID
      */
-    void preChannelDelete(Integer channelId);
+    void preChannelDelete(Long channelId);
 }

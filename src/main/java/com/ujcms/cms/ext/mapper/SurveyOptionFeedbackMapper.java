@@ -39,7 +39,7 @@ public interface SurveyOptionFeedbackMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据调查问卷选项ID列表删除数据
@@ -47,7 +47,7 @@ public interface SurveyOptionFeedbackMapper {
      * @param optionIds 调查问卷选项ID列表
      * @return 被删除的数据条数
      */
-    int deleteByOptionIds(List<Integer> optionIds);
+    int deleteByOptionIds(List<Long> optionIds);
 
     /**
      * 删删除属于某调查问卷条目ID，且不包含的相应调查问卷选项id列表的数据
@@ -56,7 +56,7 @@ public interface SurveyOptionFeedbackMapper {
      * @param optionIds 不包含的调查选项id列表
      * @return 被删除的数据条数
      */
-    int deleteByItemId(@Param("itemId") Integer itemId, @Param("optionIds") List<Integer> optionIds);
+    int deleteByItemId(@Param("itemId") Long itemId, @Param("optionIds") List<Long> optionIds);
 
     /**
      * 根据调查反馈ID删除数据
@@ -64,7 +64,7 @@ public interface SurveyOptionFeedbackMapper {
      * @param feedbackId 调查反馈ID
      * @return 被删除的数据条数
      */
-    int deleteByFeedbackId(@Param("feedbackId") Integer feedbackId);
+    int deleteByFeedbackId(@Param("feedbackId") Long feedbackId);
 
     /**
      * 根据调查问卷ID删除数据
@@ -73,7 +73,7 @@ public interface SurveyOptionFeedbackMapper {
      * @param itemIds  不包含的调查条目d列表
      * @return 被删除的数据条数
      */
-    int deleteBySurveyId(@Param("surveyId") Integer surveyId, @Param("itemIds") List<Integer> itemIds);
+    int deleteBySurveyId(@Param("surveyId") Long surveyId, @Param("itemIds") List<Long> itemIds);
 
     /**
      * 根据用户ID删除数据
@@ -81,7 +81,7 @@ public interface SurveyOptionFeedbackMapper {
      * @param userId 用户ID
      * @return 被删除的数据条数
      */
-    int deleteByUserId(@Param("userId") Integer userId);
+    int deleteByUserId(@Param("userId") Long userId);
 
     /**
      * 根据站点ID删除数据
@@ -89,7 +89,7 @@ public interface SurveyOptionFeedbackMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(@Param("siteId") Integer siteId);
+    int deleteBySiteId(@Param("siteId") Long siteId);
 
     /**
      * 根据主键获取数据
@@ -98,7 +98,7 @@ public interface SurveyOptionFeedbackMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    SurveyOptionFeedback select(Integer id);
+    SurveyOptionFeedback select(Long id);
 
     /**
      * 根据查询条件获取列表

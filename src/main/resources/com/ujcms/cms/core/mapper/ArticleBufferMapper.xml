@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.ArticleBufferMapper">
-    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ArticleBuffer">
-        <id column="id_" jdbcType="INTEGER" property="id"/>
+    <resultMap id="ResultMap" type="com.ujcms.cms.core.domain.ArticleBuffer">
+        <id column="id_" jdbcType="BIGINT" property="id"/>
         <result column="comments_" jdbcType="INTEGER" property="comments"/>
         <result column="downloads_" jdbcType="INTEGER" property="downloads"/>
         <result column="favorites_" jdbcType="INTEGER" property="favorites"/>
@@ -15,7 +15,6 @@
         <result column="quarter_views_" jdbcType="INTEGER" property="quarterViews"/>
         <result column="year_views_" jdbcType="BIGINT" property="yearViews"/>
     </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ArticleBuffer"/>
     <update id="resetDayViews">
         update ujcms_article_ext
         set day_views_ = 0
@@ -73,15 +72,15 @@
         </trim>
         where id_ in
         <foreach close=")" collection="list" index="index" item="item" open="(" separator=",">
-            #{item.id,jdbcType=INTEGER}
+            #{item.id,jdbcType=BIGINT}
         </foreach>
     </update>
 
-    <select id="select" parameterType="int" resultMap="ResultMap">
+    <select id="select" parameterType="long" resultMap="ResultMap">
         select
         <include refid="Column_List"/>
         from ujcms_article_ext t
-        where t.id_ = #{id,jdbcType=INTEGER}
+        where t.id_ = #{id,jdbcType=BIGINT}
     </select>
     <update id="update" parameterType="com.ujcms.cms.core.domain.ArticleBuffer">
         update ujcms_article_ext
@@ -96,7 +95,7 @@
             month_views_   = #{monthViews,jdbcType=INTEGER},
             quarter_views_ = #{quarterViews,jdbcType=INTEGER},
             year_views_    = #{yearViews,jdbcType=BIGINT}
-        where id_ = #{id,jdbcType=INTEGER}
+        where id_ = #{id,jdbcType=BIGINT}
     </update>
     <sql id="Column_List">
         t.id_, t.comments_, t.downloads_, t.favorites_, t.ups_, t.downs_, t.views_, t.day_views_, t.week_views_, t.month_views_, t.quarter_views_, t.year_views_

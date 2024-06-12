@@ -16,7 +16,7 @@ public class SurveyFeedback extends SurveyFeedbackBase implements Serializable {
     public SurveyFeedback() {
     }
 
-    public SurveyFeedback(Integer surveyId, Integer siteId, @Nullable Integer userId, String ip, Long cookie) {
+    public SurveyFeedback(Long surveyId, Long siteId, @Nullable Long userId, String ip, Long cookie) {
         setSurveyId(surveyId);
         setSiteId(siteId);
         setUserId(userId);

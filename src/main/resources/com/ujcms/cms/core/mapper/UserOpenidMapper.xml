@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.core.mapper.UserOpenidMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.UserOpenid">
-    <id column="user_id_" jdbcType="INTEGER" property="userId" />
+    <id column="user_id_" jdbcType="BIGINT" property="userId" />
     <id column="provider_" jdbcType="VARCHAR" property="provider" />
     <result column="openid_" jdbcType="VARCHAR" property="openid" />
     <result column="nickname_" jdbcType="VARCHAR" property="nickname" />
     <result column="gender_" jdbcType="SMALLINT" property="gender" />
     <result column="avatar_url_" jdbcType="VARCHAR" property="avatarUrl" />
     <result column="large_avatar_url_" jdbcType="VARCHAR" property="largeAvatarUrl" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.UserOpenid" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.UserOpenid" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.UserOpenid" />
 
-    <delete id="deleteByUserId" parameterType="int">
+    <delete id="deleteByUserId" parameterType="long">
         delete from ujcms_user_openid
-        where user_id_ = #{userId,jdbcType=INTEGER}
+        where user_id_ = #{userId,jdbcType=BIGINT}
     </delete>
 
   <sql id="selectAllSelect" />
@@ -28,12 +28,12 @@
     select 
     <include refid="Column_List" />
     from ujcms_user_openid t
-    where t.user_id_ = #{userId,jdbcType=INTEGER}
+    where t.user_id_ = #{userId,jdbcType=BIGINT}
       and t.provider_ = #{provider,jdbcType=VARCHAR}
   </select>
   <delete id="delete" parameterType="map">
     delete from ujcms_user_openid
-    where user_id_ = #{userId,jdbcType=INTEGER}
+    where user_id_ = #{userId,jdbcType=BIGINT}
       and provider_ = #{provider,jdbcType=VARCHAR}
   </delete><update id="update" parameterType="com.ujcms.cms.core.domain.UserOpenid">
     update ujcms_user_openid
@@ -42,11 +42,11 @@
       gender_ = #{gender,jdbcType=SMALLINT},
       avatar_url_ = #{avatarUrl,jdbcType=VARCHAR},
       large_avatar_url_ = #{largeAvatarUrl,jdbcType=VARCHAR}
-    where user_id_ = #{userId,jdbcType=INTEGER}
+    where user_id_ = #{userId,jdbcType=BIGINT}
       and provider_ = #{provider,jdbcType=VARCHAR}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserOpenid">
     insert into ujcms_user_openid (user_id_, provider_, openid_, nickname_, gender_, avatar_url_, large_avatar_url_)
-    values (#{userId,jdbcType=INTEGER}, #{provider,jdbcType=VARCHAR}, #{openid,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatarUrl,jdbcType=VARCHAR}, #{largeAvatarUrl,jdbcType=VARCHAR})
+    values (#{userId,jdbcType=BIGINT}, #{provider,jdbcType=VARCHAR}, #{openid,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatarUrl,jdbcType=VARCHAR}, #{largeAvatarUrl,jdbcType=VARCHAR})
   </insert><sql id="Column_List">
     t.user_id_, t.provider_, t.openid_, t.nickname_, t.gender_, t.avatar_url_, t.large_avatar_url_
   </sql></mapper>

@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.ErrorWord;
 import com.ujcms.cms.core.domain.base.ErrorWordBase;
 import com.ujcms.cms.core.mapper.ErrorWordMapper;
 import com.ujcms.cms.core.service.args.ErrorWordArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 
@@ -24,17 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ErrorWordService {
     private final ErrorWordMapper mapper;
+    private final SnowflakeSequence snowflakeSequence;
 
-    private final SeqService seqService;
-
-    public ErrorWordService(ErrorWordMapper mapper, SeqService seqService) {
+    public ErrorWordService(ErrorWordMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(ErrorWord bean) {
-        bean.setId(seqService.getNextVal(ErrorWordBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -44,17 +44,17 @@ public class ErrorWordService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
     @Nullable
-    public ErrorWord select(Integer id) {
+    public ErrorWord select(Long id) {
         return mapper.select(id);
     }
 

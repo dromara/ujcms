@@ -64,7 +64,7 @@ public interface VoteOptionMapper {
      * @param voteId 投票ID
      * @return 数据列表
      */
-    List<VoteOption> listByVoteId(Integer voteId);
+    List<VoteOption> listByVoteId(Long voteId);
 
     /**
      * 投票
@@ -73,7 +73,7 @@ public interface VoteOptionMapper {
      * @param optionIds 选项ID列表
      * @return 更新条数
      */
-    int cast(@Param("voteId") Integer voteId, @Param("optionIds") List<Integer> optionIds);
+    int cast(@Param("voteId") Long voteId, @Param("optionIds") List<Long> optionIds);
 
     /**
      * 根据投票ID删除数据
@@ -82,7 +82,7 @@ public interface VoteOptionMapper {
      * @param ids    不包含的id
      * @return 删除条数
      */
-    int deleteByVoteId(@Param("voteId") Integer voteId, @Param("ids") List<Integer> ids);
+    int deleteByVoteId(@Param("voteId") Long voteId, @Param("ids") List<Long> ids);
 
     /**
      * 根据站点ID删除数据
@@ -90,5 +90,5 @@ public interface VoteOptionMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(@Param("siteId") Integer siteId);
+    int deleteBySiteId(@Param("siteId") Long siteId);
 }

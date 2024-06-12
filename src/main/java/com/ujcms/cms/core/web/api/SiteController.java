@@ -78,19 +78,19 @@ public class SiteController {
 
     @Operation(summary = "获取站点（Site标签）")
     @GetMapping("/{id:[\\d]+}")
-    public Site show(@Parameter(description = "站点ID") @PathVariable Integer id) {
+    public Site show(@Parameter(description = "站点ID") @PathVariable Long id) {
         return service.select(id);
     }
 
     @Operation(summary = "获取站点缓冲对象，并记录浏览量")
     @GetMapping("/view/{id:[\\d]+}")
-    public SiteBuffer view(@Parameter(description = "站点ID") @PathVariable Integer id) {
+    public SiteBuffer view(@Parameter(description = "站点ID") @PathVariable Long id) {
         return viewCountService.viewSite(id);
     }
 
     @Operation(summary = "获取站点缓冲对象")
     @GetMapping("/buffer/{id:[\\d]+}")
-    public SiteBuffer buffer(@Parameter(description = "站点ID") @PathVariable Integer id) {
+    public SiteBuffer buffer(@Parameter(description = "站点ID") @PathVariable Long id) {
         SiteBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             throw new Http404Exception("SiteBuffer not found. id=" + id);

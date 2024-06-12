@@ -27,7 +27,7 @@ public interface LeaderBoardMapper {
      * @param end    介绍日期
      * @return 统计结果
      */
-    List<LeaderBoard> channelLeaderBoard(@Param("siteId") @Nullable Integer siteId,
+    List<LeaderBoard> channelLeaderBoard(@Param("siteId") @Nullable Long siteId,
                                          @Param("status") @Nullable Collection<Short> status,
                                          @Param("begin") @Nullable OffsetDateTime begin,
                                          @Param("end") @Nullable OffsetDateTime end);
@@ -41,7 +41,7 @@ public interface LeaderBoardMapper {
      * @param end    介绍日期
      * @return 统计结果
      */
-    List<LeaderBoard> orgLeaderBoard(@Param("orgId") @Nullable Integer orgId,
+    List<LeaderBoard> orgLeaderBoard(@Param("orgId") @Nullable Long orgId,
                                      @Param("status") @Nullable Collection<Short> status,
                                      @Param("begin") @Nullable OffsetDateTime begin,
                                      @Param("end") @Nullable OffsetDateTime end);
@@ -55,7 +55,7 @@ public interface LeaderBoardMapper {
      * @param end    介绍日期
      * @return 统计结果
      */
-    List<LeaderBoard> userLeaderBoard(@Param("orgId") @Nullable Integer orgId,
+    List<LeaderBoard> userLeaderBoard(@Param("orgId") @Nullable Long orgId,
                                       @Param("status") @Nullable Collection<Short> status,
                                       @Param("begin") @Nullable OffsetDateTime begin,
                                       @Param("end") @Nullable OffsetDateTime end);

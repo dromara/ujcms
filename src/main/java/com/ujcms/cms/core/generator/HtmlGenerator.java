@@ -42,7 +42,7 @@ public class HtmlGenerator extends AbstractGenerator {
      * @param taskName   任务名称
      * @param site       需要生成静态页的站点
      */
-    public void updateAllHtml(Integer taskSiteId, Integer taskUserId, String taskName, Site site) {
+    public void updateAllHtml(Long taskSiteId, Long taskUserId, String taskName, Site site) {
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, false,
                 taskId -> {
                     handleArticle(taskId, site.getId(), htmlService::updateArticleHtml);
@@ -60,12 +60,12 @@ public class HtmlGenerator extends AbstractGenerator {
      * @param articleList   文章列表
      * @param origChannelId 文章原栏目
      */
-    public void updateArticleRelatedHtml(Integer taskSiteId, Integer taskUserId, String taskName,
-                                         Collection<Article> articleList, @Nullable Integer origChannelId) {
+    public void updateArticleRelatedHtml(Long taskSiteId, Long taskUserId, String taskName,
+                                         Collection<Article> articleList, @Nullable Long origChannelId) {
         Set<Article> articles = new HashSet<>(articleList.size());
         for (Article article : articleList) {
-            Integer articleId = article.getId();
-            Integer channelId = article.getChannelId();
+            Long articleId = article.getId();
+            Long channelId = article.getChannelId();
             Long order = article.getOrder();
             // 当前文章直接更新，以免导致404错误
             Optional.ofNullable(articleService.select(articleId))
@@ -119,7 +119,7 @@ public class HtmlGenerator extends AbstractGenerator {
      * @param taskName   任务名称
      * @param channelId  栏目ID
      */
-    public void updateChannelRelatedHtml(Integer taskSiteId, Integer taskUserId, String taskName, Integer channelId) {
+    public void updateChannelRelatedHtml(Long taskSiteId, Long taskUserId, String taskName, Long channelId) {
         // 所属栏目、所属栏目的上级栏目、首页
         Channel channel = channelService.select(channelId);
         if (channel == null) {
@@ -147,7 +147,7 @@ public class HtmlGenerator extends AbstractGenerator {
      * @param taskName   任务名称
      * @param site       需要生成静态页的站点
      */
-    public void updateArticleHtml(Integer taskSiteId, Integer taskUserId, String taskName, Site site) {
+    public void updateArticleHtml(Long taskSiteId, Long taskUserId, String taskName, Site site) {
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, false,
                 taskId -> handleArticle(taskId, site.getId(), htmlService::updateArticleHtml));
     }
@@ -160,12 +160,12 @@ public class HtmlGenerator extends AbstractGenerator {
      * @param taskName   任务名称
      * @param site       需要生成静态页的站点
      */
-    public void updateChannelHtml(Integer taskSiteId, Integer taskUserId, String taskName, Site site) {
+    public void updateChannelHtml(Long taskSiteId, Long taskUserId, String taskName, Site site) {
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, false,
                 taskId -> handleChannel(taskId, site.getId(), htmlService::updateChannelHtml));
     }
 
-    private void handleChannel(Integer taskId, Integer siteId, Consumer<Channel> consumer) {
+    private void handleChannel(Long taskId, Long siteId, Consumer<Channel> consumer) {
         List<Channel> channels = channelService.selectList(ChannelArgs.of().siteId(siteId));
         for (Channel channel : channels) {
             consumer.accept(channel);

@@ -2,12 +2,19 @@ package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.commons.query.QueryInfo;
+
 import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 短信 Mapper
+ *
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface ShortMessageMapper {
@@ -33,7 +40,7 @@ public interface ShortMessageMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -42,7 +49,7 @@ public interface ShortMessageMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    ShortMessage select(Integer id);
+    ShortMessage select(Long id);
 
     /**
      * 根据查询条件获取列表

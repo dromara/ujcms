@@ -76,7 +76,7 @@ public class VisitPageService implements SiteDeleteListener {
         return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
     }
 
-    public Page<VisitPage> statByDate(Integer siteId, Short type, @Nullable String begin, @Nullable String end,
+    public Page<VisitPage> statByDate(Long siteId, Short type, @Nullable String begin, @Nullable String end,
                                       int page, int pageSize) {
         return PageMethod.startPage(page, pageSize).doSelectPage(() -> mapper.statByDate(siteId, type, begin, end));
     }
@@ -92,7 +92,7 @@ public class VisitPageService implements SiteDeleteListener {
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         mapper.deleteBySiteId(siteId);
     }
 }

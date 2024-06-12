@@ -8,6 +8,7 @@ import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.ActionMapper;
 import com.ujcms.cms.core.service.args.ActionArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -26,17 +27,16 @@ import java.util.Objects;
 @Service
 public class ActionService implements SiteDeleteListener, UserDeleteListener {
     private final ActionMapper mapper;
+    private final SnowflakeSequence snowflakeSequence;
 
-    private final SeqService seqService;
-
-    public ActionService(ActionMapper mapper, SeqService seqService) {
+    public ActionService(ActionMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(Action bean) {
-        bean.setId(seqService.getNextLongVal(ActionBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -75,7 +75,7 @@ public class ActionService implements SiteDeleteListener, UserDeleteListener {
 
     public boolean existsBy(@Nullable String refType, @Nullable Long refId, @Nullable String refOption,
                             @Nullable OffsetDateTime date,
-                            @Nullable Integer userId, @Nullable String ip, @Nullable Long cookie) {
+                            @Nullable Long userId, @Nullable String ip, @Nullable Long cookie) {
         return mapper.existsBy(refType, refId, refOption, date, userId, ip, cookie) > 0;
     }
 
@@ -85,12 +85,12 @@ public class ActionService implements SiteDeleteListener, UserDeleteListener {
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         mapper.deleteBySiteId(siteId);
     }
 
     @Override
-    public void preUserDelete(Integer userId) {
+    public void preUserDelete(Long userId) {
         mapper.deleteByUserId(userId);
     }
 }

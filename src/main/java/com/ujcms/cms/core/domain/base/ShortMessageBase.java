@@ -24,7 +24,7 @@ public class ShortMessageBase implements Serializable {
      */
     @NotNull
     @Schema(description="短信ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 类型(1:手机短信,2:邮件短信)
@@ -85,11 +85,11 @@ public class ShortMessageBase implements Serializable {
     @Schema(description="状态(0:未使用,1:验证正确,2:验证错误,3:已过期,4:尝试次数过多)")
     private Short status = 0;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

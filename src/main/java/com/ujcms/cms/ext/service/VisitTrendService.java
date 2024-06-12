@@ -3,12 +3,12 @@ package com.ujcms.cms.ext.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
-import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.VisitStat;
 import com.ujcms.cms.ext.domain.VisitTrend;
 import com.ujcms.cms.ext.domain.base.VisitTrendBase;
 import com.ujcms.cms.ext.mapper.VisitTrendMapper;
 import com.ujcms.cms.ext.service.args.VisitTrendArgs;
+import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.lang.Nullable;
@@ -29,16 +29,16 @@ import static com.ujcms.cms.ext.domain.VisitStat.*;
 @Service
 public class VisitTrendService implements SiteDeleteListener {
     private final VisitTrendMapper mapper;
-    private final SeqService seqService;
+    private final SnowflakeSequence snowflakeSequence;
 
-    public VisitTrendService(VisitTrendMapper mapper, SeqService seqService) {
+    public VisitTrendService(VisitTrendMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.mapper = mapper;
-        this.seqService = seqService;
+        this.snowflakeSequence = snowflakeSequence;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(VisitTrend bean) {
-        bean.setId(seqService.getNextVal(VisitTrendBase.TABLE_NAME));
+        bean.setId(snowflakeSequence.nextId());
         mapper.insert(bean);
     }
 
@@ -48,12 +48,12 @@ public class VisitTrendService implements SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
+    public int delete(Long id) {
         return mapper.delete(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public int delete(List<Integer> ids) {
+    public int delete(List<Long> ids) {
         return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();
     }
 
@@ -68,7 +68,7 @@ public class VisitTrendService implements SiteDeleteListener {
     }
 
     @Nullable
-    public VisitTrend select(Integer id) {
+    public VisitTrend select(Long id) {
         return mapper.select(id);
     }
 
@@ -89,7 +89,7 @@ public class VisitTrendService implements SiteDeleteListener {
         return mapper.statByDate(VisitTrend.PERIOD_DAY, begin.format(DAY_FORMATTER), end.format(DAY_FORMATTER));
     }
 
-    public List<VisitTrend> selectFullList(@Nullable Integer siteId, short period, @Nullable String begin, String end) {
+    public List<VisitTrend> selectFullList(@Nullable Long siteId, short period, @Nullable String begin, String end) {
         VisitTrendArgs args = VisitTrendArgs.of().siteId(siteId).period(period)
                 .begin(begin).end(end).orderByDateString();
         switch (period) {
@@ -116,7 +116,7 @@ public class VisitTrendService implements SiteDeleteListener {
     }
 
     @Override
-    public void preSiteDelete(Integer siteId) {
+    public void preSiteDelete(Long siteId) {
         mapper.deleteBySiteId(siteId);
     }
 }

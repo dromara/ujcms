@@ -67,6 +67,12 @@ ujcms.databaseBinPath:
 # 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
 #flowable.database-schema: UJCMS
 
+# 集群环境下，可以设置雪花算法主键的数据中心ID和工作机器ID。不设置时，会自动根据网卡mac地址和pid(进程ID)计算出一个相对随机的数值，一般情况下不会冲突。
+# 雪花算法主键：数据中心ID。范围 0-31
+#ujcms.datacenterId:
+# 雪花算法主键：工作机器ID。范围 0-31
+#ujcms.workerId:
+
 # 集群环境需要使用jdbc。默认：memory
 #spring.quartz.job-store-type: jdbc
 # quartz是否集群
@@ -163,9 +169,10 @@ mybatis.configuration.default-statement-timeout: 30
 # 人大金仓新版本(kingbase8): PostgreSqlDialect
 # openGauss数据库(opengauss): PostgreSqlDialect
 pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDialect
-# Jackson配置
-spring.jackson.deserialization.FAIL_ON_UNKNOWN_PROPERTIES: false
+# Jackson配置 https://docs.spring.io/spring-boot/docs/2.7.14/reference/htmlsingle/#howto.spring-mvc.customize-jackson-objectmapper
 spring.jackson.serialization.FAIL_ON_EMPTY_BEANS: false
+spring.jackson.deserialization.USE_BIG_DECIMAL_FOR_FLOATS: true
+# 默认包含没有 View 注解的字段
 spring.jackson.mapper.DEFAULT_VIEW_INCLUSION: true
 # 默认关闭 spring-data-elasticsearch 的 repositories
 spring.data.elasticsearch.repositories.enabled: false
@@ -200,6 +207,8 @@ spring.freemarker.suffix: .html
 #spring.freemarker.settings.output_format: HTML
 # 使用中括号作为标签标志，避免DreamWeaver等开发工具因无法识别FreeMarker标签导致报错等情况。
 spring.freemarker.settings.tag_syntax: square_bracket
+# 数值默认不加千分号
+spring.freemarker.settings.number_format: "0.######"
 # Freemarker 错误信息处理方式
 # 模板异常处理方式。`html_debug`会将错误信息直接显示在页面里，方便调试。
 # 生产环境可以设置为`rethrow`，将异常重新抛出，由 spring 处理异常。
@@ -281,5 +290,5 @@ jodconverter.local.port-numbers: 8100
 # This property sets the maximum number of tasks an office process can execute before restarting. Default: 200
 jodconverter.local.max-tasks-per-process: 50
 
-# 是否显示商业版功能。默认：true
-#ujcms.ep-display: false
+# 是否显示商业版功能。默认：false
+#ujcms.ep-display: true

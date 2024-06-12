@@ -119,13 +119,13 @@ public class SurveyController {
     @Operation(summary = "获取调查问卷对象（Survey标签）")
     @ApiResponses(value = {@ApiResponse(description = "调查问卷对象")})
     @GetMapping("/{id:[\\d]+}")
-    public Survey show(@Parameter(description = "调查问卷ID") @PathVariable Integer id) {
+    public Survey show(@Parameter(description = "调查问卷ID") @PathVariable Long id) {
         Survey bean = service.select(id);
         validateBean(id, bean);
         return bean;
     }
 
-    public static void validateBean(Integer id, Survey bean) {
+    public static void validateBean(Long id, Survey bean) {
         if (bean == null) {
             throw new Http404Exception("Survey not found. ID: " + id);
         }
@@ -160,7 +160,7 @@ public class SurveyController {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
         String ip = Servlets.getRemoteAddr(request);
-        Integer userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
+        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
         OffsetDateTime date = survey.getInterval() > 0 ? OffsetDateTime.now().minusDays(survey.getInterval()) : null;
         // 已经投过票
         boolean voted;
@@ -183,33 +183,33 @@ public class SurveyController {
         if (voted) {
             return Responses.status(1004, request, "error.vote.alreadyVoted");
         }
-        Map<Integer, List<Integer>> optionMap = getOptionMap(survey, params.items);
-        Map<Integer, String> essayMap = getEssayMap(survey, params.items);
+        Map<Long, List<Long>> optionMap = getOptionMap(survey, params.items);
+        Map<Long, String> essayMap = getEssayMap(survey, params.items);
         service.cast(params.id, optionMap, essayMap, site.getId(), userId, ip, cookie);
         return Responses.ok();
     }
 
-    private Map<Integer, List<Integer>> getOptionMap(Survey survey, Map<String, Object> items) {
-        Map<Integer, List<Integer>> optionMap = new HashMap<>(16);
+    private Map<Long, List<Long>> getOptionMap(Survey survey, Map<String, Object> items) {
+        Map<Long, List<Long>> optionMap = new HashMap<>(16);
         for (SurveyItem item : survey.getItems()) {
             if (Boolean.TRUE.equals(item.getEssay())) {
                 continue;
             }
             Object value = items.get(String.valueOf(item.getId()));
-            List<Integer> optionIds;
+            List<Long> optionIds;
             if (value instanceof String[]) {
                 if (Boolean.FALSE.equals(item.getMultiple())) {
                     throw new Http400Exception("Only one option can be selected.");
                 }
-                optionIds = Arrays.stream((String[]) value).map(Integer::valueOf).collect(Collectors.toList());
+                optionIds = Arrays.stream((String[]) value).map(Long::valueOf).collect(Collectors.toList());
             } else if (value instanceof String) {
-                optionIds = Collections.singletonList(Integer.valueOf((String) value));
+                optionIds = Collections.singletonList(Long.valueOf((String) value));
             } else {
                 throw new Http400Exception("Option is invalid.");
             }
-            List<Integer> itemOptionsIds = item.getOptions().stream().map(SurveyOptionBase::getId)
+            List<Long> itemOptionsIds = item.getOptions().stream().map(SurveyOptionBase::getId)
                     .collect(Collectors.toList());
-            for (Integer optionId : optionIds) {
+            for (Long optionId : optionIds) {
                 if (!itemOptionsIds.contains(optionId)) {
                     throw new Http400Exception("'optionId' does not belong SurveyItem. optionId: " + optionId);
                 }
@@ -219,8 +219,8 @@ public class SurveyController {
         return optionMap;
     }
 
-    private Map<Integer, String> getEssayMap(Survey survey, Map<String, Object> items) {
-        Map<Integer, String> essayMap = new HashMap<>(16);
+    private Map<Long, String> getEssayMap(Survey survey, Map<String, Object> items) {
+        Map<Long, String> essayMap = new HashMap<>(16);
         for (SurveyItem item : survey.getItems()) {
             if (Boolean.FALSE.equals(item.getEssay())) {
                 continue;
@@ -239,15 +239,15 @@ public class SurveyController {
 
     public static class SurveyParams {
         @NotNull
-        private Integer id;
+        private Long id;
         @NotNull
         private Map<String, Object> items;
 
-        public Integer getId() {
+        public Long getId() {
             return id;
         }
 
-        public void setId(Integer id) {
+        public void setId(Long id) {
             this.id = id;
         }
 

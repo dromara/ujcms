@@ -21,5 +21,5 @@ public interface SiteTreeMapper extends TreeRelationMapper<SiteTree> {
      * @param ancestorId 祖先ID
      * @return 后代ID列表
      */
-    List<Integer> listByAncestorId(Integer ancestorId);
+    List<Long> listByAncestorId(Long ancestorId);
 }

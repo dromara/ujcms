@@ -50,7 +50,7 @@ public class ViewCountService {
         this.sqlSessionTemplate = sqlSessionTemplate;
     }
 
-    public long viewArticle(Integer id) {
+    public long viewArticle(Long id) {
         Article article = articleService.select(id);
         if (article == null) {
             return 0;
@@ -62,7 +62,7 @@ public class ViewCountService {
         return article.getViews();
     }
 
-    public long viewChannel(Integer id) {
+    public long viewChannel(Long id) {
         Channel channel = channelService.select(id);
         if (channel == null) {
             return 0;
@@ -83,7 +83,7 @@ public class ViewCountService {
     }
 
     @Nullable
-    public SiteBuffer viewSite(Integer id) {
+    public SiteBuffer viewSite(Long id) {
         SiteBuffer siteBuffer = siteBufferService.select(id);
         if (siteBuffer == null) {
             return null;
@@ -94,8 +94,8 @@ public class ViewCountService {
     }
 
     public void flushSiteViews() {
-        Map<Integer, AtomicInteger> map = getPreviousSiteViewsMap();
-        Map<Integer, AtomicInteger> selfMap = getPreviousSiteSelfViewsMap();
+        Map<Long, AtomicInteger> map = getPreviousSiteViewsMap();
+        Map<Long, AtomicInteger> selfMap = getPreviousSiteSelfViewsMap();
         try (SqlSession session = sqlSessionTemplate.getSqlSessionFactory().openSession(ExecutorType.BATCH, false)) {
             SiteBufferMapper mapper = session.getMapper(SiteBufferMapper.class);
             batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateBatch, key -> {
@@ -112,8 +112,8 @@ public class ViewCountService {
     }
 
     public void flushChannelViews() {
-        Map<Integer, AtomicInteger> map = getPreviousChannelViewsMap();
-        Map<Integer, AtomicInteger> selfMap = getPreviousChannelSelfViewsMap();
+        Map<Long, AtomicInteger> map = getPreviousChannelViewsMap();
+        Map<Long, AtomicInteger> selfMap = getPreviousChannelSelfViewsMap();
         try (SqlSession session = sqlSessionTemplate.getSqlSessionFactory().openSession(ExecutorType.BATCH, false)) {
             ChannelBufferMapper mapper = session.getMapper(ChannelBufferMapper.class);
             batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateBatch, key -> {
@@ -130,8 +130,8 @@ public class ViewCountService {
     }
 
     public void flushArticleViews() {
-        Cache<Integer, AtomicInteger> cache = getPreviousArticleViewsCache();
-        Map<Integer, AtomicInteger> map = cache.asMap();
+        Cache<Long, AtomicInteger> cache = getPreviousArticleViewsCache();
+        Map<Long, AtomicInteger> map = cache.asMap();
         try (SqlSession session = sqlSessionTemplate.getSqlSessionFactory().openSession(ExecutorType.BATCH, false)) {
             ArticleBufferMapper mapper = session.getMapper(ArticleBufferMapper.class);
             batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateBatch, key -> {
@@ -196,87 +196,87 @@ public class ViewCountService {
         }
     }
 
-    private static Map<Integer, AtomicInteger> getCurrentSiteViewsMap() {
+    private static Map<Long, AtomicInteger> getCurrentSiteViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? SITE_ODD_VIEWS_MAP : SITE_EVEN_VIEWS_MAP;
     }
 
-    private static Map<Integer, AtomicInteger> getPreviousSiteViewsMap() {
+    private static Map<Long, AtomicInteger> getPreviousSiteViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? SITE_ODD_VIEWS_MAP : SITE_EVEN_VIEWS_MAP;
     }
 
-    private static Map<Integer, AtomicInteger> getCurrentSiteSelfViewsMap() {
+    private static Map<Long, AtomicInteger> getCurrentSiteSelfViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? SITE_SELF_ODD_VIEWS_MAP : SITE_SELF_EVEN_VIEWS_MAP;
     }
 
-    private static Map<Integer, AtomicInteger> getPreviousSiteSelfViewsMap() {
+    private static Map<Long, AtomicInteger> getPreviousSiteSelfViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? SITE_SELF_ODD_VIEWS_MAP : SITE_SELF_EVEN_VIEWS_MAP;
     }
 
-    private static Map<Integer, AtomicInteger> getCurrentChannelViewsMap() {
+    private static Map<Long, AtomicInteger> getCurrentChannelViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? CHANNEL_ODD_VIEWS_MAP : CHANNEL_EVEN_VIEWS_MAP;
     }
 
-    private static Map<Integer, AtomicInteger> getPreviousChannelViewsMap() {
+    private static Map<Long, AtomicInteger> getPreviousChannelViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? CHANNEL_ODD_VIEWS_MAP : CHANNEL_EVEN_VIEWS_MAP;
     }
 
-    private static Map<Integer, AtomicInteger> getCurrentChannelSelfViewsMap() {
+    private static Map<Long, AtomicInteger> getCurrentChannelSelfViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? CHANNEL_SELF_ODD_VIEWS_MAP : CHANNEL_SELF_EVEN_VIEWS_MAP;
     }
 
-    private static Map<Integer, AtomicInteger> getPreviousChannelSelfViewsMap() {
+    private static Map<Long, AtomicInteger> getPreviousChannelSelfViewsMap() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? CHANNEL_SELF_ODD_VIEWS_MAP : CHANNEL_SELF_EVEN_VIEWS_MAP;
     }
 
-    private static Cache<Integer, AtomicInteger> getCurrentArticleViewsCache() {
+    private static Cache<Long, AtomicInteger> getCurrentArticleViewsCache() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? ARTICLE_ODD_VIEWS_CACHE : ARTICLE_EVEN_VIEWS_CACHE;
     }
 
-    private static Cache<Integer, AtomicInteger> getPreviousArticleViewsCache() {
+    private static Cache<Long, AtomicInteger> getPreviousArticleViewsCache() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? ARTICLE_ODD_VIEWS_CACHE : ARTICLE_EVEN_VIEWS_CACHE;
     }
 
     /**
      * 站点浏览次数（分钟数为奇数时）
      */
-    private static final Map<Integer, AtomicInteger> SITE_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> SITE_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 站点浏览次数（分钟数为偶数时）
      */
-    private static final Map<Integer, AtomicInteger> SITE_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> SITE_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 站点自身浏览次数（分钟数为奇数时）
      */
-    private static final Map<Integer, AtomicInteger> SITE_SELF_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> SITE_SELF_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 站点自身浏览次数（分钟数为偶数时）
      */
-    private static final Map<Integer, AtomicInteger> SITE_SELF_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> SITE_SELF_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 栏目浏览次数（分钟数为奇数时）
      */
-    private static final Map<Integer, AtomicInteger> CHANNEL_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> CHANNEL_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 栏目浏览次数（分钟数为偶数时）
      */
-    private static final Map<Integer, AtomicInteger> CHANNEL_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> CHANNEL_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 栏目自身浏览次数（分钟数为奇数时）
      */
-    private static final Map<Integer, AtomicInteger> CHANNEL_SELF_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> CHANNEL_SELF_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 栏目自身浏览次数（分钟数为偶数时）
      */
-    private static final Map<Integer, AtomicInteger> CHANNEL_SELF_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    private static final Map<Long, AtomicInteger> CHANNEL_SELF_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 文章浏览次数（分钟数为奇数时）。缓存2分钟（2分钟内一定会被使用），缓存条数2000万，更多的就丢弃。
      */
-    private static final Cache<Integer, AtomicInteger> ARTICLE_ODD_VIEWS_CACHE = Caffeine.newBuilder()
+    private static final Cache<Long, AtomicInteger> ARTICLE_ODD_VIEWS_CACHE = Caffeine.newBuilder()
             .expireAfterWrite(2, TimeUnit.MINUTES).maximumSize(20_000_000).build();
     /**
      * 文章浏览次数（分钟数为偶数时）。缓存2分钟（2分钟内一定会被使用），缓存条数2000万，更多的就丢弃。
      */
-    private static final Cache<Integer, AtomicInteger> ARTICLE_EVEN_VIEWS_CACHE = Caffeine.newBuilder()
+    private static final Cache<Long, AtomicInteger> ARTICLE_EVEN_VIEWS_CACHE = Caffeine.newBuilder()
             .expireAfterWrite(2, TimeUnit.MINUTES).maximumSize(20_000_000).build();
     /**
      * SQL语句循环条数。ArticleBuffer一条记录有13个参数，13*120=1560个参数。最多可支持17个参数（17*120=2040）。

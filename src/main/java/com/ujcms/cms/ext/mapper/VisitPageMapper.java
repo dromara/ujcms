@@ -68,7 +68,7 @@ public interface VisitPageMapper {
      * @param end    介绍日期
      * @return 统计结果
      */
-    List<VisitPage> statByDate(@Param("siteId") Integer siteId, @Param("type") Short type,
+    List<VisitPage> statByDate(@Param("siteId") Long siteId, @Param("type") Short type,
                                @Nullable @Param("begin") String begin, @Nullable @Param("end") String end);
 
     /**
@@ -102,5 +102,5 @@ public interface VisitPageMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(@Param("siteId") Integer siteId);
+    int deleteBySiteId(@Param("siteId") Long siteId);
 }

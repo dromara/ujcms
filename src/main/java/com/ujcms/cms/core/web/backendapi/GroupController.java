@@ -54,10 +54,10 @@ public class GroupController {
 
     @GetMapping("{id}")
     @PreAuthorize("hasAnyAuthority('group:show','*')")
-    public Group show(@PathVariable Integer id) {
+    public Group show(@PathVariable Long id) {
         Group bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception("Group not found. ID = " + id);
+            throw new Http404Exception(Group.NOT_FOUND + id);
         }
         return bean;
     }
@@ -95,9 +95,9 @@ public class GroupController {
     @PutMapping("order")
     @PreAuthorize("hasAnyAuthority('group:update','*')")
     @OperationLog(module = "group", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Integer[] ids) {
+    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
         List<Group> list = new ArrayList<>();
-        for (Integer id : ids) {
+        for (Long id : ids) {
             Group bean = service.select(id);
             if (bean == null) {
                 return Responses.notFound("Role not found. ID = " + id);
@@ -111,14 +111,14 @@ public class GroupController {
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('group:delete','*')")
     @OperationLog(module = "group", operation = "delete", type = OperationType.DELETE)
-    public ResponseEntity<Body> delete(@RequestBody List<Integer> ids) {
+    public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         service.delete(ids);
         return Responses.ok();
     }
 
     @GetMapping("access-permissions")
     @PreAuthorize("hasAnyAuthority('group:list','*')")
-    public List<Integer> accessPermissions(Integer groupId, @Nullable Integer siteId) {
+    public List<Long> accessPermissions(Long groupId, @Nullable Long siteId) {
         return service.listAccessPermissions(groupId, siteId != null ? siteId : getCurrentSiteId());
     }
 }

@@ -1,11 +1,9 @@
 package com.ujcms.cms.core.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
-
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
@@ -26,29 +24,29 @@ public class UserBase implements Serializable {
      * 用户ID
      */
     @NotNull
-    @Schema(description = "用户ID")
-    private Integer id = 0;
+    @Schema(description="用户ID")
+    private Long id = 0L;
 
     /**
      * 用户组ID
      */
     @NotNull
-    @Schema(description = "用户组ID")
-    private Integer groupId = 0;
+    @Schema(description="用户组ID")
+    private Long groupId = 0L;
 
     /**
      * 组织ID
      */
     @NotNull
-    @Schema(description = "组织ID")
-    private Integer orgId = 0;
+    @Schema(description="组织ID")
+    private Long orgId = 0L;
 
     /**
      * 用户名
      */
     @Length(max = 30)
     @NotNull
-    @Schema(description = "用户名")
+    @Schema(description="用户名")
     private String username = "";
 
     /**
@@ -56,7 +54,7 @@ public class UserBase implements Serializable {
      */
     @Length(max = 100)
     @Nullable
-    @Schema(description = "密码")
+    @Schema(description="密码")
     private String password;
 
     /**
@@ -64,7 +62,7 @@ public class UserBase implements Serializable {
      */
     @Length(max = 50)
     @Nullable
-    @Schema(description = "电子邮箱")
+    @Schema(description="电子邮箱")
     private String email;
 
     /**
@@ -72,7 +70,7 @@ public class UserBase implements Serializable {
      */
     @Length(max = 50)
     @Nullable
-    @Schema(description = "手机号码")
+    @Schema(description="手机号码")
     private String mobile;
 
     /**
@@ -80,7 +78,7 @@ public class UserBase implements Serializable {
      */
     @Length(max = 50)
     @Nullable
-    @Schema(description = "博客地址")
+    @Schema(description="博客地址")
     private String alias;
 
     /**
@@ -88,7 +86,7 @@ public class UserBase implements Serializable {
      */
     @Length(max = 50)
     @Nullable
-    @Schema(description = "昵称")
+    @Schema(description="昵称")
     private String nickname;
 
     /**
@@ -96,14 +94,14 @@ public class UserBase implements Serializable {
      */
     @Length(max = 50)
     @Nullable
-    @Schema(description = "真实姓名")
+    @Schema(description="真实姓名")
     private String realName;
 
     /**
      * 性别(0:保密,1:男,2:女)
      */
     @NotNull
-    @Schema(description = "性别(0:保密,1:男,2:女)")
+    @Schema(description="性别(0:保密,1:男,2:女)")
     private Short gender = 1;
 
     /**
@@ -111,58 +109,58 @@ public class UserBase implements Serializable {
      */
     @Length(max = 255)
     @Nullable
-    @Schema(description = "头像URL")
+    @Schema(description="头像URL")
     private String avatar;
 
     /**
      * 密码修改时间
      */
     @NotNull
-    @Schema(description = "密码修改时间")
+    @Schema(description="密码修改时间")
     private OffsetDateTime passwordModified = OffsetDateTime.now();
 
     /**
      * 等级
      */
     @NotNull
-    @Schema(description = "等级")
+    @Schema(description="等级")
     private Short rank = 999;
 
     /**
      * 类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规管理员,5:前台会员)
      */
     @NotNull
-    @Schema(description = "类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规管理员,5:前台会员)")
+    @Schema(description="类型(1:系统管理员,2:安全管理员,3:审计管理员,4:常规管理员,5:前台会员)")
     private Short type = 4;
 
     /**
      * 状态(0:正常,1:未激活,2:已锁定,3:已注销)
      */
     @NotNull
-    @Schema(description = "状态(0:正常,1:未激活,2:已锁定,3:已注销)")
+    @Schema(description="状态(0:正常,1:未激活,2:已锁定,3:已注销)")
     private Short status = 0;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Integer getGroupId() {
+    public Long getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(Integer groupId) {
+    public void setGroupId(Long groupId) {
         this.groupId = groupId;
     }
 
-    public Integer getOrgId() {
+    public Long getOrgId() {
         return orgId;
     }
 
-    public void setOrgId(Integer orgId) {
+    public void setOrgId(Long orgId) {
         this.orgId = orgId;
     }
 

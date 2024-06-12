@@ -27,7 +27,7 @@ public class VoteDirective implements TemplateDirectiveModel {
             throws TemplateException, IOException {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
-        Integer id = Directives.getIntegerRequired(params, ID);
+        Long id = Directives.getLongRequired(params, ID);
 
         Vote bean = service.select(id);
         loopVars[0] = env.getObjectWrapper().wrap(bean);

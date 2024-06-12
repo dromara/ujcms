@@ -58,12 +58,12 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     @Override
     protected void fillWithDocument(org.apache.lucene.document.Document doc) {
         super.fillWithDocument(doc);
-        setId(doc.getField(FIELD_ID).numericValue().intValue());
+        setId(doc.getField(FIELD_ID).numericValue().longValue());
         setStatus(doc.getField(FIELD_STATUS).numericValue().shortValue());
         long publishMilli = doc.getField(FIELD_PUBLISH_DATE).numericValue().longValue();
         setPublishDate(OffsetDateTime.ofInstant(Instant.ofEpochMilli(publishMilli), ZoneId.systemDefault()));
 
-        getChannel().setId(doc.getField(FIELD_CHANNEL_ID).numericValue().intValue());
+        getChannel().setId(doc.getField(FIELD_CHANNEL_ID).numericValue().longValue());
         getChannel().setName(doc.get(FIELD_CHANNEL_NAME));
         getChannel().setUrl(doc.get(FIELD_CHANNEL_URL));
         IndexableField[] pathIds = doc.getFields(FIELD_CHANNEL_PATHS_ID);
@@ -71,7 +71,7 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
         IndexableField[] pathUrls = doc.getFields(FIELD_CHANNEL_PATHS_URL);
         for (int i = 0, len = pathIds.length; i < len; i++) {
             ChannelBaseInner channelBaseInner = new ChannelBaseInner();
-            channelBaseInner.setId(pathIds[i].numericValue().intValue());
+            channelBaseInner.setId(pathIds[i].numericValue().longValue());
             channelBaseInner.setName(pathNames[i].stringValue());
             channelBaseInner.setUrl(pathUrls[i].stringValue());
             getChannel().getPaths().add(channelBaseInner);
@@ -81,7 +81,7 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     @Override
     public org.apache.lucene.document.Document toDocument() {
         org.apache.lucene.document.Document doc = super.toDocument();
-        doc.add(new IntPoint(FIELD_ID, id));
+        doc.add(new LongPoint(FIELD_ID, id));
         doc.add(new StringField(FIELD_ID, String.valueOf(id), Store.NO));
         doc.add(new StoredField(FIELD_ID, id));
 
@@ -93,12 +93,12 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
         doc.add(new StoredField(FIELD_PUBLISH_DATE, publishMilli));
         doc.add(new NumericDocValuesField(FIELD_PUBLISH_DATE, publishMilli));
 
-        doc.add(new IntPoint(FIELD_CHANNEL_ID, getChannel().getId()));
+        doc.add(new LongPoint(FIELD_CHANNEL_ID, getChannel().getId()));
         doc.add(new StoredField(FIELD_CHANNEL_ID, getChannel().getId()));
         doc.add(new StoredField(FIELD_CHANNEL_NAME, getChannel().getName()));
         doc.add(new StoredField(FIELD_CHANNEL_URL, getChannel().getUrl()));
         for (ChannelBaseInner bean : getChannel().getPaths()) {
-            doc.add(new IntPoint(FIELD_CHANNEL_PATHS_ID, bean.getId()));
+            doc.add(new LongPoint(FIELD_CHANNEL_PATHS_ID, bean.getId()));
             doc.add(new StoredField(FIELD_CHANNEL_PATHS_ID, bean.getId()));
             doc.add(new StoredField(FIELD_CHANNEL_PATHS_NAME, bean.getName()));
             doc.add(new StoredField(FIELD_CHANNEL_PATHS_URL, bean.getUrl()));
@@ -127,7 +127,7 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
      */
     @Id
     @Field
-    private Integer id = 0;
+    private Long id = 0L;
     /**
      * 状态
      */
@@ -144,11 +144,11 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     @Field(type = FieldType.Object, index = false)
     private ChannelInner channel = new ChannelInner();
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -195,7 +195,7 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
          * ID
          */
         @Field(type = FieldType.Integer)
-        private Integer id = 0;
+        private Long id = 0L;
         /**
          * 名称
          */
@@ -207,11 +207,11 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
         @Field(type = FieldType.Keyword, index = false)
         private String url = "";
 
-        public int getId() {
+        public Long getId() {
             return id;
         }
 
-        public void setId(Integer id) {
+        public void setId(Long id) {
             this.id = id;
         }
 

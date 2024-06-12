@@ -41,7 +41,7 @@ public interface UserMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取引用对象（不包括关联对象属性）
@@ -50,7 +50,7 @@ public interface UserMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Org selectRefer(Integer id);
+    Org selectRefer(Long id);
 
     /**
      * 根据主键获取数据
@@ -59,7 +59,7 @@ public interface UserMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    User select(Integer id);
+    User select(Long id);
 
     /**
      * 根据用户名获取用户
@@ -105,7 +105,7 @@ public interface UserMapper {
      * @param orgId     组织ID
      * @return 数据列表
      */
-    List<User> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo, @Nullable @Param("orgId") Integer orgId);
+    List<User> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo, @Nullable @Param("orgId") Long orgId);
 
     /**
      * 统计用户数量
@@ -121,7 +121,7 @@ public interface UserMapper {
      * @param orgId 组织ID
      * @return 用户数量
      */
-    int existsByOrgId(Integer orgId);
+    int existsByOrgId(Long orgId);
 
     /**
      * 根据用户组ID统计用户数量
@@ -129,7 +129,7 @@ public interface UserMapper {
      * @param groupId 用户组ID
      * @return 用户数量
      */
-    int existsByGroupId(Integer groupId);
+    int existsByGroupId(Long groupId);
 
     /**
      * 根据角色ID和组织ID统计数量
@@ -138,5 +138,5 @@ public interface UserMapper {
      * @param notOrgId 非本组织ID
      * @return 数据条数
      */
-    int existsByRoleId(@Param("roleId") Integer roleId, @Param("notOrgId") Integer notOrgId);
+    int existsByRoleId(@Param("roleId") Long roleId, @Param("notOrgId") Long notOrgId);
 }

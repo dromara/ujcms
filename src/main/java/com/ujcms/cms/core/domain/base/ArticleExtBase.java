@@ -24,7 +24,7 @@ public class ArticleExtBase implements Serializable {
      */
     @NotNull
     @Schema(description="文章ID")
-    private Integer id = 0;
+    private Long id = 0L;
 
     /**
      * 标题
@@ -387,11 +387,25 @@ public class ArticleExtBase implements Serializable {
     @Schema(description="Markdown正文")
     private String markdown;
 
-    public Integer getId() {
+    /**
+     * 自定义主字段JSON
+     */
+    @Nullable
+    @Schema(description="自定义主字段JSON")
+    private String mainsJson;
+
+    /**
+     * 自定义大字段JSON
+     */
+    @Nullable
+    @Schema(description="自定义大字段JSON")
+    private String clobsJson;
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -809,5 +823,23 @@ public class ArticleExtBase implements Serializable {
 
     public void setMarkdown(@Nullable String markdown) {
         this.markdown = markdown;
+    }
+
+    @Nullable
+    public String getMainsJson() {
+        return mainsJson;
+    }
+
+    public void setMainsJson(@Nullable String mainsJson) {
+        this.mainsJson = mainsJson;
+    }
+
+    @Nullable
+    public String getClobsJson() {
+        return clobsJson;
+    }
+
+    public void setClobsJson(@Nullable String clobsJson) {
+        this.clobsJson = clobsJson;
     }
 }

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.SurveyOptionFeedbackMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
-    <id column="id_" jdbcType="INTEGER" property="id" />
-    <result column="survey_option_id_" jdbcType="INTEGER" property="surveyOptionId" />
-    <result column="survey_feedback_id_" jdbcType="INTEGER" property="surveyFeedbackId" />
-    <result column="survey_id_" jdbcType="INTEGER" property="surveyId" />
-    <result column="survey_item_id_" jdbcType="INTEGER" property="surveyItemId" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="survey_option_id_" jdbcType="BIGINT" property="surveyOptionId" />
+    <result column="survey_feedback_id_" jdbcType="BIGINT" property="surveyFeedbackId" />
+    <result column="survey_id_" jdbcType="BIGINT" property="surveyId" />
+    <result column="survey_item_id_" jdbcType="BIGINT" property="surveyItemId" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.SurveyOptionFeedback" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
     <association column="survey_feedback_id_" javaType="com.ujcms.cms.ext.domain.SurveyFeedback" property="feedback" select="com.ujcms.cms.ext.mapper.SurveyFeedbackMapper.select" />
   </resultMap>
 
-  <delete id="deleteByOptionIds" parameterType="int">
+  <delete id="deleteByOptionIds" parameterType="long">
     delete
     from ujcms_survey_option_feedback
     where survey_option_id_ in
@@ -19,36 +19,36 @@
             #{item}
           </foreach>
   </delete>
-  <delete id="deleteByItemId" parameterType="int">
+  <delete id="deleteByItemId" parameterType="long">
     delete
     from ujcms_survey_option_feedback
-    where survey_item_id_ = #{itemId,jdbcType=INTEGER}
+    where survey_item_id_ = #{itemId,jdbcType=BIGINT}
     <foreach close=")" collection="optionIds" item="item" nullable="true" open="and survey_option_id_ not in (" separator=",">
       #{item}
     </foreach>
   </delete>
-  <delete id="deleteBySurveyId" parameterType="int">
+  <delete id="deleteBySurveyId" parameterType="long">
     delete
     from ujcms_survey_option_feedback
-    where survey_id_ = #{surveyId,jdbcType=INTEGER}
+    where survey_id_ = #{surveyId,jdbcType=BIGINT}
     <foreach close=")" collection="itemIds" item="item" nullable="true" open="and survey_item_id_ not in (" separator=",">
       #{item}
     </foreach>
   </delete>
-  <delete id="deleteByFeedbackId" parameterType="int">
+  <delete id="deleteByFeedbackId" parameterType="long">
     delete
     from ujcms_survey_option_feedback
-    where survey_feedback_id_ = #{feedbackId,jdbcType=INTEGER}
+    where survey_feedback_id_ = #{feedbackId,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteBySiteId" parameterType="int">
+  <delete id="deleteBySiteId" parameterType="long">
     delete
     from ujcms_survey_option_feedback
-    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.site_id_ = #{siteId,jdbcType=INTEGER})
+    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.site_id_ = #{siteId,jdbcType=BIGINT})
   </delete>
-  <delete id="deleteByUserId" parameterType="int">
+  <delete id="deleteByUserId" parameterType="long">
     delete
     from ujcms_survey_option_feedback
-    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.user_id_ = #{userId,jdbcType=INTEGER})
+    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.user_id_ = #{userId,jdbcType=BIGINT})
   </delete>
   <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
@@ -58,25 +58,25 @@
       <property name="tableName" value="ujcms_survey_option_feedback" />
     </include>
   </select>
-  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
     select
     <include refid="Column_List" />
     from ujcms_survey_option_feedback t
-    where t.id_ = #{id,jdbcType=INTEGER}
+    where t.id_ = #{id,jdbcType=BIGINT}
   </select>
   <delete id="delete" parameterType="map">
     delete from ujcms_survey_option_feedback
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
     update ujcms_survey_option_feedback
-    set survey_option_id_ = #{surveyOptionId,jdbcType=INTEGER},
-      survey_feedback_id_ = #{surveyFeedbackId,jdbcType=INTEGER},
-      survey_id_ = #{surveyId,jdbcType=INTEGER},
-      survey_item_id_ = #{surveyItemId,jdbcType=INTEGER}
-    where id_ = #{id,jdbcType=INTEGER}
+    set survey_option_id_ = #{surveyOptionId,jdbcType=BIGINT},
+      survey_feedback_id_ = #{surveyFeedbackId,jdbcType=BIGINT},
+      survey_id_ = #{surveyId,jdbcType=BIGINT},
+      survey_item_id_ = #{surveyItemId,jdbcType=BIGINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyOptionFeedback">
     insert into ujcms_survey_option_feedback (id_, survey_option_id_, survey_feedback_id_, survey_id_, survey_item_id_)
-    values (#{id,jdbcType=INTEGER}, #{surveyOptionId,jdbcType=INTEGER}, #{surveyFeedbackId,jdbcType=INTEGER}, #{surveyId,jdbcType=INTEGER}, #{surveyItemId,jdbcType=INTEGER})
+    values (#{id,jdbcType=BIGINT}, #{surveyOptionId,jdbcType=BIGINT}, #{surveyFeedbackId,jdbcType=BIGINT}, #{surveyId,jdbcType=BIGINT}, #{surveyItemId,jdbcType=BIGINT})
   </insert><sql id="Column_List">
     t.id_, t.survey_option_id_, t.survey_feedback_id_, t.survey_id_, t.survey_item_id_
   </sql></mapper>

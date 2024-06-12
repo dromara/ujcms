@@ -39,7 +39,7 @@ public interface SurveyItemMapper {
      * @param id 主键ID
      * @return 删除条数
      */
-    int delete(Integer id);
+    int delete(Long id);
 
     /**
      * 根据主键获取数据
@@ -48,7 +48,7 @@ public interface SurveyItemMapper {
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    SurveyItem select(Integer id);
+    SurveyItem select(Long id);
 
     /**
      * 根据查询条件获取列表
@@ -64,7 +64,7 @@ public interface SurveyItemMapper {
      * @param surveyId 问卷调查ID
      * @return 数据列表
      */
-    List<SurveyItem> listBySurveyId(Integer surveyId);
+    List<SurveyItem> listBySurveyId(Long surveyId);
 
     /**
      * 根据站点ID删除数据
@@ -72,7 +72,7 @@ public interface SurveyItemMapper {
      * @param siteId 站点ID
      * @return 被删除的数据条数
      */
-    int deleteBySiteId(Integer siteId);
+    int deleteBySiteId(Long siteId);
 
     /**
      * 删除属于某调查问卷ID，且不包含的相应调查问卷条目id列表的数据
@@ -81,5 +81,5 @@ public interface SurveyItemMapper {
      * @param ids      不包含的调查问卷条目id列表
      * @return 被删除的数据条数
      */
-    int deleteBySurveyId(@Param("surveyId") Integer surveyId, @Param("ids") List<Integer> ids);
+    int deleteBySurveyId(@Param("surveyId") Long surveyId, @Param("ids") List<Long> ids);
 }

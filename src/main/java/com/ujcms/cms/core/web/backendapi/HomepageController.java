@@ -38,7 +38,7 @@ public class HomepageController {
     @GetMapping("content-stat")
     @PreAuthorize("hasAnyAuthority('backend','*')")
     public Map<String, Object> contentStat() {
-        Integer siteId = Contexts.getCurrentSiteId();
+        Long siteId = Contexts.getCurrentSiteId();
         Map<String, Object> result = new HashMap<>(16);
         result.put("article", contentStatCache.articleStat(siteId));
         result.put("channel", contentStatCache.channelStat(siteId));

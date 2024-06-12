@@ -172,7 +172,7 @@ public class ArticleController {
     @Operation(summary = "获取文章对象（Article标签）")
     @ApiResponses(value = {@ApiResponse(description = "文章对象")})
     @GetMapping("/{id:[\\d]+}")
-    public Article show(@Parameter(description = "文章ID") @PathVariable Integer id,
+    public Article show(@Parameter(description = "文章ID") @PathVariable Long id,
                         @Parameter(description = "是否后台预览") @RequestParam(defaultValue = "false") boolean preview) {
         Article article = articleService.select(id);
         if (article == null) {
@@ -192,7 +192,7 @@ public class ArticleController {
             if (user.hasAllArticlePermission()) {
                 return;
             }
-            List<Integer> roleIds = user.fetchRoleIds();
+            List<Long> roleIds = user.fetchRoleIds();
             if (roleIds.isEmpty() || !channelService.existsByArticleRoleId(article.getChannelId(), roleIds)) {
                 throw new Http403Exception("No preview permission. ID: " + article.getId());
             }
@@ -247,14 +247,14 @@ public class ArticleController {
 
     @Operation(summary = "获取文章浏览次数")
     @GetMapping("/view/{id:[\\d]+}")
-    public long view(@Parameter(description = "文章ID") @PathVariable Integer id) {
+    public long view(@Parameter(description = "文章ID") @PathVariable Long id) {
         return viewCountService.viewArticle(id);
     }
 
     @Operation(summary = "顶文章")
     @ApiResponses(value = {@ApiResponse(description = "文章总顶次数")})
     @PostMapping("/up/{id:[\\d]+}")
-    public int up(@Parameter(description = "文章ID") @PathVariable Integer id,
+    public int up(@Parameter(description = "文章ID") @PathVariable Long id,
                   HttpServletRequest request, HttpServletResponse response) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
@@ -272,7 +272,7 @@ public class ArticleController {
     @Operation(summary = "踩文章")
     @ApiResponses(value = {@ApiResponse(description = "文章总踩次数")})
     @PostMapping("/down/{id:[\\d]+}")
-    public int down(@Parameter(description = "文章ID") @PathVariable Integer id,
+    public int down(@Parameter(description = "文章ID") @PathVariable Long id,
                     HttpServletRequest request, HttpServletResponse response) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
@@ -287,15 +287,15 @@ public class ArticleController {
         return downs;
     }
 
-    private boolean actionExist(Integer id, String option, HttpServletRequest request, HttpServletResponse response) {
+    private boolean actionExist(Long id, String option, HttpServletRequest request, HttpServletResponse response) {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
         String ip = Servlets.getRemoteAddr(request);
-        Integer userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
-        if (actionService.existsBy(Article.ACTION_TYPE_UP_DOWN, id.longValue(), null, null, null, ip, cookie)) {
+        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
+        if (actionService.existsBy(Article.ACTION_TYPE_UP_DOWN, id, null, null, null, ip, cookie)) {
             return true;
         }
-        actionService.insert(new Action(Article.ACTION_TYPE_UP_DOWN, id.longValue(),
+        actionService.insert(new Action(Article.ACTION_TYPE_UP_DOWN, id,
                 option, site.getId(), userId, ip, cookie));
         return false;
     }
@@ -303,7 +303,7 @@ public class ArticleController {
     @Operation(summary = "获取下载参数")
     @ApiResponses(value = {@ApiResponse(description = "当前时间和KEY。如：`time=123&key=abc`")})
     @GetMapping("/download-params/{id:[\\d]+}")
-    public String downloadParam(@Parameter(description = "文章ID") @PathVariable Integer id) {
+    public String downloadParam(@Parameter(description = "文章ID") @PathVariable Long id) {
         long time = System.currentTimeMillis();
         String secret = props.getDownloadSecret();
         String key = Utils.getDownloadKey(id, time, secret);
@@ -313,7 +313,7 @@ public class ArticleController {
     @Operation(summary = "记录下载次数")
     @ApiResponses(value = {@ApiResponse(description = "文章总下载次数")})
     @PostMapping("/download/{id:[\\d]+}")
-    public int download(@Parameter(description = "文章ID") @PathVariable Integer id) {
+    public int download(@Parameter(description = "文章ID") @PathVariable Long id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             return 0;
@@ -326,7 +326,7 @@ public class ArticleController {
 
     @Operation(summary = "获取文章统计数据")
     @GetMapping("/buffer/{id:[\\d]+}")
-    public ArticleBuffer buffer(@Parameter(description = "文章ID") @PathVariable Integer id) {
+    public ArticleBuffer buffer(@Parameter(description = "文章ID") @PathVariable Long id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {
             throw new Http404Exception("ArticleBuffer not found. id=" + id);

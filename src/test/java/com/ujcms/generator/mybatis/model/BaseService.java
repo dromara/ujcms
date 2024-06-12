@@ -93,6 +93,9 @@ public class BaseService extends AbstractJavaGenerator {
         insert.addAnnotation("@Transactional(rollbackFor = Exception.class)");
         insert.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()), "bean"));
         insert.addBodyLine("bean.setId(seqService.getNextVal(" + getModelType() + "Base.TABLE_NAME));");
+        if ("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
+            insert.addBodyLine("bean.setOrder(System.currentTimeMillis());");
+        }
         insert.addBodyLine("mapper.insert(bean);");
         topLevelClass.addMethod(insert);
         // update 方法

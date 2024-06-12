@@ -237,8 +237,9 @@ public class GlobalSettingsController {
     @OperationLog(module = "config", operation = "updateCustoms", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateCustoms(@RequestBody Map<String, Object> customs) {
         Config config = service.getUnique();
-        config.getModel().sanitizeCustoms(customs, policyFactory);
         config.setCustoms(customs);
+        Model model = config.getModel();
+        config.disassembleCustoms(model,policyFactory);
         service.update(config);
         return Responses.ok();
     }

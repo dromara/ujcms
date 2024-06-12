@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ujcms.cms.ext.mapper.ExampleMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Example">
-    <id column="id_" jdbcType="INTEGER" property="id" />
+    <id column="id_" jdbcType="BIGINT" property="id" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
     <result column="height_" jdbcType="INTEGER" property="height" />
     <result column="birthday_" jdbcType="TIMESTAMP" property="birthday" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Example" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.Example" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.Example" />
   <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
@@ -17,15 +17,15 @@
       <property name="tableName" value="ujcms_example" />
     </include>
   </select>
-  <select id="select" parameterType="java.lang.Integer" resultMap="ResultMap">
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
     select 
     <include refid="Column_List" />
     from ujcms_example t
-    where t.id_ = #{id,jdbcType=INTEGER}
+    where t.id_ = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="delete" parameterType="java.lang.Integer">
+  <delete id="delete" parameterType="java.lang.Long">
     delete from ujcms_example
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.Example">
     update ujcms_example
     set name_ = #{name,jdbcType=VARCHAR},
@@ -33,10 +33,10 @@
       height_ = #{height,jdbcType=INTEGER},
       birthday_ = #{birthday,jdbcType=TIMESTAMP},
       enabled_ = #{enabled,jdbcType=CHAR}
-    where id_ = #{id,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Example">
     insert into ujcms_example (id_, name_, description_, height_, birthday_, enabled_)
-    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{height,jdbcType=INTEGER}, #{birthday,jdbcType=TIMESTAMP}, #{enabled,jdbcType=CHAR})
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{height,jdbcType=INTEGER}, #{birthday,jdbcType=TIMESTAMP}, #{enabled,jdbcType=CHAR})
   </insert><sql id="Column_List">
     t.id_, t.name_, t.description_, t.height_, t.birthday_, t.enabled_
   </sql></mapper>

@@ -54,7 +54,7 @@ public class WebPage implements Anchor, Serializable {
 
         Optional.ofNullable(doc.get(FIELD_ENABLED)).map(Boolean::valueOf).ifPresent(this::setEnabled);
 
-        getSite().setId(doc.getField(FIELD_SITE_ID).numericValue().intValue());
+        getSite().setId(doc.getField(FIELD_SITE_ID).numericValue().longValue());
         getSite().setName(doc.get(FIELD_SITE_NAME));
         getSite().setUrl(doc.get(FIELD_SITE_URL));
         IndexableField[] pathIds = doc.getFields(FIELD_SITE_PATHS_ID);
@@ -62,7 +62,7 @@ public class WebPage implements Anchor, Serializable {
         IndexableField[] pathUrls = doc.getFields(FIELD_SITE_PATHS_URL);
         for (int i = 0, len = pathIds.length; i < len; i++) {
             SiteBaseInner siteBaseInner = new SiteBaseInner();
-            siteBaseInner.setId(pathIds[i].numericValue().intValue());
+            siteBaseInner.setId(pathIds[i].numericValue().longValue());
             siteBaseInner.setName(pathNames[i].stringValue());
             siteBaseInner.setUrl(pathUrls[i].stringValue());
             getSite().getPaths().add(siteBaseInner);
@@ -85,7 +85,7 @@ public class WebPage implements Anchor, Serializable {
         doc.add(new StringField(FIELD_DISC_TYPE, discType, Store.YES));
         doc.add(new StringField(FIELD_ENABLED, getEnabled().toString(), Store.YES));
 
-        doc.add(new IntPoint(FIELD_SITE_ID, getSite().getId()));
+        doc.add(new LongPoint(FIELD_SITE_ID, getSite().getId()));
         doc.add(new StoredField(FIELD_SITE_ID, getSite().getId()));
         doc.add(new StoredField(FIELD_SITE_NAME, getSite().getName()));
         doc.add(new StoredField(FIELD_SITE_URL, getSite().getUrl()));
@@ -280,7 +280,7 @@ public class WebPage implements Anchor, Serializable {
          * ID
          */
         @Field(type = FieldType.Integer)
-        private Integer id = 0;
+        private Long id = 0L;
         /**
          * 名称
          */
@@ -292,11 +292,11 @@ public class WebPage implements Anchor, Serializable {
         @Field(type = FieldType.Keyword, index = false)
         private String url = "";
 
-        public Integer getId() {
+        public Long getId() {
             return id;
         }
 
-        public void setId(Integer id) {
+        public void setId(Long id) {
             this.id = id;
         }
 

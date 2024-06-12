@@ -140,7 +140,7 @@ public class SiteMapController {
         int minCount = PAGE_SIZE * (page - 1) + 1;
         Map<String, Object> stat = articleService.statForSitemap(site.getId(), minCount);
         Long count = (Long) stat.get("count");
-        Integer maxId = (Integer) stat.get("maxId");
+        Long maxId = (Long) stat.get("maxId");
         if (count == null || maxId == null || count < minCount) {
             throw new Http404Exception("sitemap page not found: " + page);
         }
