@@ -6085,4 +6085,31 @@ databaseChangeLog:
                   name: order_
                   valueComputed: id_
             tableName: ujcms_block_item
+  - changeSet:
+      id: 1718175285159-1
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: order_
+            newDataType: int
+            tableName: ujcms_model
+  - changeSet:
+      id: 1718175285159-2
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: int
+            columnName: order_
+            defaultValueNumeric: '999999'
+            tableName: ujcms_model
+  - changeSet:
+      id: 1718175711216-1
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: int
+            columnName: order_
+            tableName: ujcms_model
+            validate: true
+
 
