@@ -8,6 +8,7 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.search.SortField;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.lang.Nullable;
@@ -33,9 +34,31 @@ public class WebPageWithCustoms extends WebPage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * BigDecimal 保留 4 位效数，转换为 Long 保存，需要乘于 10000。
+     * BigDecimal 保留 6 位效数，转换为 Long 保存，需要乘于 1000000。
      */
-    public static final int SCALING_FACTOR = 10000;
+    public static final int SCALING_FACTOR = 1000000;
+
+    public static SortField.Type getSortType(String property) {
+        switch (property) {
+            case "i1":
+            case "i2":
+            case "i3":
+            case "i4":
+            case "i5":
+            case "i6":
+            case "n1":
+            case "n2":
+            case "n3":
+            case "n4":
+            case "d1":
+            case "d2":
+            case "d3":
+            case "d4":
+                return SortField.Type.LONG;
+            default:
+                return WebPage.getSortType(property);
+        }
+    }
 
     @Override
     protected void fillWithDocument(Document doc) {

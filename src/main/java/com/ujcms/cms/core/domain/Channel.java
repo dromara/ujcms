@@ -52,7 +52,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     public String getTemplate() {
         String template = getChannelTemplate();
         if (StringUtils.isBlank(template)) {
-            template = "channel";
+            template = TEMPLATE_PREFIX;
         }
         return getSite().assembleTemplate(template);
     }
@@ -494,6 +494,24 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
      * 链接到第一个子栏目
      */
     public static final short TYPE_LINK_CHILD = 4;
+
+    /**
+     * 编辑器类型：富文本编辑器
+     */
+    public static final short EDITOR_TYPE_HTML = 1;
+    /**
+     * 编辑器类型：Markdown编辑器
+     */
+    public static final short EDITOR_TYPE_MARKDOWN = 2;
+
+    /**
+     * 栏目模型类别
+     */
+    public static final String MODEL_TYPE = "channel";
+    /**
+     * 栏目模板前缀
+     */
+    public static final String TEMPLATE_PREFIX = "channel";
 
     public static final String NOT_FOUND = "Channel not found. ID: ";
     // endregion

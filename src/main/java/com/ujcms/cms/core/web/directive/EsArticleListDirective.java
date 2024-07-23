@@ -16,6 +16,7 @@ import freemarker.template.TemplateModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -131,18 +132,20 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         Freemarkers.requireBody(body);
 
         Long defaultSiteId = Frontends.getSiteId(env);
-
+        Sort sort = Directives.getSort(params);
         if (isPage) {
             // spring-data 的 page 从 0 开始
             int page = Directives.getPage(params, env) - 1;
             int pageSize = Directives.getPageSize(params, env);
-            Page<EsArticle> pagedList = query(params, defaultSiteId, PageRequest.of(page, pageSize), articleLucene);
+            Pageable pageable = PageRequest.of(page, pageSize, sort);
+            Page<EsArticle> pagedList = query(params, defaultSiteId, pageable, articleLucene);
             Directives.setTotalPages(pagedList.getTotalPages());
             loopVars[0] = env.getObjectWrapper().wrap(pagedList);
         } else {
             int offset = Directives.getOffset(params);
             int limit = Directives.getLimit(params);
-            Page<EsArticle> pagedList = query(params, defaultSiteId, OffsetLimitRequest.of(offset, limit), articleLucene);
+            Pageable pageable = OffsetLimitRequest.of(offset, limit, sort);
+            Page<EsArticle> pagedList = query(params, defaultSiteId, pageable, articleLucene);
             loopVars[0] = env.getObjectWrapper().wrap(pagedList.getContent());
         }
         body.render(env.getOut());

@@ -76,7 +76,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
             template = getChannel().getArticleTemplate();
             // 默认模板名为 article
             if (StringUtils.isBlank(template)) {
-                template = "article";
+                template = TEMPLATE_PREFIX;
             }
         }
         return getSite().assembleTemplate(template);
@@ -659,6 +659,17 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         getExt().setVideo(video);
     }
 
+    @Schema(description = "源视频URL")
+    @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    public String getVideoOrig() {
+        return getExt().getVideoOrig();
+    }
+
+    public void setVideoOrig(@Nullable String videoOrig) {
+        getExt().setVideoOrig(videoOrig);
+    }
+
     @Schema(description = "视频时长")
     @Nullable
     public Integer getVideoDuration() {
@@ -688,6 +699,17 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
 
     public void setAudio(@Nullable String audio) {
         getExt().setAudio(audio);
+    }
+
+    @Schema(description = "源音频URL")
+    @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    public String getAudioOrig() {
+        return getExt().getAudioOrig();
+    }
+
+    public void setAudioOrig(@Nullable String audioOrig) {
+        getExt().setAudioOrig(audioOrig);
     }
 
     @Schema(description = "音频时长")
@@ -750,6 +772,17 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
 
     public void setDoc(@Nullable String doc) {
         getExt().setDoc(doc);
+    }
+
+    @Schema(description = "源文库URL")
+    @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.).*$")
+    public String getDocOrig() {
+        return getExt().getDocOrig();
+    }
+
+    public void setDocOrig(@Nullable String docOrig) {
+        getExt().setDocOrig(docOrig);
     }
 
     @Schema(description = "文库名称")
@@ -1153,6 +1186,25 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
      * 录入类型：站群推送
      */
     public static final short INPUT_TYPE_EXTERNAL_PUSH = 5;
+
+    /**
+     * 编辑器类型：富文本编辑器
+     */
+    public static final short EDITOR_TYPE_HTML = 1;
+    /**
+     * 编辑器类型：Markdown编辑器
+     */
+    public static final short EDITOR_TYPE_MARKDOWN = 2;
+
+
+    /**
+     * 文章模型类别
+     */
+    public static final String MODEL_TYPE = "article";
+    /**
+     * 文章模板前缀
+     */
+    public static final String TEMPLATE_PREFIX = "article";
 
     public static final String NOT_FOUND = "Article not found. ID : ";
     // endregion

@@ -28,12 +28,12 @@
             <legend class="col-form-label col-sm-2 float-sm-left pt-0">留言类别<strong class="text-danger">*</strong></legend>
             <div class="col-sm-10">
               [@MessageBoardTypeList; list]
-                [#list list as type]
-                  <div class="custom-control custom-radio custom-control-inline">
-                    <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index?c}" value="${type.id?c}" required [#if type_index==0]checked[/#if]>
-                    <label class="custom-control-label" for="typeId${type_index?c}">${type.name}</label>
-                  </div>
-                [/#list]
+              [#list list as type]
+              <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" type="radio" name="typeId" id="typeId${type_index?c}" value="${type.id?c}" required [#if type_index==0]checked[/#if]>
+                <label class="custom-control-label" for="typeId${type_index?c}">${type.name}</label>
+              </div>
+              [/#list]
               [/@MessageBoardTypeList]
             </div>
           </fieldset>

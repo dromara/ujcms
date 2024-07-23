@@ -83,14 +83,7 @@
   <script>
     $('#voteForm').validate({
       submitHandler: function (form) {
-        axios.get('${dy}/app/csrf').then(function (response) {
-          if (response.data) {
-            const arr = response.data.split(',');
-            if (arr.length >= 3) {
-              $('meta[name="_csrf_header"]').attr('content', arr[1].trim());
-              $('meta[name="_csrf"]').attr('content', arr[2].trim());
-            }
-          }
+        fetchCsrf().then(function () {
           request.post(form.action, $(form).serializeJSON()).then(function (response) {
             var data = response.data;
             if (data.status === 0) {

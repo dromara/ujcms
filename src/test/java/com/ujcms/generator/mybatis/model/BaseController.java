@@ -156,7 +156,7 @@ public class BaseController extends AbstractJavaGenerator {
         show.addAnnotation("@GetMapping(\"{id}\")");
         show.addAnnotation("@PreAuthorize(\"hasAnyAuthority('" + getModelTypeLowerCamel() + ":show','*')\")");
         show.setReturnType(new FullyQualifiedJavaType(getModelType()));
-        Parameter idParam = new Parameter(new FullyQualifiedJavaType("int"), "id");
+        Parameter idParam = new Parameter(new FullyQualifiedJavaType("Long"), "id");
         idParam.addAnnotation("@PathVariable(\"id\")");
         show.addParameter(idParam);
         show.addBodyLine("return Optional.ofNullable(service.select(id))");
@@ -191,7 +191,7 @@ public class BaseController extends AbstractJavaGenerator {
         update.setReturnType(returnType);
         update.addParameter(beanParam);
         update.addBodyLine(getModelType() + " " + getModelTypeLowerCamel() + " = Optional.ofNullable(service.select(bean.getId()))");
-        update.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + bean.getId()));");
+        update.addBodyLine(".orElseThrow(() -> new Http400Exception(" + getModelType() + ".NOT_FOUND + bean.getId()));");
         update.addBodyLine("Entities.copy(bean, " + getModelTypeLowerCamel() + ");");
         update.addBodyLine("service.update(" + getModelTypeLowerCamel() + ");");
         update.addBodyLine("return Responses.ok();");
@@ -213,9 +213,9 @@ public class BaseController extends AbstractJavaGenerator {
             updateOrder.addParameter(moveOrderParam);
 
             updateOrder.addBodyLine(getModelType() + " fromBean = Optional.ofNullable(service.select(params.getFromId()))");
-            updateOrder.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getFromId()));");
+            updateOrder.addBodyLine(".orElseThrow(() -> new Http400Exception(" + getModelType() + ".NOT_FOUND + params.getFromId()));");
             updateOrder.addBodyLine(getModelType() + " toBean = Optional.ofNullable(service.select(params.getToId()))");
-            updateOrder.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getToId()));");
+            updateOrder.addBodyLine(".orElseThrow(() -> new Http400Exception(" + getModelType() + ".NOT_FOUND + params.getToId()));");
 
             updateOrder.addBodyLine("service.moveOrder(fromBean.getId(), toBean.getId());");
             updateOrder.addBodyLine("return Responses.ok();");
@@ -230,13 +230,13 @@ public class BaseController extends AbstractJavaGenerator {
                 "\", operation = \"delete\", type = OperationType.DELETE)");
         delete.setReturnType(returnType);
         FullyQualifiedJavaType idsType = new FullyQualifiedJavaType("List");
-        idsType.addTypeArgument(new FullyQualifiedJavaType("Integer"));
+        idsType.addTypeArgument(new FullyQualifiedJavaType("Long"));
         Parameter idsParam = new Parameter(idsType, "ids");
         idsParam.addAnnotation("@RequestBody");
         delete.addParameter(idsParam);
-        delete.addBodyLine("for (Integer id : ids) {");
+        delete.addBodyLine("for (Long id : ids) {");
         delete.addBodyLine(getModelType() + " bean = Optional.ofNullable(service.select(id))");
-        delete.addBodyLine(".orElseThrow(() -> new Http400Exception(NOT_FOUND + id));");
+        delete.addBodyLine(".orElseThrow(() -> new Http400Exception(" + getModelType() + ".NOT_FOUND + id));");
         delete.addBodyLine("service.delete(bean.getId());");
         delete.addBodyLine("}");
         delete.addBodyLine("return Responses.ok();");

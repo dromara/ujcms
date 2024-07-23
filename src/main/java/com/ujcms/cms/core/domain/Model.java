@@ -278,7 +278,7 @@ public class Model extends ModelBase implements Serializable {
         @Nullable
         private Integer precision;
         @Nullable
-        private Integer dictTypeId;
+        private Long dictTypeId;
 
         public String getCode() {
             return code;
@@ -314,11 +314,11 @@ public class Model extends ModelBase implements Serializable {
         }
 
         @Nullable
-        public Integer getDictTypeId() {
+        public Long getDictTypeId() {
             return dictTypeId;
         }
 
-        public void setDictTypeId(@Nullable Integer dictTypeId) {
+        public void setDictTypeId(@Nullable Long dictTypeId) {
             this.dictTypeId = dictTypeId;
         }
 

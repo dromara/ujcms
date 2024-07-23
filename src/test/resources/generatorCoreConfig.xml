@@ -155,7 +155,9 @@
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_task" domainObjectName="Task"/>
-        <table tableName="ujcms_short_message" domainObjectName="ShortMessage"/>
+        <table tableName="ujcms_short_message" domainObjectName="ShortMessage">
+            <property name="controller" value="false"/>
+        </table>
         <table tableName="ujcms_login_log" domainObjectName="LoginLog">
             <property name="controller" value="false"/>
         </table>

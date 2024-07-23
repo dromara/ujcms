@@ -68,7 +68,7 @@ public class BaseServiceArgs extends AbstractJavaGenerator {
         // siteIdMethod.addParameter(siteIdParam);
         // siteIdMethod.setReturnType(new FullyQualifiedJavaType(getJavaTypeShortName()));
         // siteIdMethod.addBodyLine("if (siteId != null) {");
-        // siteIdMethod.addBodyLine("queryMap.put(\"EQ_siteId_Int\", siteId);");
+        // siteIdMethod.addBodyLine("queryMap.put(\"EQ_siteId_Long\", siteId);");
         // siteIdMethod.addBodyLine("}");
         // siteIdMethod.addBodyLine("return this;");
         // topLevelClass.addMethod(siteIdMethod);

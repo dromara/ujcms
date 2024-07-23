@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1718533128302-1
+      author: PONY (generated)
+      changes:
+        - setTableRemarks:
+            remarks: 示例表
+            tableName: ujcms_example
+  - changeSet:
+      id: 1720001803357-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: table_name_
+                  remarks: 表名
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: current_id_
+                  remarks: 当前主键值
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: orig_id_
+                  remarks: 原主键值
+                  type: VARCHAR(255)
+              - column:
+                  name: orig_parent_id_
+                  remarks: 原上级主键值
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 类型(1:数据迁移,2:站点导入)
+                  type: SMALLINT
+            remarks: 导入数据表
+            tableName: ujcms_import_data
+
+

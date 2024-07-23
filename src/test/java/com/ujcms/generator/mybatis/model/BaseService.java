@@ -64,7 +64,8 @@ public class BaseService extends AbstractJavaGenerator {
         topLevelClass.addImportedType("java.util.Objects");
         topLevelClass.addImportedType("com.ujcms.commons.query.QueryInfo");
         topLevelClass.addImportedType("com.ujcms.commons.query.QueryParser");
-        topLevelClass.addImportedType("com.ujcms.cms.core.service.SeqService");
+        // topLevelClass.addImportedType("com.ujcms.cms.core.service.SeqService");
+        topLevelClass.addImportedType("com.ujcms.commons.db.identifier.SnowflakeSequence");
         topLevelClass.addImportedType("org.springframework.stereotype.Service");
         // @Service 注解
         topLevelClass.addAnnotation("@Service");
@@ -74,25 +75,32 @@ public class BaseService extends AbstractJavaGenerator {
         mapper.setFinal(true);
         topLevelClass.addField(mapper);
         // SeqService 属性
-        Field seqService = new Field("seqService", new FullyQualifiedJavaType("SeqService"));
-        seqService.setVisibility(JavaVisibility.PRIVATE);
-        seqService.setFinal(true);
-        topLevelClass.addField(seqService);
+        // Field seqService = new Field("seqService", new FullyQualifiedJavaType("SeqService"));
+        // seqService.setVisibility(JavaVisibility.PRIVATE);
+        // seqService.setFinal(true);
+        // topLevelClass.addField(seqService);
+        // SnowflakeSequence 属性
+        Field snowflakeSequence = new Field("snowflakeSequence", new FullyQualifiedJavaType("SnowflakeSequence"));
+        snowflakeSequence.setVisibility(JavaVisibility.PRIVATE);
+        snowflakeSequence.setFinal(true);
+        topLevelClass.addField(snowflakeSequence);
         // 构造器
         Method constructor = new Method(topLevelClass.getType().getShortName());
         constructor.setConstructor(true);
         constructor.setVisibility(JavaVisibility.PUBLIC);
         constructor.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType()), "mapper"));
-        constructor.addParameter(new Parameter(new FullyQualifiedJavaType("SeqService"), "seqService"));
+        // constructor.addParameter(new Parameter(new FullyQualifiedJavaType("SeqService"), "seqService"));
+        constructor.addParameter(new Parameter(new FullyQualifiedJavaType("SnowflakeSequence"), "snowflakeSequence"));
         constructor.addBodyLine("this.mapper = mapper;");
-        constructor.addBodyLine("this.seqService = seqService;");
+        // constructor.addBodyLine("this.seqService = seqService;");
+        constructor.addBodyLine("this.snowflakeSequence = snowflakeSequence;");
         topLevelClass.addMethod(constructor);
         // insert 方法
         Method insert = new Method("insert");
         insert.setVisibility(JavaVisibility.PUBLIC);
         insert.addAnnotation("@Transactional(rollbackFor = Exception.class)");
         insert.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()), "bean"));
-        insert.addBodyLine("bean.setId(seqService.getNextVal(" + getModelType() + "Base.TABLE_NAME));");
+        insert.addBodyLine("bean.setId(snowflakeSequence.nextId());");
         if ("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
             insert.addBodyLine("bean.setOrder(System.currentTimeMillis());");
         }
@@ -111,8 +119,8 @@ public class BaseService extends AbstractJavaGenerator {
             Method moveOrder = new Method("moveOrder");
             moveOrder.setVisibility(JavaVisibility.PUBLIC);
             moveOrder.addAnnotation("@Transactional(rollbackFor = Exception.class)");
-            moveOrder.addParameter(new Parameter(new FullyQualifiedJavaType("Integer"), "fromId"));
-            moveOrder.addParameter(new Parameter(new FullyQualifiedJavaType("Integer"), "toId"));
+            moveOrder.addParameter(new Parameter(new FullyQualifiedJavaType("Long"), "fromId"));
+            moveOrder.addParameter(new Parameter(new FullyQualifiedJavaType("Long"), "toId"));
             moveOrder.addBodyLine("OrderEntityUtils.move(mapper, fromId, toId);");
             topLevelClass.addMethod(moveOrder);
         }
@@ -121,7 +129,7 @@ public class BaseService extends AbstractJavaGenerator {
         delete.setVisibility(JavaVisibility.PUBLIC);
         delete.setReturnType(new FullyQualifiedJavaType("int"));
         delete.addAnnotation("@Transactional(rollbackFor = Exception.class)");
-        delete.addParameter(new Parameter(new FullyQualifiedJavaType("Integer"), "id"));
+        delete.addParameter(new Parameter(new FullyQualifiedJavaType("Long"), "id"));
         delete.addBodyLine("return mapper.delete(id);");
         topLevelClass.addMethod(delete);
         // deleteAll 方法
@@ -130,7 +138,7 @@ public class BaseService extends AbstractJavaGenerator {
         deleteAll.setReturnType(new FullyQualifiedJavaType("int"));
         deleteAll.addAnnotation("@Transactional(rollbackFor = Exception.class)");
         FullyQualifiedJavaType idsType = new FullyQualifiedJavaType("List");
-        idsType.addTypeArgument(new FullyQualifiedJavaType("Integer"));
+        idsType.addTypeArgument(new FullyQualifiedJavaType("Long"));
         deleteAll.addParameter(new Parameter(idsType, "ids"));
         deleteAll.addBodyLine("return ids.stream().filter(Objects::nonNull).mapToInt(this::delete).sum();");
         topLevelClass.addMethod(deleteAll);
@@ -140,7 +148,7 @@ public class BaseService extends AbstractJavaGenerator {
         FullyQualifiedJavaType returnType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
         select.setReturnType(returnType);
         select.addAnnotation("@Nullable");
-        select.addParameter(new Parameter(new FullyQualifiedJavaType("Integer"), "id"));
+        select.addParameter(new Parameter(new FullyQualifiedJavaType("Long"), "id"));
         select.addBodyLine("return mapper.select(id);");
         topLevelClass.addMethod(select);
         // selectList(Map<String, Object> queryMap) 方法

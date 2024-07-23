@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.component.TemplateService;
+import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
@@ -238,7 +239,7 @@ public class ChannelController {
     public List<String> channelTemplate() throws IOException {
         Site site = Contexts.getCurrentSite();
         String storagePath = site.getConfig().getTemplateStorage().getPath();
-        return templateService.getTemplates(storagePath + site.getTheme(), "channel");
+        return templateService.getTemplates(storagePath + site.getTheme(), Channel.TEMPLATE_PREFIX);
     }
 
     @GetMapping("article-templates")
@@ -246,7 +247,7 @@ public class ChannelController {
     public List<String> articleTemplate() throws IOException {
         Site site = Contexts.getCurrentSite();
         String storagePath = site.getConfig().getTemplateStorage().getPath();
-        return templateService.getTemplates(storagePath + site.getTheme(), "article");
+        return templateService.getTemplates(storagePath + site.getTheme(), Article.TEMPLATE_PREFIX);
     }
 
     @GetMapping("channel-permissions")

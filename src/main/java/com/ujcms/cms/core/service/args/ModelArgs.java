@@ -15,7 +15,7 @@ import java.util.Map;
 public class ModelArgs extends BaseQueryArgs {
     public ModelArgs scopeSiteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_1_siteId_Int", siteId);
+            queryMap.put("EQ_1_siteId_Long", siteId);
             queryMap.put("EQ_1_scope_Short", String.valueOf(EntityConstants.SCOPE_GLOBAL));
         }
         return this;
@@ -23,7 +23,7 @@ public class ModelArgs extends BaseQueryArgs {
 
     public ModelArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

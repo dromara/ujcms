@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.search.SortField;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -35,7 +36,7 @@ public class WebPage implements Anchor, Serializable {
     public static final String FIELD_DESCRIPTION = "description";
     public static final String FIELD_BODY = "body";
     public static final String FIELD_IMAGE = "image";
-    public static final String FIELD_DISC_TYPE = "descType";
+    public static final String FIELD_DISC_TYPE = "discType";
     public static final String FIELD_ENABLED = "enabled";
     public static final String FIELD_SITE_ID = "site.id";
     public static final String FIELD_SITE_NAME = "site.name";
@@ -43,6 +44,28 @@ public class WebPage implements Anchor, Serializable {
     public static final String FIELD_SITE_PATHS_ID = "site.paths.id";
     public static final String FIELD_SITE_PATHS_NAME = "site.paths.name";
     public static final String FIELD_SITE_PATHS_URL = "site.paths.url";
+
+    public static SortField.Type getSortType(String property) {
+        switch (property) {
+            case FIELD_URL:
+            case FIELD_TITLE:
+            case FIELD_DESCRIPTION:
+            case FIELD_BODY:
+            case FIELD_IMAGE:
+            case FIELD_DISC_TYPE:
+            case FIELD_ENABLED:
+            case FIELD_SITE_NAME:
+            case FIELD_SITE_URL:
+            case FIELD_SITE_PATHS_NAME:
+            case FIELD_SITE_PATHS_URL:
+                return SortField.Type.STRING;
+            case FIELD_SITE_ID:
+            case FIELD_SITE_PATHS_ID:
+                return SortField.Type.LONG;
+            default:
+                throw new IllegalArgumentException("Lucene order property not found: " + property);
+        }
+    }
 
     protected void fillWithDocument(Document doc) {
         setUrl(doc.get(FIELD_URL));

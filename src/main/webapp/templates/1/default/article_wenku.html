@@ -6,6 +6,8 @@
   <title>${article.title} - ${site.seoTitle!site.title}</title>
   <meta name="keywords" content="${article.seoKeywords}">
   <meta name="description" content="${article.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
@@ -36,6 +38,7 @@
 </head>
 <body tabindex="1">
 [#include 'inc_header.html'/]
+[#include 'inc_message_box.html'/]
 <div class="bg-gray-200">
   <div class="container">
     <nav class="row" aria-label="breadcrumb">
@@ -59,7 +62,7 @@
         [#if article.author??]<span class="ml-2">${article.author}</span>[/#if]
         <i class="ml-2 far fa-eye"></i> <span id="views"></span>
         <script>
-          axios.get('${api}/article/view/${article.id?c}').then(function (response) {
+          request.get('${api}/article/view/${article.id?c}').then(function (response) {
             $('#views').text(response.data);
           });
         </script>
@@ -178,6 +181,7 @@
             fullContainer.msRequestFullscreen();
           }
         }
+
         // 退出全屏
         function exitFullscreen() {
           if (document.exitFullscreen) {
@@ -227,26 +231,30 @@
       </div>
       <script>
         function voteUp() {
-          axios.post('${api}/article/up/${article.id?c}').then(function (response) {
-            if (response.data <= 0) {
-              alert("您已经参与过一次！");
-              return;
-            }
-            $('#ups').text(response.data);
+          fetchCsrf().then(function () {
+            request.post('${api}/article/up/${article.id?c}').then(function (response) {
+              if (response.data <= 0) {
+                alert("您已经参与过一次！");
+                return;
+              }
+              $('#ups').text(response.data);
+            });
           });
         }
 
         function voteDown() {
-          axios.post('${api}/article/down/${article.id?c}').then(function (response) {
-            if (response.data <= 0) {
-              alert("您已经参与过一次！");
-              return;
-            }
-            $('#downs').text(response.data);
+          fetchCsrf().then(function () {
+            request.post('${api}/article/down/${article.id?c}').then(function (response) {
+              if (response.data <= 0) {
+                alert("您已经参与过一次！");
+                return;
+              }
+              $('#downs').text(response.data);
+            });
           });
         }
 
-        axios.get('${api}/article/buffer/${article.id?c}').then(function (response) {
+        request.get('${api}/article/buffer/${article.id?c}').then(function (response) {
           $('#ups').text(response.data.ups);
           $('#downs').text(response.data.downs);
         });

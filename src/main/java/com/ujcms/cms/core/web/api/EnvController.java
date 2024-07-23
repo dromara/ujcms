@@ -60,6 +60,7 @@ public class EnvController {
         result.put("dataScope", user.getDataScope());
         result.put("loginDate", user.getLoginDate());
         result.put("loginIp", user.getLoginIp());
+        result.put("dataMigrationEnabled", props.isDataMigrationEnabled());
         result.put("epExcludes", StaticProps.getEpExcludes());
         result.put("epDisplay", StaticProps.isEpDisplay());
         result.put("epRank", StaticProps.getEpRank());

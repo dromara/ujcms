@@ -1,9 +1,12 @@
 package com.ujcms.cms.ext.web.frontend;
 
-import com.ujcms.cms.ext.domain.MessageBoard;
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.ext.service.MessageBoardService;
+import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.cms.ext.domain.MessageBoard;
+import com.ujcms.cms.ext.service.MessageBoardService;
+import com.ujcms.commons.web.exception.Http401Exception;
 import com.ujcms.commons.web.exception.Http403Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.stereotype.Controller;
@@ -35,14 +38,16 @@ public class MessageBoardController {
     @GetMapping({"/message-board", "/{subDir:[\\w-]+}/message-board"})
     public String index(@PathVariable(required = false) String subDir, HttpServletRequest request) {
         Site site = siteResolver.resolve(request, subDir);
-        validate(site);
+        validateEnabled(site);
         return site.assembleTemplate(TEMPLATE);
     }
 
     @GetMapping({"/message-board/create", "/{subDir:[\\w-]+}/message-board/create"})
     public String create(@PathVariable(required = false) String subDir, HttpServletRequest request) {
         Site site = siteResolver.resolve(request, subDir);
-        validate(site);
+        User user = Contexts.findCurrentUser();
+        validateEnabled(site);
+        validateLoginRequired(site, user);
         return site.assembleTemplate(TEMPLATE_FORM);
     }
 
@@ -50,7 +55,7 @@ public class MessageBoardController {
     public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
                        HttpServletRequest request, Map<String, Object> modelMap) {
         Site site = siteResolver.resolve(request, subDir);
-        validate(site);
+        validateEnabled(site);
         MessageBoard messageBoard = service.select(id);
         if (messageBoard == null) {
             throw new Http404Exception("MessageBoard not found. ID=" + id);
@@ -59,9 +64,15 @@ public class MessageBoardController {
         return site.assembleTemplate(TEMPLATE_ITEM);
     }
 
-    private void validate(Site site) {
+    private void validateEnabled(Site site) {
         if (!site.getMessageBoard().isEnabled()) {
             throw new Http403Exception("MessageBoard is not enabled.");
+        }
+    }
+
+    private void validateLoginRequired(Site site, User currentUser) {
+        if (site.getMessageBoard().isLoginRequired() && currentUser == null) {
+            throw new Http401Exception("MessageBoard login required.");
         }
     }
 

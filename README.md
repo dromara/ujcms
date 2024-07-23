@@ -78,8 +78,8 @@ lower_case_table_names=2
 3. 启动程序。可在左侧`Project`导航中找到`/src/main/java/com/ujcms/cms/Application`类，右键点击，选择`Run 'Application'`。也可直接点击右上角的绿色三角图标(`Run 'Application'`)。
 4. 首次运行程序，会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待，只要没有出现报错信息，说明程序还在启动中，不要急于关闭程序。直到出现类似`com.ujcms.cms.Application: Started Application in xxx seconds`信息，代表程序启动完成。如果程序首次启动，还在创建数据库表时，强行关闭了程序；再次启动程序可能会出现类似`LockException: Could not acquire change log lock`或`Waiting for changelog lock....`的报错信息；此时只要将数据库`databasechangeloglock`表中数据清空（注意，不是`databasechangelog`表），也可删除数据库所有表甚至重建数据库，再次启动程序即可继续创建数据库表和初始化数据，正常启动。
 5. 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在Tomcat的根目录。如前台首页地址类似为`http://localhost:8080/abc`，即代表部署在`/abc`目录下，没有部署在根目录。解决办法请参考下一章节内容。
-6. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
-7. 默认访问地址是`http://localhost:8080/`，如需修改域名、端口等内容，可分别到后台`配置 - 系统设置`和`配置 - 站点设置`中修改。
+6. 后台地址：[http://localhost:8080/cp/](http://localhost:8080/cp/)，用户名：admin，密码：password。后台前端基于Vue开发，如要修改后台界面，请另外下载`ujcms-cp`项目。
+7. 默认访问地址是`http://localhost:8080/`，如需修改域名、端口等内容，可分别到后台`配置 - 系统设置`和`配置 - 站点设置`中修改。修改域名、端口等信息后，需要在`内容 - 生成管理`处，点击`更新全部索引`，以免`全文检索`及`相关文章`的url地址依然为原域名、端口地址。
 
 ## 常见错误
 

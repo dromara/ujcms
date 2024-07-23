@@ -127,6 +127,10 @@ public class Props {
     @Nullable
     private String passwordPepper;
     /**
+     * 是否开启数据迁移
+     */
+    private boolean dataMigrationEnabled = false;
+    /**
      * 是否演示网站。演示网站的 test 用户只能执行 GET 请求。
      */
     private boolean demo = false;
@@ -360,6 +364,14 @@ public class Props {
 
     public void setPasswordPepper(@Nullable String passwordPepper) {
         this.passwordPepper = passwordPepper;
+    }
+
+    public boolean isDataMigrationEnabled() {
+        return dataMigrationEnabled;
+    }
+
+    public void setDataMigrationEnabled(boolean dataMigrationEnabled) {
+        this.dataMigrationEnabled = dataMigrationEnabled;
     }
 
     public boolean isDemo() {

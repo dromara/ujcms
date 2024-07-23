@@ -21,6 +21,16 @@ ujcms.databaseType: mysql
 # 数据库命令所在目录（用于数据库备份）。如果已加入环境变量则留空即可。
 ujcms.databaseBinPath:
 
+
+# MariaDB数据库
+#spring.datasource.url: jdbc:mariadb://localhost:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
+#spring.datasource.username: root
+#spring.datasource.password: password
+#spring.datasource.driver-class-name: org.mariadb.jdbc.Driver
+#ujcms.data-sql-platform: mysql
+#ujcms.databaseType: mysql
+#ujcms.databaseBinPath:
+
 # PostgreSQL数据库
 #spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
 #spring.datasource.username: postgres
@@ -58,14 +68,16 @@ ujcms.databaseBinPath:
 #ujcms.databaseType: postgresql
 #ujcms.databaseBinPath:
 
-# 达梦数据库
+# 达梦数据库（不可直接创建模式；应该创建用户，达梦会自动创建同名模式；用户要赋予 RESOURCE 角色）
 #spring.datasource.url: jdbc:dm://192.168.0.240:5236/UJCMS
-#spring.datasource.username: ujcms
+#spring.datasource.username: UJCMS
 #spring.datasource.password: pass@0000
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
 #ujcms.data-sql-platform: dm
 # 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
 #flowable.database-schema: UJCMS
+# 达梦必须指定 liquibase 的 schema 名称，需与 spring.datasource.url 中的数据库名一致
+#spring.liquibase.liquibase-schema: UJCMS
 
 # 集群环境下，可以设置雪花算法主键的数据中心ID和工作机器ID。不设置时，会自动根据网卡mac地址和pid(进程ID)计算出一个相对随机的数值，一般情况下不会冲突。
 # 雪花算法主键：数据中心ID。范围 0-31
@@ -290,5 +302,7 @@ jodconverter.local.port-numbers: 8100
 # This property sets the maximum number of tasks an office process can execute before restarting. Default: 200
 jodconverter.local.max-tasks-per-process: 50
 
+# 是否开启数据迁移功能（商业版功能）。一般情况应关闭该功能，只在迁移数据时开启。默认：false
+#ujcms.dataMigrationEnabled: false
 # 是否显示商业版功能。默认：false
 #ujcms.ep-display: true

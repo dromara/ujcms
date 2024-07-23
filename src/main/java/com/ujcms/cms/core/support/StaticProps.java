@@ -33,7 +33,7 @@ public class StaticProps {
                     "articleReview:back", "articleReview:delegate", "articleReview:transfer",
                     "org:updatePermission",
                     // end
-                    "machine:code", "machine:license"
+                    "machine:code", "machine:license", "importData:show"
             ));
     private static boolean epDisplay = false;
     private static int epRank = 0;

@@ -4,7 +4,7 @@ databaseChangeLog:
        author: PONY
        changes:
          -  sql:
-              dbms: 'mysql'
+              dbms: 'mysql, mariadb'
               sql: ALTER TABLE ujcms_article_ext ADD COLUMN mains_json_ json NULL COMMENT '自定义主字段JSON'; ALTER TABLE ujcms_article_ext ADD COLUMN clobs_json_ json NULL COMMENT '自定义大字段JSON';
   -  changeSet:
        id: 1704355636091-1-postgresql
@@ -25,7 +25,7 @@ databaseChangeLog:
        author: PONY
        changes:
          -  sql:
-              dbms: 'mysql'
+              dbms: 'mysql, mariadb'
               sql: ALTER TABLE ujcms_channel ADD COLUMN mains_json_ json NULL COMMENT '自定义主字段JSON'; ALTER TABLE ujcms_channel ADD COLUMN clobs_json_ json NULL COMMENT '自定义大字段JSON';
   -  changeSet:
        id: 1704355636091-2-postgresql
@@ -46,7 +46,7 @@ databaseChangeLog:
        author: PONY
        changes:
          -  sql:
-              dbms: 'mysql'
+              dbms: 'mysql, mariadb'
               sql: ALTER TABLE ujcms_site ADD COLUMN mains_json_ json NULL COMMENT '自定义主字段JSON'; ALTER TABLE ujcms_site ADD COLUMN clobs_json_ json NULL COMMENT '自定义大字段JSON';
   -  changeSet:
        id: 1704355636091-3-postgresql
@@ -67,7 +67,7 @@ databaseChangeLog:
        author: PONY
        changes:
          -  sql:
-              dbms: 'mysql'
+              dbms: 'mysql, mariadb'
               sql: ALTER TABLE ujcms_article_ext MODIFY COLUMN image_list_json_ json; ALTER TABLE ujcms_article_ext MODIFY COLUMN file_list_json_ json;
   -  changeSet:
        id: 1704355636091-4-postgresql

@@ -17,7 +17,7 @@ public class SurveyFeedbackArgs extends BaseQueryArgs {
 
     public SurveyFeedbackArgs siteId(@Nullable Integer siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

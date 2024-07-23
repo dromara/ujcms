@@ -82,6 +82,10 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
+        <table tableName="ujcms_import_data" domainObjectName="ImportData">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
         <table tableName="ujcms_example" domainObjectName="Example"/>
     </context>
 </generatorConfiguration>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.ImportDataMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.ImportData">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="table_name_" jdbcType="VARCHAR" property="tableName" />
+    <result column="current_id_" jdbcType="VARCHAR" property="currentId" />
+    <result column="orig_id_" jdbcType="VARCHAR" property="origId" />
+    <result column="orig_parent_id_" jdbcType="VARCHAR" property="origParentId" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.ImportData" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.ImportData" />
+
+  <select id="selectByOrigId" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_import_data t
+    where t.orig_id_ = #{origId}
+  </select>
+  <delete id="deleteByType">
+    delete from ujcms_import_data
+    <where>
+      <if test="type != null">
+        type_ = #{type}
+      </if>
+    </where>
+  </delete>
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_import_data" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_import_data t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="delete" parameterType="java.lang.Long">
+    delete from ujcms_import_data
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.ImportData">
+    update ujcms_import_data
+    set table_name_ = #{tableName,jdbcType=VARCHAR},
+      current_id_ = #{currentId,jdbcType=VARCHAR},
+      orig_id_ = #{origId,jdbcType=VARCHAR},
+      orig_parent_id_ = #{origParentId,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.ImportData">
+    insert into ujcms_import_data (id_, table_name_, current_id_, orig_id_, orig_parent_id_, type_)
+    values (#{id,jdbcType=BIGINT}, #{tableName,jdbcType=VARCHAR}, #{currentId,jdbcType=VARCHAR}, #{origId,jdbcType=VARCHAR}, #{origParentId,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.id_, t.table_name_, t.current_id_, t.orig_id_, t.orig_parent_id_, t.type_
+  </sql></mapper>

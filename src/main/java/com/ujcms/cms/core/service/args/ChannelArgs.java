@@ -83,6 +83,13 @@ public class ChannelArgs extends BaseQueryArgs {
         return this;
     }
 
+    public ChannelArgs isAllowSearch(@Nullable Boolean isAllowSearch) {
+        if (isAllowSearch != null) {
+            queryMap.put("EQ_allowSearch_Boolean", isAllowSearch);
+        }
+        return this;
+    }
+
     public static ChannelArgs of() {
         return of(new HashMap<>(16));
     }

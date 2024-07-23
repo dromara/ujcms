@@ -135,9 +135,12 @@
 
   var request = axios.create({timeout: 30000});
   request.interceptors.request.use(function (config) {
-    var header = $('meta[name="_csrf_header"]').attr('content');
-    var token = $('meta[name="_csrf"]').attr('content');
-    config.headers = {...config.headers, [header]: token};
+    var method = config.method.toLowerCase();
+    if (method === 'post' || method === 'put' || method === 'delete') {
+      var header = $('meta[name="_csrf_header"]').attr('content');
+      var token = $('meta[name="_csrf"]').attr('content');
+      config.headers = {...config.headers, [header]: token};
+    }
     return config;
   }, function (error) {
     return Promise.reject(error);
@@ -158,5 +161,17 @@
     handleError({status});
     return Promise.reject(statusText);
   });
+
+  function fetchCsrf() {
+    return axios.get('${dy}/app/csrf').then(function (response) {
+      if (response.data) {
+        const arr = response.data.split(',');
+        if (arr.length >= 3) {
+          $('meta[name="_csrf_header"]').attr('content', arr[1].trim());
+          $('meta[name="_csrf"]').attr('content', arr[2].trim());
+        }
+      }
+    });
+  }
 </script>
 [/#escape]

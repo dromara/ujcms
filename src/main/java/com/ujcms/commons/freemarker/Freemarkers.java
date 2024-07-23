@@ -310,6 +310,9 @@ public class Freemarkers {
         }
         if (model instanceof TemplateScalarModel) {
             String text = ((TemplateScalarModel) model).getAsString();
+            if (StringUtils.isBlank(text)) {
+                return null;
+            }
             return Dates.parse(text);
         }
         throw new TemplateModelException(String.format(NOT_MATCH, "OffsetDateTime", model));

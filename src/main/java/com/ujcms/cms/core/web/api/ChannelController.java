@@ -63,6 +63,8 @@ public class ChannelController {
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "isNav", description = "是否导航。如：`true` `false`",
             schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isAllowSearch", description = "是否可搜索。如：`true` `false`",
+            schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeChildren", description = "是否包含子栏目。如：`true` `false`，默认`false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",

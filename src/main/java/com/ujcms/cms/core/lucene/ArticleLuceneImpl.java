@@ -21,6 +21,9 @@ import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static com.ujcms.cms.core.lucene.domain.EsArticle.*;
@@ -139,7 +142,8 @@ public class ArticleLuceneImpl implements ArticleLucene {
             queryMapQuery(bool, queryMap);
 
             Query query = bool.build();
-            Page<EsArticle> page = operations.page(query, pageable, Sort.RELEVANCE, EsArticle::of);
+            Sort sort = toLuceneSort(pageable.getSort());
+            Page<EsArticle> page = operations.page(query, pageable, sort, EsArticle::of);
             // 处理高亮
             SimpleHTMLFormatter formatter = new SimpleHTMLFormatter("<em>", "</em>");
             Highlighter highlighter = new Highlighter(formatter, new QueryScorer(query));
@@ -151,11 +155,22 @@ public class ArticleLuceneImpl implements ArticleLucene {
                 }
             }
             return page;
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException("Lucene parse exception", e);
         }
+    }
 
+    @Nullable
+    private static Sort toLuceneSort(org.springframework.data.domain.Sort sort) {
+        if (sort.isUnsorted()) {
+            return null;
+        }
+        List<SortField> sortFields = new ArrayList<>();
+        for (org.springframework.data.domain.Sort.Order order : sort) {
+            String property = order.getProperty();
+            sortFields.add(new SortField(property, EsArticle.getSortType(property), order.isDescending()));
+        }
+        return new Sort(sortFields.toArray(new SortField[0]));
     }
 
     private static void keywordQuery(BooleanQuery.Builder bool, String[] values) {

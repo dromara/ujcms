@@ -8,7 +8,9 @@ import org.apache.lucene.search.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,13 +36,12 @@ public class LuceneOperations {
         this(indexWriter, searcherManager, true);
     }
 
-    public <T> List<T> list(Query query, OffsetLimitRequest offsetLimit, Sort sort, Function<Document, T> handle) {
+    public <T> List<T> list(Query query, OffsetLimitRequest offsetLimit, @Nullable Sort sort, Function<Document, T> handle) {
         try {
             searcherManager.maybeRefresh();
             IndexSearcher searcher = searcherManager.acquire();
             try {
-                int n = (int) offsetLimit.getOffset() + offsetLimit.getPageSize();
-                TopFieldDocs results = searcher.search(query, n, sort);
+                TopDocs results = search(searcher, query, offsetLimit, sort);
                 int length = results.scoreDocs.length;
                 List<T> list = new ArrayList<>(length);
                 for (ScoreDoc hit : results.scoreDocs) {
@@ -55,13 +56,21 @@ public class LuceneOperations {
         }
     }
 
-    public <T> Page<T> page(Query query, Pageable pageable, Sort sort, Function<Document, T> handle) {
+    private static TopDocs search(IndexSearcher searcher, Query query, Pageable pageable, @Nullable Sort sort)
+            throws IOException {
+        int n = (int) pageable.getOffset() + pageable.getPageSize();
+        if (sort != null) {
+            return searcher.search(query, n, sort);
+        }
+        return searcher.search(query, n);
+    }
+
+    public <T> Page<T> page(Query query, Pageable pageable, @Nullable Sort sort, Function<Document, T> handle) {
         try {
             searcherManager.maybeRefresh();
             IndexSearcher searcher = searcherManager.acquire();
             try {
-                int n = (int) pageable.getOffset() + pageable.getPageSize();
-                TopFieldDocs results = searcher.search(query, n, sort);
+                TopDocs results = search(searcher, query, pageable, sort);
                 int length = results.scoreDocs.length;
                 int size = length - (int) pageable.getOffset();
                 List<T> content = new ArrayList<>(size);

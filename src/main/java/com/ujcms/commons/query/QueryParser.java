@@ -153,7 +153,6 @@ public class QueryParser {
         if (rawOrderBy == null) {
             return;
         }
-        StringBuilder buff = new StringBuilder();
         StringBuilder selectBuff = new StringBuilder();
         List<QueryInfo.OrderByCondition> orderByConditions = new ArrayList<>();
         for (String orderBy : StringUtils.split(rawOrderBy, COMMA)) {
@@ -161,7 +160,7 @@ public class QueryParser {
             QueryUtils.validateQuery(orderBy);
             String direction = null;
             String type = null;
-            int index = orderBy.indexOf("_");
+            int index = orderBy.lastIndexOf("_");
             if (index != -1) {
                 direction = orderBy.substring(index + 1);
                 orderBy = orderBy.substring(0, index);

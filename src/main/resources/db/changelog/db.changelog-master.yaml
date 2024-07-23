@@ -32,4 +32,7 @@ databaseChangeLog:
   - include:
       file: db.changelog-9.5.yaml
       relativeToChangelogFile: true
+  - include:
+      file: db.changelog-9.6.yaml
+      relativeToChangelogFile: true
 

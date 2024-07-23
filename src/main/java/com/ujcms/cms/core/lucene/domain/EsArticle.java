@@ -4,12 +4,14 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.support.Anchor;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.search.SortField;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -22,6 +24,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.apache.lucene.document.Field.Store;
 
@@ -48,6 +51,20 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     public static final String FIELD_CHANNEL_PATHS_ID = "channel.paths.id";
     public static final String FIELD_CHANNEL_PATHS_NAME = "channel.paths.name";
     public static final String FIELD_CHANNEL_PATHS_URL = "channel.paths.url";
+
+    public static SortField.Type getSortType(String property) {
+        switch (property) {
+            case FIELD_ID:
+            case FIELD_PUBLISH_DATE:
+            case FIELD_CHANNEL_ID:
+            case FIELD_CHANNEL_PATHS_ID:
+                return SortField.Type.LONG;
+            case FIELD_STATUS:
+                return SortField.Type.INT;
+            default:
+                return WebPageWithCustoms.getSortType(property);
+        }
+    }
 
     public static EsArticle of(org.apache.lucene.document.Document doc) {
         EsArticle bean = new EsArticle();
@@ -113,7 +130,14 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
         bean.setEnabled(article.getChannel().getAllowSearch());
         bean.setTitle(article.getTitle());
         bean.setDescription(article.getSeoDescription());
-        bean.setBody(article.getPlainText());
+
+        StringBuilder body = new StringBuilder();
+        Optional.ofNullable(article.getSubtitle()).filter(StringUtils::isNotBlank).ifPresent(body::append);
+        Optional.ofNullable(article.getFullTitle()).filter(StringUtils::isNotBlank).ifPresent(body::append);
+        Optional.ofNullable(article.getSeoDescription()).filter(StringUtils::isNotBlank).ifPresent(body::append);
+        body.append(article.getPlainText());
+        bean.setBody(body.toString());
+
         bean.setUrl(article.getUrl());
         bean.setPublishDate(article.getPublishDate());
         bean.setImage(article.getImage());

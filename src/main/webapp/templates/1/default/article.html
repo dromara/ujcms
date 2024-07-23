@@ -107,22 +107,26 @@
       </div>
       <script>
         function voteUp() {
-          request.post('${api}/article/up/${article.id?c}').then(function (response) {
-            if (response.data <= 0) {
-              alert("您已经参与过一次！");
-              return;
-            }
-            $('#ups').text(response.data);
+          fetchCsrf().then(function() {
+            request.post('${api}/article/up/${article.id?c}').then(function (response) {
+              if (response.data <= 0) {
+                alert("您已经参与过一次！");
+                return;
+              }
+              $('#ups').text(response.data);
+            });
           });
         }
 
         function voteDown() {
-          request.post('${api}/article/down/${article.id?c}').then(function (response) {
-            if (response.data <= 0) {
-              alert("您已经参与过一次！");
-              return;
-            }
-            $('#downs').text(response.data);
+          fetchCsrf().then(function() {
+            request.post('${api}/article/down/${article.id?c}').then(function (response) {
+              if (response.data <= 0) {
+                alert("您已经参与过一次！");
+                return;
+              }
+              $('#downs').text(response.data);
+            });
           });
         }
 

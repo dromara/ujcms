@@ -66,6 +66,7 @@ public class MyBatisConfig {
         VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
         Properties properties = new Properties();
         properties.put("MySQL", "mysql");
+        properties.put("MariaDB", "mariadb");
         properties.put("PostgreSQL", "postgresql");
         properties.put("H2", "h2");
         properties.put("Oracle", "oracle");

@@ -35,7 +35,7 @@ public class MyBatis {
             @SuppressWarnings("unchecked") final T obj = (T) in.readObject();
             return obj;
         } catch (final ClassNotFoundException | IOException ex) {
-            throw new RuntimeException(ex);
+            throw new IllegalStateException(ex);
         }
     }
 

@@ -12,14 +12,12 @@ import freemarker.template.AdapterTemplateModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.ujcms.cms.core.support.Frontends.*;
 import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
@@ -75,6 +73,28 @@ public class Directives {
 
     public static void handleOrderBy(Map<String, Object> queryMap, Map<String, ?> params) {
         queryMap.put(QueryParser.ORDER_BY, getString(params, ORDER_BY));
+    }
+
+    public static Sort getSort(Map<String, ?> params) {
+        String orderBy = getString(params, ORDER_BY);
+        if (StringUtils.isBlank(orderBy)) {
+            return Sort.unsorted();
+        }
+        String[] orders = StringUtils.split(orderBy, ',');
+        List<Sort.Order> orderList = new ArrayList<>(orders.length);
+        for (String order : orders) {
+            int index = order.indexOf('_');
+            Sort.Direction direction = Sort.Direction.ASC;
+            String property = order;
+            if (index != -1) {
+                if ("desc".equalsIgnoreCase(order.substring(index + 1))) {
+                    direction = Sort.Direction.DESC;
+                }
+                property = order.substring(0, index);
+            }
+            orderList.add(new Sort.Order(direction, property));
+        }
+        return Sort.by(orderList.toArray(new Sort.Order[0]));
     }
 
     public static int getPage(Map<String, TemplateModel> params, Environment env) throws TemplateModelException {
@@ -285,6 +305,7 @@ public class Directives {
     public static Long getLong(Map<String, ?> params, String name, Long defaultValue) {
         return Optional.ofNullable(getLong(params, name)).orElse(defaultValue);
     }
+
     public static Long getLongRequired(Map<String, ?> params, String name) {
         return getNumberRequired(params, name, Long.class);
     }

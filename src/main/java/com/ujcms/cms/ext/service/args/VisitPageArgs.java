@@ -20,7 +20,7 @@ public class VisitPageArgs extends BaseQueryArgs {
 
     public VisitPageArgs siteId(@Nullable Integer siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

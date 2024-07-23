@@ -23,7 +23,7 @@ public class BlockArgs extends BaseQueryArgs {
 
     public BlockArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_siteId_Int", siteId);
+            queryMap.put("EQ_siteId_Long", siteId);
         }
         return this;
     }

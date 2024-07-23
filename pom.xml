@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.5.1</version>
+    <version>9.6.0</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -41,7 +41,7 @@
         <!-- Apache公共基础组件 -->
         <commons-collections4.version>4.4</commons-collections4.version>
         <!-- Apache压缩组件 -->
-        <commons-compress.version>1.22</commons-compress.version>
+        <commons-compress.version>1.26.2</commons-compress.version>
         <commons-io.version>2.8.0</commons-io.version>
         <commons-validator.version>1.7</commons-validator.version>
         <!-- Apache公共网络组件 -->
@@ -488,6 +488,11 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

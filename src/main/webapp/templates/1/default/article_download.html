@@ -6,20 +6,23 @@
   <title>${article.title} - ${site.title}</title>
   <meta name="keywords" content="${article.seoKeywords}">
   <meta name="description" content="${article.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
 </head>
 <body>
 [#include 'inc_header.html'/]
+[#include 'inc_message_box.html'/]
 <div class="bg-gray-200">
   <div class="container">
     <nav class="row" aria-label="breadcrumb">
       <ol class="col list-inline my-2">
         <li class="list-inline-item"><a href="${site.url}">首页</a></li>
         [#list channel.paths as c]
-          <li class="list-inline-item">/</li>
-          <li class="list-inline-item">[@A bean=c/]</li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item">[@A bean=c/]</li>
         [/#list]
       </ol>
     </nav>
@@ -36,7 +39,7 @@
         <span>${format(article.publishDate, 'yyyy-MM-dd HH:mm')}</span>
         <i class="ml-2 far fa-eye"></i> <span id="views"></span>
         <script>
-          axios.get('${api}/article/view/${article.id?c}').then(function (response) {
+          request.get('${api}/article/view/${article.id?c}').then(function (response) {
             $('#views').text(response.data);
           });
         </script>
@@ -55,7 +58,7 @@
         <i class="fas fa-download"></i> 立即下载
       </a>
       <script>
-        axios.get('${api}/article/download-params/${article.id?c}').then(function (response) {
+        request.get('${api}/article/download-params/${article.id?c}').then(function (response) {
           $('#articleDownload').attr('href', '${dy}/download-file/${article.id?c}?' + response.data);
         })
       </script>
@@ -65,26 +68,30 @@
       </div>
       <script>
         function voteUp() {
-          axios.post('${api}/article/up/${article.id?c}').then(function (response) {
-            if (response.data <= 0) {
-              alert("您已经参与过一次！");
-              return;
-            }
-            $('#ups').text(response.data);
+          fetchCsrf().then(function () {
+            request.post('${api}/article/up/${article.id?c}').then(function (response) {
+              if (response.data <= 0) {
+                alert("您已经参与过一次！");
+                return;
+              }
+              $('#ups').text(response.data);
+            });
           });
         }
 
         function voteDown() {
-          axios.post('${api}/article/down/${article.id?c}').then(function (response) {
-            if (response.data <= 0) {
-              alert("您已经参与过一次！");
-              return;
-            }
-            $('#downs').text(response.data);
+          fetchCsrf().then(function () {
+            request.post('${api}/article/down/${article.id?c}').then(function (response) {
+              if (response.data <= 0) {
+                alert("您已经参与过一次！");
+                return;
+              }
+              $('#downs').text(response.data);
+            });
           });
         }
 
-        axios.get('${api}/article/buffer/${article.id?c}').then(function (response) {
+        request.get('${api}/article/buffer/${article.id?c}').then(function (response) {
           $('#ups').text(response.data.ups);
           $('#downs').text(response.data.downs);
           $('#downloads').text(response.data.downloads);
@@ -99,23 +106,23 @@
       <script>$('.article-content img').addClass('img-fluid');</script>
       <ul class="border-top list-unstyled mt-3 pt-3">
         [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
-          <li class="text-truncate mt-2">
-            <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
-          </li>
+        <li class="text-truncate mt-2">
+          <strong>上一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
+        </li>
         [/@ArticleNext]
         [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
-          <li class="text-truncate mt-2">
-            <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
-          </li>
+        <li class="text-truncate mt-2">
+          <strong>下一条：</strong>[#if bean??][@A bean=bean class="cm-link"/][#else]没有了[/#if]
+        </li>
         [/@ArticlePrev]
       </ul>
       <h5 class="mt-4 border-bottom"><span class="cm-block-head-bottom">相关新闻</span></h5>
       [@EsArticleList q=article.title excludeId=article.id limit=5; list]
-        <ul class="list-unstyled mt-3">
-          [#list list as bean]
-            <li class="text-truncate mt-2">[@A bean=bean class="cm-link"/]</li>
-          [/#list]
-        </ul>
+      <ul class="list-unstyled mt-3">
+        [#list list as bean]
+        <li class="text-truncate mt-2">[@A bean=bean class="cm-link"/]</li>
+        [/#list]
+      </ul>
       [/@EsArticleList]
     </div>
   </div>
