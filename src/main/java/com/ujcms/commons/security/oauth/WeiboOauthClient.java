@@ -13,7 +13,7 @@ import static com.ujcms.commons.db.Constants.*;
 /**
  * @author PONY
  */
-public class WeiboOauthClient extends OauthClient {
+public class WeiboOauthClient extends BaseOauthClient {
     public WeiboOauthClient(String clientId, String clientSecret, String redirectUri) {
         super(PROVIDER_WEIBO, clientId, clientSecret, redirectUri, null);
     }

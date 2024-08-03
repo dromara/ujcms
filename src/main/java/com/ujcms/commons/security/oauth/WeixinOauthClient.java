@@ -13,7 +13,7 @@ import static com.ujcms.commons.db.Constants.*;
 /**
  * @author PONY
  */
-public class WeixinOauthClient extends OauthClient {
+public class WeixinOauthClient extends BaseOauthClient {
     public WeixinOauthClient(String clientId, String clientSecret, String redirectUri) {
         super(PROVIDER_WEIXIN, clientId, clientSecret, redirectUri, DEFAULT_SCOPE);
     }

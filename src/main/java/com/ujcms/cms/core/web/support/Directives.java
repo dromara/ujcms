@@ -368,17 +368,17 @@ public class Directives {
     /**
      * 页数线程变量
      */
-    private static final ThreadLocal<Integer> totalPagesHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Integer> TOTAL_PAGES_HOLDER = new ThreadLocal<>();
 
     /**
      * 栏目页分页生成静态页时，无法得到分页标签得到的总页数，需要通过此方法设置总页数，便于生成静态页代码获取。
      */
     public static void setTotalPages(Integer totalPages) {
-        totalPagesHolder.set(totalPages);
+        TOTAL_PAGES_HOLDER.set(totalPages);
     }
 
     public static Integer getTotalPages() {
-        Integer totalPages = totalPagesHolder.get();
+        Integer totalPages = TOTAL_PAGES_HOLDER.get();
         if (totalPages == null || totalPages < 1) {
             totalPages = 1;
         }
@@ -386,7 +386,7 @@ public class Directives {
     }
 
     public static void clearTotalPages() {
-        totalPagesHolder.remove();
+        TOTAL_PAGES_HOLDER.remove();
     }
 
     private Directives() {

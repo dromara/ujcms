@@ -22,7 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * @author PONY
  */
-public abstract class OauthClient {
+public abstract class BaseOauthClient {
     protected String provider;
     protected String clientId;
     protected String clientSecret;
@@ -30,7 +30,7 @@ public abstract class OauthClient {
     @Nullable
     protected String scope;
 
-    protected OauthClient(String provider, String clientId, String clientSecret, String redirectUri,
+    protected BaseOauthClient(String provider, String clientId, String clientSecret, String redirectUri,
                           @Nullable String scope) {
         this.provider = provider;
         this.clientId = clientId;
