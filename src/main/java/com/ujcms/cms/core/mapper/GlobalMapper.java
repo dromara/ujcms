@@ -8,6 +8,9 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author PONY
+ */
 @Mapper
 @Repository
 public interface GlobalMapper {
@@ -30,7 +33,7 @@ public interface GlobalMapper {
     /**
      * 删除数据
      *
-     * @param id 主键ID
+     * @param name 键名
      * @return 删除条数
      */
     int delete(String name);
@@ -38,7 +41,7 @@ public interface GlobalMapper {
     /**
      * 根据主键获取数据
      *
-     * @param id 主键ID
+     * @param name 键名
      * @return 实体对象。没有找到数据，则返回 {@code null}
      */
     @Nullable

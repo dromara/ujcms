@@ -12,7 +12,7 @@ import static com.ujcms.commons.db.Constants.*;
 /**
  * @author PONY
  */
-public class QqOauthClient extends OauthClient {
+public class QqOauthClient extends BaseOauthClient {
     public QqOauthClient(String clientId, String clientSecret, String redirectUri) {
         super(PROVIDER_QQ, clientId, clientSecret, redirectUri, DEFAULT_SCOPE);
     }
