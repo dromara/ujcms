@@ -38,6 +38,7 @@ public class CodeGenerator {
         Configuration config = cp.parseConfiguration(configFile);
         DefaultShellCallback callback = new DefaultShellCallback(false);
         MyBatisGenerator generator = new MyBatisGenerator(config, callback, warnings);
+        // 这里参数设置为空
         generator.generate(null);
     }
 }
