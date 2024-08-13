@@ -39,7 +39,7 @@
 
     <update id="updateUsed">
         update ujcms_attachment
-        set used_ = CASE WHEN exists(select * from ujcms_attachment_refer refer where refer.attachment_id_ = id_) THEN 1 ELSE 0 END
+        set used_ = CASE WHEN exists(select * from ujcms_attachment_refer refer where refer.attachment_id_ = ujcms_attachment.id_) THEN 1 ELSE 0 END
         where id_ in
         <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
     </update>

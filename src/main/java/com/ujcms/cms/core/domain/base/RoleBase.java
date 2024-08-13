@@ -120,10 +120,10 @@ public class RoleBase implements Serializable {
     private Short scope = 0;
 
     /**
-     * 排序
+     * 排列顺序
      */
     @NotNull
-    @Schema(description="排序")
+    @Schema(description="排列顺序")
     private Integer order = 999999;
 
     /**

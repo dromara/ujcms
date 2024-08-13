@@ -107,10 +107,10 @@ public class VoteBase implements Serializable {
     private Boolean enabled = true;
 
     /**
-     * 排序
+     * 排列顺序
      */
     @NotNull
-    @Schema(description="排序")
+    @Schema(description="排列顺序")
     private Long order = 0L;
 
     public Long getId() {

@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
+import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,13 +52,11 @@ public class LuceneConfig {
     }
 
     @Bean
-    public SegmenterConfig segmenterConfig() {
-        return new SegmenterConfig();
-    }
-
-    @Bean
     public ADictionary dictionary() {
-        ADictionary dic = DictionaryFactory.createSingletonDictionary(segmenterConfig(), false);
+        SegmenterConfig segmenterConfig = new SegmenterConfig();
+        segmenterConfig.setAppendCJKSyn(false);
+        segmenterConfig.setAppendCJKPinyin(false);
+        ADictionary dic = DictionaryFactory.createSingletonDictionary(segmenterConfig, false);
         String[] files = {"lex-admin", "lex-chars", "lex-cn-mz", "lex-company", "lex-dname-1", "lex-dname-2",
                 "lex-domain-suffix", "lex-english", "lex-festival", "lex-fname", "lex-food", "lex-lang", "lex-live",
                 "lex-ln-adorn", "lex-lname", "lex-main", "lex-mixed", "lex-nation", "lex-net", "lex-number-unit",
@@ -73,15 +72,37 @@ public class LuceneConfig {
         return dic;
     }
 
+    /**
+     * IK 分词器
+     */
+    private static final String ANALYZER_IK = "ik";
+
+    /**
+     * Lucene 分词器
+     */
     @Primary
     @Bean(destroyMethod = "close")
     public Analyzer analyzer() {
-        return new JcsegAnalyzer(ISegment.COMPLEX, segmenterConfig(), dictionary());
+        if (ANALYZER_IK.equalsIgnoreCase(props.getLuceneAnalyzer())) {
+            return new IKAnalyzer();
+        } else {
+            SegmenterConfig segmenterConfig = new SegmenterConfig();
+            segmenterConfig.setAppendCJKSyn(false);
+            segmenterConfig.setAppendCJKPinyin(false);
+            return new JcsegAnalyzer(ISegment.COMPLEX, segmenterConfig, dictionary());
+        }
     }
 
     @Bean(destroyMethod = "close")
     public Analyzer mostAnalyzer() {
-        return new JcsegAnalyzer(ISegment.MOST, segmenterConfig(), dictionary());
+        if (ANALYZER_IK.equalsIgnoreCase(props.getLuceneAnalyzer())) {
+            return analyzer();
+        } else {
+            SegmenterConfig segmenterConfig = new SegmenterConfig();
+            segmenterConfig.setAppendCJKSyn(false);
+            segmenterConfig.setAppendCJKPinyin(false);
+            return new JcsegAnalyzer(ISegment.MOST, segmenterConfig, dictionary());
+        }
     }
 
     /**
@@ -113,14 +134,13 @@ public class LuceneConfig {
      */
     @Bean
     public LuceneOperations luceneOperations() throws IOException {
-        return new LuceneOperations(indexWriter(), searcherManager());
+        return new LuceneOperations(indexWriter(), searcherManager(), mostAnalyzer());
     }
 
     @Bean
     @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public ArticleLucene articleLucene() throws IOException {
-        // 全部使用最细分词。不可一个最细一个智能，因为最细分词不完全包含智能分词，导致某些内容无法搜索出结果。
-        return new ArticleLuceneImpl(luceneOperations(), analyzer(), mostAnalyzer());
+        return new ArticleLuceneImpl(luceneOperations(), analyzer());
     }
 
 }

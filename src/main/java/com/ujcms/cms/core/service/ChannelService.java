@@ -10,7 +10,9 @@ import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.ChannelArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
+import com.ujcms.commons.db.tree.TreeMoveType;
 import com.ujcms.commons.db.tree.TreeService;
+import com.ujcms.commons.db.tree.TreeSortEntity;
 import com.ujcms.commons.query.CustomFieldQuery;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
@@ -47,7 +49,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     private final OrgArticleMapper orgArticleMapper;
     private final OrgChannelMapper orgChannelMapper;
     private final SnowflakeSequence snowflakeSequence;
-    private final TreeService<Channel, ChannelTree> treeService;
+    private final TreeService<Channel> treeService;
 
     public ChannelService(
             HtmlService htmlService, PolicyFactory policyFactory, AttachmentService attachmentService,
@@ -105,12 +107,12 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Channel bean, @Nullable Long parentId, @Nullable List<Long> groupIds,
+    public void update(Channel bean, @Nullable List<Long> groupIds,
                        @Nullable List<Long> articleRoleIds, @Nullable List<Long> channelRoleIds) {
         Model model = Optional.ofNullable(modelService.select(bean.getChannelModelId())).orElseThrow(() ->
                 new IllegalArgumentException(Model.NOT_FOUND + bean.getChannelModelId()));
         bean.disassembleCustoms(model, policyFactory);
-        treeService.update(bean, parentId, bean.getSiteId());
+        mapper.update(bean);
         extMapper.update(bean.getExt());
         if (groupIds != null) {
             groupAccessMapper.deleteByChannelId(bean.getId());
@@ -133,8 +135,31 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateOrder(List<Channel> list) {
-        treeService.updateOrder(list);
+    public void move(Channel from, Channel to, TreeMoveType type, Long siteId) {
+        treeService.move(from, to, type, siteId);
+    }
+
+    public List<Channel> listBySiteIdForTidy(Long siteId) {
+        return mapper.listBySiteIdForTidy(siteId);
+    }
+
+    public List<TreeSortEntity> toTree(List<Channel> list) {
+        return treeService.toTree(list);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void tidyTreeOrderAndDepth(List<TreeSortEntity> tree, int size) {
+        treeService.tidyTreeOrderAndDepth(tree, size);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRelationBySiteId(Long siteId) {
+        treeMapper.deleteBySiteId(siteId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void tidyTreeRelation(List<TreeSortEntity> tree, int size) {
+        treeService.tidyTreeRelation(tree, size);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -224,14 +249,14 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     }
 
     public List<Long> listChannelPermissions(Collection<Long> roleIds, Collection<Long> orgIds,
-                                                @Nullable Long siteId) {
+                                             @Nullable Long siteId) {
         return mapper.listChannelPermissions(roleIds, orgIds, siteId);
     }
 
     public List<Channel> selectList(ChannelArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ChannelBase.TABLE_NAME, "order,id");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
-        return mapper.selectAll(queryInfo, customsCondition, args.isQueryHasChildren(), args.isOnlyParent(),
+        return mapper.selectAll(queryInfo, customsCondition, args.isQueryHasChildren(),
                 args.getArticleRoleIds(), args.getArticleOrgIds());
     }
 

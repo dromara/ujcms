@@ -11,10 +11,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.*;
-import org.apache.lucene.search.highlight.Highlighter;
-import org.apache.lucene.search.highlight.QueryScorer;
-import org.apache.lucene.search.highlight.SimpleFragmenter;
-import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
@@ -22,7 +18,6 @@ import org.springframework.lang.Nullable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -38,12 +33,10 @@ import static org.apache.lucene.search.BooleanClause.Occur;
 public class ArticleLuceneImpl implements ArticleLucene {
     private final LuceneOperations operations;
     private final Analyzer analyzer;
-    private final Analyzer mostAnalyzer;
 
-    public ArticleLuceneImpl(LuceneOperations operations, Analyzer analyzer, Analyzer mostAnalyzer) {
+    public ArticleLuceneImpl(LuceneOperations operations, Analyzer analyzer) {
         this.operations = operations;
         this.analyzer = analyzer;
-        this.mostAnalyzer = mostAnalyzer;
     }
 
     @Override
@@ -143,18 +136,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
 
             Query query = bool.build();
             Sort sort = toLuceneSort(pageable.getSort());
-            Page<EsArticle> page = operations.page(query, pageable, sort, EsArticle::of);
-            // 处理高亮
-            SimpleHTMLFormatter formatter = new SimpleHTMLFormatter("<em>", "</em>");
-            Highlighter highlighter = new Highlighter(formatter, new QueryScorer(query));
-            highlighter.setTextFragmenter(new SimpleFragmenter(args.getFragmentSize()));
-            for (EsArticle esArticle : page.getContent()) {
-                esArticle.setHighlightTitle(highlighter.getBestFragment(mostAnalyzer, FIELD_TITLE, esArticle.getTitle()));
-                if (StringUtils.isNotBlank(esArticle.getBody())) {
-                    esArticle.setHighlightBody(highlighter.getBestFragment(mostAnalyzer, FIELD_BODY, esArticle.getBody()));
-                }
-            }
-            return page;
+            return operations.page(query, pageable, sort, args.getFragmentSize(), EsArticle::of);
         } catch (Exception e) {
             throw new IllegalStateException("Lucene parse exception", e);
         }

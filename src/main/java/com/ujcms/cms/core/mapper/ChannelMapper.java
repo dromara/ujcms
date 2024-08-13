@@ -44,7 +44,6 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @param queryInfo          查询条件
      * @param customsCondition   自定义字段查询条件
      * @param isQueryHasChildren 是否查询包含子栏目
-     * @param isOnlyParent       是否只获取父栏目
      * @param articleRoleIds     文章权限角色ID列表
      * @param articleOrgIds      文章权限组织ID列表
      * @return 数据列表
@@ -52,7 +51,6 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     List<Channel> selectAll(@Nullable @Param("queryInfo") QueryInfo queryInfo,
                             @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
                             @Param("isQueryHasChildren") boolean isQueryHasChildren,
-                            @Param("isOnlyParent") boolean isOnlyParent,
                             @Nullable @Param("articleRoleIds") Collection<Long> articleRoleIds,
                             @Nullable @Param("articleOrgIds") Collection<Long> articleOrgIds);
 
@@ -118,8 +116,8 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 栏目ID 列表
      */
     List<Long> listChannelPermissions(@Param("roleIds") Collection<Long> roleIds,
-                                         @Param("orgIds") Collection<Long> orgIds,
-                                         @Param("siteId") @Nullable Long siteId);
+                                      @Param("orgIds") Collection<Long> orgIds,
+                                      @Param("siteId") @Nullable Long siteId);
 
     /**
      * 根据父栏目ID获取子栏目列表
@@ -153,6 +151,14 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 栏目列表
      */
     List<Channel> listByChannelForSitemap(Long siteId);
+
+    /**
+     * 根据站点ID查询栏目。用于整理树形结构，只获取必须字段
+     *
+     * @param siteId 站点ID
+     * @return 栏目列表
+     */
+    List<Channel> listBySiteIdForTidy(Long siteId);
 
     /**
      * 设置绩效类型ID为NULL

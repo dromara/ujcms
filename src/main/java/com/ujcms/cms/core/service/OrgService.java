@@ -7,7 +7,9 @@ import com.ujcms.cms.core.listener.OrgDeleteListener;
 import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.OrgArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
+import com.ujcms.commons.db.tree.TreeMoveType;
 import com.ujcms.commons.db.tree.TreeService;
+import com.ujcms.commons.db.tree.TreeSortEntity;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,7 @@ public class OrgService {
     private final UserOrgMapper userOrgMapper;
     private final RoleOrgMapper roleOrgMapper;
     private final SnowflakeSequence snowflakeSequence;
-    private final TreeService<Org, OrgTree> treeService;
+    private final TreeService<Org> treeService;
 
     public OrgService(OrgMapper mapper, OrgTreeMapper treeMapper, OrgArticleMapper orgArticleMapper,
                       OrgChannelMapper orgChannelMapper, OrgPermMapper orgPermMapper, UserOrgMapper userOrgMapper,
@@ -58,8 +60,13 @@ public class OrgService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void update(Org bean, @Nullable Long parentId) {
-        treeService.update(bean, parentId);
+    public void update(Org bean) {
+        mapper.update(bean);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void move(Org from, Org to, TreeMoveType type) {
+        treeService.move(from, to, type);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -80,9 +87,27 @@ public class OrgService {
         });
     }
 
+    public List<Org> listForTidy() {
+        return mapper.listForTidy();
+    }
+
+    public List<TreeSortEntity> toTree(List<Org> list) {
+        return treeService.toTree(list);
+    }
+
     @Transactional(rollbackFor = Exception.class)
-    public void updateOrder(List<Org> list) {
-        treeService.updateOrder(list);
+    public void tidyTreeOrderAndDepth(List<TreeSortEntity> tree, int size) {
+        treeService.tidyTreeOrderAndDepth(tree, size);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRelation() {
+        treeMapper.deleteAll();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void tidyTreeRelation(List<TreeSortEntity> tree, int size) {
+        treeService.tidyTreeRelation(tree, size);
     }
 
     @Transactional(rollbackFor = Exception.class)

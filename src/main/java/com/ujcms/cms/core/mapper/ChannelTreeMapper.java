@@ -1,6 +1,5 @@
 package com.ujcms.cms.core.mapper;
 
-import com.ujcms.cms.core.domain.ChannelTree;
 import com.ujcms.commons.db.tree.TreeRelationMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
@@ -12,13 +11,5 @@ import org.springframework.stereotype.Repository;
  */
 @Mapper
 @Repository
-public interface ChannelTreeMapper extends TreeRelationMapper<ChannelTree> {
-
-    /**
-     * 根据站点ID删除数据
-     *
-     * @param siteId 站点ID
-     * @return 被删除的数据条数
-     */
-    int deleteBySiteId(Long siteId);
+public interface ChannelTreeMapper extends TreeRelationMapper {
 }

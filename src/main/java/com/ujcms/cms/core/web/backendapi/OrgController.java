@@ -2,16 +2,16 @@ package com.ujcms.cms.core.web.backendapi;
 
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
-import com.ujcms.cms.core.domain.Org;
-import com.ujcms.cms.core.domain.Role;
-import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.args.OrgArgs;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.web.support.MoveParams;
+import com.ujcms.commons.db.tree.TreeSortEntity;
 import com.ujcms.commons.web.Entities;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
+import com.ujcms.commons.web.exception.Http400Exception;
 import com.ujcms.commons.web.exception.Http403Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
@@ -47,7 +44,9 @@ public class OrgController {
     @PreAuthorize("hasAnyAuthority('org:list','*')")
     public Object list(@RequestParam(defaultValue = "false") boolean current,
                        @RequestParam(defaultValue = "true") boolean isIncludeChildren,
-                       @Nullable Long parentId, HttpServletRequest request) {
+                       @RequestParam(defaultValue = "false") boolean isIncludeSelf,
+                       @Nullable Long parentId,
+                       HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
         boolean needParentId = current || !user.hasGlobalPermission();
         if (parentId == null && needParentId) {
@@ -56,12 +55,12 @@ public class OrgController {
         OrgArgs args = OrgArgs.of(getQueryMap(request.getQueryString()));
         if (isIncludeChildren) {
             args.ancestorId(parentId);
+        } else if (parentId == null) {
+            args.parentIdIsNull();
+        } else if (isIncludeSelf) {
+            args.parentIdAndSelf(parentId);
         } else {
-            if (parentId != null) {
-                args.parentId(parentId);
-            } else {
-                args.parentIdIsNull();
-            }
+            args.parentId(parentId);
         }
         return service.selectList(args);
     }
@@ -115,7 +114,7 @@ public class OrgController {
         } else {
             validateDataPermission(permissionOrgIds, user, org.getId(), org.getParentId());
         }
-        service.update(org, bean.getParentId());
+        service.update(org);
         return Responses.ok();
     }
 
@@ -136,23 +135,38 @@ public class OrgController {
         return Responses.ok();
     }
 
-    @PutMapping("order")
+    @PutMapping("move")
     @PreAuthorize("hasAnyAuthority('org:update','*')")
-    @OperationLog(module = "org", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
-        Site site = Contexts.getCurrentSite();
-        User user = Contexts.getCurrentUser();
-        List<Long> orgIds = service.listByAncestorId(site.getOrgId());
-        List<Org> list = new ArrayList<>();
-        for (Long id : ids) {
-            Org bean = service.select(id);
-            if (bean == null) {
-                continue;
+    @OperationLog(module = "org", operation = "move", type = OperationType.UPDATE)
+    public ResponseEntity<Body> move(@RequestBody MoveParams params) {
+        Org from = Optional.ofNullable(service.select(params.getFromId()))
+                .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + params.getFromId()));
+        Org to = Optional.ofNullable(service.select(params.getToId()))
+                .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + params.getToId()));
+        // 不能移动到自己的子节点下
+        for (Org parent : to.getPaths()) {
+            if (parent.getId().equals(from.getId())) {
+                throw new Http400Exception(String.format("Cannot move Org(id=%s) to child(id=%s)",
+                        params.getFromId(), params.getToId()));
             }
-            validateDataPermission(orgIds, user, bean.getId());
-            list.add(bean);
         }
-        service.updateOrder(list);
+        service.move(from, to, params.getType());
+        return Responses.ok();
+    }
+
+    /**
+     * 整理树形结构
+     */
+    @PutMapping("tidy-tree")
+    @PreAuthorize("hasAnyAuthority('org:tidyTree','*')")
+    @OperationLog(module = "org", operation = "tidyTree", type = OperationType.UPDATE)
+    public ResponseEntity<Body> tidyTree() {
+        List<Org> list = service.listForTidy();
+        List<TreeSortEntity> tree = service.toTree(list);
+        int size = list.size();
+        service.tidyTreeOrderAndDepth(tree, size);
+        service.deleteRelation();
+        service.tidyTreeRelation(tree, size);
         return Responses.ok();
     }
 

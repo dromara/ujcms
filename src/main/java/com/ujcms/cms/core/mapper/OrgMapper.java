@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.mapper;
 
+import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Org;
 import com.ujcms.commons.db.tree.TreeEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
@@ -39,7 +40,7 @@ public interface OrgMapper extends TreeEntityMapper<Org> {
      * @return 栏目ID 列表
      */
     List<Long> listPermissions(@Param("roleIds") Collection<Long> roleIds,
-                                     @Param("orgIds") Collection<Long> orgIds);
+                               @Param("orgIds") Collection<Long> orgIds);
 
     /**
      * 根据父组织ID获取子组织列表
@@ -56,4 +57,11 @@ public interface OrgMapper extends TreeEntityMapper<Org> {
      * @return 数据列表
      */
     List<Org> listByUserId(@Param("userId") Long userId);
+
+    /**
+     * 获取所有组织。用于整理树形结构，只获取必须字段
+     *
+     * @return 数据列表
+     */
+    List<Org> listForTidy();
 }

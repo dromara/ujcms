@@ -18,7 +18,7 @@ public class SiteArgs extends BaseQueryArgs {
     private Map<String, String> customsQueryMap;
     @Nullable
     private Long fullOrgId;
-    private boolean isQueryHasChildren = false;
+    private boolean queryHasChildren = false;
 
     public SiteArgs customsQueryMap(Map<String, String> customsQueryMap) {
         this.customsQueryMap = customsQueryMap;
@@ -28,7 +28,7 @@ public class SiteArgs extends BaseQueryArgs {
     public SiteArgs parentId(@Nullable Long parentId) {
         if (parentId != null) {
             queryMap.put("EQ_parentId_Long", parentId);
-            isQueryHasChildren = true;
+            queryHasChildren = true;
         }
         return this;
     }
@@ -40,9 +40,17 @@ public class SiteArgs extends BaseQueryArgs {
         return this;
     }
 
+    public SiteArgs parentIdAndSelf(@Nullable Long parentId) {
+        if (parentId != null) {
+            queryMap.put("EQ_1_parentId_Long", parentId);
+            queryMap.put("EQ_1_id_Long", parentId);
+        }
+        return this;
+    }
+
     public SiteArgs parentIdIsNull() {
         queryMap.put("IsNull_parentId", null);
-        isQueryHasChildren = true;
+        queryHasChildren = true;
         return this;
     }
 
@@ -83,10 +91,10 @@ public class SiteArgs extends BaseQueryArgs {
     }
 
     public boolean isQueryHasChildren() {
-        return isQueryHasChildren;
+        return queryHasChildren;
     }
 
     public void setQueryHasChildren(boolean queryHasChildren) {
-        isQueryHasChildren = queryHasChildren;
+        this.queryHasChildren = queryHasChildren;
     }
 }

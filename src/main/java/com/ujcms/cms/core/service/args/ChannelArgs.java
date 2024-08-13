@@ -20,7 +20,6 @@ public class ChannelArgs extends BaseQueryArgs {
     private Collection<Long> articleRoleIds;
     @Nullable
     private Collection<Long> articleOrgIds;
-    private boolean onlyParent = false;
     private boolean queryHasChildren = false;
 
     public ChannelArgs customsQueryMap(Map<String, String> customsQueryMap) {
@@ -59,6 +58,14 @@ public class ChannelArgs extends BaseQueryArgs {
         if (parentId != null) {
             queryMap.put("EQ_parentId_Long", parentId);
             queryHasChildren = true;
+        }
+        return this;
+    }
+
+    public ChannelArgs parentIdAndSelf(@Nullable Long parentId) {
+        if (parentId != null) {
+            queryMap.put("EQ_1_parentId_Long", parentId);
+            queryMap.put("EQ_1_id_Long", parentId);
         }
         return this;
     }
@@ -105,14 +112,6 @@ public class ChannelArgs extends BaseQueryArgs {
     @Nullable
     public Map<String, String> getCustomsQueryMap() {
         return customsQueryMap;
-    }
-
-    public boolean isOnlyParent() {
-        return onlyParent;
-    }
-
-    public void setOnlyParent(boolean onlyParent) {
-        this.onlyParent = onlyParent;
     }
 
     public boolean isQueryHasChildren() {

@@ -271,6 +271,8 @@ ujcms.lucene-path: /WEB-INF/lucene
 ujcms.uploads-location: /uploads
 # 储存点文件前缀。配置该项可以允许储存点使用`file:`前缀访问程序的其它目录及其子目录。多项使用逗号分割。如 file:/data/ujcms,file:d:/my/dir
 #ujcms.storageFilePrefix: file:/data/ujcms,file:d:/my/dir
+# lucene 分词器。支持`jcscg` `ik`。默认使用`jcseg`。`jcseg`支持最小粒度分词（单字），避免出现搜索某个字时无法搜索到结果
+#ujcms.lucene-analyzer: jcseg
 
 # JWT密钥。单机环境可以不设置，会默认生成一个64位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个长度不少于64位的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
 #jwt.secret:

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,6 +52,15 @@ public class Org extends OrgBase implements TreeEntity, Serializable {
         this.parent = parent;
     }
 
+    @Nullable
+    public List<Org> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Org> children) {
+        this.children = children;
+    }
+
     /**
      * 是否有子组织
      */
@@ -72,6 +82,11 @@ public class Org extends OrgBase implements TreeEntity, Serializable {
     @JsonIgnore
     @Nullable
     private Org parent;
+    /**
+     * 子组织列表
+     */
+    @JsonIgnore
+    private List<Org> children = new ArrayList<>();
     /**
      * 前台会员默认组织ID
      */

@@ -146,10 +146,10 @@ public class ArticleBase implements Serializable {
     private Short status = 0;
 
     /**
-     * 排序
+     * 排列顺序
      */
     @NotNull
-    @Schema(description="排序")
+    @Schema(description="排列顺序")
     private Long order = 0L;
 
     public Long getId() {

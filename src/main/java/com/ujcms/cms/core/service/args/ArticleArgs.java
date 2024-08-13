@@ -176,17 +176,17 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
-    public ArticleArgs geOnlineDateOrNull(@Nullable OffsetDateTime onlineDate) {
+    public ArticleArgs leOnlineDateOrNull(@Nullable OffsetDateTime onlineDate) {
         if (onlineDate != null) {
-            queryMap.put("GE_1_stickyDate_DateTime", onlineDate);
-            queryMap.put("IsNull_1_stickyDate_DateTime", null);
+            queryMap.put("LE_1_onlineDate_DateTime", onlineDate);
+            queryMap.put("IsNull_1_onlineDate_DateTime", null);
         }
         return this;
     }
 
-    public ArticleArgs geOfflineDate(@Nullable OffsetDateTime offlineDate) {
+    public ArticleArgs leOfflineDate(@Nullable OffsetDateTime offlineDate) {
         if (offlineDate != null) {
-            queryMap.put("GE_offlineDate_DateTime", offlineDate);
+            queryMap.put("LE_offlineDate_DateTime", offlineDate);
         }
         return this;
     }

@@ -333,7 +333,7 @@ public class LocalFileHandler implements FileHandler {
         try {
             if (srcFile.isDirectory()) {
                 FileUtils.copyDirectory(srcFile, destFile);
-            } else {
+            } else if (srcFile.exists()) {
                 FileUtils.copyFile(srcFile, destFile);
             }
         } catch (IOException e) {

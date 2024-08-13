@@ -27,6 +27,7 @@ public interface TreeEntity {
      *
      * @return 上级节点ID
      */
+    @Nullable
     Long getParentId();
 
     /**
@@ -34,10 +35,11 @@ public interface TreeEntity {
      *
      * @param parentId 上级节点ID
      */
-    void setParentId(Long parentId);
+    void setParentId(@Nullable Long parentId);
 
     /**
      * 获取上级节点
+     *
      * @return 上级节点
      */
     @Nullable

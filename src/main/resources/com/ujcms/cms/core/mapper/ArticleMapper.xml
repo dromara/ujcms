@@ -180,7 +180,7 @@
         update ujcms_article
         set status_ = #{published}
         where status_ = #{ready}
-          and (online_date_ is null or online_date_ &gt;= #{now})
+          and (online_date_ is null or online_date_ &lt;= #{now})
     </update>
     <update id="updateOfflineStatus">
         update ujcms_article
@@ -189,7 +189,7 @@
         <foreach close=")" collection="normals" item="item" open="status_ in (" separator=",">
             #{item}
         </foreach>
-        and offline_date_ &gt;= #{now}
+        and offline_date_ &lt;= #{now}
     </update>
     <update id="moveUp">
         update ujcms_article

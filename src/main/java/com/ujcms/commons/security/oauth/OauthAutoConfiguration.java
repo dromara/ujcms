@@ -15,23 +15,23 @@ import org.springframework.context.annotation.Configuration;
 public class OauthAutoConfiguration {
     @Bean(name = "qqOauthClient")
     @ConditionalOnProperty(prefix = "oauth.client.qq", name = "client-id")
-    public QqOauthClient qqOauthClient(OauthClientProperties props) {
+    public QqBaseOauthClient qqOauthClient(OauthClientProperties props) {
         OauthClientProperties.Client client = props.getClient().get("qq");
-        return new QqOauthClient(client.getClientId(), client.getClientSecret(), client.getRedirectUri());
+        return new QqBaseOauthClient(client.getClientId(), client.getClientSecret(), client.getRedirectUri());
     }
 
     @Bean(name = "weixinOauthClient")
     @ConditionalOnProperty(prefix = "oauth.client.weixin", name = "client-id")
-    public WeixinOauthClient weixinOauthClient(OauthClientProperties props) {
+    public WeixinBaseOauthClient weixinOauthClient(OauthClientProperties props) {
         OauthClientProperties.Client client = props.getClient().get("weixin");
-        return new WeixinOauthClient(client.getClientId(), client.getClientSecret(), client.getRedirectUri());
+        return new WeixinBaseOauthClient(client.getClientId(), client.getClientSecret(), client.getRedirectUri());
     }
 
     @Bean(name = "weiboOauthClient")
     @ConditionalOnProperty(prefix = "oauth.client.weibo", name = "client-id")
-    public WeiboOauthClient weiboOauthClient(OauthClientProperties props) {
+    public WeiboBaseOauthClient weiboOauthClient(OauthClientProperties props) {
         OauthClientProperties.Client client = props.getClient().get("weibo");
-        return new WeiboOauthClient(client.getClientId(), client.getClientSecret(), client.getRedirectUri());
+        return new WeiboBaseOauthClient(client.getClientId(), client.getClientSecret(), client.getRedirectUri());
     }
 
 }

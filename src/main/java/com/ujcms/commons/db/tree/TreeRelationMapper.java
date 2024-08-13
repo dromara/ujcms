@@ -2,12 +2,14 @@ package com.ujcms.commons.db.tree;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * 树形关系 Mapper
  *
  * @author PONY
  */
-public interface TreeRelationMapper<T> {
+public interface TreeRelationMapper {
     /**
      * 插入数据
      *
@@ -16,6 +18,14 @@ public interface TreeRelationMapper<T> {
      * @return 插入条数
      */
     int save(@Param("ancestorId") Long ancestorId, @Param("descendantId") Long descendantId);
+
+    /**
+     * 批量插入数据
+     *
+     * @param list 树形关系列表
+     * @return 插入条数
+     */
+    int saveBatch(@Param("list") List<? extends TreeRelation> list);
 
     /**
      * 删除数据
@@ -32,7 +42,22 @@ public interface TreeRelationMapper<T> {
      * @param ancestorId 祖先ID
      * @return 删除条数
      */
-    int deleteByAncestorId(Long ancestorId);
+    int deleteByAncestorId(@Param("ancestorId") Long ancestorId);
+
+    /**
+     * 删除所有关系
+     *
+     * @return 删除条数
+     */
+    int deleteAll();
+
+    /**
+     * 根据站点ID删除关系
+     *
+     * @param siteId 站点ID
+     * @return 删除条数
+     */
+    int deleteBySiteId(@Param("siteId") Long siteId);
 
     /**
      * 移出数据

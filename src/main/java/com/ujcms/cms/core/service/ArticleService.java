@@ -289,7 +289,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         OffsetDateTime now = OffsetDateTime.now();
         ArticleArgs args = ArticleArgs.of()
                 .status(Collections.singleton(STATUS_READY))
-                .geOnlineDateOrNull(now);
+                .leOnlineDateOrNull(now);
         List<Article> articles = selectList(args);
         for (Article article : articles) {
             article.setStatus(STATUS_PUBLISHED);
@@ -304,7 +304,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         List<Short> normals = Arrays.asList(STATUS_PUBLISHED, STATUS_ARCHIVED);
         ArticleArgs args = ArticleArgs.of()
                 .status(normals)
-                .geOfflineDate(now);
+                .leOfflineDate(now);
         List<Article> articles = selectList(args);
         for (Article article : articles) {
             article.setStatus(STATUS_OFFLINE);

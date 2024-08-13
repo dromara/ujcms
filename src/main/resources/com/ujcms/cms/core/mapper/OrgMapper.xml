@@ -44,10 +44,20 @@
             </if>
         </where>
     </select>
+    <select id="listForTidy" resultMap="BaseResultMap">
+        select t.id_, t.parent_id_
+        from ujcms_org t
+        order by t.order_, t.id_
+    </select>
     <update id="updateDepth">
         update ujcms_org
         set depth_ = depth_ + #{depth,jdbcType=SMALLINT}
         where id_ in (select descendant_id_ from ujcms_org_tree where ancestor_id_ = #{id,jdbcType=BIGINT})
+    </update>
+    <update id="updateParentId">
+        update ujcms_org
+        set parent_id_ = #{parentId}
+        where id_ = #{id}
     </update>
     <select id="maxOrder" resultType="int">
         select max(c.order_)
@@ -57,6 +67,23 @@
             where t.ancestor_id_ = #{parentId,jdbcType=BIGINT}
         </if>
     </select>
+    <update id="batchUpdateOrderAndDepth">
+        update ujcms_org
+        <trim prefix="set" suffixOverrides=",">
+            order_ =
+            <foreach collection="list" item="item" open="case" close="end,">
+                when id_=#{item.id} then #{item.order}
+            </foreach>
+            depth_ =
+            <foreach collection="list" item="item" open="case" close="end,">
+                when id_=#{item.id} then #{item.depth}
+            </foreach>
+        </trim>
+        where id_ in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
     <update id="updateOrder">
         update ujcms_org
         set order_ = order_ + #{num,jdbcType=INTEGER}
@@ -101,8 +128,7 @@
         where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Org">
     update ujcms_org
-    set parent_id_ = #{parentId,jdbcType=BIGINT},
-      name_ = #{name,jdbcType=VARCHAR},
+    set name_ = #{name,jdbcType=VARCHAR},
       phone_ = #{phone,jdbcType=VARCHAR},
       address_ = #{address,jdbcType=VARCHAR},
       contacts_ = #{contacts,jdbcType=VARCHAR}

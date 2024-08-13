@@ -43,6 +43,7 @@ public class SiteController {
     public List<Site> list(@RequestParam(defaultValue = "false") boolean current,
                            @RequestParam(defaultValue = "false") boolean currentOrg,
                            @RequestParam(defaultValue = "true") boolean isIncludeChildren,
+                           @RequestParam(defaultValue = "false") boolean isIncludeSelf,
                            @Nullable Long parentId, @Nullable Long fullOrgId,
                            @Nullable Integer offset, @Nullable Integer limit, HttpServletRequest request) {
         Site currentSite = Contexts.getCurrentSite();
@@ -56,6 +57,10 @@ public class SiteController {
         args.fullOrgId(fullOrgId);
         if (isIncludeChildren) {
             args.ancestorId(parentId);
+        } else if (parentId == null) {
+            args.parentIdIsNull();
+        } else if (isIncludeSelf) {
+            args.parentIdAndSelf(parentId);
         } else {
             args.parentId(parentId);
         }

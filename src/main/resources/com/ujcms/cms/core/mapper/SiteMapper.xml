@@ -67,6 +67,11 @@
         (select userOrg.org_id_ from ujcms_user_org userOrg where userOrg.user_id_ = #{userId}) or orgTreeDesc.descendant_id_ = #{orgId})
         order by t.order_, t.id_
     </select>
+    <select id="listForTidy" resultMap="BaseResultMap">
+        select t.id_, t.parent_id_
+        from ujcms_site t
+        order by t.order_, t.id_
+    </select>
     <select id="listIdByOrgId" resultType="long">
         select t.id_
         from ujcms_site t
@@ -94,6 +99,11 @@
         set depth_ = depth_ + #{depth,jdbcType=SMALLINT}
         where id_ in (select descendant_id_ from ujcms_site_tree where ancestor_id_ = #{id,jdbcType=BIGINT})
     </update>
+    <update id="updateParentId">
+        update ujcms_site
+        set parent_id_ = #{parentId}
+        where id_ = #{id}
+    </update>
     <select id="maxOrder" resultType="int">
         select max(c.order_)
         from ujcms_site c
@@ -102,6 +112,23 @@
             where t.ancestor_id_ = #{parentId,jdbcType=BIGINT}
         </if>
     </select>
+    <update id="batchUpdateOrderAndDepth">
+        update ujcms_site
+        <trim prefix="set" suffixOverrides=",">
+            order_ =
+            <foreach collection="list" item="item" open="case" close="end,">
+                when id_=#{item.id} then #{item.order}
+            </foreach>
+            depth_ =
+            <foreach collection="list" item="item" open="case" close="end,">
+                when id_=#{item.id} then #{item.depth}
+            </foreach>
+        </trim>
+        where id_ in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
     <update id="updateOrder">
         update ujcms_site
         set order_ = order_ + #{num,jdbcType=INTEGER}
@@ -155,8 +182,7 @@
         where id_ = #{id,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Site">
     update ujcms_site
-    set parent_id_ = #{parentId,jdbcType=BIGINT},
-      org_id_ = #{orgId,jdbcType=BIGINT},
+    set org_id_ = #{orgId,jdbcType=BIGINT},
       model_id_ = #{modelId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
       protocol_ = #{protocol,jdbcType=VARCHAR},

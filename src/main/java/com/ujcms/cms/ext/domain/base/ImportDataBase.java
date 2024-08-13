@@ -19,7 +19,11 @@ public class ImportDataBase implements Serializable {
      */
     public static final String TABLE_NAME = "import_data";
 
+    /**
+     * 导入数据ID
+     */
     @NotNull
+    @Schema(description="导入数据ID")
     private Long id = 0L;
 
     /**

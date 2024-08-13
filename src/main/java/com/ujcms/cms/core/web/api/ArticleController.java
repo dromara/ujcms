@@ -88,9 +88,9 @@ public class ArticleController {
     @Operation(summary = "获取文章列表（ArticleList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
-    @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
+    @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名。多个栏目别名可以用逗号分开，如`news,sports`",
             schema = @Schema(type = "string"))
-    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
+    @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID。多个栏目ID可以用逗号分开，如`23,5,89`",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
             schema = @Schema(type = "integer", format = "int32"))

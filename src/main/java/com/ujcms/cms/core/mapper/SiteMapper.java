@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.mapper;
 
+import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.commons.db.tree.TreeEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
@@ -57,6 +58,13 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
      * @return 站点列表
      */
     List<Site> listByUserIdAndOrgId(@Param("userId") Long userId, @Param("orgId") Long orgId);
+
+    /**
+     * 获取所有站点。用于整理树形结构，只获取必须字段
+     *
+     * @return 数据列表
+     */
+    List<Site> listForTidy();
 
     /**
      * 根据组织ID查找站点ID

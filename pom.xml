@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.6.0</version>
+    <version>9.6.1</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -31,8 +31,10 @@
         <flowable-spring-boot-starter>6.8.1</flowable-spring-boot-starter>
         <!-- 全文索引组件 -->
         <lucene.version>8.11.1</lucene.version>
-        <!-- 全文索引分词器 -->
+        <!-- 全文索引分词器 jcseg -->
         <jcseg-analyzer.version>2.6.3</jcseg-analyzer.version>
+        <!-- 全文索引分词器 IK -->
+        <ik-analyzer.version>8.5.0</ik-analyzer.version>
         <!--<elasticsearch.version>7.15.2</elasticsearch.version>-->
         <!-- freemarker java8 日期组件 -->
         <freemarker-java8.version>2.0.0</freemarker-java8.version>
@@ -226,6 +228,26 @@
             <groupId>org.flowable</groupId>
             <artifactId>flowable-spring-boot-starter-process</artifactId>
             <version>${flowable-spring-boot-starter}</version>
+        </dependency>
+        <!-- IK 中文分词 -->
+        <dependency>
+            <groupId>com.github.magese</groupId>
+            <artifactId>ik-analyzer</artifactId>
+            <version>${ik-analyzer.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.lucene</groupId>
+                    <artifactId>lucene-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.lucene</groupId>
+                    <artifactId>lucene-queryparser</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.lucene</groupId>
+                    <artifactId>lucene-analyzers-common</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- jcseg 中文分词 -->
         <dependency>

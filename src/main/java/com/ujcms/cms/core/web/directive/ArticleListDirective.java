@@ -35,11 +35,11 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String SITE_ID = "siteId";
     /**
-     * 栏目别名。字符串(String)。
+     * 栏目别名。多个栏目别名可以用逗号分开，如`news,sports`。字符串(String)。
      */
     public static final String CHANNEL = "channel";
     /**
-     * 栏目ID。整型(Integer)。
+     * 栏目ID。多个栏目ID可以用逗号分开，如`23,5,89`。整型(Integer)。
      */
     public static final String CHANNEL_ID = "channelId";
     /**

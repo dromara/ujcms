@@ -101,10 +101,10 @@ public class FormBase implements Serializable {
     private String ip = "";
 
     /**
-     * 排序
+     * 排列顺序
      */
     @NotNull
-    @Schema(description="排序")
+    @Schema(description="排列顺序")
     private Long order = 0L;
 
     /**

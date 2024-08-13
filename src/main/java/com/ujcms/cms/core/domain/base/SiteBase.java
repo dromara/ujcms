@@ -198,10 +198,10 @@ public class SiteBase implements Serializable {
     private Short depth = 1;
 
     /**
-     * 排序
+     * 排列顺序
      */
     @NotNull
-    @Schema(description="排序")
+    @Schema(description="排列顺序")
     private Integer order = 999999;
 
     /**

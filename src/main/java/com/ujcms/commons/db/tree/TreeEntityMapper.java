@@ -3,6 +3,8 @@ package com.ujcms.commons.db.tree;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
+
 /**
  * 树形 Mapper
  *
@@ -52,6 +54,15 @@ public interface TreeEntityMapper<T> {
     int updateDepth(@Param("id") Long id, @Param("depth") short depth);
 
     /**
+     * 更新上级节点
+     *
+     * @param id       节点ID
+     * @param parentId 上级节点ID
+     * @return 更新条数
+     */
+    int updateParentId(@Param("id") Long id, @Param("parentId") @Nullable Long parentId);
+
+    /**
      * 获取最大的序号值
      *
      * @param parentId 上级ID。可以为 {@code null}
@@ -71,6 +82,14 @@ public interface TreeEntityMapper<T> {
      * @return 更新条数
      */
     int updateOrder(@Param("begin") int begin, @Param("end") int end, @Param("num") int num, @Param("siteId") @Nullable Long siteId);
+
+    /**
+     * 批量更新序号值和深度
+     *
+     * @param list 待更新数据列表
+     * @return 更新条数
+     */
+    int batchUpdateOrderAndDepth(List<? extends TreeEntity> list);
 
     /**
      * 更新序号值

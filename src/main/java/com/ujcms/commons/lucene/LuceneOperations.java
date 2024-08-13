@@ -1,10 +1,17 @@
 package com.ujcms.commons.lucene;
 
+import com.ujcms.cms.core.lucene.domain.WebPage;
 import com.ujcms.commons.query.OffsetLimitRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.Fields;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
+import org.apache.lucene.search.highlight.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +23,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_BODY;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_TITLE;
+
 /**
  * Lucene 操作模板
  *
@@ -25,15 +35,18 @@ public class LuceneOperations {
     private final boolean autoCommit;
     private final IndexWriter indexWriter;
     private final SearcherManager searcherManager;
+    private final Analyzer analyzer;
 
-    public LuceneOperations(IndexWriter indexWriter, SearcherManager searcherManager, boolean autoCommit) {
+    public LuceneOperations(IndexWriter indexWriter, SearcherManager searcherManager, Analyzer analyzer,
+                            boolean autoCommit) {
         this.indexWriter = indexWriter;
         this.searcherManager = searcherManager;
+        this.analyzer = analyzer;
         this.autoCommit = autoCommit;
     }
 
-    public LuceneOperations(IndexWriter indexWriter, SearcherManager searcherManager) {
-        this(indexWriter, searcherManager, true);
+    public LuceneOperations(IndexWriter indexWriter, SearcherManager searcherManager, Analyzer analyzer) {
+        this(indexWriter, searcherManager, analyzer, true);
     }
 
     public <T> List<T> list(Query query, OffsetLimitRequest offsetLimit, @Nullable Sort sort, Function<Document, T> handle) {
@@ -65,17 +78,41 @@ public class LuceneOperations {
         return searcher.search(query, n);
     }
 
-    public <T> Page<T> page(Query query, Pageable pageable, @Nullable Sort sort, Function<Document, T> handle) {
+    public <T extends WebPage> Page<T> page(Query query, Pageable pageable, @Nullable Sort sort, int fragmentSize,
+                                            Function<Document, T> handle) {
         try {
             searcherManager.maybeRefresh();
             IndexSearcher searcher = searcherManager.acquire();
+            IndexReader indexReader = searcher.getIndexReader();
+            SimpleHTMLFormatter formatter = new SimpleHTMLFormatter("<em>", "</em>");
+            Highlighter highlighter = new Highlighter(formatter, new QueryScorer(query));
+            highlighter.setTextFragmenter(new SimpleFragmenter(fragmentSize));
             try {
                 TopDocs results = search(searcher, query, pageable, sort);
                 int length = results.scoreDocs.length;
                 int size = length - (int) pageable.getOffset();
                 List<T> content = new ArrayList<>(size);
                 for (int i = (int) pageable.getOffset(); i < length; i++) {
-                    content.add(handle.apply(searcher.doc(results.scoreDocs[i].doc)));
+                    int docId = results.scoreDocs[i].doc;
+                    T bean = handle.apply(searcher.doc(docId));
+                    // 处理高亮
+                    Fields vectors = indexReader.getTermVectors(docId);
+                    String title = bean.getTitle();
+                    int maxStartOffset = highlighter.getMaxDocCharsToAnalyze() - 1;
+                    TokenStream titleStream = TokenSources.getTokenStream(FIELD_TITLE, vectors, title,
+                            analyzer, maxStartOffset);
+                    bean.setHighlightTitle(highlighter.getBestFragment(titleStream, title));
+                    // 这个方法更慢，弃用
+                    // bean.setHighlightTitle(highlighter.getBestFragment(analyzer, FIELD_TITLE, title))
+                    String body = bean.getBody();
+                    if (StringUtils.isNotBlank(body)) {
+                        TokenStream bodyStream = TokenSources.getTokenStream(FIELD_BODY, vectors, body,
+                                analyzer, maxStartOffset);
+                        bean.setHighlightBody(highlighter.getBestFragment(bodyStream, body));
+                        // 这个方法更慢，弃用
+                        // bean.setHighlightBody(highlighter.getBestFragment(analyzer, FIELD_BODY, body))
+                    }
+                    content.add(bean);
                 }
                 long total = results.totalHits.value;
                 return new PageImpl<>(content, pageable, total);

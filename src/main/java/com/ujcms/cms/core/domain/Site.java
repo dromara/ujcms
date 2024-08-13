@@ -63,7 +63,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     public String assembleLinkUrl(String linkUrl) {
         if (linkUrl.startsWith(SLASH) && !linkUrl.startsWith(DOUBLE_SLASH)) {
-            return UrlBuilder.of()
+            return UrlBuilder.of(SLASH)
                     .appendPath(getConfig().getContextPath())
                     .appendPath(getSubDir())
                     .appendPath(linkUrl)
@@ -510,6 +510,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         this.hasChildren = hasChildren;
     }
 
+    @Nullable
     public List<Site> getChildren() {
         return children;
     }

@@ -116,7 +116,7 @@ public class ScheduleConfig {
             @Qualifier("updateArticleStatusJobDetail") JobDetail updateArticleStatusJobDetail) {
         CronTriggerFactoryBean factoryBean = new CronTriggerFactoryBean();
         factoryBean.setJobDetail(updateArticleStatusJobDetail);
-        factoryBean.setCronExpression("0 10 * * * ?");
+        factoryBean.setCronExpression("0 0/10 * * * ?");
         return factoryBean;
     }
 

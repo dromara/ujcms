@@ -20,12 +20,15 @@ import com.ujcms.cms.core.service.RoleService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.cms.core.web.support.MoveParams;
 import com.ujcms.cms.core.web.support.ValidUtils;
+import com.ujcms.commons.db.tree.TreeSortEntity;
 import com.ujcms.commons.web.Entities;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Responses.Body;
 import com.ujcms.commons.web.Servlets;
 import com.ujcms.commons.web.Views;
+import com.ujcms.commons.web.exception.Http400Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +40,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -83,7 +86,7 @@ public class ChannelController {
     @PreAuthorize("hasAnyAuthority('channel:list','*')")
     public List<Channel> list(@RequestParam(defaultValue = "false") boolean isArticlePermission,
                               @RequestParam(defaultValue = "true") boolean isIncludeChildren,
-                              @RequestParam(defaultValue = "false") boolean isOnlyParent,
+                              @RequestParam(defaultValue = "false") boolean isIncludeSelf,
                               Long parentId, Long siteId,
                               HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
@@ -100,15 +103,14 @@ public class ChannelController {
             } else {
                 args.siteId(siteId);
             }
+        } else if (parentId == null) {
+            args.siteId(siteId);
+            args.parentIdIsNull();
+        } else if (isIncludeSelf) {
+            args.parentIdAndSelf(parentId);
         } else {
-            if (parentId != null) {
-                args.parentId(parentId);
-            } else {
-                args.siteId(siteId);
-                args.parentIdIsNull();
-            }
+            args.parentId(parentId);
         }
-        args.setOnlyParent(isOnlyParent);
         return service.selectList(args);
     }
 
@@ -117,7 +119,7 @@ public class ChannelController {
     public Channel show(@PathVariable Long id) {
         Channel bean = service.select(id);
         if (bean == null) {
-            throw new Http404Exception(CHANNEL_NOT_FOUND + id);
+            throw new Http404Exception(Channel.NOT_FOUND + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
@@ -166,13 +168,13 @@ public class ChannelController {
         Site site = Contexts.getCurrentSite();
         Channel channel = service.select(bean.getId());
         if (channel == null) {
-            return Responses.notFound(CHANNEL_NOT_FOUND + bean.getId());
+            return Responses.notFound(Channel.NOT_FOUND + bean.getId());
         }
         ValidUtils.dataInSite(bean.getSiteId(), site.getId());
         User user = Contexts.getCurrentUser();
         Entities.copy(bean, channel, "siteId", "parentId", "order");
         channel.setCustoms(bean.getCustoms());
-        service.update(channel, bean.getParentId(), null, null, null);
+        service.update(channel, null, null, null);
         if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, "task.html.channelRelated");
             generator.updateChannelRelatedHtml(channel.getSiteId(), user.getId(), taskName, channel.getId());
@@ -180,21 +182,43 @@ public class ChannelController {
         return Responses.ok();
     }
 
-    @PutMapping("order")
+    @PutMapping("move")
     @PreAuthorize("hasAnyAuthority('channel:update','*')")
-    @OperationLog(module = "channel", operation = "updateOrder", type = OperationType.UPDATE)
-    public ResponseEntity<Body> updateOrder(@RequestBody Long[] ids) {
+    @OperationLog(module = "channel", operation = "move", type = OperationType.UPDATE)
+    public ResponseEntity<Body> move(@RequestBody MoveParams params) {
         Long siteId = Contexts.getCurrentSiteId();
-        List<Channel> list = new ArrayList<>();
-        for (Long id : ids) {
-            Channel bean = service.select(id);
-            if (bean == null) {
-                return Responses.notFound(CHANNEL_NOT_FOUND + id);
+        // 检查栏目是否属于当前站点
+        Channel from = Optional.ofNullable(service.select(params.getFromId()))
+                .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + params.getFromId()));
+        ValidUtils.dataInSite(from.getSiteId(), siteId);
+        Channel to = Optional.ofNullable(service.select(params.getToId()))
+                .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + params.getToId()));
+        ValidUtils.dataInSite(to.getSiteId(), siteId);
+        // 不能移动到自己的子节点下
+        for (Channel parent : to.getPaths()) {
+            if (parent.getId().equals(from.getId())) {
+                throw new Http400Exception(String.format("Cannot move Channel(id=%s) to child(id=%s)",
+                        params.getFromId(), params.getToId()));
             }
-            ValidUtils.dataInSite(bean.getSiteId(), siteId);
-            list.add(bean);
         }
-        service.updateOrder(list);
+        service.move(from, to, params.getType(), siteId);
+        return Responses.ok();
+    }
+
+    /**
+     * 整理树形结构
+     */
+    @PutMapping("tidy-tree")
+    @PreAuthorize("hasAnyAuthority('channel:tidyTree','*')")
+    @OperationLog(module = "channel", operation = "tidyTree", type = OperationType.UPDATE)
+    public ResponseEntity<Body> tidyTree() {
+        Long siteId = Contexts.getCurrentSiteId();
+        List<Channel> list = service.listBySiteIdForTidy(siteId);
+        List<TreeSortEntity> tree = service.toTree(list);
+        int size = list.size();
+        service.tidyTreeOrderAndDepth(tree, size);
+        service.deleteRelationBySiteId(siteId);
+        service.tidyTreeRelation(tree, size);
         return Responses.ok();
     }
 
@@ -266,6 +290,4 @@ public class ChannelController {
         }
         return service.existsByAlias(alias, siteId);
     }
-
-    private static final String CHANNEL_NOT_FOUND = "Channel not found. ID = ";
 }

@@ -31,7 +31,7 @@ public abstract class BaseOauthClient {
     protected String scope;
 
     protected BaseOauthClient(String provider, String clientId, String clientSecret, String redirectUri,
-                          @Nullable String scope) {
+                              @Nullable String scope) {
         this.provider = provider;
         this.clientId = clientId;
         this.clientSecret = clientSecret;

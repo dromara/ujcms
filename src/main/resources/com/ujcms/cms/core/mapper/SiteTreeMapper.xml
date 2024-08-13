@@ -5,6 +5,15 @@
     <id column="descendant_id_" jdbcType="BIGINT" property="descendantId" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.SiteTree" />
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.SiteTree" />
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+    <delete id="deleteAll">
+        delete
+        from ujcms_site_tree
+    </delete>
+    <delete id="deleteBySiteId">
+        delete
+        from ujcms_site_tree
+    </delete>
     <select id="listByAncestorId" resultType="long">
         select t.descendant_id_
         from ujcms_site_tree t
@@ -13,6 +22,14 @@
     <insert id="save">
         insert into ujcms_site_tree (ancestor_id_, descendant_id_)
         values (#{ancestorId,jdbcType=BIGINT}, #{descendantId,jdbcType=BIGINT})
+    </insert>
+    <insert id="saveBatch">
+        insert into ujcms_site_tree (ancestor_id_, descendant_id_)
+        <trim prefix="values" suffixOverrides=",">
+            <foreach collection="list" item="item">
+                (#{item.ancestorId}, #{item.descendantId}),
+            </foreach>
+        </trim>
     </insert>
     <insert id="add">
         insert into ujcms_site_tree (ancestor_id_, descendant_id_)

@@ -1,6 +1,5 @@
 package com.ujcms.cms.core.mapper;
 
-import com.ujcms.cms.core.domain.OrgTree;
 import com.ujcms.commons.db.tree.TreeRelationMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -15,7 +14,7 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface OrgTreeMapper extends TreeRelationMapper<OrgTree> {
+public interface OrgTreeMapper extends TreeRelationMapper {
     /**
      * 查询用户组织ID和站点组织ID是否存在上下级关系
      *
