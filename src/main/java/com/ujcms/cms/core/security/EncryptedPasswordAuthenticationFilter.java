@@ -12,7 +12,6 @@ import com.ujcms.commons.security.IpExcessiveAttemptsException;
 import com.ujcms.commons.security.Secures;
 import com.ujcms.commons.web.Servlets;
 import org.springframework.lang.Nullable;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -75,11 +74,6 @@ public class EncryptedPasswordAuthenticationFilter extends UsernamePasswordAuthe
         }
         // 前台密码已通过SM2加密，此处进行解密
         return Secures.sm2Decrypt(encryptedPassword, props.getClientSm2PrivateKey());
-    }
-
-    @Override
-    protected AuthenticationManager getAuthenticationManager() {
-        return super.getAuthenticationManager();
     }
 
     public static final String FORM_CAPTCHA_KEY = "captcha";

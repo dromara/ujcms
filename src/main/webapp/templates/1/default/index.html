@@ -11,6 +11,14 @@
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
+  [#if config.greyStyle]
+    <style>
+      body {
+        filter: grayscale(.95);
+        -webkit-filter: grayscale(.95);
+      }
+    </style>
+  [/#if]
 </head>
 <body>
 [#assign headerShadow=true/]

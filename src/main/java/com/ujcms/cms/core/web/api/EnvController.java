@@ -9,10 +9,12 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.StaticProps;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
@@ -103,5 +105,13 @@ public class EnvController {
     public boolean isDisplayCaptcha() {
         Config.Security security = configService.getUnique().getSecurity();
         return security.isTwoFactor();
+    }
+
+    /**
+     * csrf 参数
+     */
+    @GetMapping("/csrf")
+    public CsrfToken csrf(HttpServletRequest request) {
+        return (CsrfToken) request.getAttribute(CsrfToken.class.getName());
     }
 }

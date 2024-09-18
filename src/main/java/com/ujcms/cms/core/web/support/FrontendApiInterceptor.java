@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 /**
- * 前台拦截器
+ * 前台 API 拦截器
  *
  * @author PONY
  */

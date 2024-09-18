@@ -60,7 +60,7 @@ public class LeaderBoardController {
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型。channel:栏目排行榜, org:组织排行榜, user:用户排行榜。默认：栏目。",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isPublished", description = "是否发布。`true`:已发布文章, `false`:全部文章。默认：`false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "period", description = "期间。none:无期间，即所有, today:当天, week:本周, month:本月, quarter:本季, year:本年。默认: none",
@@ -89,7 +89,7 @@ public class LeaderBoardController {
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型。channel:栏目排行榜, org:组织排行榜, user:用户排行榜。默认：栏目。",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isPublished", description = "是否发布。`true`:已发布文章, `false`:全部文章。默认：`false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "period", description = "期间。none:无期间，即所有, today:当天, week:本周, month:本月, quarter:本季, year:本年。默认: none",

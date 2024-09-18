@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 import static com.ujcms.cms.core.domain.Config.Register.*;
 import static com.ujcms.cms.core.domain.User.STATUS_ENABLED;
-import static com.ujcms.cms.core.domain.User.STATUS_INACTIVATED;
+import static com.ujcms.cms.core.domain.User.STATUS_UNACTIVATED;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 
@@ -102,7 +102,7 @@ public class RegisterController {
             default:
                 throw new IllegalStateException("Registration verify mode is illegal: " + verifyMode);
         }
-        user.setStatus(verifyMode == VERIFY_MODE_MANUAL ? STATUS_INACTIVATED : STATUS_ENABLED);
+        user.setStatus(verifyMode == VERIFY_MODE_MANUAL ? STATUS_UNACTIVATED : STATUS_ENABLED);
         user.setGroupId(Group.MEMBER_GROUP_ID);
         user.setOrgId(Org.MEMBER_ORG_ID);
         user.setType(User.TYPE_MEMBER);

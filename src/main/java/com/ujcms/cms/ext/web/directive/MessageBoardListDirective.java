@@ -28,13 +28,17 @@ import static com.ujcms.commons.db.MyBatis.springPage;
  */
 public class MessageBoardListDirective implements TemplateDirectiveModel {
     /**
-     * 站点ID。整型(Integer)。
+     * 站点ID。整型(Long)。
      */
     public static final String SITE_ID = "siteId";
     /**
-     * 类型ID。整型(Integer)。
+     * 类型ID。整型(Long)。
      */
     public static final String TYPE_ID = "typeId";
+    /**
+     * 用户ID。整型(Long)。
+     */
+    public static final String USER_ID = "userId";
     /**
      * 是否推荐。布尔型
      */
@@ -60,6 +64,7 @@ public class MessageBoardListDirective implements TemplateDirectiveModel {
         }
         args.siteId(siteId);
         Optional.ofNullable(getLong(params, TYPE_ID)).ifPresent(args::typeId);
+        Optional.ofNullable(getLong(params, USER_ID)).ifPresent(args::userId);
         Optional.ofNullable(getBoolean(params, IS_RECOMMENDED)).ifPresent(args::isRecommended);
         Optional.ofNullable(getBoolean(params, IS_REPLIED)).ifPresent(args::isReplied);
         Optional.ofNullable(getShorts(params, STATUS)).ifPresent(args::status);

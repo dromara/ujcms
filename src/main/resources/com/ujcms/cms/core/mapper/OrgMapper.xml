@@ -71,16 +71,16 @@
         update ujcms_org
         <trim prefix="set" suffixOverrides=",">
             order_ =
-            <foreach collection="list" item="item" open="case" close="end,">
+            <foreach close="end," collection="list" item="item" open="case">
                 when id_=#{item.id} then #{item.order}
             </foreach>
             depth_ =
-            <foreach collection="list" item="item" open="case" close="end,">
+            <foreach close="end," collection="list" item="item" open="case">
                 when id_=#{item.id} then #{item.depth}
             </foreach>
         </trim>
         where id_ in
-        <foreach collection="list" item="item" open="(" separator="," close=")">
+        <foreach close=")" collection="list" item="item" open="(" separator=",">
             #{item.id}
         </foreach>
     </update>

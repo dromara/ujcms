@@ -61,11 +61,11 @@ public class FormController {
 
     @Operation(summary = "获取表单列表（FormList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID。必选项",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "orgId", description = "组织ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "userId", description = "用户ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
@@ -82,11 +82,11 @@ public class FormController {
 
     @Operation(summary = "获取表单分页（FormPage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID。必选项",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "orgId", description = "组织ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "userId", description = "用户ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "page", description = "第几页",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "pageSize", description = "每页多少条数据。最大不能超过1000",

@@ -95,7 +95,7 @@ public class ScheduleConfig {
     }
 
     /**
-     * 更新统计任务
+     * 更新文章状态 JobDetail
      */
     @Bean("updateArticleStatusJobDetail")
     public JobDetailFactoryBean updateArticleStatusJobDetail() {
@@ -107,7 +107,7 @@ public class ScheduleConfig {
     }
 
     /**
-     * 更新文章状态。包括文章置顶和文章上下线。每10分钟执行一次。
+     * 更新文章上下线状态 Trigger。包括文章置顶和文章上下线。每10分钟执行一次。
      * <p>
      * 需要集群。只要在一台机器上执行即可，不需要在多台机器同时运行。
      */
@@ -120,6 +120,9 @@ public class ScheduleConfig {
         return factoryBean;
     }
 
+    /**
+     * 更新文章上下线状态 Job
+     */
     @Component
     public static class UpdateArticleStatusJob extends QuartzJobBean {
         private final ArticleService articleService;
@@ -149,4 +152,5 @@ public class ScheduleConfig {
             htmlGenerator.updateArticleRelatedHtml(siteId, User.ANONYMOUS_ID, taskName, articles, null);
         }
     }
+
 }

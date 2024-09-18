@@ -62,9 +62,9 @@ public class JwtAuthService {
     public ResponseEntity<Responses.Body> disabledUser(
             User user, String username, String ip, HttpServletRequest request) {
         // 用户未激活
-        if (user.isInactivated()) {
+        if (user.isUnactivated()) {
             loginLogService.loginFailure(user.getId(), username, ip, LoginLog.STATUS_USER_INACTIVATED);
-            return Responses.failure(request, "error.userInactivated");
+            return Responses.failure(request, "error.userUnactivated");
         }
         // 用户已锁定
         if (user.isLocked()) {

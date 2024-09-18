@@ -94,6 +94,23 @@ public class GlobalSettingsController {
         return Responses.ok();
     }
 
+    @GetMapping("grey")
+    @PreAuthorize("hasAnyAuthority('config:grey:show','*')")
+    public Config.Grey showGrey() {
+        Config config = service.getUnique();
+        return config.getGrey();
+    }
+
+    @PutMapping("grey")
+    @OperationLog(module = "config", operation = "updateGrey", type = OperationType.UPDATE)
+    @PreAuthorize("hasAnyAuthority('config:grey:update','*')")
+    public ResponseEntity<Body> updateSms(@RequestBody @Valid Config.Grey bean) {
+        Config config = service.getUnique();
+        config.setGrey(bean);
+        service.update(config);
+        return Responses.ok();
+    }
+
     @GetMapping("sms")
     @PreAuthorize("hasAnyAuthority('config:sms:show','*')")
     public Config.Sms showSms() {

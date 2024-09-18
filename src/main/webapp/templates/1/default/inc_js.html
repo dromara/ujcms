@@ -18,8 +18,6 @@
   const visitApi = "${api}";
   const visitDy = "${dy}";
   const visitSiteId = "${site.id?c}";
-  let csrfName = "${_csrf.parameterName}";
-  let csrfValue = "${_csrf.token}";
   (function () {
     const visit = document.createElement("script");
     visit.src = "${files}/js/visit.js";

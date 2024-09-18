@@ -27,6 +27,13 @@ public class MessageBoardArgs extends BaseQueryArgs {
         return this;
     }
 
+    public MessageBoardArgs userId(@Nullable Long userId) {
+        if (userId != null) {
+            queryMap.put("EQ_userId_Long", userId);
+        }
+        return this;
+    }
+
     public MessageBoardArgs isRecommended(@Nullable Boolean isRecommended) {
         if (isRecommended != null) {
             queryMap.put("EQ_recommended_Boolean", isRecommended);

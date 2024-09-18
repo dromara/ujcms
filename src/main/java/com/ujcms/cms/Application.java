@@ -53,7 +53,7 @@ import static com.ujcms.cms.core.support.UrlConstants.*;
 
 /**
  * 根据 https://start.spring.io/ 生成的代码范例。
- * 
+ *
  * SpringBoot的入口和主要配置文件
  *
  * @author PONY
@@ -133,7 +133,7 @@ public class Application extends SpringBootServletInitializer
          */
         @Bean
         public ExceptionResolver exceptionResolver() {
-            return new ExceptionResolver();
+            return new ExceptionResolver(configService);
         }
 
         /**

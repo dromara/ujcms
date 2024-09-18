@@ -59,7 +59,17 @@ ujcms.databaseBinPath:
 #ujcms.databaseType: opengauss
 #ujcms.databaseBinPath:
 
-# 瀚高数据库（不能使用PostgreSQL原版驱动）
+# vastbase海量数据库（使用仿 PostgreSQL 版驱动 cn.com.vastdata:vastbase-jdbc:2.9p，并删除 PostgreSQL 驱动）
+# 也可直接使用 openGauss 驱动 org.opengauss:opengauss-jdbc:5.0.0
+#spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
+#spring.datasource.username: gaussdb
+#spring.datasource.password: openGauss@123
+#spring.datasource.driver-class-name: org.postgresql.Driver
+#ujcms.data-sql-platform: postgresql
+#ujcms.databaseType: opengauss
+#ujcms.databaseBinPath:
+
+# 瀚高数据库（不能使用 PostgreSQL 原版驱动）
 #spring.datasource.url: jdbc:highgo://localhost:5866/ujcms
 #spring.datasource.username: highgo
 #spring.datasource.password: password
@@ -251,7 +261,7 @@ spring.freemarker.settings.new_builtin_class_resolver: allows_nothing
 # JWT后台Session过期时间。单位：分钟。默认：30
 jwt.sessionTimeout: 30
 # 系统版本号。获取 maven 里的 version 配置。
-ujcms.version: @project.version@
+ujcms.version: "@project.version@"
 # 主键序列缓存大小。正式环境建议50或100以上。
 ujcms.sequence-cache-size: 50
 # 是否允许访问JSP。默认不允许。允许JSP访问会带来一定的安全风险，攻击者可以通过上传JSP文件，获得webshell。

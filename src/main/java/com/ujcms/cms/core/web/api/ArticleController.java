@@ -87,13 +87,13 @@ public class ArticleController {
 
     @Operation(summary = "获取文章列表（ArticleList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名。多个栏目别名可以用逗号分开，如`news,sports`",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID。多个栏目ID可以用逗号分开，如`23,5,89`",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
             schema = @Schema(type = "string", format = "date-time"))
     @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "结束发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
@@ -105,7 +105,7 @@ public class ArticleController {
     @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-            schema = @Schema(type = "string", format = "int32 array"))
+            schema = @Schema(type = "string", format = "int64 array"))
     @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回。默认：0（已发布）",
             schema = @Schema(type = "string", format = "int16 array"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
@@ -130,13 +130,13 @@ public class ArticleController {
 
     @Operation(summary = "获取文章分页（ArticlePage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "tagId", description = "TagID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
             schema = @Schema(type = "string", format = "date-time"))
     @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "接受发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
@@ -148,7 +148,7 @@ public class ArticleController {
     @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-            schema = @Schema(type = "string", format = "int32 array"))
+            schema = @Schema(type = "string", format = "int64 array"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
@@ -217,9 +217,9 @@ public class ArticleController {
 
     @Operation(summary = "获取下一篇文章（ArticleNext标签）")
     @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "order", description = "文章排序值",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isDesc", description = "是否倒序。默认 true",
@@ -232,9 +232,9 @@ public class ArticleController {
 
     @Operation(summary = "获取上一篇文章（ArticlePrev标签）")
     @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "order", description = "文章排序值",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isDesc", description = "是否倒序。默认 true",

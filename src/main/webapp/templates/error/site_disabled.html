@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+[#import "/spring.ftl" as spring/]
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>${status}</title>
+  [#--<meta name="robots" content="noindex,nofollow,noarchive">--]
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="renderer" content="webkit">
+  <link rel="stylesheet" href="${templateUrl!'../templates'}/error/_files/vendor/bootstrap/dist/css/bootstrap.min.css">
+  [#--<link rel="stylesheet" href="${templateUrl!'../templates'}/error/_files/vendor/fontawesome-free/css/all.min.css">--]
+</head>
+<body class="p-2">
+<h4>站点被禁用，暂时不可访问</h4>
+<p><code>${site.name}(ID: ${site.id})</code></p>
+<script src="${templateUrl!'../templates'}/error/_files/vendor/jquery/dist/jquery.slim.min.js"></script>
+<script src="${templateUrl!'../templates'}/error/_files/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+[/#escape]

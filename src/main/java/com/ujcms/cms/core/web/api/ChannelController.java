@@ -56,11 +56,11 @@ public class ChannelController {
 
     @Operation(summary = "获取栏目列表（ChannelList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "parent", description = "上级栏目别名",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "parentId", description = "上级栏目ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isNav", description = "是否导航。如：`true` `false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllowSearch", description = "是否可搜索。如：`true` `false`",

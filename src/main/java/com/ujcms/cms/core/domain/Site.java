@@ -156,6 +156,18 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return !getTheme().equals(getMobileTheme());
     }
 
+    public boolean isEnabled() {
+        return getStatus() == STATUS_NORMAL;
+    }
+
+    public boolean isDisabled() {
+        return !isEnabled();
+    }
+
+    public boolean isHtmlEnabled() {
+        return isEnabled() && getHtml().isEnabled();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -817,6 +829,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
      */
     public static final short STATUS_DISABLED = 1;
 
-    public static final String NOT_FOUND = "Site not found. ID = ";
+    public static final String NOT_FOUND = "Site not found. ID: ";
     // endregion
 }

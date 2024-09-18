@@ -95,7 +95,7 @@
         <table tableName="ujcms_site" domainObjectName="Site">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
-            <property name="updateExcludes" value="parent_id_,depth_,order_,views_,self_views_,today_views_,yesterday_views_,max_views_,max_date_"/>
+            <property name="updateExcludes" value="parent_id_,depth_,order_,grey_style_,views_,self_views_,today_views_,yesterday_views_,max_views_,max_date_"/>
         </table>
         <table tableName="ujcms_site_tree" domainObjectName="SiteTree">
             <property name="service" value="false"/>

@@ -76,7 +76,7 @@ public class SurveyController {
 
     @Operation(summary = "获取调查问卷列表（SurveyList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在调查期限内。如：`true` `false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点调查问卷。如：`true` `false`，默认`false`",
@@ -97,7 +97,7 @@ public class SurveyController {
 
     @Operation(summary = "获取调查问卷分页（SurveyPage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在调查期限内。如：`true` `false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点调查问卷。如：`true` `false`，默认`false`",

@@ -3,9 +3,10 @@ package com.ujcms.commons.web.exception;
 import org.springframework.security.core.AuthenticationException;
 
 /**
- * 未登录异常
+ * SC_UNAUTHORIZED 未登录 异常
  *
  * @author PONY
+ * @see javax.servlet.http.HttpServletResponse#SC_UNAUTHORIZED
  */
 public class Http401Exception extends AuthenticationException {
     private static final long serialVersionUID = -1325093172977830437L;

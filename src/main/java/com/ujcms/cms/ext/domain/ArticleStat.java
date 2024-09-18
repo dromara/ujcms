@@ -32,17 +32,17 @@ public class ArticleStat implements Serializable {
      * 用户ID
      */
     @Nullable
-    private Integer userId;
+    private Long userId;
     /**
      * 栏目ID
      */
     @Nullable
-    private Integer channelId;
+    private Long channelId;
     /**
      * 组织ID
      */
     @Nullable
-    private Integer orgId;
+    private Long orgId;
 
     /**
      * 用户
@@ -85,29 +85,29 @@ public class ArticleStat implements Serializable {
     }
 
     @Nullable
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(@Nullable Integer userId) {
+    public void setUserId(@Nullable Long userId) {
         this.userId = userId;
     }
 
     @Nullable
-    public Integer getChannelId() {
+    public Long getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(@Nullable Integer channelId) {
+    public void setChannelId(@Nullable Long channelId) {
         this.channelId = channelId;
     }
 
     @Nullable
-    public Integer getOrgId() {
+    public Long getOrgId() {
         return orgId;
     }
 
-    public void setOrgId(@Nullable Integer orgId) {
+    public void setOrgId(@Nullable Long orgId) {
         this.orgId = orgId;
     }
 

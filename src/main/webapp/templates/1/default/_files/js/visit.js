@@ -153,25 +153,19 @@
     }
 
     function fetchCsrf(callback) {
-        if (!csrfName || !csrfValue) {
-            axios.get(visitDy + '/app/csrf').then(function (response) {
-                if (response.data) {
-                    const arr = response.data.split(',');
-                    if (arr.length >=3) {
-                        csrfName = arr[0].trim();
-                        csrfValue = arr[2].trim();
-                    }
-                }
-                callback();
-            });
-        } else {
-            callback();
-        }
+        axios.get(visitApi + '/env/csrf').then(function (response) {
+            const data = response.data;
+            if (data && data.parameterName && data.token) {
+                callback(data.parameterName, data.token);
+            } else {
+                throw new Error('CSRF no response data.');
+            }
+        });
     }
 
     // 发送请求
     function sendRequest() {
-        fetchCsrf(function () {
+        fetchCsrf(function (csrfName, csrfValue) {
             const xhr = new XMLHttpRequest();
             const formData = new FormData();
             formData.append(csrfName, csrfValue);
@@ -183,7 +177,7 @@
     document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'hidden') {
             minusOpens();
-            fetchCsrf(function () {
+            fetchCsrf(function (csrfName, csrfValue) {
                 const formData = new FormData();
                 formData.append(csrfName, csrfValue);
                 navigator.sendBeacon(getVisitUrl(0), formData);

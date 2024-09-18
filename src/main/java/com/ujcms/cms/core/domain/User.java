@@ -345,8 +345,8 @@ public class User extends UserBase implements UserDetails, Serializable {
      * 是否未激活
      */
     @JsonIgnore
-    public boolean isInactivated() {
-        return getStatus() == STATUS_INACTIVATED;
+    public boolean isUnactivated() {
+        return getStatus() == STATUS_UNACTIVATED;
     }
 
     /**
@@ -594,7 +594,7 @@ public class User extends UserBase implements UserDetails, Serializable {
     /**
      * 用户状态：未激活
      */
-    public static final short STATUS_INACTIVATED = 1;
+    public static final short STATUS_UNACTIVATED = 1;
     /**
      * 用户状态：已锁定
      */

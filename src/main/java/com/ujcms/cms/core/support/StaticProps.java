@@ -20,7 +20,7 @@ public class StaticProps {
                     "generator:fulltext:reindexSite",
                     "articleReview:page",
                     // r2
-                    "article:internalPush", "survey:page", "site:page",
+                    "article:internalPush", "survey:page", "site:page", "config:grey:update",
                     "sensitiveWord:page", "errorWord:page", "siteSettings:editor:update",
                     "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
                     "menu.stat.articleStat", "articleStatByUser:page", "articleStatByOrg:page", "articleStatByChannel:page",

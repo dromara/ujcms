@@ -54,7 +54,7 @@ public class HtmlService {
     @Transactional(rollbackFor = Exception.class)
     public void updateHomeHtml(Site site) {
         deleteHomeHtml(site);
-        if (!site.getHtml().isEnabled()) {
+        if (!site.isHtmlEnabled()) {
             return;
         }
         Map<String, Object> dataModel = new HashMap<>(16);
@@ -100,7 +100,7 @@ public class HtmlService {
     public void updateArticleHtml(Article article) {
         deleteArticleHtml(article);
         // 跳转连接不用静态化
-        if (!article.getSite().getHtml().isEnabled()
+        if (!article.getSite().isHtmlEnabled()
                 || !StringUtils.isBlank(article.getLinkUrl())
                 || !article.isNormal()) {
             return;
@@ -150,7 +150,7 @@ public class HtmlService {
     public void updateChannelHtml(Channel channel) {
         deleteChannelHtml(channel);
 
-        if (!channel.getSite().getHtml().isEnabled()) {
+        if (!channel.getSite().isHtmlEnabled()) {
             return;
         }
         // 跳转连接不用静态化

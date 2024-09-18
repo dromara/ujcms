@@ -7,6 +7,8 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.generator.HtmlGenerator;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.generator.LuceneGenerator;
+import com.ujcms.cms.core.service.SiteService;
+import com.ujcms.cms.core.service.args.SiteArgs;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.commons.web.Responses;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 生成器 Controller
@@ -28,11 +32,14 @@ import javax.servlet.http.HttpServletRequest;
 @RestController("backendGeneratorController")
 @RequestMapping(UrlConstants.BACKEND_API + "/core/generator")
 public class GeneratorController {
+    private final SiteService siteService;
     private final HtmlService htmlService;
     private final HtmlGenerator htmlGenerator;
     private final LuceneGenerator luceneGenerator;
 
-    public GeneratorController(HtmlService htmlService, HtmlGenerator htmlGenerator, LuceneGenerator luceneGenerator) {
+    public GeneratorController(SiteService siteService, HtmlService htmlService,
+                               HtmlGenerator htmlGenerator, LuceneGenerator luceneGenerator) {
+        this.siteService = siteService;
         this.htmlService = htmlService;
         this.htmlGenerator = htmlGenerator;
         this.luceneGenerator = luceneGenerator;
@@ -68,6 +75,18 @@ public class GeneratorController {
         User user = Contexts.getCurrentUser();
         String taskName = Servlets.getMessage(request, "task.html.all");
         htmlGenerator.updateAllHtml(site.getId(), user.getId(), taskName, site);
+        return Responses.ok();
+    }
+
+    @PostMapping("html-all-home")
+    @PreAuthorize("hasAnyAuthority('generator:html','*')")
+    @OperationLog(module = "html", operation = "updateAllHome", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updateAllHomeHtml() {
+        SiteArgs args = SiteArgs.of().status(Collections.singletonList(Site.STATUS_NORMAL));
+        List<Site> list = siteService.selectList(args);
+        for (Site site : list) {
+            htmlService.updateHomeHtml(site);
+        }
         return Responses.ok();
     }
 

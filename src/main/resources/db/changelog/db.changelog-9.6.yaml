@@ -50,5 +50,41 @@ databaseChangeLog:
                   type: SMALLINT
             remarks: 导入数据表
             tableName: ujcms_import_data
+  - changeSet:
+      id: 1724213214377-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: grey_settings_
+                  remarks: 置灰设置
+                  type: VARCHAR(2000)
+            tableName: ujcms_config
+  - changeSet:
+      id: 1724774444757-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '***'
+                  name: replacement_
+                  remarks: 替换词
+                  type: VARCHAR(90)
+            tableName: ujcms_sensitive_word
+  - changeSet:
+      id: 1724828105241-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(3000)
+            tableName: ujcms_site
 
 

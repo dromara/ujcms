@@ -41,11 +41,11 @@ public class BlockItemController {
 
     @Operation(summary = "获取区块项列表（BlockItemList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "block", description = "区块别名",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "blockId", description = "区块ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点区块项列表。如：`true` `false`，默认`false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isEnabled", description = "是否启用。可选值：`all`(全部), `false`(禁用), `true`(启用)。默认值：启用",

@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.6.1</version>
+    <version>9.6.2</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -22,6 +22,7 @@
         <version>2.7.18</version>
     </parent>
     <properties>
+        <spring-framework.version>5.3.39</spring-framework.version>
         <!-- mybatis-spring-boot-starter 2.0 以上版本 会引用 MyBatis 3.5 以上版本，导致OffsetDateTime出错。该问题与MySQL驱动有关，MySQL8.0.23驱动已解决这个问题。-->
         <!-- 相关参考资料：https://blog.csdn.net/zjcsuct/article/details/107754870 -->
         <mybatis-spring-boot-starter.version>2.3.2</mybatis-spring-boot-starter.version>
@@ -104,6 +105,8 @@
         <kingbase8.version>8.6.0</kingbase8.version>
         <!-- openGauss JDBC驱动 -->
         <opengauss-jdbc.version>5.0.0</opengauss-jdbc.version>
+        <!-- vastbase(海量数据库) JDBC驱动 -->
+        <vastbase-jdbc.version>2.9p</vastbase-jdbc.version>
         <!-- 瀚高 JDBC驱动 -->
         <HgdbJdbc.version>6.2.4</HgdbJdbc.version>
 
@@ -535,6 +538,12 @@
         <!--    <version>${opengauss-jdbc.version}</version>-->
         <!--    <scope>runtime</scope>-->
         <!--</dependency>-->
+        <!-- vastbase(海量数据库) 驱动，需将 postgresql 原版驱动删除 -->
+        <!--<dependency>-->
+        <!--    <groupId>cn.com.vastdata</groupId>-->
+        <!--    <artifactId>vastbase-jdbc</artifactId>-->
+        <!--    <version>${vastbase-jdbc.version}</version>-->
+        <!--</dependency>-->
         <!-- 瀚高数据库 驱动 -->
         <!--<dependency>-->
         <!--    <groupId>com.highgo</groupId>-->
@@ -582,6 +591,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>5.3.39</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <profiles>
         <profile>
             <id>jar</id>

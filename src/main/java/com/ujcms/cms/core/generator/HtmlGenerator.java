@@ -52,6 +52,25 @@ public class HtmlGenerator extends AbstractGenerator {
     }
 
     /**
+     * 更新所有静态页
+     *
+     * @param taskSiteId 任务站点ID
+     * @param taskUserId 任务用户ID
+     * @param taskName   任务名称
+     * @param sites      需要生成静态页的站点
+     */
+    public void updateAllHtml(Long taskSiteId, Long taskUserId, String taskName, List<Site> sites) {
+        execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, false,
+                taskId -> {
+                    for (Site site : sites) {
+                        handleArticle(taskId, site.getId(), htmlService::updateArticleHtml);
+                        handleChannel(taskId, site.getId(), htmlService::updateChannelHtml);
+                        htmlService.updateHomeHtml(site);
+                    }
+                });
+    }
+
+    /**
      * 更新文章相关静态页。包括上一篇、下一篇、所属栏目、上级栏目、首页
      *
      * @param taskSiteId    任务站点ID
@@ -69,19 +88,19 @@ public class HtmlGenerator extends AbstractGenerator {
             Long order = article.getOrder();
             // 当前文章直接更新，以免导致404错误
             Optional.ofNullable(articleService.select(articleId))
-                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(htmlService::updateArticleHtml);
+                    .filter(it -> it.getSite().isHtmlEnabled()).ifPresent(htmlService::updateArticleHtml);
             // 上一篇文章
             Optional.ofNullable(articleService.findPrev(articleId, order, channelId))
-                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+                    .filter(it -> it.getSite().isHtmlEnabled()).ifPresent(articles::add);
             // 下一篇文章
             Optional.ofNullable(articleService.findNext(articleId, order, channelId))
-                    .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+                    .filter(it -> it.getSite().isHtmlEnabled()).ifPresent(articles::add);
             // 原栏目 上一篇、下一篇 文章
             if (origChannelId != null && !origChannelId.equals(channelId)) {
                 Optional.ofNullable(articleService.findPrev(articleId, order, origChannelId))
-                        .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+                        .filter(it -> it.getSite().isHtmlEnabled()).ifPresent(articles::add);
                 Optional.ofNullable(articleService.findNext(articleId, order, origChannelId))
-                        .filter(it->it.getSite().getHtml().isEnabled()).ifPresent(articles::add);
+                        .filter(it -> it.getSite().isHtmlEnabled()).ifPresent(articles::add);
             }
         }
         if (articles.isEmpty()) {

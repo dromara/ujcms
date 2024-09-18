@@ -4,6 +4,7 @@
     <id column="id_" jdbcType="BIGINT" property="id" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
+    <result column="replacement_" jdbcType="VARCHAR" property="replacement" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.SensitiveWord" />
   <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.SensitiveWord" />
   <sql id="selectAllSelect" />
@@ -26,11 +27,12 @@
   </delete><update id="update" parameterType="com.ujcms.cms.core.domain.SensitiveWord">
     update ujcms_sensitive_word
     set name_ = #{name,jdbcType=VARCHAR},
-      enabled_ = #{enabled,jdbcType=CHAR}
+      enabled_ = #{enabled,jdbcType=CHAR},
+      replacement_ = #{replacement,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.SensitiveWord">
-    insert into ujcms_sensitive_word (id_, name_, enabled_)
-    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR})
+    insert into ujcms_sensitive_word (id_, name_, enabled_, replacement_)
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR}, #{replacement,jdbcType=VARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.name_, t.enabled_
+    t.id_, t.name_, t.enabled_, t.replacement_
   </sql></mapper>

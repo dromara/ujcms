@@ -2,6 +2,8 @@ package com.ujcms.cms.core.security;
 
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.UserService;
+import com.ujcms.commons.security.AccountCancelledException;
+import com.ujcms.commons.security.AccountUnactivatedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,7 +25,13 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsPa
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.selectByUsername(username);
         if (user == null) {
-            throw new UsernameNotFoundException("username not found: " + username);
+            throw new UsernameNotFoundException("Username not found: " + username);
+        }
+        if (user.isCancelled()) {
+            throw new AccountCancelledException(String.format("User has been cancelled: %s(ID: %s)", username, user.getId()));
+        }
+        if (user.isUnactivated ()) {
+            throw new AccountUnactivatedException(String.format("User not activated: %s(ID: %s)", username, user.getId()));
         }
         return user;
     }

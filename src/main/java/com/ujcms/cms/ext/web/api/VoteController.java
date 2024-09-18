@@ -73,7 +73,7 @@ public class VoteController {
 
     @Operation(summary = "获取投票列表（VoteList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在投票期限内。如：`true` `false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点投票。如：`true` `false`，默认`false`",
@@ -94,7 +94,7 @@ public class VoteController {
 
     @Operation(summary = "获取投票分页（VotePage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在投票期限内。如：`true` `false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点投票。如：`true` `false`，默认`false`",

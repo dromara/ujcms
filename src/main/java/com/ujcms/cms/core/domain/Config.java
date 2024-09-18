@@ -21,6 +21,8 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,10 +35,19 @@ import static com.ujcms.cms.core.support.Constants.MAPPER;
  * @author PONY
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties({"uploadSettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
+@JsonIgnoreProperties({"uploadSettings", "greySettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
         "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings", "customsSettings", "handler"})
 public class Config extends ConfigBase implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 是否置灰
+     *
+     * @return 当开启置灰，且处于置灰日，返回 `true`，否则返回 `false`
+     */
+    public boolean isGreyStyle() {
+        return getGrey().isEnabled() && getGrey().isOnDate();
+    }
 
     /**
      * 获取所有字段中的附件
@@ -78,6 +89,30 @@ public class Config extends ConfigBase implements Serializable {
             setUploadSettings(Constants.MAPPER.writeValueAsString(upload));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot write value of Upload", e);
+        }
+    }
+
+    public Grey getGrey() {
+        if (grey != null) {
+            return grey;
+        }
+        String settings = getGreySettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Grey();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Grey.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot read value of Grey: " + settings, e);
+        }
+    }
+
+    public void setGrey(Grey grey) {
+        this.grey = grey;
+        try {
+            setGreySettings(Constants.MAPPER.writeValueAsString(grey));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Grey", e);
         }
     }
 
@@ -277,6 +312,8 @@ public class Config extends ConfigBase implements Serializable {
 
     @Nullable
     private Upload upload;
+    @Nullable
+    private Grey grey;
     @Nullable
     private Register register;
     @Nullable
@@ -623,6 +660,48 @@ public class Config extends ConfigBase implements Serializable {
 
         public void setImageMaxHeight(int imageMaxHeight) {
             this.imageMaxHeight = imageMaxHeight;
+        }
+    }
+
+    @Schema(name = "Config.Grey", description = "置灰配置")
+    public static class Grey implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
+
+        private boolean enabled = false;
+        private String greyDates = "09-08,12-13";
+
+        @JsonIgnore
+        public boolean isOnDate() {
+            String[] dates = StringUtils.split(greyDates, ',');
+            if (dates == null || dates.length <= 0) {
+                return false;
+            }
+            OffsetDateTime now = OffsetDateTime.now();
+            String nowDate = formatter.format(now);
+            for (String date : dates) {
+                if (nowDate.equals(date.trim())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getGreyDates() {
+            return greyDates;
+        }
+
+        public void setGreyDates(String greyDates) {
+            this.greyDates = greyDates;
         }
     }
 

@@ -72,9 +72,11 @@ public class MessageBoardController {
 
     @Operation(summary = "获取留言列表（MessageBoardList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
+    @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isRecommended", description = "是否推荐。如：`true` `false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isReplied", description = "是否回复。如：`true` `false`",
@@ -97,9 +99,9 @@ public class MessageBoardController {
 
     @Operation(summary = "获取留言分页（MessageBoardPage标签）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isRecommended", description = "是否推荐。如：`true` `false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isReplied", description = "是否回复。如：`true` `false`",

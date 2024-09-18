@@ -101,9 +101,10 @@ databaseChangeLog:
        id: 1704355636091-5-postgresql
        author: PONY
        changes:
+         - validCheckSum: 8:4b73d2b89da22b9024dbe18967c09cbc
          -  sql:
               dbms: 'postgresql'
-              sql: update ujcms_article_ext set mains_json_ = (select jsonb_object_agg(replace(t.name_,'_key','Key'), t.value_) from ujcms_article_custom t where t.article_id_ = ujcms_article_ext.id_);update ujcms_channel set mains_json_ = (select jsonb_object_agg(replace(t.name_,'_key','Key'), t.value_) from ujcms_channel_custom t where t.channel_id_ = ujcms_channel.id_);update ujcms_site set mains_json_ = (select jsonb_object_agg(replace(t.name_,'_key','Key'), t.value_) from ujcms_site_custom t where t.site_id_ = ujcms_site.id_);
+              sql: update ujcms_article_ext set mains_json_ = (select json_object_agg(replace(t.name_,'_key','Key'), t.value_) from ujcms_article_custom t where t.article_id_ = ujcms_article_ext.id_)::jsonb;update ujcms_channel set mains_json_ = (select json_object_agg(replace(t.name_,'_key','Key'), t.value_) from ujcms_channel_custom t where t.channel_id_ = ujcms_channel.id_)::jsonb;update ujcms_site set mains_json_ = (select json_object_agg(replace(t.name_,'_key','Key'), t.value_) from ujcms_site_custom t where t.site_id_ = ujcms_site.id_)::jsonb;
   - changeSet:
       id: 1706368220753-4
       author: PONY (generated)

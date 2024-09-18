@@ -9,6 +9,8 @@ import org.springframework.lang.Nullable;
  * @author PONY
  */
 public class SiteForbiddenException extends Http403Exception {
+    private static final long serialVersionUID = 1L;
+
     public SiteForbiddenException(String code, @Nullable String... args) {
         super(code, args);
     }

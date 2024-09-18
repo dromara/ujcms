@@ -1,75 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ujcms.cms.core.mapper.ChannelMapper">
-    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <id column="id_" jdbcType="BIGINT" property="id"/>
-        <result column="site_id_" jdbcType="BIGINT" property="siteId"/>
-        <result column="parent_id_" jdbcType="BIGINT" property="parentId"/>
-        <result column="channel_model_id_" jdbcType="BIGINT" property="channelModelId"/>
-        <result column="article_model_id_" jdbcType="BIGINT" property="articleModelId"/>
-        <result column="performance_type_id_" jdbcType="BIGINT" property="performanceTypeId"/>
-        <result column="name_" jdbcType="VARCHAR" property="name"/>
-        <result column="alias_" jdbcType="VARCHAR" property="alias"/>
-        <result column="type_" jdbcType="SMALLINT" property="type"/>
-        <result column="article_template_" jdbcType="VARCHAR" property="articleTemplate"/>
-        <result column="channel_template_" jdbcType="VARCHAR" property="channelTemplate"/>
-        <result column="image_" jdbcType="VARCHAR" property="image"/>
-        <result column="link_url_" jdbcType="VARCHAR" property="linkUrl"/>
-        <result column="process_key_" jdbcType="VARCHAR" property="processKey"/>
-        <result column="target_blank_" jdbcType="CHAR" property="targetBlank"/>
-        <result column="nav_" jdbcType="CHAR" property="nav"/>
-        <result column="page_size_" jdbcType="SMALLINT" property="pageSize"/>
-        <result column="order_desc_" jdbcType="CHAR" property="orderDesc"/>
-        <result column="allow_comment_" jdbcType="CHAR" property="allowComment"/>
-        <result column="allow_contribute_" jdbcType="CHAR" property="allowContribute"/>
-        <result column="allow_search_" jdbcType="CHAR" property="allowSearch"/>
-        <result column="created_" jdbcType="TIMESTAMP" property="created"/>
-        <result column="modified_" jdbcType="TIMESTAMP" property="modified"/>
-        <result column="depth_" jdbcType="SMALLINT" property="depth"/>
-        <result column="order_" jdbcType="INTEGER" property="order"/>
-        <result column="views_" jdbcType="BIGINT" property="views"/>
-        <result column="self_views_" jdbcType="BIGINT" property="selfViews"/>
-    </resultMap>
-    <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Channel">
-        <result column="mains_json_" jdbcType="OTHER" property="mainsJson"/>
-        <result column="clobs_json_" jdbcType="OTHER" property="clobsJson"/>
-    </resultMap>
-    <cache type="com.ujcms.cms.core.domain.cache.SiteCache"/>
+<mapper namespace="com.ujcms.cms.core.mapper.ChannelMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Channel">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="parent_id_" jdbcType="BIGINT" property="parentId" />
+    <result column="channel_model_id_" jdbcType="BIGINT" property="channelModelId" />
+    <result column="article_model_id_" jdbcType="BIGINT" property="articleModelId" />
+    <result column="performance_type_id_" jdbcType="BIGINT" property="performanceTypeId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="alias_" jdbcType="VARCHAR" property="alias" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="article_template_" jdbcType="VARCHAR" property="articleTemplate" />
+    <result column="channel_template_" jdbcType="VARCHAR" property="channelTemplate" />
+    <result column="image_" jdbcType="VARCHAR" property="image" />
+    <result column="link_url_" jdbcType="VARCHAR" property="linkUrl" />
+    <result column="process_key_" jdbcType="VARCHAR" property="processKey" />
+    <result column="target_blank_" jdbcType="CHAR" property="targetBlank" />
+    <result column="nav_" jdbcType="CHAR" property="nav" />
+    <result column="page_size_" jdbcType="SMALLINT" property="pageSize" />
+    <result column="order_desc_" jdbcType="CHAR" property="orderDesc" />
+    <result column="allow_comment_" jdbcType="CHAR" property="allowComment" />
+    <result column="allow_contribute_" jdbcType="CHAR" property="allowContribute" />
+    <result column="allow_search_" jdbcType="CHAR" property="allowSearch" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+    <result column="depth_" jdbcType="SMALLINT" property="depth" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+    <result column="views_" jdbcType="BIGINT" property="views" />
+    <result column="self_views_" jdbcType="BIGINT" property="selfViews" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Channel">
+    <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
+    <result column="clobs_json_" jdbcType="OTHER" property="clobsJson" />
+  </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
     <resultMap extends="BaseResultMap" id="LinkResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer"/>
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ParentResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer"/>
-        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="selectReferParent"/>
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="selectReferParent" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer"/>
-        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="selectReferParent"/>
-        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="selectReferParent" />
+        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
     </resultMap>
     <resultMap extends="BaseResultMap" id="ListResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <result column="has_children_" jdbcType="CHAR" property="hasChildren"/>
-        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer"/>
-        <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel" select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
-        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
-        <association column="performance_type_id_" javaType="com.ujcms.cms.core.domain.PerformanceType" property="performanceType"
-                     select="com.ujcms.cms.core.mapper.PerformanceTypeMapper.select"/>
+        <result column="has_children_" jdbcType="CHAR" property="hasChildren" />
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+        <association column="performance_type_id_" javaType="com.ujcms.cms.core.domain.PerformanceType" property="performanceType" select="com.ujcms.cms.core.mapper.PerformanceTypeMapper.select" />
     </resultMap>
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Channel">
-        <association column="id_" javaType="com.ujcms.cms.core.domain.ChannelExt" property="ext" select="com.ujcms.cms.core.mapper.ChannelExtMapper.select"/>
-        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="selectReferParent"/>
-        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer"/>
-        <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel" select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
-        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
-        <association column="performance_type_id_" javaType="com.ujcms.cms.core.domain.PerformanceType" property="performanceType"
-                     select="com.ujcms.cms.core.mapper.PerformanceTypeMapper.select"/>
-        <collection column="id_" ofType="com.ujcms.cms.core.domain.Channel" property="children" select="listChildrenLink"/>
+        <association column="id_" javaType="com.ujcms.cms.core.domain.ChannelExt" property="ext" select="com.ujcms.cms.core.mapper.ChannelExtMapper.select" />
+        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="selectReferParent" />
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+        <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+        <association column="performance_type_id_" javaType="com.ujcms.cms.core.domain.PerformanceType" property="performanceType" select="com.ujcms.cms.core.mapper.PerformanceTypeMapper.select" />
+        <collection column="id_" ofType="com.ujcms.cms.core.domain.Channel" property="children" select="listChildrenLink" />
     </resultMap>
     <select id="findFirstByParentId" parameterType="long" resultMap="LinkResultMap">
         select
         <if test="_databaseId == 'sqlserver'">TOP 1</if>
         <if test="_databaseId == 'informix' or _databaseId == 'gbase'">FIRST 1</if>
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.parent_id_ = #{parentId,jdbcType=BIGINT}
         <if test="_databaseId == 'oracle' or _databaseId == 'dm' or _databaseId == 'oscar'">and ROWNUM &lt;= 1</if>
@@ -97,20 +93,20 @@
     </select>
     <select id="findBySiteIdAndAlias" resultMap="ResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.site_id_ = #{siteId} and t.alias_ = #{alias}
     </select>
     <select id="listChildrenLink" resultMap="LinkResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.parent_id_ = #{parentId,jdbcType=BIGINT}
         order by t.order_, t.id_
     </select>
     <select id="listChildren" resultMap="LinkResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.parent_id_ = #{parentId,jdbcType=BIGINT}
         order by t.order_, t.id_
@@ -183,16 +179,16 @@
         update ujcms_channel
         <trim prefix="set" suffixOverrides=",">
             order_ =
-            <foreach collection="list" item="item" open="case" close="end,">
+            <foreach close="end," collection="list" item="item" open="case">
                 when id_=#{item.id} then #{item.order}
             </foreach>
             depth_ =
-            <foreach collection="list" item="item" open="case" close="end,">
+            <foreach close="end," collection="list" item="item" open="case">
                 when id_=#{item.id} then #{item.depth}
             </foreach>
         </trim>
         where id_ in
-        <foreach collection="list" item="item" open="(" separator="," close=")">
+        <foreach close=")" collection="list" item="item" open="(" separator=",">
             #{item.id}
         </foreach>
     </update>
@@ -215,7 +211,7 @@
             , CASE WHEN exists(select * from ujcms_channel childChannel where childChannel.parent_id_ = t.id_) THEN '1' ELSE '0' END as has_children_
         </if>
     </sql>
-    <sql id="selectAllJoin"/>
+    <sql id="selectAllJoin" />
     <sql id="selectAllWhere">
         <trim prefix="and(" prefixOverrides="and |or " suffix=")">
             <if test="articleRoleIds != null and articleRoleIds.size &gt; 0">
@@ -230,24 +226,24 @@
     </sql>
     <select id="selectAll" resultMap="ListResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
-            <property name="tableName" value="ujcms_channel"/>
+            <property name="tableName" value="ujcms_channel" />
         </include>
     </select>
     <select id="selectReferParent" parameterType="long" resultMap="ParentResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.id_ = #{id,jdbcType=BIGINT}
     </select>
     <select id="selectRefer" parameterType="long" resultMap="ReferResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.id_ = #{id,jdbcType=BIGINT}
     </select>
     <select id="select" parameterType="long" resultMap="ResultMap">
         select
-        <include refid="Column_List"/>
+        <include refid="Column_List" />
         from ujcms_channel t
         where t.id_ = #{id,jdbcType=BIGINT}
     </select>
@@ -289,46 +285,35 @@
         delete
         from ujcms_channel
         where id_ = #{id,jdbcType=BIGINT}
-    </delete>
-    <update id="update" parameterType="com.ujcms.cms.core.domain.Channel">
-        update ujcms_channel
-        set site_id_             = #{siteId,jdbcType=BIGINT},
-            channel_model_id_    = #{channelModelId,jdbcType=BIGINT},
-            article_model_id_    = #{articleModelId,jdbcType=BIGINT},
-            performance_type_id_ = #{performanceTypeId,jdbcType=BIGINT},
-            name_                = #{name,jdbcType=VARCHAR},
-            alias_               = #{alias,jdbcType=VARCHAR},
-            type_                = #{type,jdbcType=SMALLINT},
-            article_template_    = #{articleTemplate,jdbcType=VARCHAR},
-            channel_template_    = #{channelTemplate,jdbcType=VARCHAR},
-            image_               = #{image,jdbcType=VARCHAR},
-            link_url_            = #{linkUrl,jdbcType=VARCHAR},
-            process_key_         = #{processKey,jdbcType=VARCHAR},
-            target_blank_        = #{targetBlank,jdbcType=CHAR},
-            nav_                 = #{nav,jdbcType=CHAR},
-            page_size_           = #{pageSize,jdbcType=SMALLINT},
-            order_desc_          = #{orderDesc,jdbcType=CHAR},
-            allow_comment_       = #{allowComment,jdbcType=CHAR},
-            allow_contribute_    = #{allowContribute,jdbcType=CHAR},
-            allow_search_        = #{allowSearch,jdbcType=CHAR},
-            created_             = #{created,jdbcType=TIMESTAMP},
-            modified_            = #{modified,jdbcType=TIMESTAMP},
-            mains_json_          = #{mainsJson,jdbcType=OTHER},
-            clobs_json_          = #{clobsJson,jdbcType=OTHER}
-        where id_ = #{id,jdbcType=BIGINT}
-    </update>
-    <insert id="insert" parameterType="com.ujcms.cms.core.domain.Channel">
-        insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, performance_type_id_, name_, alias_, type_, article_template_,
-                                   channel_template_, image_, link_url_, process_key_, target_blank_, nav_, page_size_, order_desc_, allow_comment_, allow_contribute_,
-                                   allow_search_, created_, modified_, depth_, order_, views_, self_views_, mains_json_, clobs_json_)
-        values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{channelModelId,jdbcType=BIGINT}, #{articleModelId,jdbcType=BIGINT},
-                #{performanceTypeId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{articleTemplate,jdbcType=VARCHAR},
-                #{channelTemplate,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{processKey,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR},
-                #{nav,jdbcType=CHAR}, #{pageSize,jdbcType=SMALLINT}, #{orderDesc,jdbcType=CHAR}, #{allowComment,jdbcType=CHAR}, #{allowContribute,jdbcType=CHAR},
-                #{allowSearch,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER},
-                #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
-    </insert>
-    <sql id="Column_List">
-        t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.performance_type_id_, t.name_, t.alias_, t.type_, t.article_template_, t.channel_template_, t.image_, t.link_url_, t.process_key_, t.target_blank_, t.nav_, t.page_size_, t.order_desc_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.created_, t.modified_, t.depth_, t.order_, t.views_, t.self_views_, t.mains_json_, t.clobs_json_
-    </sql>
-</mapper>
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Channel">
+    update ujcms_channel
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      channel_model_id_ = #{channelModelId,jdbcType=BIGINT},
+      article_model_id_ = #{articleModelId,jdbcType=BIGINT},
+      performance_type_id_ = #{performanceTypeId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=SMALLINT},
+      article_template_ = #{articleTemplate,jdbcType=VARCHAR},
+      channel_template_ = #{channelTemplate,jdbcType=VARCHAR},
+      image_ = #{image,jdbcType=VARCHAR},
+      link_url_ = #{linkUrl,jdbcType=VARCHAR},
+      process_key_ = #{processKey,jdbcType=VARCHAR},
+      target_blank_ = #{targetBlank,jdbcType=CHAR},
+      nav_ = #{nav,jdbcType=CHAR},
+      page_size_ = #{pageSize,jdbcType=SMALLINT},
+      order_desc_ = #{orderDesc,jdbcType=CHAR},
+      allow_comment_ = #{allowComment,jdbcType=CHAR},
+      allow_contribute_ = #{allowContribute,jdbcType=CHAR},
+      allow_search_ = #{allowSearch,jdbcType=CHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      modified_ = #{modified,jdbcType=TIMESTAMP},
+      mains_json_ = #{mainsJson,jdbcType=OTHER},
+      clobs_json_ = #{clobsJson,jdbcType=OTHER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Channel">
+    insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, performance_type_id_, name_, alias_, type_, article_template_, channel_template_, image_, link_url_, process_key_, target_blank_, nav_, page_size_, order_desc_, allow_comment_, allow_contribute_, allow_search_, created_, modified_, depth_, order_, views_, self_views_, mains_json_, clobs_json_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{channelModelId,jdbcType=BIGINT}, #{articleModelId,jdbcType=BIGINT}, #{performanceTypeId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{articleTemplate,jdbcType=VARCHAR}, #{channelTemplate,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{processKey,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{nav,jdbcType=CHAR}, #{pageSize,jdbcType=SMALLINT}, #{orderDesc,jdbcType=CHAR}, #{allowComment,jdbcType=CHAR}, #{allowContribute,jdbcType=CHAR}, #{allowSearch,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.performance_type_id_, t.name_, t.alias_, t.type_, t.article_template_, t.channel_template_, t.image_, t.link_url_, t.process_key_, t.target_blank_, t.nav_, t.page_size_, t.order_desc_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.created_, t.modified_, t.depth_, t.order_, t.views_, t.self_views_, t.mains_json_, t.clobs_json_
+  </sql></mapper>

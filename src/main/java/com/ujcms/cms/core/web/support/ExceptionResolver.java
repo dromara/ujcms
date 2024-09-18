@@ -1,5 +1,9 @@
 package com.ujcms.cms.core.web.support;
 
+import com.ujcms.cms.core.domain.Config;
+import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.commons.web.exception.*;
 import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
@@ -10,6 +14,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Optional;
 
 /**
  * CMS异常处理
@@ -17,7 +22,10 @@ import javax.servlet.http.HttpServletResponse;
  * @author PONY
  */
 public class ExceptionResolver extends AbstractHandlerExceptionResolver {
-    public ExceptionResolver() {
+    private final ConfigService configService;
+
+    public ExceptionResolver(ConfigService configService) {
+        this.configService = configService;
         setOrder(Ordered.LOWEST_PRECEDENCE);
         setWarnLogCategory(getClass().getName());
     }
@@ -26,6 +34,10 @@ public class ExceptionResolver extends AbstractHandlerExceptionResolver {
     @Override
     protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response,
                                               @Nullable Object handler, Exception ex) {
+        Config config = configService.getUnique();
+        request.setAttribute(Frontends.TEMPLATE_URL, config.getTemplateStorage().getUrl());
+        Optional.ofNullable(Contexts.findCurrentSite())
+                .ifPresent(it -> request.setAttribute(Frontends.SITE, it));
         try {
             if (ex instanceof Http404Exception) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, getMessage(ex, request));
@@ -38,6 +50,9 @@ public class ExceptionResolver extends AbstractHandlerExceptionResolver {
                 return new ModelAndView();
             } else if (ex instanceof Http410Exception) {
                 response.sendError(HttpServletResponse.SC_GONE, getMessage(ex, request));
+                return new ModelAndView();
+            } else if (ex instanceof Http503Exception) {
+                response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, getMessage(ex, request));
                 return new ModelAndView();
             }
         } catch (Exception handlerEx) {

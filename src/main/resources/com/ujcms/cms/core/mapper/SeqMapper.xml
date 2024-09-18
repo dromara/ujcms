@@ -296,11 +296,11 @@
                 <choose>
                     <when test="condition.operator.equalsIgnoreCase('In')">
                         <foreach close=")" collection="condition.value" item="item" open="(" separator="||">
-                            ${condition.column} -&gt; '${condition.jsonColumn}' @&gt; to_jsonb(#{item})
+                            ${condition.column} -&gt; '${condition.jsonColumn}' @&gt; to_json(#{item})::jsonb
                         </foreach>
                     </when>
                     <otherwise>
-                        ${condition.column} -&gt; '${condition.jsonColumn}' @&gt; to_jsonb(#{condition.value})
+                        ${condition.column} -&gt; '${condition.jsonColumn}' @&gt; to_json(#{condition.value})::jsonb
                     </otherwise>
                 </choose>
             </when>

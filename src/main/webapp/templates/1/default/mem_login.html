@@ -30,6 +30,10 @@
               <span>用户已锁定</span>
             [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "DisabledException"]
               <span>用户已禁用</span>
+            [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "AccountUnactivatedException"]
+              <span>用户未激活</span>
+            [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "AccountCancelledException"]
+              <span>用户已注销</span>
             [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "AccountExpiredException"]
               <span>账户已过期</span>
             [#elseif SPRING_SECURITY_LAST_EXCEPTION.class.simpleName == "CredentialsExpiredException"]

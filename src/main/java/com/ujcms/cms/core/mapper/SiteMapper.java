@@ -1,6 +1,5 @@
 package com.ujcms.cms.core.mapper;
 
-import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.commons.db.tree.TreeEntityMapper;
 import com.ujcms.commons.query.QueryInfo;
@@ -41,6 +40,15 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
                          @Nullable @Param("customsCondition") List<QueryInfo.WhereCondition> customsCondition,
                          @Param("isQueryHasChildren") boolean isQueryHasChildren,
                          @Nullable @Param("fullOrgId") Long fullOrgId);
+
+    /**
+     * 更新站点状态
+     *
+     * @param id     站点ID
+     * @param status 站点状态
+     * @return 更新条数
+     */
+    int updateStatus(@Param("id") Long id, @Param("status") Short status);
 
     /**
      * 根据父站点ID获取子站点列表

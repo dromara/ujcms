@@ -50,11 +50,11 @@ public class EsArticleController {
 
     @Operation(summary = "获取全文检索文章列表（EsArticleList）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
             schema = @Schema(type = "string", format = "date-time"))
     @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "结束发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
@@ -66,7 +66,7 @@ public class EsArticleController {
     @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-            schema = @Schema(type = "string", format = "int32 array"))
+            schema = @Schema(type = "string", format = "int64 array"))
     @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回。默认：0（已发布）",
             schema = @Schema(type = "string", format = "int16 array"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
@@ -91,11 +91,11 @@ public class EsArticleController {
 
     @Operation(summary = "获取全文检索文章分页（EsArticlePage）")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
             schema = @Schema(type = "string", format = "date-time"))
     @Parameter(in = ParameterIn.QUERY, name = "endPublishDate", description = "接受发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
@@ -107,7 +107,7 @@ public class EsArticleController {
     @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
-            schema = @Schema(type = "string", format = "int32 array"))
+            schema = @Schema(type = "string", format = "int64 array"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",

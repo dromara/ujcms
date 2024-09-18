@@ -52,7 +52,7 @@ public class SiteController {
 
     @Operation(summary = "获取站点列表（SiteList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "parentId", description = "上级站点ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeChildren", description = "是否包含子站点。如：`true` `false`，默认`false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:正常, 1:关闭。默认：0（正常）",

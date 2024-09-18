@@ -136,6 +136,14 @@ public class ConfigBase implements Serializable {
     private String templateStorageSettings;
 
     /**
+     * 置灰设置
+     */
+    @Length(max = 2000)
+    @Nullable
+    @Schema(description="置灰设置")
+    private String greySettings;
+
+    /**
      * 自定义设置
      */
     @Nullable
@@ -272,6 +280,15 @@ public class ConfigBase implements Serializable {
 
     public void setTemplateStorageSettings(@Nullable String templateStorageSettings) {
         this.templateStorageSettings = templateStorageSettings;
+    }
+
+    @Nullable
+    public String getGreySettings() {
+        return greySettings;
+    }
+
+    public void setGreySettings(@Nullable String greySettings) {
+        this.greySettings = greySettings;
     }
 
     @Nullable

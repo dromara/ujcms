@@ -30,12 +30,14 @@ public class SiteResolver {
 
     public Site resolve(HttpServletRequest request, @Nullable String subDir) {
         if (StringUtils.isNotBlank(subDir)) {
-            Site site = Optional.ofNullable(siteService.findBySubDir(subDir))
-                    .orElseThrow(() -> {
-                        logger.warn("Site sub-dir not exist: {}", request.getRequestURL());
-                        return new Http404Exception("error.siteSubDirNotExist", subDir);
-                    });
+            Site site = Optional.ofNullable(siteService.findBySubDir(subDir)).orElseThrow(() -> {
+                logger.warn("Site sub-dir not exist: {}", request.getRequestURL());
+                return new Http404Exception("error.siteSubDirNotExist", subDir);
+            });
             Contexts.setCurrentSite(site);
+            if (site.isDisabled()) {
+                throw new SiteDisabledException("error.siteDisabled", site.getName(), String.valueOf(site.getId()));
+            }
             return site;
         }
         return resolve(request);
@@ -43,12 +45,14 @@ public class SiteResolver {
 
     public Site resolve(HttpServletRequest request, @Nullable Long siteId) {
         if (siteId != null) {
-            Site site = Optional.ofNullable(siteService.select(siteId))
-                    .orElseThrow(() -> {
-                        logger.warn("Site id not exist: {}", request.getRequestURL());
-                        return new Http404Exception("error.siteIdNotExist", String.valueOf(siteId));
-                    });
+            Site site = Optional.ofNullable(siteService.select(siteId)).orElseThrow(() -> {
+                logger.warn("Site id not exist: {}", request.getRequestURL());
+                return new Http404Exception("error.siteIdNotExist", String.valueOf(siteId));
+            });
             Contexts.setCurrentSite(site);
+            if (site.isDisabled()) {
+                throw new SiteDisabledException("error.siteDisabled", site.getName(), String.valueOf(site.getId()));
+            }
             return site;
         }
         return resolve(request);
@@ -63,6 +67,9 @@ public class SiteResolver {
                     .orElseThrow(() -> new IllegalStateException("Default site not found: " + defaultSiteId));
         }
         Contexts.setCurrentSite(site);
+        if (site.isDisabled()) {
+            throw new SiteDisabledException("error.siteDisabled", site.getName(), String.valueOf(site.getId()));
+        }
         return site;
     }
 }

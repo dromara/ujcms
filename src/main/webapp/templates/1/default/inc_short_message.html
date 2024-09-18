@@ -8,6 +8,7 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
           <div class="modal-body">
+            <div id="mobileCaptchaAlert" class="alert alert-danger" style="display:none;" role="alert"></div>
             <div class="form-group">
               <label class="sr-only" for="mobileCaptcha">图形验证码</label>
               <div class="input-group">
@@ -43,6 +44,8 @@
   <script>
     var defaultMobileTime = 90;
     var mobileTime = defaultMobileTime, mobileInput, mobileButton, mobileName, mobileInterval;
+    var $mobileCaptchaAlert = $('#mobileCaptchaAlert');
+    var $mobileCaptcha = $('#mobileCaptcha');
 
     function mobileMessageButtonControl() {
       if (mobileTime > 0) {
@@ -60,17 +63,19 @@
         mobileButton = button;
         mobileName = button.text();
         $('#sendMobileMessageModal').modal('show');
-        $('#mobileCaptcha').val('');
+        $mobileCaptcha.val('');
         $('#mobileReceiver').val(element.val());
         $('#mobileUsage').val(usage);
         setTimeout(function () {
-          $('#mobileCaptcha').focus().select();
+          $mobileCaptcha.focus().select();
         }, 500);
       } else {
         element.focus().select();
       }
     }
     $('#sendMobileMessageModal').on('show.bs.modal', function (event) {
+      $mobileCaptchaAlert.text('');
+      $mobileCaptchaAlert.hide();
       fetchMobileCaptcha();
     });
     $('#mobileMessageForm').validate({
@@ -88,7 +93,18 @@
       submitHandler: function (form) {
         request.post(form.action, $(form).serializeJSON()).then(function (response) {
           var data = response.data;
-          if(data.result == null) return;
+          if(data.status === -1) {
+            $mobileCaptchaAlert.text(data.message);
+            $mobileCaptchaAlert.show();
+            $mobileCaptcha.val('');
+            fetchEmailCaptcha();
+            return;
+          }
+          if(data.result == null) {
+            return;
+          }
+          $mobileCaptchaAlert.text('');
+          $mobileCaptchaAlert.hide();
           mobileInput.val(data.result.shortMessageId);
           $('#sendMobileMessageModal').modal('hide');
           clearInterval(mobileInterval);
@@ -110,6 +126,7 @@
             </button>
           </div>
           <div class="modal-body">
+            <div id="emailCaptchaAlert" class="alert alert-danger" style="display:none;" role="alert"></div>
             <div class="form-group">
               <label class="sr-only" for="emailCaptcha">图形验证码</label>
               <div class="input-group">
@@ -145,6 +162,8 @@
   <script>
     var defaultEmailTime = 90;
     var emailTime = defaultEmailTime, emailInput, emailButton, emailName, emailInterval;
+    var $emailCaptchaAlert = $('#emailCaptchaAlert');
+    var $emailCaptcha = $('#emailCaptcha');
 
     function emailMessageButtonControl() {
       if (emailTime > 0) {
@@ -162,17 +181,19 @@
         emailButton = button;
         emailName = button.text();
         $('#sendEmailMessageModal').modal('show');
-        $('#emailCaptcha').val('');
+        $emailCaptcha.val('');
         $('#emailReceiver').val(element.val());
         $('#emailUsage').val(usage);
         setTimeout(function () {
-          $('#emailCaptcha').focus().select();
+          $emailCaptcha.focus().select();
         }, 500);
       } else {
         element.focus().select();
       }
     }
     $('#sendEmailMessageModal').on('show.bs.modal', function (event) {
+      $emailCaptchaAlert.text('');
+      $emailCaptchaAlert.hide();
       fetchEmailCaptcha();
     });
 
@@ -191,7 +212,18 @@
       submitHandler: function (form) {
         request.post(form.action, $(form).serializeJSON()).then(function (response) {
           var data = response.data;
-          if(data.result == null) return;
+          if(data.status === -1) {
+            $emailCaptchaAlert.text(data.message);
+            $emailCaptchaAlert.show();
+            $emailCaptcha.val('');
+            fetchEmailCaptcha();
+            return;
+          }
+          if(data.result == null) {
+            return;
+          }
+          $emailCaptchaAlert.text('');
+          $emailCaptchaAlert.hide();
           emailInput.val(data.result.shortMessageId);
           $('#sendEmailMessageModal').modal('hide');
           clearInterval(emailInterval);

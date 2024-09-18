@@ -150,7 +150,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
 
     @Override
     public String getUrl(int page) {
-        return getSite().getHtml().isEnabled() ? getStaticUrl(page) : getDynamicUrl(page);
+        return getSite().isHtmlEnabled() ? getStaticUrl(page) : getDynamicUrl(page);
     }
 
     @Schema(description = "动态URL地址")
