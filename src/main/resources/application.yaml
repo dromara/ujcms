@@ -61,6 +61,7 @@ ujcms.databaseBinPath:
 
 # vastbase海量数据库（使用仿 PostgreSQL 版驱动 cn.com.vastdata:vastbase-jdbc:2.9p，并删除 PostgreSQL 驱动）
 # 也可直接使用 openGauss 驱动 org.opengauss:opengauss-jdbc:5.0.0
+# 应先创建用户并赋予所有权限（或赋予必须的权限，如创建表权限等），再以该用户作为 owner 创建数据库
 #spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
 #spring.datasource.username: gaussdb
 #spring.datasource.password: openGauss@123

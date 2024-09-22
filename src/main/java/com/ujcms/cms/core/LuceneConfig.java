@@ -46,12 +46,14 @@ public class LuceneConfig {
      * Lucene 索引目录
      */
     @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public Directory luceneDirectory() throws IOException {
         Path lucenePath = resourceLoader.getResource(props.getLucenePath()).getFile().toPath();
         return FSDirectory.open(lucenePath);
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public ADictionary dictionary() {
         SegmenterConfig segmenterConfig = new SegmenterConfig();
         segmenterConfig.setAppendCJKSyn(false);
@@ -82,6 +84,7 @@ public class LuceneConfig {
      */
     @Primary
     @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public Analyzer analyzer() {
         if (ANALYZER_IK.equalsIgnoreCase(props.getLuceneAnalyzer())) {
             return new IKAnalyzer();
@@ -94,6 +97,7 @@ public class LuceneConfig {
     }
 
     @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public Analyzer mostAnalyzer() {
         if (ANALYZER_IK.equalsIgnoreCase(props.getLuceneAnalyzer())) {
             return analyzer();
@@ -109,6 +113,7 @@ public class LuceneConfig {
      * Lucene 索引写入配置
      */
     @Bean
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public IndexWriterConfig indexWriterConfig() {
         return new IndexWriterConfig(mostAnalyzer());
     }
@@ -117,6 +122,7 @@ public class LuceneConfig {
      * Lucene 索引写入器
      */
     @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public IndexWriter indexWriter() throws IOException {
         return new IndexWriter(luceneDirectory(), indexWriterConfig());
     }
@@ -125,6 +131,7 @@ public class LuceneConfig {
      * Lucene 搜索管理器
      */
     @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public SearcherManager searcherManager() throws IOException {
         return new SearcherManager(indexWriter(), new SearcherFactory());
     }
@@ -133,6 +140,7 @@ public class LuceneConfig {
      * Lucene 操作模板
      */
     @Bean
+    @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public LuceneOperations luceneOperations() throws IOException {
         return new LuceneOperations(indexWriter(), searcherManager(), mostAnalyzer());
     }
