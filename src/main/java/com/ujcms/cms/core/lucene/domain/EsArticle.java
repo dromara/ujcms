@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.lucene.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.support.Anchor;
@@ -35,6 +36,7 @@ import static org.apache.lucene.document.Field.Store;
  */
 @Document(indexName = "#{@props.esArticle}")
 @Setting(settingPath = "/elasticsearch/article-setting.json")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsArticle extends WebPageWithCustoms implements Serializable {
     private static final long serialVersionUID = 1L;
 

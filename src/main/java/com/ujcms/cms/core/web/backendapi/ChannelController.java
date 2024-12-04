@@ -22,6 +22,7 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.cms.core.web.support.MoveParams;
 import com.ujcms.cms.core.web.support.ValidUtils;
+import com.ujcms.commons.db.tree.TreeMoveType;
 import com.ujcms.commons.db.tree.TreeSortEntity;
 import com.ujcms.commons.web.Entities;
 import com.ujcms.commons.web.Responses;
@@ -39,11 +40,13 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
@@ -155,7 +158,7 @@ public class ChannelController {
         service.insert(channel, groupIds, articleRoleIds, channelRoleIds);
 
         if (site.getHtml().isEnabledAndAuto()) {
-            String taskName = Servlets.getMessage(request, "task.html.channelRelated");
+            String taskName = Servlets.getMessage(request, TASK_HTML_CHANNEL_RELATED);
             generator.updateChannelRelatedHtml(channel.getSiteId(), user.getId(), taskName, channel.getId());
         }
         return Responses.ok();
@@ -165,18 +168,30 @@ public class ChannelController {
     @PreAuthorize("hasAnyAuthority('channel:update','*')")
     @OperationLog(module = "channel", operation = "update", type = OperationType.UPDATE)
     public ResponseEntity<Body> update(@RequestBody @Valid Channel bean, HttpServletRequest request) {
+        return update(bean, request, channel -> {
+            Entities.copy(bean, channel, "siteId", "parentId", "order");
+            channel.setCustoms(bean.getCustoms());
+            service.update(channel, null, null, null);
+        });
+    }
+
+    @PutMapping("nav")
+    @PreAuthorize("hasAnyAuthority('channel:update','*')")
+    @OperationLog(module = "channel", operation = "updateNav", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updateNav(@RequestBody @Valid Channel bean, HttpServletRequest request) {
+        return update(bean, request, channel ->
+                service.updateNav(Collections.singletonList(bean.getId()), bean.getNav()));
+    }
+
+    private ResponseEntity<Body> update(Channel bean, HttpServletRequest request, Consumer<Channel> handleChannel) {
         Site site = Contexts.getCurrentSite();
-        Channel channel = service.select(bean.getId());
-        if (channel == null) {
-            return Responses.notFound(Channel.NOT_FOUND + bean.getId());
-        }
-        ValidUtils.dataInSite(bean.getSiteId(), site.getId());
+        Channel channel = Optional.ofNullable(service.select(bean.getId()))
+                .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + bean.getId()));
+        ValidUtils.dataInSite(channel.getSiteId(), site.getId());
         User user = Contexts.getCurrentUser();
-        Entities.copy(bean, channel, "siteId", "parentId", "order");
-        channel.setCustoms(bean.getCustoms());
-        service.update(channel, null, null, null);
+        handleChannel.accept(channel);
         if (site.getHtml().isEnabledAndAuto()) {
-            String taskName = Servlets.getMessage(request, "task.html.channelRelated");
+            String taskName = Servlets.getMessage(request, TASK_HTML_CHANNEL_RELATED);
             generator.updateChannelRelatedHtml(channel.getSiteId(), user.getId(), taskName, channel.getId());
         }
         return Responses.ok();
@@ -186,14 +201,14 @@ public class ChannelController {
     @PreAuthorize("hasAnyAuthority('channel:update','*')")
     @OperationLog(module = "channel", operation = "move", type = OperationType.UPDATE)
     public ResponseEntity<Body> move(@RequestBody MoveParams params) {
-        Long siteId = Contexts.getCurrentSiteId();
+        Site site = Contexts.getCurrentSite();
         // 检查栏目是否属于当前站点
         Channel from = Optional.ofNullable(service.select(params.getFromId()))
                 .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + params.getFromId()));
-        ValidUtils.dataInSite(from.getSiteId(), siteId);
+        ValidUtils.dataInSite(from.getSiteId(), site.getId());
         Channel to = Optional.ofNullable(service.select(params.getToId()))
                 .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + params.getToId()));
-        ValidUtils.dataInSite(to.getSiteId(), siteId);
+        ValidUtils.dataInSite(to.getSiteId(), site.getId());
         // 不能移动到自己的子节点下
         for (Channel parent : to.getPaths()) {
             if (parent.getId().equals(from.getId())) {
@@ -201,8 +216,47 @@ public class ChannelController {
                         params.getFromId(), params.getToId()));
             }
         }
-        service.move(from, to, params.getType(), siteId);
+        service.move(from, to, params.getType(), site.getId());
         return Responses.ok();
+    }
+
+    @PutMapping("batch-move")
+    @PreAuthorize("hasAnyAuthority('channel:update','*')")
+    @OperationLog(module = "channel", operation = "batchMove", type = OperationType.UPDATE)
+    public ResponseEntity<Body> batchMove(@RequestBody BatchMoveParams params) {
+        Site site = Contexts.getCurrentSite();
+        updateBatch(params.getFromIds(), params.getToId(), site.getId(),
+                (from, to) -> service.move(from, to, params.getType(), site.getId()));
+        return Responses.ok();
+    }
+
+    @PutMapping("batch-merge")
+    @PreAuthorize("hasAnyAuthority('channel:update','*')")
+    @OperationLog(module = "channel", operation = "batchMerge", type = OperationType.UPDATE)
+    public ResponseEntity<Body> batchMerge(@RequestBody BatchMergeParams params) {
+        Site site = Contexts.getCurrentSite();
+        updateBatch(params.getFromIds(), params.getToId(), site.getId(), service::merge);
+        return Responses.ok();
+    }
+
+    private void updateBatch(List<Long> fromIds, Long toId, Long siteId, BiConsumer<Channel, Channel> handleChannel) {
+        // 检查栏目是否属于当前站点
+        Channel to = Optional.ofNullable(service.select(toId))
+                .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + toId));
+        ValidUtils.dataInSite(to.getSiteId(), siteId);
+        for (Long fromId : fromIds) {
+            Channel from = Optional.ofNullable(service.select(fromId))
+                    .orElseThrow(() -> new Http404Exception(Channel.NOT_FOUND + fromId));
+            ValidUtils.dataInSite(from.getSiteId(), siteId);
+            // 不能移动到自己的子节点下
+            for (Channel parent : to.getPaths()) {
+                if (parent.getId().equals(from.getId())) {
+                    throw new Http400Exception(String.format("Cannot move Channel(id=%s) to child(id=%s)",
+                            fromId, toId));
+                }
+            }
+            handleChannel.accept(from, to);
+        }
     }
 
     /**
@@ -289,5 +343,67 @@ public class ChannelController {
             siteId = Contexts.getCurrentSiteId();
         }
         return service.existsByAlias(alias, siteId);
+    }
+
+    public static final String TASK_HTML_CHANNEL_RELATED = "task.html.channelRelated";
+
+    public static class BatchMoveParams implements Serializable {
+        private static final long serialVersionUID = 1;
+
+        @NotEmpty
+        private List<Long> fromIds;
+        @NotNull
+        private Long toId;
+        @NotNull
+        private TreeMoveType type = TreeMoveType.INNER;
+
+        public List<Long> getFromIds() {
+            return fromIds;
+        }
+
+        public void setFromIds(List<Long> fromIds) {
+            this.fromIds = fromIds;
+        }
+
+        public Long getToId() {
+            return toId;
+        }
+
+        public void setToId(Long toId) {
+            this.toId = toId;
+        }
+
+        public TreeMoveType getType() {
+            return type;
+        }
+
+        public void setType(TreeMoveType type) {
+            this.type = type;
+        }
+    }
+
+    public static class BatchMergeParams implements Serializable {
+        private static final long serialVersionUID = 1;
+
+        @NotEmpty
+        private List<Long> fromIds;
+        @NotNull
+        private Long toId;
+
+        public List<Long> getFromIds() {
+            return fromIds;
+        }
+
+        public void setFromIds(List<Long> fromIds) {
+            this.fromIds = fromIds;
+        }
+
+        public Long getToId() {
+            return toId;
+        }
+
+        public void setToId(Long toId) {
+            this.toId = toId;
+        }
     }
 }

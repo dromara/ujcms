@@ -135,8 +135,22 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public void updateNav(List<Long> ids, Boolean nav) {
+        if (ids.isEmpty()) {
+            return;
+        }
+        mapper.updateNav(ids, nav);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public void move(Channel from, Channel to, TreeMoveType type, Long siteId) {
         treeService.move(from, to, type, siteId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void merge(Channel from,Channel to) {
+        articleMapper.updateChannelId(from.getId(), to.getId());
+        delete(from);
     }
 
     public List<Channel> listBySiteIdForTidy(Long siteId) {

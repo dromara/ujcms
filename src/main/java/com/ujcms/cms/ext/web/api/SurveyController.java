@@ -197,15 +197,15 @@ public class SurveyController {
             }
             Object value = items.get(String.valueOf(item.getId()));
             List<Long> optionIds;
-            if (value instanceof String[]) {
+            if (value instanceof List) {
                 if (Boolean.FALSE.equals(item.getMultiple())) {
                     throw new Http400Exception("Only one option can be selected.");
                 }
-                optionIds = Arrays.stream((String[]) value).map(Long::valueOf).collect(Collectors.toList());
-            } else if (value instanceof String) {
+                optionIds = ((List<?>) value).stream().map(Object::toString).map(Long::valueOf).collect(Collectors.toList());
+            }else if (value instanceof String) {
                 optionIds = Collections.singletonList(Long.valueOf((String) value));
             } else {
-                throw new Http400Exception("Option is invalid.");
+                throw new Http400Exception("Option is invalid: " + value);
             }
             List<Long> itemOptionsIds = item.getOptions().stream().map(SurveyOptionBase::getId)
                     .collect(Collectors.toList());

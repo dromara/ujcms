@@ -1,5 +1,7 @@
 package com.ujcms.cms.ext.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.ext.domain.base.VoteBase;
 import com.ujcms.cms.ext.domain.base.VoteOptionBase;
@@ -16,6 +18,8 @@ import java.util.List;
  *
  * @author PONY
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties("handler")
 public class Vote extends VoteBase implements Serializable, OrderEntity {
     private static final long serialVersionUID = 1L;
 

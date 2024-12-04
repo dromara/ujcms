@@ -37,7 +37,7 @@ public class DictController {
 
     @Operation(summary = "获取字典列表（DictList标签）")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",
-            schema = @Schema(type = "integer", format = "int32"))
+            schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型别名",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "isEnabled", description = "是否启用。可选值：`all`(全部), `false`(禁用), `true`(启用)。默认值：启用",

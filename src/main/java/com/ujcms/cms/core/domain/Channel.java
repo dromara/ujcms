@@ -58,7 +58,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "栏目层级。从一级栏目到当前栏目的列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性只包含当前栏目")
-    @JsonIncludeProperties({"id", "name", "url"})
+    @JsonIncludeProperties({"id", "name", "alias", "url"})
     public List<Channel> getPaths() {
         LinkedList<Channel> parents = new LinkedList<>();
         Channel bean = this;
@@ -283,7 +283,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     /**
      * 上级栏目。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性为`null`
      */
-    @JsonIncludeProperties({"id", "name", "url"})
+    @JsonIncludeProperties({"id", "name", "alias", "url"})
     @Nullable
     private Channel parent;
     /**

@@ -30,7 +30,7 @@ public class Tag extends TagBase implements Serializable {
     /**
      * 创建人
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User user = new User();
     /**
      * 站点

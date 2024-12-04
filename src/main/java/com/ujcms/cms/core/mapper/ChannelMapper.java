@@ -161,6 +161,15 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     List<Channel> listBySiteIdForTidy(Long siteId);
 
     /**
+     * 设置是否导航
+     *
+     * @param ids 待设置的栏目ID
+     * @param nav 是否导航
+     * @return 更新条数
+     */
+    int updateNav(@Param("ids") List<Long> ids, @Param("nav") Boolean nav);
+
+    /**
      * 设置绩效类型ID为NULL
      *
      * @param performanceTypeId 绩效类型ID

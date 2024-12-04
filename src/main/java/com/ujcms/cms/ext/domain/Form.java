@@ -42,12 +42,12 @@ public class Form extends FormBase implements Serializable, OrderEntity {
     /**
      * 创建用户
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User user = new User();
     /**
      * 修改用户
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User modifiedUser = new User();
     /**
      * 表单类型

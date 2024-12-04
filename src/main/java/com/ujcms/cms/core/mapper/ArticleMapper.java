@@ -189,6 +189,15 @@ public interface ArticleMapper extends OrderEntityMapper {
     Map<String, Object> statForSitemap(@Param("siteId") Long siteId, @Param("status") Collection<Short> status);
 
     /**
+     * 更新栏目ID
+     *
+     * @param fromChannelId 原栏目ID
+     * @param toChannelId   新栏目ID
+     * @return 被更新的条数
+     */
+    int updateChannelId(@Param("fromChannelId") Long fromChannelId, @Param("toChannelId") Long toChannelId);
+
+    /**
      * 更新修改人员
      *
      * @param fromUserId 原修改用户ID

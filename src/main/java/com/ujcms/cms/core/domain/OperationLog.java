@@ -74,7 +74,7 @@ public class OperationLog extends OperationLogBase implements Serializable {
     /**
      * 用户
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User user = new User();
     /**
      * 站点

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "UJCMS网站模板",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
     "@babel/standalone": "^7.19.0",

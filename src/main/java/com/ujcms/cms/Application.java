@@ -53,7 +53,7 @@ import static com.ujcms.cms.core.support.UrlConstants.*;
 
 /**
  * 根据 https://start.spring.io/ 生成的代码范例。
- *
+ * <p>
  * SpringBoot的入口和主要配置文件
  *
  * @author PONY
@@ -234,7 +234,7 @@ public class Application extends SpringBootServletInitializer
         @Override
         public void addCorsMappings(@NonNull CorsRegistry registry) {
             // 允许 api 跨域
-            // registry.addMapping("API + /**").allowedOrigins("*").allowedMethods("GET", "POST").allowCredentials(true)
+            //registry.addMapping(API + "/**").allowedOrigins("*").allowedMethods("GET", "POST").allowCredentials(true)
         }
 
         @Override

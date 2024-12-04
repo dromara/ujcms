@@ -36,7 +36,7 @@ public class Attachment extends AttachmentBase implements Serializable {
         return FilesEx.getSize(getLength());
     }
 
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User user = new User();
     @JsonIncludeProperties({"id", "name"})
     private Site site = new Site();

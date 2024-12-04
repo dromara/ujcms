@@ -56,7 +56,7 @@ public class LoginLog extends LoginLogBase implements Serializable {
         return bean;
     }
 
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     @Nullable
     private User user;
 

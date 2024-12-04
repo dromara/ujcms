@@ -41,12 +41,12 @@ public class MessageBoard extends MessageBoardBase implements Serializable {
     /**
      * 留言用户
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User user = new User();
     /**
      * 回复用户
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     @Nullable
     private User replyUser;
 

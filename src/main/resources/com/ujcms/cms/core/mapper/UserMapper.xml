@@ -36,7 +36,7 @@
         </if>
         <where>
             <if test="created != null">
-                and ext_.created_ &gt;= #{created}
+                ext_.created_ &gt;= #{created}
             </if>
         </where>
     </select>

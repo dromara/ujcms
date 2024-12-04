@@ -70,12 +70,11 @@ public class Model extends ModelBase implements Serializable {
         if (valueKey instanceof List) {
             List<?> listKey = (List<?>) valueKey;
             assembled.put(nameKey, listKey.stream().filter(Objects::nonNull).map(val -> {
-                if (DATA_TYPE_LONG.equals(dataType)) {
+                if (DATA_TYPE_NUMBER.equals(dataType)) {
                     return Long.valueOf(val.toString());
-                } else if (DATA_TYPE_DECIMAL.equals(dataType)) {
-                    return new BigDecimal(val.toString());
+                } else {
+                    return val.toString();
                 }
-                return val.toString();
             }).collect(Collectors.toList()));
         }
     }
@@ -86,10 +85,8 @@ public class Model extends ModelBase implements Serializable {
             assembled.put(name, value);
         }
         if (valueKey instanceof String || valueKey instanceof Number) {
-            if (DATA_TYPE_LONG.equals(dataType)) {
+            if (DATA_TYPE_NUMBER.equals(dataType)) {
                 assembled.put(nameKey, Long.valueOf(valueKey.toString()));
-            } else if (DATA_TYPE_DECIMAL.equals(dataType)) {
-                assembled.put(nameKey, new BigDecimal(valueKey.toString()));
             } else {
                 assembled.put(nameKey, valueKey.toString());
             }
@@ -376,8 +373,7 @@ public class Model extends ModelBase implements Serializable {
     public static final String TYPE_MARKDOWN_EDITOR = "markdownEditor";
 
     public static final String DATA_TYPE_STRING = "string";
-    public static final String DATA_TYPE_LONG = "long";
-    public static final String DATA_TYPE_DECIMAL = "decimal";
+    public static final String DATA_TYPE_NUMBER = "number";
     public static final String DATA_TYPE_DATETIME = "datetime";
     public static final String DATA_TYPE_BOOLEAN = "boolean";
 

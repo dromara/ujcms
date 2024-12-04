@@ -122,10 +122,10 @@ public class MessageBoardController {
         });
     }
 
-    @Operation(summary = "获取调查问卷对象")
-    @ApiResponses(value = {@ApiResponse(description = "调查问卷对象")})
+    @Operation(summary = "获取留言对象")
+    @ApiResponses(value = {@ApiResponse(description = "留言对象")})
     @GetMapping("/{id:[\\d]+}")
-    public MessageBoard show(@Parameter(description = "调查问卷ID") @PathVariable Long id) {
+    public MessageBoard show(@Parameter(description = "留言ID") @PathVariable Long id) {
         MessageBoard bean = service.select(id);
         if (bean == null) {
             throw new Http404Exception("MessageBoard not found. ID: " + id);

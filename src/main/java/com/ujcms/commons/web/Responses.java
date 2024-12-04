@@ -66,7 +66,7 @@ public final class Responses {
     }
 
     /**
-     * 操作成功
+     * 操作失败
      */
     public static ResponseEntity<Body> failure(Map<String, Object> result) {
         return ResponseEntity.ok().body(new Body(Body.FAILURE, result));
@@ -110,7 +110,7 @@ public final class Responses {
     }
 
     /**
-     * 返回逻辑状态码。
+     * 返回逻辑状态码
      *
      * @see Responses#status(int)
      */
@@ -119,7 +119,7 @@ public final class Responses {
     }
 
     /**
-     * 返回逻辑状态码。
+     * 返回逻辑状态码
      *
      * @see Responses#status(int)
      */
@@ -128,7 +128,7 @@ public final class Responses {
     }
 
     /**
-     * 返回逻辑状态码。
+     * 返回逻辑状态码
      *
      * @see Responses#status(int)
      */

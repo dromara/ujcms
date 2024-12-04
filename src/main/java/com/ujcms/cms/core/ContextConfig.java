@@ -31,6 +31,7 @@ public class ContextConfig implements InitializingBean {
     private final ChannelService channelService;
     private final ArticleLucene articleLucene;
     private final ArticleService articleService;
+    private final ModelService modelService;
     private final TagService tagService;
     private final DictService dictService;
     private final BlockItemService blockItemService;
@@ -39,13 +40,14 @@ public class ContextConfig implements InitializingBean {
     private final ResourceLoader resourceLoader;
 
     public ContextConfig(SiteService siteService, ChannelService channelService, ArticleLucene articleLucene,
-                         ArticleService articleService, TagService tagService, DictService dictService,
-                         BlockItemService blockItemService,
+                         ArticleService articleService, ModelService modelService, TagService tagService,
+                         DictService dictService, BlockItemService blockItemService,
                          freemarker.template.Configuration configuration, Props props, ResourceLoader resourceLoader) {
         this.siteService = siteService;
         this.channelService = channelService;
         this.articleLucene = articleLucene;
         this.articleService = articleService;
+        this.modelService = modelService;
         this.tagService = tagService;
         this.dictService = dictService;
         this.blockItemService = blockItemService;
@@ -67,7 +69,9 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("ArticlePage", new ArticlePageDirective(articleService, channelService));
         configuration.setSharedVariable("Article", new ArticleDirective(articleService));
         configuration.setSharedVariable("ArticlePrev", new ArticlePrevDirective(articleService));
-        configuration.setSharedVariable("ArticleNext", new ArticleNextDirective(articleService));
+        configuration.setSharedVariable("ArticleNext", new ModelListDirective(modelService));
+        configuration.setSharedVariable("ModelList", new ModelDirective(modelService));
+        configuration.setSharedVariable("Model", new ArticleNextDirective(articleService));
         configuration.setSharedVariable("DictList", new DictListDirective(dictService));
         configuration.setSharedVariable("BlockItemList", new BlockItemListDirective(blockItemService));
         configuration.setSharedVariable("TagList", new TagListDirective(tagService));

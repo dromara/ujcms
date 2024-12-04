@@ -27,7 +27,7 @@
           ${messageBoard.title}
         </h5>
         <div class="small text-black-50 mt-2 pb-2 border-bottom">
-          <i class="far fa-user"></i> ${messageBoard.user.username!messageBoard.nickname!"匿名网友"}
+          <i class="far fa-user"></i> ${messageBoard.user.username!messageBoard.user.nickname!"匿名网友"}
           <i class="ml-2 far fa-clock"></i> ${format(messageBoard.created, 'yyyy-MM-dd')}
         </div>
         <div class="mt-2">[#noescape]${bbcode(messageBoard.text)}[/#noescape]</div>

@@ -1,6 +1,5 @@
 package com.ujcms.cms.ext.web.api;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.base.UserBase;
 import com.ujcms.cms.core.service.ActionService;
@@ -16,7 +15,6 @@ import com.ujcms.cms.ext.web.directive.VoteListDirective;
 import com.ujcms.commons.query.QueryUtils;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Servlets;
-import com.ujcms.commons.web.Views;
 import com.ujcms.commons.web.exception.Http400Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,7 +80,6 @@ public class VoteController {
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
             schema = @Schema(type = "integer", format = "int32"))
-    @JsonView(Views.List.class)
     @GetMapping
     public List<Vote> list(HttpServletRequest request) {
         return query(request, (args, params) -> {
@@ -103,7 +100,6 @@ public class VoteController {
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "pageSize", description = "每页多少条数据。最大不能超过1000",
             schema = @Schema(type = "integer", format = "int32"))
-    @JsonView(Views.List.class)
     @GetMapping("/page")
     public Page<Vote> page(HttpServletRequest request) {
         return query(request, (args, params) -> {

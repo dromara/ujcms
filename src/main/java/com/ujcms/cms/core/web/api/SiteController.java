@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
@@ -70,9 +72,14 @@ public class SiteController {
         return SiteListDirective.selectList(service, args, params);
     }
 
-    @Operation(summary = "获取当前站点对象。通过域名获取对应站点对象，无法获取则返回默认站点")
+    @Operation(summary = "获取当前站点对象。如果传递subDir参数，则通过子目录查询当前站点；否则通过当前域名获取对应站点对象，无法获取则返回默认站点")
     @GetMapping("/current")
-    public Site current(HttpServletRequest request) {
+    public Site current(@Parameter(description = "站点子目录") String subDir,
+                        HttpServletRequest request) {
+        if (StringUtils.isNotBlank(subDir)) {
+            return Optional.ofNullable(service.findBySubDir(subDir))
+                    .orElseThrow(() -> new Http404Exception("error.siteSubDirNotExist", subDir));
+        }
         return siteResolver.resolve(request);
     }
 

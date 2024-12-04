@@ -27,7 +27,7 @@ public class PagingMethod implements TemplateMethodModelEx {
     @Override
     public Object exec(List args) throws TemplateModelException {
         Integer page = null;
-        if (args.size() > 0) {
+        if (!args.isEmpty()) {
             TemplateModel arg0 = (TemplateModel) args.get(0);
             page = Freemarkers.getInteger(arg0);
         }

@@ -1,5 +1,6 @@
 package com.ujcms.commons.ip;
 
+import io.minio.org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.lionsoul.ip2region.xdb.Searcher;
 
@@ -15,6 +16,7 @@ import static com.ujcms.commons.ip.Region.UNKNOWN;
  */
 public class IpSeeker implements AutoCloseable {
     private final Searcher searcher;
+    private static final InetAddressValidator VALIDATOR = InetAddressValidator.getInstance();
 
     public IpSeeker(byte[] bytes) throws IOException {
         searcher = Searcher.newWithBuffer(bytes);
@@ -25,6 +27,10 @@ public class IpSeeker implements AutoCloseable {
         if (StringUtils.isBlank(ip) ||
                 StringUtils.equalsAnyIgnoreCase(ip, "0:0:0:0:0:0:0:1", "127.0.0.1", "localhost")) {
             return new Region(LAN, LAN, LAN, LAN);
+        }
+        // 目前只能判断 IPv4 地址
+        if (!VALIDATOR.isValidInet4Address(ip)) {
+            return new Region(UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN);
         }
         try {
             // 数据格式为：国家|区域|省份|城市|ISP

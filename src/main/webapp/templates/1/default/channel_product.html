@@ -43,7 +43,7 @@
           [/#list]
           [/@DictList]
         </div>
-        [#assign customsQueryMap=customsQueryMap + {'ArrayEQ_@articleExt-mainsJson$'+param+(field.dataType != 'string')?string('_Int',''): Params[param]!}/]
+        [#assign customsQueryMap=customsQueryMap + {'ArrayEQ_@articleExt-mainsJson$'+param+(field.dataType == 'number')?string('_Int',''): Params[param]!}/]
         [/#list]
       </div>
       [/#if]

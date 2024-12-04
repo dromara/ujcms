@@ -72,7 +72,6 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         return linkUrl;
     }
 
-    @JsonIgnore
     public String getTemplate() {
         return assembleTemplate(TEMPLATE_FILE);
     }

@@ -165,6 +165,11 @@
         </foreach>
         order by t.id_
     </select>
+    <update id="updateChannelId">
+        update ujcms_article
+        set channel_id_ = #{toChannelId}
+        where channel_id_ in (select t.descendant_id_ from ujcms_channel_tree t where t.ancestor_id_ = #{fromChannelId})
+    </update>
     <update id="updateModifiedUser">
         update ujcms_article
         set modified_user_id_ = #{toUserId}

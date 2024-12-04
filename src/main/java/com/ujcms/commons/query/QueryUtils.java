@@ -523,7 +523,11 @@ public class QueryUtils {
             return NumberUtils.convertNumberToTargetClass((Number) obj, targetClass);
         }
         if (obj instanceof String) {
-            return NumberUtils.parseNumber((String) obj, targetClass);
+            String s = (String) obj;
+            if (StringUtils.isBlank(s)) {
+                return null;
+            }
+            return NumberUtils.parseNumber(s, targetClass);
         }
         throw new QueryException("Cannot parse to Number: " + obj);
     }

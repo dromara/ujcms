@@ -69,7 +69,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         return FilesEx.getSize(getFileLength());
     }
 
-    @JsonIgnore
+    @Schema(description = "文章模板")
     public String getTemplate() {
         String template = getArticleTemplate();
         if (StringUtils.isBlank(template)) {
@@ -394,12 +394,12 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     /**
      * 创建者
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User user = new User();
     /**
      * 修改者
      */
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User modifiedUser = new User();
     /**
      * 区块项列表

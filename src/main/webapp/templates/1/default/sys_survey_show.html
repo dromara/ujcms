@@ -62,7 +62,7 @@
       <div class="small check-group">
         [#list item.options as option]
         <div class="form-check mt-2 text-muted ">
-          <input class="form-check-input" type="${item.multiple?string('checkbox','radio')}" name="items[${item.id?c}]" id="survey-${item.id?c}-${option_index?c}" value="${option.id?c}" required>
+          <input class="form-check-input" type="${item.multiple?string('checkbox','radio')}" name="items[${item.id?c}]${item.multiple?string('[]','')}" id="survey-${item.id?c}-${option_index?c}" value="${option.id?c}" required>
           <label class="form-check-label" for="survey-${item.id?c}-${option_index?c}">
             ${option.title}
           </label>

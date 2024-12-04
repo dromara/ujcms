@@ -161,13 +161,13 @@
     });
 
     function fetchCsrf() {
-      return axios.get('${dy}/app/csrf').then(function (response) {
-        if (response.data) {
-          const arr = response.data.split(',');
-          if (arr.length >= 3) {
-            $('meta[name="_csrf_header"]').attr('content', arr[1].trim());
-            $('meta[name="_csrf"]').attr('content', arr[2].trim());
-          }
+      return axios.get('${api}/env/csrf').then(function (response) {
+        const data = response.data;
+        if (data && data.headerName && data.token) {
+          $('meta[name="_csrf_header"]').attr('content', data.headerName);
+          $('meta[name="_csrf"]').attr('content', data.token);
+        } else {
+          throw new Error('CSRF no response data.');
         }
       });
     }

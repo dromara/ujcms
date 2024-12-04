@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,10 +62,14 @@ public class EsArticleController {
             schema = @Schema(type = "string", format = "date-time"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithImage", description = "是否有标题图。如：`true` `false`",
             schema = @Schema(type = "boolean"))
-    @Parameter(in = ParameterIn.QUERY, name = "title", description = "标题",
+    @Parameter(in = ParameterIn.QUERY, name = "q", description = "搜索内容",
             schema = @Schema(type = "string"))
-    @Parameter(in = ParameterIn.QUERY, name = "text", description = "正文",
-            schema = @Schema(type = "string"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeBody", description = "是否搜索正文。如：`true` `false`，默认`true`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeDisabled", description = "是否包含不允许搜索的栏目的文章。如：`true` `false`，默认`false`",
+            schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "fragmentSize", description = "摘要长度。默认 `100`",
+            schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
             schema = @Schema(type = "string", format = "int64 array"))
     @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回。默认：0（已发布）",
@@ -85,7 +90,8 @@ public class EsArticleController {
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
         int offset = Directives.getOffset(params);
         int limit = Directives.getLimit(params);
-        Page<EsArticle> pagedList = query(params, site.getId(), OffsetLimitRequest.of(offset, limit));
+        Sort sort = Directives.getSort(params);
+        Page<EsArticle> pagedList = query(params, site.getId(), OffsetLimitRequest.of(offset, limit, sort));
         return pagedList.getContent();
     }
 
@@ -125,6 +131,7 @@ public class EsArticleController {
         // spring-data 的 page 从 0 开始
         int page = Directives.getPage(params) - 1;
         int pageSize = Directives.getPageSize(params);
-        return query(params, site.getId(), PageRequest.of(page, pageSize));
+        Sort sort = Directives.getSort(params);
+        return query(params, site.getId(), PageRequest.of(page, pageSize, sort));
     }
 }

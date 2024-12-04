@@ -252,12 +252,13 @@
                         /foreach
                         ")
                         -->
+                        <!-- JSON_QUOTE(#{item}) 只接受字符串参数，如传入整数或其它类型参数，会报错。只能先创建JSON数组，再获取JSON数组元素，以获得JSON元素 -->
                         <foreach close=")" collection="condition.value" item="item" open="(" separator="or">
-                            JSON_CONTAINS(${condition.column}, JSON_QUOTE(#{item}), '$.${condition.jsonColumn}')
+                            JSON_CONTAINS(${condition.column}, JSON_EXTRACT(JSON_ARRAY(#{item}),'$[0]'), '$.${condition.jsonColumn}')
                         </foreach>
                     </when>
                     <otherwise>
-                        JSON_CONTAINS(${condition.column}, JSON_QUOTE(#{condition.value}), '$.${condition.jsonColumn}')
+                        JSON_CONTAINS(${condition.column}, JSON_EXTRACT(JSON_ARRAY(#{condition.value}),'$[0]'), '$.${condition.jsonColumn}')
                     </otherwise>
                 </choose>
             </when>

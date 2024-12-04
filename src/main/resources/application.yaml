@@ -79,15 +79,16 @@ ujcms.databaseBinPath:
 #ujcms.databaseType: postgresql
 #ujcms.databaseBinPath:
 
-# 达梦数据库（不可直接创建模式；应该创建用户，达梦会自动创建同名模式；用户要赋予 RESOURCE 角色）
+# 达梦数据库（不可直接创建模式；应该创建用户，达梦会自动创建同名模式；用户要赋予 RESOURCE 角色；使用新建的用户连接数据库）
 #spring.datasource.url: jdbc:dm://192.168.0.240:5236/UJCMS
+## 达梦的用户名需与 spring.datasource.url 中的数据库名一致
 #spring.datasource.username: UJCMS
 #spring.datasource.password: pass@0000
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
 #ujcms.data-sql-platform: dm
-# 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
+## 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
 #flowable.database-schema: UJCMS
-# 达梦必须指定 liquibase 的 schema 名称，需与 spring.datasource.url 中的数据库名一致
+## 达梦必须指定 liquibase 的 schema 名称，需与 spring.datasource.url 中的数据库名一致
 #spring.liquibase.liquibase-schema: UJCMS
 
 # 集群环境下，可以设置雪花算法主键的数据中心ID和工作机器ID。不设置时，会自动根据网卡mac地址和pid(进程ID)计算出一个相对随机的数值，一般情况下不会冲突。

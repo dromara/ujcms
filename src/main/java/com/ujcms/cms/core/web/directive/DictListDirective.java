@@ -10,9 +10,10 @@ import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,12 +40,12 @@ public class DictListDirective implements TemplateDirectiveModel {
     public static List<Dict> query(Map<String, ?> params, DictService dictService) {
         DictArgs args = DictArgs.of();
 
-        Long typeId = Directives.getLong(params, TYPE_ID);
-        String typeAlias = Directives.getString(params, TYPE);
-        if (typeId != null) {
-            args.typeId(typeId);
-        } else if (StringUtils.isNotBlank(typeAlias)) {
-            args.typeAlias(typeAlias);
+        Collection<Long> typeId = Directives.getLongs(params, TYPE_ID);
+        Collection<String> typeAlias = Directives.getStrings(params, TYPE);
+        if (CollectionUtils.isNotEmpty(typeId)) {
+            args.inTypeIds(typeId);
+        } else if (CollectionUtils.isNotEmpty(typeAlias)) {
+            args.inTypeAlias(Directives.getStrings(params, TYPE));
         } else {
             throw new IllegalArgumentException("Params typeId or typeAlias is required.");
         }
@@ -55,7 +56,7 @@ public class DictListDirective implements TemplateDirectiveModel {
         int offset = Directives.getOffset(params);
         int limit = Directives.getLimit(params);
 
-        return dictService.selectList(args , offset, limit);
+        return dictService.selectList(args, offset, limit);
     }
 
     @SuppressWarnings("unchecked")

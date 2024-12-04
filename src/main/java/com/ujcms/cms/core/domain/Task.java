@@ -48,7 +48,7 @@ public class Task extends TaskBase implements Serializable {
         setErrorInfo(errorWriter.toString());
     }
 
-    @JsonIncludeProperties({"id", "username"})
+    @JsonIncludeProperties({"id", "username", "nickname"})
     private User user = new User();
 
     public User getUser() {
