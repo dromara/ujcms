@@ -69,7 +69,7 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("ArticlePage", new ArticlePageDirective(articleService, channelService));
         configuration.setSharedVariable("Article", new ArticleDirective(articleService));
         configuration.setSharedVariable("ArticlePrev", new ArticlePrevDirective(articleService));
-        configuration.setSharedVariable("ArticleNext", new ModelListDirective(modelService));
+        configuration.setSharedVariable("ArticleNext", new ArticleNextDirective(articleService));
         configuration.setSharedVariable("ModelList", new ModelDirective(modelService));
         configuration.setSharedVariable("Model", new ArticleNextDirective(articleService));
         configuration.setSharedVariable("DictList", new DictListDirective(dictService));
