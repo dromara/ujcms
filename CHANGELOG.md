@@ -1,5 +1,17 @@
 # UJCMS 发版说明
 
+## ujcms-9.7.3
+
+* 文章管理的列表增加顶、踩列
+* 修复文章上一条、下一条标签报错问题
+* 修复第三方登录时，`mobile not found`错误
+* 修复留言`Reply_user_id_`大小写问题
+* 修复`NodeJS 22`版本下，前端`tailwind.config.js`文件出现`ReferenceError: require is not defined`错误
+* 修复postgresql下，后台栏目管理，修改是否导航时报错的问题
+* 修复postgresql下，后台留言管理，点击留言状态时报错的问题
+* 修复postgresql下，后台表单管理，点击表单状态时报错的问题
+* 修复因ElementPlus按需加载，ElMessage ElMessageBox无样式的问题
+
 ## ujcms-9.7.1
 
 * 修复文章上一条、下一条标签报错问题

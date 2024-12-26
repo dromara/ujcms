@@ -51,6 +51,7 @@ ujcms.databaseBinPath:
 
 # openGauss高斯数据库（使用仿 PostgreSQL 版驱动 org.opengauss:opengauss-jdbc:5.0.0，并删除 PostgreSQL 驱动）
 # 直接使用 PostgreSQL 驱动，会报 Invalid or unsupported by client SCRAM mechanisms 错误
+# 数据库的 owner 必须与连接的用户一致。一般情况下应该避免使用数据库自带的用户和库，可新建一个用户、一个库，并将该库的 owner 设置为这个用户
 #spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
 #spring.datasource.username: gaussdb
 #spring.datasource.password: openGauss@123

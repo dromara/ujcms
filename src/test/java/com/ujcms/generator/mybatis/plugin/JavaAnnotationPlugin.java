@@ -71,7 +71,9 @@ public class JavaAnnotationPlugin extends PluginAdapter {
                 // 字符串需加引号
                 case Types.CHAR:
                     if (introspectedColumn.getLength() == 1) {
-                        defaultValue = "0".equalsIgnoreCase(defaultValue) ? "false" : "true";
+                        // postgresql 的 defaultValue 值为 '0'::bpchar
+                        defaultValue = "0".equals(defaultValue) || "'0'::bpchar".equals(defaultValue)
+                                ? "false" : "true";
                     } else {
                         defaultValue = "\"" + defaultValue + "\"";
                     }

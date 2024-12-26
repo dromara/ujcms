@@ -52,7 +52,7 @@ public class MessageBoardListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_ALL_SITE = "isAllSite";
     /**
-     * 状态。布尔型。
+     * 状态。短整型(Short)。
      */
     public static final String STATUS = "status";
 

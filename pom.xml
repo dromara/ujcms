@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.7.1</version>
+    <version>9.7.3</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -45,16 +45,16 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <!-- Apache压缩组件 -->
         <commons-compress.version>1.26.2</commons-compress.version>
-        <commons-io.version>2.8.0</commons-io.version>
+        <commons-io.version>2.18.0</commons-io.version>
         <commons-validator.version>1.7</commons-validator.version>
         <!-- Apache公共网络组件 -->
-        <commons-net.version>3.8.0</commons-net.version>
+        <commons-net.version>3.11.1</commons-net.version>
         <!-- 字符串相似度组件 -->
         <java-string-similarity.version>2.0.0</java-string-similarity.version>
         <!-- HTML解析组件 -->
-        <jsoup.version>1.14.2</jsoup.version>
+        <jsoup.version>1.18.3</jsoup.version>
         <!-- 加密组件 -->
-        <bcprov-jdk15to18.version>1.71</bcprov-jdk15to18.version>
+        <bcprov-jdk15to18.version>1.79</bcprov-jdk15to18.version>
         <!-- HTML不安全代码过滤组件 -->
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <!-- 验证码组件 -->

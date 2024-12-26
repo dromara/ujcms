@@ -147,7 +147,7 @@
     </delete>
     <update id="updateNav">
         update ujcms_channel
-        set nav_ = #{nav}
+        set nav_ = #{nav,jdbcType=CHAR}
         where id_ in
         <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
     </update>

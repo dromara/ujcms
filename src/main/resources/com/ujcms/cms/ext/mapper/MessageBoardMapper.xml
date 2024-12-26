@@ -27,7 +27,7 @@
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
         <association column="type_id_" javaType="com.ujcms.cms.ext.domain.MessageBoardType" property="type" select="com.ujcms.cms.ext.mapper.MessageBoardTypeMapper.select" />
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
-        <association column="Reply_user_id_" javaType="com.ujcms.cms.core.domain.User" property="replyUser" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+        <association column="reply_user_id_" javaType="com.ujcms.cms.core.domain.User" property="replyUser" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
     </resultMap>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
