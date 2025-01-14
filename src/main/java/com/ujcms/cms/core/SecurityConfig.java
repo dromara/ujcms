@@ -181,6 +181,7 @@ public class SecurityConfig {
         return EbayPolicyExample.POLICY_DEFINITION.and(new HtmlPolicyBuilder()
                 // 允许视频元素
                 .allowElements("video").allowAttributes("controls", "preload", "width", "height", "src").onElements("video")
+                .allowElements("audio").allowAttributes("controls", "preload", "width", "height", "src").onElements("audio")
                 .allowElements("source").allowAttributes("src", "type").onElements("source")
                 .allowElements("a").allowAttributes("target").matching(true, "_blank").onElements("a")
                 // 允许浮动样式

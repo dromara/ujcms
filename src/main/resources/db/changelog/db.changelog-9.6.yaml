@@ -86,5 +86,26 @@ databaseChangeLog:
                   remarks: 描述
                   type: VARCHAR(3000)
             tableName: ujcms_site
-
+  - changeSet:
+      id: 1735635660658-1
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_blockitem_article
+            tableName: ujcms_block_item
+  - changeSet:
+      id: 1735636061806-1
+      author: PONY (generated)
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            indexName: uk_blockitem_block_article
+            tableName: ujcms_block_item
+      changes:
+        - dropUniqueConstraint:
+            constraintName: uk_blockitem_block_article
+            tableName: ujcms_block_item
 

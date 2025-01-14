@@ -47,7 +47,7 @@
         <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Channel" property="parent" select="selectReferParent"/>
         <association column="article_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="articleModel" select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
     </resultMap>
-    <resultMap extends="BaseResultMap" id="ListResultMap" type="com.ujcms.cms.core.domain.Channel">
+    <resultMap extends="ResultMapWithBLOBs" id="ListResultMap" type="com.ujcms.cms.core.domain.Channel">
         <result column="has_children_" jdbcType="CHAR" property="hasChildren"/>
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer"/>
         <association column="channel_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="channelModel" select="com.ujcms.cms.core.mapper.ModelMapper.select"/>
