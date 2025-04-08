@@ -116,8 +116,14 @@ spring.quartz.overwrite-existing-jobs: true
 # 使用liquibase初始化数据库，要使用 never。默认：embedded
 spring.quartz.jdbc.initialize-schema: never
 
-# 是否启用liquibase。默认：true。Flowable 将 spring.liquibase.enabled 设置成了 false。需要显式的设置为 true。
+# 是否启用 liquibase。默认：true。Flowable 将 spring.liquibase.enabled 设置成了 false。需要显式的设置为 true。
 spring.liquibase.enabled: true
+# Flowable 是否更新数据库表结构。默认：true。如果不希望 Flowable 更新表结构，可以设置为 none 或 ignore（注：不要设置成 false，这仍然会检查表结构）。
+# https://forum.flowable.org/t/how-to-disable-liquibase/2417
+# https://documentation.flowable.com/latest/develop/dbs/overview
+# https://www.flowable.com/open-source/docs/form/ch02-Configuration
+# https://www.flowable.com/open-source/docs/bpmn/ch05a-Spring-Boot#flowable-application-properties
+#flowable.database-schema-update: none
 # 是否执行初始化脚本。默认：true
 #ujcms.data-sql-enabled: false
 
@@ -175,7 +181,7 @@ spring.main.banner-mode: off
 # 默认关闭 SpringDoc
 # 文档JSON地址：/v3/api-docs
 springdoc.api-docs.enabled: false
-# 文档HTML地址：/swagger-ui/index.html
+# 文档HTML地址：/swagger-ui.html
 springdoc.swagger-ui.enabled: false
 
 # MyBatis是否开启二级缓存。默认：true
@@ -303,21 +309,21 @@ ujcms.uploads-location: /uploads
 #ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 
-# 是否启用Office功能（商业版功能）
+# 是否启用 Office 功能（商业版功能）
 jodconverter.local.enabled: false
-# Office安装路径
+# Office 安装路径
+# OpenOffice Windows 通常为 C:/Program Files (x86)/OpenOffice 4
+# OpenOffice CentOS 通常为 /opt/openoffice4
 # LibreOffice Linux 通常为 /usr/lib/libreoffice、/usr/lib64/libreoffice、/opt/libreoffice7.4
 # LibreOffice Centos 通常为 /usr/bin/libreoffice
 # LibreOffice Windows 通常为 C:/Program Files/LibreOffice
-# OpenOffice Windows 通常为 C:/Program Files (x86)/OpenOffice 4
-# OpenOffice CentOS 通常为 /opt/openoffice4
 jodconverter.local.office-home: C:/Program Files/LibreOffice
 # 端口号。如果同一台服务器启动多个程序，需要修改端口号，使其不重复
 jodconverter.local.port-numbers: 8100
 # This property sets the maximum number of tasks an office process can execute before restarting. Default: 200
 jodconverter.local.max-tasks-per-process: 50
 
-# 是否开启数据迁移功能（商业版功能）。一般情况应关闭该功能，只在迁移数据时开启。默认：false
+# 是否开启数据迁移功能。一般情况应关闭该功能，只在迁移数据时开启。默认：false
 #ujcms.dataMigrationEnabled: false
 # 是否显示商业版功能。默认：false
 #ujcms.ep-display: true

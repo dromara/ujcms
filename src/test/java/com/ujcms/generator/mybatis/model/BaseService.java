@@ -102,7 +102,7 @@ public class BaseService extends AbstractJavaGenerator {
         insert.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()), "bean"));
         insert.addBodyLine("bean.setId(snowflakeSequence.nextId());");
         if ("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
-            insert.addBodyLine("bean.setOrder(System.currentTimeMillis());");
+            insert.addBodyLine("bean.setOrder(bean.getId());");
         }
         insert.addBodyLine("mapper.insert(bean);");
         topLevelClass.addMethod(insert);

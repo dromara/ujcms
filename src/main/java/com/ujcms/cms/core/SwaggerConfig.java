@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * SpringDoc Swagger 配置
  * <p>
- * https://github.com/springdoc/springdoc-openapi-demos/blob/master/springdoc-openapi-spring-boot-2-webmvc/src/main/java/org/springdoc/demo/app2/Application.java
+ * <a href="https://github.com/springdoc/springdoc-openapi-demos/blob/master/springdoc-openapi-spring-boot-2-webmvc/src/main/java/org/springdoc/demo/app2/Application.java">springdoc-openapi Application.java</a>
  *
  * @author PONY
  */

@@ -80,6 +80,14 @@ public class ConfigBase implements Serializable {
     private String uploadSettings;
 
     /**
+     * 置灰设置
+     */
+    @Length(max = 2000)
+    @Nullable
+    @Schema(description="置灰设置")
+    private String greySettings;
+
+    /**
      * 安全设置
      */
     @Length(max = 2000)
@@ -134,14 +142,6 @@ public class ConfigBase implements Serializable {
     @Nullable
     @Schema(description="模板存储点设置")
     private String templateStorageSettings;
-
-    /**
-     * 置灰设置
-     */
-    @Length(max = 2000)
-    @Nullable
-    @Schema(description="置灰设置")
-    private String greySettings;
 
     /**
      * 自定义设置
@@ -220,6 +220,15 @@ public class ConfigBase implements Serializable {
     }
 
     @Nullable
+    public String getGreySettings() {
+        return greySettings;
+    }
+
+    public void setGreySettings(@Nullable String greySettings) {
+        this.greySettings = greySettings;
+    }
+
+    @Nullable
     public String getSecuritySettings() {
         return securitySettings;
     }
@@ -280,15 +289,6 @@ public class ConfigBase implements Serializable {
 
     public void setTemplateStorageSettings(@Nullable String templateStorageSettings) {
         this.templateStorageSettings = templateStorageSettings;
-    }
-
-    @Nullable
-    public String getGreySettings() {
-        return greySettings;
-    }
-
-    public void setGreySettings(@Nullable String greySettings) {
-        this.greySettings = greySettings;
     }
 
     @Nullable

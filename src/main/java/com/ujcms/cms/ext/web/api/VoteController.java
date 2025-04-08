@@ -47,7 +47,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "VoteController", description = "投票接口")
+@Tag(name = "投票接口")
 @RestController
 @RequestMapping({API + "/vote", FRONTEND_API + "/vote"})
 public class VoteController {
@@ -69,7 +69,7 @@ public class VoteController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取投票列表（VoteList标签）")
+    @Operation(summary = "投票列表_VoteList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在投票期限内。如：`true` `false`",
@@ -89,7 +89,7 @@ public class VoteController {
         });
     }
 
-    @Operation(summary = "获取投票分页（VotePage标签）")
+    @Operation(summary = "投票分页_VotePage")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在投票期限内。如：`true` `false`",
@@ -109,7 +109,7 @@ public class VoteController {
         });
     }
 
-    @Operation(summary = "获取投票对象（Vote标签）")
+    @Operation(summary = "投票对象_Vote")
     @ApiResponses(value = {@ApiResponse(description = "投票对象")})
     @GetMapping("/{id:[\\d]+}")
     public Vote show(@Parameter(description = "投票ID") @PathVariable Long id) {

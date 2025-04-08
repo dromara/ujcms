@@ -34,7 +34,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "LeaderBoardController", description = "文章排行榜接口")
+@Tag(name = "文章排行榜接口")
 @RestController
 @RequestMapping({API + "/leader-board", FRONTEND_API + "/leader-board"})
 public class LeaderBoardController {
@@ -56,7 +56,7 @@ public class LeaderBoardController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取文章排行榜列表（LeaderBoardList标签）")
+    @Operation(summary = "文章排行榜列表_LeaderBoardList")
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型。channel:栏目排行榜, org:组织排行榜, user:用户排行榜。默认：栏目。",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
@@ -85,7 +85,7 @@ public class LeaderBoardController {
         });
     }
 
-    @Operation(summary = "获取文章排行榜列表（LeaderBoardPage标签）")
+    @Operation(summary = "文章排行榜分页_LeaderBoardPage")
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型。channel:栏目排行榜, org:组织排行榜, user:用户排行榜。默认：栏目。",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",

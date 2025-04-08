@@ -49,6 +49,17 @@
         from ujcms_org t
         order by t.order_, t.id_
     </select>
+    <select id="existsByArticleOrgId" resultType="int" useCache="false">
+        select case
+        when exists(
+        select * from ujcms_org_article oa where oa.channel_id_ = #{channelId} and oa.org_id_ in
+        <foreach close=")" collection="orgIds" index="index" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+        ) then 1
+        else 0
+        end as non_zero_exists
+    </select>
     <update id="updateDepth">
         update ujcms_org
         set depth_ = depth_ + #{depth,jdbcType=SMALLINT}

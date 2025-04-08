@@ -230,6 +230,14 @@ public class ArticleExtBase implements Serializable {
     private String articleTemplate;
 
     /**
+     * 独立静态路径
+     */
+    @Length(max = 100)
+    @Nullable
+    @Schema(description="独立静态路径")
+    private String articleStaticPath;
+
+    /**
      * 是否允许评论
      */
     @NotNull
@@ -639,6 +647,15 @@ public class ArticleExtBase implements Serializable {
 
     public void setArticleTemplate(@Nullable String articleTemplate) {
         this.articleTemplate = articleTemplate;
+    }
+
+    @Nullable
+    public String getArticleStaticPath() {
+        return articleStaticPath;
+    }
+
+    public void setArticleStaticPath(@Nullable String articleStaticPath) {
+        this.articleStaticPath = articleStaticPath;
     }
 
     public Boolean getAllowComment() {

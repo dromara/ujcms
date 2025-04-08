@@ -57,6 +57,14 @@ public class SiteBase implements Serializable {
     private String name = "";
 
     /**
+     * 描述
+     */
+    @Length(max = 1000)
+    @Nullable
+    @Schema(description="描述")
+    private String description;
+
+    /**
      * 协议(http,https)
      */
     @Length(max = 20)
@@ -247,14 +255,6 @@ public class SiteBase implements Serializable {
     private OffsetDateTime maxDate = OffsetDateTime.now();
 
     /**
-     * 描述
-     */
-    @Length(max = 1000)
-    @Nullable
-    @Schema(description="描述")
-    private String description;
-
-    /**
      * 自定义主字段JSON
      */
     @Nullable
@@ -307,6 +307,15 @@ public class SiteBase implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Nullable
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(@Nullable String description) {
+        this.description = description;
     }
 
     public String getProtocol() {
@@ -518,15 +527,6 @@ public class SiteBase implements Serializable {
 
     public void setMaxDate(OffsetDateTime maxDate) {
         this.maxDate = maxDate;
-    }
-
-    @Nullable
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(@Nullable String description) {
-        this.description = description;
     }
 
     @Nullable

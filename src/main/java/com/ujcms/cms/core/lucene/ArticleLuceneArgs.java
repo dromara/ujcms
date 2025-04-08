@@ -40,11 +40,27 @@ public class ArticleLuceneArgs {
      * 栏目ID
      */
     @Nullable
-    private Long channelId;
+    private Collection<Long> channelIds;
     /**
      * 是否包含子栏目
      */
     private boolean includeSubChannel = true;
+    /**
+     * 日期衰减半径。为 0 时不启用日期衰减，默认为 0。单位：天
+     */
+    private int dateExpScale = 0;
+    /**
+     * 日期衰减偏移量。单位：天
+     */
+    private int dateExpOffset = 0;
+    /**
+     * 日期衰减率。默认为 0.5。取值范围：(0, 1)
+     */
+    private double dateExpDecay = 0.5;
+    /**
+     * 日期衰减权重提升。默认为 3
+     */
+    private float dateExpBoost = 3;
     /**
      * 起始发布日期
      */
@@ -165,12 +181,12 @@ public class ArticleLuceneArgs {
     }
 
     @Nullable
-    public Long getChannelId() {
-        return channelId;
+    public Collection<Long> getChannelIds() {
+        return channelIds;
     }
 
-    public void setChannelId(@Nullable Long channelId) {
-        this.channelId = channelId;
+    public void setChannelIds(@Nullable Collection<Long> channelIds) {
+        this.channelIds = channelIds;
     }
 
     public boolean isIncludeSubChannel() {
@@ -179,6 +195,38 @@ public class ArticleLuceneArgs {
 
     public void setIncludeSubChannel(boolean includeSubChannel) {
         this.includeSubChannel = includeSubChannel;
+    }
+
+    public int getDateExpScale() {
+        return dateExpScale;
+    }
+
+    public void setDateExpScale(int dateExpScale) {
+        this.dateExpScale = dateExpScale;
+    }
+
+    public int getDateExpOffset() {
+        return dateExpOffset;
+    }
+
+    public void setDateExpOffset(int dateExpOffset) {
+        this.dateExpOffset = dateExpOffset;
+    }
+
+    public double getDateExpDecay() {
+        return dateExpDecay;
+    }
+
+    public void setDateExpDecay(double dateExpDecay) {
+        this.dateExpDecay = dateExpDecay;
+    }
+
+    public float getDateExpBoost() {
+        return dateExpBoost;
+    }
+
+    public void setDateExpBoost(float dateExpBoost) {
+        this.dateExpBoost = dateExpBoost;
     }
 
     @Nullable

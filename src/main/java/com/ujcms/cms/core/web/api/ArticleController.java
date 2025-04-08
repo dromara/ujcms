@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +50,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "ArticleController", description = "文章接口")
+@Tag(name = "文章接口")
 @RestController
 @RequestMapping({API + "/article", FRONTEND_API + "/article"})
 public class ArticleController {
@@ -61,11 +62,12 @@ public class ArticleController {
     private final ArticleBufferService bufferService;
     private final ViewCountService viewCountService;
     private final Props props;
+    private final OrgService orgService;
 
     @Autowired
     public ArticleController(SiteResolver siteResolver, ActionService actionService, GroupService groupService,
                              ChannelService channelService, ArticleService articleService,
-                             ArticleBufferService bufferService, ViewCountService viewCountService, Props props) {
+                             ArticleBufferService bufferService, ViewCountService viewCountService, Props props, OrgService orgService) {
         this.siteResolver = siteResolver;
         this.actionService = actionService;
         this.groupService = groupService;
@@ -74,6 +76,7 @@ public class ArticleController {
         this.bufferService = bufferService;
         this.viewCountService = viewCountService;
         this.props = props;
+        this.orgService = orgService;
     }
 
     private <T> T query(HttpServletRequest request, BiFunction<ArticleArgs, Map<String, String>, T> handle) {
@@ -85,7 +88,19 @@ public class ArticleController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取文章列表（ArticleList标签）")
+    /**
+     * 用于获取文章列表
+     * <pre>
+     * ```
+     * [@ArticleList channel='news' limit='8'; beans]
+     *   [#list beans as bean]
+     *   <a href="${bean.url}">${bean.title}</a>
+     *   [/#list]
+     * [/@ArticleList]
+     * ```
+     * </pre>
+     */
+    @Operation(summary = "文章列表_ArticleList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名。多个栏目别名可以用逗号分开，如`news,sports`",
@@ -128,7 +143,7 @@ public class ArticleController {
         });
     }
 
-    @Operation(summary = "获取文章分页（ArticlePage标签）")
+    @Operation(summary = "文章分页_ArticlePage")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
@@ -169,7 +184,7 @@ public class ArticleController {
         });
     }
 
-    @Operation(summary = "获取文章对象（Article标签）")
+    @Operation(summary = "文章对象_Article")
     @ApiResponses(value = {@ApiResponse(description = "文章对象")})
     @GetMapping("/{id:[\\d]+}")
     public Article show(@Parameter(description = "文章ID") @PathVariable Long id,
@@ -179,12 +194,12 @@ public class ArticleController {
             throw new Http404Exception("Article not found. ID: " + id);
         }
         User user = Contexts.findCurrentUser();
-        checkAccessPermission(article, user, groupService, channelService, preview);
+        checkAccessPermission(article, user, groupService, channelService, orgService, preview);
         return article;
     }
 
     public static void checkAccessPermission(Article article, User user, GroupService groupService,
-                                             ChannelService channelService, boolean preview) {
+                                             ChannelService channelService, OrgService orgService, boolean preview) {
         if (preview) {
             if (user == null) {
                 throw new Http401Exception();
@@ -192,8 +207,12 @@ public class ArticleController {
             if (user.hasAllArticlePermission()) {
                 return;
             }
-            List<Long> roleIds = user.fetchRoleIds();
-            if (roleIds.isEmpty() || !channelService.existsByArticleRoleId(article.getChannelId(), roleIds)) {
+            Long channelId = article.getChannelId();
+            Collection<Long> roleIds = user.fetchRoleIds();
+            Collection<Long> orgIds = user.fetchAllOrgIds();
+            boolean hasRolePermission = !roleIds.isEmpty() && channelService.existsByArticleRoleId(channelId, roleIds);
+            boolean hasOrgPermission = !orgIds.isEmpty() && orgService.existsByArticleOrgId(channelId, orgIds);
+            if (!hasRolePermission && !hasOrgPermission) {
                 throw new Http403Exception("No preview permission. ID: " + article.getId());
             }
             return;
@@ -215,13 +234,13 @@ public class ArticleController {
         }
     }
 
-    @Operation(summary = "获取下一篇文章（ArticleNext标签）")
+    @Operation(summary = "下一篇文章_ArticleNext")
     @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
-            schema = @Schema(type = "integer", format = "int64"))
+            schema = @Schema(type = "integer", format = "int64", requiredMode = Schema.RequiredMode.REQUIRED))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
-            schema = @Schema(type = "integer", format = "int64"))
+            schema = @Schema(type = "integer", format = "int64", requiredMode = Schema.RequiredMode.REQUIRED))
     @Parameter(in = ParameterIn.QUERY, name = "order", description = "文章排序值",
-            schema = @Schema(type = "integer", format = "int64"))
+            schema = @Schema(type = "integer", format = "int64", requiredMode = Schema.RequiredMode.REQUIRED))
     @Parameter(in = ParameterIn.QUERY, name = "isDesc", description = "是否倒序。默认 true",
             schema = @Schema(type = "boolean"))
     @GetMapping("/next")
@@ -230,13 +249,13 @@ public class ArticleController {
         return ArticleNextDirective.query(params, isDesc ? articleService::findNext : articleService::findPrev);
     }
 
-    @Operation(summary = "获取上一篇文章（ArticlePrev标签）")
+    @Operation(summary = "上一篇文章_ArticlePrev")
     @Parameter(in = ParameterIn.QUERY, name = "id", description = "文章ID",
-            schema = @Schema(type = "integer", format = "int64"))
+            schema = @Schema(type = "integer", format = "int64", requiredMode = Schema.RequiredMode.REQUIRED))
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "文章栏目ID",
-            schema = @Schema(type = "integer", format = "int64"))
+            schema = @Schema(type = "integer", format = "int64", requiredMode = Schema.RequiredMode.REQUIRED))
     @Parameter(in = ParameterIn.QUERY, name = "order", description = "文章排序值",
-            schema = @Schema(type = "integer", format = "int64"))
+            schema = @Schema(type = "integer", format = "int64", requiredMode = Schema.RequiredMode.REQUIRED))
     @Parameter(in = ParameterIn.QUERY, name = "isDesc", description = "是否倒序。默认 true",
             schema = @Schema(type = "boolean"))
     @GetMapping("/prev")
@@ -312,7 +331,7 @@ public class ArticleController {
 
     @Operation(summary = "记录下载次数")
     @ApiResponses(value = {@ApiResponse(description = "文章总下载次数")})
-    @PostMapping("/download/{id:[\\d]+}")
+    @PostMapping("/download/{id:\\d+}")
     public int download(@Parameter(description = "文章ID") @PathVariable Long id) {
         ArticleBuffer buffer = bufferService.select(id);
         if (buffer == null) {

@@ -37,7 +37,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "ChannelController", description = "栏目接口")
+@Tag(name = "栏目接口")
 @RestController
 @RequestMapping({API + "/channel", FRONTEND_API + "/channel"})
 public class ChannelController {
@@ -54,7 +54,53 @@ public class ChannelController {
         this.viewCountService = viewCountService;
     }
 
-    @Operation(summary = "获取栏目列表（ChannelList标签）")
+    /**
+     * ## 标签使用示例
+     * ### 获取一级栏目列表
+     * <pre>
+     * ```
+     * [@ChannelList isNav='true'; channels]
+     *     [#list channels as bean]
+     *     <a href="${bean.url}">${bean.url}</a>
+     *     [/#list]
+     * [/@ChannelList]
+     * ```
+     * </pre>
+     * ### 获取子栏目列表
+     * <pre>
+     * ```
+     * [@ChannelList parentId='23' isNav='true'; channels]
+     *     [#list channels as bean]
+     *     <a href="${bean.url}">${bean.url}</a>
+     *     [/#list]
+     * [/@ChannelList]
+     * ```
+     * </pre>
+     * ### 获取一级和二级栏目列表
+     * <pre>
+     * ```
+     * [@ChannelList isNav='true'; channels]
+     * <ul>
+     *     [#list channels as parent]
+     *     <li>
+     *         <a href="${parent.url}">${parent.url}</a>
+     *         [#if parent.hasChildren]
+     *         [@ChannelList parentId=parent.id isNav='true'; subs]
+     *         <ul>
+     *             [#list subs as sub]
+     *             <li><a href="${sub.url}">${sub.url}</a></li>
+     *             [/#list]
+     *         </ul>
+     *         [/@ChannelList]
+     *         [/#if]
+     *     </li>
+     *     [/#list]
+     * </ul>
+     * [/@ChannelList]
+     * ```
+     * </pre>
+     */
+    @Operation(summary = "栏目列表_ChannelList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "parent", description = "上级栏目别名",
@@ -63,9 +109,11 @@ public class ChannelController {
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isNav", description = "是否导航。如：`true` `false`",
             schema = @Schema(type = "boolean"))
+    @Parameter(in = ParameterIn.QUERY, name = "isReal", description = "是否文章栏目。如：`true` `false`",
+            schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllowSearch", description = "是否可搜索。如：`true` `false`",
             schema = @Schema(type = "boolean"))
-    @Parameter(in = ParameterIn.QUERY, name = "isIncludeChildren", description = "是否包含子栏目。如：`true` `false`，默认`false`",
+    @Parameter(in = ParameterIn.QUERY, name = "isIncludeChildren", description = "是否包含子栏目。设为 `true` 时包含所有后代栏目（子级、孙级等），设为 `false` 时仅包含直接子栏目。默认`false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
             schema = @Schema(type = "integer", format = "int32"))
@@ -82,14 +130,17 @@ public class ChannelController {
         return ChannelListDirective.selectList(channelService, args, params);
     }
 
-    @Operation(summary = "获取栏目对象（Channel标签）")
+    /**
+     * 获取栏目对象
+     */
+    @Operation(summary = "栏目对象_Channel")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/{id:[\\d]+}")
     public Channel show(@Parameter(description = "栏目ID") @PathVariable Long id) {
         return channelService.select(id);
     }
 
-    @Operation(summary = "获取栏目对象（Channel标签）")
+    @Operation(summary = "栏目对象ByAlias_Channel")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/alias/{alias}")
     public Channel alias(@Parameter(description = "栏目别名") @PathVariable String alias,

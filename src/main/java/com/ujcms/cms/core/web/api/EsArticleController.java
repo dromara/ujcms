@@ -33,7 +33,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "EsArticleController", description = "文章全文检索接口")
+@Tag(name = "文章全文检索接口")
 @RestController
 @RequestMapping({API + "/article/es", FRONTEND_API + "/article/es"})
 public class EsArticleController {
@@ -49,11 +49,15 @@ public class EsArticleController {
         return EsArticleListDirective.query(params, defaultSiteId, pageable, articleLucene);
     }
 
-    @Operation(summary = "获取全文检索文章列表（EsArticleList）")
+    /**
+     * 设置 `日期衰减半径 (dateExpScale)` 可将文章日期纳入评分。文章日期的评分在此半径内将快速衰减至 `日期衰减率 (dateExpDecay)`，
+     * `日期衰减权重提升 (dateExpBoost)` 影响文章日期评分的分值大小。如：日期衰减半径=10，日期衰减率=0.5，日期衰减权重提升=3；
+     * 则最新文章得分 3*1=3，10天前的文章得分为 3*0.5=1.5，20天前的文章得分为 3*0.5*0.5=0.75，30天前的文章得分为 3*0.5*0.5*0.5=0.375。
+     */
+    @Operation(summary = "全文检索文章列表_EsArticleList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
-    @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",
-            schema = @Schema(type = "string"))
+    // 为保持全文检索的单纯性（即不需依赖其它 Service，不提供 channel 参数），以便将 ES 做成单独的服务
     @Parameter(in = ParameterIn.QUERY, name = "channelId", description = "栏目ID",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "beginPublishDate", description = "开始发布日期。如：`2008-08-01` `2012-10-01 08:12:34`",
@@ -78,6 +82,16 @@ public class EsArticleController {
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubSite", description = "是否包含子站点的文章。如：`true` `false`，默认`false`",
             schema = @Schema(type = "boolean"))
+
+    @Parameter(in = ParameterIn.QUERY, name = "dateExpScale", description = "日期衰减半径。单位：天。为 `0` 时不启用日期衰减。默认 `0`",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "dateExpOffset", description = "日期衰减偏移量。单位：天。此天数内日期不衰减。默认 `0`",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "dateExpDecay", description = "日期衰减率。日期达到衰减半径时的衰减率。取值范围：0 - 1 之间（不含0，1）。默认为 0.5",
+            schema = @Schema(type = "number", format = "double"))
+    @Parameter(in = ParameterIn.QUERY, name = "dateExpBoost", description = "日期衰减权重提升。日期衰减评分将乘于提升值。默认为 3",
+            schema = @Schema(type = "integer", format = "int32"))
+
     @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点文章。如：`true` `false`，默认`false`",
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
@@ -95,7 +109,7 @@ public class EsArticleController {
         return pagedList.getContent();
     }
 
-    @Operation(summary = "获取全文检索文章分页（EsArticlePage）")
+    @Operation(summary = "全文检索文章分页_EsArticlePage")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "channel", description = "栏目别名",

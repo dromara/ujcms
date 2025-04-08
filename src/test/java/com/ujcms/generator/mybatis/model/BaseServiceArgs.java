@@ -46,7 +46,6 @@ public class BaseServiceArgs extends AbstractJavaGenerator {
 
         // 公共import
         topLevelClass.addImportedType("com.ujcms.commons.query.BaseQueryArgs");
-        // topLevelClass.addImportedType("org.springframework.lang.Nullable");
         topLevelClass.addImportedType("java.util.HashMap");
         topLevelClass.addImportedType("java.util.Map");
         // 构造器
@@ -60,18 +59,6 @@ public class BaseServiceArgs extends AbstractJavaGenerator {
         constructor.addParameter(queryMapParam);
         constructor.addBodyLine("super(queryMap);");
         topLevelClass.addMethod(constructor);
-        // siteId 方法
-        // Method siteIdMethod = new Method("siteId");
-        // siteIdMethod.setVisibility(JavaVisibility.PUBLIC);
-        // Parameter siteIdParam = new Parameter(new FullyQualifiedJavaType("Integer"), "siteId");
-        // siteIdParam.addAnnotation("@Nullable");
-        // siteIdMethod.addParameter(siteIdParam);
-        // siteIdMethod.setReturnType(new FullyQualifiedJavaType(getJavaTypeShortName()));
-        // siteIdMethod.addBodyLine("if (siteId != null) {");
-        // siteIdMethod.addBodyLine("queryMap.put(\"EQ_siteId_Long\", siteId);");
-        // siteIdMethod.addBodyLine("}");
-        // siteIdMethod.addBodyLine("return this;");
-        // topLevelClass.addMethod(siteIdMethod);
         // of 方法
         Method of = new Method("of");
         of.setVisibility(JavaVisibility.PUBLIC);

@@ -38,7 +38,7 @@ import static com.ujcms.cms.ext.domain.VisitStat.SEARCH_ENGINE_LIST;
  *
  * @author PONY
  */
-@Tag(name = "VisitController", description = "访问统计接口")
+@Tag(name = "访问统计接口")
 @RestController
 public class VisitController {
     private final GlobalService globalService;

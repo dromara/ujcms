@@ -13,7 +13,7 @@ public class LeaderBoard implements Serializable {
     /**
      * ID
      */
-    private Integer id = 0;
+    private Long id = 0L;
     /**
      * 名称
      */
@@ -23,11 +23,11 @@ public class LeaderBoard implements Serializable {
      */
     private Integer count = 0;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.CollectionFieldMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.CollectionField">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="collection_id_" jdbcType="BIGINT" property="collectionId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="code_" jdbcType="VARCHAR" property="code" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="data_type_" jdbcType="SMALLINT" property="dataType" />
+    <result column="source_" jdbcType="SMALLINT" property="source" />
+    <result column="static_value_" jdbcType="VARCHAR" property="staticValue" />
+    <result column="date_format_" jdbcType="VARCHAR" property="dateFormat" />
+    <result column="area_pattern_" jdbcType="VARCHAR" property="areaPattern" />
+    <result column="area_reg_" jdbcType="CHAR" property="areaReg" />
+    <result column="item_pattern_" jdbcType="VARCHAR" property="itemPattern" />
+    <result column="item_filter_" jdbcType="VARCHAR" property="itemFilter" />
+    <result column="item_reg_" jdbcType="CHAR" property="itemReg" />
+    <result column="item_js_" jdbcType="CHAR" property="itemJs" />
+    <result column="data_url_" jdbcType="VARCHAR" property="dataUrl" />
+    <result column="data_filter_" jdbcType="VARCHAR" property="dataFilter" />
+    <result column="data_js_" jdbcType="CHAR" property="dataJs" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.CollectionField" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.CollectionField" />
+
+  <select id="listByCollectionId" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_collection_field t
+    where t.collection_id_ = #{collectionId,jdbcType=BIGINT}
+    order by t.order_, t.id_
+  </select>
+
+  <delete id="deleteByCollectionId" parameterType="long">
+    delete
+    from ujcms_collection_field
+    where collection_id_ = #{collectionId,jdbcType=BIGINT}
+    <foreach close=")" collection="ids" item="id" nullable="true" open="and id_ not in (" separator=",">
+      #{id}
+    </foreach>
+  </delete>
+
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_collection_field
+    where collection_id_ in (select t.id_ from ujcms_collection t where t.site_id_ = #{siteId,jdbcType=BIGINT})
+  </delete>
+
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_collection_field" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_collection_field t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="delete" parameterType="java.lang.Long">
+    delete from ujcms_collection_field
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.CollectionField">
+    update ujcms_collection_field
+    set collection_id_ = #{collectionId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      code_ = #{code,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=SMALLINT},
+      data_type_ = #{dataType,jdbcType=SMALLINT},
+      source_ = #{source,jdbcType=SMALLINT},
+      static_value_ = #{staticValue,jdbcType=VARCHAR},
+      date_format_ = #{dateFormat,jdbcType=VARCHAR},
+      area_pattern_ = #{areaPattern,jdbcType=VARCHAR},
+      area_reg_ = #{areaReg,jdbcType=CHAR},
+      item_pattern_ = #{itemPattern,jdbcType=VARCHAR},
+      item_filter_ = #{itemFilter,jdbcType=VARCHAR},
+      item_reg_ = #{itemReg,jdbcType=CHAR},
+      item_js_ = #{itemJs,jdbcType=CHAR},
+      data_url_ = #{dataUrl,jdbcType=VARCHAR},
+      data_filter_ = #{dataFilter,jdbcType=VARCHAR},
+      data_js_ = #{dataJs,jdbcType=CHAR},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.CollectionField">
+    insert into ujcms_collection_field (id_, collection_id_, name_, code_, type_, data_type_, source_, static_value_, date_format_, area_pattern_, area_reg_, item_pattern_, item_filter_, item_reg_, item_js_, data_url_, data_filter_, data_js_, order_)
+    values (#{id,jdbcType=BIGINT}, #{collectionId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{dataType,jdbcType=SMALLINT}, #{source,jdbcType=SMALLINT}, #{staticValue,jdbcType=VARCHAR}, #{dateFormat,jdbcType=VARCHAR}, #{areaPattern,jdbcType=VARCHAR}, #{areaReg,jdbcType=CHAR}, #{itemPattern,jdbcType=VARCHAR}, #{itemFilter,jdbcType=VARCHAR}, #{itemReg,jdbcType=CHAR}, #{itemJs,jdbcType=CHAR}, #{dataUrl,jdbcType=VARCHAR}, #{dataFilter,jdbcType=VARCHAR}, #{dataJs,jdbcType=CHAR}, #{order,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.collection_id_, t.name_, t.code_, t.type_, t.data_type_, t.source_, t.static_value_, t.date_format_, t.area_pattern_, t.area_reg_, t.item_pattern_, t.item_filter_, t.item_reg_, t.item_js_, t.data_url_, t.data_filter_, t.data_js_, t.order_
+  </sql></mapper>

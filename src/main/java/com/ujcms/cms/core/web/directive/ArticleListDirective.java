@@ -91,7 +91,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_ALL_SITE = "isAllSite";
 
-    private static Collection<Long> getChannelIds(
+    public static Collection<Long> getChannelIds(
             Map<String, ?> params, @Nullable Long siteId, Boolean isIncludeSubSite, ChannelService channelService) {
         Collection<Long> channelIds = Optional.ofNullable(getLongs(params, CHANNEL_ID))
                 .orElse(Collections.emptyList());

@@ -6,6 +6,7 @@
     <result column="org_id_" jdbcType="BIGINT" property="orgId" />
     <result column="model_id_" jdbcType="BIGINT" property="modelId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
     <result column="protocol_" jdbcType="VARCHAR" property="protocol" />
     <result column="domain_" jdbcType="VARCHAR" property="domain" />
     <result column="sub_dir_" jdbcType="VARCHAR" property="subDir" />
@@ -31,7 +32,6 @@
     <result column="yesterday_views_" jdbcType="INTEGER" property="yesterdayViews" />
     <result column="max_views_" jdbcType="INTEGER" property="maxViews" />
     <result column="max_date_" jdbcType="TIMESTAMP" property="maxDate" />
-    <result column="description_" jdbcType="VARCHAR" property="description" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Site">
     <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
     <result column="clobs_json_" jdbcType="OTHER" property="clobsJson" />
@@ -191,6 +191,7 @@
     set org_id_ = #{orgId,jdbcType=BIGINT},
       model_id_ = #{modelId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
       protocol_ = #{protocol,jdbcType=VARCHAR},
       domain_ = #{domain,jdbcType=VARCHAR},
       sub_dir_ = #{subDir,jdbcType=VARCHAR},
@@ -208,13 +209,12 @@
       html_settings_ = #{htmlSettings,jdbcType=VARCHAR},
       message_board_settings_ = #{messageBoardSettings,jdbcType=VARCHAR},
       status_ = #{status,jdbcType=SMALLINT},
-      description_ = #{description,jdbcType=VARCHAR},
       mains_json_ = #{mainsJson,jdbcType=OTHER},
       clobs_json_ = #{clobsJson,jdbcType=OTHER}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Site">
-    insert into ujcms_site (id_, parent_id_, org_id_, model_id_, name_, protocol_, domain_, sub_dir_, theme_, mobile_theme_, page_size_, logo_, seo_title_, seo_keywords_, seo_description_, static_file_, mobile_static_file_, editor_settings_, watermark_settings_, html_settings_, message_board_settings_, status_, depth_, order_, views_, self_views_, today_views_, yesterday_views_, max_views_, max_date_, description_, mains_json_, clobs_json_)
-    values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{modelId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{protocol,jdbcType=VARCHAR}, #{domain,jdbcType=VARCHAR}, #{subDir,jdbcType=VARCHAR}, #{theme,jdbcType=VARCHAR}, #{mobileTheme,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{logo,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{editorSettings,jdbcType=VARCHAR}, #{watermarkSettings,jdbcType=VARCHAR}, #{htmlSettings,jdbcType=VARCHAR}, #{messageBoardSettings,jdbcType=VARCHAR}, #{status,jdbcType=SMALLINT}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{todayViews,jdbcType=INTEGER}, #{yesterdayViews,jdbcType=INTEGER}, #{maxViews,jdbcType=INTEGER}, #{maxDate,jdbcType=TIMESTAMP}, #{description,jdbcType=VARCHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
+    insert into ujcms_site (id_, parent_id_, org_id_, model_id_, name_, description_, protocol_, domain_, sub_dir_, theme_, mobile_theme_, page_size_, logo_, seo_title_, seo_keywords_, seo_description_, static_file_, mobile_static_file_, editor_settings_, watermark_settings_, html_settings_, message_board_settings_, status_, depth_, order_, views_, self_views_, today_views_, yesterday_views_, max_views_, max_date_, mains_json_, clobs_json_)
+    values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{modelId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{protocol,jdbcType=VARCHAR}, #{domain,jdbcType=VARCHAR}, #{subDir,jdbcType=VARCHAR}, #{theme,jdbcType=VARCHAR}, #{mobileTheme,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{logo,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{editorSettings,jdbcType=VARCHAR}, #{watermarkSettings,jdbcType=VARCHAR}, #{htmlSettings,jdbcType=VARCHAR}, #{messageBoardSettings,jdbcType=VARCHAR}, #{status,jdbcType=SMALLINT}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{todayViews,jdbcType=INTEGER}, #{yesterdayViews,jdbcType=INTEGER}, #{maxViews,jdbcType=INTEGER}, #{maxDate,jdbcType=TIMESTAMP}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
   </insert><sql id="Column_List">
-    t.id_, t.parent_id_, t.org_id_, t.model_id_, t.name_, t.protocol_, t.domain_, t.sub_dir_, t.theme_, t.mobile_theme_, t.page_size_, t.logo_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.static_file_, t.mobile_static_file_, t.editor_settings_, t.watermark_settings_, t.html_settings_, t.message_board_settings_, t.status_, t.depth_, t.order_, t.views_, t.self_views_, t.today_views_, t.yesterday_views_, t.max_views_, t.max_date_, t.description_, t.mains_json_, t.clobs_json_
+    t.id_, t.parent_id_, t.org_id_, t.model_id_, t.name_, t.description_, t.protocol_, t.domain_, t.sub_dir_, t.theme_, t.mobile_theme_, t.page_size_, t.logo_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.static_file_, t.mobile_static_file_, t.editor_settings_, t.watermark_settings_, t.html_settings_, t.message_board_settings_, t.status_, t.depth_, t.order_, t.views_, t.self_views_, t.today_views_, t.yesterday_views_, t.max_views_, t.max_date_, t.mains_json_, t.clobs_json_
   </sql></mapper>

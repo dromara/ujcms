@@ -711,8 +711,12 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
         @Pattern(regexp = "^(?!.*\\.\\.)[\\w-{}/]*$")
         private String article = "/articles/{article_id}";
 
-        public String getChannelPath(Long channelId, String channelAlias, int page) {
-            String path = StringUtils.replaceEach(channel,
+        public String getChannelPath(@Nullable String channelStaticPath, Long channelId, String channelAlias,
+                                     int page) {
+            if (StringUtils.isBlank(channelStaticPath)) {
+                channelStaticPath = channel;
+            }
+            String path = StringUtils.replaceEach(channelStaticPath,
                     new String[]{PATH_CHANNEL_ID, PATH_CHANNEL_ALIAS},
                     new String[]{String.valueOf(channelId), channelAlias});
             if (page > 1) {
@@ -721,8 +725,8 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             return path + SUFFIX;
         }
 
-        public String getChannelUrl(Long channelId, String channelAlias, int page) {
-            String path = getChannelPath(channelId, channelAlias, page);
+        public String getChannelUrl(@Nullable String channelStaticPath, Long channelId, String channelAlias, int page) {
+            String path = getChannelPath(channelStaticPath, channelId, channelAlias, page);
             if (path.endsWith(DEFAULT_PAGE)) {
                 // /index.html 改为 / 结尾
                 return path.substring(0, path.length() - DEFAULT_PAGE.length() + 1);
@@ -730,12 +734,16 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
             return path;
         }
 
-        public String getArticlePath(Long channelId, String channelAlias, Long articleId, @Nullable String articleAlias,
-                                     OffsetDateTime createdDate, int page) {
+        public String getArticlePath(@Nullable String articleStaticPath, Long channelId, String channelAlias,
+                                     Long articleId, @Nullable String articleAlias, OffsetDateTime createdDate,
+                                     int page) {
+            if (StringUtils.isBlank(articleStaticPath)) {
+                articleStaticPath = article;
+            }
             String year = String.valueOf(createdDate.getYear());
             String month = StringUtils.leftPad(String.valueOf(createdDate.getMonthValue()), 2, '0');
             String day = StringUtils.leftPad(String.valueOf(createdDate.getDayOfMonth()), 2, '0');
-            String url = StringUtils.replaceEach(article,
+            String url = StringUtils.replaceEach(articleStaticPath,
                     new String[]{PATH_CHANNEL_ID, PATH_CHANNEL_ALIAS, PATH_ARTICLE_ID, PATH_ARTICLE_ALIAS,
                             PATH_YEAR, PATH_MONTH, PATH_DAY},
                     new String[]{String.valueOf(channelId), channelAlias, String.valueOf(articleId),
@@ -745,6 +753,18 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
                 return url + "_" + page + SUFFIX;
             }
             return url + SUFFIX;
+        }
+
+        public String getArticleUrl(@Nullable String articleStaticPath, Long channelId, String channelAlias,
+                                    Long articleId, @Nullable String articleAlias, OffsetDateTime createdDate,
+                                    int page) {
+            String path = getArticlePath(articleStaticPath, channelId, channelAlias,
+                    articleId, articleAlias, createdDate, page);
+            if (path.endsWith(DEFAULT_PAGE)) {
+                // /index.html 改为 / 结尾
+                return path.substring(0, path.length() - DEFAULT_PAGE.length() + 1);
+            }
+            return path;
         }
 
 

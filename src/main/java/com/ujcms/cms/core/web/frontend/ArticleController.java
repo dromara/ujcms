@@ -4,10 +4,7 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.ArticleBuffer;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.core.service.ArticleBufferService;
-import com.ujcms.cms.core.service.ArticleService;
-import com.ujcms.cms.core.service.ChannelService;
-import com.ujcms.cms.core.service.GroupService;
+import com.ujcms.cms.core.service.*;
 import com.ujcms.cms.core.support.*;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.commons.file.FileHandler;
@@ -45,13 +42,14 @@ public class ArticleController {
     private final ArticleBufferService bufferService;
     private final ArticleService articleService;
     private final ChannelService channelService;
+    private final OrgService orgService;
     private final GroupService groupService;
     private final SiteResolver siteResolver;
     private final PathResolver pathResolver;
     private final Props props;
 
     public ArticleController(ArticleBufferService bufferService, ArticleService articleService,
-                             ChannelService channelService, GroupService groupService,
+                             ChannelService channelService, OrgService orgService, GroupService groupService,
                              SiteResolver siteResolver, PathResolver pathResolver, Props props) {
         this.bufferService = bufferService;
         this.articleService = articleService;
@@ -60,6 +58,7 @@ public class ArticleController {
         this.siteResolver = siteResolver;
         this.pathResolver = pathResolver;
         this.props = props;
+        this.orgService = orgService;
     }
 
     @GetMapping({UrlConstants.ARTICLE + "/{id}", UrlConstants.ARTICLE + "/{id}/{page:[\\d]+}",
@@ -74,6 +73,9 @@ public class ArticleController {
         Site site = siteResolver.resolve(request, subDir);
         User user = Contexts.findCurrentUser();
         Article article = validateArticle(id, site, user, preview);
+        if (StringUtils.isNotBlank(article.getLinkUrl())) {
+            return "redirect:" + article.getUrl();
+        }
         if (!StringUtils.equals(article.getExt().getAlias(), alias)) {
             return "redirect:" + article.getUrl();
         }
@@ -149,7 +151,7 @@ public class ArticleController {
             throw new Http404Exception("error.notInSite",
                     String.valueOf(article.getSiteId()), String.valueOf(site.getId()));
         }
-        checkAccessPermission(article, user, groupService, channelService, preview);
+        checkAccessPermission(article, user, groupService, channelService, orgService, preview);
         return article;
     }
 }

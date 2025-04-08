@@ -41,6 +41,10 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
     public static final String IS_INCLUDE_BODY = "isIncludeBody";
     public static final String IS_INCLUDE_DISABLED = "isIncludeDisabled";
     public static final String FRAGMENT_SIZE = "fragmentSize";
+    public static final String DATE_EXP_SCALE = "dateExpScale";
+    public static final String DATE_EXP_OFFSET = "dateExpOffset";
+    public static final String DATE_EXP_DECAY = "dateExpDecay";
+    public static final String DATE_EXP_BOOST = "dateExpBoost";
     public static final String K1 = "k1";
     public static final String K2 = "k2";
     public static final String K3 = "k3";
@@ -69,9 +73,8 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         }
         Boolean isIncludeSubSite = getBoolean(params, IS_INCLUDE_SUB_SITE, false);
 
-        Long channelId = getLong(params, CHANNEL_ID);
+        Collection<Long> channelIds = getLongs(params, CHANNEL_ID);
         Boolean isIncludeSubChannel = getBoolean(params, IS_INCLUDE_SUB_CHANNEL, true);
-
 
         String q = getString(params, Q);
         Integer fragmentSize = getInteger(params, FRAGMENT_SIZE, 100);
@@ -86,6 +89,11 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
             status = Collections.singletonList((int) Article.STATUS_PUBLISHED);
         }
 
+        Integer dateExpScale = getInteger(params, DATE_EXP_SCALE, 0);
+        Integer dateExpOffset = getInteger(params, DATE_EXP_OFFSET, 0);
+        Double dateExpDecay = getDouble(params, DATE_EXP_DECAY, 0.5d);
+        Float dateExpBoost = getFloat(params, DATE_EXP_BOOST, 3f);
+
         ArticleLuceneArgs args = new ArticleLuceneArgs();
         args.setTitle(q);
         if (Boolean.TRUE.equals(isIncludeBody)) {
@@ -98,13 +106,17 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         args.setFragmentSize(fragmentSize);
         args.setSiteId(siteId);
         args.setIncludeSubSite(Boolean.TRUE.equals(isIncludeSubSite));
-        args.setChannelId(channelId);
+        args.setChannelIds(channelIds);
         args.setIncludeSubChannel(Boolean.TRUE.equals(isIncludeSubChannel));
         args.setBeginPublishDate(beginPublishDate);
         args.setEndPublishDate(endPublishDate);
         args.setWithImage(isWithImage);
         args.setExcludeIds(excludeIds);
         args.setStatus(status);
+        args.setDateExpScale(dateExpScale);
+        args.setDateExpOffset(dateExpOffset);
+        args.setDateExpDecay(dateExpDecay);
+        args.setDateExpBoost(dateExpBoost);
         args.setK1(getString(params, K1));
         args.setK2(getString(params, K2));
         args.setK3(getString(params, K3));

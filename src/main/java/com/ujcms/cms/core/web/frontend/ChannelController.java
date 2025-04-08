@@ -12,6 +12,7 @@ import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.commons.web.exception.Http401Exception;
 import com.ujcms.commons.web.exception.Http403Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +51,10 @@ public class ChannelController {
         Channel channel = channelService.findBySiteIdAndAlias(site.getId(), alias);
         if (channel == null) {
             throw new Http404Exception("Channel not found: siteId=" + site.getId() + ", alias=" + alias);
+        }
+        short type = channel.getType();
+        if (type == Channel.TYPE_LINK || type == Channel.TYPE_LINK_CHILD) {
+            return "redirect:" + channel.getUrl();
         }
         validateChannel(channel);
         modelMap.put("channel", channel);

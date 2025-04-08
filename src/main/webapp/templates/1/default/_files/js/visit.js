@@ -166,11 +166,12 @@
     // 发送请求
     function sendRequest() {
         fetchCsrf(function (csrfName, csrfValue) {
-            const xhr = new XMLHttpRequest();
+            // const xhr = new XMLHttpRequest();
             const formData = new FormData();
             formData.append(csrfName, csrfValue);
-            xhr.open('POST', getVisitUrl(1), false);
-            xhr.send(formData);
+            axios.post(getVisitUrl(1), formData);
+            // xhr.open('POST', getVisitUrl(1), false);
+            // xhr.send(formData);
         });
     }
 

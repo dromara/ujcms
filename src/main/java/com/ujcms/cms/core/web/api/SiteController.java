@@ -35,7 +35,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "SiteController", description = "站点接口")
+@Tag(name = "站点接口")
 @RestController
 @RequestMapping({API + "/site", FRONTEND_API + "/site"})
 public class SiteController {
@@ -52,7 +52,7 @@ public class SiteController {
         this.service = service;
     }
 
-    @Operation(summary = "获取站点列表（SiteList标签）")
+    @Operation(summary = "站点列表_SiteList")
     @Parameter(in = ParameterIn.QUERY, name = "parentId", description = "上级站点ID",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeChildren", description = "是否包含子站点。如：`true` `false`，默认`false`",
@@ -83,7 +83,7 @@ public class SiteController {
         return siteResolver.resolve(request);
     }
 
-    @Operation(summary = "获取站点（Site标签）")
+    @Operation(summary = "站点对象_Site")
     @GetMapping("/{id:[\\d]+}")
     public Site show(@Parameter(description = "站点ID") @PathVariable Long id) {
         return service.select(id);

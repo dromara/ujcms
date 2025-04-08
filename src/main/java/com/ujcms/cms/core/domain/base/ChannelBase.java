@@ -133,6 +133,13 @@ public class ChannelBase implements Serializable {
     private Boolean targetBlank = false;
 
     /**
+     * 是否文章栏目
+     */
+    @NotNull
+    @Schema(description="是否文章栏目")
+    private Boolean real = true;
+
+    /**
      * 是否导航菜单
      */
     @NotNull
@@ -215,6 +222,21 @@ public class ChannelBase implements Serializable {
     @NotNull
     @Schema(description="栏目页浏览次数")
     private Long selfViews = 0L;
+
+    /**
+     * 是否书籍目录
+     */
+    @NotNull
+    @Schema(description="是否书籍目录")
+    private Boolean book = false;
+
+    /**
+     * 栏目静态路径
+     */
+    @Length(max = 100)
+    @Nullable
+    @Schema(description="栏目静态路径")
+    private String channelStaticPath;
 
     /**
      * 自定义主字段JSON
@@ -357,6 +379,14 @@ public class ChannelBase implements Serializable {
         this.targetBlank = targetBlank;
     }
 
+    public Boolean getReal() {
+        return real;
+    }
+
+    public void setReal(Boolean real) {
+        this.real = real;
+    }
+
     public Boolean getNav() {
         return nav;
     }
@@ -451,6 +481,23 @@ public class ChannelBase implements Serializable {
 
     public void setSelfViews(Long selfViews) {
         this.selfViews = selfViews;
+    }
+
+    public Boolean getBook() {
+        return book;
+    }
+
+    public void setBook(Boolean book) {
+        this.book = book;
+    }
+
+    @Nullable
+    public String getChannelStaticPath() {
+        return channelStaticPath;
+    }
+
+    public void setChannelStaticPath(@Nullable String channelStaticPath) {
+        this.channelStaticPath = channelStaticPath;
     }
 
     @Nullable

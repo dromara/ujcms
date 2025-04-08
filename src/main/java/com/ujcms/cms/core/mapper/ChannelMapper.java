@@ -168,6 +168,14 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 更新条数
      */
     int updateNav(@Param("ids") List<Long> ids, @Param("nav") Boolean nav);
+    /**
+     * 设置是否文章栏目
+     *
+     * @param ids 待设置的栏目ID
+     * @param real 是否文章栏目
+     * @return 更新条数
+     */
+    int updateReal(@Param("ids") List<Long> ids, @Param("real") Boolean real);
 
     /**
      * 设置绩效类型ID为NULL

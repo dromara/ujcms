@@ -47,7 +47,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "MessageBoardController", description = "留言接口")
+@Tag(name = "留言接口")
 @RestController
 @RequestMapping({API + "/message-board", FRONTEND_API + "/message-board"})
 public class MessageBoardController {
@@ -70,7 +70,7 @@ public class MessageBoardController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取留言列表（MessageBoardList标签）")
+    @Operation(summary = "留言列表_MessageBoardList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",
@@ -97,7 +97,7 @@ public class MessageBoardController {
         });
     }
 
-    @Operation(summary = "获取留言分页（MessageBoardPage标签）")
+    @Operation(summary = "留言分页_MessageBoardPage")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",

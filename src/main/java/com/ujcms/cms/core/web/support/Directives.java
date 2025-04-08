@@ -255,6 +255,24 @@ public class Directives {
     }
 
     @Nullable
+    public static Float getFloat(Map<String, ?> params, String name) {
+        return getNumber(params, name, Float.class);
+    }
+
+    public static Float getFloat(Map<String, ?> params, String name, Float defaultValue) {
+        return Optional.ofNullable(getFloat(params, name)).orElse(defaultValue);
+    }
+
+    @Nullable
+    public static Double getDouble(Map<String, ?> params, String name) {
+        return getNumber(params, name, Double.class);
+    }
+
+    public static Double getDouble(Map<String, ?> params, String name, Double defaultValue) {
+        return Optional.ofNullable(getDouble(params, name)).orElse(defaultValue);
+    }
+
+    @Nullable
     public static Short getShort(Map<String, ?> params, String name) {
         return getNumber(params, name, Short.class);
     }

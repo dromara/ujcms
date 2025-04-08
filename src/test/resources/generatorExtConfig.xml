@@ -86,6 +86,13 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
+        <table tableName="ujcms_collection" domainObjectName="Collection">
+            <property name="order" value="true"/>
+        </table>
+        <table tableName="ujcms_collection_field" domainObjectName="CollectionField">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
         <table tableName="ujcms_example" domainObjectName="Example"/>
     </context>
 </generatorConfiguration>

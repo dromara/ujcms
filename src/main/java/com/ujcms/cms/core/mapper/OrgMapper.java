@@ -64,4 +64,14 @@ public interface OrgMapper extends TreeEntityMapper<Org> {
      * @return 数据列表
      */
     List<Org> listForTidy();
+
+    /**
+     * 根据 组织 ID 列表 查询文章权限是否存在
+     *
+     * @param channelId 栏目 ID
+     * @param orgIds   组织 ID 列表
+     * @return 1:存在; 0:不存在
+     */
+    int existsByArticleOrgId(@Param("channelId") Long channelId, @Param("orgIds") Collection<Long> orgIds);
+
 }

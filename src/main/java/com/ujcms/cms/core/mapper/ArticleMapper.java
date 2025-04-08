@@ -160,6 +160,15 @@ public interface ArticleMapper extends OrderEntityMapper {
     int existsByUserId(Long userId);
 
     /**
+     * 根据 标题 和 站点ID 查询文章是否存在
+     *
+     * @param title  标题
+     * @param siteId 站点ID
+     * @return 文章是否存在。0代表不存在，1代表存在
+     */
+    int existsByTitleAndSiteId(@Param("title") String title, @Param("siteId") Long siteId);
+
+    /**
      * 根据 站点ID 查询文章数量
      *
      * @param siteId 用户ID

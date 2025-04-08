@@ -24,7 +24,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "CaptchaController", description = "验证码接口")
+@Tag(name = "验证码接口")
 @RestController
 @RequestMapping({API + "/captcha", FRONTEND_API + "/captcha"})
 public class CaptchaController {

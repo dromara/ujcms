@@ -38,7 +38,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "PasswordController", description = "密码接口")
+@Tag(name = "密码接口")
 @RestController
 public class PasswordController {
     private final UserService userService;

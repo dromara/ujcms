@@ -33,7 +33,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "MessageBoardTypeController", description = "留言类型接口")
+@Tag(name = "留言类型接口")
 @RestController
 @RequestMapping({API + "/message-board-type", FRONTEND_API + "/message-board-type"})
 public class MessageBoardTypeController {
@@ -53,7 +53,7 @@ public class MessageBoardTypeController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取留言类型列表（MessageBoardTypeList标签）")
+    @Operation(summary = "留言类型列表_MessageBoardTypeList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",

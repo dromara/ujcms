@@ -27,7 +27,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "BlockItemController", description = "区块项接口")
+@Tag(name = "区块项接口")
 @RestController
 @RequestMapping({API + "/block-item", FRONTEND_API + "/block-item"})
 public class BlockItemController {
@@ -39,7 +39,7 @@ public class BlockItemController {
         this.service = service;
     }
 
-    @Operation(summary = "获取区块项列表（BlockItemList标签）")
+    @Operation(summary = "区块项列表_BlockItemList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "block", description = "区块别名",

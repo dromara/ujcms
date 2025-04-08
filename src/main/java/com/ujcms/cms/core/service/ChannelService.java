@@ -141,6 +141,13 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         }
         mapper.updateNav(ids, nav);
     }
+    @Transactional(rollbackFor = Exception.class)
+    public void updateReal(List<Long> ids, Boolean real) {
+        if (ids.isEmpty()) {
+            return;
+        }
+        mapper.updateReal(ids, real);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public void move(Channel from, Channel to, TreeMoveType type, Long siteId) {

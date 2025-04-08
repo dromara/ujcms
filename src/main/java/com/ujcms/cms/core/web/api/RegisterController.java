@@ -45,7 +45,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "RegisterController", description = "注册接口")
+@Tag(name = "注册接口")
 @RestController
 @RequestMapping({API + "/register", FRONTEND_API + "/register"})
 public class RegisterController {

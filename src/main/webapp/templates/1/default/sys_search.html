@@ -127,7 +127,7 @@
     </div>
   </form>
   [#if Params.q!?trim != '']
-    [@EsArticlePage q=Params.q! channelId=Params.channelId! beginPublishDate=Params.beginPublishDate! endPublishDate=Params.endPublishDate! isOperatorAnd='true' fragmentSize='200' isIncludeBody=Params.isIncludeBody! orderBy=Params.orderBy!; pagedList]
+    [@EsArticlePage q=Params.q! channelId=Params.channelId! beginPublishDate=Params.beginPublishDate! endPublishDate=Params.endPublishDate! isOperatorAnd='true' fragmentSize='200' isIncludeBody=Params.isIncludeBody! dateExpScale='365' orderBy=Params.orderBy!; pagedList]
       <h3 class="mt-3">搜索结果</h3>
       <p class="small text-muted">为您找到相关结果 ${pagedList.totalElements} 篇</p>
       <ul class="list-unstyled">

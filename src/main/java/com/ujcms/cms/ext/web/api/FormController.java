@@ -40,7 +40,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "FormController", description = "留言接口")
+@Tag(name = "表单接口")
 @RestController
 @RequestMapping({API + "/form", FRONTEND_API + "/form"})
 public class FormController {
@@ -59,7 +59,7 @@ public class FormController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取表单列表（FormList标签）")
+    @Operation(summary = "表单列表_FormList")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID。必选项",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "orgId", description = "组织ID",
@@ -80,7 +80,7 @@ public class FormController {
         });
     }
 
-    @Operation(summary = "获取表单分页（FormPage标签）")
+    @Operation(summary = "表单分页_FormPage")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID。必选项",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "orgId", description = "组织ID",

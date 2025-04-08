@@ -9,6 +9,7 @@
     <result column="article_url_" jdbcType="VARCHAR" property="articleUrl" />
     <result column="default_site_id_" jdbcType="BIGINT" property="defaultSiteId" />
     <result column="upload_settings_" jdbcType="VARCHAR" property="uploadSettings" />
+    <result column="grey_settings_" jdbcType="VARCHAR" property="greySettings" />
     <result column="security_settings_" jdbcType="VARCHAR" property="securitySettings" />
     <result column="register_settings_" jdbcType="VARCHAR" property="registerSettings" />
     <result column="sms_settings_" jdbcType="VARCHAR" property="smsSettings" />
@@ -16,7 +17,6 @@
     <result column="upload_storage_settings_" jdbcType="VARCHAR" property="uploadStorageSettings" />
     <result column="html_storage_settings_" jdbcType="VARCHAR" property="htmlStorageSettings" />
     <result column="template_storage_settings_" jdbcType="VARCHAR" property="templateStorageSettings" />
-    <result column="grey_settings_" jdbcType="VARCHAR" property="greySettings" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Config">
     <result column="customs_settings_" jdbcType="LONGVARCHAR" property="customsSettings" />
   </resultMap>
@@ -38,6 +38,7 @@
       article_url_ = #{articleUrl,jdbcType=VARCHAR},
       default_site_id_ = #{defaultSiteId,jdbcType=BIGINT},
       upload_settings_ = #{uploadSettings,jdbcType=VARCHAR},
+      grey_settings_ = #{greySettings,jdbcType=VARCHAR},
       security_settings_ = #{securitySettings,jdbcType=VARCHAR},
       register_settings_ = #{registerSettings,jdbcType=VARCHAR},
       sms_settings_ = #{smsSettings,jdbcType=VARCHAR},
@@ -45,12 +46,11 @@
       upload_storage_settings_ = #{uploadStorageSettings,jdbcType=VARCHAR},
       html_storage_settings_ = #{htmlStorageSettings,jdbcType=VARCHAR},
       template_storage_settings_ = #{templateStorageSettings,jdbcType=VARCHAR},
-      grey_settings_ = #{greySettings,jdbcType=VARCHAR},
       customs_settings_ = #{customsSettings,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Config">
-    insert into ujcms_config (id_, context_path_, port_, multi_domain_, channel_url_, article_url_, default_site_id_, upload_settings_, security_settings_, register_settings_, sms_settings_, email_settings_, upload_storage_settings_, html_storage_settings_, template_storage_settings_, grey_settings_, customs_settings_)
-    values (#{id,jdbcType=BIGINT}, #{contextPath,jdbcType=VARCHAR}, #{port,jdbcType=INTEGER}, #{multiDomain,jdbcType=CHAR}, #{channelUrl,jdbcType=VARCHAR}, #{articleUrl,jdbcType=VARCHAR}, #{defaultSiteId,jdbcType=BIGINT}, #{uploadSettings,jdbcType=VARCHAR}, #{securitySettings,jdbcType=VARCHAR}, #{registerSettings,jdbcType=VARCHAR}, #{smsSettings,jdbcType=VARCHAR}, #{emailSettings,jdbcType=VARCHAR}, #{uploadStorageSettings,jdbcType=VARCHAR}, #{htmlStorageSettings,jdbcType=VARCHAR}, #{templateStorageSettings,jdbcType=VARCHAR}, #{greySettings,jdbcType=VARCHAR}, #{customsSettings,jdbcType=LONGVARCHAR})
+    insert into ujcms_config (id_, context_path_, port_, multi_domain_, channel_url_, article_url_, default_site_id_, upload_settings_, grey_settings_, security_settings_, register_settings_, sms_settings_, email_settings_, upload_storage_settings_, html_storage_settings_, template_storage_settings_, customs_settings_)
+    values (#{id,jdbcType=BIGINT}, #{contextPath,jdbcType=VARCHAR}, #{port,jdbcType=INTEGER}, #{multiDomain,jdbcType=CHAR}, #{channelUrl,jdbcType=VARCHAR}, #{articleUrl,jdbcType=VARCHAR}, #{defaultSiteId,jdbcType=BIGINT}, #{uploadSettings,jdbcType=VARCHAR}, #{greySettings,jdbcType=VARCHAR}, #{securitySettings,jdbcType=VARCHAR}, #{registerSettings,jdbcType=VARCHAR}, #{smsSettings,jdbcType=VARCHAR}, #{emailSettings,jdbcType=VARCHAR}, #{uploadStorageSettings,jdbcType=VARCHAR}, #{htmlStorageSettings,jdbcType=VARCHAR}, #{templateStorageSettings,jdbcType=VARCHAR}, #{customsSettings,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.context_path_, t.port_, t.multi_domain_, t.channel_url_, t.article_url_, t.default_site_id_, t.upload_settings_, t.security_settings_, t.register_settings_, t.sms_settings_, t.email_settings_, t.upload_storage_settings_, t.html_storage_settings_, t.template_storage_settings_, t.grey_settings_, t.customs_settings_
+    t.id_, t.context_path_, t.port_, t.multi_domain_, t.channel_url_, t.article_url_, t.default_site_id_, t.upload_settings_, t.grey_settings_, t.security_settings_, t.register_settings_, t.sms_settings_, t.email_settings_, t.upload_storage_settings_, t.html_storage_settings_, t.template_storage_settings_, t.customs_settings_
   </sql></mapper>

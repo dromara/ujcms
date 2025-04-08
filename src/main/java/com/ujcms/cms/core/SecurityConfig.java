@@ -180,15 +180,20 @@ public class SecurityConfig {
     public PolicyFactory policyFactory() {
         return EbayPolicyExample.POLICY_DEFINITION.and(new HtmlPolicyBuilder()
                 // 允许视频元素
-                .allowElements("video").allowAttributes("controls", "preload", "width", "height", "src").onElements("video")
-                .allowElements("audio").allowAttributes("controls", "preload", "width", "height", "src").onElements("audio")
-                .allowElements("source").allowAttributes("src", "type").onElements("source")
+                .allowElements("video").allowStandardUrlProtocols().allowAttributes("controls", "preload", "width", "height", "src").onElements("video")
+                .allowElements("audio").allowStandardUrlProtocols().allowAttributes("controls", "preload", "width", "height", "src").onElements("audio")
+                .allowElements("source").allowStandardUrlProtocols().allowAttributes("src", "type").onElements("source")
                 .allowElements("a").allowAttributes("target").matching(true, "_blank").onElements("a")
+                // TuiEditor 自带的，所以需要允许。
+                .allowElements("code").allowAttributes("data-backticks").onElements("code")
+                .allowElements("img").allowAttributes("contenteditable").onElements("img")
+
                 // 允许浮动样式
                 .allowStyling(CssSchema.withProperties(ImmutableSet.of("float")))
                 // tinymce 编辑器的图片居中要使用到display:block，而display:none可以隐形内容，所以只允许display:block。
                 .allowStyling(CssSchema.withProperties(ImmutableMap.of("display",
                         new CssSchema.Property(0, ImmutableSet.of("block"), ImmutableMap.of()))))
+                .skipRelsOnLinks("nofollow")
                 .toFactory());
     }
 

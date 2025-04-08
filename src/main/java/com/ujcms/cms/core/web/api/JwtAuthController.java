@@ -47,7 +47,7 @@ import static com.ujcms.commons.security.jwt.JwtUtils.*;
 /**
  * @author PONY
  */
-@Tag(name = "JwtAuthController", description = "JWT登录接口")
+@Tag(name = "JWT认证接口")
 @RestController
 @RequestMapping(UrlConstants.API + "/auth/jwt")
 public class JwtAuthController {

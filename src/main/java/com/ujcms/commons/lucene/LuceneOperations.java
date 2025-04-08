@@ -94,6 +94,11 @@ public class LuceneOperations {
                 List<T> content = new ArrayList<>(size);
                 for (int i = (int) pageable.getOffset(); i < length; i++) {
                     int docId = results.scoreDocs[i].doc;
+
+                    // 查看评分细节
+                    // Explanation explanation = searcher.explain(query, results.scoreDocs[i].doc)
+                    // System.out.println(explanation)
+
                     T bean = handle.apply(searcher.doc(docId));
                     // 处理高亮
                     Fields vectors = indexReader.getTermVectors(docId);

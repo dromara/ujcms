@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.CollectionMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Collection">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="channel_id_" jdbcType="BIGINT" property="channelId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="charset_" jdbcType="VARCHAR" property="charset" />
+    <result column="user_agent_" jdbcType="VARCHAR" property="userAgent" />
+    <result column="interval_min_" jdbcType="INTEGER" property="intervalMin" />
+    <result column="interval_max_" jdbcType="INTEGER" property="intervalMax" />
+    <result column="list_urls_" jdbcType="VARCHAR" property="listUrls" />
+    <result column="list_desc_" jdbcType="CHAR" property="listDesc" />
+    <result column="page_begin_" jdbcType="INTEGER" property="pageBegin" />
+    <result column="page_end_" jdbcType="INTEGER" property="pageEnd" />
+    <result column="list_area_pattern_" jdbcType="VARCHAR" property="listAreaPattern" />
+    <result column="list_area_reg_" jdbcType="CHAR" property="listAreaReg" />
+    <result column="item_area_pattern_" jdbcType="VARCHAR" property="itemAreaPattern" />
+    <result column="item_area_reg_" jdbcType="CHAR" property="itemAreaReg" />
+    <result column="item_url_pattern_" jdbcType="VARCHAR" property="itemUrlPattern" />
+    <result column="item_url_filter_" jdbcType="VARCHAR" property="itemUrlFilter" />
+    <result column="item_url_reg_" jdbcType="CHAR" property="itemUrlReg" />
+    <result column="item_url_js_" jdbcType="CHAR" property="itemUrlJs" />
+    <result column="auto_submit_" jdbcType="CHAR" property="autoSubmit" />
+    <result column="allow_duplicate_" jdbcType="CHAR" property="allowDuplicate" />
+    <result column="download_image_" jdbcType="CHAR" property="downloadImage" />
+    <result column="current_pages_" jdbcType="INTEGER" property="currentPages" />
+    <result column="current_items_" jdbcType="INTEGER" property="currentItems" />
+    <result column="success_count_" jdbcType="INTEGER" property="successCount" />
+    <result column="total_count_" jdbcType="INTEGER" property="totalCount" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
+    <result column="order_" jdbcType="BIGINT" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.Collection">
+    <result column="error_info_" jdbcType="LONGVARCHAR" property="errorInfo" />
+  </resultMap>
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.Collection">
+    <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+    <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel" select="com.ujcms.cms.core.mapper.ChannelMapper.selectRefer" />
+    <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+    <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.ext.domain.CollectionField" property="fields" select="com.ujcms.cms.ext.mapper.CollectionFieldMapper.listByCollectionId" />
+  </resultMap>
+  <select id="existsByChannelId" resultType="int">
+    select case
+             when exists(
+               select *
+               from ujcms_collection t
+               where t.channel_id_ = #{channelId}
+             ) then 1
+             else 0
+             end as non_zero_exists
+  </select>
+  <update id="moveUp">
+    update ujcms_collection
+    set order_ = order_ + 1
+    where order_ &lt; #{from} and order_ &gt;= #{to}
+  </update>
+  <update id="moveDown">
+    update ujcms_collection
+    set order_ = order_ - 1
+    where order_ &gt; #{from} and order_ &lt;= #{to}
+  </update>
+  <update id="updateOrder">
+    update ujcms_collection
+    set order_ = #{order}
+    where id_ = #{id}
+  </update>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_collection
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_collection" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_collection t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="delete" parameterType="java.lang.Long">
+    delete from ujcms_collection
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.Collection">
+    update ujcms_collection
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      channel_id_ = #{channelId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      charset_ = #{charset,jdbcType=VARCHAR},
+      user_agent_ = #{userAgent,jdbcType=VARCHAR},
+      interval_min_ = #{intervalMin,jdbcType=INTEGER},
+      interval_max_ = #{intervalMax,jdbcType=INTEGER},
+      list_urls_ = #{listUrls,jdbcType=VARCHAR},
+      list_desc_ = #{listDesc,jdbcType=CHAR},
+      page_begin_ = #{pageBegin,jdbcType=INTEGER},
+      page_end_ = #{pageEnd,jdbcType=INTEGER},
+      list_area_pattern_ = #{listAreaPattern,jdbcType=VARCHAR},
+      list_area_reg_ = #{listAreaReg,jdbcType=CHAR},
+      item_area_pattern_ = #{itemAreaPattern,jdbcType=VARCHAR},
+      item_area_reg_ = #{itemAreaReg,jdbcType=CHAR},
+      item_url_pattern_ = #{itemUrlPattern,jdbcType=VARCHAR},
+      item_url_filter_ = #{itemUrlFilter,jdbcType=VARCHAR},
+      item_url_reg_ = #{itemUrlReg,jdbcType=CHAR},
+      item_url_js_ = #{itemUrlJs,jdbcType=CHAR},
+      auto_submit_ = #{autoSubmit,jdbcType=CHAR},
+      allow_duplicate_ = #{allowDuplicate,jdbcType=CHAR},
+      download_image_ = #{downloadImage,jdbcType=CHAR},
+      current_pages_ = #{currentPages,jdbcType=INTEGER},
+      current_items_ = #{currentItems,jdbcType=INTEGER},
+      success_count_ = #{successCount,jdbcType=INTEGER},
+      total_count_ = #{totalCount,jdbcType=INTEGER},
+      status_ = #{status,jdbcType=SMALLINT},
+      error_info_ = #{errorInfo,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Collection">
+    insert into ujcms_collection (id_, site_id_, channel_id_, user_id_, name_, description_, charset_, user_agent_, interval_min_, interval_max_, list_urls_, list_desc_, page_begin_, page_end_, list_area_pattern_, list_area_reg_, item_area_pattern_, item_area_reg_, item_url_pattern_, item_url_filter_, item_url_reg_, item_url_js_, auto_submit_, allow_duplicate_, download_image_, current_pages_, current_items_, success_count_, total_count_, status_, order_, error_info_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{charset,jdbcType=VARCHAR}, #{userAgent,jdbcType=VARCHAR}, #{intervalMin,jdbcType=INTEGER}, #{intervalMax,jdbcType=INTEGER}, #{listUrls,jdbcType=VARCHAR}, #{listDesc,jdbcType=CHAR}, #{pageBegin,jdbcType=INTEGER}, #{pageEnd,jdbcType=INTEGER}, #{listAreaPattern,jdbcType=VARCHAR}, #{listAreaReg,jdbcType=CHAR}, #{itemAreaPattern,jdbcType=VARCHAR}, #{itemAreaReg,jdbcType=CHAR}, #{itemUrlPattern,jdbcType=VARCHAR}, #{itemUrlFilter,jdbcType=VARCHAR}, #{itemUrlReg,jdbcType=CHAR}, #{itemUrlJs,jdbcType=CHAR}, #{autoSubmit,jdbcType=CHAR}, #{allowDuplicate,jdbcType=CHAR}, #{downloadImage,jdbcType=CHAR}, #{currentPages,jdbcType=INTEGER}, #{currentItems,jdbcType=INTEGER}, #{successCount,jdbcType=INTEGER}, #{totalCount,jdbcType=INTEGER}, #{status,jdbcType=SMALLINT}, #{order,jdbcType=BIGINT}, #{errorInfo,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.channel_id_, t.user_id_, t.name_, t.description_, t.charset_, t.user_agent_, t.interval_min_, t.interval_max_, t.list_urls_, t.list_desc_, t.page_begin_, t.page_end_, t.list_area_pattern_, t.list_area_reg_, t.item_area_pattern_, t.item_area_reg_, t.item_url_pattern_, t.item_url_filter_, t.item_url_reg_, t.item_url_js_, t.auto_submit_, t.allow_duplicate_, t.download_image_, t.current_pages_, t.current_items_, t.success_count_, t.total_count_, t.status_, t.order_, t.error_info_
+  </sql></mapper>

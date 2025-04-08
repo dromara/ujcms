@@ -32,7 +32,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "ModelController", description = "模型接口")
+@Tag(name = "模型接口")
 @RestController
 @RequestMapping({API + "/model", FRONTEND_API + "/model"})
 public class ModelController {
@@ -44,7 +44,7 @@ public class ModelController {
         this.modelService = modelService;
     }
 
-    @Operation(summary = "获取模型列表（ModelList标签）")
+    @Operation(summary = "模型列表_ModelList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型",
@@ -60,7 +60,7 @@ public class ModelController {
         return ModelListDirective.query(params, site.getId(), modelService);
     }
 
-    @Operation(summary = "获取模型对象（Model标签）")
+    @Operation(summary = "模型对象_Model")
     @ApiResponses(value = {@ApiResponse(description = "模型对象")})
     @GetMapping("/{id:[\\d]+}")
     public Model show(@Parameter(description = "模型ID") @PathVariable Long id) {

@@ -37,7 +37,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@io.swagger.v3.oas.annotations.tags.Tag(name = "TagController", description = "Tag接口")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Tag接口")
 @RestController
 @RequestMapping({API + "/tag", FRONTEND_API + "/tag"})
 public class TagController {
@@ -57,7 +57,7 @@ public class TagController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取Tag列表（TagList标签）")
+    @Operation(summary = "Tag列表_TagList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "name", description = "标签名称",
@@ -79,7 +79,7 @@ public class TagController {
         });
     }
 
-    @Operation(summary = "获取Tag分页（TagPage标签）")
+    @Operation(summary = "Tag分页_TagPage")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "name", description = "标签名称",

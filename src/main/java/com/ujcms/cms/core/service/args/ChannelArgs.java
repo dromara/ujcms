@@ -27,17 +27,15 @@ public class ChannelArgs extends BaseQueryArgs {
         return this;
     }
 
-    public ChannelArgs articlePermission(Collection<Long> articleRoleIds, Collection<Long> articleOrgIds) {
+    public void articlePermission(Collection<Long> articleRoleIds, Collection<Long> articleOrgIds) {
         this.articleRoleIds = articleRoleIds;
         this.articleOrgIds = articleOrgIds;
-        return this;
     }
 
-    public ChannelArgs siteAncestorId(@Nullable Long siteId) {
+    public void siteAncestorId(@Nullable Long siteId) {
         if (siteId != null) {
             queryMap.put("EQ_site@SiteTree@descendant-ancestorId_Long", siteId);
         }
-        return this;
     }
 
     public ChannelArgs siteId(@Nullable Long siteId) {
@@ -62,12 +60,11 @@ public class ChannelArgs extends BaseQueryArgs {
         return this;
     }
 
-    public ChannelArgs parentIdAndSelf(@Nullable Long parentId) {
+    public void parentIdAndSelf(@Nullable Long parentId) {
         if (parentId != null) {
             queryMap.put("EQ_1_parentId_Long", parentId);
             queryMap.put("EQ_1_id_Long", parentId);
         }
-        return this;
     }
 
     public ChannelArgs parentIdIsNull() {
@@ -83,18 +80,22 @@ public class ChannelArgs extends BaseQueryArgs {
         return this;
     }
 
-    public ChannelArgs isNav(@Nullable Boolean isNav) {
+    public void isReal(@Nullable Boolean isReal) {
+        if (isReal != null) {
+            queryMap.put("EQ_real_Boolean", isReal);
+        }
+    }
+
+    public void isNav(@Nullable Boolean isNav) {
         if (isNav != null) {
             queryMap.put("EQ_nav_Boolean", isNav);
         }
-        return this;
     }
 
-    public ChannelArgs isAllowSearch(@Nullable Boolean isAllowSearch) {
+    public void isAllowSearch(@Nullable Boolean isAllowSearch) {
         if (isAllowSearch != null) {
             queryMap.put("EQ_allowSearch_Boolean", isAllowSearch);
         }
-        return this;
     }
 
     public static ChannelArgs of() {

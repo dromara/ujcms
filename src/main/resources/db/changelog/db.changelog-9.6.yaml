@@ -99,6 +99,7 @@ databaseChangeLog:
   - changeSet:
       id: 1735636061806-1
       author: PONY (generated)
+      dbms: '!dm'
       preConditions:
         - onFail: MARK_RAN
         - indexExists:
@@ -108,4 +109,12 @@ databaseChangeLog:
         - dropUniqueConstraint:
             constraintName: uk_blockitem_block_article
             tableName: ujcms_block_item
+  - changeSet:
+      id: 1735636061806-1-dm
+      author: PONY (generated)
+      changes:
+        - sql:
+            dbms: 'dm'
+            sql: alter table UJCMS_BLOCK_ITEM drop constraint UK_BLOCKITEM_BLOCK_ARTICLE;
+
 

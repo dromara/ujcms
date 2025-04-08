@@ -25,7 +25,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "DictController", description = "字典接口")
+@Tag(name = "字典接口")
 @RestController
 @RequestMapping({API + "/dict", FRONTEND_API + "/dict"})
 public class DictController {
@@ -35,7 +35,7 @@ public class DictController {
         this.dictService = dictService;
     }
 
-    @Operation(summary = "获取字典列表（DictList标签）")
+    @Operation(summary = "字典列表_DictList")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "type", description = "类型别名",

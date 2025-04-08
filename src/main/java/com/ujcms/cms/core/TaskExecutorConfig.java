@@ -24,7 +24,7 @@ import java.time.Duration;
 public class TaskExecutorConfig {
     /**
      * 默认任务执行器。
-     *
+     * <p>
      * 用于代替`@EnableAsync`的{@link TaskExecutionAutoConfiguration#applicationTaskExecutor(TaskExecutorBuilder)}
      * 因为增加了自定义的`ThreadPoolTaskExecutor`，这个默认的`ThreadPoolTaskExecutor`就不会再创建了，需要自行创建。
      *

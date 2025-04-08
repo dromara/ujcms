@@ -90,10 +90,11 @@ public class ChannelController {
     public List<Channel> list(@RequestParam(defaultValue = "false") boolean isArticlePermission,
                               @RequestParam(defaultValue = "true") boolean isIncludeChildren,
                               @RequestParam(defaultValue = "false") boolean isIncludeSelf,
-                              Long parentId, Long siteId,
+                              Long parentId, Long siteId, Boolean isReal,
                               HttpServletRequest request) {
         User user = Contexts.getCurrentUser();
         ChannelArgs args = ChannelArgs.of(getQueryMap(request.getQueryString()));
+        args.isReal(isReal);
         if (isArticlePermission && !user.hasAllArticlePermission()) {
             args.articlePermission(user.fetchRoleIds(), user.fetchAllOrgIds());
         }
@@ -181,6 +182,14 @@ public class ChannelController {
     public ResponseEntity<Body> updateNav(@RequestBody @Valid Channel bean, HttpServletRequest request) {
         return update(bean, request, channel ->
                 service.updateNav(Collections.singletonList(bean.getId()), bean.getNav()));
+    }
+
+    @PutMapping("real")
+    @PreAuthorize("hasAnyAuthority('channel:update','*')")
+    @OperationLog(module = "channel", operation = "updateReal", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updateReal(@RequestBody @Valid Channel bean, HttpServletRequest request) {
+        return update(bean, request, channel ->
+                service.updateReal(Collections.singletonList(bean.getId()), bean.getReal()));
     }
 
     private ResponseEntity<Body> update(Channel bean, HttpServletRequest request, Consumer<Channel> handleChannel) {

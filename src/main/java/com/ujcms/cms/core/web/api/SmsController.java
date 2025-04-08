@@ -36,7 +36,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "SmsController", description = "短信接口")
+@Tag(name = "短信接口")
 @RestController
 @RequestMapping({API + "/sms", FRONTEND_API + "/sms"})
 public class SmsController {

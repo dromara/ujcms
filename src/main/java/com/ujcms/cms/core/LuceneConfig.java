@@ -56,8 +56,10 @@ public class LuceneConfig {
     @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public ADictionary dictionary() {
         SegmenterConfig segmenterConfig = new SegmenterConfig();
+        // 此三项必须关闭，否则获取高亮代码会出错
         segmenterConfig.setAppendCJKSyn(false);
         segmenterConfig.setAppendCJKPinyin(false);
+        segmenterConfig.setEnSecondSeg(false);
         ADictionary dic = DictionaryFactory.createSingletonDictionary(segmenterConfig, false);
         String[] files = {"lex-admin", "lex-chars", "lex-cn-mz", "lex-company", "lex-dname-1", "lex-dname-2",
                 "lex-domain-suffix", "lex-english", "lex-festival", "lex-fname", "lex-food", "lex-lang", "lex-live",
@@ -90,8 +92,10 @@ public class LuceneConfig {
             return new IKAnalyzer();
         } else {
             SegmenterConfig segmenterConfig = new SegmenterConfig();
+            // 此三项必须关闭，否则获取高亮代码会出错
             segmenterConfig.setAppendCJKSyn(false);
             segmenterConfig.setAppendCJKPinyin(false);
+            segmenterConfig.setEnSecondSeg(false);
             return new JcsegAnalyzer(ISegment.COMPLEX, segmenterConfig, dictionary());
         }
     }
@@ -103,8 +107,10 @@ public class LuceneConfig {
             return analyzer();
         } else {
             SegmenterConfig segmenterConfig = new SegmenterConfig();
+            // 此三项必须关闭，否则获取高亮代码会出错
             segmenterConfig.setAppendCJKSyn(false);
             segmenterConfig.setAppendCJKPinyin(false);
+            segmenterConfig.setEnSecondSeg(false);
             return new JcsegAnalyzer(ISegment.MOST, segmenterConfig, dictionary());
         }
     }

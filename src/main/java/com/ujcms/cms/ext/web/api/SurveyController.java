@@ -52,7 +52,7 @@ import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
  *
  * @author PONY
  */
-@Tag(name = "SurveyController", description = "调查问卷接口")
+@Tag(name = "调查问卷接口")
 @RestController
 @RequestMapping({API + "/survey", FRONTEND_API + "/survey"})
 public class SurveyController {
@@ -74,7 +74,7 @@ public class SurveyController {
         return handle.apply(args, params);
     }
 
-    @Operation(summary = "获取调查问卷列表（SurveyList标签）")
+    @Operation(summary = "调查问卷列表_SurveyList")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在调查期限内。如：`true` `false`",
@@ -95,7 +95,7 @@ public class SurveyController {
         });
     }
 
-    @Operation(summary = "获取调查问卷分页（SurveyPage标签）")
+    @Operation(summary = "调查问卷分页_SurveyPage")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isWithinDate", description = "是否在调查期限内。如：`true` `false`",
@@ -116,7 +116,7 @@ public class SurveyController {
         });
     }
 
-    @Operation(summary = "获取调查问卷对象（Survey标签）")
+    @Operation(summary = "调查问卷对象_Survey")
     @ApiResponses(value = {@ApiResponse(description = "调查问卷对象")})
     @GetMapping("/{id:[\\d]+}")
     public Survey show(@Parameter(description = "调查问卷ID") @PathVariable Long id) {

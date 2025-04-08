@@ -413,6 +413,9 @@ public class QueryUtils {
             return Dates.ofDate((Date) obj);
         }
         if (obj instanceof String) {
+            if (StringUtils.isBlank((String) obj)) {
+                return null;
+            }
             return Dates.parse((String) obj);
         }
         throw new QueryException("Cannot parse to OffsetDateTime: " + obj);

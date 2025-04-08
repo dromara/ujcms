@@ -159,6 +159,10 @@ public class OrgService {
         return mapper.listPermissions(roleIds, orgIds);
     }
 
+    public boolean existsByArticleOrgId(Long channelId, Collection<Long> orgIds) {
+        return mapper.existsByArticleOrgId(channelId, orgIds) > 0;
+    }
+
     /**
      * 是否存在上下级关系
      *

@@ -6,15 +6,15 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.7.5</version>
+    <version>9.8.2</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
     <description>
-        UJCMS是基于Java的CMS网站内容系统。使用spring-boot2、mybatis、freemarker、vite、vue3、element-plus、tailwind-css等技术开发。
+        UJCMS 是基于 Java 的 CMS 网站内容系统。使用 SpringBoot、MyBatis、Vite、Vue3、ElementPlus、TailwindCSS 等技术开发。
     </description>
     <url>https://www.ujcms.com</url>
-    <inceptionYear>2021-2024</inceptionYear>
+    <inceptionYear>2021-2025</inceptionYear>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -41,11 +41,17 @@
         <freemarker-java8.version>2.0.0</freemarker-java8.version>
         <!-- 指定liquibase版本，更高版本的liquibase在mysql中非空约束无效 -->
         <liquibase.version>4.5.0</liquibase.version>
-        <!-- Apache公共基础组件 -->
+        <!-- Apache 公共基础组件 -->
+        <commons-lang3.version>3.17.0</commons-lang3.version>
+        <!-- Apache 集合组件 -->
         <commons-collections4.version>4.4</commons-collections4.version>
-        <!-- Apache压缩组件 -->
+        <!-- Apache 压缩组件 -->
         <commons-compress.version>1.26.2</commons-compress.version>
+        <!-- Apache IO 组件 -->
         <commons-io.version>2.18.0</commons-io.version>
+        <!-- Apache 文本组件 -->
+        <commons-text.version>1.13.0</commons-text.version>
+        <!-- Apache 校验组件 -->
         <commons-validator.version>1.7</commons-validator.version>
         <!-- Apache公共网络组件 -->
         <commons-net.version>3.11.1</commons-net.version>
@@ -56,7 +62,7 @@
         <!-- 加密组件 -->
         <bcprov-jdk15to18.version>1.79</bcprov-jdk15to18.version>
         <!-- HTML不安全代码过滤组件 -->
-        <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
+        <owasp-java-html-sanitizer.version>20240325.1</owasp-java-html-sanitizer.version>
         <!-- 验证码组件 -->
         <jcaptcha.version>2.0.0</jcaptcha.version>
         <!-- 纯 java 图片处理库 -->
@@ -70,7 +76,7 @@
         <!-- PDF 类库 -->
         <pdfbox.version>3.0.0-RC1</pdfbox.version>
         <!-- Java Audio Video Encoder -->
-        <jave.version>3.3.1</jave.version>
+        <jave.version>3.5.0</jave.version>
         <!-- IP定位组件 -->
         <ip2region.version>2.7.0</ip2region.version>
         <!-- 用户代理解析组件。分析用户浏览器类型、操作系统等信息 -->
@@ -80,13 +86,14 @@
         <!-- 计算机信息获取组件 -->
         <oshi-core.version>6.4.2</oshi-core.version>
         <!-- 阿里云短信组件 -->
-        <dysmsapi20170525.version>2.0.18</dysmsapi20170525.version>
+        <dysmsapi20170525.version>3.1.0</dysmsapi20170525.version>
         <!-- 腾讯云短信组件 -->
         <tencentcloud-sdk-java.version>3.1.574</tencentcloud-sdk-java.version>
         <!-- 微信组件 -->
         <weixin-java-mp.version>4.4.9.B</weixin-java-mp.version>
         <!-- MinIO对象存储 -->
-        <!-- MinIO-8使用okhttp3-4.8.1，与阿里云短信okhttp3-3.12.13冲突。只能用7.1版本。 -->
+        <!-- MinIO-8使用okhttp3-4.8.1，与阿里云短信okhttp3-3.12.13冲突。只能用7.1版本 -->
+        <!-- 可以考虑使用 maven-shade-plugin 和多项目的方式解决冲突 -->
         <minio.version>7.1.4</minio.version>
         <!-- 腾讯云对象存储 -->
         <cos_api.version>5.6.63</cos_api.version>
@@ -95,7 +102,8 @@
         <!-- 七牛云对象存储 -->
         <qiniu-java-sdk.version>7.9.1</qiniu-java-sdk.version>
         <!-- SpringDoc API文档工具 -->
-        <springdoc-openapi-ui.version>1.6.11</springdoc-openapi-ui.version>
+        <springdoc-openapi-ui.version>1.8.0</springdoc-openapi-ui.version>
+        <therapi-runtime-javadoc.version>0.15.0</therapi-runtime-javadoc.version>
         <annotations.version>3.0.1</annotations.version>
         <mybatis-generator-core.version>1.4.0</mybatis-generator-core.version>
 
@@ -114,7 +122,7 @@
         <start-class>com.ujcms.cms.Application</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -294,6 +302,11 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
@@ -641,7 +654,7 @@
                         <path>
                             <groupId>com.github.therapi</groupId>
                             <artifactId>therapi-runtime-javadoc-scribe</artifactId>
-                            <version>0.15.0</version>
+                            <version>${therapi-runtime-javadoc.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

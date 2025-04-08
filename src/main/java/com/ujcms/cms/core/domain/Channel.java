@@ -58,7 +58,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "栏目层级。从一级栏目到当前栏目的列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性只包含当前栏目")
-    @JsonIncludeProperties({"id", "name", "alias", "url"})
+    @JsonIncludeProperties({"id", "name", "alias", "url", "nav"})
     public List<Channel> getPaths() {
         LinkedList<Channel> parents = new LinkedList<>();
         Channel bean = this;
@@ -209,7 +209,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     private String getChannelUrl(int page) {
-        return getSite().getHtml().getChannelUrl(getId(), getAlias(), page);
+        return getSite().getHtml().getChannelUrl(getChannelStaticPath(), getId(), getAlias(), page);
     }
 
     public String getNormalStaticPath(int page) {
@@ -221,7 +221,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     private String getChannelPath(int page) {
-        return getSite().getHtml().getChannelPath(getId(), getAlias(), page);
+        return getSite().getHtml().getChannelPath(getChannelStaticPath(), getId(), getAlias(), page);
     }
 
     /**
@@ -283,7 +283,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     /**
      * 上级栏目。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性为`null`
      */
-    @JsonIncludeProperties({"id", "name", "alias", "url"})
+    @JsonIncludeProperties({"id", "name", "alias", "url", "nav"})
     @Nullable
     private Channel parent;
     /**

@@ -32,7 +32,7 @@ import static com.ujcms.commons.web.Uploads.AVATAR_TYPE;
  *
  * @author PONY
  */
-@Tag(name = "UploadController", description = "上传接口")
+@Tag(name = "上传接口")
 @RestController
 @RequestMapping({API + "/upload", FRONTEND_API + "/upload"})
 public class UploadController extends AbstractUploadController {

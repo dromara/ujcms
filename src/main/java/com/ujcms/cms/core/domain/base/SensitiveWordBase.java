@@ -34,19 +34,19 @@ public class SensitiveWordBase implements Serializable {
     private String name = "";
 
     /**
-     * 是否启用
-     */
-    @NotNull
-    @Schema(description="是否启用")
-    private Boolean enabled = true;
-
-    /**
      * 替换词
      */
     @Length(max = 30)
     @NotNull
     @Schema(description="替换词")
     private String replacement = "***";
+
+    /**
+     * 是否启用
+     */
+    @NotNull
+    @Schema(description="是否启用")
+    private Boolean enabled = true;
 
     public Long getId() {
         return id;
@@ -64,19 +64,19 @@ public class SensitiveWordBase implements Serializable {
         this.name = name;
     }
 
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
-
     public String getReplacement() {
         return replacement;
     }
 
     public void setReplacement(String replacement) {
         this.replacement = replacement;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.web.util.HtmlUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 字符串工具类
@@ -50,6 +52,48 @@ public class Strings {
 
     public static String substring(String text, int length) {
         return substring(text, length, null);
+    }
+
+    /**
+     * 将字符串按行风格，支持 windows(\r\n)、linux(\n)和(\r) 格式换行。
+     *
+     * @param str 待解析的字符串。可以为 null
+     */
+    public static String[] splitByLine(String str) {
+        return StringUtils.split(str, "\r\n");
+    }
+
+    /**
+     * 将不同平台的换行符 windows(\r\n)、linux(\n)和(\r) 统一替换成 \n
+     *
+     * @param str 待解析的字符串。可以为 null
+     */
+    public static String standardLineBreak(String str) {
+        str = StringUtils.replace(str, "\r\n", "\n");
+        str = StringUtils.replaceChars(str, '\r', '\n');
+        return str;
+    }
+
+
+    /**
+     * 过滤 Pattern 匹配的字符串，并保留 group 数据。
+     */
+    public static String filter(String text, Pattern pattern) {
+        Matcher matcher = pattern.matcher(text);
+        int start = 0;
+        int end;
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find()) {
+            end = matcher.start();
+            sb.append(text.subSequence(start, end));
+            for (int i = 1, len = matcher.groupCount(); i <= len; i++) {
+                sb.append(text.subSequence(matcher.start(i), matcher.end(i)));
+            }
+            start = matcher.end();
+        }
+        end = text.length();
+        sb.append(text.subSequence(start, end));
+        return sb.toString();
     }
 
     @Nullable
@@ -184,6 +228,8 @@ public class Strings {
         }
         return buffer.toString();
     }
+
+    public static final String LINE_SEPARATOR = "\n";
 
     /**
      * 工具类不需要实例化

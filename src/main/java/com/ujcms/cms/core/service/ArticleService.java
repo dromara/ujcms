@@ -101,7 +101,6 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         bean.setCreated(now);
         bean.setModified(now);
         bean.setId(snowflakeSequence.nextId());
-        // 以当前时间戳为排序值
         bean.setOrder(bean.getId());
         bean.setWithImage(StringUtils.isNotBlank(bean.getImage()));
         Channel channel = Optional.ofNullable(channelService.select(bean.getChannelId())).orElseThrow(() ->
@@ -432,6 +431,10 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
 
     public boolean existsByUserId(Long userId) {
         return mapper.existsByUserId(userId) > 0;
+    }
+
+    public boolean existsByTitleAndSiteId(String title, Long siteId) {
+        return mapper.existsByTitleAndSiteId(title, siteId) > 0;
     }
 
     @Override

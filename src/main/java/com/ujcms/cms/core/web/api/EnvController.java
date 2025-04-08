@@ -25,7 +25,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "EnvController", description = "环境接口")
+@Tag(name = "环境接口")
 @RestController
 @RequestMapping({API + "/env", FRONTEND_API + "/env"})
 public class EnvController {

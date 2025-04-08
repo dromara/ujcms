@@ -124,16 +124,26 @@
                    else 0
                    end as non_zero_exists
     </select>
-    <select id="existsByUserId" resultType="int">
-        select case
-                   when exists(
-                           select *
-                           from ujcms_article t
-                           where t.user_id_ = #{userId}
-                       ) then 1
-                   else 0
-                   end as non_zero_exists
-    </select>
+  <select id="existsByUserId" resultType="int">
+    select case
+             when exists(
+               select *
+               from ujcms_article t
+               where t.user_id_ = #{userId}
+             ) then 1
+             else 0
+             end as non_zero_exists
+  </select>
+  <select id="existsByTitleAndSiteId" resultType="int">
+    select case
+             when exists(
+               select *
+               from ujcms_article t join ujcms_article_ext ext_ on t.id_ = ext_.id_
+               where t.site_id_ = #{siteId} and ext_.title_ = #{title}
+             ) then 1
+             else 0
+             end as non_zero_exists
+  </select>
     <select id="countBySiteId" resultType="int">
         select count(*)
         from ujcms_article t

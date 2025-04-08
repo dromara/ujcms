@@ -15,6 +15,7 @@ import com.ujcms.commons.web.Strings;
 import com.ujcms.commons.web.Views;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.validator.constraints.Length;
 import org.jsoup.Jsoup;
 import org.owasp.html.PolicyFactory;
@@ -57,9 +58,9 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     @JsonView(Views.Whole.class)
     public String getPlainText() {
         return Optional.ofNullable(getText())
-                .map(html -> Jsoup.parse(html).body().text())
+                .map(html -> StringEscapeUtils.escapeHtml4(Jsoup.parse(html).body().text()))
                 // 多个空格替换为一个空格，中文空格unicode为 \u3000
-                .map(text -> text.replaceAll("[ \\u3000]+", " "))
+                .map(text -> text.replaceAll("[\\s\u3000]+", " "))
                 .map(String::trim)
                 .orElse("");
     }
@@ -145,17 +146,17 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         OffsetDateTime onlineDate = getOnlineDate();
         OffsetDateTime offlineDate = getOfflineDate();
         if (status == STATUS_PUBLISHED || status == STATUS_ARCHIVED) {
-            if (onlineDate != null && onlineDate.compareTo(now) > 0) {
+            if (onlineDate != null && onlineDate.isAfter(now)) {
                 setStatus(STATUS_READY);
             }
-            if (offlineDate != null && offlineDate.compareTo(now) <= 0) {
+            if (offlineDate != null && !offlineDate.isAfter(now)) {
                 setStatus(STATUS_OFFLINE);
             }
         } else if (status == STATUS_READY) {
-            if (onlineDate == null || onlineDate.compareTo(now) <= 0) {
+            if (onlineDate == null || !onlineDate.isAfter(now)) {
                 setStatus(STATUS_PUBLISHED);
             }
-            if (offlineDate != null && offlineDate.compareTo(now) <= 0) {
+            if (offlineDate != null && !offlineDate.isAfter(now)) {
                 setStatus(STATUS_OFFLINE);
             }
         }
@@ -234,15 +235,15 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
     }
 
     public String getNormalStaticUrl(int page) {
-        return getSite().getNormalStaticUrl(getArticlePath(page));
+        return getSite().getNormalStaticUrl(getArticleUrl(page));
     }
 
     public String getMobileStaticUrl(int page) {
-        return getSite().getMobileStaticUrl(getArticlePath(page));
+        return getSite().getMobileStaticUrl(getArticleUrl(page));
     }
 
-    private String getArticlePath(int page) {
-        return getSite().getHtml().getArticlePath(
+    private String getArticleUrl(int page) {
+        return getSite().getHtml().getArticleUrl(getArticleStaticPath(),
                 getChannelId(), getChannel().getAlias(), getId(), getAlias(), getCreated(), page);
     }
 
@@ -252,6 +253,11 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
 
     public String getMobileStaticPath(int page) {
         return getSite().getMobileStaticPath(getArticlePath(page));
+    }
+
+    private String getArticlePath(int page) {
+        return getSite().getHtml().getArticlePath(getArticleStaticPath(),
+                getChannelId(), getChannel().getAlias(), getId(), getAlias(), getCreated(), page);
     }
 
     @Schema(description = "是否是链接")
@@ -805,7 +811,7 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
         getExt().setDocLength(docLength);
     }
 
-    @Schema(description = "文章模板")
+    @Schema(description = "文章独立模板")
     @Nullable
     @Pattern(regexp = "^(?!.*\\.\\.).*$")
     public String getArticleTemplate() {
@@ -814,6 +820,17 @@ public class Article extends ArticleBase implements PageUrlResolver, Anchor, Ord
 
     public void setArticleTemplate(@Nullable String articleTemplate) {
         getExt().setArticleTemplate(articleTemplate);
+    }
+
+    @Schema(description = "文章独立静态路径")
+    @Nullable
+    @Pattern(regexp = "^(?!.*\\.\\.)[\\w-{}/]*$")
+    public String getArticleStaticPath() {
+        return getExt().getArticleStaticPath();
+    }
+
+    public void setArticleStaticPath(@Nullable String articleStaticPath) {
+        getExt().setArticleStaticPath(articleStaticPath);
     }
 
     @Schema(description = "是否允许评论")

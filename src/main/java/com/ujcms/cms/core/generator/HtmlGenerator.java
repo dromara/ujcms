@@ -187,7 +187,8 @@ public class HtmlGenerator extends AbstractGenerator {
     private void handleChannel(Long taskId, Long siteId, Consumer<Channel> consumer) {
         List<Channel> channels = channelService.selectList(ChannelArgs.of().siteId(siteId));
         for (Channel channel : channels) {
-            consumer.accept(channel);
+            // 必须通过 select 获取完整数据， selectList 只适合列表，部分字段无数据
+            consumer.accept(channelService.select(channel.getId()));
             if (super.updateTask(taskId, 1)) {
                 break;
             }

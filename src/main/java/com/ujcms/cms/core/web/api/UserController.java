@@ -18,7 +18,7 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
  *
  * @author PONY
  */
-@Tag(name = "UserController", description = "用户接口")
+@Tag(name = "用户接口")
 @RestController
 @RequestMapping({API + "/user", FRONTEND_API + "/user"})
 public class UserController {

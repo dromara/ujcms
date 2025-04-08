@@ -41,6 +41,10 @@ public class ChannelListDirective implements TemplateDirectiveModel {
      */
     private static final String IS_NAV = "isNav";
     /**
+     * 是否文章栏目。布尔型（Boolean）
+     */
+    private static final String IS_REAL = "isReal";
+    /**
      * 是否可搜索。布尔型（Boolean）
      */
     private static final String IS_ALLOW_SEARCH = "isAllowSearch";
@@ -72,6 +76,7 @@ public class ChannelListDirective implements TemplateDirectiveModel {
             args.parentIdIsNull();
         }
         Optional.ofNullable(Directives.getBoolean(params, IS_NAV)).ifPresent(args::isNav);
+        Optional.ofNullable(Directives.getBoolean(params, IS_REAL)).ifPresent(args::isReal);
         Optional.ofNullable(Directives.getBoolean(params, IS_ALLOW_SEARCH)).ifPresent(args::isAllowSearch);
         Directives.handleOrderBy(args.getQueryMap(), params);
     }

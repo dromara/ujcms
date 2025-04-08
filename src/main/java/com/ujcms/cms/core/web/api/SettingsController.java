@@ -42,7 +42,7 @@ import static com.ujcms.commons.web.Uploads.AVATAR_TYPE;
  *
  * @author PONY
  */
-@Tag(name = "SettingsController", description = "会员设置接口")
+@Tag(name = "会员设置接口")
 @RestController
 @RequestMapping({API + "/settings", FRONTEND_API + "/settings"})
 public class SettingsController {
