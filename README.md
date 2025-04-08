@@ -47,23 +47,6 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 
 程序启动时出现 `Specified key was too long; max key length is 767 bytes` 错误信息。解决办法：设置 MySQL 参数 `innodb_large_prefix=ON`。原因：从 MySQL 5.7.7 开始，`innodb_large_prefix` 参数默认已设置为 `ON`，但第三方面板或云服务商提供的 MySQL 可能修改默认配置。
 
-## 关闭自动表结构升级
-
-程序在启动时会检查并升级数据库表结构版本，如果此时强行关闭程序，再次启动时会出现 `LockException: Could not acquire change log lock` 或 `Waiting for changelog lock...` 错误。如果您受此问题困扰，可在首次启动程序后（已成功创建表结构和初始数据），关闭表结构升级功能。
-
-打开 `/src/main/resources/application.yaml` 文件，修改以下选项：
-
-```
-# 关闭 liquibase 的表结构升级功能
-spring.liquibase.enabled: false
-# 关闭 flowable 的表结构升级功能
-flowable.database-schema-update: none
-# 关闭执行初始化脚本
-ujcms.data-sql-enabled: false
-```
-
-程序升级时，需重新开启以上配置，否则数据库表结构无法自动升级。
-
 ## 访问程序
 
 前台地址：[http://localhost:8080/](http://localhost:8080/)，使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。如遇到前台页面没有样式的情况，则是因为没有部署在 Tomcat 的根目录。如前台首页地址类似为 `http://localhost:8080/abc` ，即代表部署在 `/abc` 目录下，没有部署在根目录。解决办法请参考下面 `关于部署路径` 部分内容。
@@ -134,6 +117,23 @@ war 部署要使用解压模式，tomcat 默认就是解压模式。如 tomcat �
 Eclipse 默认的 Tomcat 启动方式会将应用程序部署到一个特定的临时目录。因此，上传的图片（包括通过系统后台新增和修改的模板）会保存在这个临时部署目录中，而不是程序所在的目录。当修改了 Eclipse 中的源代码或文件时，系统会自动重新部署应用程序，导致之前上传的图片被清空。如果在开发环境中发现上传的图片突然丢失，很可能就是这个原因。
 
 为了避免上述问题，强烈建议使用之前 `启动程序` 中介绍的方式启动程序。
+
+## 关闭自动表结构升级
+
+程序在启动时会检查并升级数据库表结构版本，如果此时强行关闭程序，再次启动时会出现 `LockException: Could not acquire change log lock` 或 `Waiting for changelog lock...` 错误。如果您受此问题困扰，可在首次启动程序后（已成功创建表结构和初始数据），关闭表结构升级功能。
+
+打开 `/src/main/resources/application.yaml` 文件，修改以下选项：
+
+```
+# 关闭 liquibase 的表结构升级功能
+spring.liquibase.enabled: false
+# 关闭 flowable 的表结构升级功能
+flowable.database-schema-update: none
+# 关闭执行初始化脚本
+ujcms.data-sql-enabled: false
+```
+
+程序升级时，需重新开启以上配置，否则数据库表结构无法自动升级。
 
 ## MySQL 表名大小写
 
