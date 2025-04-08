@@ -9,8 +9,7 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 * 演示站前台：[https://demo.ujcms.com](https://demo.ujcms.com)
 * 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)
 * 官方网站：[https://www.ujcms.com](https://www.ujcms.com)
-* 安装包下载地址：[https://www.ujcms.com/download/](https://www.ujcms.com/download/)
-* API、标签及对象文档：[https://demo.ujcms.com/swagger-ui/index.html](https://demo.ujcms.com/swagger-ui/index.html)
+* 安装包下载：[https://www.ujcms.com/channels/downloads/](https://www.ujcms.com/channels/downloads/)
 
 ## 环境要求
 
