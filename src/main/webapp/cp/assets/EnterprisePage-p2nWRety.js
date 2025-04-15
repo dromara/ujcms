@@ -1,0 +1,1 @@
+import{_ as s,b as r,P as o,l as e,h as a,w as c,f as l}from"./index-__TSAjOL.js";const _={},i={class:"app-block p-3 flex"},p=["innerHTML"];function d(t,f){const n=l;return r(),o("div",null,[e("div",i,[a(n,{type:"warning",closable:!1,"show-icon":!0},{title:c(()=>[e("span",{innerHTML:t.$t("error.enterprise")},null,8,p)]),_:1})])])}const u=s(_,[["render",d]]);export{u as default};

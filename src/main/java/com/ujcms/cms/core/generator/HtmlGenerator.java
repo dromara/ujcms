@@ -6,6 +6,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.Task;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.ChannelService;
+import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.service.TaskService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,12 +27,15 @@ import java.util.stream.Collectors;
 public class HtmlGenerator extends AbstractGenerator {
     private final ChannelService channelService;
     private final HtmlService htmlService;
+    private final SiteService siteService;
 
     public HtmlGenerator(ArticleService articleService, ChannelService channelService, HtmlService htmlService,
-                         TaskService taskService, @Qualifier("generator") ThreadPoolTaskExecutor executor) {
+                         TaskService taskService, @Qualifier("generator") ThreadPoolTaskExecutor executor,
+                         SiteService siteService) {
         super(articleService, taskService, executor);
         this.channelService = channelService;
         this.htmlService = htmlService;
+        this.siteService = siteService;
     }
 
     /**
@@ -153,7 +157,10 @@ public class HtmlGenerator extends AbstractGenerator {
                         parent = parent.getParent();
                     }
                     // 首页
-                    htmlService.updateHomeHtml(channel.getSite());
+                    Site site = siteService.select(channel.getSiteId());
+                    if (site != null) {
+                        htmlService.updateHomeHtml(site);
+                    }
                 }
         );
     }

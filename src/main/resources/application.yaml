@@ -22,7 +22,7 @@ ujcms.databaseType: mysql
 ujcms.databaseBinPath:
 
 
-# MariaDB数据库
+# MariaDB 数据库
 #spring.datasource.url: jdbc:mariadb://localhost:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
 #spring.datasource.username: root
 #spring.datasource.password: password
@@ -40,7 +40,7 @@ ujcms.databaseBinPath:
 #ujcms.databaseType: postgresql
 #ujcms.databaseBinPath:
 
-# 人大金仓数据库（PostgreSQL驱动，官方推荐方式。不能使用 kingbase8 驱动）
+# 人大金仓数据库（使用 PostgreSQL 驱动，官方推荐方式。不能使用 kingbase8 驱动）
 #spring.datasource.url: jdbc:postgresql://localhost:54321/ujcms
 #spring.datasource.username: postgres
 #spring.datasource.password: password
