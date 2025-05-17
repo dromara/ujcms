@@ -6,6 +6,11 @@ on:
 jobs:
   publishing-image-actions:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
