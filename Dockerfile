@@ -1,26 +1,35 @@
-# $ docker build -t ujcms:x.x.x --build-arg JAR_FILE=target/ujcms-x.x.x.jar .
+# $ docker build -t ujcms/ujcms:x.x.x .
 
 #FROM eclipse-temurin:11-jre AS builder
-#FROM eclipse-temurin:17-jre AS builder
-#FROM eclipse-temurin:17.0.14_7-jre-alpine AS builder
-FROM dragonwell-registry.cn-hangzhou.cr.aliyuncs.com/dragonwell/dragonwell:17-ubuntu AS builder
+#FROM dragonwell-registry.cn-hangzhou.cr.aliyuncs.com/dragonwell/dragonwell:17-ubuntu AS builder
+FROM eclipse-temurin:17-jre AS builder
 
 WORKDIR /ujcms
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} ujcms.jar
 RUN java -Djarmode=layertools -jar ujcms.jar extract
 
-FROM dragonwell-registry.cn-hangzhou.cr.aliyuncs.com/dragonwell/dragonwell:17-ubuntu
+#FROM dragonwell-registry.cn-hangzhou.cr.aliyuncs.com/dragonwell/dragonwell:17-ubuntu
+FROM eclipse-temurin:17-jre
+USER www-data
 WORKDIR /ujcms
-COPY --from=builder ujcms/dependencies/ ./
-COPY --from=builder ujcms/spring-boot-loader/ ./
-COPY --from=builder ujcms/snapshot-dependencies/ ./
-COPY --from=builder ujcms/application/ ./
 
-COPY --from=builder ujcms/application/BOOT-INF/classes/application-docker.yaml ./BOOT-INF/classes/config/application.yaml
-COPY src/main/webapp/ ./static/
+COPY --from=builder --chown=www-data:www-data ujcms/dependencies/ ./
+COPY --from=builder --chown=www-data:www-data ujcms/spring-boot-loader/ ./
+COPY --from=builder --chown=www-data:www-data ujcms/snapshot-dependencies/ ./
+COPY --from=builder --chown=www-data:www-data ujcms/application/ ./
 
-#VOLUME ["/ujcms/static", "/ujcms/config", "/ujcms/BOOT-INF/classes/license"]
+COPY --from=builder --chown=www-data:www-data ujcms/application/BOOT-INF/classes/application-docker.yaml ./BOOT-INF/classes/config/application.yaml
+# 将初始文件拷贝至 /usr/src/ujcms，再由初始化脚本复制到 /ujcms/static，避免容器启动时文件被覆盖
+COPY --chown=www-data:www-data src/main/webapp/ /usr/src/ujcms/
+RUN rm /usr/src/ujcms/WEB-INF/*.xml; \
+# 写入时间戳，用于判断 cp 文件是否需要更新
+    date +%s > /usr/src/ujcms/cp/.timestamp;
+
+VOLUME ["/ujcms/static"]
+
 EXPOSE 8080
+COPY docker/docker-entrypoint.sh /usr/local/bin/
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["java", "org.springframework.boot.loader.JarLauncher"]
