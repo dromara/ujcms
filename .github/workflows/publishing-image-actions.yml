@@ -7,8 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  DOCKER_HUB_IMAGE_NAME: ujcms/${{ github.repository }}
+  IMAGE_NAME: ujcms/${{ github.repository }}
 
 jobs:
   build-and-push-image:
@@ -49,7 +48,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.DOCKER_HUB_IMAGE_NAME }}
+            ${{ env.IMAGE_NAME }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=semver,pattern={{version}}
