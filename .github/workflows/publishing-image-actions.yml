@@ -3,7 +3,7 @@ name: Publishing image to Docker Hub and GitHub Packages
 on:
   push:
     tags:
-      - v*
+      - v*.*.*
 
 env:
   REGISTRY: ghcr.io
