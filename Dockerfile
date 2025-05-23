@@ -1,5 +1,6 @@
 # $ docker build -t ujcms/ujcms:x.x.x .
 
+# 如出现镜像无法拉取的情况，可以使用阿里云的dragonwell镜像
 #FROM eclipse-temurin:11-jre AS builder
 #FROM dragonwell-registry.cn-hangzhou.cr.aliyuncs.com/dragonwell/dragonwell:17-ubuntu AS builder
 FROM eclipse-temurin:17-jre AS builder
@@ -9,6 +10,7 @@ ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} ujcms.jar
 RUN java -Djarmode=layertools -jar ujcms.jar extract
 
+# 如出现镜像无法拉取的情况，可以使用阿里云的dragonwell镜像
 #FROM dragonwell-registry.cn-hangzhou.cr.aliyuncs.com/dragonwell/dragonwell:17-ubuntu
 FROM eclipse-temurin:17-jre
 USER www-data
