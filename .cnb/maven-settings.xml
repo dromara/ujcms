@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+    <servers>
+        <server>
+            <id>cnb-repo-maven</id>
+            <username>cnb</username>
+            <password>${CNB_TOKEN}</password>
+        </server>
+    </servers>
+
+    <profiles>
+        <profile>
+            <id>env-cnb</id>
+            <repositories>
+                <repository>
+                    <id>tencent-maven</id>
+                    <name>TencentCloud Maven</name>
+                    <url>https://mirrors.cloud.tencent.com/nexus/repository/maven-public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <!-- 这里会使用 server 中配置的账号密码 -->
+                <!-- 必须与 server 的 id 一致 -->
+                <!-- CNB_REPO_SLUG 在使用前替换成实际的仓库 slug -->
+                <repository>
+                    <id>cnb-repo-maven</id>
+                    <name>maven</name>
+                    <url>https://maven.cnb.cool/CNB_REPO_SLUG/maven/-/packages/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>maven2-plugin</id>
+                    <url>https://mirrors.cloud.tencent.com/nexus/repository/maven-public/</url>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>env-cnb</activeProfile>
+    </activeProfiles>
+</settings>

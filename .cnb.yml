@@ -36,12 +36,14 @@
   - <<: *env_setting
   - <<: *env_testing
   - name: mvn package
-    script:
-      - mvn -B clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true
+    script: |
+      sed -i "s#CNB_REPO_SLUG#${CNB_REPO_SLUG}#g" ".cnb/maven-settings.xml"
+      cat ".cnb/maven-settings.xml"
+      mvn -B clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -s .cnb/maven-settings.xml
   - name: docker login
     script: docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
   - name: docker build
-    script: docker buildx build --push -t ${IMAGE_NAME}:latest-linux-${PLATFORM} -t ${IMAGE_NAME}:${VERSION}-linux-${PLATFORM} -t ${IMAGE_NAME}:${MAJOR}-linux-${PLATFORM} -t ${IMAGE_NAME}:${MAJOR}.${MINOR}-linux-${PLATFORM} .
+    script: docker buildx build --progress=plain --push -t ${IMAGE_NAME}:latest-linux-${PLATFORM} -t ${IMAGE_NAME}:${VERSION}-linux-${PLATFORM} -t ${IMAGE_NAME}:${MAJOR}-linux-${PLATFORM} -t ${IMAGE_NAME}:${MAJOR}.${MINOR}-linux-${PLATFORM} .
   - name: resolve
     type: cnb:resolve
     options:

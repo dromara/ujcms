@@ -1,5 +1,10 @@
 # UJCMS 发版说明
 
+## ujcms-9.8.10
+
+* 修复 Dockerfile 用户权限错误
+* 优化 cnb 流水线
+
 ## ujcms-9.8.2
 
 * 新增采集功能

@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.8.9</version>
+    <version>9.8.10</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
