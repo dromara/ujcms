@@ -26,6 +26,8 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 
 ## 启动程序
 
+> 注意：不要将程序放在有中文或空格的路径下。
+
 打开项目。在 IntelliJ IDEA 中点击 `File` - `Open`，选择项目文件夹（有 `pom.xml` 的文件夹）。会开始从 maven 服务器下载第三方 jar 包（如 spring 等），需要一定时间，请耐心等待。
 
 连接数据库。打开 `/src/main/resources/application.yaml` 文件，根据实际情况修改以下配置：
@@ -36,17 +38,21 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 
 启动程序。可在左侧 `Project` 导航中找到 `/src/main/java/com/ujcms/cms/Application` 类，右键点击，选择 `Run 'Application'`。也可直接点击右上角的绿色三角图标 (`Run 'Application'`)。
 
-首次运行程序，系统会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待。直到出现类似 `com.ujcms.cms.Application: Started Application in xxx seconds` 信息，代表程序启动完成。
-
-## 常见错误
-
-如程序无法正常编译，通常是因为 Maven 没有正确下载 jar 依赖包。可以尝试在 IntelliJ IDEA 的 `Maven` 窗口点击刷新按钮 `Reload All Maven Projects` 按钮，尝试重新下载 jar 依赖包，或者点击菜单 `Build` - `Rebuild Project` 重新编译项目。
+如程序无法正常编译，通常是因为 maven 没有正确下载 jar 依赖包。可以尝试在 IntelliJ IDEA 的 `Maven` 窗口点击刷新按钮 `Reload All Maven Projects` 按钮，尝试重新下载 jar 依赖包，或者点击菜单 `Build` - `Rebuild Project` 重新编译项目。
 
 如首次使用 IntelliJ IDEA，没有配置 JDK，也会导致无法正常程序不能编译。可选中项目，点击 `File` - `Project Structure...`，在 `Project Settings - Project` 处，配置 `Project SDK`。
 
-程序启动时出现 `LockException: Could not acquire change log lock` 或 `Waiting for changelog lock...` 错误信息。解决办法：将数据库 `databasechangeloglock` 表中数据清空（请注意，不是 `databasechangelog` 表），或者删除数据库所有表（也可重建数据库），再次启动程序即可。原因：程序启动时会自动创建、升级数据库表结构，如果此时强行关闭程序，再次启动可能会出现这个问题。
+## 确认启动
+
+确认启动完成。首次运行程序，系统会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待。直到出现类似 `com.ujcms.cms.Application: Started Application in xxx seconds` 信息，代表程序启动完成。
+
+## 常见错误
+
+程序启动时出现 `LockException: Could not acquire change log lock` 或 `Waiting for changelog lock...` 错误信息。解决办法：将数据库 `databasechangeloglock` 和 `flw_ev_databasechangeloglock` 表中数据清空（**请注意**，不是 `databasechangelog` 和 `flw_ev_databasechangelog` 表），或者删除数据库所有表（也可重建数据库），再次启动程序即可。原因：程序启动时会自动创建、升级数据库表结构，如果此时强行关闭程序，再次启动可能会出现这个问题。
 
 程序启动时出现 `Specified key was too long; max key length is 767 bytes` 错误信息。解决办法：设置 MySQL 参数 `innodb_large_prefix=ON`。原因：从 MySQL 5.7.7 开始，`innodb_large_prefix` 参数默认已设置为 `ON`，但第三方面板或云服务商提供的 MySQL 可能修改默认配置。
+
+程序启动时出现 `java.io.IOException: Problem reading font data` 错误信息。解决办法：安装 FontConfig 组件，执行 `yum install -y fontconfig`（CentOS 系列） 或 `apt-get install -y fontconfig`（Ubuntu 系列）。原因：系统没有安装字体组件，导致验证码生成组件无法读取字体。
 
 ## 访问程序
 
@@ -58,7 +64,11 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 
 ## 前台模板
 
-网站前台模板位于 `/src/main/webapp/templates` 目录，使用 `Freemarker` 作为模板引擎。通过修改模板文件，可以完全控制网站页面显示的内容。
+网站前台模板使用 `Freemarker` 作为模板引擎。通过修改模板文件，可以完全控制网站页面显示的内容。模板位置：
+
+* 源码位置：`src/main/webapp/templates`
+* war 部署位置：`templates`
+* jar 部署位置：`static/templates`
 
 ## war 部署
 
@@ -69,8 +79,9 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 
 如使用目录方式部署，可将 `target/ujcms-***/` 目录下文件复制到 tomcat 的 `webapps/ROOT` 目录下（请先删除原 `tomcat/webapps` 目录下所有内容）。目录结构大致如下：
 
-* `webapps/ROOT/uploads`
+* `webapps/ROOT/cp`
 * `webapps/ROOT/templates`
+* `webapps/ROOT/uploads`
 * `webapps/ROOT/WEB-INF`
 
 如使用 war 包部署，可将 `ujcms-***.war` 更名为 `ROOT.war`（注意大小写），复制到 tomcat 的 `webapps` 目录下（请先删除原 tomcat/webapps 目录下所有文件夹）。复制完成后目录结构如下：
@@ -87,13 +98,18 @@ war 部署要使用解压模式，tomcat 默认就是解压模式。如 tomcat �
 
 将打包的 `target/ujcms-***.jar` 文件复制到部署目录，并新建文件夹 `static`。
 
-将 `src/main/webapp` 目录下所有文件复制到 `static` 目录下。目录结构大致如下：
+将 `src/main/webapp` 目录下所有文件复制到 `static` 目录下。
 
-* ujcms-***.jar
-* static/WEB-INF/...
-* static/templates/...
-* static/uploads/...
-* static/cp/...
+还可将 `src/main/resources/application.yaml` 配置文件复制到 `config` 目录。该配置文件将覆盖 `ujcms-***.jar` 内的原始配置（位于`BOOT-INF\classes\application.yaml`）。更新配置时，可避免修改 jar 包内的配置文件。
+
+完整目录结构大致如下：
+
+* `ujcms-***.jar`
+* `config/application.yaml`
+* `static/cp/...`
+* `static/templates/...`
+* `static/uploads/...`
+* `static/WEB-INF/...`
 
 在部署目录（即 `ujcms-***.jar` 所在目录）运行 `java -jar ujcms-***.jar` 命令，即可启动。
 
@@ -117,13 +133,11 @@ war 部署要使用解压模式，tomcat 默认就是解压模式。如 tomcat �
 
 Eclipse 默认的 Tomcat 启动方式会将应用程序部署到一个特定的临时目录。因此，上传的图片（包括通过系统后台新增和修改的模板）会保存在这个临时部署目录中，而不是程序所在的目录。当修改了 Eclipse 中的源代码或文件时，系统会自动重新部署应用程序，导致之前上传的图片被清空。如果在开发环境中发现上传的图片突然丢失，很可能就是这个原因。
 
-为了避免上述问题，强烈建议使用之前 `启动程序` 中介绍的方式启动程序。
-
-## 关闭自动表结构升级
+## 关闭表结构自动升级
 
 程序在启动时会检查并升级数据库表结构版本，如果此时强行关闭程序，再次启动时会出现 `LockException: Could not acquire change log lock` 或 `Waiting for changelog lock...` 错误。如果您受此问题困扰，可在首次启动程序后（已成功创建表结构和初始数据），关闭表结构升级功能。
 
-打开 `/src/main/resources/application.yaml` 文件，修改以下选项：
+打开 `application.yaml`（源码位置：`/src/main/resources/application.yaml`，war 位置: `WEB-INF/classes/application.yaml`）文件，修改以下选项：
 
 ```
 # 关闭 liquibase 的表结构升级功能
@@ -211,4 +225,4 @@ lower_case_table_names=2
 
 QQ 交流群：626599871
 
-微信交流群：![UJCMS 交流群](https://www.ujcms.com/uploads/images/ujcms-group.png)
+微信交流群：![UJCMS 交流群](https://res.ujcms.com/uploads/images/ujcms-group.png)

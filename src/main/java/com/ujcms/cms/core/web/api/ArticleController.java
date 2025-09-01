@@ -89,7 +89,7 @@ public class ArticleController {
     }
 
     /**
-     * 用于获取文章列表
+     * ## 标签使用示例
      * <pre>
      * ```
      * [@ArticleList channel='news' limit='8'; beans]
@@ -143,6 +143,18 @@ public class ArticleController {
         });
     }
 
+    /**
+     * ## 标签使用示例
+     * <pre>
+     * ```
+     * [@ArticlePage channel='news' limit='8'; pagedList]
+     *   [#list pagedList.content as bean]
+     *   <a href="${bean.url}">${bean.title}</a>
+     *   [/#list]
+     * [/@ArticlePage]
+     * ```
+     * </pre>
+     */
     @Operation(summary = "文章分页_ArticlePage")
     @Parameter(in = ParameterIn.QUERY, name = "siteId", description = "站点ID。默认为当前站点",
             schema = @Schema(type = "integer", format = "int64"))

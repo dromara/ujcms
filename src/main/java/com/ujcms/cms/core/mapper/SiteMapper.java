@@ -42,6 +42,16 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
                          @Nullable @Param("fullOrgId") Long fullOrgId);
 
     /**
+     * 更新域名
+     *
+     * @param id       站点ID
+     * @param protocol 协议
+     * @param domain   域名
+     * @return 插入条数
+     */
+    int updateDomain(@Param("id") Long id, @Param("protocol") String protocol, @Param("domain") String domain);
+
+    /**
      * 更新站点状态
      *
      * @param id     站点ID

@@ -52,7 +52,7 @@ import java.util.Properties;
 import static com.ujcms.cms.core.support.UrlConstants.*;
 
 /**
- * 根据 https://start.spring.io/ 生成的代码范例。
+ * 根据 <a href="https://start.spring.io/">start.spring.io</a> 生成的代码范例
  * <p>
  * SpringBoot的入口和主要配置文件
  *

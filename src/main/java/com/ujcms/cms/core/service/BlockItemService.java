@@ -45,6 +45,7 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
     @Transactional(rollbackFor = Exception.class)
     public void insert(BlockItem bean) {
         bean.setId(snowflakeSequence.nextId());
+        bean.setOrder(bean.getId());
         mapper.insert(bean);
         attachmentService.insertRefer(BlockItemBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }

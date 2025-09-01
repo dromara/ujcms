@@ -95,6 +95,12 @@
         from ujcms_site t
         where t.domain_ = #{domain} and t.sub_dir_ is null
     </select>
+    <update id="updateDomain">
+        update ujcms_site
+        set protocol_ = #{protocol},
+            domain_   = #{domain}
+        where id_ = #{id}
+    </update>
     <update id="updateStatus">
         update ujcms_site
         set status_ = #{status}

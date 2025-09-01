@@ -94,6 +94,22 @@
             </if>
         </where>
     </select>
+    <select id="listArticlePermissions" resultType="long">
+        select t.id_
+        from ujcms_channel t
+        <where>
+            <if test="roleIds != null and roleIds.size &gt; 0">
+                t.id_ in (select roleArticle.channel_id_ from ujcms_role_article roleArticle where roleArticle.role_id_ in
+                <foreach close=")" collection="roleIds" item="id" open="(" separator=",">#{id}</foreach>
+                <if test="siteId != null">and t.site_id_ = #{siteId}</if>)
+            </if>
+            <if test="orgIds != null and orgIds.size &gt; 0">
+                or t.id_ in (select orgArticle.channel_id_ from ujcms_org_article orgArticle where orgArticle.org_id_ in
+                <foreach close=")" collection="orgIds" item="id" open="(" separator=",">#{id}</foreach>
+                <if test="siteId != null">and t.site_id_ = #{siteId}</if>)
+            </if>
+        </where>
+    </select>
     <select id="findBySiteIdAndAlias" resultMap="ResultMap">
         select
         <include refid="Column_List" />

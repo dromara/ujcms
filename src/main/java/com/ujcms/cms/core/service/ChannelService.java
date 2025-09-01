@@ -273,6 +273,10 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
                                              @Nullable Long siteId) {
         return mapper.listChannelPermissions(roleIds, orgIds, siteId);
     }
+    public List<Long> listArticlePermissions(Collection<Long> roleIds, Collection<Long> orgIds,
+                                             @Nullable Long siteId) {
+        return mapper.listArticlePermissions(roleIds, orgIds, siteId);
+    }
 
     public List<Channel> selectList(ChannelArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ChannelBase.TABLE_NAME, "order,id");

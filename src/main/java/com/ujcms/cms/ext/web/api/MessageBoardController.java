@@ -124,7 +124,7 @@ public class MessageBoardController {
 
     @Operation(summary = "获取留言对象")
     @ApiResponses(value = {@ApiResponse(description = "留言对象")})
-    @GetMapping("/{id:[\\d]+}")
+    @GetMapping("/{id:\\d+}")
     public MessageBoard show(@Parameter(description = "留言ID") @PathVariable Long id) {
         MessageBoard bean = service.select(id);
         if (bean == null) {

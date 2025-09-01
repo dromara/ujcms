@@ -137,6 +137,10 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
         Optional.ofNullable(article.getSubtitle()).filter(StringUtils::isNotBlank).ifPresent(body::append);
         Optional.ofNullable(article.getFullTitle()).filter(StringUtils::isNotBlank).ifPresent(body::append);
         Optional.ofNullable(article.getSeoDescription()).filter(StringUtils::isNotBlank).ifPresent(body::append);
+        article.getImageList().forEach(articleImage -> {
+            Optional.ofNullable(articleImage.getName()).filter(StringUtils::isNotBlank).ifPresent(body::append);
+            Optional.ofNullable(articleImage.getDescription()).filter(StringUtils::isNotBlank).ifPresent(body::append);
+        });
         body.append(article.getPlainText());
         bean.setBody(body.toString());
 

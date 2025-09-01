@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.8.10</version>
+    <version>9.9.0</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -508,20 +508,9 @@
             <version>${annotations.version}</version>
         </dependency>
 
-        <!-- 商业版要安装ujcms-ep-xxx.jar包，否则会失去商业版功能，变成普通版本。安装方法请参考 lib/readme.md 文件。注意：此项配置的 scope 不可改成 system，否则打包时不会包含这个jar文件，导致失去商业版功能 -->
-        <!-- ujcms-enterprise
-        <dependency>
-            <groupId>com.ujcms</groupId>
-            <artifactId>ujcms-ep-r1</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        -->
+        
+        
 
-        <!--<dependency>-->
-        <!--    <groupId>com.h2database</groupId>-->
-        <!--    <artifactId>h2</artifactId>-->
-        <!--    <scope>runtime</scope>-->
-        <!--</dependency>-->
         <!-- JDBC 驱动 -->
         <dependency>
             <groupId>com.mysql</groupId>
@@ -680,4 +669,30 @@
             </plugin>
         </plugins>
     </build>
+    <!-- aliyun-repos begin -->
+    <repositories>
+        <repository>
+            <id>aliyun-repos</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>aliyun-repos</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    <!-- aliyun-repos end -->
 </project>

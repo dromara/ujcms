@@ -44,7 +44,8 @@ public class ContextConfig implements InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
+        configuration.setSharedVariable("Form", new FormDirective(formService));
         configuration.setSharedVariable("FormList", new FormListDirective(formService, formTypeService));
         configuration.setSharedVariable("FormPage", new FormPageDirective(formService, formTypeService));
         configuration.setSharedVariable("Vote", new VoteDirective(voteService));

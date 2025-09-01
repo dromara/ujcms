@@ -1,0 +1,49 @@
+# mvn clean package
+# docker compose up -d --build
+# mvn clean package && docker compose up -d --build
+
+services:
+
+  ujcms:
+    # 镜像地址
+    # image: dromara/ujcms:latest
+    # image: docker.cnb.cool/dromara/ujcms:latest
+    # 使用本地编译的代码构建，需要先执行 mvn clean package
+    build: .
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      UJCMS_DB_HOST: mysql
+      UJCMS_DB_PORT: 3306
+      UJCMS_DB_NAME: ujcms
+      UJCMS_DB_USER: ujcms
+      UJCMS_DB_PASSWORD: my-secret-pw
+    depends_on:
+      mysql:
+        condition: service_healthy
+        restart: true
+    volumes:
+      - ujcms:/ujcms/static
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    # Health check definition
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    environment:
+      MYSQL_DATABASE: ujcms
+      MYSQL_USER: ujcms
+      MYSQL_PASSWORD: my-secret-pw
+      MYSQL_ROOT_PASSWORD: my-root-pw
+    volumes:
+      - mysql:/var/lib/mysql
+
+volumes:
+  ujcms:
+  mysql:

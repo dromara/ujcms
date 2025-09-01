@@ -27,7 +27,9 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Maven
-        run: mvn --batch-mode clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true
+        run: |
+          sed -i '/<!-- aliyun-repos begin -->/,/<!-- aliyun-repos end -->/d' pom.xml
+          mvn --batch-mode clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -70,3 +72,17 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Trigger deploy Docker image to server
+        id: trigger
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "https://api.cnb.cool/ujcms/deploy/-/build/start"
+          method: "POST"
+          customHeaders: |
+            {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "Authorization": "Bearer ${{ secrets.CNB_TOKEN }}"
+            }
+          data: '{"event": "api_trigger_deploy"}'

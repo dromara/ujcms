@@ -108,7 +108,7 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     List<Channel> findBySiteIdAndAlias(@Param("siteId") Long siteId, @Param("alias") String alias);
 
     /**
-     * 获取有权限的 栏目ID 列表
+     * 获取栏目权限的 栏目ID 列表
      *
      * @param roleIds 角色ID 列表
      * @param orgIds  组织ID 列表
@@ -116,6 +116,17 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 栏目ID 列表
      */
     List<Long> listChannelPermissions(@Param("roleIds") Collection<Long> roleIds,
+                                      @Param("orgIds") Collection<Long> orgIds,
+                                      @Param("siteId") @Nullable Long siteId);
+    /**
+     * 获取文章权限的 栏目ID 列表
+     *
+     * @param roleIds 角色ID 列表
+     * @param orgIds  组织ID 列表
+     * @param siteId  站点ID
+     * @return 栏目ID 列表
+     */
+    List<Long> listArticlePermissions(@Param("roleIds") Collection<Long> roleIds,
                                       @Param("orgIds") Collection<Long> orgIds,
                                       @Param("siteId") @Nullable Long siteId);
 

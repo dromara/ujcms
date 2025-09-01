@@ -4,6 +4,7 @@ import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.base.ConfigBase;
 import com.ujcms.cms.core.mapper.ConfigMapper;
 import com.ujcms.cms.core.support.Props;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,11 @@ public class ConfigService {
     public void update(Config bean) {
         mapper.update(bean);
         attachmentService.updateRefer(ConfigBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePort(@Nullable Integer port) {
+        mapper.updatePort(port);
     }
 
     public Config getUnique() {

@@ -60,9 +60,9 @@ public class ChannelController {
      * <pre>
      * ```
      * [@ChannelList isNav='true'; channels]
-     *     [#list channels as bean]
-     *     <a href="${bean.url}">${bean.url}</a>
-     *     [/#list]
+     *   [#list channels as bean]
+     *   <a href="${bean.url}">${bean.name}</a>
+     *   [/#list]
      * [/@ChannelList]
      * ```
      * </pre>
@@ -70,9 +70,9 @@ public class ChannelController {
      * <pre>
      * ```
      * [@ChannelList parentId='23' isNav='true'; channels]
-     *     [#list channels as bean]
-     *     <a href="${bean.url}">${bean.url}</a>
-     *     [/#list]
+     *   [#list channels as bean]
+     *   <a href="${bean.url}">${bean.name}</a>
+     *   [/#list]
      * [/@ChannelList]
      * ```
      * </pre>
@@ -81,20 +81,20 @@ public class ChannelController {
      * ```
      * [@ChannelList isNav='true'; channels]
      * <ul>
-     *     [#list channels as parent]
-     *     <li>
-     *         <a href="${parent.url}">${parent.url}</a>
-     *         [#if parent.hasChildren]
-     *         [@ChannelList parentId=parent.id isNav='true'; subs]
-     *         <ul>
-     *             [#list subs as sub]
-     *             <li><a href="${sub.url}">${sub.url}</a></li>
-     *             [/#list]
-     *         </ul>
-     *         [/@ChannelList]
-     *         [/#if]
-     *     </li>
-     *     [/#list]
+     *   [#list channels as parent]
+     *   <li>
+     *     <a href="${parent.url}">${parent.name}</a>
+     *     [#if parent.hasChildren]
+     *     [@ChannelList parentId=parent.id isNav='true'; subs]
+     *     <ul>
+     *       [#list subs as sub]
+     *       <li><a href="${sub.url}">${sub.name}</a></li>
+     *       [/#list]
+     *     </ul>
+     *     [/@ChannelList]
+     *     [/#if]
+     *   </li>
+     *   [/#list]
      * </ul>
      * [/@ChannelList]
      * ```
@@ -131,7 +131,14 @@ public class ChannelController {
     }
 
     /**
-     * 获取栏目对象
+     * ## 标签使用示例
+     * <pre>
+     * ```
+     * [@Channel id='123'; bean]
+     *   <a href="${bean.url}">${bean.name}</a>
+     * [/@Channel]
+     * ```
+     * </pre>
      */
     @Operation(summary = "栏目对象_Channel")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
@@ -140,6 +147,16 @@ public class ChannelController {
         return channelService.select(id);
     }
 
+    /**
+     * ## 标签使用示例
+     * <pre>
+     * ```
+     * [@Channel alias='news'; bean]
+     *   <a href="${bean.url}">${bean.name}</a>
+     * [/@Channel]
+     * ```
+     * </pre>
+     */
     @Operation(summary = "栏目对象ByAlias_Channel")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/alias/{alias}")

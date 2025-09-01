@@ -1,5 +1,9 @@
 package com.ujcms.cms.core;
 
+import com.ujcms.cms.core.generator.LuceneGenerator;
+import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.service.SiteService;
+import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.commons.db.CharBooleanTypeHandler;
 import com.ujcms.commons.db.DataScriptInitializer;
@@ -93,7 +97,10 @@ public class MyBatisConfig {
     @DependsOn("liquibase")
     @ConditionalOnProperty(prefix = "ujcms", name = "data-sql-enabled", matchIfMissing = true)
     public DataScriptInitializer databaseInitializer(
-            Props props, DataSource dataSource, ResourceLoader resourceLoader) {
-        return new DataScriptInitializer(dataSource, resourceLoader, "ujcms_config", props.getDataSqlPlatform());
+            Props props, DataSource dataSource, ResourceLoader resourceLoader, LuceneGenerator luceneGenerator,
+            ConfigService configService, SiteService siteService, UserService userService) {
+        String checkTable = "ujcms_config";
+        return new DataScriptInitializer(dataSource, resourceLoader, luceneGenerator, configService, siteService,
+                userService, props, checkTable);
     }
 }

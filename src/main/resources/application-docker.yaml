@@ -9,9 +9,19 @@ spring.datasource.driver-class-name: ${UJCMS_DB_DRIVER:com.mysql.cj.jdbc.Driver}
 # 执行初始化脚本的数据库类型
 ujcms.data-sql-platform: ${UJCMS_DB_SQL_PLATFORM:mysql}
 # 数据库类型（用于数据库备份）。支持 mysql、postgresql、kingbase、opengauss
-ujcms.databaseType: ${UJCMS_DB_TYPE:mysql}
+ujcms.database-type: ${UJCMS_DB_TYPE:mysql}
+# 初始化站点域名
+ujcms.init-domain: ${UJCMS_INIT_DOMAIN:}
+# 初始化站点协议
+ujcms.init-protocol: ${UJCMS_INIT_PROTOCOL:http}
+# 初始化站点端口
+ujcms.init-port: ${UJCMS_INIT_PORT:}
+# 初始化用户名
+ujcms.init-username: ${UJCMS_INIT_USERNAME:}
+# 初始化密码
+ujcms.init-password: ${UJCMS_INIT_PASSWORD:}
 
 # 是否启用 Office 功能（商业版功能）
 jodconverter.local.enabled: ${UJCMS_OFFICE_ENABLED:false}
 # Office 安装路径
-jodconverter.local.office-home: ${UJCMS_OFFICE_HOME:/opt/openoffice4}
+jodconverter.local.office-home: ${UJCMS_OFFICE_HOME:/usr/lib/libreoffice}

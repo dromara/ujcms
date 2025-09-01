@@ -47,6 +47,11 @@ public class SiteService {
         attachmentService.updateRefer(SiteBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void updateDomain(Long id, String protocol, String domain) {
+        mapper.updateDomain(id, protocol, domain);
+    }
+
     @Nullable
     public Site select(Long id) {
         return mapper.select(id);

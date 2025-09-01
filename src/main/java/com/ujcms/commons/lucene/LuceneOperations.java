@@ -149,7 +149,6 @@ public class LuceneOperations {
         } catch (Exception e) {
             throw new IllegalStateException("Error during lucene adding a document.", e);
         }
-
     }
 
     public void updateDocument(Term term, Document document) {

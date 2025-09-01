@@ -59,6 +59,19 @@ public class FormController {
         return handle.apply(args, params);
     }
 
+    /**
+     * ## 标签使用示例
+     * 自定义的字段的值通过 customs 属性获取
+     * <pre>
+     * ```
+     * [@FormList typeId='123' limit='15'; beans]
+     *   [#list beans as bean]
+     *     ${bean.type.name}, ${bean.customs['abc']}
+     *   [/#list]
+     * [/@FormList]
+     * ```
+     * </pre>
+     */
     @Operation(summary = "表单列表_FormList")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID。必选项",
             schema = @Schema(type = "integer", format = "int64"))
@@ -80,6 +93,19 @@ public class FormController {
         });
     }
 
+    /**
+     * ## 标签使用示例
+     * 自定义的字段的值通过 customs 属性获取
+     * <pre>
+     * ```
+     * [@FormPage typeId='123' limit='15'; pagedList]
+     *   [#list pagedList.content as bean]
+     *     ${bean.type.name}, ${bean.customs['abc']}
+     *   [/#list]
+     * [/@FormPage]
+     * ```
+     * </pre>
+     */
     @Operation(summary = "表单分页_FormPage")
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID。必选项",
             schema = @Schema(type = "integer", format = "int64"))
@@ -101,9 +127,20 @@ public class FormController {
         });
     }
 
-    @Operation(summary = "获取表单对象")
+    /**
+     * ## 标签使用示例
+     * 自定义的字段的值通过 customs 属性获取
+     * <pre>
+     * ```
+     * [@Form id='123'; bean]
+     *   ${bean.type.name}, ${bean.customs['abc']}
+     * [/@Form]
+     * ```
+     * </pre>
+     */
+    @Operation(summary = "获取表单对象_Form")
     @ApiResponses(value = {@ApiResponse(description = "表单对象")})
-    @GetMapping("/{id:[\\d]+}")
+    @GetMapping("/{id:\\d+}")
     public Form show(@Parameter(description = "表单ID") @PathVariable Long id) {
         Form bean = Optional.ofNullable(service.select(id))
                 .orElseThrow(() -> new Http404Exception("Form not found. ID: " + id));

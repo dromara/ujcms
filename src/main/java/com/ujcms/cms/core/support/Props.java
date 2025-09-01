@@ -140,6 +140,30 @@ public class Props {
      * 是否演示网站。演示网站的 test 用户只能执行 GET 请求。
      */
     private boolean demo = false;
+    /**
+     * 初始化协议
+     */
+    private String initProtocol = "";
+    /**
+     * 初始化端口
+     */
+    @Nullable
+    private String initPort = null;
+    /**
+     * 初始化站点域名
+     */
+    @Nullable
+    private String initDomain = null;
+    /**
+     * 初始化用户名
+     */
+    @Nullable
+    private String initUsername = null;
+    /**
+     * 初始化密码
+     */
+    @Nullable
+    private String initPassword = null;
 
     /**
      * ElasticSearch Article 索引名
@@ -394,6 +418,50 @@ public class Props {
 
     public void setDemo(boolean demo) {
         this.demo = demo;
+    }
+
+    @Nullable
+    public String getInitDomain() {
+        return initDomain;
+    }
+
+    public void setInitDomain(@Nullable String initDomain) {
+        this.initDomain = initDomain;
+    }
+
+    public String getInitProtocol() {
+        return initProtocol;
+    }
+
+    public void setInitProtocol(String initProtocol) {
+        this.initProtocol = initProtocol;
+    }
+
+    @Nullable
+    public String getInitPort() {
+        return initPort;
+    }
+
+    public void setInitPort(@Nullable String initPort) {
+        this.initPort = initPort;
+    }
+
+    @Nullable
+    public String getInitUsername() {
+        return initUsername;
+    }
+
+    public void setInitUsername(@Nullable String initUsername) {
+        this.initUsername = initUsername;
+    }
+
+    @Nullable
+    public String getInitPassword() {
+        return initPassword;
+    }
+
+    public void setInitPassword(@Nullable String initPassword) {
+        this.initPassword = initPassword;
     }
 
     public void setEpDisplay(boolean epDisplay) {
