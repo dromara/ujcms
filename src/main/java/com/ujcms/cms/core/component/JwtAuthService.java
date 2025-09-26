@@ -5,6 +5,7 @@ import com.ujcms.cms.core.domain.LoginLog;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.LoginLogService;
 import com.ujcms.cms.core.service.UserService;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.commons.captcha.IpLoginAttemptService;
 import com.ujcms.commons.security.jwt.JwtProperties;
 import com.ujcms.commons.web.Responses;
@@ -36,19 +37,21 @@ public class JwtAuthService {
     private final LoginLogService loginLogService;
     private final UserService userService;
     private final IpLoginAttemptService ipLoginAttemptService;
+    private final Props props;
 
     public JwtAuthService(JwtProperties properties, JwtEncoder jwtEncoder, LoginLogService loginLogService,
-                          UserService userService, IpLoginAttemptService ipLoginAttemptService) {
+                          UserService userService, IpLoginAttemptService ipLoginAttemptService, Props props) {
         this.properties = properties;
         this.jwtEncoder = jwtEncoder;
         this.loginLogService = loginLogService;
         this.userService = userService;
         this.ipLoginAttemptService = ipLoginAttemptService;
+        this.props = props;
     }
 
     public ResponseEntity<Responses.Body> incorrectPassword(User user, String username, String ip, Config.Security security, HttpServletRequest request) {
         // 记录IP登录错误次数
-        ipLoginAttemptService.failure(Servlets.getRemoteAddr(request));
+        ipLoginAttemptService.failure(Servlets.getRemoteAddr(request, props.getIpProxyDepth()));
         // 记录用户错误次数
         userService.loginFailure(user.getExt(), security.getUserLockMinutes());
         loginLogService.loginFailure(user.getId(), username, ip, LoginLog.STATUS_PASSWORD_WRONG);

@@ -11,7 +11,7 @@
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
-  <link rel="stylesheet" href="${files}/vendor/pdfjs-dist/legacy/web/pdf_viewer.min.css">
+  <link rel="stylesheet" href="${files}/vendor/pdfjs-dist/legacy/web/pdf_viewer.css">
   <style>
 
     #viewerWrapper {
@@ -81,32 +81,28 @@
           </div>
         </div>
       </div>
-      <script src="${files}/vendor/pdfjs-dist/legacy/build/pdf.min.js"></script>
-      <script src="${files}/vendor/pdfjs-dist/legacy/web/pdf_viewer.min.js"></script>
-      <script>
+      <script type="module">
+        import * as pdfjsLib from '${files}/vendor/pdfjs-dist/legacy/build/pdf.mjs';
+        import * as pdfjsViewer from '${files}/vendor/pdfjs-dist/legacy/web/pdf_viewer.mjs';
+
         if (!pdfjsLib.getDocument || !pdfjsViewer.PDFViewer) {
-          // eslint-disable-next-line no-alert
-          alert("Please build the pdfjs-dist library using\n  `gulp dist-install`");
+          alert("Please build the pdfjs-dist library");
         }
 
         // The workerSrc property shall be specified.
-        //
         pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "${files}/vendor/pdfjs-dist/legacy/build/pdf.worker.min.js";
+          "${files}/vendor/pdfjs-dist/legacy/build/pdf.worker.mjs";
 
         // Some PDFs need external cmaps.
-        //
         const CMAP_URL = "${files}/vendor/pdfjs-dist/cmaps/";
         const CMAP_PACKED = true;
 
         const DEFAULT_URL = "${article.doc}";
-        // To test the AcroForm and/or scripting functionality, try e.g. this file:
-        // "../../test/pdfs/160F-2019.pdf"
-
         const ENABLE_XFA = true;
         const SEARCH_FOR = ""; // try "Mozilla";
 
-        const SANDBOX_BUNDLE_SRC = "${files}/vendor/pdfjs-dist/legacy/build/pdf.sandbox.js";
+        // PDF.js 4.x: sandbox is now in /build, not /legacy/build
+        const SANDBOX_BUNDLE_SRC = "${files}/vendor/pdfjs-dist/build/pdf.sandbox.js";
 
         const container = document.getElementById("viewerContainer");
 
@@ -129,21 +125,20 @@
           sandboxBundleSrc: SANDBOX_BUNDLE_SRC,
         });
 
+        // PDF.js 4.x: PDFViewer now requires a "renderer" option, default is "canvas"
         const pdfViewer = new pdfjsViewer.PDFViewer({
           container,
           eventBus,
           linkService: pdfLinkService,
           findController: pdfFindController,
           scriptingManager: pdfScriptingManager,
+          renderer: "canvas"
         });
         pdfLinkService.setViewer(pdfViewer);
         pdfScriptingManager.setViewer(pdfViewer);
 
         eventBus.on("pagesinit", function () {
-          // We can use pdfViewer now, e.g. let's change default scale.
           pdfViewer.currentScaleValue = "page-width";
-
-          // We can try searching for things.
           if (SEARCH_FOR) {
             eventBus.dispatch("find", {type: "", query: SEARCH_FOR});
           }
@@ -158,19 +153,19 @@
         });
         (async function () {
           const pdfDocument = await loadingTask.promise;
-          // Document loaded, specifying document for the viewer and
-          // the (optional) linkService.
           pdfViewer.setDocument(pdfDocument);
-
           pdfLinkService.setDocument(pdfDocument, null);
         })();
 
+        // Expose pdfViewer for zoom controls
+        window.pdfViewer = pdfViewer;
 
+        // Initialize fullscreen functionality
         var fullContainer = document.getElementById('fullContainer');
         var viewerWrapper = document.getElementById('viewerWrapper');
 
         // 进入全屏
-        function fullscreen() {
+        window.fullscreen = function() {
           if (fullContainer.requestFullscreen) {
             fullContainer.requestFullscreen();
           } else if (fullContainer.mozRequestFullScreen) {
@@ -180,10 +175,10 @@
           } else if (fullContainer.msRequestFullscreen) {
             fullContainer.msRequestFullscreen();
           }
-        }
+        };
 
         // 退出全屏
-        function exitFullscreen() {
+        window.exitFullscreen = function() {
           if (document.exitFullscreen) {
             document.exitFullscreen();
           } else if (document.mozCancelFullScreen) {
@@ -193,7 +188,7 @@
           } else if (document.msExitFullscreen) {
             document.msExitFullscreen();
           }
-        }
+        };
 
         function isFullscreen() {
           return !!(document.fullscreenElement || document.mozFullScreen || document.webkitIsFullScreen || document.msFullscreenElement);

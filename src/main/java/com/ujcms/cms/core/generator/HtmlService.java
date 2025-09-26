@@ -53,7 +53,6 @@ public class HtmlService {
 
     @Transactional(rollbackFor = Exception.class)
     public void updateHomeHtml(Site site) {
-        deleteHomeHtml(site);
         if (!site.isHtmlEnabled()) {
             return;
         }
@@ -99,13 +98,16 @@ public class HtmlService {
     @Transactional(rollbackFor = Exception.class)
     public void updateArticleHtml(Article article) {
         deleteArticleHtml(article);
+        Site site = siteMapper.select(article.getSiteId());
+        if (site == null) {
+            return;
+        }
         // 跳转连接不用静态化
-        if (!article.getSite().isHtmlEnabled()
+        if (!site.isHtmlEnabled()
                 || !StringUtils.isBlank(article.getLinkUrl())
                 || !article.isNormal()) {
             return;
         }
-        Site site = article.getSite();
         Map<String, Object> dataModel = new HashMap<>(16);
         dataModel.put("article", article);
         dataModel.put("channel", article.getChannel());
@@ -149,8 +151,8 @@ public class HtmlService {
     @Transactional(rollbackFor = Exception.class)
     public void updateChannelHtml(Channel channel) {
         deleteChannelHtml(channel);
-
-        if (!channel.getSite().isHtmlEnabled()) {
+        Site site = siteMapper.select(channel.getSiteId());
+        if (site == null || !channel.getSite().isHtmlEnabled()) {
             return;
         }
         // 跳转连接不用静态化
@@ -159,11 +161,11 @@ public class HtmlService {
         }
         try {
             Contexts.setMobile(false);
-            doMakeChannelHtml(channel);
+            doMakeChannelHtml(channel, site);
             // 手机端模板和PC端模板一样，则不用另外生成手机端页面
             if (channel.getSite().hasMobileTheme()) {
                 Contexts.setMobile(true);
-                doMakeChannelHtml(channel);
+                doMakeChannelHtml(channel, site);
             }
             channelExtMapper.update(channel.getExt());
         } catch (IOException e) {
@@ -173,8 +175,7 @@ public class HtmlService {
         }
     }
 
-    private void doMakeChannelHtml(Channel channel) throws IOException {
-        Site site = channel.getSite();
+    private void doMakeChannelHtml(Channel channel, Site site) throws IOException {
         Site defaultSite = getDefaultSite(site.getConfig().getDefaultSiteId());
         Map<String, Object> dataModel = new HashMap<>(16);
         dataModel.put("channel", channel);

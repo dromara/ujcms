@@ -132,7 +132,7 @@ public class GlobalSettingsController {
     @PreAuthorize("hasAnyAuthority('config:sms:update','*')")
     @OperationLog(module = "config", operation = "sendSms", type = OperationType.CREATE)
     public ResponseEntity<Body> sendSms(@RequestBody @Valid Config.Sms bean, HttpServletRequest request) {
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         String testMobile = bean.getTestMobile();
         if (StringUtils.isBlank(testMobile)) {
             return Responses.badRequest("testMobile cannot be empty");

@@ -329,11 +329,17 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     public List<Article> selectList(ArticleArgs args, int offset, int limit) {
-        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+        try (Page<Article> ignored = PageMethod.offsetPage(offset, limit, false)) {
+            // 使用 doSelectPage(() -> selectList(args)) 会导致 DataScriptInitializer.initLucene 无法获取到数据（其它情况下没有问题）
+            // 因为此时 PageHelper 还未初始化
+            return selectList(args);
+        }
     }
 
     public Page<Article> selectPage(ArticleArgs args, int page, int pageSize) {
-        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+        try (Page<Article> startPage = PageMethod.startPage(page, pageSize)) {
+            return startPage.doSelectPage(() -> selectList(args));
+        }
     }
 
     public List<Article> listByIds(Collection<Long> ids) {

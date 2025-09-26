@@ -74,7 +74,7 @@ public class UserController {
     @GetMapping("list")
     @PreAuthorize("hasAnyAuthority('user:list','*')")
     public List<User> list(@Nullable Long orgId, @RequestParam(defaultValue = "false") boolean current,
-                           @Nullable Integer offset, @Nullable Integer limit,HttpServletRequest request) {
+                           @Nullable Integer offset, @Nullable Integer limit, HttpServletRequest request) {
         if (current && orgId == null) {
             orgId = Contexts.getCurrentSite().getOrgId();
         }
@@ -139,11 +139,11 @@ public class UserController {
         validatePermission(user.getOrgId(), user.getRank(), origRank, currentUser);
         bean.getRoleIds().stream().filter(Objects::nonNull).map(roleService::select)
                 .filter(Objects::nonNull).forEach(role -> {
-            if (role.getRank() < user.getRank()) {
-                throw new Http403Exception(String.format("user rank(%d) below then role rank(%d)",
-                        bean.getRank(), role.getRank()));
-            }
-        });
+                    if (role.getRank() < user.getRank()) {
+                        throw new Http403Exception(String.format("user rank(%d) below then role rank(%d)",
+                                bean.getRank(), role.getRank()));
+                    }
+                });
         service.update(user, bean.getRoleIds());
         return Responses.ok();
     }

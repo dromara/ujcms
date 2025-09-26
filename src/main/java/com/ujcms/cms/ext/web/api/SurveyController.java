@@ -5,6 +5,7 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.base.UserBase;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.cms.ext.domain.Survey;
@@ -59,11 +60,13 @@ public class SurveyController {
     private final SiteResolver siteResolver;
     private final SurveyService service;
     private final SurveyFeedbackService feedbackService;
+    private final Props props;
 
-    public SurveyController(SiteResolver siteResolver, SurveyService service, SurveyFeedbackService feedbackService) {
+    public SurveyController(SiteResolver siteResolver, SurveyService service, SurveyFeedbackService feedbackService, Props props) {
         this.siteResolver = siteResolver;
         this.service = service;
         this.feedbackService = feedbackService;
+        this.props = props;
     }
 
     private <T> T query(HttpServletRequest request, BiFunction<SurveyArgs, Map<String, String>, T> handle) {
@@ -159,7 +162,7 @@ public class SurveyController {
         }
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
         OffsetDateTime date = survey.getInterval() > 0 ? OffsetDateTime.now().minusDays(survey.getInterval()) : null;
         // 已经投过票

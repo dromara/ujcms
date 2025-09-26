@@ -85,6 +85,7 @@ public class GeneratorController {
         SiteArgs args = SiteArgs.of().status(Collections.singletonList(Site.STATUS_NORMAL));
         List<Site> list = siteService.selectList(args);
         for (Site site : list) {
+            htmlService.deleteHomeHtml(site);
             htmlService.updateHomeHtml(site);
         }
         return Responses.ok();
@@ -95,6 +96,7 @@ public class GeneratorController {
     @OperationLog(module = "html", operation = "updateHome", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateHomeHtml() {
         Site site = Contexts.getCurrentSite();
+        htmlService.deleteHomeHtml(site);
         htmlService.updateHomeHtml(site);
         return Responses.ok();
     }

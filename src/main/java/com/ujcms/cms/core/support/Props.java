@@ -54,6 +54,10 @@ public class Props {
      */
     private String ip2regionPath = "classpath:ip2region.xdb";
     /**
+     * IP代理深度。用于防止X-Forwarded-For头部伪造攻击。
+     */
+    private int ipProxyDepth = 0;
+    /**
      * lucene 分词器。支持`jcscg` `ik`。默认使用`jcseg`。
      * `jcseg`支持最小粒度分词（单字），避免出现搜索某个字时无法搜索到结果。但在单篇文章内容过多时（如十万字），会出现错误：`org.apache.lucene.search.highlight.InvalidTokenOffsetsException: Token 形 exceeds length of provided text sized 15`
      * `ik`分词器，不支持最小粒度分词，但性能和稳定性更好。
@@ -263,6 +267,14 @@ public class Props {
 
     public void setIp2regionPath(String ip2regionPath) {
         this.ip2regionPath = ip2regionPath;
+    }
+
+    public int getIpProxyDepth() {
+        return ipProxyDepth;
+    }
+
+    public void setIpProxyDepth(int ipProxyDepth) {
+        this.ipProxyDepth = ipProxyDepth;
     }
 
     public String getLuceneAnalyzer() {

@@ -43,7 +43,7 @@ public class VisitStat extends VisitStatBase implements StatDateString, Serializ
         }
         LocalDateTime date = LocalDateTime.parse(begin, formatter);
         LocalDateTime endDate = LocalDateTime.parse(end, formatter);
-        while (date.compareTo(endDate) <= 0) {
+        while (!date.isAfter(endDate)) {
             String dateString = date.format(formatter);
             if (bean != null && dateString.equals(bean.getDateString())) {
                 bean.setDateString(date.format(displayFormatter));
@@ -110,7 +110,7 @@ public class VisitStat extends VisitStatBase implements StatDateString, Serializ
     /**
      * 统计日期显示格式：时
      */
-    public static final DateTimeFormatter HOUR_DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("dd'T'HH");
+    public static final DateTimeFormatter HOUR_DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd HH':00'");
     /**
      * 统计日期格式：分
      */

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.net.HttpHeaders;
-import org.apache.commons.lang3.RandomUtils;
+import com.ujcms.commons.security.Secures;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +22,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,48 +38,170 @@ public class Servlets {
     private static final Logger logger = LoggerFactory.getLogger(Servlets.class);
 
     private static final String REMOTE_IP_HEADER = "X-Forwarded-For";
-
-    private static final Pattern INTERNAL_PROXIES_PATTERN = Pattern.compile(
-            "10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" +
-            "192\\.168\\.\\d{1,3}\\.\\d{1,3}|" +
-            "169\\.254\\.\\d{1,3}\\.\\d{1,3}|" +
-            "127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" +
-            "172\\.1[6-9]\\.\\d{1,3}\\.\\d{1,3}|" +
-            "172\\.2[\\d]\\.\\d{1,3}\\.\\d{1,3}|" +
-            "172\\.3[0-1]\\.\\d{1,3}\\.\\d{1,3}|" +
-            "0:0:0:0:0:0:0:1|::1");
+    private static final String REAL_IP_HEADER = "X-Real-IP";
+    private static final String CLIENT_IP_HEADER = "X-Client-IP";
 
     private static String[] commaDelimitedStringsToArray(@Nullable String commaDelimitedStrings) {
-        return (commaDelimitedStrings == null || commaDelimitedStrings.length() == 0) ?
-                new String[0] : StringUtils.split(commaDelimitedStrings, ',');
+        return (commaDelimitedStrings == null || commaDelimitedStrings.isEmpty()) ? new String[0]
+                : StringUtils.split(commaDelimitedStrings, ',');
     }
 
     /**
-     * 获得真实 IP 地址。在使用了反向代理时，直接用 {@link HttpServletRequest#getRemoteAddr()}无法获取客户真实的IP地址。
-     *
-     * @see org.apache.catalina.filters.RemoteIpFilter
+     * 获取 X-Forwarded-For 头部信息，支持多个头部值
      */
-    public static String getRemoteAddr(ServletRequest req) {
-        String remoteAddress = req.getRemoteAddr();
-        // 如果是内网IP，有可能使用了反向代理，从 X-Forwarded-For 的头信息里面查找真实 IP。
-        if (INTERNAL_PROXIES_PATTERN.matcher(remoteAddress).matches() && req instanceof HttpServletRequest) {
-            HttpServletRequest request = (HttpServletRequest) req;
-            StringBuilder proxiesIpsBuilder = new StringBuilder();
-            for (Enumeration<String> e = request.getHeaders(REMOTE_IP_HEADER); e.hasMoreElements(); ) {
-                if (proxiesIpsBuilder.length() > 0) {
-                    proxiesIpsBuilder.append(", ");
+    @Nullable
+    private static String getForwardedForHeader(HttpServletRequest request) {
+        // 首先尝试 X-Forwarded-For，支持多个头部值
+        String forwardedFor = getHeaderValues(request, REMOTE_IP_HEADER);
+        if (StringUtils.isNotBlank(forwardedFor)) {
+            return forwardedFor;
+        }
+
+        // 尝试其他常见的代理头部
+        forwardedFor = request.getHeader(REAL_IP_HEADER);
+        if (StringUtils.isNotBlank(forwardedFor)) {
+            return forwardedFor;
+        }
+
+        forwardedFor = request.getHeader(CLIENT_IP_HEADER);
+        if (StringUtils.isNotBlank(forwardedFor)) {
+            return forwardedFor;
+        }
+
+        return null;
+    }
+
+    /**
+     * 获取头部值，支持多个头部值
+     */
+    private static String getHeaderValues(HttpServletRequest request, String headerName) {
+        try {
+            java.util.Enumeration<String> headers = request.getHeaders(headerName);
+            if (headers != null && headers.hasMoreElements()) {
+                StringBuilder sb = new StringBuilder();
+                while (headers.hasMoreElements()) {
+                    String header = headers.nextElement();
+                    if (StringUtils.isNotBlank(header)) {
+                        if (sb.length() > 0) {
+                            sb.append(", ");
+                        }
+                        sb.append(header);
+                    }
                 }
-                proxiesIpsBuilder.append(e.nextElement());
+                return sb.toString();
             }
-            String[] proxiesIps = commaDelimitedStringsToArray(proxiesIpsBuilder.toString());
-            // 从右往左找第一个公网IP，避免请求中恶意加入的 X-Forwarded-For 头信息
-            for (int i = proxiesIps.length - 1; i >= 0; i -= 1) {
-                remoteAddress = proxiesIps[i];
-                if (!INTERNAL_PROXIES_PATTERN.matcher(remoteAddress).matches()) {
-                    break;
+        } catch (Exception e) {
+            // 如果获取多个头部值失败，回退到单个头部值
+        }
+        
+        // 回退到单个头部值
+        return request.getHeader(headerName);
+    }
+
+    /**
+     * Validates if the given string is a valid IP address (IPv4 or IPv6)
+     */
+    private static boolean isValidIpAddress(String ip) {
+        String trimmedIp = ip.trim();
+
+        // Check for IPv4 format
+        if (isIpv4Format(trimmedIp)) {
+            return isValidIpv4Address(trimmedIp);
+        }
+
+        // Check for IPv6 format
+        if (isIpv6Format(trimmedIp)) {
+            return isValidIpv6Address(trimmedIp);
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the string appears to be in IPv4 format (contains exactly 3 dots)
+     */
+    private static boolean isIpv4Format(String ip) {
+        return ip.chars().filter(ch -> ch == '.').count() == 3;
+    }
+
+    /**
+     * Validates IPv4 address by checking each octet is a valid number (0-255)
+     */
+    private static boolean isValidIpv4Address(String ip) {
+        String[] parts = ip.split("\\.");
+        if (parts.length != 4) {
+            return false;
+        }
+
+        for (String part : parts) {
+            try {
+                int num = Integer.parseInt(part);
+                if (num < 0 || num > 255) {
+                    return false;
                 }
+            } catch (NumberFormatException e) {
+                return false;
             }
         }
+        return true;
+    }
+
+    /**
+     * Checks if the string appears to be in IPv6 format (contains colon)
+     */
+    private static boolean isIpv6Format(String ip) {
+        return ip.contains(":");
+    }
+
+    /**
+     * Validates IPv6 address by checking it has the right number of segments
+     */
+    private static boolean isValidIpv6Address(String ip) {
+        String[] parts = ip.split(":");
+        return parts.length >= 3 && parts.length <= 8;
+    }
+
+    /**
+     * 获得真实 IP 地址。在使用了反向代理时，直接用
+     * {@link HttpServletRequest#getRemoteAddr()}无法获取客户真实的IP地址。
+     * 使用 depth 参数来防止恶意伪造 X-Forwarded-For 头部信息。
+     *
+     * @param req   ServletRequest 对象
+     * @param depth 信任的代理层数，用于防止 X-Forwarded-For 头部伪造攻击
+     * @return 真实的客户端IP地址
+     * @see org.apache.catalina.filters.RemoteIpFilter
+     */
+    public static String getRemoteAddr(ServletRequest req, int depth) {
+        String remoteAddress = req.getRemoteAddr();
+        if (!(req instanceof HttpServletRequest) || depth < 1) {
+            return remoteAddress;
+        }
+
+        HttpServletRequest request = (HttpServletRequest) req;
+        // 从 X-Forwarded-For 头部获取IP列表，支持多个头部值
+        String forwardedFor = getForwardedForHeader(request);
+
+        if (StringUtils.isBlank(forwardedFor)) {
+            return remoteAddress;
+        }
+
+        String[] proxyIps = commaDelimitedStringsToArray(forwardedFor);
+        if (proxyIps.length == 0) {
+            return remoteAddress;
+        }
+
+        // 使用深度参数来防止伪造攻击
+        int trustedCount = Math.min(proxyIps.length, depth);
+        // 从右往左取 trustedCount 个IP，然后从左往右遍历，返回第一个有效的IP
+        int startIndex = Math.max(0, proxyIps.length - trustedCount);
+        for (int i = startIndex; i < proxyIps.length; i++) {
+            String ip = proxyIps[i].trim();
+            if (isValidIpAddress(ip)) {
+                return ip;
+            }
+        }
+
+        // 如果所有代理IP都无效，返回直接连接的IP
         return remoteAddress;
     }
 
@@ -125,7 +241,8 @@ public class Servlets {
     }
 
     /**
-     * 获取相对于 Context Path 的相对路径。参考 {@link org.apache.catalina.servlets.DefaultServlet} 的实现方式。
+     * 获取相对于 Context Path 的相对路径。参考
+     * {@link org.apache.catalina.servlets.DefaultServlet} 的实现方式。
      * <p>
      * Return the relative path associated with this servlet.
      *
@@ -141,7 +258,7 @@ public class Servlets {
         String requestUri = request.getRequestURI();
 
         StringBuilder result = new StringBuilder();
-        if (requestUri.length() > 0) {
+        if (!requestUri.isEmpty()) {
             result.append(requestUri.substring(StringUtils.length(contextPath)));
         }
         if (result.length() == 0 && !allowEmptyPath) {
@@ -172,11 +289,7 @@ public class Servlets {
         String msie10 = "trident";
         String msie = "msie";
         if (userAgent.contains(msie10) || userAgent.contains(msie)) {
-            try {
-                filename = URLEncoder.encode(filename, StandardCharsets.UTF_8.name());
-            } catch (UnsupportedEncodingException e) {
-                // never
-            }
+            filename = URLEncoder.encode(filename, StandardCharsets.UTF_8);
         } else {
             filename = new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         }
@@ -184,7 +297,6 @@ public class Servlets {
         response.setContentType("application/octet-stream");
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
     }
-
 
     /**
      * 输出 HTML。并禁止客户端缓存。
@@ -261,17 +373,13 @@ public class Servlets {
                 String name = matcher.group(1);
                 String eq = matcher.group(2);
                 String value = matcher.group(3);
-                try {
-                    String decodeValue;
-                    if (value != null) {
-                        decodeValue = URLDecoder.decode(value, "UTF-8");
-                    } else {
-                        decodeValue = StringUtils.isNotBlank(eq) ? "" : null;
-                    }
-                    queryParams.add(URLDecoder.decode(name, "UTF-8"), decodeValue);
-                } catch (UnsupportedEncodingException e) {
-                    logger.error("never!", e);
+                String decodeValue;
+                if (value != null) {
+                    decodeValue = URLDecoder.decode(value, StandardCharsets.UTF_8);
+                } else {
+                    decodeValue = StringUtils.isNotBlank(eq) ? "" : null;
                 }
+                queryParams.add(URLDecoder.decode(name, StandardCharsets.UTF_8), decodeValue);
             }
         }
         return queryParams;
@@ -324,7 +432,8 @@ public class Servlets {
         return getParamValuesMap(queryString, prefix, false);
     }
 
-    public static Map<String, List<String>> getParamValuesMap(String queryString, @Nullable String prefix, boolean keyWithPrefix) {
+    public static Map<String, List<String>> getParamValuesMap(String queryString, @Nullable String prefix,
+                                                              boolean keyWithPrefix) {
         Map<String, List<String>> params = new LinkedHashMap<>();
         if (prefix == null) {
             prefix = "";
@@ -356,7 +465,7 @@ public class Servlets {
             }
         }
         if (value == null) {
-            value = RandomUtils.nextLong();
+            value = Secures.nextLong();
             cookie = new Cookie(cookieName, value.toString());
             String ctx = request.getContextPath();
             if (StringUtils.isBlank(ctx)) {

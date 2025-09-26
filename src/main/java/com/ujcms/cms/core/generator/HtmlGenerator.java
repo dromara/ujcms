@@ -4,6 +4,7 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.Task;
+import com.ujcms.cms.core.domain.base.ChannelBase;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.SiteService;
@@ -51,6 +52,7 @@ public class HtmlGenerator extends AbstractGenerator {
                 taskId -> {
                     handleArticle(taskId, site.getId(), htmlService::updateArticleHtml);
                     handleChannel(taskId, site.getId(), htmlService::updateChannelHtml);
+                    htmlService.deleteHomeHtml(site);
                     htmlService.updateHomeHtml(site);
                 });
     }
@@ -69,6 +71,7 @@ public class HtmlGenerator extends AbstractGenerator {
                     for (Site site : sites) {
                         handleArticle(taskId, site.getId(), htmlService::updateArticleHtml);
                         handleChannel(taskId, site.getId(), htmlService::updateChannelHtml);
+                        htmlService.deleteHomeHtml(site);
                         htmlService.updateHomeHtml(site);
                     }
                 });
@@ -120,7 +123,8 @@ public class HtmlGenerator extends AbstractGenerator {
         }
         // 原栏目
         Optional.ofNullable(origChannelId).map(channelService::select).ifPresent(channels::add);
-        Set<Site> sites = channels.stream().map(Channel::getSite).collect(Collectors.toSet());
+        Set<Site> sites = channels.stream().map(ChannelBase::getSiteId).map(siteService::select)
+                .collect(Collectors.toSet());
 
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, true,
                 taskId -> {
@@ -129,6 +133,7 @@ public class HtmlGenerator extends AbstractGenerator {
                     // 更新栏目HTML
                     channels.forEach(htmlService::updateChannelHtml);
                     // 更新首页HTML
+                    sites.forEach(htmlService::deleteHomeHtml);
                     sites.forEach(htmlService::updateHomeHtml);
                 }
         );
@@ -159,6 +164,7 @@ public class HtmlGenerator extends AbstractGenerator {
                     // 首页
                     Site site = siteService.select(channel.getSiteId());
                     if (site != null) {
+                        htmlService.deleteHomeHtml(site);
                         htmlService.updateHomeHtml(site);
                     }
                 }

@@ -50,7 +50,7 @@ public class EncryptedPasswordAuthenticationFilter extends UsernamePasswordAuthe
         Config config = configService.getUnique();
         Config.Security security = config.getSecurity();
 
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         // IP登录失败超过限制次数
         if (ipLoginAttemptService.isExcessive(ip, security.getIpMaxAttempts())) {
             loginLogService.loginFailure(username, ip, LoginLog.STATUS_IP_EXCESSIVE_ATTEMPTS);

@@ -35,11 +35,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.mobile.device.DeviceResolver;
 import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -249,6 +251,13 @@ public class Application extends SpringBootServletInitializer
                 registry.addResourceHandler(uploadsLocation + "/**")
                         .addResourceLocations("file:" + servletContext.getRealPath(uploadsLocation + "/"));
             }
+        }
+
+        @Override
+        public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+            // pdf.js 使用 mjs，需要设置媒体类型为 application/javascript，否则无法访问
+            // spring boot 2 需设置，spring boot 3 默认已支持
+            configurer.mediaType("mjs", MediaType.valueOf("application/javascript"));
         }
 
         @Bean

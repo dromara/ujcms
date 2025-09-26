@@ -3,6 +3,7 @@ package com.ujcms.cms.ext.web.api;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.GlobalService;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.ext.component.VisitService;
 import com.ujcms.cms.ext.domain.VisitLog;
 import com.ujcms.cms.ext.domain.VisitStat;
@@ -44,11 +45,13 @@ public class VisitController {
     private final GlobalService globalService;
     private final VisitService service;
     private final IpSeeker ipSeeker;
+    private final Props props;
 
-    public VisitController(GlobalService globalService, VisitService service, IpSeeker ipSeeker) {
+    public VisitController(GlobalService globalService, VisitService service, IpSeeker ipSeeker, Props props) {
         this.globalService = globalService;
         this.service = service;
         this.ipSeeker = ipSeeker;
+        this.props = props;
     }
 
     @Operation(summary = "获取在线访问者数量")
@@ -122,10 +125,10 @@ public class VisitController {
             return;
         }
         String browser = agentBrowser.toString();
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         String os = userAgent.getOperatingSystem().toString();
         String device = userAgent.getOperatingSystem().getDeviceType().toString();
-        Region region = ipSeeker.find(Servlets.getRemoteAddr(request));
+        Region region = ipSeeker.find(Servlets.getRemoteAddr(request, props.getIpProxyDepth()));
 
         VisitLog bean = new VisitLog();
         bean.setSiteId(siteId);

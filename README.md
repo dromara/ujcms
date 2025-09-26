@@ -10,14 +10,16 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 * 演示站后台：[https://demo.ujcms.com/cp/](https://demo.ujcms.com/cp/)
 * 官方网站：[https://www.ujcms.com](https://www.ujcms.com)
 * 官方文档：[https://www.ujcms.com](https://www.ujcms.com)
-* 安装包下载：[https://www.ujcms.com/channels/downloads/](https://www.ujcms.com/channels/downloads/)
+* 安装包下载：[https://www.ujcms.com/downloads/](https://www.ujcms.com/downloads/)
 
 ## 环境要求
 
-* JDK 11 或 JDK17
-* MySQL 8.0 (5.7.22+)
+* JDK 11 或 JDK 17
+* MySQL 8.0 (5.7.22+, 8.0.20+)
 * Tomcat 9.0 (Servlet 3.1+)
 * Maven 3.6.3+
+
+尽量不要使用小版本号太低的软件，可能会导致程序无法正常启动。例如 MySQL 8.0.12 会报错，请升级到 MySQL 8.0.20+。
 
 ## 创建数据库
 
@@ -121,11 +123,17 @@ war 部署要使用解压模式，tomcat 默认就是解压模式。如 tomcat �
 * `http://localhost/`
 * `http://localhost:8080/`
 
-然而，在某些特殊情况下（例如在 Eclipse 中默认启动 Tomcat 时），应用程序可能会被部署到某个子路径下，此时首页的访问地址类似于：
+然而，在某些特殊情况下（例如在 Eclipse 中默认启动 Tomcat 时），应用程序可能会被部署到某个子路径下，首页的访问地址类似于：
 
 * `http://www.mysite.com/ujcms/`
 * `http://localhost/ujcms/`
 * `http://localhost:8080/ujcms/`
+
+后台地址为：
+
+* `http://www.mysite.com/ujcms/cp/`
+* `http://localhost/ujcms/cp/`
+* `http://localhost:8080/ujcms/cp/`
 
 在这种情况下，网站前台可能会出现样式无法正常显示的问题。可以到后台 `配置 - 全局设置` 中设置 `上下文路径`，例如 `/ujcms`。其中斜杠 `/` 不能省略，`ujcms` 为部署路径。在开发环境中，部署路径通常为项目名称。
 

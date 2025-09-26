@@ -5,6 +5,7 @@ import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.ShortMessageService;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.commons.captcha.CaptchaTokenService;
 import com.ujcms.commons.security.Secures;
 import com.ujcms.commons.sms.IpSmsCounterService;
@@ -44,13 +45,15 @@ public class SmsController {
     private final ShortMessageService shortMessageService;
     private final IpSmsCounterService ipSmsCounterService;
     private final CaptchaTokenService captchaTokenService;
+    private final Props props;
 
     public SmsController(ConfigService configService, ShortMessageService shortMessageService,
-                         IpSmsCounterService ipSmsCounterService, CaptchaTokenService captchaTokenService) {
+                         IpSmsCounterService ipSmsCounterService, CaptchaTokenService captchaTokenService, Props props) {
         this.configService = configService;
         this.shortMessageService = shortMessageService;
         this.ipSmsCounterService = ipSmsCounterService;
         this.captchaTokenService = captchaTokenService;
+        this.props = props;
     }
 
     @Operation(summary = "发送手机短信")
@@ -60,7 +63,7 @@ public class SmsController {
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
             return Responses.failure(request, "error.captchaIncorrect");
         }
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Config.Sms sms = configService.getUnique().getSms();
         // IP发送短信是否超过限制次数
         if (ipSmsCounterService.isExcessive(ip, sms.getMaxPerIp())) {
@@ -86,7 +89,7 @@ public class SmsController {
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
             return Responses.failure(request, "error.captchaIncorrect");
         }
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Config.Email emailConfig = configService.getUnique().getEmail();
         // IP发送短信是否超过限制次数
         if (ipSmsCounterService.isExcessive(ip, emailConfig.getMaxPerIp())) {

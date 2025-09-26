@@ -6,7 +6,7 @@
 
     <groupId>com.ujcms</groupId>
     <artifactId>ujcms</artifactId>
-    <version>9.9.0</version>
+    <version>9.9.2</version>
     <packaging>${project.packaging}</packaging>
 
     <name>UJCMS</name>
@@ -547,12 +547,12 @@
         <!--    <version>${vastbase-jdbc.version}</version>-->
         <!--</dependency>-->
         <!-- 瀚高数据库 驱动 -->
-        <!--<dependency>-->
-        <!--    <groupId>com.highgo</groupId>-->
-        <!--    <artifactId>HgdbJdbc</artifactId>-->
-        <!--    <version>${HgdbJdbc.version}</version>-->
-        <!--    <scope>runtime</scope>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.highgo</groupId>
+            <artifactId>HgdbJdbc</artifactId>
+            <version>${HgdbJdbc.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <!--<dependency>-->
         <!--    <groupId>cn.hutool</groupId>-->

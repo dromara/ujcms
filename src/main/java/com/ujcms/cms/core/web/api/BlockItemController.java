@@ -50,6 +50,10 @@ public class BlockItemController {
             schema = @Schema(type = "boolean"))
     @Parameter(in = ParameterIn.QUERY, name = "isEnabled", description = "是否启用。可选值：`all`(全部), `false`(禁用), `true`(启用)。默认值：启用",
             schema = @Schema(type = "string", allowableValues = {"all", "false", "true"}, defaultValue = "true"))
+    @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
+            schema = @Schema(type = "integer", format = "int32"))
+    @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
+            schema = @Schema(type = "integer", format = "int32"))
     @GetMapping
     public List<BlockItem> list(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);

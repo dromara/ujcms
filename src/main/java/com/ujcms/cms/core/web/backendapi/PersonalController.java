@@ -7,6 +7,7 @@ import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.commons.web.Responses;
 import com.ujcms.commons.web.Servlets;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +32,12 @@ import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 public class PersonalController {
     private final ConfigService configService;
     private final PasswordService passwordService;
+    private final Props props;
 
-    public PersonalController(ConfigService configService, PasswordService passwordService) {
+    public PersonalController(ConfigService configService, PasswordService passwordService, Props props) {
         this.configService = configService;
         this.passwordService = passwordService;
+        this.props = props;
     }
 
     @PutMapping("password")
@@ -42,7 +45,7 @@ public class PersonalController {
     @OperationLog(module = "personal", operation = "updatePassword", type = OperationType.UPDATE)
     public ResponseEntity<Responses.Body> updatePassword(
             @RequestBody UpdatePasswordParams params, HttpServletRequest request) {
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Config.Security security = configService.getUnique().getSecurity();
         User currentUser = Contexts.getCurrentUser();
         return passwordService.updatePassword(currentUser, params.password, params.newPassword, ip,

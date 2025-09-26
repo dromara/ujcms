@@ -5,6 +5,7 @@ import com.ujcms.cms.core.aop.enums.OperationType;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.support.ValidUtils;
 import com.ujcms.cms.ext.domain.MessageBoard;
 import com.ujcms.cms.ext.service.MessageBoardService;
@@ -47,9 +48,11 @@ import static com.ujcms.commons.query.QueryUtils.getQueryMap;
 @RequestMapping(BACKEND_API + "/ext/message-board")
 public class MessageBoardController {
     private final MessageBoardService service;
+    private final Props props;
 
-    public MessageBoardController(MessageBoardService service) {
+    public MessageBoardController(MessageBoardService service, Props props) {
         this.service = service;
+        this.props = props;
     }
 
     @GetMapping
@@ -91,7 +94,7 @@ public class MessageBoardController {
         Entities.copy(bean, messageBoard,
                 "siteId", "replied", "status", "userId", "created", "replyUserId", "replyDate", "ip", "recommended");
         messageBoard.setSiteId(site.getId());
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         service.insert(messageBoard, user.getId(), ip);
         return Responses.ok();
     }

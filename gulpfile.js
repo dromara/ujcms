@@ -35,16 +35,15 @@ function copy(done) {
     gulp.src('node_modules/dayjs/{dayjs.min.js,locale/*}').pipe(gulp.dest(theme + '/_files/vendor/dayjs/'));
     gulp.src('node_modules/flatpickr/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/flatpickr/dist/'));
     gulp.src('node_modules/photoswipe/dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/photoswipe/dist/'));
-    gulp.src('node_modules/pdfjs-dist/{build,cmaps,image_decoders,legacy,standard_fonts,web}/**/*')
-        .pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/'));
-    gulp.src('node_modules/pdfjs-dist/web/*.js').pipe(rename({suffix: '.min'}))
-        .pipe(uglify()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/web/'));
-    gulp.src('node_modules/pdfjs-dist/web/*.css').pipe(rename({suffix: '.min'}))
-        .pipe(cleanCss()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/web/'));
-    gulp.src('node_modules/pdfjs-dist/legacy/web/*.js').pipe(rename({suffix: '.min'}))
-        .pipe(uglify()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/legacy/web/'));
-    gulp.src('node_modules/pdfjs-dist/legacy/web/*.css').pipe(rename({suffix: '.min'}))
-        .pipe(cleanCss()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/legacy/web/'));
+    gulp.src('node_modules/pdfjs-dist/**/*').pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/'));
+    // gulp.src('node_modules/pdfjs-dist/web/*.js').pipe(rename({suffix: '.min'}))
+    //     .pipe(uglify()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/web/'));
+    // gulp.src('node_modules/pdfjs-dist/web/*.css').pipe(rename({suffix: '.min'}))
+    //     .pipe(cleanCss()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/web/'));
+    // gulp.src('node_modules/pdfjs-dist/legacy/web/*.js').pipe(rename({suffix: '.min'}))
+    //     .pipe(uglify()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/legacy/web/'));
+    // gulp.src('node_modules/pdfjs-dist/legacy/web/*.css').pipe(rename({suffix: '.min'}))
+    //     .pipe(cleanCss()).pipe(gulp.dest(theme + '/_files/vendor/pdfjs-dist/legacy/web/'));
     gulp.src('node_modules/blueimp-file-upload/{css,img,js}/**/*')
         .pipe(gulp.dest(theme + '/_files/vendor/blueimp-file-upload/'));
     gulp.src('node_modules/blueimp-file-upload/js/**/*.js').pipe(rename({suffix: '.min'}))
@@ -84,7 +83,7 @@ function css() {
 }
 
 function watch() {
-    browserSync.init({proxy: 'localhost:8080'});
+    browserSync.init({proxy: '127.0.0.1:8080'});
     gulp.watch(theme + '/_files/scss/**/*.scss', gulp.parallel(css));
     gulp.watch(theme + '/_files/js/**/*.js').on('change', browserSync.reload);
     gulp.watch(theme + '/**/*.html').on('change', browserSync.reload);

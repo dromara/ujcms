@@ -2,6 +2,7 @@ package com.ujcms.cms.core.web.api;
 
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.commons.captcha.CaptchaToken;
 import com.ujcms.commons.captcha.CaptchaTokenService;
 import com.ujcms.commons.captcha.IpLoginAttemptService;
@@ -31,12 +32,14 @@ public class CaptchaController {
     private final ConfigService configService;
     private final IpLoginAttemptService ipLoginAttemptService;
     private final CaptchaTokenService service;
+    private final Props props;
 
     public CaptchaController(ConfigService configService, IpLoginAttemptService ipLoginAttemptService,
-                             CaptchaTokenService service) {
+                             CaptchaTokenService service, Props props) {
         this.configService = configService;
         this.ipLoginAttemptService = ipLoginAttemptService;
         this.service = service;
+        this.props = props;
     }
 
     @Operation(summary = "获取验证码Token")
@@ -58,7 +61,7 @@ public class CaptchaController {
     @Operation(summary = "是否显示验证码。当登录错误超过指定次数后，需要输入验证码")
     @GetMapping("/is-display")
     public boolean isDisplayCaptcha(HttpServletRequest request) {
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Config.Security security = configService.getUnique().getSecurity();
         return !security.isTwoFactor() && ipLoginAttemptService.isExcessive(ip, security.getIpCaptchaAttempts());
     }

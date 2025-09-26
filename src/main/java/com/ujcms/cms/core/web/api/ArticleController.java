@@ -64,7 +64,6 @@ public class ArticleController {
     private final Props props;
     private final OrgService orgService;
 
-    @Autowired
     public ArticleController(SiteResolver siteResolver, ActionService actionService, GroupService groupService,
                              ChannelService channelService, ArticleService articleService,
                              ArticleBufferService bufferService, ViewCountService viewCountService, Props props, OrgService orgService) {
@@ -321,7 +320,7 @@ public class ArticleController {
     private boolean actionExist(Long id, String option, HttpServletRequest request, HttpServletResponse response) {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
         if (actionService.existsBy(Article.ACTION_TYPE_UP_DOWN, id, null, null, null, ip, cookie)) {
             return true;

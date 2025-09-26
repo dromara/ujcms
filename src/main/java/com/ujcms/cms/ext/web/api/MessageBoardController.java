@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.cms.ext.domain.MessageBoard;
@@ -54,12 +55,14 @@ public class MessageBoardController {
     private final CaptchaTokenService captchaTokenService;
     private final MessageBoardService service;
     private final SiteResolver siteResolver;
+    private final Props props;
 
     public MessageBoardController(CaptchaTokenService captchaTokenService, MessageBoardService service,
-                                  SiteResolver siteResolver) {
+                                  SiteResolver siteResolver, Props props) {
         this.captchaTokenService = captchaTokenService;
         this.service = service;
         this.siteResolver = siteResolver;
+        this.props = props;
     }
 
     private <T> T query(HttpServletRequest request, BiFunction<MessageBoardArgs, Map<String, String>, T> handle) {
@@ -165,7 +168,7 @@ public class MessageBoardController {
                 "userId", "replyUserId", "replyText", "created", "replyDate",
                 "ip", "replied", "recommended", "status");
         messageBoard.setSiteId(site.getId());
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         service.insert(messageBoard, userId, ip);
         return Responses.ok();
     }

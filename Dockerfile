@@ -17,8 +17,8 @@ FROM eclipse-temurin:17-jre-noble
 
 # 也可安装国内镜像源后，再安装 libreoffice mysql-client
 # 22.04 及之前为 /etc/apt/sources.list，24.04 及之后为 /etc/apt/sources.list.d/ubuntu.sources
-# mirrors.aliyun.com/ubuntu
-# mirrors.cloud.tencent.com/ubuntu
+# 阿里云镜像源：mirrors.aliyun.com/ubuntu
+# 腾讯云镜像源：mirrors.cloud.tencent.com/ubuntu
 #RUN sed -e 's|archive.ubuntu.com/ubuntu|mirrors.cloud.tencent.com/ubuntu|g' \
 #   -e 's|security.ubuntu.com/ubuntu|mirrors.cloud.tencent.com/ubuntu|g' \
 #   -i /etc/apt/sources.list.d/ubuntu.sources \
@@ -40,7 +40,7 @@ COPY --from=builder ujcms/application/BOOT-INF/classes/application-docker.yaml .
 # 将初始文件拷贝至 /usr/src/ujcms，再由初始化脚本复制到 /ujcms/static，避免文件内容被挂载目录覆盖
 COPY src/main/webapp/ /usr/src/ujcms/
 
-RUN rm /usr/src/ujcms/WEB-INF/*.xml; \
+RUN rm -f /usr/src/ujcms/WEB-INF/*.xml; \
 # 写入时间戳，用于判断 cp 文件是否需要更新
     date +%s > /usr/src/ujcms/cp/.timestamp;
 

@@ -70,7 +70,7 @@ public class PasswordController {
             params.username = Optional.ofNullable(Contexts.findCurrentUsername()).orElseThrow(
                     () -> new Http400Exception("username cannot be null"));
         }
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Config.Security security = configService.getUnique().getSecurity();
         // IP登录失败超过限制次数
         if (ipLoginAttemptService.isExcessive(ip, security.getIpMaxAttempts())) {

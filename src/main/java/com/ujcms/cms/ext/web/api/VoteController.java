@@ -5,6 +5,7 @@ import com.ujcms.cms.core.domain.base.UserBase;
 import com.ujcms.cms.core.service.ActionService;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.cms.ext.domain.Vote;
@@ -54,11 +55,13 @@ public class VoteController {
     private final SiteResolver siteResolver;
     private final ActionService actionService;
     private final VoteService service;
+    private final Props props;
 
-    public VoteController(SiteResolver siteResolver, ActionService actionService, VoteService service) {
+    public VoteController(SiteResolver siteResolver, ActionService actionService, VoteService service, Props props) {
         this.siteResolver = siteResolver;
         this.actionService = actionService;
         this.service = service;
+        this.props = props;
     }
 
     private <T> T query(HttpServletRequest request, BiFunction<VoteArgs, Map<String, String>, T> handle) {
@@ -158,7 +161,7 @@ public class VoteController {
         }
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
         OffsetDateTime date = vote.getInterval() > 0 ? OffsetDateTime.now().minusDays(vote.getInterval()) : null;
         // 已经投过票

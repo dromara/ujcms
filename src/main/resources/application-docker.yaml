@@ -20,6 +20,9 @@ ujcms.init-port: ${UJCMS_INIT_PORT:}
 ujcms.init-username: ${UJCMS_INIT_USERNAME:}
 # 初始化密码
 ujcms.init-password: ${UJCMS_INIT_PASSWORD:}
+# IP 反向代理深度。如果使用反向代理，需设置为 1；使用 CDN 再加上反向代理，则需设置为 2；否则无法获取真实 IP。默认：0
+# 反向代理需要将客户端真实 IP 保存在 HTTP 请求头中，如 X-Forwarded-For
+ujcms.ip-proxy-depth: ${UJCMS_IP_PROXY_DEPTH:0}
 
 # 是否启用 Office 功能（商业版功能）
 jodconverter.local.enabled: ${UJCMS_OFFICE_ENABLED:false}

@@ -73,7 +73,7 @@ public class JwtAuthController {
         Config config = configService.getUnique();
         Config.Security security = config.getSecurity();
         Config.Sms sms = config.getSms();
-        String ip = Servlets.getRemoteAddr(request);
+        String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         // IP登录失败超过限制次数
         if (ipLoginAttemptService.isExcessive(ip, security.getIpMaxAttempts())) {
             loginLogService.loginFailure(params.username, ip, LoginLog.STATUS_IP_EXCESSIVE_ATTEMPTS);
@@ -123,7 +123,7 @@ public class JwtAuthController {
         // 生成 Access Token
         Map<String, Object> result = service.createResultMap(user, params.browser, security);
         ipLoginAttemptService.success(ip);
-        userService.loginSuccess(user.getExt(), Servlets.getRemoteAddr(request));
+        userService.loginSuccess(user.getExt(), Servlets.getRemoteAddr(request, props.getIpProxyDepth()));
         loginLogService.loginSuccess(user.getId(), params.username, ip);
         return Responses.ok(result);
     }
@@ -139,7 +139,7 @@ public class JwtAuthController {
             if (user == null) {
                 return Responses.failure("user not found. username: " + username);
             }
-            loginLogService.logout(user.getId(), Servlets.getRemoteAddr(request));
+            loginLogService.logout(user.getId(), Servlets.getRemoteAddr(request, props.getIpProxyDepth()));
             return Responses.ok();
         } catch (BadJwtException e) {
             // 验证失败

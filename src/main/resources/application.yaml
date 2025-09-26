@@ -72,9 +72,9 @@ ujcms.database-bin-path:
 #ujcms.database-bin-path:
 
 # 瀚高数据库（不能使用 PostgreSQL 原版驱动）
-#spring.datasource.url: jdbc:highgo://localhost:5866/ujcms
+#spring.datasource.url: jdbc:highgo://localhost:5866/highgo
 #spring.datasource.username: highgo
-#spring.datasource.password: password
+#spring.datasource.password: Highgo@123
 #spring.datasource.driver-class-name: com.highgo.jdbc.Driver
 #ujcms.data-sql-platform: postgresql
 #ujcms.database-type: postgresql
@@ -254,6 +254,8 @@ spring.freemarker.settings.log_template_exceptions: false
 # 此项配置禁止模板创建类的实例
 # 官方文档：https://freemarker.apache.org/docs/ref_builtins_expert.html#ref_builtin_new
 spring.freemarker.settings.new_builtin_class_resolver: allows_nothing
+# 禁止 springMacroRequestContext，以防 freemarker SSTI 漏洞
+spring.freemarker.expose-spring-macro-helpers: false
 
 # 官方文档：https://www.flowable.com/open-source/docs/bpmn/ch05a-Spring-Boot#flowable-application-properties
 # Whether the async executor should be activated.
@@ -281,6 +283,9 @@ ujcms.sequence-cache-size: 50
 # 比如： {@code /jsp/example.jsp} 文件的访问地址依然为 {@code /example.jsp}
 # 这样可以防止所有 {@code /jsp} 目录之外的 JSP 文件被访问，降低安全风险。
 ujcms.jsp-allowed: false
+# IP 反向代理深度。如果使用反向代理，需设置为 1；使用 CDN 再加上反向代理，则需设置为 2；否则无法获取真实 IP。默认：0
+# 反向代理需要将客户端真实 IP 保存在 HTTP 请求头中，如 X-Forwarded-For
+ujcms.ip-proxy-depth: 0
 
 # ElasticSearch 前缀。默认：ujcms
 #ujcms.es-prefix: ujcms

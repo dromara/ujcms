@@ -7,6 +7,7 @@ import com.ujcms.cms.core.service.OperationLogService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.Props;
 import com.ujcms.commons.web.Servlets;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.aspectj.lang.JoinPoint;
@@ -35,10 +36,12 @@ import java.util.Optional;
 public class OperationLogAspect {
     private final UserService userService;
     private final OperationLogService service;
+    private final Props props;
 
-    public OperationLogAspect(UserService userService, OperationLogService service) {
+    public OperationLogAspect(UserService userService, OperationLogService service, Props props) {
         this.userService = userService;
         this.service = service;
+        this.props = props;
     }
 
     /**
@@ -92,7 +95,7 @@ public class OperationLogAspect {
         bean.setUserId(user.getId());
 
         bean.setRequestMethod(request.getMethod());
-        bean.setIp(Servlets.getRemoteAddr(request));
+        bean.setIp(Servlets.getRemoteAddr(request, props.getIpProxyDepth()));
         bean.setAudit(user.isAuditObject());
         bean.setStatus(OperationLog.STATUS_SUCCESS);
 

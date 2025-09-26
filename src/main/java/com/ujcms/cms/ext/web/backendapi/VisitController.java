@@ -51,7 +51,7 @@ public class VisitController {
         // 7 天
         int maxForHour = 14 * 24 * 60 * 60;
         // 6 月
-        int maxForDay = 6 * 30 * 24 * 60 * 60;
+        int maxForDay = 6 * 31 * 24 * 60 * 60;
         if (end == null) {
             end = OffsetDateTime.now();
         }
