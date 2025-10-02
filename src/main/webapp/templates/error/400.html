@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-[#import "/spring.ftl" as spring/]
+
 [#escape x as (x)!?html]
 <html lang="zh-CN">
 <head>
@@ -13,7 +13,7 @@
   [#--<link rel="stylesheet" href="${templateUrl!'../templates'}/error/_files/vendor/fontawesome-free/css/all.min.css">--]
 </head>
 <body class="p-2">
-<h1><span>${status}</span> <small>[@spring.message code="error.http.400"/]</small></h1>
+<h1><span>${status}</span> <small>错误的请求</small></h1>
 <p>path: ${path}</p>
 <p>timestamp: <span>${timestamp?string("yyyy-MM-dd'T'HH:mm:ss.SSSXX")}</span></p>
 [#--[#if error??]<p>error: <span>${error}</span></p>[/#if]--]

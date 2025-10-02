@@ -14,7 +14,7 @@
     <update id="updateStat">
         update ujcms_site
         set max_views_       = case when today_views_ &gt;= max_views_ then today_views_ else max_views_ end,
-            max_date_        = case when today_views_ &gt;= max_views_ then #{yesterday} else max_date_ end,
+            max_date_        = case when today_views_ &gt;= max_views_ then #{yesterday,jdbcType=TIMESTAMP} else max_date_ end,
             yesterday_views_ = today_views_,
             today_views_     = 0
     </update>
