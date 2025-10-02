@@ -193,6 +193,7 @@ mybatis.configuration.default-fetch-size: 100
 mybatis.configuration.default-statement-timeout: 30
 # MyBatis 分页方言。多个配置用';'分号分开。默认支持以下国产数据库(https://github.com/pagehelper/Mybatis-PageHelper)：
 # com.github.pagehelper.page.PageAutoDialect
+# 方言别名取自 jdbc url 地址 `jdbc:<dialect>://127.0.0.1:5432`
 # 达梦数据库(dm): OracleDialect
 # 阿里云 PPAS 数据库(edb): OracleDialect
 # 神通数据库(oscar): OscarDialect
@@ -202,7 +203,7 @@ mybatis.configuration.default-statement-timeout: 30
 # 人大金仓版本(kingbase): PostgreSqlDialect
 # 人大金仓新版本(kingbase8): PostgreSqlDialect
 # openGauss数据库(opengauss): PostgreSqlDialect
-pagehelper.dialect-alias: gbase=com.github.pagehelper.dialect.helper.InformixDialect
+pagehelper.dialect-alias: gbasedbt-sqli=com.github.pagehelper.dialect.helper.OracleDialect
 # Jackson配置 https://docs.spring.io/spring-boot/docs/2.7.14/reference/htmlsingle/#howto.spring-mvc.customize-jackson-objectmapper
 spring.jackson.serialization.FAIL_ON_EMPTY_BEANS: false
 spring.jackson.deserialization.USE_BIG_DECIMAL_FOR_FLOATS: true

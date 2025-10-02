@@ -1,5 +1,9 @@
 # UJCMS 发版说明
 
+## ujcms-9.9.3
+
+* 修复：禁用 springMacroRequestContext 后，不可使用 spring.ftl 模板
+
 ## ujcms-9.9.2
 
 * 优化：栏目管理的转向链接类型，也可以有SEO描述、SEO关键字、SEO标题字段

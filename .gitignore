@@ -7,17 +7,22 @@
 *.iml
 /.idea
 
+# VSCode project files
+.vscode/*
+!.vscode/extensions.json
+
 # JS
 /node_modules
+
+# Others
+/target
+/logs
+.history/
 
 # Liquibase
 /liquibase/ujcms-db-docs
 /liquibase/temp-diff.yaml
 /liquibase/temp-changelog.yaml
-
-# Others
-/target
-/logs
 
 # Lucene
 /src/main/webapp/WEB-INF/lucene
