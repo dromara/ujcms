@@ -239,6 +239,30 @@ public class ChannelBase implements Serializable {
     private String channelStaticPath;
 
     /**
+     * SEO标题
+     */
+    @Length(max = 150)
+    @Nullable
+    @Schema(description="SEO标题")
+    private String seoTitle;
+
+    /**
+     * SEO关键词
+     */
+    @Length(max = 150)
+    @Nullable
+    @Schema(description="SEO关键词")
+    private String seoKeywords;
+
+    /**
+     * SEO描述
+     */
+    @Length(max = 1000)
+    @Nullable
+    @Schema(description="SEO描述")
+    private String seoDescription;
+
+    /**
      * 自定义主字段JSON
      */
     @Nullable
@@ -498,6 +522,33 @@ public class ChannelBase implements Serializable {
 
     public void setChannelStaticPath(@Nullable String channelStaticPath) {
         this.channelStaticPath = channelStaticPath;
+    }
+
+    @Nullable
+    public String getSeoTitle() {
+        return seoTitle;
+    }
+
+    public void setSeoTitle(@Nullable String seoTitle) {
+        this.seoTitle = seoTitle;
+    }
+
+    @Nullable
+    public String getSeoKeywords() {
+        return seoKeywords;
+    }
+
+    public void setSeoKeywords(@Nullable String seoKeywords) {
+        this.seoKeywords = seoKeywords;
+    }
+
+    @Nullable
+    public String getSeoDescription() {
+        return seoDescription;
+    }
+
+    public void setSeoDescription(@Nullable String seoDescription) {
+        this.seoDescription = seoDescription;
     }
 
     @Nullable

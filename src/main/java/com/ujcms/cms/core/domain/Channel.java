@@ -18,7 +18,6 @@ import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,23 +28,23 @@ import java.util.stream.Collectors;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Channel extends ChannelBase implements PageUrlResolver, Anchor, TreeEntity, Serializable {
+public class Channel extends ChannelBase implements PageUrlResolver, Anchor, TreeEntity {
     private static final long serialVersionUID = 1L;
     // region Normal
 
     @Schema(description = "标题。获取`seoTitle`，如不存在，则获取栏目名称")
     public String getTitle() {
-        return Optional.ofNullable(getExt().getSeoTitle()).orElseGet(this::getName);
+        return Optional.ofNullable(getSeoTitle()).orElseGet(this::getName);
     }
 
     @Schema(description = "关键词。获取`seoKeywords`")
     public String getKeywords() {
-        return Optional.ofNullable(getExt().getSeoKeywords()).orElse("");
+        return Optional.ofNullable(getSeoKeywords()).orElse("");
     }
 
     @Schema(description = "描述。获取`seoDescription`")
     public String getDescription() {
-        return Optional.ofNullable(getExt().getSeoDescription()).orElse("");
+        return Optional.ofNullable(getSeoDescription()).orElse("");
     }
 
     @JsonIgnore
@@ -390,39 +389,6 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     // endregion
 
     // region ChannelExt
-
-    @Schema(description = "SEO标题")
-    @JsonView(Views.Whole.class)
-    @Nullable
-    public String getSeoTitle() {
-        return getExt().getSeoTitle();
-    }
-
-    public void setSeoTitle(@Nullable String seoTitle) {
-        getExt().setSeoTitle(seoTitle);
-    }
-
-    @Schema(description = "SEO关键词")
-    @JsonView(Views.Whole.class)
-    @Nullable
-    public String getSeoKeywords() {
-        return getExt().getSeoKeywords();
-    }
-
-    public void setSeoKeywords(@Nullable String seoKeywords) {
-        getExt().setSeoKeywords(seoKeywords);
-    }
-
-    @Schema(description = "SEO描述")
-    @JsonView(Views.Whole.class)
-    @Nullable
-    public String getSeoDescription() {
-        return getExt().getSeoDescription();
-    }
-
-    public void setSeoDescription(@Nullable String seoDescription) {
-        getExt().setSeoDescription(seoDescription);
-    }
 
     @JsonIgnore
     @Nullable

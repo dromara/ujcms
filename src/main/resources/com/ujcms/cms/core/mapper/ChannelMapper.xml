@@ -31,6 +31,9 @@
     <result column="self_views_" jdbcType="BIGINT" property="selfViews" />
     <result column="book_" jdbcType="CHAR" property="book" />
     <result column="channel_static_path_" jdbcType="VARCHAR" property="channelStaticPath" />
+    <result column="seo_title_" jdbcType="VARCHAR" property="seoTitle" />
+    <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
+    <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Channel">
     <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
     <result column="clobs_json_" jdbcType="OTHER" property="clobsJson" />
@@ -342,12 +345,15 @@
       modified_ = #{modified,jdbcType=TIMESTAMP},
       book_ = #{book,jdbcType=CHAR},
       channel_static_path_ = #{channelStaticPath,jdbcType=VARCHAR},
+      seo_title_ = #{seoTitle,jdbcType=VARCHAR},
+      seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
+      seo_description_ = #{seoDescription,jdbcType=VARCHAR},
       mains_json_ = #{mainsJson,jdbcType=OTHER},
       clobs_json_ = #{clobsJson,jdbcType=OTHER}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Channel">
-    insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, performance_type_id_, name_, alias_, type_, article_template_, channel_template_, image_, link_url_, process_key_, target_blank_, real_, nav_, page_size_, order_desc_, allow_comment_, allow_contribute_, allow_search_, created_, modified_, depth_, order_, views_, self_views_, book_, channel_static_path_, mains_json_, clobs_json_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{channelModelId,jdbcType=BIGINT}, #{articleModelId,jdbcType=BIGINT}, #{performanceTypeId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{articleTemplate,jdbcType=VARCHAR}, #{channelTemplate,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{processKey,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{real,jdbcType=CHAR}, #{nav,jdbcType=CHAR}, #{pageSize,jdbcType=SMALLINT}, #{orderDesc,jdbcType=CHAR}, #{allowComment,jdbcType=CHAR}, #{allowContribute,jdbcType=CHAR}, #{allowSearch,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{book,jdbcType=CHAR}, #{channelStaticPath,jdbcType=VARCHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
+    insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, performance_type_id_, name_, alias_, type_, article_template_, channel_template_, image_, link_url_, process_key_, target_blank_, real_, nav_, page_size_, order_desc_, allow_comment_, allow_contribute_, allow_search_, created_, modified_, depth_, order_, views_, self_views_, book_, channel_static_path_, seo_title_, seo_keywords_, seo_description_, mains_json_, clobs_json_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{channelModelId,jdbcType=BIGINT}, #{articleModelId,jdbcType=BIGINT}, #{performanceTypeId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{articleTemplate,jdbcType=VARCHAR}, #{channelTemplate,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{processKey,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{real,jdbcType=CHAR}, #{nav,jdbcType=CHAR}, #{pageSize,jdbcType=SMALLINT}, #{orderDesc,jdbcType=CHAR}, #{allowComment,jdbcType=CHAR}, #{allowContribute,jdbcType=CHAR}, #{allowSearch,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{book,jdbcType=CHAR}, #{channelStaticPath,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.performance_type_id_, t.name_, t.alias_, t.type_, t.article_template_, t.channel_template_, t.image_, t.link_url_, t.process_key_, t.target_blank_, t.real_, t.nav_, t.page_size_, t.order_desc_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.created_, t.modified_, t.depth_, t.order_, t.views_, t.self_views_, t.book_, t.channel_static_path_, t.mains_json_, t.clobs_json_
+    t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.performance_type_id_, t.name_, t.alias_, t.type_, t.article_template_, t.channel_template_, t.image_, t.link_url_, t.process_key_, t.target_blank_, t.real_, t.nav_, t.page_size_, t.order_desc_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.created_, t.modified_, t.depth_, t.order_, t.views_, t.self_views_, t.book_, t.channel_static_path_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.mains_json_, t.clobs_json_
   </sql></mapper>

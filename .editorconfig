@@ -1,4 +1,4 @@
-[*.{ftl,ftlh,html,htm}]
+[*.{ftl,ftlh,html,htm,yaml,yml}]
 indent_style = space
 indent_size = 2
 end_of_line = lf

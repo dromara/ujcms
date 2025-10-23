@@ -27,30 +27,6 @@ public class ChannelExtBase implements Serializable {
     private Long id = 0L;
 
     /**
-     * SEO标题
-     */
-    @Length(max = 150)
-    @Nullable
-    @Schema(description="SEO标题")
-    private String seoTitle;
-
-    /**
-     * SEO关键词
-     */
-    @Length(max = 150)
-    @Nullable
-    @Schema(description="SEO关键词")
-    private String seoKeywords;
-
-    /**
-     * SEO描述
-     */
-    @Length(max = 1000)
-    @Nullable
-    @Schema(description="SEO描述")
-    private String seoDescription;
-
-    /**
      * 静态页文件
      */
     @Length(max = 255)
@@ -93,33 +69,6 @@ public class ChannelExtBase implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    @Nullable
-    public String getSeoTitle() {
-        return seoTitle;
-    }
-
-    public void setSeoTitle(@Nullable String seoTitle) {
-        this.seoTitle = seoTitle;
-    }
-
-    @Nullable
-    public String getSeoKeywords() {
-        return seoKeywords;
-    }
-
-    public void setSeoKeywords(@Nullable String seoKeywords) {
-        this.seoKeywords = seoKeywords;
-    }
-
-    @Nullable
-    public String getSeoDescription() {
-        return seoDescription;
-    }
-
-    public void setSeoDescription(@Nullable String seoDescription) {
-        this.seoDescription = seoDescription;
     }
 
     @Nullable

@@ -87,6 +87,8 @@
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_collection" domainObjectName="Collection">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
             <property name="order" value="true"/>
         </table>
         <table tableName="ujcms_collection_field" domainObjectName="CollectionField">

@@ -34,8 +34,7 @@
         update ujcms_config
         set port_ = #{port}
         where id_ = 1
-    </update>
-    <update id="update" parameterType="com.ujcms.cms.core.domain.Config">
+    </update><update id="update" parameterType="com.ujcms.cms.core.domain.Config">
     update ujcms_config
     set context_path_ = #{contextPath,jdbcType=VARCHAR},
       port_ = #{port,jdbcType=INTEGER},

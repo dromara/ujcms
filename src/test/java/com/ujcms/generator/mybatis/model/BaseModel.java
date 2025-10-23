@@ -26,8 +26,6 @@ public class BaseModel extends AbstractJavaGenerator {
         FullyQualifiedJavaType superClass = getSuperClass();
         topLevelClass.setSuperClass(superClass);
         topLevelClass.addImportedType(superClass);
-        topLevelClass.addImportedType(new FullyQualifiedJavaType("java.io.Serializable"));
-        topLevelClass.addSuperInterface(new FullyQualifiedJavaType("Serializable"));
         if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
             topLevelClass.addImportedType(new FullyQualifiedJavaType("com.ujcms.commons.db.order.OrderEntity"));
             topLevelClass.addSuperInterface(new FullyQualifiedJavaType("OrderEntity"));
