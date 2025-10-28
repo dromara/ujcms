@@ -1,10 +1,11 @@
 package com.ujcms.commons.web;
 
-import com.ujcms.commons.web.exception.Http400Exception;
-import org.apache.commons.lang3.StringUtils;
+import static com.ujcms.commons.file.FilesEx.DOUBLE_DOT;
+import static org.apache.commons.lang3.Strings.CS;
+
 import org.springframework.lang.Nullable;
 
-import static com.ujcms.commons.file.FilesEx.DOUBLE_DOT;
+import com.ujcms.commons.web.exception.Http400Exception;
 
 /**
  * 校验器
@@ -13,14 +14,14 @@ import static com.ujcms.commons.file.FilesEx.DOUBLE_DOT;
  */
 public final class Validations {
     public static void uri(String name, @Nullable String value) {
-        if (StringUtils.contains(value, DOUBLE_DOT)) {
+        if (CS.contains(value, DOUBLE_DOT)) {
             throw new Http400Exception("Parameter '" + name + "' cannot contains '..' characters: " + value);
         }
     }
 
     public static void uri(String name, @Nullable String value, String prefix) {
         uri(name, value);
-        if (!StringUtils.startsWith(value, prefix)) {
+        if (!CS.startsWith(value, prefix)) {
             throw new Http400Exception("Parameter '" + name + "' must starts with '" + prefix + "': " + value);
         }
     }

@@ -1,13 +1,12 @@
 package com.ujcms.commons.web;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -86,7 +85,6 @@ public class DirectoryRedirectInterceptor implements HandlerInterceptor {
      *
      * @see org.apache.catalina.servlets.DefaultServlet#doDirectoryRedirect
      */
-    @SuppressFBWarnings("HRS_REQUEST_PARAMETER_TO_HTTP_HEADER")
     private void doRedirect(HttpServletRequest request, HttpServletResponse response, boolean toDir)
             throws IOException {
         StringBuilder location = new StringBuilder(request.getRequestURI());

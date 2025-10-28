@@ -35,8 +35,8 @@ public class DataMigration {
         final Object obj = rs.getObject(column);
         if (obj == null) {
             return null;
-        } else if (obj instanceof String) {
-            return (String) obj;
+        } else if (obj instanceof String string) {
+            return string;
         } else {
             return obj.toString();
         }
@@ -54,12 +54,12 @@ public class DataMigration {
             return null;
         }
         final Object obj = rs.getObject(column);
-        if (obj instanceof Long) {
-            return (Long) obj;
-        } else if (obj instanceof Number) {
-            return ((Number) obj).longValue();
-        } else if (obj instanceof String) {
-            return Long.parseLong((String) obj);
+        if (obj instanceof Long longValue) {
+            return longValue;
+        } else if (obj instanceof Number number) {
+            return number.longValue();
+        } else if (obj instanceof String string) {
+            return Long.parseLong(string);
         } else {
             return null;
         }
@@ -77,12 +77,12 @@ public class DataMigration {
             return null;
         }
         final Object obj = rs.getObject(column);
-        if (obj instanceof Integer) {
-            return (Integer) obj;
-        } else if (obj instanceof Number) {
-            return ((Number) obj).intValue();
-        } else if (obj instanceof String) {
-            return Integer.parseInt((String) obj);
+        if (obj instanceof Integer integer) {
+            return integer;
+        } else if (obj instanceof Number number) {
+            return number.intValue();
+        } else if (obj instanceof String string) {
+            return Integer.parseInt(string);
         } else {
             return null;
         }
@@ -100,12 +100,12 @@ public class DataMigration {
             return null;
         }
         final Object obj = rs.getObject(column);
-        if (obj instanceof Short) {
-            return (Short) obj;
-        } else if (obj instanceof Number) {
-            return ((Number) obj).shortValue();
-        } else if (obj instanceof String) {
-            return Short.parseShort((String) obj);
+        if (obj instanceof Short shortValue) {
+            return shortValue;
+        } else if (obj instanceof Number number ) {
+            return number.shortValue();
+        } else if (obj instanceof String string) {
+            return Short.parseShort(string);
         } else {
             return null;
         }
@@ -123,8 +123,8 @@ public class DataMigration {
             return null;
         }
         final Object obj = rs.getObject(column);
-        if (obj instanceof String) {
-            String s = ((String) obj).toLowerCase();
+        if (obj instanceof String string) {
+            String s = string.toLowerCase();
             if (ArrayUtils.contains(TRUE_STRINGS, s)) {
                 return Boolean.TRUE;
             } else if (ArrayUtils.contains(FALSE_STRINGS, s)) {
@@ -132,12 +132,12 @@ public class DataMigration {
             } else {
                 throw new IllegalArgumentException(CANNOT_BE_NULL + s);
             }
-        } else if (obj instanceof Number) {
-            int i = ((Number) obj).intValue();
+        } else if (obj instanceof Number number) {
+            int i = number.intValue();
             // 非 0 为真
             return i != 0;
-        } else if (obj instanceof Boolean) {
-            return (Boolean) obj;
+        } else if (obj instanceof Boolean booleanValue) {
+            return booleanValue;
         } else {
             return null;
         }
@@ -156,17 +156,17 @@ public class DataMigration {
             return null;
         }
         final Object obj = rs.getObject(column);
-        if (obj instanceof LocalDateTime) {
-            return ((LocalDateTime) obj).atZone(ZoneId.systemDefault()).toOffsetDateTime();
-        } else if (obj instanceof OffsetDateTime) {
-            return (OffsetDateTime) obj;
-        } else if (obj instanceof ZonedDateTime) {
-            return ((ZonedDateTime) obj).toOffsetDateTime();
-        } else if (obj instanceof Date) {
-            final Instant instant = Instant.ofEpochMilli(((Date) obj).getTime());
+        if (obj instanceof LocalDateTime localDateTime) {
+            return localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
+        } else if (obj instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime;
+        } else if (obj instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.toOffsetDateTime();
+        } else if (obj instanceof Date date) {
+            final Instant instant = Instant.ofEpochMilli(date.getTime());
             return OffsetDateTime.ofInstant(instant, ZoneId.systemDefault());
-        } else if (obj instanceof Number) {
-            long milli = ((Number) obj).longValue();
+        } else if (obj instanceof Number number) {
+            long milli = number.longValue();
             return OffsetDateTime.ofInstant(Instant.ofEpochMilli(milli), ZoneId.systemDefault());
         } else {
             return null;

@@ -1,6 +1,30 @@
 package com.ujcms.cms.core.domain;
 
-import com.fasterxml.jackson.annotation.*;
+import static com.ujcms.cms.core.support.Constants.MAPPER;
+import static com.ujcms.commons.web.Strings.formatDuration;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.hibernate.validator.constraints.Length;
+import org.jsoup.Jsoup;
+import org.owasp.html.PolicyFactory;
+import org.springframework.lang.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ArticleBase;
@@ -13,22 +37,10 @@ import com.ujcms.commons.web.HtmlParserUtils;
 import com.ujcms.commons.web.PageUrlResolver;
 import com.ujcms.commons.web.Strings;
 import com.ujcms.commons.web.Views;
+
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.hibernate.validator.constraints.Length;
-import org.jsoup.Jsoup;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import java.io.Serializable;
-import java.time.OffsetDateTime;
-import java.util.*;
-
-import static com.ujcms.cms.core.support.Constants.MAPPER;
-import static com.ujcms.commons.web.Strings.formatDuration;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * 文章实体类
@@ -37,7 +49,7 @@ import static com.ujcms.commons.web.Strings.formatDuration;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Article extends ArticleBase implements PageUrlResolver, Anchor, OrderEntity, Serializable {
+public class Article extends ArticleBase implements PageUrlResolver, Anchor, OrderEntity {
     private static final long serialVersionUID = 1L;
 
     // region Normal

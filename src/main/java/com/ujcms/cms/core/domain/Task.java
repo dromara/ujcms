@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.TaskBase;
 
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.StringWriter;
 import java.time.OffsetDateTime;
 
@@ -17,8 +16,7 @@ import java.time.OffsetDateTime;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Task extends TaskBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Task extends TaskBase {
 
     public Task() {
     }

@@ -1,8 +1,10 @@
 package com.ujcms.cms.ext.domain.base;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.io.Serial;
 import java.io.Serializable;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
 /**
@@ -11,6 +13,7 @@ import org.hibernate.validator.constraints.Length;
  * @author MyBatis Generator
  */
 public class VisitPageBase implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

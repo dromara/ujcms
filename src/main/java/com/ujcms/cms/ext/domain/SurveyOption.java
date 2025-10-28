@@ -3,15 +3,12 @@ package com.ujcms.cms.ext.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ujcms.cms.ext.domain.base.SurveyOptionBase;
 
-import java.io.Serializable;
-
 /**
  * 调查问卷选项 实体类
  *
  * @author PONY
  */
-public class SurveyOption extends SurveyOptionBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class SurveyOption extends SurveyOptionBase {
 
     public double getPercent() {
         int total = getItem().getTotal();

@@ -4,15 +4,15 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.commons.web.PageUrlResolver;
 import freemarker.core.Environment;
-import freemarker.ext.servlet.FreemarkerServlet;
-import freemarker.ext.servlet.HttpRequestParametersHashModel;
+import freemarker.ext.jakarta.servlet.FreemarkerServlet;
+import freemarker.ext.jakarta.servlet.HttpRequestParametersHashModel;
 import freemarker.template.AdapterTemplateModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +24,7 @@ import java.util.Optional;
  * org.springframework.web.servlet.view.AbstractView#createMergedOutputModel(Map, HttpServletRequest, HttpServletResponse)
  *
  * @author PONY
- * @see freemarker.ext.servlet.AllHttpScopesHashModel#get(String)
+ * @see freemarker.ext.jakarta.servlet.AllHttpScopesHashModel#get(String)
  */
 public class Frontends {
     public static final String USER = "user";
@@ -56,6 +56,7 @@ public class Frontends {
         }
         // Freemarker 使用 `RequestParameters`(FreemarkerServlet.KEY_REQUEST_PARAMETERS) 作为KEY，太冗长，这里使用`Params`
         // org.springframework.web.servlet.view.freemarker.FreeMarkerView#buildTemplateModel
+        // 由于 FreeMarker 的 HttpRequestParametersHashModel 不支持 Jakarta servlet，使用 Map 替代
         request.setAttribute(PARAMS, new HttpRequestParametersHashModel(request));
         request.setAttribute(CTX, request.getContextPath());
         request.setAttribute(DY, site.getDy());
@@ -65,7 +66,7 @@ public class Frontends {
         request.setAttribute(DEFAULT_SITE, defaultSite);
         request.setAttribute(FILES, site.getFilesPath());
         // 根据
-        // freemarker.ext.servlet.AllHttpScopesHashModel#get
+        // freemarker.ext.jakarta.servlet.AllHttpScopesHashModel#get
         // org.springframework.web.servlet.view.AbstractView#createMergedOutputModel
         // 获取值的顺序依次为 model、pathVars、requestAttribute
         String pageParam = request.getParameter(PAGE);

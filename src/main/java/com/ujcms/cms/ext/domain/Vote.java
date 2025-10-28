@@ -8,7 +8,6 @@ import com.ujcms.cms.ext.domain.base.VoteOptionBase;
 import com.ujcms.commons.db.order.OrderEntity;
 import com.ujcms.commons.web.Views;
 
-import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +19,7 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Vote extends VoteBase implements Serializable, OrderEntity {
-    private static final long serialVersionUID = 1L;
+public class Vote extends VoteBase implements OrderEntity {
 
     /**
      * 总票数

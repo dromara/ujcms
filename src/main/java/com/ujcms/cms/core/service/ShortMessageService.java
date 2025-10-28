@@ -1,7 +1,21 @@
 package com.ujcms.cms.core.service;
 
+import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_ALIYUN;
+import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_TENCENTCLOUD;
+
+import java.util.List;
+import java.util.Objects;
+
+import com.ujcms.cms.core.domain.base.ShortMessageBase;
+import org.apache.commons.lang3.Strings;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
+import com.ujcms.cms.core.component.AliyunSmsService;
+import com.ujcms.cms.core.component.TencentSmsService;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.mapper.ShortMessageMapper;
@@ -9,18 +23,6 @@ import com.ujcms.cms.core.service.args.ShortMessageArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
-import com.ujcms.commons.sms.AliyunUtils;
-import com.ujcms.commons.sms.TencentUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Objects;
-
-import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_ALIYUN;
-import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_TENCENTCLOUD;
 
 /**
  * 短信 Service
@@ -31,10 +33,15 @@ import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_TENCENTCLOUD;
 public class ShortMessageService {
     private final ShortMessageMapper mapper;
     private final SnowflakeSequence snowflakeSequence;
+    private final TencentSmsService tencentSmsService;
+    private final AliyunSmsService aliyunSmsService;
 
-    public ShortMessageService(ShortMessageMapper mapper, SnowflakeSequence snowflakeSequence) {
+    public ShortMessageService(ShortMessageMapper mapper, SnowflakeSequence snowflakeSequence, 
+            TencentSmsService tencentSmsService, AliyunSmsService aliyunSmsService) {
         this.mapper = mapper;
         this.snowflakeSequence = snowflakeSequence;
+        this.tencentSmsService = tencentSmsService;
+        this.aliyunSmsService = aliyunSmsService;
     }
 
     /**
@@ -104,11 +111,12 @@ public class ShortMessageService {
     @Nullable
     public String sendMobileMessage(String mobile, String code, Config.Sms sms) {
         if (sms.getProvider() == PROVIDER_ALIYUN) {
-            return AliyunUtils.sendSms(sms.getAccessKeyId(), sms.getAccessKeySecret(),
+            return aliyunSmsService.sendSms(sms.getAccessKeyId(), sms.getAccessKeySecret(),
                     sms.getSignName(), sms.getTemplateCode(), sms.getCodeName(), code, mobile);
         } else if (sms.getProvider() == PROVIDER_TENCENTCLOUD) {
-            return TencentUtils.sendSms(sms.getSecretId(), sms.getSecretKey(), sms.getSdkAppId(), sms.getRegion(),
-                    sms.getSignName(), sms.getTemplateId(), code, mobile);
+            TencentSmsService.SmsConfig config = new TencentSmsService.SmsConfig(sms.getSecretId(), sms.getSecretKey(), 
+                    sms.getSdkAppId(), sms.getRegion(), sms.getSignName(), sms.getTemplateId());
+            return tencentSmsService.sendSms(config, mobile, code);
         } else {
             throw new IllegalArgumentException("Short message provider not support: " + sms.getProvider());
         }
@@ -122,7 +130,7 @@ public class ShortMessageService {
     }
 
     public void sendEmailMessage(String to, String code, Config.Email email) {
-        String text = StringUtils.replace(email.getText(), "${code}", code);
+        String text = Strings.CS.replace(email.getText(), "${code}", code);
         email.sendMail(new String[]{to}, email.getSubject(), text);
     }
 
@@ -160,7 +168,7 @@ public class ShortMessageService {
     }
 
     public List<ShortMessage> selectList(ShortMessageArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ShortMessage.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ShortMessageBase.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

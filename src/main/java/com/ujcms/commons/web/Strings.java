@@ -3,6 +3,7 @@ package com.ujcms.commons.web;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.Strings.CS;
 import org.springframework.lang.Nullable;
 import org.springframework.web.util.HtmlUtils;
 
@@ -69,7 +70,7 @@ public class Strings {
      * @param str 待解析的字符串。可以为 null
      */
     public static String standardLineBreak(String str) {
-        str = StringUtils.replace(str, "\r\n", "\n");
+        str = CS.replace(str, "\r\n", "\n");
         str = StringUtils.replaceChars(str, '\r', '\n');
         return str;
     }

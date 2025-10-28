@@ -1,18 +1,16 @@
 package com.ujcms.cms.ext.domain;
 
+import java.time.LocalDateTime;
+
 import com.ujcms.cms.ext.domain.base.VisitPageBase;
 import com.ujcms.cms.ext.domain.support.StatDateString;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 访问页面实体类
  *
  * @author PONY
  */
-public class VisitPage extends VisitPageBase implements StatDateString, Serializable {
-    private static final long serialVersionUID = 1L;
+public class VisitPage extends VisitPageBase implements StatDateString {
 
     public VisitPage() {
     }

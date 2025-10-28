@@ -1,5 +1,20 @@
 # UJCMS 发版说明
 
+## ujcms-10.0.1
+
+* 修复：liquibase 版本设置为 4.23.2，以兼容达梦数据库
+
+## ujcms-10.0.0
+
+* 新特征：升级 JDK 17
+* 新特性：升级 spring boot 3
+* 新特征：升级其它类库
+
+### 升级指南
+
+* **注意**：从 JDK 11 升级为 JDK 17
+* **注意**：本次升级重做了liquibase的changelog。无法通过程序自动升级数据库表结构，需先升级至 `9.10.0`，然后手动执行`upgrade/mysql/mysql-upgrade-9_10to10_0-before.sql`，再更新至 `10.0.0` 或更高版本
+
 ## ujcms-9.9.3
 
 * 修复：禁用 springMacroRequestContext 后，不可使用 spring.ftl 模板

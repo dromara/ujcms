@@ -73,8 +73,7 @@ public class Freemarkers {
 
     @Nullable
     private static List<String> getList(TemplateModel model) throws TemplateModelException {
-        if (model instanceof TemplateSequenceModel) {
-            TemplateSequenceModel seqModel = (TemplateSequenceModel) model;
+        if (model instanceof TemplateSequenceModel seqModel) {
             int length = seqModel.size();
             List<String> list = new ArrayList<>(length);
             for (int i = 0; i < length; i++) {
@@ -82,8 +81,7 @@ public class Freemarkers {
             }
             return list;
         }
-        if (model instanceof TemplateCollectionModelEx) {
-            TemplateCollectionModelEx collectionModel = (TemplateCollectionModelEx) model;
+        if (model instanceof TemplateCollectionModelEx collectionModel) {
             List<String> list = new ArrayList<>(collectionModel.size());
             TemplateModelIterator it = collectionModel.iterator();
             while (it.hasNext()) {
@@ -99,13 +97,11 @@ public class Freemarkers {
         if (model == null) {
             return null;
         }
-        if (model instanceof TemplateScalarModel) {
-            TemplateScalarModel scalarModel = (TemplateScalarModel) model;
+        if (model instanceof TemplateScalarModel scalarModel) {
             return scalarModel.getAsString();
         }
-        if (model instanceof TemplateNumberModel) {
+        if (model instanceof TemplateNumberModel numberModel) {
             // 如果是数字，也转换成字符串
-            TemplateNumberModel numberModel = (TemplateNumberModel) model;
             return numberModel.getAsNumber().toString();
         }
         List<String> list = getList(model);
@@ -116,7 +112,7 @@ public class Freemarkers {
     }
 
     public static <T> T required(@Nullable T value, String name) {
-        boolean blankString = value instanceof String && StringUtils.isBlank((String) value);
+        boolean blankString = value instanceof String string && StringUtils.isBlank(string);
         if (value == null || blankString) {
             throw new IllegalArgumentException(String.format(REQUIRED, name));
         }
@@ -157,13 +153,11 @@ public class Freemarkers {
         if (model == null) {
             return null;
         }
-        if (model instanceof TemplateNumberModel) {
-            TemplateNumberModel numberModel = (TemplateNumberModel) model;
+        if (model instanceof TemplateNumberModel numberModel) {
             Number number = numberModel.getAsNumber();
             return NumberUtils.convertNumberToTargetClass(number, targetClass);
         }
-        if (model instanceof TemplateScalarModel) {
-            TemplateScalarModel scalarModel = (TemplateScalarModel) model;
+        if (model instanceof TemplateScalarModel scalarModel) {
             String text = scalarModel.getAsString();
             if (StringUtils.isNotBlank(text)) {
                 try {
@@ -183,13 +177,12 @@ public class Freemarkers {
     }
 
     @Nullable
-    public static <T extends Number> Collection<T> getNumbers(@Nullable TemplateModel model, Class<T> targetClass)
+    public static <T extends Number> List<T> getNumbers(@Nullable TemplateModel model, Class<T> targetClass)
             throws TemplateModelException {
         if (model == null) {
             return null;
         }
-        if (model instanceof TemplateSequenceModel) {
-            TemplateSequenceModel seqModel = (TemplateSequenceModel) model;
+        if (model instanceof TemplateSequenceModel seqModel) {
             int length = seqModel.size();
             List<T> list = new ArrayList<>(length);
             for (int i = 0; i < length; i++) {
@@ -197,8 +190,7 @@ public class Freemarkers {
             }
             return list;
         }
-        if (model instanceof TemplateCollectionModelEx) {
-            TemplateCollectionModelEx collectionModel = (TemplateCollectionModelEx) model;
+        if (model instanceof TemplateCollectionModelEx collectionModel) {
             List<T> list = new ArrayList<>(collectionModel.size());
             TemplateModelIterator it = collectionModel.iterator();
             while (it.hasNext()) {
@@ -232,7 +224,7 @@ public class Freemarkers {
     }
 
     @Nullable
-    public static Collection<Long> getLongs(@Nullable TemplateModel model) throws TemplateModelException {
+    public static List<Long> getLongs(@Nullable TemplateModel model) throws TemplateModelException {
         return getNumbers(model, Long.class);
     }
 
@@ -246,7 +238,7 @@ public class Freemarkers {
     }
 
     @Nullable
-    public static Collection<Integer> getIntegers(@Nullable TemplateModel model) throws TemplateModelException {
+    public static List<Integer> getIntegers(@Nullable TemplateModel model) throws TemplateModelException {
         return getNumbers(model, Integer.class);
     }
 
@@ -255,12 +247,10 @@ public class Freemarkers {
         if (model == null) {
             return null;
         }
-        if (model instanceof TemplateBooleanModel) {
-            TemplateBooleanModel booleanModel = (TemplateBooleanModel) model;
+        if (model instanceof TemplateBooleanModel booleanModel) {
             return booleanModel.getAsBoolean();
         }
-        if (model instanceof TemplateScalarModel) {
-            TemplateScalarModel scalarModel = (TemplateScalarModel) model;
+        if (model instanceof TemplateScalarModel scalarModel) {
             String text = scalarModel.getAsString();
             if (StringUtils.isNotBlank(text)) {
                 return Boolean.valueOf(text);
@@ -285,8 +275,8 @@ public class Freemarkers {
         if (model == null) {
             return null;
         }
-        if (model instanceof TemporalDialerAdapter) {
-            return ((TemporalDialerAdapter) model).getObject();
+        if (model instanceof TemporalDialerAdapter temporalDialerAdapter) {
+            return temporalDialerAdapter.getObject();
         }
         throw new TemplateModelException(String.format(NOT_MATCH, "Temporal", model));
     }
@@ -300,16 +290,16 @@ public class Freemarkers {
         if (model == null) {
             return null;
         }
-        if (model instanceof TemporalDialerAdapter) {
-            Temporal temporal = ((TemporalDialerAdapter) model).getObject();
+        if (model instanceof TemporalDialerAdapter temporalDialerAdapter) {
+            Temporal temporal = temporalDialerAdapter.getObject();
             return Dates.from(temporal);
         }
-        if (model instanceof TemplateDateModel) {
-            Date date = ((TemplateDateModel) model).getAsDate();
+        if (model instanceof TemplateDateModel dateModel) {
+            Date date = dateModel.getAsDate();
             return Dates.ofDate(date);
         }
-        if (model instanceof TemplateScalarModel) {
-            String text = ((TemplateScalarModel) model).getAsString();
+        if (model instanceof TemplateScalarModel scalarModel) {
+            String text = scalarModel.getAsString();
             if (StringUtils.isBlank(text)) {
                 return null;
             }
@@ -349,8 +339,7 @@ public class Freemarkers {
 
     private static void fillMap(@Nullable TemplateModel model, BiConsumer<String, String> consumer)
             throws TemplateModelException {
-        if (model instanceof TemplateHashModelEx) {
-            TemplateHashModelEx hashModel = (TemplateHashModelEx) model;
+        if (model instanceof TemplateHashModelEx hashModel) {
             TemplateModelIterator it = hashModel.keys().iterator();
             while (it.hasNext()) {
                 String key = Freemarkers.getString(it.next());

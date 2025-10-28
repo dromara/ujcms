@@ -14,14 +14,15 @@ import com.ujcms.commons.web.exception.Http403Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -76,7 +77,7 @@ public class ArticleController {
         if (StringUtils.isNotBlank(article.getLinkUrl())) {
             return "redirect:" + article.getUrl();
         }
-        if (!StringUtils.equals(article.getExt().getAlias(), alias)) {
+        if (!Strings.CS.equals(article.getExt().getAlias(), alias)) {
             return "redirect:" + article.getUrl();
         }
         modelMap.put("article", article);

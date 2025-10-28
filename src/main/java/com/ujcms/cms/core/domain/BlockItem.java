@@ -10,8 +10,7 @@ import com.ujcms.commons.db.order.OrderEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.Pattern;
-import java.io.Serializable;
+import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,8 +22,7 @@ import java.util.Optional;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class BlockItem extends BlockItemBase implements Anchor, OrderEntity, Serializable {
-    private static final long serialVersionUID = 1L;
+public class BlockItem extends BlockItemBase implements Anchor, OrderEntity {
 
     @Schema(description = "URL地址")
     @Override

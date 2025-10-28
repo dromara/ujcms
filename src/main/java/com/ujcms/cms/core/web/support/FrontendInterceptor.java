@@ -8,13 +8,13 @@ import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Frontends;
 import org.springframework.lang.Nullable;
-import org.springframework.mobile.device.Device;
-import org.springframework.mobile.device.DeviceResolver;
+import ua_parser.Client;
+import ua_parser.Parser;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 /**
@@ -26,14 +26,14 @@ public class FrontendInterceptor implements HandlerInterceptor {
     private final UserService userService;
     private final SiteService siteService;
     private final ConfigService configService;
-    private final DeviceResolver deviceResolver;
+    private final Parser uaParser;
 
     public FrontendInterceptor(UserService userService, SiteService siteService, ConfigService configService,
-                               DeviceResolver deviceResolver) {
+                               Parser uaParser) {
         this.userService = userService;
         this.siteService = siteService;
         this.configService = configService;
-        this.deviceResolver = deviceResolver;
+        this.uaParser = uaParser;
     }
 
     @Override
@@ -42,8 +42,12 @@ public class FrontendInterceptor implements HandlerInterceptor {
         Optional.ofNullable(Contexts.findCurrentUsername()).map(userService::selectByUsername)
                 .ifPresent(Contexts::setCurrentUser);
         // 访问设备
-        Device device = deviceResolver.resolveDevice(request);
-        Contexts.setMobile(device.isMobile());
+        String userAgent = request.getHeader("User-Agent");
+        Client client = uaParser.parse(userAgent);
+        boolean isMobile = "Mobile".equals(client.device.family) || 
+                          "Android".equals(client.os.family) || 
+                          "iOS".equals(client.os.family);
+        Contexts.setMobile(isMobile);
         return true;
     }
 

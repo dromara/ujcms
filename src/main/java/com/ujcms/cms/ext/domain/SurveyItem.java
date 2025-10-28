@@ -3,7 +3,6 @@ package com.ujcms.cms.ext.domain;
 import com.ujcms.cms.ext.domain.base.SurveyItemBase;
 import com.ujcms.cms.ext.domain.base.SurveyOptionBase;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +11,7 @@ import java.util.List;
  *
  * @author PONY
  */
-public class SurveyItem extends SurveyItemBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class SurveyItem extends SurveyItemBase {
 
     /**
      * 总票数

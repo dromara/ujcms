@@ -2,8 +2,6 @@ package com.ujcms.cms.core.domain;
 
 import com.ujcms.cms.core.domain.base.GlobalBase;
 
-import java.io.Serializable;
-
 /**
  * 全局对象 实体类
  * <p>
@@ -11,8 +9,7 @@ import java.io.Serializable;
  *
  * @author PONY
  */
-public class Global extends GlobalBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Global extends GlobalBase {
 
     public Global() {
     }

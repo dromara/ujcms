@@ -1,5 +1,48 @@
 package com.ujcms.cms.core;
 
+import static com.ujcms.cms.core.support.UrlConstants.API;
+import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import javax.sql.DataSource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.owasp.html.CssSchema;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.examples.EbayPolicyExample;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.nimbusds.jose.jwk.JWK;
@@ -19,45 +62,8 @@ import com.ujcms.commons.captcha.IpLoginAttemptService;
 import com.ujcms.commons.security.Pbkdf2WithHmacSm3PasswordEncoder;
 import com.ujcms.commons.security.jwt.JwtProperties;
 import com.ujcms.commons.web.JspDispatcherFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.owasp.html.CssSchema;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
-import org.owasp.html.examples.EbayPolicyExample;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.*;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.Filter;
-import javax.sql.DataSource;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.ujcms.cms.core.support.UrlConstants.API;
-import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
+import jakarta.servlet.Filter;
 
 /**
  * 安全配置
@@ -104,52 +110,47 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain backendApiFilterChain(HttpSecurity http) throws Exception {
+        // 所有 /api/backend 开头的请求为后台请求，必须登录才可访问
+        http.securityMatcher(BACKEND_API + "/**").authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         // 所有 /api 开头的请求都使用JWT权鉴
-        http.antMatcher(API + "/**").authorizeHttpRequests()
-                // 所有 /api/backend 开头的请求为后台请求，必须登录才可访问
-                .antMatchers(BACKEND_API + "/**").authenticated()
-                .anyRequest().permitAll();
-        // JWT权鉴需关闭CSRF防护
-        http.csrf().disable();
-        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
-        // JWT权鉴需关闭Session
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                // .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
-                // 使用Exception中的message信息
-                .accessDeniedHandler((request, response, ex) ->
-                        response.sendError(HttpStatus.FORBIDDEN.value(), ExceptionResolver.getMessage(ex, request)))
-        );
+        http.securityMatcher(API + "/**")
+                // JWT权鉴需关闭CSRF防护
+                .csrf(AbstractHttpConfigurer::disable).oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
+                }))
+                // JWT权鉴需关闭Session
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        // .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
+                        // 使用Exception中的message信息
+                        .accessDeniedHandler((request, response, ex) -> response.sendError(HttpStatus.FORBIDDEN.value(),
+                                ExceptionResolver.getMessage(ex, request))));
         return http.build();
     }
 
     @Bean
     @Order(2)
-    public SecurityFilterChain frontendFilterChain(
-            HttpSecurity http, DataSource dataSource,
-            Props props, ConfigService configService, LoginLogService loginLogService,
-            CaptchaTokenService captchaTokenService, IpLoginAttemptService ipLoginAttemptService
-    ) throws Exception {
+    public SecurityFilterChain frontendFilterChain(HttpSecurity http, DataSource dataSource, Props props,
+                                                   ConfigService configService, LoginLogService loginLogService, CaptchaTokenService captchaTokenService,
+                                                   IpLoginAttemptService ipLoginAttemptService) throws Exception {
         // 无后缀的请求
-        http.requestMatcher(new OrRequestMatcher(
-                new AntPathRequestMatcher("/**/{[\\w-;]*}"), new AntPathRequestMatcher("/")));
-        http.authorizeHttpRequests().anyRequest().permitAll();
-        http.rememberMe().tokenRepository(persistentTokenRepository(dataSource));
-        http.logout().logoutSuccessUrl("/");
-        // 使用Exception中的message信息。AccessDeniedHandlerImpl不使用Exception中的message信息会丢失
-        http.exceptionHandling().accessDeniedHandler((request, response, ex) ->
-                response.sendError(HttpStatus.FORBIDDEN.value(), ExceptionResolver.getMessage(ex, request)));
-        http.apply(new EncryptedPasswordLoginConfigurer<>(props, configService, loginLogService,
-                captchaTokenService, ipLoginAttemptService));
+        http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .rememberMe(rememberMe -> rememberMe.tokenRepository(persistentTokenRepository(dataSource)))
+                .logout(logout -> logout.logoutSuccessUrl("/"))
+                // 使用Exception中的message信息。AccessDeniedHandlerImpl不使用Exception中的message信息会丢失
+                .exceptionHandling(exceptions -> exceptions.accessDeniedHandler((request, response, ex) -> response
+                        .sendError(HttpStatus.FORBIDDEN.value(), ExceptionResolver.getMessage(ex, request))))
+                .with(new EncryptedPasswordLoginConfigurer<>(props, configService, loginLogService,
+                        captchaTokenService, ipLoginAttemptService), Customizer.withDefaults());
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder(Props props) {
         String pepper = props.getPasswordPepper();
-        Pbkdf2WithHmacSm3PasswordEncoder pbkdf2WithHmacSm3PasswordEncoder = StringUtils.isNotBlank(pepper) ?
-                new Pbkdf2WithHmacSm3PasswordEncoder(pepper) : new Pbkdf2WithHmacSm3PasswordEncoder();
+        Pbkdf2WithHmacSm3PasswordEncoder pbkdf2WithHmacSm3PasswordEncoder = StringUtils.isNotBlank(pepper)
+                ? new Pbkdf2WithHmacSm3PasswordEncoder(pepper)
+                : new Pbkdf2WithHmacSm3PasswordEncoder();
         String defaultEncoder = "pbkdf2";
         Map<String, PasswordEncoder> encoders = new HashMap<>(16);
         encoders.put(defaultEncoder, pbkdf2WithHmacSm3PasswordEncoder);
@@ -180,21 +181,22 @@ public class SecurityConfig {
     public PolicyFactory policyFactory() {
         return EbayPolicyExample.POLICY_DEFINITION.and(new HtmlPolicyBuilder()
                 // 允许视频元素
-                .allowElements("video").allowStandardUrlProtocols().allowAttributes("controls", "preload", "width", "height", "src").onElements("video")
-                .allowElements("audio").allowStandardUrlProtocols().allowAttributes("controls", "preload", "width", "height", "src").onElements("audio")
+                .allowElements("video").allowStandardUrlProtocols()
+                .allowAttributes("controls", "preload", "width", "height", "src").onElements("video")
+                .allowElements("audio").allowStandardUrlProtocols()
+                .allowAttributes("controls", "preload", "width", "height", "src").onElements("audio")
                 .allowElements("source").allowStandardUrlProtocols().allowAttributes("src", "type").onElements("source")
                 .allowElements("a").allowAttributes("target").matching(true, "_blank").onElements("a")
                 // TuiEditor 自带的，所以需要允许。
-                .allowElements("code").allowAttributes("data-backticks").onElements("code")
-                .allowElements("img").allowAttributes("contenteditable").onElements("img")
+                .allowElements("code").allowAttributes("data-backticks").onElements("code").allowElements("img")
+                .allowAttributes("contenteditable").onElements("img")
 
                 // 允许浮动样式
                 .allowStyling(CssSchema.withProperties(ImmutableSet.of("float")))
                 // tinymce 编辑器的图片居中要使用到display:block，而display:none可以隐形内容，所以只允许display:block。
                 .allowStyling(CssSchema.withProperties(ImmutableMap.of("display",
                         new CssSchema.Property(0, ImmutableSet.of("block"), ImmutableMap.of()))))
-                .skipRelsOnLinks("nofollow")
-                .toFactory());
+                .skipRelsOnLinks("nofollow").toFactory());
     }
 
     /**

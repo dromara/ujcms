@@ -1,8 +1,16 @@
 package com.ujcms.cms.core.service;
 
+import java.util.List;
+import java.util.Objects;
+
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Task;
+import com.ujcms.cms.core.domain.base.TaskBase;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.TaskMapper;
@@ -10,12 +18,6 @@ import com.ujcms.cms.core.service.args.TaskArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
-import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * 任务 Service
@@ -59,7 +61,7 @@ public class TaskService implements UserDeleteListener, SiteDeleteListener {
     }
 
     public List<Task> selectList(TaskArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), Task.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), TaskBase.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

@@ -4,6 +4,7 @@ import org.springframework.lang.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author PONY
@@ -80,12 +81,12 @@ public class ArticleLuceneArgs {
      * 需排除的文章ID
      */
     @Nullable
-    private Collection<Long> excludeIds;
+    private List<Long> excludeIds;
     /**
      * 状态
      */
     @Nullable
-    private Collection<Integer> status;
+    private List<Integer> status;
     /**
      * 是否启用
      */
@@ -257,20 +258,20 @@ public class ArticleLuceneArgs {
     }
 
     @Nullable
-    public Collection<Long> getExcludeIds() {
+    public List<Long> getExcludeIds() {
         return excludeIds;
     }
 
-    public void setExcludeIds(@Nullable Collection<Long> excludeIds) {
+    public void setExcludeIds(@Nullable List<Long> excludeIds) {
         this.excludeIds = excludeIds;
     }
 
     @Nullable
-    public Collection<Integer> getStatus() {
+    public List<Integer> getStatus() {
         return status;
     }
 
-    public void setStatus(@Nullable Collection<Integer> status) {
+    public void setStatus(@Nullable List<Integer> status) {
         this.status = status;
     }
 

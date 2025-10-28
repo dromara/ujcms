@@ -2,15 +2,12 @@ package com.ujcms.cms.core.domain;
 
 import com.ujcms.cms.core.domain.base.UserOrgBase;
 
-import java.io.Serializable;
-
 /**
  * 用户扩展组织关联实体类
  *
  * @author PONY
  */
-public class UserOrg extends UserOrgBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class UserOrg extends UserOrgBase {
 
     public UserOrg() {
     }

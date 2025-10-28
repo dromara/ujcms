@@ -1,15 +1,17 @@
 package com.ujcms.commons.freemarker;
 
-import com.ujcms.commons.file.FilesEx;
-import freemarker.cache.URLTemplateLoader;
-import org.apache.commons.lang3.StringUtils;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import org.apache.commons.lang3.Strings;
 import org.springframework.core.io.AbstractFileResolvingResource;
 import org.springframework.lang.Nullable;
 import org.springframework.ui.freemarker.SpringTemplateLoader;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import com.ujcms.commons.file.FilesEx;
+
+import freemarker.cache.URLTemplateLoader;
 
 /**
  * 对象存储模板加载器
@@ -23,7 +25,7 @@ public class OsTemplateLoader extends URLTemplateLoader {
     private String prefix;
 
     public OsTemplateLoader(String prefix) {
-        this.prefix = StringUtils.endsWith(prefix, FilesEx.SLASH) ? prefix : prefix + FilesEx.SLASH;
+        this.prefix = Strings.CS.endsWith(prefix, FilesEx.SLASH) ? prefix : prefix + FilesEx.SLASH;
     }
 
     /**
@@ -45,7 +47,7 @@ public class OsTemplateLoader extends URLTemplateLoader {
             conn.disconnect();
             return null;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }

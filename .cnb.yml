@@ -42,7 +42,7 @@
 .build_docker: &build_docker
   # 声明式的构建环境 https://docs.cnb.cool/
   # 可以去dockerhub上 https://hub.docker.com/_/maven 找到您需要maven和jdk版本
-  image: maven:3.9-eclipse-temurin-17
+  image: maven:3.9-eclipse-temurin-17-noble
   volumes:
     # 声明式的构建缓存 https://docs.cnb.cool/zh/grammar/pipeline.html#volumes
     - /root/.m2:copy-on-write

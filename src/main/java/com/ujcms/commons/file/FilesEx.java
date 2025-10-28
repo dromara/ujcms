@@ -1,14 +1,10 @@
 package com.ujcms.commons.file;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.HttpURLConnection;
@@ -17,7 +13,16 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.springframework.lang.Nullable;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 文件工具类
@@ -44,11 +49,11 @@ public class FilesEx {
      * 正规化 文件名。并且去除可以返回上级的 `..` 字符。
      */
     public static String normalize(String filename) {
-        return Optional.ofNullable(FilenameUtils.normalize(StringUtils.remove(filename, DOUBLE_DOT), true)).orElse("");
+        return Optional.ofNullable(FilenameUtils.normalize(Strings.CS.remove(filename, DOUBLE_DOT), true)).orElse("");
     }
 
     private static String withSlash(String filename) {
-        filename = StringUtils.replace(filename, "\\", "/");
+        filename = Strings.CS.replace(filename, "\\", "/");
         if (!filename.startsWith(SLASH)) {
             filename = SLASH + filename;
         }
@@ -65,7 +70,7 @@ public class FilesEx {
         filename = withSlash(filename);
         for (String dir : dirs) {
             dir = withSlash(dir);
-            if (StringUtils.containsIgnoreCase(filename, dir)) {
+            if (Strings.CI.contains(filename, dir)) {
                 return true;
             }
         }
@@ -116,25 +121,13 @@ public class FilesEx {
     public static String randomName(String extension) {
         StringBuilder name = new StringBuilder();
         name.append(System.currentTimeMillis());
-        String random = RandomStringUtils.random(8, '0', 'Z', true, true).toLowerCase();
+        String random = RandomStringUtils.secure().next(8, '0', 'Z', true, true).toLowerCase();
         name.append(random);
         if (StringUtils.isNotBlank(extension)) {
             name.append(".");
             name.append(extension);
         }
         return name.toString();
-    }
-
-    private static final AtomicInteger COUNTER = new AtomicInteger(0);
-
-    private static String getUniqueId() {
-        final int limit = 2000000000;
-        int current = COUNTER.getAndIncrement();
-        String id = Integer.toString(current);
-        if (current < limit) {
-            id = ("000000000" + id).substring(id.length());
-        }
-        return id;
     }
 
     /**

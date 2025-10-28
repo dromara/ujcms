@@ -2,7 +2,7 @@ package com.ujcms.cms.core.web.support;
 
 import com.ujcms.commons.db.tree.TreeMoveType;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**

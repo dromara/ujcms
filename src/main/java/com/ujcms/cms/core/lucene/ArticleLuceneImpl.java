@@ -1,9 +1,19 @@
 package com.ujcms.cms.core.lucene;
 
-import com.ujcms.cms.core.lucene.domain.EsArticle;
-import com.ujcms.cms.core.lucene.domain.WebPage;
-import com.ujcms.commons.lucene.ExpDecayValueSource;
-import com.ujcms.commons.lucene.LuceneOperations;
+import static com.ujcms.cms.core.lucene.domain.EsArticle.FIELD_PUBLISH_DATE;
+import static com.ujcms.cms.core.lucene.domain.EsArticle.FIELD_STATUS;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_BODY;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_ENABLED;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_IMAGE;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_SITE_ID;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_TITLE;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -15,22 +25,24 @@ import org.apache.lucene.queries.function.ValueSource;
 import org.apache.lucene.queries.function.valuesource.LongFieldSource;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BoostQuery;
+import org.apache.lucene.search.NormsFieldExistsQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TermQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static com.ujcms.cms.core.lucene.domain.EsArticle.*;
-import static org.apache.lucene.queryparser.classic.QueryParser.Operator;
-import static org.apache.lucene.search.BooleanClause.Occur;
+import com.ujcms.cms.core.lucene.domain.EsArticle;
+import com.ujcms.cms.core.lucene.domain.WebPage;
+import com.ujcms.commons.lucene.ExpDecayValueSource;
+import com.ujcms.commons.lucene.LuceneOperations;
 
 /**
  * 文章全文检索实现
@@ -220,7 +232,7 @@ public class ArticleLuceneImpl implements ArticleLucene {
             if (field.length() > 2 || obj == null) {
                 continue;
             }
-            long value = mapQueryValue(obj);
+            long value = WebPage.objectValue(obj);
             if (fieldAndOperator.length > 1) {
                 String operator = fieldAndOperator[1];
                 mapQueryOperator(bool, operator, field, value);
@@ -246,19 +258,6 @@ public class ArticleLuceneImpl implements ArticleLucene {
                 break;
             default:
                 throw new IllegalStateException("Operator not support: " + operator);
-        }
-    }
-
-    private static long mapQueryValue(Object obj) {
-        if (obj instanceof BigDecimal) {
-            return ((BigDecimal) obj).multiply(BigDecimal.valueOf(SCALING_FACTOR)).longValue();
-        } else if (obj instanceof Number) {
-            return ((Number) obj).longValue();
-        } else if (obj instanceof OffsetDateTime) {
-            return ((OffsetDateTime) obj).toInstant().toEpochMilli();
-        } else {
-            throw new IllegalStateException("Value type must be BigDecimal, Number, OffsetDateTime: "
-                    + obj.getClass().getName());
         }
     }
 }

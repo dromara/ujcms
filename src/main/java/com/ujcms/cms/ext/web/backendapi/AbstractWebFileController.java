@@ -13,11 +13,12 @@ import com.ujcms.commons.web.exception.Http403Exception;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -159,11 +160,11 @@ public abstract class AbstractWebFileController {
         checkName(name, params.name);
         FileHandler fileHandler = storage.getFileHandler(pathResolver);
         // 是否文本文件
-        if (StringUtils.equalsAny(FilenameUtils.getExtension(params.id), TEXT_EXTENSIONS.toArray(new String[0]))) {
+        if (Strings.CS.equalsAny(FilenameUtils.getExtension(params.id), TEXT_EXTENSIONS.toArray(new String[0]))) {
             fileHandler.store(params.id, params.text);
         }
         // 是否修改文件名
-        if (!StringUtils.equals(name, params.name)) {
+        if (!Strings.CS.equals(name, params.name)) {
             fileHandler.rename(params.id, params.name);
         }
         return Responses.ok();
@@ -176,7 +177,7 @@ public abstract class AbstractWebFileController {
         checkName(name, params.name);
         FileHandler fileHandler = storage.getFileHandler(pathResolver);
         // 是否修改文件名
-        if (!StringUtils.equals(name, params.name)) {
+        if (!Strings.CS.equals(name, params.name)) {
             fileHandler.rename(params.id, params.name);
         }
         return Responses.ok();
@@ -203,7 +204,7 @@ public abstract class AbstractWebFileController {
             boolean globalPermission = Contexts.getCurrentUser().hasGlobalPermission();
             String[] illegals = new String[]{"./", "..", "\\", "//", "~"};
             String[] illegalsEnds = new String[]{".", " "};
-            if (StringUtils.containsAny(id, illegals) || StringUtils.endsWithAny(id, illegalsEnds)) {
+            if (Strings.CS.containsAny(id, illegals) || Strings.CS.endsWithAny(id, illegalsEnds)) {
                 throw new Http400Exception("Web file illegal id: " + id);
             }
             if (FilesEx.containsDir(id, getExcludes().toArray(new String[0]))) {
@@ -221,7 +222,7 @@ public abstract class AbstractWebFileController {
             String[] illegals = new String[]{"\\", "/"};
             String[] illegalsEnds = new String[]{".", " "};
             if (StringUtils.isBlank(name) ||
-                    StringUtils.containsAny(name, illegals) || StringUtils.endsWithAny(name, illegalsEnds)) {
+                    Strings.CS.containsAny(name, illegals) || Strings.CS.endsWithAny(name, illegalsEnds)) {
                 throw new Http400Exception("Web file illegal name: " + name);
             }
             if (props.getFilesExtensionExcludes().contains(FilenameUtils.getExtension(name).toLowerCase())) {

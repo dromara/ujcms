@@ -1,6 +1,16 @@
 package com.ujcms.cms.ext.collector;
 
-import com.ujcms.commons.web.Strings;
+import static org.apache.commons.lang3.Strings.CS;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
@@ -11,15 +21,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.lang.Nullable;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import com.ujcms.commons.web.Strings;
 
 /**
  * 采集工具类
@@ -36,7 +38,7 @@ public class CollectorUtils {
                 continue;
             }
             for (int begin = pageBegin; begin <= pageEnd; begin++) {
-                list.add(StringUtils.replaceOnce(url, PLACEHOLDER, String.valueOf(begin)));
+                list.add(CS.replaceOnce(url, PLACEHOLDER, String.valueOf(begin)));
             }
         }
         if (listDesc) {
@@ -81,7 +83,7 @@ public class CollectorUtils {
         if (StringUtils.isBlank(itemAreaPattern)) {
             return matchItemUrls(url, listArea, itemUrlPattern, itemUrlReg, itemUrlJs)
                     .stream().map(item -> new ItemAreaUrl(item, null))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         List<String> itemAreas = matchItemArea(listArea, itemAreaPattern, itemAreaReg);
         List<ItemAreaUrl> results = new ArrayList<>(itemAreas.size());

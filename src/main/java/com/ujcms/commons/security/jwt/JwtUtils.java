@@ -85,7 +85,7 @@ public final class JwtUtils {
      */
     public static boolean getRememberedClaim(JWTClaimsSet jwt) {
         Object remembered = jwt.getClaim(CLAIM_REMEMBERED);
-        return remembered instanceof Boolean && (Boolean) remembered;
+        return remembered instanceof Boolean bool && bool;
     }
 
     /**
@@ -100,8 +100,8 @@ public final class JwtUtils {
      */
     public static Date getLoginTimeClaim(JWTClaimsSet jwt) throws BadJWTException {
         Object loginTime = jwt.getClaim(CLAIM_LOGIN_TIME);
-        if (loginTime instanceof Date) {
-            return (Date) loginTime;
+        if (loginTime instanceof Date date) {
+            return date;
         }
         throw new BadJWTException(CLAIM_LOGIN_TIME + " not instanceof Date");
     }
@@ -118,7 +118,7 @@ public final class JwtUtils {
      */
     public static String getLoginIdClaim(JWTClaimsSet jwt) {
         Object loginId = jwt.getClaim(CLAIM_LOGIN_ID);
-        return loginId instanceof String ? (String) loginId : null;
+        return loginId instanceof String string ? string : null;
     }
 
     /**
@@ -133,8 +133,8 @@ public final class JwtUtils {
      */
     public static Date getAuthExpiresAtClaim(JWTClaimsSet jwt) throws BadJWTException {
         Object authExpiresAt = jwt.getClaim(CLAIM_AUTH_EXPIRES_AT);
-        if (authExpiresAt instanceof Date) {
-            return (Date) authExpiresAt;
+        if (authExpiresAt instanceof Date date) {
+            return date;
         }
         throw new BadJWTException(CLAIM_AUTH_EXPIRES_AT + " not instanceof Date");
     }

@@ -1,44 +1,40 @@
 # databaseChangeLog: []
 databaseChangeLog:
 #  - include:
-#      file: db.changelog-2.0.yaml
+#      file: db.changelog-4.0-whole.yaml
 #      relativeToChangelogFile: true
 #  - include:
-#      file: db.changelog-3.0.yaml
+#      file: db.changelog-6.0.yaml
 #      relativeToChangelogFile: true
 #  - include:
-#      file: db.changelog-4.0.yaml
+#      file: db.changelog-7.0.yaml
+#      relativeToChangelogFile: true
+#  - include:
+#      file: db.changelog-8.0.yaml
+#      relativeToChangelogFile: true
+#  - include:
+#      file: db.changelog-9.0.yaml
+#      relativeToChangelogFile: true
+#  - include:
+#      file: liquibase.quartz.init.xml
+#      relativeToChangelogFile: true
+#  - include:
+#      file: db.changelog-9.5.yaml
+#      relativeToChangelogFile: true
+#  - include:
+#      file: db.changelog-9.6.yaml
+#      relativeToChangelogFile: true
+#  - include:
+#      file: db.changelog-9.8.yaml
+#      relativeToChangelogFile: true
+#  - include:
+#      file: db.changelog-9.10.yaml
 #      relativeToChangelogFile: true
   - include:
-      file: db.changelog-4.0-whole.yaml
+      file: db.changelog-10.0-whole.yaml
       relativeToChangelogFile: true
-  - include:
-      file: db.changelog-6.0.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: db.changelog-7.0.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: db.changelog-8.0.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: db.changelog-9.0.yaml
-      relativeToChangelogFile: true
-#  - include:
-#      file: org/quartz/impl/jdbcjobstore/liquibase.quartz.init.xml
+  #  - include:
+  #      file: org/quartz/impl/jdbcjobstore/liquibase.quartz.init.xml
   - include:
       file: liquibase.quartz.init.xml
       relativeToChangelogFile: true
-  - include:
-      file: db.changelog-9.5.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: db.changelog-9.6.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: db.changelog-9.8.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: db.changelog-9.10.yaml
-      relativeToChangelogFile: true
-

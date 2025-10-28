@@ -19,6 +19,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Setting;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -37,7 +38,8 @@ import static org.apache.lucene.document.Field.Store;
 @Document(indexName = "#{@props.esArticle}")
 @Setting(settingPath = "/elasticsearch/article-setting.json")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EsArticle extends WebPageWithCustoms implements Serializable {
+public class EsArticle extends WebPageWithCustoms {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public EsArticle() {
@@ -55,17 +57,11 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
     public static final String FIELD_CHANNEL_PATHS_URL = "channel.paths.url";
 
     public static SortField.Type getSortType(String property) {
-        switch (property) {
-            case FIELD_ID:
-            case FIELD_PUBLISH_DATE:
-            case FIELD_CHANNEL_ID:
-            case FIELD_CHANNEL_PATHS_ID:
-                return SortField.Type.LONG;
-            case FIELD_STATUS:
-                return SortField.Type.INT;
-            default:
-                return WebPageWithCustoms.getSortType(property);
-        }
+        return switch (property) {
+            case FIELD_ID, FIELD_PUBLISH_DATE, FIELD_CHANNEL_ID, FIELD_CHANNEL_PATHS_ID -> SortField.Type.LONG;
+            case FIELD_STATUS -> SortField.Type.INT;
+            default -> WebPageWithCustoms.getSortType(property);
+        };
     }
 
     public static EsArticle of(org.apache.lucene.document.Document doc) {
@@ -211,6 +207,7 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
      */
     @Schema(name = "EsArticle.ChannelBaseInner", description = "全文检索栏目基础实体类")
     public static class ChannelBaseInner implements Anchor, Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         public static ChannelBaseInner of(Channel channel) {
@@ -268,7 +265,8 @@ public class EsArticle extends WebPageWithCustoms implements Serializable {
      * 全文检索栏目实体类
      */
     @Schema(name = "EsArticle.ChannelInner", description = "全文检索栏目实体类")
-    public static class ChannelInner extends ChannelBaseInner implements Serializable {
+    public static class ChannelInner extends ChannelBaseInner {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         public static ChannelInner of(Channel channel) {

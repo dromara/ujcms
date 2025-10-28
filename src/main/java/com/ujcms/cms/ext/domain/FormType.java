@@ -6,15 +6,12 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.ext.domain.base.FormTypeBase;
 import com.ujcms.commons.db.order.OrderEntity;
 
-import java.io.Serializable;
-
 /**
  * 模型类型
  *
  * @author PONY
  */
-public class FormType extends FormTypeBase implements Serializable, OrderEntity {
-    private static final long serialVersionUID = 1L;
+public class FormType extends FormTypeBase implements OrderEntity {
     /**
      * 站点
      */

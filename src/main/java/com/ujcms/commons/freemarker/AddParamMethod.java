@@ -6,6 +6,7 @@ import freemarker.template.TemplateMethodModelEx;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -61,7 +62,7 @@ public class AddParamMethod implements TemplateMethodModelEx {
         }
         StringBuilder buff = new StringBuilder(dynamicUrl).append("?");
         if (StringUtils.isNotBlank(queryString)) {
-            buff.append(StringUtils.removeStart(queryString, "&"));
+            buff.append(Strings.CS.removeStart(queryString, "&"));
             if (!values.isEmpty()) {
                 buff.append("&");
             }

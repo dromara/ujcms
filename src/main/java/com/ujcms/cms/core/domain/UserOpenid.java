@@ -3,15 +3,12 @@ package com.ujcms.cms.core.domain;
 import com.ujcms.cms.core.domain.base.UserOpenidBase;
 import com.ujcms.commons.security.oauth.OauthToken;
 
-import java.io.Serializable;
-
 /**
  * 用户Openid实体类
  *
  * @author PONY
  */
-public class UserOpenid extends UserOpenidBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class UserOpenid extends UserOpenidBase {
 
     public UserOpenid() {
     }

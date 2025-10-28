@@ -1,5 +1,26 @@
 package com.ujcms.cms.core.domain;
 
+import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
+import static com.ujcms.cms.core.support.Constants.MAPPER;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.owasp.html.PolicyFactory;
+import org.springframework.lang.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,22 +29,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.ModelBase;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.commons.web.HtmlParserUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
-import static com.ujcms.cms.core.support.Constants.MAPPER;
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 /**
  * 模型实体类
@@ -32,8 +37,7 @@ import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Model extends ModelBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Model extends ModelBase {
 
     /**
      * 是否全局共享
@@ -65,7 +69,7 @@ public class Model extends ModelBase implements Serializable {
         if (value instanceof List) {
             List<?> list = (List<?>) value;
             assembled.put(name, list.stream().filter(Objects::nonNull).map(Object::toString)
-                    .collect(Collectors.toList()));
+                    .toList());
         }
         if (valueKey instanceof List) {
             List<?> listKey = (List<?>) valueKey;
@@ -75,14 +79,14 @@ public class Model extends ModelBase implements Serializable {
                 } else {
                     return val.toString();
                 }
-            }).collect(Collectors.toList()));
+            }).toList());
         }
     }
 
     private static void assembleSelect(Map<String, Object> assembled, String dataType,
                                        String name, Object value, String nameKey, Object valueKey) {
-        if (value instanceof String) {
-            assembled.put(name, value);
+        if (value instanceof String string) {
+            assembled.put(name, string);
         }
         if (valueKey instanceof String || valueKey instanceof Number) {
             if (DATA_TYPE_NUMBER.equals(dataType)) {
@@ -96,19 +100,21 @@ public class Model extends ModelBase implements Serializable {
     private static void assembleDate(Map<String, Object> assembled, String name, Object value) {
         if (value instanceof OffsetDateTime) {
             assembled.put(name, value);
-        } else if (value instanceof String) {
-            assembled.put(name, ISO_OFFSET_DATE_TIME.parse((String) value, OffsetDateTime::from));
-        } else if (value instanceof Number) {
+        } else if (value instanceof String string) {
+            assembled.put(name, ISO_OFFSET_DATE_TIME.parse(string, OffsetDateTime::from));
+        } else if (value instanceof Number number) {
             assembled.put(name, OffsetDateTime.ofInstant(
-                    Instant.ofEpochSecond(((Number) value).longValue()), ZoneId.systemDefault()));
+                    Instant.ofEpochSecond(number.longValue()), ZoneId.systemDefault()));
         }
     }
 
     private static void assembleBoolean(Map<String, Object> assembled, String name, Object value) {
-        if (value instanceof Boolean) {
-            assembled.put(name, value);
-        } else if (value instanceof String) {
-            assembled.put(name, Boolean.valueOf((String) value));
+        if (value instanceof Boolean bool) {
+            assembled.put(name, bool);
+        } else if (value instanceof String string) {
+            assembled.put(name, Boolean.valueOf(string));
+        } else if (value instanceof Number number) {
+            assembled.put(name, Boolean.valueOf(number.longValue() != 0));
         }
     }
 
@@ -124,8 +130,7 @@ public class Model extends ModelBase implements Serializable {
             Object value = map.get(name);
             Object valueKey = map.get(nameKey);
             switch (type) {
-                case Model.TYPE_NUMBER:
-                case Model.TYPE_SLIDER:
+                case Model.TYPE_NUMBER,Model.TYPE_SLIDER:
                     assembleNumber(assembled, field.getPrecision(), name, value);
                     break;
                 case Model.TYPE_DATE:
@@ -134,12 +139,10 @@ public class Model extends ModelBase implements Serializable {
                 case Model.TYPE_SWITCH:
                     assembleBoolean(assembled, name, value);
                     break;
-                case Model.TYPE_CHECKBOX:
-                case Model.TYPE_MULTIPLE_SELECT:
+                case Model.TYPE_CHECKBOX,Model.TYPE_MULTIPLE_SELECT:
                     assembleList(assembled, dataType, name, value, nameKey, valueKey);
                     break;
-                case Model.TYPE_RADIO:
-                case Model.TYPE_SELECT:
+                case Model.TYPE_RADIO,Model.TYPE_SELECT:
                     assembleSelect(assembled, dataType, name, value, nameKey, valueKey);
                     break;
                 default:
@@ -170,8 +173,8 @@ public class Model extends ModelBase implements Serializable {
             if (TYPE_RICH_EDITOR.equals(field.getType())) {
                 String code = field.getCode();
                 Object obj = assembledMap.get(code);
-                if (obj instanceof String) {
-                    assembledMap.put(code, policyFactory.sanitize((String) obj));
+                if (obj instanceof String string) {
+                    assembledMap.put(code, policyFactory.sanitize(string));
                 }
             }
         }
@@ -182,15 +185,13 @@ public class Model extends ModelBase implements Serializable {
         List<String> list = new ArrayList<>();
         for (Field field : getFieldList()) {
             Object obj = map.get(field.getCode());
-            if (obj instanceof String) {
+            if (obj instanceof String string) {
                 switch (field.getType()) {
                     case Model.TYPE_RICH_EDITOR:
-                        list.addAll(HtmlParserUtils.getUrls((String) obj));
+                        list.addAll(HtmlParserUtils.getUrls(string));
                         break;
-                    case Model.TYPE_IMAGE_UPLOAD:
-                    case Model.TYPE_VIDEO_UPLOAD:
-                    case Model.TYPE_FILE_UPLOAD:
-                        list.add((String) obj);
+                    case Model.TYPE_IMAGE_UPLOAD,Model.TYPE_VIDEO_UPLOAD,Model.TYPE_FILE_UPLOAD:
+                        list.add(string);
                         break;
                     default:
                 }

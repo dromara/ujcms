@@ -1,6 +1,32 @@
 package com.ujcms.cms.core.domain;
 
-import com.fasterxml.jackson.annotation.*;
+import static com.ujcms.commons.web.UrlBuilder.DOUBLE_SLASH;
+import static com.ujcms.commons.web.UrlBuilder.HTTPS_PROTOCOL;
+import static com.ujcms.commons.web.UrlBuilder.HTTP_PROTOCOL;
+import static com.ujcms.commons.web.UrlBuilder.SLASH;
+
+import java.io.Serializable;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.hibernate.validator.constraints.Length;
+import org.owasp.html.PolicyFactory;
+import org.springframework.lang.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ujcms.cms.core.domain.base.SiteBase;
@@ -10,20 +36,10 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.commons.db.tree.TreeEntity;
 import com.ujcms.commons.web.UrlBuilder;
+
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.Length;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-import java.io.Serializable;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.ujcms.commons.web.UrlBuilder.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * 站点实体类
@@ -32,8 +48,7 @@ import static com.ujcms.commons.web.UrlBuilder.*;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"watermarkSettings", "htmlSettings", "messageBoardSettings", "handler"})
-public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
-    private static final long serialVersionUID = 1L;
+public class Site extends SiteBase implements Anchor, TreeEntity {
 
     /**
      * 获取动态地址，含部署路径、子目录，不含域名、端口。如：{@code /contextPath/subDir}
@@ -129,8 +144,9 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
     }
 
     @Schema(description = "站点层级名称。从一级栏目到当前栏目的名称列表")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public List<String> getNames() {
-        return getPaths().stream().map(SiteBase::getName).collect(Collectors.toList());
+        return getPaths().stream().map(SiteBase::getName).toList();
     }
 
     /**
@@ -249,7 +265,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity, Serializable {
 
     private String getStaticUrl(String storageUrl, boolean isAppendMobilePath, String url) {
         UrlBuilder builder = UrlBuilder.of();
-        if (!StringUtils.startsWithAny(storageUrl, HTTP_PROTOCOL, HTTPS_PROTOCOL)) {
+        if (!Strings.CS.startsWithAny(storageUrl, HTTP_PROTOCOL, HTTPS_PROTOCOL)) {
             builder.appendProtocol(getProtocol()).appendDomain(getDomain()).appendPort(getConfig().getPort());
             builder.appendPath(getConfig().getContextPath());
         }

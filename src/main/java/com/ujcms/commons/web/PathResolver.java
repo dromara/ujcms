@@ -3,7 +3,7 @@ package com.ujcms.commons.web;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.lang.Nullable;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.io.File;
 
 /**

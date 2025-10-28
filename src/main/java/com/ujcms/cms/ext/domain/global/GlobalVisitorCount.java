@@ -1,12 +1,11 @@
 package com.ujcms.cms.ext.domain.global;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ujcms.cms.core.domain.global.GlobalData;
 import com.ujcms.cms.core.support.Constants;
-
-import java.io.Serializable;
-import java.time.LocalDate;
 
 /**
  * @author PONY

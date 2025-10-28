@@ -33,8 +33,7 @@ public class JsonStringTypeHandler extends BaseTypeHandler<String> {
             case POSTGRESQL:
                 ps.setObject(i, parameter, Types.OTHER);
                 break;
-            case ORACLE:
-            case DM:
+            case ORACLE,DM:
                 if (StringUtils.isBlank(parameter)) {
                     ps.setNull(i, Types.LONGVARCHAR);
                 } else {
@@ -73,13 +72,12 @@ public class JsonStringTypeHandler extends BaseTypeHandler<String> {
         if (result == null) {
             return null;
         }
-        if (result instanceof Clob) {
+        if (result instanceof Clob clob) {
             // Oracle、DM(达梦) 返回 Clob 类型
-            Clob clob = (Clob) result;
             return clob.getSubString(1, (int) clob.length());
-        } else if (result instanceof String) {
+        } else if (result instanceof String string) {
             // MySQL 返回 String 类型
-            return (String) result;
+            return string;
         } else {
             // Postgresql 为 org.postgresql.util.PGobject。调用 toString() 方法即可
             return result.toString();

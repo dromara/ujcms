@@ -10,7 +10,6 @@ import com.ujcms.cms.ext.domain.base.MessageBoardBase;
 import com.ujcms.commons.web.HtmlParserUtils;
 import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -20,8 +19,7 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class MessageBoard extends MessageBoardBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class MessageBoard extends MessageBoardBase {
 
     @JsonIgnore
     public List<String> getAttachmentUrls() {

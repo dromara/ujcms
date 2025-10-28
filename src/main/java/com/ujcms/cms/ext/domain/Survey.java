@@ -5,7 +5,6 @@ import com.ujcms.cms.ext.domain.base.SurveyBase;
 import com.ujcms.commons.db.order.OrderEntity;
 import com.ujcms.commons.web.Views;
 
-import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,7 @@ import java.util.List;
  *
  * @author PONY
  */
-public class Survey extends SurveyBase implements Serializable, OrderEntity {
-    private static final long serialVersionUID = 1L;
+public class Survey extends SurveyBase implements OrderEntity {
 
     /**
      * 状态

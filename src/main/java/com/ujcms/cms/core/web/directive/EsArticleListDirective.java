@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.ujcms.cms.core.web.directive.ArticleListDirective.*;
@@ -83,8 +84,8 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         OffsetDateTime beginPublishDate = getOffsetDateTime(params, BEGIN_PUBLISH_DATE);
         OffsetDateTime endPublishDate = getOffsetDateTime(params, END_PUBLISH_DATE);
         Boolean isWithImage = getBoolean(params, IS_WITH_IMAGE);
-        Collection<Long> excludeIds = getLongs(params, EXCLUDE_ID);
-        Collection<Integer> status = getIntegers(params, STATUS);
+        List<Long> excludeIds = getLongs(params, EXCLUDE_ID);
+        List<Integer> status = getIntegers(params, STATUS);
         if (status == null) {
             status = Collections.singletonList((int) Article.STATUS_PUBLISHED);
         }

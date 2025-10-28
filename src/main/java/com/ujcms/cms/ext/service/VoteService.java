@@ -48,7 +48,7 @@ public class VoteService implements SiteDeleteListener {
     private void updateVoteOptions(Long voteId, List<VoteOption> optionList) {
         // 删除
         optionMapper.deleteByVoteId(voteId,
-                optionList.stream().map(VoteOptionBase::getId).filter(id -> id > 0).collect(Collectors.toList()));
+                optionList.stream().map(VoteOptionBase::getId).filter(id -> id > 0).toList());
         int order = 1;
         for (VoteOption option : optionList) {
             option.setVoteId(voteId);

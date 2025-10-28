@@ -1,10 +1,7 @@
 package com.ujcms.commons.file;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPClientConfig;
-import org.apache.commons.net.ftp.FTPReply;
-import org.apache.commons.net.ftp.FTPSClient;
+import org.apache.commons.net.ftp.*;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.DestroyMode;
 import org.apache.commons.pool2.PooledObject;
@@ -53,14 +50,14 @@ public class FtpClientFactory extends BasePooledObjectFactory<FTPClient> {
         // 登录是否成功
         if (!FTPReply.isPositiveCompletion(reply)) {
             ftp.disconnect();
-            throw new RuntimeException("FTP login failed.");
+            throw new IllegalStateException("FTP login failed.");
         }
         // 加密模式的设置
-        if (ftp instanceof FTPSClient) {
+        if (ftp instanceof FTPSClient ftpsClient) {
             // 设置缓冲大小 Set protection buffer size
-            ((FTPSClient) ftp).execPBSZ(0);
+            ftpsClient.execPBSZ(0);
             // 开启加密传输 Set data channel protection to private
-            ((FTPSClient) ftp).execPROT("P");
+            ftpsClient.execPROT("P");
         }
         // 被动模式 或 主动模式
         if (properties.isPassive()) {
@@ -70,7 +67,7 @@ public class FtpClientFactory extends BasePooledObjectFactory<FTPClient> {
             ftp.enterLocalActiveMode();
         }
         // 使用二进制传输数据
-        ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
+        ftp.setFileType(FTP.BINARY_FILE_TYPE);
         return ftp;
     }
 

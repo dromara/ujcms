@@ -96,8 +96,8 @@ public class BaseController extends AbstractJavaGenerator {
         topLevelClass.addImportedType("org.springframework.http.ResponseEntity");
         topLevelClass.addImportedType("org.springframework.web.bind.annotation.*");
         topLevelClass.addImportedType("org.springframework.security.access.prepost.PreAuthorize");
-        topLevelClass.addImportedType("javax.servlet.http.HttpServletRequest");
-        topLevelClass.addImportedType("javax.validation.Valid");
+        topLevelClass.addImportedType("jakarta.servlet.http.HttpServletRequest");
+        topLevelClass.addImportedType("jakarta.validation.Valid");
         topLevelClass.addImportedType("java.util.List");
         topLevelClass.addImportedType("java.util.Optional");
 

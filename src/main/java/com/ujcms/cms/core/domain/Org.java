@@ -1,19 +1,20 @@
 package com.ujcms.cms.core.domain;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.springframework.lang.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ujcms.cms.core.domain.base.OrgBase;
 import com.ujcms.commons.db.tree.TreeEntity;
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 组织实体类
@@ -22,8 +23,7 @@ import java.util.stream.Collectors;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Org extends OrgBase implements TreeEntity, Serializable {
-    private static final long serialVersionUID = 1L;
+public class Org extends OrgBase implements TreeEntity {
 
     @Schema(description = "组织层级。从一级组织到当前组织的列表。只有在单独查询组织对象时，才有此属性；查询组织列表时，此属性只包含当前组织")
     @JsonIncludeProperties({"id", "name"})
@@ -38,8 +38,9 @@ public class Org extends OrgBase implements TreeEntity, Serializable {
     }
 
     @Schema(description = "名称层级列表")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public List<String> getNames() {
-        return getPaths().stream().map(OrgBase::getName).collect(Collectors.toList());
+        return getPaths().stream().map(OrgBase::getName).toList();
     }
 
     @Nullable

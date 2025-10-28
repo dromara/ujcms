@@ -1,5 +1,31 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
+import static com.ujcms.commons.query.QueryUtils.getQueryMap;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
@@ -31,26 +57,12 @@ import com.ujcms.commons.web.Servlets;
 import com.ujcms.commons.web.Views;
 import com.ujcms.commons.web.exception.Http400Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static com.ujcms.cms.core.support.Contexts.getCurrentSiteId;
-import static com.ujcms.commons.query.QueryUtils.getQueryMap;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 栏目 Controller
@@ -69,7 +81,6 @@ public class ChannelController {
     private final RoleChannelMapper roleChannelMapper;
     private final TemplateService templateService;
 
-    @Autowired
     public ChannelController(HtmlGenerator generator, GroupService groupService, RoleService roleService,
                              ChannelService service,
                              GroupAccessMapper groupAccessMapper, RoleArticleMapper roleArticleMapper,
@@ -141,11 +152,11 @@ public class ChannelController {
         channel.setCustoms(bean.getCustoms());
         // 默认给所有用户组、角色权限
         List<Long> groupIds = groupService.listNotAllAccessPermission().stream()
-                .map(GroupBase::getId).collect(Collectors.toList());
+                .map(GroupBase::getId).toList();
         List<Long> articleRoleIds = roleService.listNotAllArticlePermission(site.getId()).stream()
-                .map(RoleBase::getId).collect(Collectors.toList());
+                .map(RoleBase::getId).toList();
         List<Long> channelRoleIds = roleService.listNotAllChannelPermission(site.getId()).stream()
-                .map(RoleBase::getId).collect(Collectors.toList());
+                .map(RoleBase::getId).toList();
         Long parentId = bean.getParentId();
         if (parentId != null) {
             // 按上级栏目给权限

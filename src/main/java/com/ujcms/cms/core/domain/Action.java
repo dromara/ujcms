@@ -1,17 +1,15 @@
 package com.ujcms.cms.core.domain;
 
-import com.ujcms.cms.core.domain.base.ActionBase;
 import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
+import com.ujcms.cms.core.domain.base.ActionBase;
 
 /**
  * 动作 实体类
  *
  * @author PONY
  */
-public class Action extends ActionBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Action extends ActionBase {
 
     public Action() {
     }

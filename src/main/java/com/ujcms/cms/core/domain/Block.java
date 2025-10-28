@@ -6,9 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.BlockBase;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.util.Objects;
 
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
@@ -20,8 +19,7 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Block extends BlockBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Block extends BlockBase {
 
     /**
      * 是否全局共享

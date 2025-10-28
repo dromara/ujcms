@@ -26,8 +26,7 @@ public class HtmlParserUtils {
         Document doc = Jsoup.parseBodyFragment(html);
         doc.select("img,source,a").forEach(element -> {
             switch (element.tagName()) {
-                case "img":
-                case "source": {
+                case "img","source": {
                     Optional.of(element.attr("src")).filter(url -> !url.isEmpty()).ifPresent(urls::add);
                     break;
                 }

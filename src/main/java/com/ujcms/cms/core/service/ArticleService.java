@@ -382,7 +382,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         args.setTitle(title);
         args.setSiteId(siteId);
         if (excludeId != null) {
-            args.setExcludeIds(Collections.singleton(excludeId));
+            args.setExcludeIds(Collections.singletonList(excludeId));
         }
         // 获取得分最高的10条记录
         List<EsArticle> list = articleLucene.findAll(args, null, new OffsetLimitRequest(0, 10))

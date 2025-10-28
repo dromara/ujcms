@@ -6,8 +6,8 @@ import com.ujcms.commons.query.QueryParser;
 import com.ujcms.commons.query.QueryUtils;
 import com.ujcms.commons.web.PageUrlResolver;
 import freemarker.core.Environment;
-import freemarker.ext.servlet.FreemarkerServlet;
-import freemarker.ext.servlet.HttpRequestHashModel;
+import freemarker.ext.jakarta.servlet.FreemarkerServlet;
+import freemarker.ext.jakarta.servlet.HttpRequestHashModel;
 import freemarker.template.AdapterTemplateModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;
 import java.util.*;
 
@@ -41,9 +41,8 @@ public class Directives {
     @Nullable
     public static PageUrlResolver getPageUrlResolver(Environment env) throws TemplateModelException {
         TemplateModel model = env.getDataModel().get(PAGE_URL_RESOLVER);
-        if (model instanceof AdapterTemplateModel) {
-            return (PageUrlResolver) ((AdapterTemplateModel) model)
-                    .getAdaptedObject(PageUrlResolver.class);
+        if (model instanceof AdapterTemplateModel adapterTemplateModel) {
+            return (PageUrlResolver) adapterTemplateModel.getAdaptedObject(PageUrlResolver.class);
         }
         return null;
     }
@@ -51,15 +50,15 @@ public class Directives {
     @Nullable
     public static HttpServletRequest findRequest(Environment env) throws TemplateModelException {
         TemplateModel model = env.getDataModel().get(FreemarkerServlet.KEY_REQUEST);
-        if (model instanceof HttpRequestHashModel) {
-            return ((HttpRequestHashModel) model).getRequest();
+        if (model instanceof HttpRequestHashModel requestHashModel) {
+            return requestHashModel.getRequest();
         }
         return null;
     }
 
     public static HttpServletRequest getRequest(Environment env) throws TemplateModelException {
-        return Optional.ofNullable(findRequest(env)).orElseThrow(() ->
-                new TemplateModelException("'" + FreemarkerServlet.KEY_REQUEST + "' not found in DataModel"));
+        return Optional.ofNullable(findRequest(env)).orElseThrow(
+                () -> new TemplateModelException("'" + FreemarkerServlet.KEY_REQUEST + "' not found in DataModel"));
     }
 
     /**
@@ -166,8 +165,7 @@ public class Directives {
                 queryMap.putAll(Freemarkers.getStringMap(params.get(QUERY_PREFIX)));
             } else if (name.startsWith(QUERY_PREFIX)) {
                 // Freemarker 标签参数不支持 @ 和 -，用 $$ 代替 @ ，用 __ 代替 -
-                name = name.substring(QUERY_PREFIX.length())
-                        .replace("$$", "@").replace("__", "-");
+                name = name.substring(QUERY_PREFIX.length()).replace("$$", "@").replace("__", "-");
                 queryMap.put(name, Freemarkers.getString(value));
             }
         }
@@ -187,9 +185,9 @@ public class Directives {
     @Nullable
     public static String getString(Map<String, ?> params, String name) {
         Object obj = params.get(name);
-        if (obj instanceof TemplateModel) {
+        if (obj instanceof TemplateModel templateModel) {
             try {
-                return Freemarkers.getString((TemplateModel) obj);
+                return Freemarkers.getString(templateModel);
             } catch (TemplateModelException e) {
                 throw new IllegalStateException(e);
             }
@@ -209,9 +207,9 @@ public class Directives {
     @Nullable
     public static Collection<String> getStrings(Map<String, ?> params, String name) {
         Object obj = params.get(name);
-        if (obj instanceof TemplateModel) {
+        if (obj instanceof TemplateModel templateModel) {
             try {
-                return Freemarkers.getStrings((TemplateModel) obj);
+                return Freemarkers.getStrings(templateModel);
             } catch (TemplateModelException e) {
                 throw new IllegalStateException(e);
             }
@@ -226,9 +224,9 @@ public class Directives {
     @Nullable
     public static <T extends Number> T getNumber(Map<String, ?> params, String name, Class<T> targetClass) {
         Object obj = params.get(name);
-        if (obj instanceof TemplateModel) {
+        if (obj instanceof TemplateModel templateModel) {
             try {
-                return Freemarkers.getNumber((TemplateModel) obj, targetClass);
+                return Freemarkers.getNumber(templateModel, targetClass);
             } catch (TemplateModelException e) {
                 throw new IllegalStateException(e);
             }
@@ -241,12 +239,11 @@ public class Directives {
     }
 
     @Nullable
-    public static <T extends Number> Collection<T> getNumbers
-            (Map<String, ?> params, String name, Class<T> targetClass) {
+    public static <T extends Number> List<T> getNumbers(Map<String, ?> params, String name, Class<T> targetClass) {
         Object obj = params.get(name);
-        if (obj instanceof TemplateModel) {
+        if (obj instanceof TemplateModel templateModel) {
             try {
-                return Freemarkers.getNumbers((TemplateModel) obj, targetClass);
+                return Freemarkers.getNumbers(templateModel, targetClass);
             } catch (TemplateModelException e) {
                 throw new IllegalStateException(e);
             }
@@ -289,7 +286,7 @@ public class Directives {
      * 获取短整形数组。参数不存在则返回null；参数存在但为空串，则返回长度为0的数组。
      */
     @Nullable
-    public static Collection<Short> getShorts(Map<String, ?> params, String name) {
+    public static List<Short> getShorts(Map<String, ?> params, String name) {
         return getNumbers(params, name, Short.class);
     }
 
@@ -310,10 +307,9 @@ public class Directives {
      * 获取整数数组。参数不存在则返回null；参数存在但为空串，则返回长度为0的数组。
      */
     @Nullable
-    public static Collection<Integer> getIntegers(Map<String, ?> params, String name) {
+    public static List<Integer> getIntegers(Map<String, ?> params, String name) {
         return getNumbers(params, name, Integer.class);
     }
-
 
     @Nullable
     public static Long getLong(Map<String, ?> params, String name) {
@@ -329,7 +325,7 @@ public class Directives {
     }
 
     @Nullable
-    public static Collection<Long> getLongs(Map<String, ?> params, String name) {
+    public static List<Long> getLongs(Map<String, ?> params, String name) {
         return getNumbers(params, name, Long.class);
     }
 
@@ -352,9 +348,9 @@ public class Directives {
     @Nullable
     public static Boolean getBoolean(Map<String, ?> params, String name) {
         Object obj = params.get(name);
-        if (obj instanceof TemplateModel) {
+        if (obj instanceof TemplateModel templateModel) {
             try {
-                return Freemarkers.getBoolean((TemplateModel) obj);
+                return Freemarkers.getBoolean(templateModel);
             } catch (TemplateModelException e) {
                 throw new IllegalStateException(e);
             }
@@ -369,9 +365,9 @@ public class Directives {
     @Nullable
     public static OffsetDateTime getOffsetDateTime(Map<String, ?> params, String name) {
         Object obj = params.get(name);
-        if (obj instanceof TemplateModel) {
+        if (obj instanceof TemplateModel templateModel) {
             try {
-                return Freemarkers.getOffsetDateTime((TemplateModel) obj);
+                return Freemarkers.getOffsetDateTime(templateModel);
             } catch (TemplateModelException e) {
                 throw new IllegalStateException(e);
             }

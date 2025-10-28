@@ -1,13 +1,12 @@
 package com.ujcms.cms.core.lucene;
 
-import com.ujcms.cms.core.lucene.domain.EsArticle;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 
-import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.Map;
+import com.ujcms.cms.core.lucene.domain.EsArticle;
 
 /**
  * 文章全文检索接口
@@ -52,7 +51,6 @@ public interface ArticleLucene {
      * EsArticle 全文检索查询
      *
      * @param args     查询参数
-     * @param queryMap 查询 Map。包括 i1..i6, n1..n4, d1..d4
      * @param pageable 分页
      * @return 匹配的数据列表
      */

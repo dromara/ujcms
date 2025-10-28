@@ -3,6 +3,7 @@ package com.ujcms.commons.query;
 import com.ujcms.commons.web.Dates;
 import com.ujcms.commons.web.Servlets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.NumberUtils;
@@ -17,6 +18,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -251,13 +253,9 @@ public class QueryUtils {
      */
     public static String getOperator(String s) {
         switch (s) {
-            case OPERATOR_LIKE:
-            case OPERATOR_CONTAINS:
-            case OPERATOR_STARTS_WITH:
-            case OPERATOR_ENDS_WITH:
+            case OPERATOR_LIKE,OPERATOR_CONTAINS,OPERATOR_STARTS_WITH,OPERATOR_ENDS_WITH:
                 return "LIKE";
-            case OPERATOR_IN:
-            case OPERATOR_ARRAY_IN:
+            case OPERATOR_IN,OPERATOR_ARRAY_IN:
                 return "IN";
             case OPERATOR_NOT_IN:
                 return "NOT IN";
@@ -265,8 +263,7 @@ public class QueryUtils {
                 return "IS NULL";
             case OPERATOR_IS_NOT_NULL:
                 return "IS NOT NULL";
-            case OPERATOR_EQ:
-            case OPERATOR_ARRAY_EQ:
+            case OPERATOR_EQ,OPERATOR_ARRAY_EQ:
                 return "=";
             case OPERATOR_NE:
                 return "<>";
@@ -296,9 +293,7 @@ public class QueryUtils {
     @Nullable
     private static Object getStringValue(@Nullable Object obj, String operator) {
         switch (operator) {
-            case OPERATOR_IN:
-            case OPERATOR_ARRAY_IN:
-            case OPERATOR_NOT_IN:
+            case OPERATOR_IN,OPERATOR_ARRAY_IN,OPERATOR_NOT_IN:
                 return parseStrings(obj);
             case OPERATOR_CONTAINS:
                 return "%" + obj + "%";
@@ -325,7 +320,7 @@ public class QueryUtils {
     private static Object getDateValue(@Nullable Object obj, String operator) {
         OffsetDateTime date = parseDate(obj);
         // 日期类型判断小于时，需要加一天。比如大于 2008-10-01 小于 2008-10-02，实际上应该小于 2008-10-03 00:00:00
-        if (date != null && StringUtils.equalsAnyIgnoreCase(operator, OPERATOR_LE, OPERATOR_LT)) {
+        if (date != null && Strings.CI.equalsAny(operator, OPERATOR_LE, OPERATOR_LT)) {
             date = date.plusDays(1);
         }
         return date;
@@ -349,8 +344,7 @@ public class QueryUtils {
                     return parseShorts(obj);
                 }
                 return parseShort(obj);
-            case TYPE_INT:
-            case TYPE_INTEGER:
+            case TYPE_INT,TYPE_INTEGER:
                 if (isInOrNotInOperator(operator)) {
                     return parseIntegers(obj);
                 }
@@ -392,11 +386,11 @@ public class QueryUtils {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof Boolean) {
-            return (Boolean) obj;
+        if (obj instanceof Boolean bool) {
+            return bool;
         }
-        if (obj instanceof String) {
-            return Boolean.valueOf((String) obj);
+        if (obj instanceof String string) {
+            return Boolean.valueOf(string);
         }
         throw new QueryException("Cannot parse to Boolean: " + obj);
     }
@@ -406,17 +400,17 @@ public class QueryUtils {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof TemporalAccessor) {
-            return Dates.from((TemporalAccessor) obj);
+        if (obj instanceof TemporalAccessor temporalAccessor) {
+            return Dates.from(temporalAccessor);
         }
-        if (obj instanceof Date) {
-            return Dates.ofDate((Date) obj);
+        if (obj instanceof Date date) {
+            return Dates.ofDate(date);
         }
-        if (obj instanceof String) {
-            if (StringUtils.isBlank((String) obj)) {
+        if (obj instanceof String string) {
+            if (StringUtils.isBlank(string)) {
                 return null;
             }
-            return Dates.parse((String) obj);
+            return Dates.parse(string);
         }
         throw new QueryException("Cannot parse to OffsetDateTime: " + obj);
     }
@@ -426,20 +420,20 @@ public class QueryUtils {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof String) {
-            return (String) obj;
+        if (obj instanceof String string) {
+            return string;
         }
         if (obj instanceof Number) {
             return obj.toString();
         }
-        if (obj instanceof TemporalAccessor) {
-            return Instant.from((TemporalAccessor) obj).toString();
+        if (obj instanceof TemporalAccessor temporalAccessor) {
+            return Instant.from(temporalAccessor).toString();
         }
-        if (obj instanceof Date) {
-            return ((Date) obj).toInstant().toString();
+        if (obj instanceof Date date) {
+            return date.toInstant().toString();
         }
-        if (obj instanceof Collection) {
-            return StringUtils.joinWith(",", ((Collection<?>) obj).toArray());
+        if (obj instanceof Collection<?> collection) {
+            return StringUtils.joinWith(",", collection.toArray());
         }
         if (obj.getClass().isArray()) {
             return StringUtils.joinWith(",", obj);
@@ -448,7 +442,7 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static Collection<String> parseStrings(@Nullable Object obj) {
+    public static List<String> parseStrings(@Nullable Object obj) {
         return parseList(obj, String.class, Object::toString);
     }
 
@@ -458,7 +452,7 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static Collection<Integer> parseIntegers(@Nullable Object obj) {
+    public static List<Integer> parseIntegers(@Nullable Object obj) {
         return parseList(obj, Integer.class, QueryUtils::parseInteger);
     }
 
@@ -468,7 +462,7 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static Collection<Short> parseShorts(@Nullable Object obj) {
+    public static List<Short> parseShorts(@Nullable Object obj) {
         return parseList(obj, Short.class, QueryUtils::parseShort);
     }
 
@@ -478,7 +472,7 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static Collection<Long> parseLongs(@Nullable Object obj) {
+    public static List<Long> parseLongs(@Nullable Object obj) {
         return parseList(obj, Long.class, QueryUtils::parseLong);
     }
 
@@ -488,7 +482,7 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static Collection<Double> parseDoubles(@Nullable Object obj) {
+    public static List<Double> parseDoubles(@Nullable Object obj) {
         return parseList(obj, Double.class, QueryUtils::parseDouble);
     }
 
@@ -498,7 +492,7 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static Collection<BigInteger> parseBigIntegers(@Nullable Object obj) {
+    public static List<BigInteger> parseBigIntegers(@Nullable Object obj) {
         return parseList(obj, BigInteger.class, QueryUtils::parseBigInteger);
     }
 
@@ -508,7 +502,7 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static Collection<BigDecimal> parseBigDecimals(@Nullable Object obj) {
+    public static List<BigDecimal> parseBigDecimals(@Nullable Object obj) {
         return parseList(obj, BigDecimal.class, QueryUtils::parseBigDecimal);
     }
 
@@ -522,11 +516,10 @@ public class QueryUtils {
         if (clazz.equals(targetClass)) {
             return (T) obj;
         }
-        if (obj instanceof Number) {
-            return NumberUtils.convertNumberToTargetClass((Number) obj, targetClass);
+        if (obj instanceof Number number) {
+            return NumberUtils.convertNumberToTargetClass(number, targetClass);
         }
-        if (obj instanceof String) {
-            String s = (String) obj;
+        if (obj instanceof String s) {
             if (StringUtils.isBlank(s)) {
                 return null;
             }
@@ -536,27 +529,27 @@ public class QueryUtils {
     }
 
     @Nullable
-    public static <T extends Number> Collection<T> parseNumbers(@Nullable Object obj, Class<T> targetClass) {
+    public static <T extends Number> List<T> parseNumbers(@Nullable Object obj, Class<T> targetClass) {
         return parseList(obj, targetClass, it -> parseNumber(it, targetClass));
     }
 
     @SuppressWarnings("unchecked")
     @Nullable
-    public static <T> Collection<T> parseList(@Nullable Object obj, Class<T> targetClass, Function<Object, T> parser) {
+    public static <T> List<T> parseList(@Nullable Object obj, Class<T> targetClass, Function<Object, T> parser) {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof Collection<?>) {
+        if (obj instanceof Collection<?> collection) {
             if (targetClass.equals(getGenericsClass(obj))) {
-                return (Collection<T>) obj;
+                return (List<T>) obj;
             }
-            return ((Collection<?>) obj).stream().map(parser).collect(Collectors.toList());
+            return collection.stream().map(parser).toList();
         }
         if (targetClass.equals(obj.getClass().getComponentType())) {
             return Arrays.asList((T[]) obj);
         }
-        if (obj instanceof String) {
-            return Arrays.stream(StringUtils.split((String) obj, ",")).map(parser).collect(Collectors.toList());
+        if (obj instanceof String string) {
+            return Arrays.stream(StringUtils.split(string, ",")).map(parser).toList();
         }
         throw new QueryException("Cannot parse to List: " + obj);
     }
@@ -564,8 +557,8 @@ public class QueryUtils {
     @Nullable
     public static Class<?> getGenericsClass(Object obj) {
         Type type = obj.getClass().getGenericSuperclass();
-        if (type instanceof ParameterizedType) {
-            Type[] actualTypes = ((ParameterizedType) type).getActualTypeArguments();
+        if (type instanceof ParameterizedType parameterizedType) {
+            Type[] actualTypes = parameterizedType.getActualTypeArguments();
             if (actualTypes.length > 0 && actualTypes[0] instanceof Class<?>) {
                 return (Class<?>) actualTypes[0];
             }

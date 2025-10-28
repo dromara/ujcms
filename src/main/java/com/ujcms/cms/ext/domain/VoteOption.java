@@ -3,15 +3,12 @@ package com.ujcms.cms.ext.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ujcms.cms.ext.domain.base.VoteOptionBase;
 
-import java.io.Serializable;
-
 /**
  * 投票选项 实体类
  *
  * @author PONY
  */
-public class VoteOption extends VoteOptionBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class VoteOption extends VoteOptionBase {
 
     public double getPercent() {
         int total = getVote().getTotal();

@@ -3,15 +3,12 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.TagBase;
 
-import java.io.Serializable;
-
 /**
  * Tag 实体类
  *
  * @author PONY
  */
-public class Tag extends TagBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Tag extends TagBase {
 
     public Tag() {
     }

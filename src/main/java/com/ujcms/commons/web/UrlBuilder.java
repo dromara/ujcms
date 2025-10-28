@@ -1,6 +1,7 @@
 package com.ujcms.commons.web;
 
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.Strings.CS;
 import org.springframework.lang.Nullable;
 
 /**
@@ -54,11 +55,11 @@ public class UrlBuilder implements CharSequence {
     public UrlBuilder appendPath(@Nullable String path) {
         if (StringUtils.isNotBlank(path)) {
             // 为支持不需要 / 开头的路径，先要判断当前路径是否为空
-            if (StringUtils.isNotBlank(this) && !StringUtils.endsWith(this, SLASH)
-                    && !StringUtils.startsWith(path, SLASH)) {
+            if (StringUtils.isNotBlank(this) && !CS.endsWith(this, SLASH)
+                    && !CS.startsWith(path, SLASH)) {
                 // 没有 / 则补上
                 append(SLASH);
-            } else if (StringUtils.endsWith(this, SLASH) && StringUtils.startsWith(path, SLASH)) {
+            } else if (CS.endsWith(this, SLASH) && CS.startsWith(path, SLASH)) {
                 // 前后都有 / 则删除
                 buff.deleteCharAt(buff.length() - 1);
             }
@@ -70,7 +71,7 @@ public class UrlBuilder implements CharSequence {
     public UrlBuilder append(@Nullable String s) {
         if (StringUtils.isNotBlank(s)) {
             // 不允许使用 .. 退到上级目录
-            buff.append(StringUtils.remove(s, ".."));
+            buff.append(CS.remove(s, ".."));
         }
         return this;
     }

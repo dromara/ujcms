@@ -1,13 +1,13 @@
 package com.ujcms.commons.freemarker;
 
+import java.io.PrintWriter;
+import java.io.Writer;
+
 import com.ujcms.commons.web.Strings;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import freemarker.core.Environment;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
-
-import java.io.PrintWriter;
-import java.io.Writer;
 
 /**
  * Freemarker 模板异常处理类
@@ -23,7 +23,6 @@ public class SimpleTemplateExceptionHandler implements TemplateExceptionHandler 
      *
      * @see TemplateExceptionHandler#HTML_DEBUG_HANDLER
      */
-    @SuppressFBWarnings("OS_OPEN_STREAM")
     @Override
     public void handleTemplateException(TemplateException te, Environment env, Writer out) throws TemplateException {
         // Freemarker 文档中有提到通过忽略异常来处理空值问题，但过多的异常可能导致性能损失。

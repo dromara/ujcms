@@ -2,7 +2,7 @@ package com.ujcms.cms.core;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import org.springdoc.core.GroupedOpenApi;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ public class SwaggerConfig {
     @Bean
     public GroupedOpenApi frontendGroup(@Value("${ujcms.version}") String version) {
         return GroupedOpenApi.builder().group("frontend").displayName("前台API")
-                .addOpenApiCustomiser(openApi -> openApi.info(new Info().title("UJCMS 前台 API").version(version)))
+                .addOpenApiCustomizer(openApi -> openApi.info(new Info().title("UJCMS 前台 API").version(version)))
                 .packagesToScan("com.ujcms.cms.core.web.api", "com.ujcms.cms.ext.web.api")
                 .pathsToMatch("/api/**")
                 .build();
@@ -48,10 +48,10 @@ public class SwaggerConfig {
     // @Bean
     // public GroupedOpenApi backendGroup(@Value("${ujcms.version}") String version) {
     //     return GroupedOpenApi.builder().group("backend").displayName("后台API")
-    //             .addOpenApiCustomiser(openApi -> openApi.info(new Info().title("UJCMS 后台 API").version(version)))
+    //             .addOpenApiCustomizer(openApi -> openApi.info(new Info().title("UJCMS 后台 API").version(version)))
     //             .packagesToScan("com.ujcms.cms.core.web.backendapi")
     //             .pathsToMatch("/api/backend/**")
-    //             .addOpenApiCustomiser(openApi -> openApi.components(new Components()
+    //             .addOpenApiCustomizer(openApi -> openApi.components(new Components()
     //                     .addSecuritySchemes(BEARER_AUTH, new SecurityScheme()
     //                             .type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT"))))
     //             .addOperationCustomizer((operation, handlerMethod) -> {

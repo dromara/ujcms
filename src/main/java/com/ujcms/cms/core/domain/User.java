@@ -16,8 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -31,8 +30,7 @@ import java.util.stream.Stream;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(value = {"password", "handler"}, allowSetters = true)
-public class User extends UserBase implements UserDetails, Serializable {
-    private static final long serialVersionUID = 1L;
+public class User extends UserBase implements UserDetails {
 
     /**
      * 用户名和用户真实姓名
@@ -261,7 +259,7 @@ public class User extends UserBase implements UserDetails, Serializable {
 
     @JsonIgnore
     public List<Long> fetchRoleIds() {
-        return getRoleList().stream().map(Role::getId).collect(Collectors.toList());
+        return getRoleList().stream().map(Role::getId).toList();
     }
 
     @JsonIgnore

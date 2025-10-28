@@ -1,24 +1,11 @@
 package com.ujcms.cms;
 
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.nimbusds.jose.KeyLengthException;
-import com.ujcms.cms.core.service.ConfigService;
-import com.ujcms.cms.core.service.OrgService;
-import com.ujcms.cms.core.service.SiteService;
-import com.ujcms.cms.core.service.UserService;
-import com.ujcms.cms.core.support.Props;
-import com.ujcms.cms.core.support.Utils;
-import com.ujcms.cms.core.web.support.*;
-import com.ujcms.commons.freemarker.OsTemplateLoader;
-import com.ujcms.commons.image.ImageHandler;
-import com.ujcms.commons.image.ThumbnailatorHandler;
-import com.ujcms.commons.misc.LongArrayToStringSerializer;
-import com.ujcms.commons.security.jwt.HmacSm3JwsSigner;
-import com.ujcms.commons.security.jwt.HmacSm3JwsVerifier;
-import com.ujcms.commons.security.jwt.JwtProperties;
-import com.ujcms.commons.web.DirectoryRedirectInterceptor;
-import com.ujcms.commons.web.PathResolver;
-import com.ujcms.commons.web.TimerInterceptor;
+import static com.ujcms.cms.core.support.UrlConstants.API;
+import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
+import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
+
+import java.util.Properties;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
@@ -35,12 +22,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import org.springframework.mobile.device.DeviceResolver;
-import org.springframework.mobile.device.LiteDeviceResolver;
-import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -48,10 +34,32 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
-import javax.servlet.ServletContext;
-import java.util.Properties;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.nimbusds.jose.KeyLengthException;
+import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.service.OrgService;
+import com.ujcms.cms.core.service.SiteService;
+import com.ujcms.cms.core.service.UserService;
+import com.ujcms.cms.core.support.Props;
+import com.ujcms.cms.core.support.Utils;
+import com.ujcms.cms.core.web.support.BackendInterceptor;
+import com.ujcms.cms.core.web.support.ExceptionResolver;
+import com.ujcms.cms.core.web.support.FrontendApiInterceptor;
+import com.ujcms.cms.core.web.support.FrontendInterceptor;
+import com.ujcms.cms.core.web.support.UrlRedirectInterceptor;
+import com.ujcms.commons.freemarker.OsTemplateLoader;
+import com.ujcms.commons.image.ImageHandler;
+import com.ujcms.commons.image.ThumbnailatorHandler;
+import com.ujcms.commons.misc.LongArrayToStringSerializer;
+import com.ujcms.commons.security.jwt.HmacSm3JwsSigner;
+import com.ujcms.commons.security.jwt.HmacSm3JwsVerifier;
+import com.ujcms.commons.security.jwt.JwtProperties;
+import com.ujcms.commons.web.DirectoryRedirectInterceptor;
+import com.ujcms.commons.web.PathResolver;
+import com.ujcms.commons.web.TimerInterceptor;
 
-import static com.ujcms.cms.core.support.UrlConstants.*;
+import jakarta.servlet.ServletContext;
+import ua_parser.Parser;
 
 /**
  * 根据 <a href="https://start.spring.io/">start.spring.io</a> 生成的代码范例
@@ -62,7 +70,7 @@ import static com.ujcms.cms.core.support.UrlConstants.*;
  */
 @SpringBootApplication(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
 public class Application extends SpringBootServletInitializer
-        implements WebApplicationInitializer, ApplicationContextAware {
+        implements ApplicationContextAware {
     /**
      * UJCMS 配置
      */
@@ -72,11 +80,11 @@ public class Application extends SpringBootServletInitializer
     }
 
     /**
-     * 设备识别器，用于识别是否手机访问
+     * 用户代理解析器，用于识别设备类型
      */
     @Bean
-    public LiteDeviceResolver liteDeviceResolver() {
-        return new LiteDeviceResolver();
+    public Parser uaParser() {
+        return new Parser();
     }
 
     /**
@@ -107,25 +115,26 @@ public class Application extends SpringBootServletInitializer
     }
 
     @Configuration
+    @EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
     public static class WebConfigurer implements WebMvcConfigurer {
         private final UserService userService;
         private final SiteService siteService;
         private final OrgService orgService;
         private final ConfigService configService;
         private final Props props;
-        private final DeviceResolver deviceResolver;
+        private final Parser uaParser;
         private final ResourceLoader resourceLoader;
         private final ServletContext servletContext;
 
         public WebConfigurer(UserService userService, SiteService siteService, OrgService orgService,
-                             ConfigService configService, Props props, DeviceResolver deviceResolver,
+                             ConfigService configService, Props props, Parser uaParser,
                              ResourceLoader resourceLoader, ServletContext servletContext) {
             this.userService = userService;
             this.siteService = siteService;
             this.orgService = orgService;
             this.configService = configService;
             this.props = props;
-            this.deviceResolver = deviceResolver;
+            this.uaParser = uaParser;
             this.resourceLoader = resourceLoader;
             this.servletContext = servletContext;
         }
@@ -183,7 +192,7 @@ public class Application extends SpringBootServletInitializer
          */
         @Bean
         public FrontendInterceptor frontendInterceptor() {
-            return new FrontendInterceptor(userService, siteService, configService, deviceResolver);
+            return new FrontendInterceptor(userService, siteService, configService, uaParser);
         }
 
         /**

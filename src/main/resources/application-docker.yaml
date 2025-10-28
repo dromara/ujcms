@@ -1,3 +1,4 @@
+# https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.files.property-placeholders
 # 数据库连接URL
 spring.datasource.url: jdbc:mysql://${UJCMS_DB_HOST}:${UJCMS_DB_PORT:3306}/${UJCMS_DB_NAME}?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
 # 数据库用户名

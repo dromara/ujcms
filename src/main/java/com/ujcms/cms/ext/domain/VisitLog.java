@@ -1,18 +1,15 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.VisitLogBase;
-
-import java.io.Serializable;
-
 import static com.ujcms.cms.core.component.ViewCountService.BATCH_SIZE;
+
+import com.ujcms.cms.ext.domain.base.VisitLogBase;
 
 /**
  * 访问日志 实体类
  *
  * @author PONY
  */
-public class VisitLog extends VisitLogBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class VisitLog extends VisitLogBase {
 
     /**
      * FOREACH条数

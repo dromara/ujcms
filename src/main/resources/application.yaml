@@ -81,10 +81,10 @@ ujcms.database-bin-path:
 #ujcms.database-bin-path:
 
 # 达梦数据库（不可直接创建模式；应该创建用户，达梦会自动创建同名模式；用户要赋予 RESOURCE 角色；使用新建的用户连接数据库）
-#spring.datasource.url: jdbc:dm://192.168.0.240:5236/UJCMS
+#spring.datasource.url: jdbc:dm://localhost:5236/UJCMS
 ## 达梦的用户名需与 spring.datasource.url 中的数据库名一致
 #spring.datasource.username: UJCMS
-#spring.datasource.password: pass@0000
+#spring.datasource.password: Pass@0000
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
 #ujcms.data-sql-platform: dm
 ## 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
@@ -184,7 +184,7 @@ spring.main.banner-mode: off
 # 默认关闭 SpringDoc
 # 文档 JSON 地址：/v3/api-docs
 springdoc.api-docs.enabled: false
-# 文档 HTML 地址：/swagger-ui.html
+# 文档 HTML 地址：/swagger-ui/index.html (changed in SpringDoc 2.x)
 springdoc.swagger-ui.enabled: false
 
 # MyBatis 是否开启二级缓存。默认：true

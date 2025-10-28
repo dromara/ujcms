@@ -71,27 +71,27 @@ public class FormatMethod implements TemplateMethodModelEx {
     private static ZonedDateTime zonedTime(final Object target, final ZoneId defaultZoneId) {
         Objects.requireNonNull(target, "Target cannot be null");
         Objects.requireNonNull(defaultZoneId, "ZoneId cannot be null");
-        if (target instanceof Instant) {
-            return ZonedDateTime.ofInstant((Instant) target, defaultZoneId);
-        } else if (target instanceof LocalDate) {
-            return ZonedDateTime.of((LocalDate) target, LocalTime.MIDNIGHT, defaultZoneId);
-        } else if (target instanceof LocalDateTime) {
-            return ZonedDateTime.of((LocalDateTime) target, defaultZoneId);
-        } else if (target instanceof LocalTime) {
-            return ZonedDateTime.of(LocalDate.now(), (LocalTime) target, defaultZoneId);
-        } else if (target instanceof OffsetDateTime) {
-            return ((OffsetDateTime) target).atZoneSameInstant(defaultZoneId);
-        } else if (target instanceof OffsetTime) {
-            LocalTime localTime = ((OffsetTime) target).toLocalTime();
+        if (target instanceof Instant instant) {
+            return ZonedDateTime.ofInstant(instant, defaultZoneId);
+        } else if (target instanceof LocalDate localDate) {
+            return ZonedDateTime.of(localDate, LocalTime.MIDNIGHT, defaultZoneId);
+        } else if (target instanceof LocalDateTime localDateTime) {
+            return ZonedDateTime.of(localDateTime, defaultZoneId);
+        } else if (target instanceof LocalTime localTime) {
             return ZonedDateTime.of(LocalDate.now(), localTime, defaultZoneId);
-        } else if (target instanceof Year) {
-            LocalDate localDate = ((Year) target).atDay(1);
+        } else if (target instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.atZoneSameInstant(defaultZoneId);
+        } else if (target instanceof OffsetTime offsetTime) {
+            LocalTime localTime = offsetTime.toLocalTime();
+            return ZonedDateTime.of(LocalDate.now(), localTime, defaultZoneId);
+        } else if (target instanceof Year year) {
+            LocalDate localDate = year.atDay(1);
             return ZonedDateTime.of(localDate, LocalTime.MIDNIGHT, defaultZoneId);
-        } else if (target instanceof YearMonth) {
-            LocalDate localDate = ((YearMonth) target).atDay(1);
+        } else if (target instanceof YearMonth yearMonth) {
+            LocalDate localDate = yearMonth.atDay(1);
             return ZonedDateTime.of(localDate, LocalTime.MIDNIGHT, defaultZoneId);
-        } else if (target instanceof ZonedDateTime) {
-            return (ZonedDateTime) target;
+        } else if (target instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime;
         } else {
             throw new IllegalArgumentException(
                     "Cannot format object of class \"" + target.getClass().getName() + "\" as a date");

@@ -3,15 +3,12 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ujcms.cms.core.domain.base.ArticleTagBase;
 
-import java.io.Serializable;
-
 /**
  * 文章TAG关联实体类
  *
  * @author PONY
  */
-public class ArticleTag extends ArticleTagBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class ArticleTag extends ArticleTagBase {
 
     public ArticleTag() {
     }

@@ -2,6 +2,7 @@ package com.ujcms.cms.core.support;
 
 import com.ujcms.commons.security.Secures;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.lang.Nullable;
 
 /**
@@ -35,7 +36,7 @@ public class Utils {
         if (StringUtils.isBlank(secret)) {
             return false;
         }
-        return StringUtils.equals(key, getDownloadKey(id, time, secret));
+        return Strings.CS.equals(key, getDownloadKey(id, time, secret));
     }
 
     public static void boot() {

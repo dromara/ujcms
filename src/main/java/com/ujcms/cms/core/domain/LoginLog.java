@@ -1,12 +1,11 @@
 package com.ujcms.cms.core.domain;
 
+import org.springframework.lang.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.LoginLogBase;
-import org.springframework.lang.Nullable;
-
-import java.io.Serializable;
 
 /**
  * 登录日志实体类
@@ -15,8 +14,7 @@ import java.io.Serializable;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class LoginLog extends LoginLogBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class LoginLog extends LoginLogBase {
 
     public static LoginLog ofLoginFailure(@Nullable Long userId, String loginName, String ip, short status) {
         LoginLog bean = new LoginLog();

@@ -4,7 +4,6 @@ import com.ujcms.cms.ext.domain.base.VisitStatBase;
 import com.ujcms.cms.ext.domain.support.StatDateString;
 import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -20,8 +19,7 @@ import static java.time.temporal.ChronoField.DAY_OF_MONTH;
  *
  * @author PONY
  */
-public class VisitStat extends VisitStatBase implements StatDateString, Serializable {
-    private static final long serialVersionUID = 1L;
+public class VisitStat extends VisitStatBase implements StatDateString {
 
     public VisitStat() {
     }

@@ -2,10 +2,11 @@ package com.ujcms.commons.file;
 
 import com.ujcms.commons.image.Images;
 import com.ujcms.commons.web.UrlBuilder;
-import io.minio.ObjectStat;
+import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.lang.Nullable;
 
@@ -66,7 +67,7 @@ public class WebFile {
         this.fillWithFtp(file);
     }
 
-    public WebFile(String id, String displayPath, ObjectStat stat) {
+    public WebFile(String id, String displayPath, StatObjectResponse stat) {
         this.id = id;
         this.displayPath = displayPath;
         this.fillWithMinIoStat(stat);
@@ -92,10 +93,10 @@ public class WebFile {
         this.setLength(file.getSize());
     }
 
-    public void fillWithMinIoStat(ObjectStat stat) {
+    public void fillWithMinIoStat(StatObjectResponse stat) {
         this.setDirectory(this.id.endsWith(SLASH));
-        this.setLastModified(stat.createdTime().toOffsetDateTime());
-        this.setLength(stat.length());
+        this.setLastModified(stat.lastModified().toOffsetDateTime());
+        this.setLength(stat.size());
     }
 
     public void fillWithMinIoItem(Item item) {
@@ -197,9 +198,9 @@ public class WebFile {
         String extension = getExtension();
         if (Images.isImageExtension(extension)) {
             return FileType.IMAGE;
-        } else if (StringUtils.equalsAnyIgnoreCase(extension, TEXT_EXTENSIONS.toArray(new String[0]))) {
+        } else if (Strings.CI.equalsAny(extension, TEXT_EXTENSIONS.toArray(new String[0]))) {
             return FileType.TEXT;
-        } else if (StringUtils.equalsIgnoreCase(extension, ZIP_EXTENSION)) {
+        } else if (Strings.CI.equals(extension, ZIP_EXTENSION)) {
             return FileType.ZIP;
         } else {
             return FileType.FILE;

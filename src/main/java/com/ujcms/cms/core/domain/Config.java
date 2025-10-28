@@ -1,15 +1,20 @@
 package com.ujcms.cms.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ujcms.cms.core.domain.base.ConfigBase;
-import com.ujcms.cms.core.support.Constants;
-import com.ujcms.cms.core.support.StaticProps;
-import com.ujcms.commons.file.*;
-import com.ujcms.commons.web.PathResolver;
-import io.swagger.v3.oas.annotations.media.Schema;
+import static com.ujcms.cms.core.domain.Config.Storage.TYPE_LOCAL;
+import static com.ujcms.cms.core.support.Constants.MAPPER;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.StringJoiner;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.owasp.html.PolicyFactory;
@@ -17,17 +22,28 @@ import org.springframework.lang.Nullable;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.validation.constraints.*;
-import java.io.Serializable;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ujcms.cms.core.domain.base.ConfigBase;
+import com.ujcms.cms.core.support.Constants;
+import com.ujcms.cms.core.support.StaticProps;
+import com.ujcms.commons.file.FileHandler;
+import com.ujcms.commons.file.FtpClientProperties;
+import com.ujcms.commons.file.FtpFileHandler;
+import com.ujcms.commons.file.LocalFileHandler;
+import com.ujcms.commons.file.MinIoFileHandler;
+import com.ujcms.commons.web.PathResolver;
 
-import static com.ujcms.cms.core.domain.Config.Storage.TYPE_LOCAL;
-import static com.ujcms.cms.core.support.Constants.MAPPER;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 /**
  * 全局配置实体类
@@ -37,8 +53,7 @@ import static com.ujcms.cms.core.support.Constants.MAPPER;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"uploadSettings", "greySettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
         "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings", "customsSettings", "handler"})
-public class Config extends ConfigBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Config extends ConfigBase {
 
     /**
      * 是否置灰
@@ -861,6 +876,7 @@ public class Config extends ConfigBase implements Serializable {
      */
     @Schema(name = "Config.Security", description = "安全配置")
     public static class Security implements Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
         /**
          * 密码最长使用天数。可以将密码设置为在某些天数(介于 1 到 999 之间)后到期，或者将天数设置为 0，指定密码永不过期。
@@ -974,9 +990,10 @@ public class Config extends ConfigBase implements Serializable {
          */
         public static final int PASSWORD_STRENGTH_4 = 4;
 
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
         public List<String> getSsrfList() {
             return Arrays.stream(StringUtils.split(getSsrfWhiteList(), "\r\n"))
-                    .filter(StringUtils::isNotBlank).map(String::trim).collect(Collectors.toList());
+                    .filter(StringUtils::isNotBlank).map(String::trim).toList();
         }
 
         public String getPasswordPattern() {

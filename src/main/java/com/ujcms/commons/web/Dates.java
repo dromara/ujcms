@@ -101,20 +101,20 @@ public class Dates {
     }
 
     public static OffsetDateTime from(TemporalAccessor temporal) {
-        if (temporal instanceof OffsetDateTime) {
-            return (OffsetDateTime) temporal;
+        if (temporal instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime;
         }
-        if (temporal instanceof ZonedDateTime) {
-            return ((ZonedDateTime) temporal).toOffsetDateTime();
+        if (temporal instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.toOffsetDateTime();
         }
-        if (temporal instanceof Instant) {
-            return OffsetDateTime.ofInstant((Instant) temporal, ZoneId.systemDefault());
+        if (temporal instanceof Instant instant) {
+            return OffsetDateTime.ofInstant(instant, ZoneId.systemDefault());
         }
-        if (temporal instanceof LocalDateTime) {
-            return ((LocalDateTime) temporal).atZone(ZoneId.systemDefault()).toOffsetDateTime();
+        if (temporal instanceof LocalDateTime localDateTime) {
+            return localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
         }
-        if (temporal instanceof LocalDate) {
-            return ((LocalDate) temporal).atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime();
+        if (temporal instanceof LocalDate localDate) {
+            return localDate.atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime();
         }
         return OffsetDateTime.from(temporal);
     }

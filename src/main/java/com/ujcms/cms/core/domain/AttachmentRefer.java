@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.AttachmentReferBase;
 
-import java.io.Serializable;
-
 /**
  * 附件引用实体类
  *
@@ -13,8 +11,7 @@ import java.io.Serializable;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class AttachmentRefer extends AttachmentReferBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class AttachmentRefer extends AttachmentReferBase {
 
     public AttachmentRefer() {
     }

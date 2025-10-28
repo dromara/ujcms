@@ -1,9 +1,10 @@
 package com.ujcms.cms.core;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import java.time.Duration;
+
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -11,8 +12,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.AsyncAnnotationBeanPostProcessor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import java.time.Duration;
 
 /**
  * 任务执行器配置
@@ -25,16 +24,17 @@ public class TaskExecutorConfig {
     /**
      * 默认任务执行器。
      * <p>
-     * 用于代替`@EnableAsync`的{@link TaskExecutionAutoConfiguration#applicationTaskExecutor(TaskExecutorBuilder)}
-     * 因为增加了自定义的`ThreadPoolTaskExecutor`，这个默认的`ThreadPoolTaskExecutor`就不会再创建了，需要自行创建。
+     * 用于代替 `@EnableAsync` 的
+     * {@link TaskExecutorConfigurations#TaskExecutorConfiguration#applicationTaskExecutor(ThreadPoolTaskExecutorBuilder)} (ThreadPoolTaskExecutorBuilder)}
+     * 因为增加了自定义的 `ThreadPoolTaskExecutor`，这个默认的 `ThreadPoolTaskExecutor` 就不会再创建了，需要自行创建。
      *
-     * @see TaskExecutionAutoConfiguration#applicationTaskExecutor(TaskExecutorBuilder)
+     * @see TaskExecutionAutoConfiguration
      */
     @Lazy
     @Primary
     @Bean(name = {TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME,
             AsyncAnnotationBeanPostProcessor.DEFAULT_TASK_EXECUTOR_BEAN_NAME})
-    public ThreadPoolTaskExecutor applicationTaskExecutor(TaskExecutorBuilder builder) {
+    public ThreadPoolTaskExecutor applicationTaskExecutor(ThreadPoolTaskExecutorBuilder builder) {
         return builder.build();
     }
 
@@ -42,10 +42,9 @@ public class TaskExecutorConfig {
      * 生成器任务执行器。为生成功能定义专门的任务执行器，和公用的任务执行器分开，以免相互影响。
      */
     @Lazy
-    @Qualifier("generator")
-    @Bean
+    @Bean(name = "generatorTaskExecutor")
     public ThreadPoolTaskExecutor generatorTaskExecutor(TaskExecutionProperties properties) {
-        TaskExecutorBuilder builder = new TaskExecutorBuilder();
+        ThreadPoolTaskExecutorBuilder builder = new ThreadPoolTaskExecutorBuilder();
         builder = builder.corePoolSize(1);
         builder = builder.maxPoolSize(2);
         builder = builder.queueCapacity(2048);

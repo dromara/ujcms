@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.GroupAccessBase;
 
-import java.io.Serializable;
-
 /**
  * 用户组浏览权限实体类
  *
@@ -13,8 +11,7 @@ import java.io.Serializable;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class GroupAccess extends GroupAccessBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class GroupAccess extends GroupAccessBase {
 
     public GroupAccess() {
     }

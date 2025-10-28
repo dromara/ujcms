@@ -99,7 +99,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
             Collection<String> channelAlias = getStrings(params, CHANNEL);
             if (CollectionUtils.isNotEmpty(channelAlias)) {
                 channelIds = channelService.listBySiteIdAndAlias(siteId, channelAlias, isIncludeSubSite)
-                        .stream().map(ChannelBase::getId).collect(Collectors.toList());
+                        .stream().map(ChannelBase::getId).toList();
             }
         }
         return channelIds;

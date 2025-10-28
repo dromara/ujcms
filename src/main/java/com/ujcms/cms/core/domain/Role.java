@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.base.RoleBase;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,8 +19,7 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Role extends RoleBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Role extends RoleBase {
 
     /**
      * 是否全局共享

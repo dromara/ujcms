@@ -1,5 +1,18 @@
 package com.ujcms.cms.core.generator;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.lang.Nullable;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
+
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
@@ -10,14 +23,6 @@ import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.service.TaskService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.lang.Nullable;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * HTML 静态页生成
@@ -31,7 +36,7 @@ public class HtmlGenerator extends AbstractGenerator {
     private final SiteService siteService;
 
     public HtmlGenerator(ArticleService articleService, ChannelService channelService, HtmlService htmlService,
-                         TaskService taskService, @Qualifier("generator") ThreadPoolTaskExecutor executor,
+                         TaskService taskService, @Qualifier("generatorTaskExecutor") ThreadPoolTaskExecutor executor,
                          SiteService siteService) {
         super(articleService, taskService, executor);
         this.channelService = channelService;

@@ -1,6 +1,23 @@
 package com.ujcms.cms.core.domain;
 
-import com.fasterxml.jackson.annotation.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.owasp.html.PolicyFactory;
+import org.springframework.lang.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.Application;
 import com.ujcms.cms.core.domain.base.ChannelBase;
 import com.ujcms.cms.core.service.ChannelService;
@@ -11,15 +28,10 @@ import com.ujcms.commons.db.tree.TreeEntity;
 import com.ujcms.commons.web.HtmlParserUtils;
 import com.ujcms.commons.web.PageUrlResolver;
 import com.ujcms.commons.web.Views;
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.commons.lang3.StringUtils;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import java.util.*;
-import java.util.stream.Collectors;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * 栏目实体类
@@ -69,8 +81,9 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
 
     @Schema(description = "栏目层级名称。从一级栏目到当前栏目的名称列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性只包含当前栏目名称")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public List<String> getNames() {
-        return getPaths().stream().map(ChannelBase::getName).collect(Collectors.toList());
+        return getPaths().stream().map(ChannelBase::getName).toList();
     }
 
     /**

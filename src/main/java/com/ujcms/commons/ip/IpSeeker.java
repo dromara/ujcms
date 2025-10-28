@@ -2,6 +2,7 @@ package com.ujcms.commons.ip;
 
 import io.minio.org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.lionsoul.ip2region.xdb.Searcher;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class IpSeeker implements AutoCloseable {
     public Region find(String ip) {
         // 本机地址直接设置为LAN
         if (StringUtils.isBlank(ip) ||
-                StringUtils.equalsAnyIgnoreCase(ip, "0:0:0:0:0:0:0:1", "127.0.0.1", "localhost")) {
+                Strings.CI.equalsAny(ip, "0:0:0:0:0:0:0:1", "127.0.0.1", "localhost")) {
             return new Region(LAN, LAN, LAN, LAN);
         }
         // 目前只能判断 IPv4 地址
@@ -41,7 +42,7 @@ public class IpSeeker implements AutoCloseable {
             // ip2region只会在arr[3]或arr[4]给出`内网IP`
             int index3 = 3;
             int index4 = 4;
-            if (StringUtils.equalsAnyIgnoreCase(lan, arr[index3], arr[index4])) {
+            if (Strings.CI.equalsAny(lan, arr[index3], arr[index4])) {
                 return new Region(LAN, LAN, LAN, LAN);
             }
             for (int i = 0, len = arr.length; i < len; i += 1) {

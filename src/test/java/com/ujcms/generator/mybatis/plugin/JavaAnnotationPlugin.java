@@ -130,7 +130,7 @@ public class JavaAnnotationPlugin extends PluginAdapter {
             field.addAnnotation("@Nullable");
         } else {
             // 不可为空的，给 @NotNull 校验注解
-            topLevelClass.addImportedType(new FullyQualifiedJavaType("javax.validation.constraints.NotNull"));
+            topLevelClass.addImportedType(new FullyQualifiedJavaType("jakarta.validation.constraints.NotNull"));
             field.addAnnotation("@NotNull");
         }
 

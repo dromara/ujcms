@@ -11,21 +11,22 @@ import com.ujcms.cms.ext.domain.global.GlobalVisitorCount;
 import com.ujcms.commons.ip.IpSeeker;
 import com.ujcms.commons.ip.Region;
 import com.ujcms.commons.web.Servlets;
-import eu.bitwalker.useragentutils.Browser;
-import eu.bitwalker.useragentutils.UserAgent;
+import ua_parser.Client;
+import ua_parser.Parser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Optional;
 
@@ -93,14 +94,14 @@ public class VisitController {
     }
 
     private void doVisit(Long siteId, VisitParams params, HttpServletRequest request) {
-        String host = UriComponentsBuilder.fromHttpUrl(params.getUrl()).build().getHost();
+        String host = UriComponentsBuilder.fromUriString(params.getUrl()).build().getHost();
         String source = VisitStat.SOURCE_DIRECT;
         String sourceType = VisitStat.SOURCE_DIRECT;
         String referrer = params.getReferrer();
         if (StringUtils.isNotBlank(referrer)) {
-            UriComponents uriComp = UriComponentsBuilder.fromHttpUrl(referrer).build();
+            UriComponents uriComp = UriComponentsBuilder.fromUriString(referrer).build();
             String referHost = StringUtils.lowerCase(uriComp.getHost());
-            if (StringUtils.equals(host, referHost)) {
+            if (Strings.CS.equals(host, referHost)) {
                 source = VisitStat.SOURCE_INNER;
                 sourceType = VisitStat.SOURCE_INNER;
             } else {
@@ -118,16 +119,18 @@ public class VisitController {
         }
 
         String userAgentString = request.getHeader("user-agent");
-        UserAgent userAgent = UserAgent.parseUserAgentString(userAgentString);
-        Browser agentBrowser = userAgent.getBrowser();
+        Parser uaParser = new Parser();
+        Client client = uaParser.parse(userAgentString);
+        String browser = client.userAgent.family;
+        String os = client.os.family;
+        String device = client.device.family;
+        
         // 不统计机器人访问的数据
-        if (agentBrowser.equals(Browser.BOT)) {
+        if ("Bot".equals(device) || "Spider".equals(device) || "Crawler".equals(device)) {
             return;
         }
-        String browser = agentBrowser.toString();
+        
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
-        String os = userAgent.getOperatingSystem().toString();
-        String device = userAgent.getOperatingSystem().getDeviceType().toString();
         Region region = ipSeeker.find(Servlets.getRemoteAddr(request, props.getIpProxyDepth()));
 
         VisitLog bean = new VisitLog();

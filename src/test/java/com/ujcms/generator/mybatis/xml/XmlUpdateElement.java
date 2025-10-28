@@ -1,5 +1,12 @@
 package com.ujcms.generator.mybatis.xml;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.dom.OutputUtilities;
 import org.mybatis.generator.api.dom.xml.Attribute;
@@ -8,10 +15,6 @@ import org.mybatis.generator.api.dom.xml.XmlElement;
 import org.mybatis.generator.codegen.mybatis3.ListUtilities;
 import org.mybatis.generator.codegen.mybatis3.MyBatis3FormattingUtilities;
 import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.AbstractXmlElementGenerator;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * update 不包含 order_ 字段的更新
@@ -54,8 +57,8 @@ public class XmlUpdateElement extends AbstractXmlElementGenerator {
 
         String updateExcludes = introspectedTable.getTableConfigurationProperty("updateExcludes");
         List<String> updateExcludeList = Optional.ofNullable(updateExcludes)
-                .map(it -> it.split(",")).map(Arrays::stream).orElse(Stream.empty())
-                .map(String::trim).collect(Collectors.toList());
+                .map(it -> it.split(",")).stream().flatMap(Arrays::stream)
+                .map(String::trim).toList();
 
         // 修改 begin
         columnList = columnList.stream().filter(introspectedColumn -> {
@@ -65,7 +68,7 @@ public class XmlUpdateElement extends AbstractXmlElementGenerator {
             String columnJavaType = introspectedColumn.getFullyQualifiedJavaType().getShortName();
             boolean order = orderColumn.equals(columnName) && orderTypes.contains(columnJavaType);
             return !order && !updateExcludeList.contains(columnName);
-        }).collect(Collectors.toList());
+        }).toList();
         // 修改 end
 
         for (Iterator<IntrospectedColumn> iter = columnList.iterator(); iter.hasNext(); ) {

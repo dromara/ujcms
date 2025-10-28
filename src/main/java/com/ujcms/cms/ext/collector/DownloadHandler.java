@@ -6,6 +6,7 @@ import com.ujcms.commons.web.Uploads;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -38,12 +39,12 @@ public class DownloadHandler {
             }
             if (TYPE_IMAGE.equals(type)) {
                 String contentType = connection.getContentType();
-                if (!StringUtils.contains(contentType, TYPE_IMAGE)) {
+                if (!Strings.CS.contains(contentType, TYPE_IMAGE)) {
                     return null;
                 }
             } else if (TYPE_FILE.equals(type)) {
                 String contentType = connection.getContentType();
-                if (StringUtils.containsAny(contentType, FILE_EXCLUDE_CONTENT_TYPES)) {
+                if (Strings.CS.containsAny(contentType, FILE_EXCLUDE_CONTENT_TYPES)) {
                     return null;
                 }
             }

@@ -2,15 +2,12 @@ package com.ujcms.cms.ext.domain;
 
 import com.ujcms.cms.ext.domain.base.SurveyItemFeedbackBase;
 
-import java.io.Serializable;
-
 /**
  * 调查问卷条目与调查反馈 关联实体类
  *
  * @author PONY
  */
-public class SurveyItemFeedback extends SurveyItemFeedbackBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class SurveyItemFeedback extends SurveyItemFeedbackBase {
     private SurveyFeedback feedback = new SurveyFeedback();
 
     public SurveyItemFeedback() {

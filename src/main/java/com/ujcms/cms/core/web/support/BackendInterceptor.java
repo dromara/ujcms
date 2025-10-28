@@ -12,8 +12,8 @@ import com.ujcms.commons.web.exception.Http403Exception;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.support.Constants.DEMO_USER_ID;

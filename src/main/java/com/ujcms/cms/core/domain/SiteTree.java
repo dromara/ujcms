@@ -6,8 +6,6 @@ import com.ujcms.cms.core.domain.base.SiteTreeBase;
 import com.ujcms.commons.db.tree.TreeRelation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.io.Serializable;
-
 /**
  * 站点树形结构实体类
  *
@@ -16,8 +14,7 @@ import java.io.Serializable;
 @Schema(name = "Site.SiteTree")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class SiteTree extends SiteTreeBase implements TreeRelation, Serializable {
-    private static final long serialVersionUID = 1L;
+public class SiteTree extends SiteTreeBase implements TreeRelation {
 
     public SiteTree(Long ancestorId, Long descendantId) {
         setAncestorId(ancestorId);

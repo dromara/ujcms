@@ -1,5 +1,7 @@
 package com.ujcms.cms.core.domain;
 
+import org.springframework.lang.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,10 +9,8 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.domain.base.OperationLogBase;
 import com.ujcms.commons.web.Views;
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 操作日志实体类
@@ -19,8 +19,7 @@ import java.io.Serializable;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class OperationLog extends OperationLogBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class OperationLog extends OperationLogBase {
 
     @Schema(description="请求URL")
     @JsonView(Views.Whole.class)

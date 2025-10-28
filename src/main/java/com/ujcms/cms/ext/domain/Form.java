@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.owasp.html.PolicyFactory;
 import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +26,7 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"handler", "mainsJsons"})
-public class Form extends FormBase implements Serializable, OrderEntity {
-    private static final long serialVersionUID = 1L;
+public class Form extends FormBase implements OrderEntity {
     /**
      * 站点
      */

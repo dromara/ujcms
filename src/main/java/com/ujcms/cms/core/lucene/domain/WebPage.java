@@ -1,12 +1,19 @@
 package com.ujcms.cms.core.lucene.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.support.Anchor;
-import com.ujcms.commons.lucene.StringNormsField;
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.SortField;
 import org.springframework.data.annotation.Transient;
@@ -16,12 +23,12 @@ import org.springframework.data.elasticsearch.annotations.InnerField;
 import org.springframework.data.elasticsearch.annotations.MultiField;
 import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.support.Anchor;
+import com.ujcms.commons.lucene.StringNormsField;
 
-import static org.apache.lucene.document.Field.Store;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * WEB页面基类
@@ -45,22 +52,37 @@ public class WebPage implements Anchor, Serializable {
     public static final String FIELD_SITE_PATHS_NAME = "site.paths.name";
     public static final String FIELD_SITE_PATHS_URL = "site.paths.url";
 
+    /**
+     * BigDecimal 保留 6 位效数，转换为 Long 保存，需要乘于 1000000。
+     */
+    public static final int SCALING_FACTOR = 1000000;
+
+    /**
+     * 将对象值转换为 long 类型
+     *
+     * @param obj 待转换的对象，必须是 BigDecimal、Number 或 OffsetDateTime 类型
+     * @return 转换后的long值
+     * @throws IllegalStateException 当对象类型不是 BigDecimal、Number 或 OffsetDateTime 时抛出
+     */
+    public static long objectValue(Object obj) {
+        if (obj instanceof BigDecimal bigDecimal) {
+            return bigDecimal.multiply(BigDecimal.valueOf(SCALING_FACTOR)).longValue();
+        } else if (obj instanceof Number number) {
+            return number.longValue();
+        } else if (obj instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.toInstant().toEpochMilli();
+        } else {
+            throw new IllegalStateException("Value type must be BigDecimal, Number, OffsetDateTime: "
+                    + obj.getClass().getName());
+        }
+    }
+    
     public static SortField.Type getSortType(String property) {
         switch (property) {
-            case FIELD_URL:
-            case FIELD_TITLE:
-            case FIELD_DESCRIPTION:
-            case FIELD_BODY:
-            case FIELD_IMAGE:
-            case FIELD_DISC_TYPE:
-            case FIELD_ENABLED:
-            case FIELD_SITE_NAME:
-            case FIELD_SITE_URL:
-            case FIELD_SITE_PATHS_NAME:
-            case FIELD_SITE_PATHS_URL:
+            case FIELD_URL, FIELD_TITLE, FIELD_DESCRIPTION, FIELD_BODY, FIELD_IMAGE, FIELD_DISC_TYPE,
+                    FIELD_ENABLED, FIELD_SITE_NAME, FIELD_SITE_URL, FIELD_SITE_PATHS_NAME, FIELD_SITE_PATHS_URL:
                 return SortField.Type.STRING;
-            case FIELD_SITE_ID:
-            case FIELD_SITE_PATHS_ID:
+            case FIELD_SITE_ID, FIELD_SITE_PATHS_ID:
                 return SortField.Type.LONG;
             default:
                 throw new IllegalArgumentException("Lucene order property not found: " + property);

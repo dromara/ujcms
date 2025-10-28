@@ -30,7 +30,7 @@ if [[ -e static/cp/.timestamp && -e /usr/src/ujcms/cp/.timestamp ]]; then
 fi
 
 # 检查初始文件是否存在
-if [ ! -d static/WEB-INF ] && [ ! -d static/uploads ] && [ ! -d static/templates ] && [ ! -d static/cp ] \
+if [ ! -d static/uploads ] && [ ! -d static/templates ] && [ ! -d static/cp ] \
     && [ ! -e static/index.html ] && [ ! -e static/index.htm ]; then
 
   echo >&2 "UJCMS init files not found in $PWD/static - copying now..."

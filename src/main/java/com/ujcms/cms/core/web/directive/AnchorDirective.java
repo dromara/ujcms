@@ -1,21 +1,25 @@
 package com.ujcms.cms.core.web.directive;
 
-import com.ujcms.commons.freemarker.Freemarkers;
-import com.ujcms.commons.web.Strings;
+import static org.apache.commons.lang3.Strings.CI;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.lang.Nullable;
+import org.springframework.web.util.HtmlUtils;
+
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.web.support.Directives;
+import com.ujcms.commons.freemarker.Freemarkers;
+import com.ujcms.commons.web.Strings;
+
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.web.util.HtmlUtils;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Anchor FreeMarker标签。用于生成 html a 标签。
@@ -58,7 +62,7 @@ public class AnchorDirective implements TemplateDirectiveModel {
         for (Object obj : params.entrySet()) {
             Map.Entry<String, TemplateModel> entry = (Map.Entry<String, TemplateModel>) obj;
             String name = entry.getKey();
-            if (StringUtils.equalsAnyIgnoreCase(name, BEAN, TARGET, TITLE, LENGTH, APPEND)) {
+            if (CI.equalsAny(name, BEAN, TARGET, TITLE, LENGTH, APPEND)) {
                 continue;
             }
             String value = Optional.ofNullable(Freemarkers.getString(entry.getValue())).map(HtmlUtils::htmlEscape)

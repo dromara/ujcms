@@ -1,18 +1,13 @@
 package com.ujcms.cms.ext;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
+import java.time.Duration;
+
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
-import org.springframework.scheduling.annotation.AsyncAnnotationBeanPostProcessor;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import java.time.Duration;
 
 /**
  * 任务执行器配置
@@ -25,10 +20,9 @@ public class TaskExecutorConfig {
      * 生成器任务执行器。为生成功能定义专门的任务执行器，和公用的任务执行器分开，以免相互影响。
      */
     @Lazy
-    @Qualifier("collector")
-    @Bean
+    @Bean("collectorTaskExecutor")
     public ThreadPoolTaskExecutor collectorTaskExecutor(TaskExecutionProperties properties) {
-        TaskExecutorBuilder builder = new TaskExecutorBuilder();
+        ThreadPoolTaskExecutorBuilder builder = new ThreadPoolTaskExecutorBuilder();
         builder = builder.corePoolSize(0);
         builder = builder.maxPoolSize(10);
         builder = builder.queueCapacity(0);

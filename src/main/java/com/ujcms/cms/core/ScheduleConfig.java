@@ -1,11 +1,9 @@
 package com.ujcms.cms.core;
 
-import com.ujcms.cms.core.component.ViewCountService;
-import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.core.generator.HtmlGenerator;
-import com.ujcms.cms.core.service.ArticleService;
-import com.ujcms.cms.core.service.ConfigService;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -22,10 +20,12 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.ujcms.cms.core.component.ViewCountService;
+import com.ujcms.cms.core.domain.Article;
+import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.generator.HtmlGenerator;
+import com.ujcms.cms.core.service.ArticleService;
+import com.ujcms.cms.core.service.ConfigService;
 
 /**
  * 定时任务 配置
@@ -142,7 +142,7 @@ public class ScheduleConfig {
             List<Article> onlineArticles = articleService.listAndUpdateOnlineStatus();
             List<Article> offlineArticles = articleService.listAndUpdateOfflineStatus();
             List<Article> articles = Stream.of(stickyArticles, onlineArticles, offlineArticles)
-                    .flatMap(Collection::stream).collect(Collectors.toList());
+                    .flatMap(Collection::stream).toList();
             for (Article article : articles) {
                 article.adjustStatus();
                 articleService.update(article);

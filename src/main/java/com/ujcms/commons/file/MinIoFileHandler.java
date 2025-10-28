@@ -7,7 +7,6 @@ import io.minio.errors.*;
 import io.minio.messages.Item;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -189,8 +188,8 @@ public class MinIoFileHandler implements FileHandler {
 
             @Override
             public void addEntry(String filename, String entryName, ZipOutputStream zipOut) throws IOException {
-                ObjectStat stat = getObjectStat(filename);
-                long lastModified = stat.createdTime().toInstant().toEpochMilli();
+                StatObjectResponse stat = getObjectStat(filename);
+                long lastModified = stat.lastModified().toInstant().toEpochMilli();
                 if (isAddEntry.test(entryName, lastModified)) {
                     ZipEntry zipEntry = new ZipEntry(entryName);
                     zipEntry.setLastModifiedTime(FileTime.fromMillis(lastModified));
@@ -209,7 +208,7 @@ public class MinIoFileHandler implements FileHandler {
                     .appendPath(to).appendPath(SLASH).toString();
             handleDirectory(storeName, true, item -> {
                 String objectName = item.objectName();
-                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, toStoreName);
+                String toItemObjectName = toStoreName + objectName.substring(storeName.length());
                 renameFile(objectName, toItemObjectName);
             });
         } else {
@@ -238,7 +237,7 @@ public class MinIoFileHandler implements FileHandler {
             String toStoreName = UrlBuilder.of(destStoreDir).appendPath(SLASH).toString();
             handleDirectory(storeName, true, item -> {
                 String objectName = item.objectName();
-                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, toStoreName);
+                String toItemObjectName = toStoreName + objectName.substring(storeName.length());
                 renameFile(objectName, toItemObjectName);
             });
         } else {
@@ -276,10 +275,8 @@ public class MinIoFileHandler implements FileHandler {
             String extension = FilenameUtils.getExtension(storeName);
             Path tempFile = Files.createTempFile(null, "." + extension);
             try {
-                // minio-8.3以上版本才有overwrite方法。
-                //.overwrite(true)
                 client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(storeName)
-                        .filename(tempFile.toString()).build());
+                        .filename(tempFile.toString()).overwrite(true).build());
                 return tempFile.toFile();
             } finally {
                 Files.deleteIfExists(tempFile);
@@ -292,7 +289,7 @@ public class MinIoFileHandler implements FileHandler {
         }
     }
 
-    private ObjectStat getObjectStat(String filename) {
+    private StatObjectResponse getObjectStat(String filename) {
         try {
             String storeName = getStoreName(filename);
             return client.statObject(StatObjectArgs.builder().bucket(bucket).object(storeName).build());
@@ -313,7 +310,7 @@ public class MinIoFileHandler implements FileHandler {
 
     @Override
     public WebFile getWebFile(String filename) {
-        ObjectStat stat = getObjectStat(filename);
+        StatObjectResponse stat = getObjectStat(filename);
         WebFile webFile = new WebFile(normalize(filename), displayPrefix, stat);
         if (webFile.isEditable()) {
             webFile.setText(getObjectText(filename));
@@ -350,7 +347,7 @@ public class MinIoFileHandler implements FileHandler {
             String toStoreName = UrlBuilder.of(destStoreDir).appendPath(SLASH).toString();
             handleDirectory(storeName, true, item -> {
                 String objectName = item.objectName();
-                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, toStoreName);
+                String toItemObjectName = toStoreName + objectName.substring(storeName.length());
                 copyFile(objectName, toItemObjectName);
             });
         } else {
@@ -365,7 +362,7 @@ public class MinIoFileHandler implements FileHandler {
         if (src.endsWith(SLASH)) {
             handleDirectory(getStoreName(src), true, item -> {
                 String objectName = item.objectName();
-                String toItemObjectName = StringUtils.replaceOnce(objectName, storeName, destStoreName);
+                String toItemObjectName = destStoreName + objectName.substring(storeName.length());
                 copyFile(objectName, toItemObjectName);
             });
         } else {
@@ -414,7 +411,7 @@ public class MinIoFileHandler implements FileHandler {
     }
 
     @Nullable
-    private ObjectStat findStatObject(String storeName) {
+    private StatObjectResponse findStatObject(String storeName) {
         try {
             return client.statObject(StatObjectArgs.builder().bucket(bucket).object(storeName).build());
         } catch (ErrorResponseException e) {
@@ -442,7 +439,7 @@ public class MinIoFileHandler implements FileHandler {
     @Nullable
     private String handleDirectory(String prefix, @Nullable String startAfter, int maxKeys, boolean recursive,
                                    Consumer<Item> consumer)
-            throws ServerException, InvalidBucketNameException, InsufficientDataException, ErrorResponseException,
+            throws ServerException, InsufficientDataException, ErrorResponseException,
             IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
             InternalException {
         int count = 0;

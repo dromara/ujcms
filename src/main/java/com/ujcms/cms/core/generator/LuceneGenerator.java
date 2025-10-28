@@ -20,7 +20,7 @@ public class LuceneGenerator extends AbstractGenerator {
     private final ArticleLucene articleLucene;
 
     public LuceneGenerator(ArticleLucene articleLucene, ArticleService articleService,
-                           TaskService taskService, @Qualifier("generator") ThreadPoolTaskExecutor executor) {
+                           TaskService taskService, @Qualifier("generatorTaskExecutor") ThreadPoolTaskExecutor executor) {
         super(articleService, taskService, executor);
         this.articleLucene = articleLucene;
     }

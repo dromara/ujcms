@@ -1,7 +1,17 @@
 package com.ujcms.cms.core.lucene.domain;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.StoredField;
@@ -13,47 +23,17 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import static org.apache.lucene.document.Field.Store;
-
 /**
  * 自定义字段
  *
  * @author PONY
  */
-public class WebPageWithCustoms extends WebPage implements Serializable {
+public class WebPageWithCustoms extends WebPage {
     private static final long serialVersionUID = 1L;
-
-    /**
-     * BigDecimal 保留 6 位效数，转换为 Long 保存，需要乘于 1000000。
-     */
-    public static final int SCALING_FACTOR = 1000000;
 
     public static SortField.Type getSortType(String property) {
         switch (property) {
-            case "i1":
-            case "i2":
-            case "i3":
-            case "i4":
-            case "i5":
-            case "i6":
-            case "n1":
-            case "n2":
-            case "n3":
-            case "n4":
-            case "d1":
-            case "d2":
-            case "d3":
-            case "d4":
+            case "i1", "i2", "i3", "i4", "i5", "i6", "n1", "n2", "n3", "n4", "d1", "d2", "d3", "d4":
                 return SortField.Type.LONG;
             default:
                 return WebPage.getSortType(property);

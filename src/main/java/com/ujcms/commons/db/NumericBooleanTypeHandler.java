@@ -49,7 +49,7 @@ public class NumericBooleanTypeHandler extends BaseTypeHandler<Boolean> {
     }
 
     private short convert(Boolean b) {
-        return b ? (short) 1 : 0;
+        return Boolean.TRUE.equals(b) ? (short) 1 : 0;
     }
 
     private Boolean convert(short s) {

@@ -37,12 +37,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsPa
     }
 
     @Override
-    public UserDetails updatePassword(UserDetails user, String newPassword) {
-        if (user instanceof User) {
-            User u = (User) user;
-            userService.updatePassword(u, u.getExt(), newPassword);
-            return user;
+    public UserDetails updatePassword(UserDetails userDetails, String newPassword) {
+        if (userDetails instanceof User user ) {
+            userService.updatePassword(user, user.getExt(), newPassword);
+            return userDetails;
         }
-        throw new IllegalArgumentException("user not instanceof User:" + user);
+        throw new IllegalArgumentException("user not instanceof User:" + userDetails);
     }
 }

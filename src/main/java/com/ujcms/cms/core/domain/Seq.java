@@ -1,11 +1,10 @@
 package com.ujcms.cms.core.domain;
 
+import java.util.function.ObjIntConsumer;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.SeqBase;
-
-import java.io.Serializable;
-import java.util.function.ObjIntConsumer;
 
 /**
  * 序列实体类
@@ -14,8 +13,7 @@ import java.util.function.ObjIntConsumer;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Seq extends SeqBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Seq extends SeqBase {
 
     public Seq() {
     }

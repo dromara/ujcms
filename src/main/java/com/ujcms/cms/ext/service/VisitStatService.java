@@ -1,9 +1,18 @@
 package com.ujcms.cms.ext.service;
 
+import static com.ujcms.cms.ext.domain.VisitStat.DAY_DISPLAY_FORMATTER;
+import static com.ujcms.cms.ext.domain.VisitStat.DAY_FORMATTER;
+
+import java.util.List;
+import java.util.Objects;
+
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
-import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.VisitStat;
 import com.ujcms.cms.ext.domain.base.VisitStatBase;
 import com.ujcms.cms.ext.mapper.VisitStatMapper;
@@ -11,15 +20,6 @@ import com.ujcms.cms.ext.service.args.VisitStatArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
 import com.ujcms.commons.query.QueryParser;
-import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Objects;
-
-import static com.ujcms.cms.ext.domain.VisitStat.DAY_DISPLAY_FORMATTER;
-import static com.ujcms.cms.ext.domain.VisitStat.DAY_FORMATTER;
 
 /**
  * 访问统计 Service

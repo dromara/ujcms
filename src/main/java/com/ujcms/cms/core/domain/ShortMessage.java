@@ -1,13 +1,13 @@
 package com.ujcms.cms.core.domain;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
+
+import org.springframework.lang.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ujcms.cms.core.domain.base.ShortMessageBase;
-import org.springframework.lang.Nullable;
-
-import java.io.Serializable;
-import java.time.Duration;
-import java.time.OffsetDateTime;
 
 /**
  * 短信实体类
@@ -16,8 +16,7 @@ import java.time.OffsetDateTime;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class ShortMessage extends ShortMessageBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class ShortMessage extends ShortMessageBase {
 
     public ShortMessage() {
     }

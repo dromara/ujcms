@@ -1,16 +1,16 @@
 package com.ujcms.cms.core.mapper;
 
-import com.ujcms.cms.core.domain.Channel;
-import com.ujcms.cms.core.domain.Org;
-import com.ujcms.commons.db.tree.TreeEntityMapper;
-import com.ujcms.commons.query.QueryInfo;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
+import com.ujcms.cms.core.domain.Org;
+import com.ujcms.commons.db.tree.TreeEntityMapper;
+import com.ujcms.commons.query.QueryInfo;
 
 /**
  * 组织 Mapper

@@ -8,7 +8,6 @@ import com.ujcms.cms.ext.collector.CollectorUtils;
 import com.ujcms.cms.ext.domain.base.CollectionBase;
 import com.ujcms.commons.db.order.OrderEntity;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +16,7 @@ import java.util.List;
  *
  * @author PONY
  */
-public class Collection extends CollectionBase implements Serializable, OrderEntity {
-    private static final long serialVersionUID = 1L;
+public class Collection extends CollectionBase implements OrderEntity {
 
     @JsonIgnore
     public long getInterval() {

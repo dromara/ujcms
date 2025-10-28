@@ -1,7 +1,14 @@
 package com.ujcms.commons.query;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import static com.ujcms.commons.query.QueryUtils.COMMA;
+import static com.ujcms.commons.query.QueryUtils.DASH;
+import static com.ujcms.commons.query.QueryUtils.DIRECTION_ASC;
+import static com.ujcms.commons.query.QueryUtils.DIRECTION_DESC;
+import static com.ujcms.commons.query.QueryUtils.DOLLAR;
+import static com.ujcms.commons.query.QueryUtils.POINT;
+import static com.ujcms.commons.query.QueryUtils.UNDERLINE;
+import static com.ujcms.commons.query.QueryUtils.camelToUnderscore;
+import static com.ujcms.commons.query.QueryUtils.underscoreToCamel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +17,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ujcms.commons.query.QueryUtils.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.springframework.lang.Nullable;
 
 /**
  * Like_name
@@ -63,14 +72,14 @@ public class QueryParser {
             return true;
         }
         // 除了 IsNull 和 IsNotNull，其它的value都不能为null或空串。
-        boolean nullOrBlank = value == null || (value instanceof String && StringUtils.isBlank((String) value));
-        if (!StringUtils.startsWithAny(key, ORDER_BY, QueryUtils.OPERATOR_IS_NULL, QueryUtils.OPERATOR_IS_NOT_NULL)
+        boolean nullOrBlank = value == null || (value instanceof String string && StringUtils.isBlank(string));
+        if (!Strings.CS.startsWithAny(key, ORDER_BY, QueryUtils.OPERATOR_IS_NULL, QueryUtils.OPERATOR_IS_NOT_NULL)
                 && nullOrBlank) {
             return true;
         }
         if (key.equals(ORDER_BY)) {
-            if (value instanceof String) {
-                parseOrderBy(info, (String) value);
+            if (value instanceof String string) {
+                parseOrderBy(info, string);
             }
             return true;
         }
@@ -118,7 +127,7 @@ public class QueryParser {
             // 1-1_questionExt-markdown
             // 1_status
             key = key.substring(index + 1);
-            if (key.length() < 1) {
+            if (key.isEmpty()) {
                 throw new IllegalArgumentException("Illegal query key format: " + key);
             }
             index = key.indexOf(UNDERLINE, Character.isDigit(key.charAt(0)) ? key.indexOf(UNDERLINE) + 1 : 0);
@@ -334,7 +343,7 @@ public class QueryParser {
                 // UserExt
                 rightTable = tablePart.substring(atIndex + 1);
                 // 处理 one2one 情形 @userExt @questionExt。此时rightAlias为空串
-                if (leftColumn.length() == 0) {
+                if (leftColumn.isEmpty()) {
                     one2one = true;
                     rightAlias = rightTable;
                 }

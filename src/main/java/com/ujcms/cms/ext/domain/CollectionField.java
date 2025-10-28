@@ -2,15 +2,12 @@ package com.ujcms.cms.ext.domain;
 
 import com.ujcms.cms.ext.domain.base.CollectionFieldBase;
 
-import java.io.Serializable;
-
 /**
  * 采集 实体类
  *
  * @author PONY
  */
-public class CollectionField extends CollectionFieldBase implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class CollectionField extends CollectionFieldBase {
 
     /**
      * 来源：详细页

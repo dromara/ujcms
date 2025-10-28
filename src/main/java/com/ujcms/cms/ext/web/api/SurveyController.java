@@ -1,5 +1,28 @@
 package com.ujcms.cms.ext.web.api;
 
+import static com.ujcms.cms.core.support.UrlConstants.API;
+import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
+import static com.ujcms.commons.db.MyBatis.springPage;
+import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
+
+import java.time.OffsetDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiFunction;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.base.UserBase;
@@ -22,6 +45,7 @@ import com.ujcms.commons.web.Servlets;
 import com.ujcms.commons.web.Views;
 import com.ujcms.commons.web.exception.Http400Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -29,24 +53,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-
-import static com.ujcms.cms.core.support.UrlConstants.API;
-import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.commons.db.MyBatis.springPage;
-import static com.ujcms.commons.query.QueryUtils.QUERY_PREFIX;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 调查问卷前台 接口
@@ -204,14 +214,14 @@ public class SurveyController {
                 if (Boolean.FALSE.equals(item.getMultiple())) {
                     throw new Http400Exception("Only one option can be selected.");
                 }
-                optionIds = ((List<?>) value).stream().map(Object::toString).map(Long::valueOf).collect(Collectors.toList());
-            }else if (value instanceof String) {
-                optionIds = Collections.singletonList(Long.valueOf((String) value));
+                optionIds = ((List<?>) value).stream().map(Object::toString).map(Long::valueOf).toList();
+            }else if (value instanceof String string) {
+                optionIds = Collections.singletonList(Long.valueOf(string));
             } else {
                 throw new Http400Exception("Option is invalid: " + value);
             }
             List<Long> itemOptionsIds = item.getOptions().stream().map(SurveyOptionBase::getId)
-                    .collect(Collectors.toList());
+                    .toList();
             for (Long optionId : optionIds) {
                 if (!itemOptionsIds.contains(optionId)) {
                     throw new Http400Exception("'optionId' does not belong SurveyItem. optionId: " + optionId);
@@ -229,13 +239,13 @@ public class SurveyController {
                 continue;
             }
             Object value = items.get(String.valueOf(item.getId()));
-            if (!(value instanceof String)) {
+            if (!(value instanceof String string)) {
                 throw new Http400Exception("Answer must be a string.");
             }
-            if (StringUtils.isBlank((String) value)) {
+            if (StringUtils.isBlank(string)) {
                 throw new Http400Exception("Answer cannot be empty.");
             }
-            essayMap.put(item.getId(), (String) value);
+            essayMap.put(item.getId(), string);
         }
         return essayMap;
     }

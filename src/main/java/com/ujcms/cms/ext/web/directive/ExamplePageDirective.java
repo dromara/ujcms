@@ -1,22 +1,23 @@
 package com.ujcms.cms.ext.web.directive;
 
+import static com.ujcms.commons.db.MyBatis.springPage;
+
+import java.io.IOException;
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
+
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.ext.domain.Example;
 import com.ujcms.cms.ext.service.ExampleService;
 import com.ujcms.cms.ext.service.args.ExampleArgs;
 import com.ujcms.commons.freemarker.Freemarkers;
+
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
-import org.springframework.data.domain.Page;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static com.ujcms.commons.db.MyBatis.springPage;
 
 /**
  * 示例分页 标签

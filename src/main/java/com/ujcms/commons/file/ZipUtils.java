@@ -1,25 +1,32 @@
 package com.ujcms.commons.file;
 
-import com.ujcms.commons.web.UrlBuilder;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
+import static com.ujcms.commons.file.FilesEx.SLASH;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.ujcms.commons.file.FilesEx.SLASH;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
+
+import com.ujcms.commons.web.UrlBuilder;
 
 /**
  * Zip工具类
@@ -62,7 +69,7 @@ public class ZipUtils {
      * @return 是否支持解压
      */
     public static boolean decompressSupport(@Nullable String filename) {
-        return StringUtils.endsWithAny(FilenameUtils.getExtension(filename), DECOMPRESS_EXTENSION);
+        return Strings.CS.endsWithAny(FilenameUtils.getExtension(filename), DECOMPRESS_EXTENSION);
     }
 
     /**
@@ -181,7 +188,7 @@ public class ZipUtils {
             logger.debug("Archive extraction completed safely. Entries: {}, Total size: {} bytes",
                     context.getEntryCount(), context.getTotalUncompressedSize());
 
-        } catch (IOException | ArchiveException e) {
+        } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -230,7 +237,7 @@ public class ZipUtils {
         
         if (ignoredExtensions.length > 0) {
             String extension = FilenameUtils.getExtension(entry.getName());
-            return StringUtils.equalsAnyIgnoreCase(extension, ignoredExtensions);
+            return Strings.CS.equalsAny(extension, ignoredExtensions);
         }
         
         return false;
@@ -305,8 +312,8 @@ public class ZipUtils {
      * 获取压缩后的大小
      */
     private static long getCompressedSize(ArchiveEntry entry) {
-        if (entry instanceof java.util.zip.ZipEntry) {
-            return ((java.util.zip.ZipEntry) entry).getCompressedSize();
+        if (entry instanceof java.util.zip.ZipEntry zipEntry) {
+            return zipEntry.getCompressedSize();
         }
         return -1;
     }

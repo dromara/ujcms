@@ -439,9 +439,6 @@ public class FtpFileHandler implements FileHandler {
     private <T> T execute(Extractor<T> consumer) {
         String key = properties.toString();
         FtpClientPool pool = POOL_CACHE.get(key, k -> new FtpClientPool(ftpClientFactory, new FtpClientPoolConfig()));
-        if (pool == null) {
-            throw new IllegalStateException("Cannot get FtpClientPool");
-        }
         try {
             FTPClient ftp = pool.borrowObject();
             try {
