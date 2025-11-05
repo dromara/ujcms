@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.dom.OutputUtilities;
@@ -28,8 +27,7 @@ public class XmlUpdateElement extends AbstractXmlElementGenerator {
         this.isSimple = isSimple;
     }
 
-    @Override
-    public void addElements(XmlElement parentElement) {
+    protected XmlElement buildUpdateElement() {
         XmlElement answer = new XmlElement("update"); //$NON-NLS-1$
 
         answer.addAttribute(new Attribute(
@@ -116,7 +114,12 @@ public class XmlUpdateElement extends AbstractXmlElementGenerator {
                     .getParameterClause(introspectedColumn));
             answer.addElement(new TextElement(sb.toString()));
         }
+        return answer;
+    }
 
+    @Override
+    public void addElements(XmlElement parentElement) {
+        XmlElement answer = buildUpdateElement();
         if (context.getPlugins()
                 .sqlMapUpdateByPrimaryKeyWithoutBLOBsElementGenerated(answer,
                         introspectedTable)) {

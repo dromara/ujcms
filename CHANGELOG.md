@@ -1,5 +1,9 @@
 # UJCMS 发版说明
 
+## ujcms-10.0.2
+
+* 修复后台数据翻页 totalElements 数据不存在问题
+
 ## ujcms-10.0.1
 
 * 修复：liquibase 版本设置为 4.23.2，以兼容达梦数据库
