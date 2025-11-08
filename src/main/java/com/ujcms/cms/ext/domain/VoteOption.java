@@ -1,14 +1,14 @@
 package com.ujcms.cms.ext.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ujcms.cms.ext.domain.base.VoteOptionBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVoteOption;
 
 /**
  * 投票选项 实体类
  *
  * @author PONY
  */
-public class VoteOption extends VoteOptionBase {
+public class VoteOption extends GeneratedVoteOption {
 
     public double getPercent() {
         int total = getVote().getTotal();

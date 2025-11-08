@@ -3,7 +3,7 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.SensitiveWord;
-import com.ujcms.cms.core.domain.base.SensitiveWordBase;
+import com.ujcms.cms.core.domain.generated.GeneratedSensitiveWord;
 import com.ujcms.cms.core.mapper.SensitiveWordMapper;
 import com.ujcms.cms.core.service.args.SensitiveWordArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
@@ -59,7 +59,7 @@ public class SensitiveWordService {
     }
 
     public List<SensitiveWord> selectList(SensitiveWordArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), SensitiveWordBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedSensitiveWord.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

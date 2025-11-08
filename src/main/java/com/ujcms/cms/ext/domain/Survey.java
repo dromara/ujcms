@@ -1,7 +1,7 @@
 package com.ujcms.cms.ext.domain;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.ujcms.cms.ext.domain.base.SurveyBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedSurvey;
 import com.ujcms.commons.db.order.OrderEntity;
 import com.ujcms.commons.web.Views;
 
@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author PONY
  */
-public class Survey extends SurveyBase implements OrderEntity {
+public class Survey extends GeneratedSurvey implements OrderEntity {
 
     /**
      * 状态

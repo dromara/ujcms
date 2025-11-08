@@ -5,7 +5,7 @@ import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.ext.domain.VisitStat;
 import com.ujcms.cms.ext.domain.VisitTrend;
-import com.ujcms.cms.ext.domain.base.VisitTrendBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVisitTrend;
 import com.ujcms.cms.ext.mapper.VisitTrendMapper;
 import com.ujcms.cms.ext.service.args.VisitTrendArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
@@ -73,7 +73,7 @@ public class VisitTrendService implements SiteDeleteListener {
     }
 
     public List<VisitTrend> selectList(VisitTrendArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), VisitTrendBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedVisitTrend.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.BlockItemBase;
+import com.ujcms.cms.core.domain.generated.GeneratedBlockItem;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.commons.db.order.OrderEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,7 +22,7 @@ import java.util.Optional;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class BlockItem extends BlockItemBase implements Anchor, OrderEntity {
+public class BlockItem extends GeneratedBlockItem implements Anchor, OrderEntity {
 
     @Schema(description = "URL地址")
     @Override

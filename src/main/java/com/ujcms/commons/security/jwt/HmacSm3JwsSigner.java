@@ -1,5 +1,13 @@
 package com.ujcms.commons.security.jwt;
 
+import static com.ujcms.commons.security.jwt.JwtUtils.HMAC_SM3;
+
+import java.security.SecureRandom;
+import java.util.Collections;
+import java.util.Set;
+
+import javax.crypto.spec.SecretKeySpec;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -9,12 +17,6 @@ import com.nimbusds.jose.crypto.impl.HMAC;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.StandardCharset;
-
-import java.security.SecureRandom;
-import java.util.Collections;
-import java.util.Set;
-
-import static com.ujcms.commons.security.jwt.JwtUtils.HMAC_SM3;
 
 /**
  * @author PONY
@@ -34,7 +36,9 @@ public class HmacSm3JwsSigner implements JWSSigner {
 
     @Override
     public Base64URL sign(JWSHeader header, byte[] signingInput) throws JOSEException {
-        byte[] hmac = HMAC.compute(HMAC_SM3.getName(), getSecret(), signingInput, getJCAContext().getProvider());
+        String algorithm = HMAC_SM3.getName();
+        SecretKeySpec secretKeySpec = new SecretKeySpec(getSecret(), algorithm);
+        byte[] hmac = HMAC.compute(algorithm, secretKeySpec, signingInput, getJCAContext().getProvider());
         return Base64URL.encode(hmac);
     }
 

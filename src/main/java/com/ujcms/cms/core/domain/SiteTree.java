@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.SiteTreeBase;
+import com.ujcms.cms.core.domain.generated.GeneratedSiteTree;
 import com.ujcms.commons.db.tree.TreeRelation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(name = "Site.SiteTree")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class SiteTree extends SiteTreeBase implements TreeRelation {
+public class SiteTree extends GeneratedSiteTree implements TreeRelation {
 
     public SiteTree(Long ancestorId, Long descendantId) {
         setAncestorId(ancestorId);

@@ -1,13 +1,13 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.ImportDataBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedImportData;
 
 /**
  * 导入数据 实体类
  *
  * @author PONY
  */
-public class ImportData extends ImportDataBase {
+public class ImportData extends GeneratedImportData {
 
     public static final String TABLE_CHANNEL = "ujcms_channel";
     public static final String TABLE_ARTICLE = "ujcms_article";

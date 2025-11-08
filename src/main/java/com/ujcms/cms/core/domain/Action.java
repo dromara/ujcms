@@ -2,14 +2,18 @@ package com.ujcms.cms.core.domain;
 
 import org.springframework.lang.Nullable;
 
-import com.ujcms.cms.core.domain.base.ActionBase;
+import com.ujcms.cms.core.domain.generated.GeneratedAction;
+
+import java.io.Serial;
 
 /**
  * 动作 实体类
  *
  * @author PONY
  */
-public class Action extends ActionBase {
+public class Action extends GeneratedAction {
+    @Serial
+    private static final long serialVersionUID = 1;
 
     public Action() {
     }

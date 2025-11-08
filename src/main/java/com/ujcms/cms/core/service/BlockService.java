@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Block;
-import com.ujcms.cms.core.domain.base.BlockBase;
+import com.ujcms.cms.core.domain.generated.GeneratedBlock;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.BlockItemMapper;
 import com.ujcms.cms.core.mapper.BlockMapper;
@@ -76,7 +76,7 @@ public class BlockService implements SiteDeleteListener {
     }
 
     public List<Block> selectList(BlockArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), BlockBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedBlock.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

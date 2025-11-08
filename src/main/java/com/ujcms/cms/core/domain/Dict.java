@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.DictBase;
+import com.ujcms.cms.core.domain.generated.GeneratedDict;
 
 /**
  * 字典实体类
@@ -11,7 +11,7 @@ import com.ujcms.cms.core.domain.base.DictBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Dict extends DictBase {
+public class Dict extends GeneratedDict {
 
     public static final String NOT_FOUND = "Dict not found. ID: ";
 }

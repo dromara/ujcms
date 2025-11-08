@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.ChannelTreeBase;
+import com.ujcms.cms.core.domain.generated.GeneratedChannelTree;
 import com.ujcms.commons.db.tree.TreeRelation;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(name = "Channel.ChannelTree")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class ChannelTree extends ChannelTreeBase implements TreeRelation {
+public class ChannelTree extends GeneratedChannelTree implements TreeRelation {
 
     public ChannelTree(Long ancestorId, Long descendantId) {
         setAncestorId(ancestorId);

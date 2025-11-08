@@ -6,7 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.AttachmentBase;
+import com.ujcms.cms.core.domain.generated.GeneratedAttachment;
 import com.ujcms.commons.file.FilesEx;
 
 /**
@@ -16,7 +16,7 @@ import com.ujcms.commons.file.FilesEx;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Attachment extends AttachmentBase {
+public class Attachment extends GeneratedAttachment {
 
     public Attachment() {
     }

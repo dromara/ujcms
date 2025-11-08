@@ -49,6 +49,14 @@
       orig_parent_id_ = #{origParentId,jdbcType=VARCHAR},
       type_ = #{type,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.ImportData">
+    update ujcms_import_data
+    set table_name_ = #{tableName,jdbcType=VARCHAR},
+      current_id_ = #{currentId,jdbcType=VARCHAR},
+      orig_id_ = #{origId,jdbcType=VARCHAR},
+      orig_parent_id_ = #{origParentId,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.ImportData">
     insert into ujcms_import_data (id_, table_name_, current_id_, orig_id_, orig_parent_id_, type_)
     values (#{id,jdbcType=BIGINT}, #{tableName,jdbcType=VARCHAR}, #{currentId,jdbcType=VARCHAR}, #{origId,jdbcType=VARCHAR}, #{origParentId,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT})

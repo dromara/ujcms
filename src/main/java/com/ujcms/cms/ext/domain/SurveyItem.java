@@ -1,7 +1,7 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.SurveyItemBase;
-import com.ujcms.cms.ext.domain.base.SurveyOptionBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedSurveyItem;
+import com.ujcms.cms.ext.domain.generated.GeneratedSurveyOption;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +11,13 @@ import java.util.List;
  *
  * @author PONY
  */
-public class SurveyItem extends SurveyItemBase {
+public class SurveyItem extends GeneratedSurveyItem {
 
     /**
      * 总票数
      */
     public int getTotal() {
-        return getOptions().stream().mapToInt(SurveyOptionBase::getCount).sum();
+        return getOptions().stream().mapToInt(GeneratedSurveyOption::getCount).sum();
     }
 
     private List<SurveyOption> options = new ArrayList<>();

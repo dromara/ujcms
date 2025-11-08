@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.service;
 
 import com.ujcms.cms.core.domain.Config;
-import com.ujcms.cms.core.domain.base.ConfigBase;
+import com.ujcms.cms.core.domain.generated.GeneratedConfig;
 import com.ujcms.cms.core.mapper.ConfigMapper;
 import com.ujcms.cms.core.support.Props;
 import org.springframework.lang.Nullable;
@@ -28,7 +28,7 @@ public class ConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void update(Config bean) {
         mapper.update(bean);
-        attachmentService.updateRefer(ConfigBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.updateRefer(GeneratedConfig.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)

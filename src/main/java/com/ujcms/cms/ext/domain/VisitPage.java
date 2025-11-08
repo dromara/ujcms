@@ -2,7 +2,7 @@ package com.ujcms.cms.ext.domain;
 
 import java.time.LocalDateTime;
 
-import com.ujcms.cms.ext.domain.base.VisitPageBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVisitPage;
 import com.ujcms.cms.ext.domain.support.StatDateString;
 
 /**
@@ -10,7 +10,7 @@ import com.ujcms.cms.ext.domain.support.StatDateString;
  *
  * @author PONY
  */
-public class VisitPage extends VisitPageBase implements StatDateString {
+public class VisitPage extends GeneratedVisitPage implements StatDateString {
 
     public VisitPage() {
     }

@@ -75,6 +75,20 @@
       multiple_ = #{multiple,jdbcType=CHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.Vote">
+    update ujcms_vote
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      end_date_ = #{endDate,jdbcType=TIMESTAMP},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      interval_ = #{interval,jdbcType=INTEGER},
+      times_ = #{times,jdbcType=INTEGER},
+      mode_ = #{mode,jdbcType=SMALLINT},
+      multiple_ = #{multiple,jdbcType=CHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Vote">
     insert into ujcms_vote (id_, site_id_, title_, description_, begin_date_, end_date_, created_, interval_, times_, mode_, multiple_, enabled_, order_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{created,jdbcType=TIMESTAMP}, #{interval,jdbcType=INTEGER}, #{times,jdbcType=INTEGER}, #{mode,jdbcType=SMALLINT}, #{multiple,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})

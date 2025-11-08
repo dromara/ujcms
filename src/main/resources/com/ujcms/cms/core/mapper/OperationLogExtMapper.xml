@@ -35,6 +35,9 @@
       response_entity_ = #{responseEntity,jdbcType=LONGVARCHAR},
       exception_stack_ = #{exceptionStack,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.OperationLogExt">
+    update ujcms_operation_log_ext
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.OperationLogExt">
     insert into ujcms_operation_log_ext (id_, request_url_, request_body_, response_entity_, exception_stack_)
     values (#{id,jdbcType=BIGINT}, #{requestUrl,jdbcType=LONGVARCHAR}, #{requestBody,jdbcType=LONGVARCHAR}, #{responseEntity,jdbcType=LONGVARCHAR}, #{exceptionStack,jdbcType=LONGVARCHAR})

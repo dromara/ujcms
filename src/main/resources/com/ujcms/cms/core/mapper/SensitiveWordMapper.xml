@@ -30,6 +30,12 @@
       replacement_ = #{replacement,jdbcType=VARCHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.SensitiveWord">
+    update ujcms_sensitive_word
+    set name_ = #{name,jdbcType=VARCHAR},
+      replacement_ = #{replacement,jdbcType=VARCHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.SensitiveWord">
     insert into ujcms_sensitive_word (id_, name_, replacement_, enabled_)
     values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{replacement,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR})

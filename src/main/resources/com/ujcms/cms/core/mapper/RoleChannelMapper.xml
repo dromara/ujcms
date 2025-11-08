@@ -50,6 +50,11 @@
     set site_id_ = #{siteId,jdbcType=BIGINT}
     where role_id_ = #{roleId,jdbcType=BIGINT}
       and channel_id_ = #{channelId,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.RoleChannel">
+    update ujcms_role_channel
+    set site_id_ = #{siteId,jdbcType=BIGINT}
+    where role_id_ = #{roleId,jdbcType=BIGINT}
+      and channel_id_ = #{channelId,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.RoleChannel">
     insert into ujcms_role_channel (role_id_, channel_id_, site_id_)
     values (#{roleId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT})

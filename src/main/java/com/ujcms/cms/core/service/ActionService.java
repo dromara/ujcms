@@ -3,7 +3,7 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Action;
-import com.ujcms.cms.core.domain.base.ActionBase;
+import com.ujcms.cms.core.domain.generated.GeneratedAction;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.ActionMapper;
@@ -61,7 +61,7 @@ public class ActionService implements SiteDeleteListener, UserDeleteListener {
     }
 
     public List<Action> selectList(ActionArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ActionBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedAction.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

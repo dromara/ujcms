@@ -321,6 +321,26 @@
       type_ = #{type,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Article">
+    update ujcms_article
+    set src_id_ = #{srcId,jdbcType=BIGINT},
+      site_id_ = #{siteId,jdbcType=BIGINT},
+      org_id_ = #{orgId,jdbcType=BIGINT},
+      channel_id_ = #{channelId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      modified_user_id_ = #{modifiedUserId,jdbcType=BIGINT},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      modified_ = #{modified,jdbcType=TIMESTAMP},
+      publish_date_ = #{publishDate,jdbcType=TIMESTAMP},
+      online_date_ = #{onlineDate,jdbcType=TIMESTAMP},
+      offline_date_ = #{offlineDate,jdbcType=TIMESTAMP},
+      sticky_ = #{sticky,jdbcType=SMALLINT},
+      sticky_date_ = #{stickyDate,jdbcType=TIMESTAMP},
+      with_image_ = #{withImage,jdbcType=CHAR},
+      input_type_ = #{inputType,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Article">
     insert into ujcms_article (id_, src_id_, site_id_, org_id_, channel_id_, user_id_, modified_user_id_, created_, modified_, publish_date_, online_date_, offline_date_, sticky_, sticky_date_, with_image_, input_type_, type_, status_, order_)
     values (#{id,jdbcType=BIGINT}, #{srcId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{modifiedUserId,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{publishDate,jdbcType=TIMESTAMP}, #{onlineDate,jdbcType=TIMESTAMP}, #{offlineDate,jdbcType=TIMESTAMP}, #{sticky,jdbcType=SMALLINT}, #{stickyDate,jdbcType=TIMESTAMP}, #{withImage,jdbcType=CHAR}, #{inputType,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{order,jdbcType=BIGINT})

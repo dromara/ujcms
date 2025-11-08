@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.*;
-import com.ujcms.cms.core.domain.base.ChannelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedChannel;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.ModelDeleteListener;
@@ -91,7 +91,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         insertGroupIds(groupIds, bean.getId(), bean.getSiteId());
         insertArticleRoleIds(articleRoleIds, bean.getId(), bean.getSiteId());
         insertChannelRoleIds(channelRoleIds, bean.getId(), bean.getSiteId());
-        attachmentService.insertRefer(ChannelBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
+        attachmentService.insertRefer(GeneratedChannel.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
     }
 
     private void insertGroupIds(List<Long> groupIds, Long channelId, Long siteId) {
@@ -126,7 +126,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
             roleChannelMapper.deleteByChannelId(bean.getId());
             insertArticleRoleIds(channelRoleIds, bean.getId(), bean.getSiteId());
         }
-        attachmentService.updateRefer(ChannelBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.updateRefer(GeneratedChannel.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -195,7 +195,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     @Transactional(rollbackFor = Exception.class)
     public int delete(Channel bean) {
         deleteListeners.forEach(it -> it.preChannelDelete(bean.getId()));
-        attachmentService.deleteRefer(ChannelBase.TABLE_NAME, bean.getId());
+        attachmentService.deleteRefer(GeneratedChannel.TABLE_NAME, bean.getId());
         groupAccessMapper.deleteByChannelId(bean.getId());
         roleArticleMapper.deleteByChannelId(bean.getId());
         roleChannelMapper.deleteByChannelId(bean.getId());
@@ -279,7 +279,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     }
 
     public List<Channel> selectList(ChannelArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ChannelBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedChannel.TABLE_NAME, "order,id");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
         return mapper.selectAll(queryInfo, customsCondition, args.isQueryHasChildren(),
                 args.getArticleRoleIds(), args.getArticleOrgIds());

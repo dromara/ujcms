@@ -61,6 +61,15 @@
       created_ = #{created,jdbcType=TIMESTAMP},
       refers_ = #{refers,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Tag">
+    update ujcms_tag
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      refers_ = #{refers,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Tag">
     insert into ujcms_tag (id_, site_id_, user_id_, name_, description_, created_, refers_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{refers,jdbcType=INTEGER})

@@ -4,7 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Attachment;
 import com.ujcms.cms.core.domain.AttachmentRefer;
-import com.ujcms.cms.core.domain.base.AttachmentBase;
+import com.ujcms.cms.core.domain.generated.GeneratedAttachment;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.AttachmentMapper;
 import com.ujcms.cms.core.mapper.AttachmentReferMapper;
@@ -138,7 +138,7 @@ public class AttachmentService implements SiteDeleteListener {
     }
 
     public List<Attachment> selectList(AttachmentArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), AttachmentBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedAttachment.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

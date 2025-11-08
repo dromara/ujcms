@@ -1,13 +1,13 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.CollectionFieldBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedCollectionField;
 
 /**
  * 采集 实体类
  *
  * @author PONY
  */
-public class CollectionField extends CollectionFieldBase {
+public class CollectionField extends GeneratedCollectionField {
 
     /**
      * 来源：详细页

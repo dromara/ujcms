@@ -5,6 +5,7 @@ import static com.ujcms.commons.web.UrlBuilder.HTTPS_PROTOCOL;
 import static com.ujcms.commons.web.UrlBuilder.HTTP_PROTOCOL;
 import static com.ujcms.commons.web.UrlBuilder.SLASH;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.ujcms.cms.core.domain.base.SiteBase;
+import com.ujcms.cms.core.domain.generated.GeneratedSite;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
@@ -48,7 +49,7 @@ import jakarta.validation.constraints.Pattern;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"watermarkSettings", "htmlSettings", "messageBoardSettings", "handler"})
-public class Site extends SiteBase implements Anchor, TreeEntity {
+public class Site extends GeneratedSite implements Anchor, TreeEntity {
 
     /**
      * 获取动态地址，含部署路径、子目录，不含域名、端口。如：{@code /contextPath/subDir}
@@ -146,7 +147,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity {
     @Schema(description = "站点层级名称。从一级栏目到当前栏目的名称列表")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public List<String> getNames() {
-        return getPaths().stream().map(SiteBase::getName).toList();
+        return getPaths().stream().map(GeneratedSite::getName).toList();
     }
 
     /**
@@ -581,7 +582,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity {
     }
     // endregion
 
-    // region SiteBase
+    // region GeneratedSite
 
     /**
      * 域名
@@ -605,6 +606,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity {
 
     @Schema(name = "Site.Watermark", description = "水印设置")
     public static final class Watermark implements Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
         /**
          * 是否开启
@@ -684,6 +686,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity {
 
     @Schema(name = "Site.Html", description = "静态页配置")
     public static final class Html implements Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         public static final String PATH_YEAR = "{year}";
@@ -827,6 +830,7 @@ public class Site extends SiteBase implements Anchor, TreeEntity {
 
     @Schema(name = "Site.MessageBoard", description = "留言板设置")
     public static class MessageBoard implements Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
         /**
          * 是否开启

@@ -43,6 +43,14 @@
       type_ = #{type,jdbcType=SMALLINT},
       order_ = #{order,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Group">
+    update ujcms_group
+    set name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      all_access_permission_ = #{allAccessPermission,jdbcType=CHAR},
+      type_ = #{type,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Group">
     insert into ujcms_group (id_, name_, description_, all_access_permission_, type_, order_)
     values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allAccessPermission,jdbcType=CHAR}, #{type,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER})

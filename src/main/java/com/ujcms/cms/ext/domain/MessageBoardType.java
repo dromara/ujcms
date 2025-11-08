@@ -1,6 +1,6 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.MessageBoardTypeBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedMessageBoardType;
 import com.ujcms.commons.db.order.OrderEntity;
 
 /**
@@ -8,5 +8,5 @@ import com.ujcms.commons.db.order.OrderEntity;
  *
  * @author PONY
  */
-public class MessageBoardType extends MessageBoardTypeBase implements OrderEntity {
+public class MessageBoardType extends GeneratedMessageBoardType implements OrderEntity {
 }

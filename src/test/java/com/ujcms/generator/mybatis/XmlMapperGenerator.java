@@ -49,6 +49,7 @@ public class XmlMapperGenerator extends AbstractXmlGenerator {
         addSelectByPrimaryKeyElement(answer);
         addDeleteByPrimaryKeyElement(answer);
         addUpdateElement(answer);
+        addUpdateBaseElement(answer);
         addInsertElement(answer);
         addColumnListElement(answer);
 
@@ -120,6 +121,13 @@ public class XmlMapperGenerator extends AbstractXmlGenerator {
     protected void addUpdateElement(XmlElement parentElement) {
         if (introspectedTable.getRules().generateUpdateByPrimaryKeySelective()) {
             AbstractXmlElementGenerator elementGenerator = new XmlUpdateElement(true);
+            initializeAndExecuteGenerator(elementGenerator, parentElement);
+        }
+    }
+
+    protected void addUpdateBaseElement(XmlElement parentElement) {
+        if (introspectedTable.getRules().generateUpdateByPrimaryKeySelective()) {
+            AbstractXmlElementGenerator elementGenerator = new XmlUpdateBaseElement(true);
             initializeAndExecuteGenerator(elementGenerator, parentElement);
         }
     }

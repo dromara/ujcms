@@ -39,6 +39,11 @@
     set order_ = #{order,jdbcType=INTEGER}
     where user_id_ = #{userId,jdbcType=BIGINT}
       and role_id_ = #{roleId,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.UserRole">
+    update ujcms_user_role
+    set order_ = #{order,jdbcType=INTEGER}
+    where user_id_ = #{userId,jdbcType=BIGINT}
+      and role_id_ = #{roleId,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserRole">
     insert into ujcms_user_role (user_id_, role_id_, order_)
     values (#{userId,jdbcType=BIGINT}, #{roleId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER})

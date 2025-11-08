@@ -51,6 +51,12 @@
       name_ = #{name,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.MessageBoardType">
+    update ujcms_message_board_type
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.MessageBoardType">
     insert into ujcms_message_board_type (id_, site_id_, name_, description_, order_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{order,jdbcType=BIGINT})

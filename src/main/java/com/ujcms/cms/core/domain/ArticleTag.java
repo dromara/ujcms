@@ -1,14 +1,14 @@
 package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ujcms.cms.core.domain.base.ArticleTagBase;
+import com.ujcms.cms.core.domain.generated.GeneratedArticleTag;
 
 /**
  * 文章TAG关联实体类
  *
  * @author PONY
  */
-public class ArticleTag extends ArticleTagBase {
+public class ArticleTag extends GeneratedArticleTag {
 
     public ArticleTag() {
     }

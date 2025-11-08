@@ -46,6 +46,12 @@
       name_ = #{name,jdbcType=VARCHAR},
       score_ = #{score,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.PerformanceType">
+    update ujcms_performance_type
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      score_ = #{score,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.PerformanceType">
     insert into ujcms_performance_type (id_, site_id_, name_, score_, order_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{score,jdbcType=INTEGER}, #{order,jdbcType=BIGINT})

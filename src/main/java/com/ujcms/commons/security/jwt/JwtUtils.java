@@ -1,5 +1,15 @@
 package com.ujcms.commons.security.jwt;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Provider;
+import java.text.ParseException;
+import java.util.Date;
+
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
@@ -11,13 +21,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.BadJWTException;
 import com.nimbusds.jwt.proc.JWTClaimsSetVerifier;
-import org.apache.commons.lang3.ArrayUtils;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import java.nio.charset.StandardCharsets;
-import java.security.Provider;
-import java.text.ParseException;
-import java.util.Date;
 
 /**
  * JWT 工具类
@@ -33,15 +36,17 @@ public final class JwtUtils {
             for (byte[] m : messages) {
                 message = ArrayUtils.addAll(message, m);
             }
-            return HMAC.compute(HMAC_SM3.getName(), secret.getBytes(StandardCharsets.UTF_8),
-                    message, PROVIDER);
+            String algorithm = HMAC_SM3.getName();
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), algorithm);
+
+            return HMAC.compute(algorithm, secretKeySpec, message, PROVIDER);
         } catch (JOSEException e) {
             throw new IllegalStateException(e);
         }
     }
 
     public static JWTClaimsSet verify(JWSVerifier jwsVerifier, JWTClaimsSetVerifier<SecurityContext> claimsSetVerifier,
-                                      SignedJWT jwt) throws BadJWTException, JOSEException, ParseException, BadJWSException {
+            SignedJWT jwt) throws BadJWTException, JOSEException, ParseException, BadJWSException {
         if (!jwt.verify(jwsVerifier)) {
             throw new BadJWSException("Signed JWT rejected: Invalid signature");
         }

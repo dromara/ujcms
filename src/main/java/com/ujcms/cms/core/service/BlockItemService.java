@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.BlockItem;
-import com.ujcms.cms.core.domain.base.BlockItemBase;
+import com.ujcms.cms.core.domain.generated.GeneratedBlockItem;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.BlockItemMapper;
@@ -47,13 +47,13 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
         bean.setId(snowflakeSequence.nextId());
         bean.setOrder(bean.getId());
         mapper.insert(bean);
-        attachmentService.insertRefer(BlockItemBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.insertRefer(GeneratedBlockItem.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void update(BlockItem bean) {
         mapper.update(bean);
-        attachmentService.updateRefer(BlockItemBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
+        attachmentService.updateRefer(GeneratedBlockItem.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -63,7 +63,7 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
 
     @Transactional(rollbackFor = Exception.class)
     public int delete(Long id) {
-        attachmentService.deleteRefer(BlockItemBase.TABLE_NAME, id);
+        attachmentService.deleteRefer(GeneratedBlockItem.TABLE_NAME, id);
         return mapper.delete(id);
     }
 
@@ -78,7 +78,7 @@ public class BlockItemService implements SiteDeleteListener, ChannelDeleteListen
     }
 
     public List<BlockItem> selectList(BlockItemArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), BlockItemBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedBlockItem.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

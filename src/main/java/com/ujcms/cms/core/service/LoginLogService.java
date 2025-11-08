@@ -3,7 +3,7 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.LoginLog;
-import com.ujcms.cms.core.domain.base.LoginLogBase;
+import com.ujcms.cms.core.domain.generated.GeneratedLoginLog;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.LoginLogMapper;
 import com.ujcms.cms.core.service.args.LoginLogArgs;
@@ -84,7 +84,7 @@ public class LoginLogService implements UserDeleteListener {
     }
 
     public List<LoginLog> selectList(LoginLogArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), LoginLogBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedLoginLog.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

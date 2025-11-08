@@ -28,7 +28,6 @@ import org.mybatis.generator.exception.InvalidConfigurationException;
 import org.mybatis.generator.exception.ShellException;
 import org.mybatis.generator.internal.DefaultShellCallback;
 import org.mybatis.generator.internal.ObjectFactory;
-import org.mybatis.generator.internal.XmlFileMergerJaxp;
 
 /**
  * This class is the main interface to MyBatis generator. A typical execution of the tool involves these steps:
@@ -267,8 +266,8 @@ public class MyBatisGenerator {
         try {
             File directory = shellCallback.getDirectory(gjf.getTargetProject(), gjf.getTargetPackage());
             targetFile = new File(directory, gjf.getFileName());
-            if (targetFile.exists() && !directory.getName().equals("base")) {
-                // 文件存在且不是base包下，则不生成。base包下的model要生成
+            if (targetFile.exists() && !directory.getName().equals("generated")) {
+                // 文件存在且不是generated包下，则不生成。generated包下的model要生成
                 return;
                 // if (shellCallback.isMergeSupported()) {
                 //     source = shellCallback.mergeJavaFile(gjf.getFormattedContent(), targetFile, MergeConstants.getOldElementTags(), gjf.getFileEncoding());

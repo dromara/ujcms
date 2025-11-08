@@ -3,7 +3,7 @@ package com.ujcms.cms.ext.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.ext.domain.Form;
-import com.ujcms.cms.ext.domain.base.FormBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedForm;
 import com.ujcms.cms.ext.mapper.FormMapper;
 import com.ujcms.cms.ext.service.args.FormArgs;
 import com.ujcms.commons.query.QueryInfo;
@@ -37,7 +37,7 @@ public class FormService {
     }
 
     public List<Form> selectList(FormArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), FormBase.TABLE_NAME, "order_desc,id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedForm.TABLE_NAME, "order_desc,id_desc");
         return mapper.selectAll(queryInfo, args.getOrgIds(), args.getOrgRoleIds(), args.getOrgPermIds());
     }
 

@@ -112,6 +112,21 @@
       target_blank_ = #{targetBlank,jdbcType=CHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.BlockItem">
+    update ujcms_block_item
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      block_id_ = #{blockId,jdbcType=BIGINT},
+      article_id_ = #{articleId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      subtitle_ = #{subtitle,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      link_url_ = #{linkUrl,jdbcType=VARCHAR},
+      image_ = #{image,jdbcType=VARCHAR},
+      mobile_image_ = #{mobileImage,jdbcType=VARCHAR},
+      video_ = #{video,jdbcType=VARCHAR},
+      target_blank_ = #{targetBlank,jdbcType=CHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.BlockItem">
     insert into ujcms_block_item (id_, site_id_, block_id_, article_id_, title_, subtitle_, description_, link_url_, image_, mobile_image_, video_, target_blank_, enabled_, order_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{blockId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{mobileImage,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})

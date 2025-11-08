@@ -7,7 +7,7 @@ import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.ShortMessageBase;
+import com.ujcms.cms.core.domain.generated.GeneratedShortMessage;
 
 /**
  * 短信实体类
@@ -16,7 +16,7 @@ import com.ujcms.cms.core.domain.base.ShortMessageBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class ShortMessage extends ShortMessageBase {
+public class ShortMessage extends GeneratedShortMessage {
 
     public ShortMessage() {
     }

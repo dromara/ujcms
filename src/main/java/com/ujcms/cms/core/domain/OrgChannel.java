@@ -1,13 +1,13 @@
 package com.ujcms.cms.core.domain;
 
-import com.ujcms.cms.core.domain.base.OrgChannelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedOrgChannel;
 
 /**
  * 组织栏目权限 实体类
  *
  * @author PONY
  */
-public class OrgChannel extends OrgChannelBase {
+public class OrgChannel extends GeneratedOrgChannel {
 
     public OrgChannel() {
     }

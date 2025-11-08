@@ -58,6 +58,15 @@
       multiple_ = #{multiple,jdbcType=CHAR},
       essay_ = #{essay,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.SurveyItem">
+    update ujcms_survey_item
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      survey_id_ = #{surveyId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      order_ = #{order,jdbcType=INTEGER},
+      multiple_ = #{multiple,jdbcType=CHAR},
+      essay_ = #{essay,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyItem">
     insert into ujcms_survey_item (id_, site_id_, survey_id_, title_, order_, multiple_, essay_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{surveyId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{order,jdbcType=INTEGER}, #{multiple,jdbcType=CHAR}, #{essay,jdbcType=CHAR})

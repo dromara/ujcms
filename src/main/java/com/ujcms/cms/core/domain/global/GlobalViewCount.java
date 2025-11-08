@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ujcms.cms.core.support.Constants;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -11,6 +12,7 @@ import java.time.LocalDate;
  * @author PONY
  */
 public class GlobalViewCount implements GlobalData, Serializable {
+    @Serial
     private static final long serialVersionUID = -4925467488764239204L;
 
     public static final String NAME = "sys_view_count";

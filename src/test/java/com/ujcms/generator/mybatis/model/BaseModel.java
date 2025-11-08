@@ -26,6 +26,7 @@ public class BaseModel extends AbstractJavaGenerator {
         FullyQualifiedJavaType superClass = getSuperClass();
         topLevelClass.setSuperClass(superClass);
         topLevelClass.addImportedType(superClass);
+        topLevelClass.addImportedType(new FullyQualifiedJavaType("java.io.Serial"));
         if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
             topLevelClass.addImportedType(new FullyQualifiedJavaType("com.ujcms.commons.db.order.OrderEntity"));
             topLevelClass.addSuperInterface(new FullyQualifiedJavaType("OrderEntity"));
@@ -36,6 +37,7 @@ public class BaseModel extends AbstractJavaGenerator {
         serialVersionField.setStatic(true);
         serialVersionField.setFinal(true);
         serialVersionField.setInitializationString("1L");
+        serialVersionField.addAnnotation("@Serial");
         topLevelClass.addField(serialVersionField);
 
         // NotFound 属性
@@ -69,6 +71,6 @@ public class BaseModel extends AbstractJavaGenerator {
     private FullyQualifiedJavaType getSuperClass() {
         String recordType = introspectedTable.getBaseRecordType();
         int len = recordType.lastIndexOf(".");
-        return new FullyQualifiedJavaType(recordType.substring(0, len) + ".base" + recordType.substring(len) + "Base");
+        return new FullyQualifiedJavaType(recordType.substring(0, len) + ".generated.Generated" + recordType.substring(len + 1));
     }
 }

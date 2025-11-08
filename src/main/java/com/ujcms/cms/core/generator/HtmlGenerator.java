@@ -17,7 +17,7 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.Task;
-import com.ujcms.cms.core.domain.base.ChannelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedChannel;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.SiteService;
@@ -128,7 +128,7 @@ public class HtmlGenerator extends AbstractGenerator {
         }
         // 原栏目
         Optional.ofNullable(origChannelId).map(channelService::select).ifPresent(channels::add);
-        Set<Site> sites = channels.stream().map(ChannelBase::getSiteId).map(siteService::select)
+        Set<Site> sites = channels.stream().map(GeneratedChannel::getSiteId).map(siteService::select)
                 .collect(Collectors.toSet());
 
         execute(taskSiteId, taskUserId, taskName, Task.TYPE_HTML, true,

@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.DictType;
-import com.ujcms.cms.core.domain.base.DictTypeBase;
+import com.ujcms.cms.core.domain.generated.GeneratedDictType;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.DictMapper;
 import com.ujcms.cms.core.mapper.DictTypeMapper;
@@ -80,7 +80,7 @@ public class DictTypeService implements SiteDeleteListener {
 
 
     public List<DictType> selectList(DictTypeArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), DictTypeBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedDictType.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

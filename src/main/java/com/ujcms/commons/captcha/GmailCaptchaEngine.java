@@ -33,7 +33,8 @@ import java.util.List;
  * @author liufang
  */
 public class GmailCaptchaEngine extends com.octo.captcha.engine.image.ImageCaptchaEngine {
-    public GmailCaptchaEngine(WordGenerator wordGenerator, FontGenerator fontGenerator, ColorGenerator colorGenerator,
+    @SuppressWarnings("unchecked")
+public GmailCaptchaEngine(WordGenerator wordGenerator, FontGenerator fontGenerator, ColorGenerator colorGenerator,
                               BackgroundGenerator background, int minWordLength, int maxWordLength, float radius) {
         TextPaster randomPaster = new GlyphsPaster(minWordLength, maxWordLength, colorGenerator,
                 new GlyphsVisitors[]{
@@ -82,7 +83,6 @@ public class GmailCaptchaEngine extends com.octo.captcha.engine.image.ImageCaptc
         word2image = new DeformedComposedWordToImage(false, fontGenerator, background,
                 randomPaster, new ArrayList<>(),
                 new ArrayList<>(), textDef);
-        //noinspection unchecked
         factories.add(new GimpyFactory(wordGenerator, word2image, false));
     }
 

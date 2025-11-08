@@ -73,6 +73,19 @@
       interval_ = #{interval,jdbcType=INTEGER},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.Survey">
+    update ujcms_survey
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      end_date_ = #{endDate,jdbcType=TIMESTAMP},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      mode_ = #{mode,jdbcType=SMALLINT},
+      times_ = #{times,jdbcType=INTEGER},
+      interval_ = #{interval,jdbcType=INTEGER},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Survey">
     insert into ujcms_survey (id_, site_id_, title_, description_, begin_date_, end_date_, created_, mode_, times_, interval_, enabled_, order_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{created,jdbcType=TIMESTAMP}, #{mode,jdbcType=SMALLINT}, #{times,jdbcType=INTEGER}, #{interval,jdbcType=INTEGER}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})

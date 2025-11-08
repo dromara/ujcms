@@ -337,6 +337,11 @@
     set next_val_ = #{nextVal,jdbcType=BIGINT},
       cache_size_ = #{cacheSize,jdbcType=INTEGER}
     where name_ = #{name,jdbcType=VARCHAR}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Seq">
+    update ujcms_seq
+    set next_val_ = #{nextVal,jdbcType=BIGINT},
+      cache_size_ = #{cacheSize,jdbcType=INTEGER}
+    where name_ = #{name,jdbcType=VARCHAR}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Seq">
     insert into ujcms_seq (name_, next_val_, cache_size_)
     values (#{name,jdbcType=VARCHAR}, #{nextVal,jdbcType=BIGINT}, #{cacheSize,jdbcType=INTEGER})

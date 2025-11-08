@@ -147,6 +147,24 @@
       type_ = #{type,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.User">
+    update ujcms_user
+    set group_id_ = #{groupId,jdbcType=BIGINT},
+      org_id_ = #{orgId,jdbcType=BIGINT},
+      username_ = #{username,jdbcType=VARCHAR},
+      password_ = #{password,jdbcType=VARCHAR},
+      email_ = #{email,jdbcType=VARCHAR},
+      mobile_ = #{mobile,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      nickname_ = #{nickname,jdbcType=VARCHAR},
+      real_name_ = #{realName,jdbcType=VARCHAR},
+      gender_ = #{gender,jdbcType=SMALLINT},
+      avatar_ = #{avatar,jdbcType=VARCHAR},
+      password_modified_ = #{passwordModified,jdbcType=TIMESTAMP},
+      rank_ = #{rank,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.User">
     insert into ujcms_user (id_, group_id_, org_id_, username_, password_, email_, mobile_, alias_, nickname_, real_name_, gender_, avatar_, password_modified_, rank_, type_, status_)
     values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})

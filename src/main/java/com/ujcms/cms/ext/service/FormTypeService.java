@@ -2,7 +2,7 @@ package com.ujcms.cms.ext.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.ext.domain.FormType;
-import com.ujcms.cms.ext.domain.base.FormTypeBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedFormType;
 import com.ujcms.cms.ext.mapper.FormTypeMapper;
 import com.ujcms.cms.ext.service.args.FormTypeArgs;
 import com.ujcms.commons.query.QueryInfo;
@@ -31,7 +31,7 @@ public class FormTypeService {
     }
 
     public List<FormType> selectList(FormTypeArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), FormTypeBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedFormType.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

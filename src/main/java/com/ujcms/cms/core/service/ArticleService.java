@@ -4,7 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.google.common.collect.ImmutableMap;
 import com.ujcms.cms.core.domain.*;
-import com.ujcms.cms.core.domain.base.ArticleBase;
+import com.ujcms.cms.core.domain.generated.GeneratedArticle;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
@@ -117,7 +117,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         mapper.insert(bean);
         extMapper.insert(ext);
         insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames);
-        attachmentService.insertRefer(ArticleBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
+        attachmentService.insertRefer(GeneratedArticle.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.save(EsArticle.of(article)));
     }
 
@@ -222,7 +222,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         tagService.reduceReferByArticleId(bean.getId());
         articleTagMapper.deleteByArticleId(bean.getId());
         insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames);
-        attachmentService.updateRefer(ArticleBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
+        attachmentService.updateRefer(GeneratedArticle.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.update(EsArticle.of(article)));
     }
 
@@ -261,7 +261,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
             }
         }
         deleteProcessIfNecessary(bean, user);
-        attachmentService.deleteRefer(ArticleBase.TABLE_NAME, bean.getId());
+        attachmentService.deleteRefer(GeneratedArticle.TABLE_NAME, bean.getId());
         extMapper.delete(bean.getId());
         tagService.reduceReferByArticleId(bean.getId());
         articleTagMapper.deleteByArticleId(bean.getId());
@@ -318,7 +318,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     public List<Article> selectList(ArticleArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ArticleBase.TABLE_NAME, "order_desc,id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedArticle.TABLE_NAME, "order_desc,id_desc");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
         return mapper.selectAll(queryInfo, customsCondition, args.getChannelAncestorIds(), args.getOrgIds(),
                 args.getArticleRoleIds(), args.getArticleOrgIds(), args.getOrgRoleIds(), args.getOrgPermIds());

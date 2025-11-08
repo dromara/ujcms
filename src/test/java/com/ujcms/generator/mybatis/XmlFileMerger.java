@@ -114,12 +114,14 @@ public class XmlFileMerger {
         Node firstChild = existingRootElement.getFirstChild();
         for (int i = 0; i < length; i++) {
             Node node = children.item(i);
-            // 只合并 Column_List、insert、update
             if (!(node instanceof Element)) continue;
             Element element = (Element) node;
             String id = element.getAttribute("id");
-            if (!"BaseResultMap".equals(id) && !"ResultMapWithBLOBs".equals(id) && !"Column_List".equals(id) && !"insert".equals(id) && !"update".equals(id))
+            // 只合并 BaseResultMap、ResultMapWithBLOBs、Column_List、insert、update、updateBase
+            List<String> ids = List.of("BaseResultMap", "ResultMapWithBLOBs", "Column_List", "insert", "update", "updateBase");
+            if (!ids.contains(id)) {
                 continue;
+            }
             // don't add the last node if it is only white space
             if (i == length - 1 && isWhiteSpace(node)) {
                 break;
@@ -144,11 +146,12 @@ public class XmlFileMerger {
     }
 
     private static boolean isGeneratedNode(Node node) {
-        // 只合并 Column_List、select、insert、update
+        // 只合并 BaseResultMap、ResultMapWithBLOBs、Column_List、select、insert、update、updateBase
         if (!(node instanceof Element)) return false;
         Element element = (Element) node;
         String id = element.getAttribute("id");
-        return "BaseResultMap".equals(id) || "ResultMapWithBLOBs".equals(id) || "Column_List".equals(id) || "insert".equals(id) || "update".equals(id);
+        List<String> ids = List.of("BaseResultMap", "ResultMapWithBLOBs", "Column_List", "insert", "update", "updateBase");
+        return ids.contains(id);
         // return node != null
         //         && node.getNodeType() == Node.ELEMENT_NODE
         //         && (isOldFormatNode(node) || isNewFormatNode(node));

@@ -44,6 +44,15 @@
       large_avatar_url_ = #{largeAvatarUrl,jdbcType=VARCHAR}
     where user_id_ = #{userId,jdbcType=BIGINT}
       and provider_ = #{provider,jdbcType=VARCHAR}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.UserOpenid">
+    update ujcms_user_openid
+    set openid_ = #{openid,jdbcType=VARCHAR},
+      nickname_ = #{nickname,jdbcType=VARCHAR},
+      gender_ = #{gender,jdbcType=SMALLINT},
+      avatar_url_ = #{avatarUrl,jdbcType=VARCHAR},
+      large_avatar_url_ = #{largeAvatarUrl,jdbcType=VARCHAR}
+    where user_id_ = #{userId,jdbcType=BIGINT}
+      and provider_ = #{provider,jdbcType=VARCHAR}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserOpenid">
     insert into ujcms_user_openid (user_id_, provider_, openid_, nickname_, gender_, avatar_url_, large_avatar_url_)
     values (#{userId,jdbcType=BIGINT}, #{provider,jdbcType=VARCHAR}, #{openid,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatarUrl,jdbcType=VARCHAR}, #{largeAvatarUrl,jdbcType=VARCHAR})

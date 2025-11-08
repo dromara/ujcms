@@ -7,8 +7,8 @@ import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.service.ActionService;
 import com.ujcms.cms.ext.domain.Vote;
 import com.ujcms.cms.ext.domain.VoteOption;
-import com.ujcms.cms.ext.domain.base.VoteBase;
-import com.ujcms.cms.ext.domain.base.VoteOptionBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVote;
+import com.ujcms.cms.ext.domain.generated.GeneratedVoteOption;
 import com.ujcms.cms.ext.mapper.VoteMapper;
 import com.ujcms.cms.ext.mapper.VoteOptionMapper;
 import com.ujcms.cms.ext.service.args.VoteArgs;
@@ -48,7 +48,7 @@ public class VoteService implements SiteDeleteListener {
     private void updateVoteOptions(Long voteId, List<VoteOption> optionList) {
         // 删除
         optionMapper.deleteByVoteId(voteId,
-                optionList.stream().map(VoteOptionBase::getId).filter(id -> id > 0).toList());
+                optionList.stream().map(GeneratedVoteOption::getId).filter(id -> id > 0).toList());
         int order = 1;
         for (VoteOption option : optionList) {
             option.setVoteId(voteId);
@@ -101,7 +101,7 @@ public class VoteService implements SiteDeleteListener {
     }
 
     public List<Vote> selectList(VoteArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), VoteBase.TABLE_NAME, "order_desc,id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedVote.TABLE_NAME, "order_desc,id_desc");
         return mapper.selectAll(queryInfo);
     }
 

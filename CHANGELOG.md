@@ -1,8 +1,16 @@
 # UJCMS 发版说明
 
+## ujcms-10.0.3
+
+* 修复：自动化置灰时，会清空站点自定义数据的问题
+* 修复：修正过时方法
+* 修复：代码生成器不会自动修改 BaseResultMap、Column_List、update 等问题
+* 修复：全文检索翻页超过最大页数报错问题
+* 改进：自动生成的 domain 的包名由 base 改为 generated，类名由 *Base 改为 Generated*
+
 ## ujcms-10.0.2
 
-* 修复后台数据翻页 totalElements 数据不存在问题
+* 修复：后台数据翻页 totalElements 数据不存在问题
 
 ## ujcms-10.0.1
 

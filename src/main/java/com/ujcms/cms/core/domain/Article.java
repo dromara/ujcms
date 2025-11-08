@@ -3,6 +3,7 @@ package com.ujcms.cms.core.domain;
 import static com.ujcms.cms.core.support.Constants.MAPPER;
 import static com.ujcms.commons.web.Strings.formatDuration;
 
+import java.io.Serial;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.ujcms.cms.core.domain.base.ArticleBase;
+import com.ujcms.cms.core.domain.generated.GeneratedArticle;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
@@ -49,7 +50,8 @@ import jakarta.validation.constraints.Pattern;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Article extends ArticleBase implements PageUrlResolver, Anchor, OrderEntity {
+public class Article extends GeneratedArticle implements PageUrlResolver, Anchor, OrderEntity {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // region Normal

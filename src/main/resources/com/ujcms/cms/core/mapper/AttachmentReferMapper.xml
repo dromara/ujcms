@@ -52,6 +52,12 @@
       refer_type_ = #{referType,jdbcType=VARCHAR},
       refer_id_ = #{referId,jdbcType=BIGINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.AttachmentRefer">
+    update ujcms_attachment_refer
+    set attachment_id_ = #{attachmentId,jdbcType=BIGINT},
+      refer_type_ = #{referType,jdbcType=VARCHAR},
+      refer_id_ = #{referId,jdbcType=BIGINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.AttachmentRefer">
     insert into ujcms_attachment_refer (id_, attachment_id_, refer_type_, refer_id_)
     values (#{id,jdbcType=BIGINT}, #{attachmentId,jdbcType=BIGINT}, #{referType,jdbcType=VARCHAR}, #{referId,jdbcType=BIGINT})

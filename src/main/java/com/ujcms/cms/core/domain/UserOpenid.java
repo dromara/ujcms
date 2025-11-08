@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.domain;
 
-import com.ujcms.cms.core.domain.base.UserOpenidBase;
+import com.ujcms.cms.core.domain.generated.GeneratedUserOpenid;
 import com.ujcms.commons.security.oauth.OauthToken;
 
 /**
@@ -8,7 +8,7 @@ import com.ujcms.commons.security.oauth.OauthToken;
  *
  * @author PONY
  */
-public class UserOpenid extends UserOpenidBase {
+public class UserOpenid extends GeneratedUserOpenid {
 
     public UserOpenid() {
     }

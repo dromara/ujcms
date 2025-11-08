@@ -1,5 +1,6 @@
 package com.ujcms.cms.ext.domain.global;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,6 +12,7 @@ import com.ujcms.cms.core.support.Constants;
  * @author PONY
  */
 public class GlobalVisitorCount implements GlobalData, Serializable {
+    @Serial
     private static final long serialVersionUID = -4925467488764239204L;
 
     public static final String NAME = "sys_visitor_count";

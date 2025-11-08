@@ -3,8 +3,8 @@ package com.ujcms.cms.ext.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.ujcms.cms.ext.domain.base.VoteBase;
-import com.ujcms.cms.ext.domain.base.VoteOptionBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVote;
+import com.ujcms.cms.ext.domain.generated.GeneratedVoteOption;
 import com.ujcms.commons.db.order.OrderEntity;
 import com.ujcms.commons.web.Views;
 
@@ -19,13 +19,13 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Vote extends VoteBase implements OrderEntity {
+public class Vote extends GeneratedVote implements OrderEntity {
 
     /**
      * 总票数
      */
     public int getTotal() {
-        return getOptions().stream().mapToInt(VoteOptionBase::getCount).sum();
+        return getOptions().stream().mapToInt(GeneratedVoteOption::getCount).sum();
     }
 
     /**

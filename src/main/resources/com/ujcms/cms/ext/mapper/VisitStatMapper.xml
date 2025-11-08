@@ -94,6 +94,19 @@
       date_string_ = #{dateString,jdbcType=CHAR},
       type_ = #{type,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.VisitStat">
+    update ujcms_visit_stat
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      pv_count_ = #{pvCount,jdbcType=BIGINT},
+      uv_count_ = #{uvCount,jdbcType=BIGINT},
+      ip_count_ = #{ipCount,jdbcType=BIGINT},
+      nv_count_ = #{nvCount,jdbcType=BIGINT},
+      bounce_count_ = #{bounceCount,jdbcType=INTEGER},
+      duration_ = #{duration,jdbcType=INTEGER},
+      date_string_ = #{dateString,jdbcType=CHAR},
+      type_ = #{type,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VisitStat">
     insert into ujcms_visit_stat (id_, site_id_, name_, pv_count_, uv_count_, ip_count_, nv_count_, bounce_count_, duration_, date_string_, type_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{pvCount,jdbcType=BIGINT}, #{uvCount,jdbcType=BIGINT}, #{ipCount,jdbcType=BIGINT}, #{nvCount,jdbcType=BIGINT}, #{bounceCount,jdbcType=INTEGER}, #{duration,jdbcType=INTEGER}, #{dateString,jdbcType=CHAR}, #{type,jdbcType=SMALLINT})

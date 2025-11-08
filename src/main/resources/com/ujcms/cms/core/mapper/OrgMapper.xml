@@ -144,6 +144,13 @@
       address_ = #{address,jdbcType=VARCHAR},
       contacts_ = #{contacts,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Org">
+    update ujcms_org
+    set name_ = #{name,jdbcType=VARCHAR},
+      phone_ = #{phone,jdbcType=VARCHAR},
+      address_ = #{address,jdbcType=VARCHAR},
+      contacts_ = #{contacts,jdbcType=VARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Org">
     insert into ujcms_org (id_, parent_id_, name_, phone_, address_, contacts_, depth_, order_)
     values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{contacts,jdbcType=VARCHAR}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER})

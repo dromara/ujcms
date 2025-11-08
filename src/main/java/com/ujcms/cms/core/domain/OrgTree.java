@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.OrgTreeBase;
+import com.ujcms.cms.core.domain.generated.GeneratedOrgTree;
 import com.ujcms.commons.db.tree.TreeRelation;
 
 /**
@@ -12,7 +12,7 @@ import com.ujcms.commons.db.tree.TreeRelation;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class OrgTree extends OrgTreeBase implements TreeRelation {
+public class OrgTree extends GeneratedOrgTree implements TreeRelation {
 
     public OrgTree(Long ancestorId, Long descendantId) {
         setAncestorId(ancestorId);

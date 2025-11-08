@@ -1,6 +1,6 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.SurveyFeedbackBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedSurveyFeedback;
 import org.springframework.lang.Nullable;
 
 /**
@@ -8,7 +8,7 @@ import org.springframework.lang.Nullable;
  *
  * @author PONY
  */
-public class SurveyFeedback extends SurveyFeedbackBase {
+public class SurveyFeedback extends GeneratedSurveyFeedback {
 
     public SurveyFeedback() {
     }

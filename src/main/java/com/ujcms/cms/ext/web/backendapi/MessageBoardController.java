@@ -16,17 +16,17 @@ import com.ujcms.commons.web.Responses.Body;
 import com.ujcms.commons.web.Servlets;
 import com.ujcms.commons.web.exception.Http400Exception;
 import com.ujcms.commons.web.exception.Http404Exception;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import org.apache.commons.lang3.Strings;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -108,7 +108,7 @@ public class MessageBoardController {
         if (messageBoard == null) {
             return Responses.notFound("MessageBoard not found. ID = " + bean.getId());
         }
-        if (!StringUtils.equals(bean.getReplyText(), messageBoard.getReplyText())) {
+        if (!Strings.CS.equals(bean.getReplyText(), messageBoard.getReplyText())) {
             messageBoard.setReplyUserId(user.getId());
             messageBoard.setReplyDate(OffsetDateTime.now());
         }

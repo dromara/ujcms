@@ -2,7 +2,7 @@ package com.ujcms.cms.ext.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.ext.domain.MessageBoardType;
-import com.ujcms.cms.ext.domain.base.MessageBoardTypeBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedMessageBoardType;
 import com.ujcms.cms.ext.mapper.MessageBoardTypeMapper;
 import com.ujcms.cms.ext.service.args.MessageBoardTypeArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
@@ -64,7 +64,7 @@ public class MessageBoardTypeService {
     }
 
     public List<MessageBoardType> selectList(MessageBoardTypeArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), MessageBoardTypeBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedMessageBoardType.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

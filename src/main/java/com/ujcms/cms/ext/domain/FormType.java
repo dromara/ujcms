@@ -3,7 +3,7 @@ package com.ujcms.cms.ext.domain;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.Model;
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.ext.domain.base.FormTypeBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedFormType;
 import com.ujcms.commons.db.order.OrderEntity;
 
 /**
@@ -11,7 +11,7 @@ import com.ujcms.commons.db.order.OrderEntity;
  *
  * @author PONY
  */
-public class FormType extends FormTypeBase implements OrderEntity {
+public class FormType extends GeneratedFormType implements OrderEntity {
     /**
      * 站点
      */

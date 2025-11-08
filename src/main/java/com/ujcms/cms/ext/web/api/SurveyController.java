@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.domain.base.UserBase;
+import com.ujcms.cms.core.domain.generated.GeneratedUser;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
@@ -34,7 +34,7 @@ import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.cms.ext.domain.Survey;
 import com.ujcms.cms.ext.domain.SurveyItem;
 import com.ujcms.cms.ext.domain.Vote;
-import com.ujcms.cms.ext.domain.base.SurveyOptionBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedSurveyOption;
 import com.ujcms.cms.ext.service.SurveyFeedbackService;
 import com.ujcms.cms.ext.service.SurveyService;
 import com.ujcms.cms.ext.service.args.SurveyArgs;
@@ -173,7 +173,7 @@ public class SurveyController {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
-        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
+        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(GeneratedUser::getId).orElse(null);
         OffsetDateTime date = survey.getInterval() > 0 ? OffsetDateTime.now().minusDays(survey.getInterval()) : null;
         // 已经投过票
         boolean voted;
@@ -220,7 +220,7 @@ public class SurveyController {
             } else {
                 throw new Http400Exception("Option is invalid: " + value);
             }
-            List<Long> itemOptionsIds = item.getOptions().stream().map(SurveyOptionBase::getId)
+            List<Long> itemOptionsIds = item.getOptions().stream().map(GeneratedSurveyOption::getId)
                     .toList();
             for (Long optionId : optionIds) {
                 if (!itemOptionsIds.contains(optionId)) {

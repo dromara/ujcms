@@ -44,6 +44,15 @@
       type_ = #{type,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.LoginLog">
+    update ujcms_login_log
+    set user_id_ = #{userId,jdbcType=BIGINT},
+      login_name_ = #{loginName,jdbcType=VARCHAR},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.LoginLog">
     insert into ujcms_login_log (id_, user_id_, login_name_, ip_, created_, type_, status_)
     values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{loginName,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})

@@ -1,13 +1,13 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.SurveyItemFeedbackBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedSurveyItemFeedback;
 
 /**
  * 调查问卷条目与调查反馈 关联实体类
  *
  * @author PONY
  */
-public class SurveyItemFeedback extends SurveyItemFeedbackBase {
+public class SurveyItemFeedback extends GeneratedSurveyItemFeedback {
     private SurveyFeedback feedback = new SurveyFeedback();
 
     public SurveyItemFeedback() {

@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ujcms.cms.core.domain.base.ConfigBase;
+import com.ujcms.cms.core.domain.generated.GeneratedConfig;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.StaticProps;
 import com.ujcms.commons.file.FileHandler;
@@ -53,7 +53,7 @@ import jakarta.validation.constraints.Size;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"uploadSettings", "greySettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
         "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings", "customsSettings", "handler"})
-public class Config extends ConfigBase {
+public class Config extends GeneratedConfig {
 
     /**
      * 是否置灰

@@ -45,6 +45,19 @@
       error_date_ = #{errorDate,jdbcType=TIMESTAMP},
       error_count_ = #{errorCount,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.UserExt">
+    update ujcms_user_ext
+    set birthday_ = #{birthday,jdbcType=TIMESTAMP},
+      location_ = #{location,jdbcType=VARCHAR},
+      bio_ = #{bio,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      history_password_ = #{historyPassword,jdbcType=VARCHAR},
+      login_date_ = #{loginDate,jdbcType=TIMESTAMP},
+      login_ip_ = #{loginIp,jdbcType=VARCHAR},
+      login_count_ = #{loginCount,jdbcType=INTEGER},
+      error_date_ = #{errorDate,jdbcType=TIMESTAMP},
+      error_count_ = #{errorCount,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserExt">
     insert into ujcms_user_ext (id_, birthday_, location_, bio_, created_, history_password_, login_date_, login_ip_, login_count_, error_date_, error_count_)
     values (#{id,jdbcType=BIGINT}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{historyPassword,jdbcType=VARCHAR}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})

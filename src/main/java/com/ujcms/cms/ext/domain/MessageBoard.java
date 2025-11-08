@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.ext.domain.base.MessageBoardBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedMessageBoard;
 import com.ujcms.commons.web.HtmlParserUtils;
 import org.springframework.lang.Nullable;
 
@@ -19,7 +19,7 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class MessageBoard extends MessageBoardBase {
+public class MessageBoard extends GeneratedMessageBoard {
 
     @JsonIgnore
     public List<String> getAttachmentUrls() {

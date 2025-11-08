@@ -28,7 +28,7 @@ import com.ujcms.cms.core.domain.ArticleBuffer;
 import com.ujcms.cms.core.domain.Group;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.core.domain.base.UserBase;
+import com.ujcms.cms.core.domain.generated.GeneratedUser;
 import com.ujcms.cms.core.service.ActionService;
 import com.ujcms.cms.core.service.ArticleBufferService;
 import com.ujcms.cms.core.service.ArticleService;
@@ -337,7 +337,7 @@ public class ArticleController {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
-        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
+        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(GeneratedUser::getId).orElse(null);
         if (actionService.existsBy(Article.ACTION_TYPE_UP_DOWN, id, null, null, null, ip, cookie)) {
             return true;
         }

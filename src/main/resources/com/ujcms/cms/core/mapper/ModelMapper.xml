@@ -60,6 +60,14 @@
       asides_ = #{asides,jdbcType=LONGVARCHAR},
       customs_ = #{customs,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Model">
+    update ujcms_model
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=VARCHAR},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Model">
     insert into ujcms_model (id_, site_id_, name_, type_, scope_, order_, mains_, asides_, customs_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{mains,jdbcType=LONGVARCHAR}, #{asides,jdbcType=LONGVARCHAR}, #{customs,jdbcType=LONGVARCHAR})

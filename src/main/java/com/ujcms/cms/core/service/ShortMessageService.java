@@ -6,7 +6,7 @@ import static com.ujcms.cms.core.domain.Config.Sms.PROVIDER_TENCENTCLOUD;
 import java.util.List;
 import java.util.Objects;
 
-import com.ujcms.cms.core.domain.base.ShortMessageBase;
+import com.ujcms.cms.core.domain.generated.GeneratedShortMessage;
 import org.apache.commons.lang3.Strings;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -168,7 +168,7 @@ public class ShortMessageService {
     }
 
     public List<ShortMessage> selectList(ShortMessageArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ShortMessageBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedShortMessage.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.domain.base.UserBase;
+import com.ujcms.cms.core.domain.generated.GeneratedUser;
 import com.ujcms.cms.core.service.ActionService;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
@@ -31,7 +31,7 @@ import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.cms.ext.domain.Vote;
-import com.ujcms.cms.ext.domain.base.VoteOptionBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVoteOption;
 import com.ujcms.cms.ext.service.VoteService;
 import com.ujcms.cms.ext.service.args.VoteArgs;
 import com.ujcms.cms.ext.web.directive.VoteListDirective;
@@ -172,7 +172,7 @@ public class VoteController {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
-        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(UserBase::getId).orElse(null);
+        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(GeneratedUser::getId).orElse(null);
         OffsetDateTime date = vote.getInterval() > 0 ? OffsetDateTime.now().minusDays(vote.getInterval()) : null;
         // 已经投过票
         boolean voted;
@@ -206,7 +206,7 @@ public class VoteController {
         if (optionIds == null) {
             throw new Http400Exception("'optionIds' can not be empty");
         }
-        List<Long> voteOptionIds = vote.getOptions().stream().map(VoteOptionBase::getId)
+        List<Long> voteOptionIds = vote.getOptions().stream().map(GeneratedVoteOption::getId)
                 .toList();
         for (Long optionId : optionIds) {
             if (!voteOptionIds.contains(optionId)) {

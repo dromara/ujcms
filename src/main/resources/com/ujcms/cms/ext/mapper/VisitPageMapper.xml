@@ -87,6 +87,16 @@
       date_string_ = #{dateString,jdbcType=CHAR},
       type_ = #{type,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.VisitPage">
+    update ujcms_visit_page
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      url_ = #{url,jdbcType=VARCHAR},
+      pv_count_ = #{pvCount,jdbcType=BIGINT},
+      uv_count_ = #{uvCount,jdbcType=BIGINT},
+      ip_count_ = #{ipCount,jdbcType=BIGINT},
+      date_string_ = #{dateString,jdbcType=CHAR},
+      type_ = #{type,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VisitPage">
     insert into ujcms_visit_page (id_, site_id_, url_, pv_count_, uv_count_, ip_count_, date_string_, type_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{url,jdbcType=VARCHAR}, #{pvCount,jdbcType=BIGINT}, #{uvCount,jdbcType=BIGINT}, #{ipCount,jdbcType=BIGINT}, #{dateString,jdbcType=CHAR}, #{type,jdbcType=SMALLINT})

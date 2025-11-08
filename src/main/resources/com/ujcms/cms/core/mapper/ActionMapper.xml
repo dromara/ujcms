@@ -79,6 +79,17 @@
       ref_option_ = #{refOption,jdbcType=VARCHAR},
       created_ = #{created,jdbcType=TIMESTAMP}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Action">
+    update ujcms_action
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      cookie_ = #{cookie,jdbcType=BIGINT},
+      ref_type_ = #{refType,jdbcType=VARCHAR},
+      ref_id_ = #{refId,jdbcType=BIGINT},
+      ref_option_ = #{refOption,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Action">
     insert into ujcms_action (id_, site_id_, user_id_, ip_, cookie_, ref_type_, ref_id_, ref_option_, created_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{ip,jdbcType=VARCHAR}, #{cookie,jdbcType=BIGINT}, #{refType,jdbcType=VARCHAR}, #{refId,jdbcType=BIGINT}, #{refOption,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP})

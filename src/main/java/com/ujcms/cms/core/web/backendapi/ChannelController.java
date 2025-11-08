@@ -34,8 +34,8 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.core.domain.base.GroupBase;
-import com.ujcms.cms.core.domain.base.RoleBase;
+import com.ujcms.cms.core.domain.generated.GeneratedGroup;
+import com.ujcms.cms.core.domain.generated.GeneratedRole;
 import com.ujcms.cms.core.generator.HtmlGenerator;
 import com.ujcms.cms.core.mapper.GroupAccessMapper;
 import com.ujcms.cms.core.mapper.RoleArticleMapper;
@@ -152,11 +152,11 @@ public class ChannelController {
         channel.setCustoms(bean.getCustoms());
         // 默认给所有用户组、角色权限
         List<Long> groupIds = groupService.listNotAllAccessPermission().stream()
-                .map(GroupBase::getId).toList();
+                .map(GeneratedGroup::getId).toList();
         List<Long> articleRoleIds = roleService.listNotAllArticlePermission(site.getId()).stream()
-                .map(RoleBase::getId).toList();
+                .map(GeneratedRole::getId).toList();
         List<Long> channelRoleIds = roleService.listNotAllChannelPermission(site.getId()).stream()
-                .map(RoleBase::getId).toList();
+                .map(GeneratedRole::getId).toList();
         Long parentId = bean.getParentId();
         if (parentId != null) {
             // 按上级栏目给权限

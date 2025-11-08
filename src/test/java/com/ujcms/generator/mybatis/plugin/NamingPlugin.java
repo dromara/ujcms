@@ -22,6 +22,7 @@ public class NamingPlugin extends PluginAdapter {
     public void initialized(IntrospectedTable introspectedTable) {
         introspectedTable.setDeleteByPrimaryKeyStatementId("delete");
         introspectedTable.setUpdateByPrimaryKeyStatementId("update");
+        introspectedTable.setUpdateByPrimaryKeySelectiveStatementId("updateBase");
         introspectedTable.setSelectByPrimaryKeyStatementId("select");
         // introspectedTable.setResultMapWithBLOBsId("ResultMap");
         introspectedTable.setBaseColumnListId("Column_List");

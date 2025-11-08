@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.UserRoleBase;
+import com.ujcms.cms.core.domain.generated.GeneratedUserRole;
 
 /**
  * 用户角色关系实体类
@@ -11,7 +11,7 @@ import com.ujcms.cms.core.domain.base.UserRoleBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class UserRole extends UserRoleBase {
+public class UserRole extends GeneratedUserRole {
 
     public UserRole(Long userId, Long roleId) {
         setUserId(userId);

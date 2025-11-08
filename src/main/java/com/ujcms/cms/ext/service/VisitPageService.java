@@ -5,7 +5,7 @@ import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.service.SeqService;
 import com.ujcms.cms.ext.domain.VisitPage;
-import com.ujcms.cms.ext.domain.base.VisitPageBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVisitPage;
 import com.ujcms.cms.ext.mapper.VisitPageMapper;
 import com.ujcms.cms.ext.service.args.VisitPageArgs;
 import com.ujcms.commons.query.QueryInfo;
@@ -34,7 +34,7 @@ public class VisitPageService implements SiteDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(VisitPage bean) {
-        bean.setId(seqService.getNextLongVal(VisitPageBase.TABLE_NAME));
+        bean.setId(seqService.getNextLongVal(GeneratedVisitPage.TABLE_NAME));
         mapper.insert(bean);
     }
 
@@ -64,7 +64,7 @@ public class VisitPageService implements SiteDeleteListener {
     }
 
     public List<VisitPage> selectList(VisitPageArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), VisitPageBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedVisitPage.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

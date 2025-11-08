@@ -69,6 +69,26 @@
       text_ = #{text,jdbcType=LONGVARCHAR},
       reply_text_ = #{replyText,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.MessageBoard">
+    update ujcms_message_board
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      type_id_ = #{typeId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      reply_user_id_ = #{replyUserId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      reply_date_ = #{replyDate,jdbcType=TIMESTAMP},
+      contact_ = #{contact,jdbcType=VARCHAR},
+      nickname_ = #{nickname,jdbcType=VARCHAR},
+      phone_ = #{phone,jdbcType=VARCHAR},
+      email_ = #{email,jdbcType=VARCHAR},
+      address_ = #{address,jdbcType=VARCHAR},
+      open_ = #{open,jdbcType=CHAR},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      replied_ = #{replied,jdbcType=CHAR},
+      recommended_ = #{recommended,jdbcType=CHAR},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.MessageBoard">
     insert into ujcms_message_board (id_, site_id_, type_id_, user_id_, reply_user_id_, title_, created_, reply_date_, contact_, nickname_, phone_, email_, address_, open_, ip_, replied_, recommended_, status_, text_, reply_text_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{typeId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{replyUserId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{replyDate,jdbcType=TIMESTAMP}, #{contact,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{open,jdbcType=CHAR}, #{ip,jdbcType=VARCHAR}, #{replied,jdbcType=CHAR}, #{recommended,jdbcType=CHAR}, #{status,jdbcType=SMALLINT}, #{text,jdbcType=LONGVARCHAR}, #{replyText,jdbcType=LONGVARCHAR})

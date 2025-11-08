@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.GroupBase;
+import com.ujcms.cms.core.domain.generated.GeneratedGroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Group extends GroupBase {
+public class Group extends GeneratedGroup {
 
     /**
      * 访问权限，栏目ID列表。非数据库属性，用于接收前台请求。

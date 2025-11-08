@@ -3,7 +3,7 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.BlockBase;
+import com.ujcms.cms.core.domain.generated.GeneratedBlock;
 import org.hibernate.validator.constraints.Length;
 
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +19,7 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Block extends BlockBase {
+public class Block extends GeneratedBlock {
 
     /**
      * 是否全局共享

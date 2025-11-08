@@ -69,6 +69,15 @@
       cookie_ = #{cookie,jdbcType=BIGINT},
       created_ = #{created,jdbcType=TIMESTAMP}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.SurveyFeedback">
+    update ujcms_survey_feedback
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      survey_id_ = #{surveyId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      cookie_ = #{cookie,jdbcType=BIGINT},
+      created_ = #{created,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyFeedback">
     insert into ujcms_survey_feedback (id_, site_id_, survey_id_, user_id_, ip_, cookie_, created_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{surveyId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{ip,jdbcType=VARCHAR}, #{cookie,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP})

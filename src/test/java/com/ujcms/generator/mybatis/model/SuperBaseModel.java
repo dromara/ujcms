@@ -22,7 +22,7 @@ public class SuperBaseModel extends AbstractJavaGenerator {
 
     protected String getRecordType(String recordType) {
         int len = recordType.lastIndexOf(".");
-        return recordType.substring(0, len) + ".base" + recordType.substring(len) + "Base";
+        return recordType.substring(0, len) + ".generated.Generated" + recordType.substring(len + 1);
     }
 
     @Override
@@ -34,6 +34,7 @@ public class SuperBaseModel extends AbstractJavaGenerator {
         FullyQualifiedJavaType type = new FullyQualifiedJavaType(getRecordType(introspectedTable.getBaseRecordType()));
         TopLevelClass topLevelClass = new TopLevelClass(type);
         topLevelClass.setVisibility(JavaVisibility.PUBLIC);
+        topLevelClass.addImportedType(new FullyQualifiedJavaType("java.io.Serial"));
         topLevelClass.addImportedType(new FullyQualifiedJavaType("java.io.Serializable"));
         topLevelClass.addSuperInterface(new FullyQualifiedJavaType("java.io.Serializable"));
         commentGenerator.addJavaFileComment(topLevelClass);
@@ -56,6 +57,7 @@ public class SuperBaseModel extends AbstractJavaGenerator {
         serialVersionField.setStatic(true);
         serialVersionField.setFinal(true);
         serialVersionField.setInitializationString("1L");
+        serialVersionField.addAnnotation("@Serial");
         topLevelClass.addField(serialVersionField);
 
         Field tableNameField = new Field("TABLE_NAME", new FullyQualifiedJavaType("String"));

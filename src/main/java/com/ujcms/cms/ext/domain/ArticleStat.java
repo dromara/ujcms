@@ -5,6 +5,7 @@ import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.User;
 import org.springframework.lang.Nullable;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * @author PONY
  */
 public class ArticleStat implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

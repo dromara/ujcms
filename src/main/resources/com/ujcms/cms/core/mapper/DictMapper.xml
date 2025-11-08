@@ -57,6 +57,17 @@
       sys_ = #{sys,jdbcType=CHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Dict">
+    update ujcms_dict
+    set type_id_ = #{typeId,jdbcType=BIGINT},
+      parent_id_ = #{parentId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      value_ = #{value,jdbcType=VARCHAR},
+      remark_ = #{remark,jdbcType=VARCHAR},
+      order_ = #{order,jdbcType=INTEGER},
+      sys_ = #{sys,jdbcType=CHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Dict">
     insert into ujcms_dict (id_, type_id_, parent_id_, name_, value_, remark_, order_, sys_, enabled_)
     values (#{id,jdbcType=BIGINT}, #{typeId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{order,jdbcType=INTEGER}, #{sys,jdbcType=CHAR}, #{enabled,jdbcType=CHAR})

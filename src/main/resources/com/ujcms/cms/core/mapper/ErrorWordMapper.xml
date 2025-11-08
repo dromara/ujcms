@@ -30,6 +30,12 @@
       correct_ = #{correct,jdbcType=VARCHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.ErrorWord">
+    update ujcms_error_word
+    set name_ = #{name,jdbcType=VARCHAR},
+      correct_ = #{correct,jdbcType=VARCHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ErrorWord">
     insert into ujcms_error_word (id_, name_, correct_, enabled_)
     values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{correct,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR})

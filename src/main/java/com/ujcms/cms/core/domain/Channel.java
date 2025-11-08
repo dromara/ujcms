@@ -1,5 +1,6 @@
 package com.ujcms.cms.core.domain;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.Application;
-import com.ujcms.cms.core.domain.base.ChannelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedChannel;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.cms.core.support.Contexts;
@@ -40,7 +41,8 @@ import jakarta.validation.constraints.Pattern;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Channel extends ChannelBase implements PageUrlResolver, Anchor, TreeEntity {
+public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor, TreeEntity {
+    @Serial
     private static final long serialVersionUID = 1L;
     // region Normal
 
@@ -83,7 +85,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     @Schema(description = "栏目层级名称。从一级栏目到当前栏目的名称列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性只包含当前栏目名称")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public List<String> getNames() {
-        return getPaths().stream().map(ChannelBase::getName).toList();
+        return getPaths().stream().map(GeneratedChannel::getName).toList();
     }
 
     /**
@@ -390,7 +392,7 @@ public class Channel extends ChannelBase implements PageUrlResolver, Anchor, Tre
     }
     // endregion
 
-    // region ChannelBase
+    // region GeneratedChannel
 
     @Schema(description = "别名")
     @Override

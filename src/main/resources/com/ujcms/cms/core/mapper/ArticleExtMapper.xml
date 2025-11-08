@@ -127,6 +127,43 @@
       mains_json_ = #{mainsJson,jdbcType=OTHER},
       clobs_json_ = #{clobsJson,jdbcType=OTHER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.ArticleExt">
+    update ujcms_article_ext
+    set title_ = #{title,jdbcType=VARCHAR},
+      subtitle_ = #{subtitle,jdbcType=VARCHAR},
+      full_title_ = #{fullTitle,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      link_url_ = #{linkUrl,jdbcType=VARCHAR},
+      target_blank_ = #{targetBlank,jdbcType=CHAR},
+      seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
+      seo_description_ = #{seoDescription,jdbcType=VARCHAR},
+      author_ = #{author,jdbcType=VARCHAR},
+      editor_ = #{editor,jdbcType=VARCHAR},
+      source_ = #{source,jdbcType=VARCHAR},
+      image_ = #{image,jdbcType=VARCHAR},
+      video_ = #{video,jdbcType=VARCHAR},
+      video_orig_ = #{videoOrig,jdbcType=VARCHAR},
+      video_duration_ = #{videoDuration,jdbcType=INTEGER},
+      audio_ = #{audio,jdbcType=VARCHAR},
+      audio_orig_ = #{audioOrig,jdbcType=VARCHAR},
+      audio_duration_ = #{audioDuration,jdbcType=INTEGER},
+      file_ = #{file,jdbcType=VARCHAR},
+      file_name_ = #{fileName,jdbcType=VARCHAR},
+      file_length_ = #{fileLength,jdbcType=BIGINT},
+      doc_ = #{doc,jdbcType=VARCHAR},
+      doc_orig_ = #{docOrig,jdbcType=VARCHAR},
+      doc_name_ = #{docName,jdbcType=VARCHAR},
+      doc_length_ = #{docLength,jdbcType=BIGINT},
+      article_template_ = #{articleTemplate,jdbcType=VARCHAR},
+      article_static_path_ = #{articleStaticPath,jdbcType=VARCHAR},
+      allow_comment_ = #{allowComment,jdbcType=CHAR},
+      static_file_ = #{staticFile,jdbcType=VARCHAR},
+      mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
+      process_instance_id_ = #{processInstanceId,jdbcType=VARCHAR},
+      reject_reason_ = #{rejectReason,jdbcType=VARCHAR},
+      baidu_push_ = #{baiduPush,jdbcType=CHAR},
+      editor_type_ = #{editorType,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleExt">
     insert into ujcms_article_ext (id_, title_, subtitle_, full_title_, alias_, link_url_, target_blank_, seo_keywords_, seo_description_, author_, editor_, source_, image_, video_, video_orig_, video_duration_, audio_, audio_orig_, audio_duration_, file_, file_name_, file_length_, doc_, doc_orig_, doc_name_, doc_length_, article_template_, article_static_path_, allow_comment_, static_file_, mobile_static_file_, process_instance_id_, reject_reason_, baidu_push_, editor_type_, comments_, downloads_, favorites_, ups_, downs_, views_, day_views_, week_views_, month_views_, quarter_views_, year_views_, image_list_json_, file_list_json_, text_, markdown_, mains_json_, clobs_json_)
     values (#{id,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{fullTitle,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{author,jdbcType=VARCHAR}, #{editor,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{videoOrig,jdbcType=VARCHAR}, #{videoDuration,jdbcType=INTEGER}, #{audio,jdbcType=VARCHAR}, #{audioOrig,jdbcType=VARCHAR}, #{audioDuration,jdbcType=INTEGER}, #{file,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{fileLength,jdbcType=BIGINT}, #{doc,jdbcType=VARCHAR}, #{docOrig,jdbcType=VARCHAR}, #{docName,jdbcType=VARCHAR}, #{docLength,jdbcType=BIGINT}, #{articleTemplate,jdbcType=VARCHAR}, #{articleStaticPath,jdbcType=VARCHAR}, #{allowComment,jdbcType=CHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{processInstanceId,jdbcType=VARCHAR}, #{rejectReason,jdbcType=VARCHAR}, #{baiduPush,jdbcType=CHAR}, #{editorType,jdbcType=SMALLINT}, #{comments,jdbcType=INTEGER}, #{downloads,jdbcType=INTEGER}, #{favorites,jdbcType=INTEGER}, #{ups,jdbcType=INTEGER}, #{downs,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{dayViews,jdbcType=INTEGER}, #{weekViews,jdbcType=INTEGER}, #{monthViews,jdbcType=INTEGER}, #{quarterViews,jdbcType=INTEGER}, #{yearViews,jdbcType=BIGINT}, #{imageListJson,jdbcType=OTHER}, #{fileListJson,jdbcType=OTHER}, #{text,jdbcType=LONGVARCHAR}, #{markdown,jdbcType=LONGVARCHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})

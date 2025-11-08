@@ -1,6 +1,6 @@
 package com.ujcms.cms.ext.domain;
 
-import com.ujcms.cms.ext.domain.base.VisitStatBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVisitStat;
 import com.ujcms.cms.ext.domain.support.StatDateString;
 import org.springframework.lang.Nullable;
 
@@ -19,7 +19,7 @@ import static java.time.temporal.ChronoField.DAY_OF_MONTH;
  *
  * @author PONY
  */
-public class VisitStat extends VisitStatBase implements StatDateString {
+public class VisitStat extends GeneratedVisitStat implements StatDateString {
 
     public VisitStat() {
     }

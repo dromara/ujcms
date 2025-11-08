@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Model;
-import com.ujcms.cms.core.domain.base.ModelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedModel;
 import com.ujcms.cms.core.listener.ModelDeleteListener;
 import com.ujcms.cms.core.mapper.ModelMapper;
 import com.ujcms.cms.core.service.args.ModelArgs;
@@ -90,7 +90,7 @@ public class ModelService {
     }
 
     public List<Model> selectList(ModelArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ModelBase.TABLE_NAME, "scope_desc,order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedModel.TABLE_NAME, "scope_desc,order,id");
         return mapper.selectAll(queryInfo);
     }
 

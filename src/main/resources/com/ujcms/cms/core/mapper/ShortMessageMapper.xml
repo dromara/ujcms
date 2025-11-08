@@ -40,6 +40,17 @@
       usage_ = #{usage,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.ShortMessage">
+    update ujcms_short_message
+    set type_ = #{type,jdbcType=SMALLINT},
+      receiver_ = #{receiver,jdbcType=VARCHAR},
+      code_ = #{code,jdbcType=VARCHAR},
+      send_date_ = #{sendDate,jdbcType=TIMESTAMP},
+      attempts_ = #{attempts,jdbcType=INTEGER},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      usage_ = #{usage,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ShortMessage">
     insert into ujcms_short_message (id_, type_, receiver_, code_, send_date_, attempts_, ip_, usage_, status_)
     values (#{id,jdbcType=BIGINT}, #{type,jdbcType=SMALLINT}, #{receiver,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, #{sendDate,jdbcType=TIMESTAMP}, #{attempts,jdbcType=INTEGER}, #{ip,jdbcType=VARCHAR}, #{usage,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})

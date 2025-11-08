@@ -4,7 +4,7 @@ import java.util.function.ObjIntConsumer;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.SeqBase;
+import com.ujcms.cms.core.domain.generated.GeneratedSeq;
 
 /**
  * 序列实体类
@@ -13,7 +13,7 @@ import com.ujcms.cms.core.domain.base.SeqBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Seq extends SeqBase {
+public class Seq extends GeneratedSeq {
 
     public Seq() {
     }

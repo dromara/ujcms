@@ -19,7 +19,7 @@ import com.ujcms.cms.ext.domain.VisitLog;
 import com.ujcms.cms.ext.domain.VisitPage;
 import com.ujcms.cms.ext.domain.VisitStat;
 import com.ujcms.cms.ext.domain.VisitTrend;
-import com.ujcms.cms.ext.domain.base.VisitLogBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVisitLog;
 import com.ujcms.cms.ext.mapper.VisitLogMapper;
 import com.ujcms.cms.ext.service.args.VisitLogArgs;
 import com.ujcms.commons.query.QueryInfo;
@@ -42,7 +42,7 @@ public class VisitLogService implements SiteDeleteListener, UserDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void insert(VisitLog bean) {
-        bean.setId(seqService.getNextLongVal(VisitLogBase.TABLE_NAME));
+        bean.setId(seqService.getNextLongVal(GeneratedVisitLog.TABLE_NAME));
         mapper.insert(bean);
     }
 
@@ -72,7 +72,7 @@ public class VisitLogService implements SiteDeleteListener, UserDeleteListener {
     }
 
     public List<VisitLog> selectList(VisitLogArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), VisitLogBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedVisitLog.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

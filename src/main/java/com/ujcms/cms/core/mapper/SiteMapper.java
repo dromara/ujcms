@@ -42,6 +42,14 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
                          @Nullable @Param("fullOrgId") Long fullOrgId);
 
     /**
+     * 更新基本信息
+     *
+     * @param bean 实体对象
+     * @return 更新条数
+     */
+    int updateBase(Site bean);
+
+    /**
      * 更新域名
      *
      * @param id       站点ID

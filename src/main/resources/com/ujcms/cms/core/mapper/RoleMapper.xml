@@ -87,6 +87,23 @@
       permission_ = #{permission,jdbcType=LONGVARCHAR},
       grant_permission_ = #{grantPermission,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Role">
+    update ujcms_role
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      all_permission_ = #{allPermission,jdbcType=CHAR},
+      all_grant_permission_ = #{allGrantPermission,jdbcType=CHAR},
+      global_permission_ = #{globalPermission,jdbcType=CHAR},
+      all_article_permission_ = #{allArticlePermission,jdbcType=CHAR},
+      all_channel_permission_ = #{allChannelPermission,jdbcType=CHAR},
+      data_scope_ = #{dataScope,jdbcType=SMALLINT},
+      all_status_permission_ = #{allStatusPermission,jdbcType=CHAR},
+      rank_ = #{rank,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Role">
     insert into ujcms_role (id_, site_id_, name_, description_, all_permission_, all_grant_permission_, global_permission_, all_article_permission_, all_channel_permission_, data_scope_, all_status_permission_, rank_, type_, scope_, order_, permission_, grant_permission_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allPermission,jdbcType=CHAR}, #{allGrantPermission,jdbcType=CHAR}, #{globalPermission,jdbcType=CHAR}, #{allArticlePermission,jdbcType=CHAR}, #{allChannelPermission,jdbcType=CHAR}, #{dataScope,jdbcType=SMALLINT}, #{allStatusPermission,jdbcType=CHAR}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{permission,jdbcType=LONGVARCHAR}, #{grantPermission,jdbcType=LONGVARCHAR})

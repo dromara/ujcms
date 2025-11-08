@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.domain;
 
-import com.ujcms.cms.core.domain.base.GlobalBase;
+import com.ujcms.cms.core.domain.generated.GeneratedGlobal;
 
 /**
  * 全局对象 实体类
@@ -9,7 +9,7 @@ import com.ujcms.cms.core.domain.base.GlobalBase;
  *
  * @author PONY
  */
-public class Global extends GlobalBase {
+public class Global extends GeneratedGlobal {
 
     public Global() {
     }

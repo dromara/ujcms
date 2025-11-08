@@ -8,7 +8,7 @@ import com.ujcms.cms.core.domain.Model;
 import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.ext.domain.base.FormBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedForm;
 import com.ujcms.commons.db.order.OrderEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +26,7 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"handler", "mainsJsons"})
-public class Form extends FormBase implements OrderEntity {
+public class Form extends GeneratedForm implements OrderEntity {
     /**
      * 站点
      */

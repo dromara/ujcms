@@ -89,6 +89,18 @@
       date_string_ = #{dateString,jdbcType=VARCHAR},
       period_ = #{period,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.VisitTrend">
+    update ujcms_visit_trend
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      pv_count_ = #{pvCount,jdbcType=BIGINT},
+      uv_count_ = #{uvCount,jdbcType=BIGINT},
+      ip_count_ = #{ipCount,jdbcType=BIGINT},
+      nv_count_ = #{nvCount,jdbcType=BIGINT},
+      bounce_count_ = #{bounceCount,jdbcType=INTEGER},
+      duration_ = #{duration,jdbcType=INTEGER},
+      date_string_ = #{dateString,jdbcType=VARCHAR},
+      period_ = #{period,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VisitTrend">
     insert into ujcms_visit_trend (id_, site_id_, pv_count_, uv_count_, ip_count_, nv_count_, bounce_count_, duration_, date_string_, period_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{pvCount,jdbcType=BIGINT}, #{uvCount,jdbcType=BIGINT}, #{ipCount,jdbcType=BIGINT}, #{nvCount,jdbcType=BIGINT}, #{bounceCount,jdbcType=INTEGER}, #{duration,jdbcType=INTEGER}, #{dateString,jdbcType=VARCHAR}, #{period,jdbcType=SMALLINT})

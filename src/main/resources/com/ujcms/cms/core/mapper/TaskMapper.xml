@@ -57,6 +57,18 @@
       status_ = #{status,jdbcType=SMALLINT},
       error_info_ = #{errorInfo,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Task">
+    update ujcms_task
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      end_date_ = #{endDate,jdbcType=TIMESTAMP},
+      current_ = #{current,jdbcType=INTEGER},
+      total_ = #{total,jdbcType=INTEGER},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Task">
     insert into ujcms_task (id_, site_id_, user_id_, name_, begin_date_, end_date_, current_, total_, type_, status_, error_info_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{current,jdbcType=INTEGER}, #{total,jdbcType=INTEGER}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{errorInfo,jdbcType=LONGVARCHAR})

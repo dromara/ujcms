@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.AttachmentReferBase;
+import com.ujcms.cms.core.domain.generated.GeneratedAttachmentRefer;
 
 /**
  * 附件引用实体类
@@ -11,7 +11,7 @@ import com.ujcms.cms.core.domain.base.AttachmentReferBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class AttachmentRefer extends AttachmentReferBase {
+public class AttachmentRefer extends GeneratedAttachmentRefer {
 
     public AttachmentRefer() {
     }

@@ -45,6 +45,7 @@ public class FormatMethod implements TemplateMethodModelEx {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public Object exec(List args) throws TemplateModelException {
         int minArgsSize = 2;
         if (args.size() < minArgsSize) {

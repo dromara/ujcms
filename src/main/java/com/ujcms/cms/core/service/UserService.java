@@ -3,7 +3,7 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.*;
-import com.ujcms.cms.core.domain.base.UserBase;
+import com.ujcms.cms.core.domain.generated.GeneratedUser;
 import com.ujcms.cms.core.listener.GroupDeleteListener;
 import com.ujcms.cms.core.listener.OrgDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
@@ -79,7 +79,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
         mapper.insert(bean);
         extMapper.insert(ext);
         insertUserOrg(bean.getId(), orgIds);
-        attachmentService.insertRefer(UserBase.TABLE_NAME, bean.getId(), bean.getAvatarList());
+        attachmentService.insertRefer(GeneratedUser.TABLE_NAME, bean.getId(), bean.getAvatarList());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -115,7 +115,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
 
     @Transactional(rollbackFor = Exception.class)
     public void update(User bean) {
-        attachmentService.updateRefer(UserBase.TABLE_NAME, bean.getId(), bean.getAvatarList());
+        attachmentService.updateRefer(GeneratedUser.TABLE_NAME, bean.getId(), bean.getAvatarList());
         mapper.update(bean);
     }
 
@@ -165,7 +165,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     public int delete(Long id) {
         deleteListeners.forEach(it -> it.preUserDelete(id));
         userRoleMapper.deleteByUserId(id);
-        attachmentService.deleteRefer(UserBase.TABLE_NAME, id);
+        attachmentService.deleteRefer(GeneratedUser.TABLE_NAME, id);
         openidMapper.deleteByUserId(id);
         extMapper.delete(id);
         return mapper.delete(id);
@@ -202,7 +202,7 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
     }
 
     public List<User> selectList(UserArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), UserBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedUser.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo, args.getOrgId());
     }
 

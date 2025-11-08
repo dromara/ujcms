@@ -121,6 +121,38 @@
       status_ = #{status,jdbcType=SMALLINT},
       error_info_ = #{errorInfo,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.Collection">
+    update ujcms_collection
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      channel_id_ = #{channelId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      charset_ = #{charset,jdbcType=VARCHAR},
+      user_agent_ = #{userAgent,jdbcType=VARCHAR},
+      interval_min_ = #{intervalMin,jdbcType=INTEGER},
+      interval_max_ = #{intervalMax,jdbcType=INTEGER},
+      list_urls_ = #{listUrls,jdbcType=VARCHAR},
+      list_desc_ = #{listDesc,jdbcType=CHAR},
+      page_begin_ = #{pageBegin,jdbcType=INTEGER},
+      page_end_ = #{pageEnd,jdbcType=INTEGER},
+      list_area_pattern_ = #{listAreaPattern,jdbcType=VARCHAR},
+      list_area_reg_ = #{listAreaReg,jdbcType=CHAR},
+      item_area_pattern_ = #{itemAreaPattern,jdbcType=VARCHAR},
+      item_area_reg_ = #{itemAreaReg,jdbcType=CHAR},
+      item_url_pattern_ = #{itemUrlPattern,jdbcType=VARCHAR},
+      item_url_filter_ = #{itemUrlFilter,jdbcType=VARCHAR},
+      item_url_reg_ = #{itemUrlReg,jdbcType=CHAR},
+      item_url_js_ = #{itemUrlJs,jdbcType=CHAR},
+      auto_submit_ = #{autoSubmit,jdbcType=CHAR},
+      allow_duplicate_ = #{allowDuplicate,jdbcType=CHAR},
+      download_image_ = #{downloadImage,jdbcType=CHAR},
+      current_pages_ = #{currentPages,jdbcType=INTEGER},
+      current_items_ = #{currentItems,jdbcType=INTEGER},
+      success_count_ = #{successCount,jdbcType=INTEGER},
+      total_count_ = #{totalCount,jdbcType=INTEGER},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Collection">
     insert into ujcms_collection (id_, site_id_, channel_id_, user_id_, name_, description_, charset_, user_agent_, interval_min_, interval_max_, list_urls_, list_desc_, page_begin_, page_end_, list_area_pattern_, list_area_reg_, item_area_pattern_, item_area_reg_, item_url_pattern_, item_url_filter_, item_url_reg_, item_url_js_, auto_submit_, allow_duplicate_, download_image_, current_pages_, current_items_, success_count_, total_count_, status_, order_, error_info_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{charset,jdbcType=VARCHAR}, #{userAgent,jdbcType=VARCHAR}, #{intervalMin,jdbcType=INTEGER}, #{intervalMax,jdbcType=INTEGER}, #{listUrls,jdbcType=VARCHAR}, #{listDesc,jdbcType=CHAR}, #{pageBegin,jdbcType=INTEGER}, #{pageEnd,jdbcType=INTEGER}, #{listAreaPattern,jdbcType=VARCHAR}, #{listAreaReg,jdbcType=CHAR}, #{itemAreaPattern,jdbcType=VARCHAR}, #{itemAreaReg,jdbcType=CHAR}, #{itemUrlPattern,jdbcType=VARCHAR}, #{itemUrlFilter,jdbcType=VARCHAR}, #{itemUrlReg,jdbcType=CHAR}, #{itemUrlJs,jdbcType=CHAR}, #{autoSubmit,jdbcType=CHAR}, #{allowDuplicate,jdbcType=CHAR}, #{downloadImage,jdbcType=CHAR}, #{currentPages,jdbcType=INTEGER}, #{currentItems,jdbcType=INTEGER}, #{successCount,jdbcType=INTEGER}, #{totalCount,jdbcType=INTEGER}, #{status,jdbcType=SMALLINT}, #{order,jdbcType=BIGINT}, #{errorInfo,jdbcType=LONGVARCHAR})

@@ -34,6 +34,14 @@
       birthday_ = #{birthday,jdbcType=TIMESTAMP},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.Example">
+    update ujcms_example
+    set name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      height_ = #{height,jdbcType=INTEGER},
+      birthday_ = #{birthday,jdbcType=TIMESTAMP},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Example">
     insert into ujcms_example (id_, name_, description_, height_, birthday_, enabled_)
     values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{height,jdbcType=INTEGER}, #{birthday,jdbcType=TIMESTAMP}, #{enabled,jdbcType=CHAR})

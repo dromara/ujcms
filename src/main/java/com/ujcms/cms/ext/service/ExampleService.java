@@ -3,7 +3,7 @@ package com.ujcms.cms.ext.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.ext.domain.Example;
-import com.ujcms.cms.ext.domain.base.ExampleBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedExample;
 import com.ujcms.cms.ext.mapper.ExampleMapper;
 import com.ujcms.cms.ext.service.args.ExampleArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
@@ -59,7 +59,7 @@ public class ExampleService {
     }
 
     public List<Example> selectList(ExampleArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ExampleBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedExample.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

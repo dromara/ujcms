@@ -28,6 +28,9 @@
     update ujcms_global
     set value_ = #{value,jdbcType=LONGVARCHAR}
     where name_ = #{name,jdbcType=VARCHAR}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Global">
+    update ujcms_global
+    where name_ = #{name,jdbcType=VARCHAR}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Global">
     insert into ujcms_global (name_, value_)
     values (#{name,jdbcType=VARCHAR}, #{value,jdbcType=LONGVARCHAR})

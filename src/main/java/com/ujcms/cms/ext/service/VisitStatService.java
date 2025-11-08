@@ -14,7 +14,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.ext.domain.VisitStat;
-import com.ujcms.cms.ext.domain.base.VisitStatBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVisitStat;
 import com.ujcms.cms.ext.mapper.VisitStatMapper;
 import com.ujcms.cms.ext.service.args.VisitStatArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
@@ -63,7 +63,7 @@ public class VisitStatService implements SiteDeleteListener {
     }
 
     public List<VisitStat> selectList(VisitStatArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), VisitStatBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedVisitStat.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

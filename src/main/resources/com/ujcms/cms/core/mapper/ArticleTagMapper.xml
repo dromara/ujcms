@@ -55,6 +55,11 @@
     set order_ = #{order,jdbcType=INTEGER}
     where article_id_ = #{articleId,jdbcType=BIGINT}
       and tag_id_ = #{tagId,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.ArticleTag">
+    update ujcms_article_tag
+    set order_ = #{order,jdbcType=INTEGER}
+    where article_id_ = #{articleId,jdbcType=BIGINT}
+      and tag_id_ = #{tagId,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleTag">
     insert into ujcms_article_tag (article_id_, tag_id_, order_)
     values (#{articleId,jdbcType=BIGINT}, #{tagId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER})

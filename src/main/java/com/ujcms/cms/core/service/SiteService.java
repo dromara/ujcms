@@ -4,7 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Model;
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.domain.base.SiteBase;
+import com.ujcms.cms.core.domain.generated.GeneratedSite;
 import com.ujcms.cms.core.mapper.SiteMapper;
 import com.ujcms.cms.core.service.args.SiteArgs;
 import com.ujcms.commons.query.CustomFieldQuery;
@@ -44,7 +44,12 @@ public class SiteService {
                 new IllegalArgumentException(Model.NOT_FOUND + bean.getModelId()));
         bean.disassembleCustoms(model, policyFactory);
         mapper.update(bean);
-        attachmentService.updateRefer(SiteBase.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
+        attachmentService.updateRefer(GeneratedSite.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void updateBase(Site bean) {
+        mapper.updateBase(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -73,7 +78,7 @@ public class SiteService {
     }
 
     public List<Site> selectList(SiteArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), SiteBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedSite.TABLE_NAME, "order,id");
         List<QueryInfo.WhereCondition> customsCondition = CustomFieldQuery.parse(args.getCustomsQueryMap());
         return mapper.selectAll(queryInfo, customsCondition, args.isQueryHasChildren(), args.getFullOrgId());
     }

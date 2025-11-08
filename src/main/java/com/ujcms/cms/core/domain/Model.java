@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.ujcms.cms.core.domain.base.ModelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedModel;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.commons.web.HtmlParserUtils;
 
@@ -37,7 +37,7 @@ import com.ujcms.commons.web.HtmlParserUtils;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Model extends ModelBase {
+public class Model extends GeneratedModel {
 
     /**
      * 是否全局共享

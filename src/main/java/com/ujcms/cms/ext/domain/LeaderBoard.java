@@ -1,5 +1,6 @@
 package com.ujcms.cms.ext.domain;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -8,6 +9,7 @@ import java.io.Serializable;
  * @author PONY
  */
 public class LeaderBoard implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

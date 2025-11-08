@@ -5,7 +5,7 @@ import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.ext.collector.CollectorUtils;
-import com.ujcms.cms.ext.domain.base.CollectionBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedCollection;
 import com.ujcms.commons.db.order.OrderEntity;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.List;
  *
  * @author PONY
  */
-public class Collection extends CollectionBase implements OrderEntity {
+public class Collection extends GeneratedCollection implements OrderEntity {
 
     @JsonIgnore
     public long getInterval() {

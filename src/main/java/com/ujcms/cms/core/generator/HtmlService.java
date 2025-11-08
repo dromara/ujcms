@@ -74,7 +74,7 @@ public class HtmlService {
                 fileHandler.store(filename, resolveTemplate(site.getTemplate()), dataModel);
                 site.setMobileStaticFile(filename);
             }
-            siteMapper.update(site);
+            siteMapper.updateBase(site);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         } finally {

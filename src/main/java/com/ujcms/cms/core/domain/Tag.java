@@ -1,14 +1,14 @@
 package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.TagBase;
+import com.ujcms.cms.core.domain.generated.GeneratedTag;
 
 /**
  * Tag 实体类
  *
  * @author PONY
  */
-public class Tag extends TagBase {
+public class Tag extends GeneratedTag {
 
     public Tag() {
     }

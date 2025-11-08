@@ -63,6 +63,12 @@
       survey_id_ = #{surveyId,jdbcType=BIGINT},
       answer_ = #{answer,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.SurveyItemFeedback">
+    update ujcms_survey_item_feedback
+    set survey_item_id_ = #{surveyItemId,jdbcType=BIGINT},
+      survey_feedback_id_ = #{surveyFeedbackId,jdbcType=BIGINT},
+      survey_id_ = #{surveyId,jdbcType=BIGINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyItemFeedback">
     insert into ujcms_survey_item_feedback (id_, survey_item_id_, survey_feedback_id_, survey_id_, answer_)
     values (#{id,jdbcType=BIGINT}, #{surveyItemId,jdbcType=BIGINT}, #{surveyFeedbackId,jdbcType=BIGINT}, #{surveyId,jdbcType=BIGINT}, #{answer,jdbcType=LONGVARCHAR})

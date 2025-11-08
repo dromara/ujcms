@@ -5,7 +5,7 @@ import org.springframework.lang.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.LoginLogBase;
+import com.ujcms.cms.core.domain.generated.GeneratedLoginLog;
 
 /**
  * 登录日志实体类
@@ -14,7 +14,7 @@ import com.ujcms.cms.core.domain.base.LoginLogBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class LoginLog extends LoginLogBase {
+public class LoginLog extends GeneratedLoginLog {
 
     public static LoginLog ofLoginFailure(@Nullable Long userId, String loginName, String ip, short status) {
         LoginLog bean = new LoginLog();

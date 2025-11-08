@@ -4,7 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.OperationLog;
 import com.ujcms.cms.core.domain.OperationLogExt;
-import com.ujcms.cms.core.domain.base.OperationLogBase;
+import com.ujcms.cms.core.domain.generated.GeneratedOperationLog;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.OperationLogExtMapper;
@@ -65,7 +65,7 @@ public class OperationLogService implements SiteDeleteListener, UserDeleteListen
     }
 
     public List<OperationLog> selectList(OperationLogArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), OperationLogBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedOperationLog.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

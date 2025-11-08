@@ -74,6 +74,15 @@
       count_ = #{count,jdbcType=INTEGER},
       order_ = #{order,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.SurveyOption">
+    update ujcms_survey_option
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      survey_id_ = #{surveyId,jdbcType=BIGINT},
+      item_id_ = #{itemId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      count_ = #{count,jdbcType=INTEGER},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.SurveyOption">
     insert into ujcms_survey_option (id_, site_id_, survey_id_, item_id_, title_, count_, order_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{surveyId,jdbcType=BIGINT}, #{itemId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{order,jdbcType=INTEGER})

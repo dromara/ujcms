@@ -27,6 +27,9 @@
     update ujcms_form_ext
     set clobs_json_ = #{clobsJson,jdbcType=OTHER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.FormExt">
+    update ujcms_form_ext
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.FormExt">
     insert into ujcms_form_ext (id_, clobs_json_)
     values (#{id,jdbcType=BIGINT}, #{clobsJson,jdbcType=OTHER})

@@ -6,7 +6,7 @@ import com.ujcms.cms.ext.domain.Survey;
 import com.ujcms.cms.ext.domain.SurveyFeedback;
 import com.ujcms.cms.ext.domain.SurveyItemFeedback;
 import com.ujcms.cms.ext.domain.SurveyOptionFeedback;
-import com.ujcms.cms.ext.domain.base.SurveyBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedSurvey;
 import com.ujcms.cms.ext.mapper.SurveyMapper;
 import com.ujcms.cms.ext.mapper.SurveyOptionMapper;
 import com.ujcms.cms.ext.service.args.SurveyArgs;
@@ -63,7 +63,7 @@ public class SurveyService {
     }
 
     public List<Survey> selectList(SurveyArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), SurveyBase.TABLE_NAME, "order_desc,id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedSurvey.TABLE_NAME, "order_desc,id_desc");
         return mapper.selectAll(queryInfo);
     }
 

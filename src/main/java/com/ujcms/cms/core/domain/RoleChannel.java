@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.RoleChannelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedRoleChannel;
 
 /**
  * 角色栏目权限实体类
@@ -11,7 +11,7 @@ import com.ujcms.cms.core.domain.base.RoleChannelBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class RoleChannel extends RoleChannelBase {
+public class RoleChannel extends GeneratedRoleChannel {
 
     public RoleChannel() {
     }

@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.*;
-import com.ujcms.cms.core.domain.base.OrgBase;
+import com.ujcms.cms.core.domain.generated.GeneratedOrg;
 import com.ujcms.cms.core.listener.OrgDeleteListener;
 import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.OrgArgs;
@@ -127,7 +127,7 @@ public class OrgService {
     }
 
     public List<Org> selectList(OrgArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), OrgBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedOrg.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo, args.getAncestorId(), args.isQueryHasChildren());
     }
 

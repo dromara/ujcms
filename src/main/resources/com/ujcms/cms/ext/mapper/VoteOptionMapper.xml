@@ -63,6 +63,13 @@
       count_ = #{count,jdbcType=INTEGER},
       order_ = #{order,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.VoteOption">
+    update ujcms_vote_option
+    set vote_id_ = #{voteId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      count_ = #{count,jdbcType=INTEGER},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.VoteOption">
     insert into ujcms_vote_option (id_, vote_id_, title_, count_, order_)
     values (#{id,jdbcType=BIGINT}, #{voteId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{count,jdbcType=INTEGER}, #{order,jdbcType=INTEGER})

@@ -8,7 +8,7 @@ import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.ext.domain.ImportData;
-import com.ujcms.cms.ext.domain.base.ImportDataBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedImportData;
 import com.ujcms.cms.ext.mapper.ImportDataMapper;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
 import com.ujcms.commons.query.QueryInfo;
@@ -241,7 +241,7 @@ public class ImportDataService {
     }
 
     public List<ImportData> selectList(ImportDataArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ImportDataBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedImportData.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.OrgBase;
-import com.ujcms.cms.core.domain.base.RoleBase;
-import com.ujcms.cms.core.domain.base.UserBase;
+import com.ujcms.cms.core.domain.generated.GeneratedOrg;
+import com.ujcms.cms.core.domain.generated.GeneratedRole;
+import com.ujcms.cms.core.domain.generated.GeneratedUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(value = {"password", "handler"}, allowSetters = true)
-public class User extends UserBase implements UserDetails {
+public class User extends GeneratedUser implements UserDetails {
 
     /**
      * 用户名和用户真实姓名
@@ -132,7 +132,7 @@ public class User extends UserBase implements UserDetails {
      */
     @JsonIgnore
     public List<String> getPermissions() {
-        String permission = getRoleList().stream().map(RoleBase::getPermission)
+        String permission = getRoleList().stream().map(GeneratedRole::getPermission)
                 .filter(Objects::nonNull).collect(Collectors.joining(","));
         List<String> list = Stream.of(StringUtils.split(permission, ",")).distinct().collect(Collectors.toList());
         // 拥有后台角色，则授予后台通用权限
@@ -151,7 +151,7 @@ public class User extends UserBase implements UserDetails {
      */
     @JsonIgnore
     public List<String> getGrantPermissions() {
-        String permission = getRoleList().stream().map(RoleBase::getGrantPermission)
+        String permission = getRoleList().stream().map(GeneratedRole::getGrantPermission)
                 .filter(Objects::nonNull).collect(Collectors.joining(","));
         List<String> list = Stream.of(StringUtils.split(permission, ",")).distinct().collect(Collectors.toList());
         // 超级管理员，授予所有权限
@@ -264,7 +264,7 @@ public class User extends UserBase implements UserDetails {
 
     @JsonIgnore
     public Set<Long> fetchAllOrgIds() {
-        Set<Long> orgIds = getOrgList().stream().map(OrgBase::getId).collect(Collectors.toSet());
+        Set<Long> orgIds = getOrgList().stream().map(GeneratedOrg::getId).collect(Collectors.toSet());
         orgIds.add(getOrgId());
         return orgIds;
     }

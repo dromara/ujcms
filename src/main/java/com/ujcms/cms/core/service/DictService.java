@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Dict;
-import com.ujcms.cms.core.domain.base.DictBase;
+import com.ujcms.cms.core.domain.generated.GeneratedDict;
 import com.ujcms.cms.core.mapper.DictMapper;
 import com.ujcms.cms.core.service.args.DictArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
@@ -72,7 +72,7 @@ public class DictService {
     }
 
     public List<Dict> selectList(DictArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), DictBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedDict.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

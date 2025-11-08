@@ -49,6 +49,11 @@
     set site_id_ = #{siteId,jdbcType=BIGINT}
     where org_id_ = #{orgId,jdbcType=BIGINT}
       and channel_id_ = #{channelId,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.OrgChannel">
+    update ujcms_org_channel
+    set site_id_ = #{siteId,jdbcType=BIGINT}
+    where org_id_ = #{orgId,jdbcType=BIGINT}
+      and channel_id_ = #{channelId,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.OrgChannel">
     insert into ujcms_org_channel (org_id_, channel_id_, site_id_)
     values (#{orgId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT})

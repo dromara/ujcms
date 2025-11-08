@@ -3,7 +3,7 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.RoleBase;
+import com.ujcms.cms.core.domain.generated.GeneratedRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Arrays;
@@ -19,7 +19,7 @@ import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Role extends RoleBase {
+public class Role extends GeneratedRole {
 
     /**
      * 是否全局共享

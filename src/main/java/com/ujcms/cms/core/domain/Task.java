@@ -3,7 +3,7 @@ package com.ujcms.cms.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.ujcms.cms.core.domain.base.TaskBase;
+import com.ujcms.cms.core.domain.generated.GeneratedTask;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -16,7 +16,7 @@ import java.time.OffsetDateTime;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class Task extends TaskBase {
+public class Task extends GeneratedTask {
 
     public Task() {
     }

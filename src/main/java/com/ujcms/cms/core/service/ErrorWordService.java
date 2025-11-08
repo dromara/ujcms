@@ -3,7 +3,7 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.ErrorWord;
-import com.ujcms.cms.core.domain.base.ErrorWordBase;
+import com.ujcms.cms.core.domain.generated.GeneratedErrorWord;
 import com.ujcms.cms.core.mapper.ErrorWordMapper;
 import com.ujcms.cms.core.service.args.ErrorWordArgs;
 import com.ujcms.commons.db.identifier.SnowflakeSequence;
@@ -59,7 +59,7 @@ public class ErrorWordService {
     }
 
     public List<ErrorWord> selectList(ErrorWordArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), ErrorWordBase.TABLE_NAME, "id_desc");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedErrorWord.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);
     }
 

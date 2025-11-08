@@ -1,13 +1,13 @@
 package com.ujcms.cms.core.domain;
 
-import com.ujcms.cms.core.domain.base.RoleOrgBase;
+import com.ujcms.cms.core.domain.generated.GeneratedRoleOrg;
 
 /**
  * 角色组织权限 实体类
  *
  * @author PONY
  */
-public class RoleOrg extends RoleOrgBase {
+public class RoleOrg extends GeneratedRoleOrg {
 
     public RoleOrg() {
     }

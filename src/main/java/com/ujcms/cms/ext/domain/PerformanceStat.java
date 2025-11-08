@@ -4,6 +4,7 @@ import com.ujcms.cms.core.domain.Org;
 import com.ujcms.cms.core.domain.User;
 import org.springframework.lang.Nullable;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
  * @author PONY
  */
 public class PerformanceStat implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

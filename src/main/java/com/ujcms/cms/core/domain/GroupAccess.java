@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ujcms.cms.core.domain.base.GroupAccessBase;
+import com.ujcms.cms.core.domain.generated.GeneratedGroupAccess;
 
 /**
  * 用户组浏览权限实体类
@@ -11,7 +11,7 @@ import com.ujcms.cms.core.domain.base.GroupAccessBase;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("handler")
-public class GroupAccess extends GroupAccessBase {
+public class GroupAccess extends GeneratedGroupAccess {
 
     public GroupAccess() {
     }

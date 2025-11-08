@@ -144,6 +144,20 @@
       status_ = #{status,jdbcType=SMALLINT},
       mains_json_ = #{mainsJson,jdbcType=OTHER}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.Form">
+    update ujcms_form
+    set type_id_ = #{typeId,jdbcType=BIGINT},
+      site_id_ = #{siteId,jdbcType=BIGINT},
+      org_id_ = #{orgId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      modified_user_id_ = #{modifiedUserId,jdbcType=BIGINT},
+      process_instance_id_ = #{processInstanceId,jdbcType=VARCHAR},
+      reject_reason_ = #{rejectReason,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      modified_ = #{modified,jdbcType=TIMESTAMP},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Form">
     insert into ujcms_form (id_, type_id_, site_id_, org_id_, user_id_, modified_user_id_, process_instance_id_, reject_reason_, created_, modified_, ip_, order_, status_, mains_json_)
     values (#{id,jdbcType=BIGINT}, #{typeId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{modifiedUserId,jdbcType=BIGINT}, #{processInstanceId,jdbcType=VARCHAR}, #{rejectReason,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{ip,jdbcType=VARCHAR}, #{order,jdbcType=BIGINT}, #{status,jdbcType=SMALLINT}, #{mainsJson,jdbcType=OTHER})

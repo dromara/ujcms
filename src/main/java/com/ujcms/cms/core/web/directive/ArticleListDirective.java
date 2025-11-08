@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.web.directive;
 
 import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.base.ChannelBase;
+import com.ujcms.cms.core.domain.generated.GeneratedChannel;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.ChannelService;
 import com.ujcms.cms.core.service.args.ArticleArgs;
@@ -99,7 +99,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
             Collection<String> channelAlias = getStrings(params, CHANNEL);
             if (CollectionUtils.isNotEmpty(channelAlias)) {
                 channelIds = channelService.listBySiteIdAndAlias(siteId, channelAlias, isIncludeSubSite)
-                        .stream().map(ChannelBase::getId).toList();
+                        .stream().map(GeneratedChannel::getId).toList();
             }
         }
         return channelIds;

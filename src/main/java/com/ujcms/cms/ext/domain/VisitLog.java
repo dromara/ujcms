@@ -2,14 +2,14 @@ package com.ujcms.cms.ext.domain;
 
 import static com.ujcms.cms.core.component.ViewCountService.BATCH_SIZE;
 
-import com.ujcms.cms.ext.domain.base.VisitLogBase;
+import com.ujcms.cms.ext.domain.generated.GeneratedVisitLog;
 
 /**
  * 访问日志 实体类
  *
  * @author PONY
  */
-public class VisitLog extends VisitLogBase {
+public class VisitLog extends GeneratedVisitLog {
 
     /**
      * FOREACH条数

@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.support;
 
 import com.ujcms.cms.core.domain.User;
-import com.ujcms.cms.core.domain.base.RoleBase;
+import com.ujcms.cms.core.domain.generated.GeneratedRole;
 import org.flowable.engine.form.FormProperty;
 import org.flowable.engine.form.TaskFormData;
 
@@ -37,7 +37,7 @@ public class FlowableUtils {
     public static final String MULTI_INSTANCE_REJECTED = "multiInstanceRejected";
 
     public static Set<String> getCandidateGroups(User user) {
-        Set<String> candidateGroups = user.getRoleList().stream().map(RoleBase::getId).map(String::valueOf)
+        Set<String> candidateGroups = user.getRoleList().stream().map(GeneratedRole::getId).map(String::valueOf)
                 .collect(Collectors.toSet());
         candidateGroups.addAll(user.fetchAllOrgIds().stream().map(orgId -> "org:" + orgId).collect(Collectors.toSet()));
         return candidateGroups;

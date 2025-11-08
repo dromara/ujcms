@@ -1,7 +1,15 @@
 package com.ujcms.commons.lucene;
 
-import com.ujcms.cms.core.lucene.domain.WebPage;
-import com.ujcms.commons.query.OffsetLimitRequest;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_BODY;
+import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_TITLE;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -10,21 +18,24 @@ import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.*;
-import org.apache.lucene.search.highlight.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SearcherManager;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.QueryScorer;
+import org.apache.lucene.search.highlight.SimpleFragmenter;
+import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
+import org.apache.lucene.search.highlight.TokenSources;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-
-import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_BODY;
-import static com.ujcms.cms.core.lucene.domain.WebPage.FIELD_TITLE;
+import com.ujcms.cms.core.lucene.domain.WebPage;
+import com.ujcms.commons.query.OffsetLimitRequest;
 
 /**
  * Lucene 操作模板
@@ -91,6 +102,9 @@ public class LuceneOperations {
                 TopDocs results = search(searcher, query, pageable, sort);
                 int length = results.scoreDocs.length;
                 int size = length - (int) pageable.getOffset();
+                if (size <= 0) {
+                    return new PageImpl<>(Collections.emptyList(), pageable, 0);
+                }
                 List<T> content = new ArrayList<>(size);
                 for (int i = (int) pageable.getOffset(); i < length; i++) {
                     int docId = results.scoreDocs[i].doc;

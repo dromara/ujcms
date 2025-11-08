@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.PerformanceType;
-import com.ujcms.cms.core.domain.base.PerformanceTypeBase;
+import com.ujcms.cms.core.domain.generated.GeneratedPerformanceType;
 import com.ujcms.cms.core.mapper.ChannelMapper;
 import com.ujcms.cms.core.mapper.PerformanceTypeMapper;
 import com.ujcms.cms.core.service.args.PerformanceTypeArgs;
@@ -71,7 +71,7 @@ public class PerformanceTypeService {
     }
 
     public List<PerformanceType> selectList(PerformanceTypeArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), PerformanceTypeBase.TABLE_NAME, "order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedPerformanceType.TABLE_NAME, "order,id");
         return mapper.selectAll(queryInfo);
     }
 

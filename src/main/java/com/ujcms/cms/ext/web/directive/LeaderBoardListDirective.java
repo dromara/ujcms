@@ -1,7 +1,7 @@
 package com.ujcms.cms.ext.web.directive;
 
 import com.ujcms.cms.core.domain.Article;
-import com.ujcms.cms.core.domain.base.SiteBase;
+import com.ujcms.cms.core.domain.generated.GeneratedSite;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
@@ -157,7 +157,7 @@ public class LeaderBoardListDirective implements TemplateDirectiveModel {
 
     @Nullable
     private static Long fetchOrgId(SiteService siteService, @Nullable Long siteId) {
-        return Optional.ofNullable(siteId).map(siteService::select).map(SiteBase::getOrgId).orElse(null);
+        return Optional.ofNullable(siteId).map(siteService::select).map(GeneratedSite::getOrgId).orElse(null);
     }
 
     @Nullable

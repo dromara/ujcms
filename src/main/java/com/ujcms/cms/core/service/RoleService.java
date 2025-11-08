@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.RoleArticle;
 import com.ujcms.cms.core.domain.RoleChannel;
 import com.ujcms.cms.core.domain.RoleOrg;
-import com.ujcms.cms.core.domain.base.RoleBase;
+import com.ujcms.cms.core.domain.generated.GeneratedRole;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.mapper.*;
 import com.ujcms.cms.core.service.args.RoleArgs;
@@ -107,7 +107,7 @@ public class RoleService implements SiteDeleteListener {
     }
 
     public List<Role> selectList(RoleArgs args) {
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), RoleBase.TABLE_NAME, "scope_desc,rank,order,id");
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedRole.TABLE_NAME, "scope_desc,rank,order,id");
         return mapper.selectAll(queryInfo);
     }
 

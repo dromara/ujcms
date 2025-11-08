@@ -60,6 +60,19 @@
       type_ = #{type,jdbcType=SMALLINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.OperationLog">
+    update ujcms_operation_log
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      module_ = #{module,jdbcType=VARCHAR},
+      request_method_ = #{requestMethod,jdbcType=VARCHAR},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      audit_ = #{audit,jdbcType=CHAR},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.OperationLog">
     insert into ujcms_operation_log (id_, site_id_, user_id_, name_, module_, request_method_, ip_, created_, audit_, type_, status_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{module,jdbcType=VARCHAR}, #{requestMethod,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{audit,jdbcType=CHAR}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
