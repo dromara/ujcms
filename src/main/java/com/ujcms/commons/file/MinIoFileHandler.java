@@ -1,18 +1,17 @@
 package com.ujcms.commons.file;
 
-import com.ujcms.commons.web.UrlBuilder;
-import freemarker.template.Template;
-import io.minio.*;
-import io.minio.errors.*;
-import io.minio.messages.Item;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.web.multipart.MultipartFile;
+import static com.ujcms.commons.file.FilesEx.SLASH;
+import static com.ujcms.commons.file.FilesEx.normalize;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -27,9 +26,35 @@ import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.ujcms.commons.file.FilesEx.SLASH;
-import static com.ujcms.commons.file.FilesEx.normalize;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import javax.imageio.ImageIO;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.springframework.lang.Nullable;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.ujcms.commons.web.UrlBuilder;
+
+import freemarker.template.Template;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
+import io.minio.DownloadObjectArgs;
+import io.minio.GetObjectArgs;
+import io.minio.ListObjectsArgs;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
+import io.minio.Result;
+import io.minio.StatObjectArgs;
+import io.minio.StatObjectResponse;
+import io.minio.UploadObjectArgs;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
+import io.minio.messages.Item;
 
 /**
  * MinIO文件处理类
@@ -49,7 +74,7 @@ public class MinIoFileHandler implements FileHandler {
     private final String displayPrefix;
 
     public MinIoFileHandler(String endpoint, String region, String bucket, String accessKey, String secretKey,
-                            String storePrefix, String displayPrefix) {
+            String storePrefix, String displayPrefix) {
         this.client = MinioClient.builder().endpoint(endpoint).region(region).credentials(accessKey, secretKey).build();
         this.bucket = bucket;
         this.storePrefix = storePrefix;
@@ -103,8 +128,8 @@ public class MinIoFileHandler implements FileHandler {
     public void store(String filename, InputStream source) {
         try {
             String storeName = getStoreName(filename);
-            client.putObject(PutObjectArgs.builder().bucket(bucket).object(storeName)
-                    .stream(source, -1, 10485760).build());
+            client.putObject(
+                    PutObjectArgs.builder().bucket(bucket).object(storeName).stream(source, -1, 10485760).build());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -128,8 +153,8 @@ public class MinIoFileHandler implements FileHandler {
             String storeName = getStoreName(filename);
             byte[] bytes = text.getBytes(UTF_8);
             ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-            client.putObject(PutObjectArgs.builder().bucket(bucket).object(storeName)
-                    .stream(input, bytes.length, -1).build());
+            client.putObject(
+                    PutObjectArgs.builder().bucket(bucket).object(storeName).stream(input, bytes.length, -1).build());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -139,7 +164,7 @@ public class MinIoFileHandler implements FileHandler {
     public boolean mkdir(String dir) {
         try {
             client.putObject(PutObjectArgs.builder().bucket(bucket).object(getStoreName(dir) + SLASH)
-                    .stream(new ByteArrayInputStream(new byte[]{}), 0, -1).build());
+                    .stream(new ByteArrayInputStream(new byte[] {}), 0, -1).build());
             return true;
         } catch (Exception e) {
             throw new IllegalStateException(e);
@@ -159,13 +184,12 @@ public class MinIoFileHandler implements FileHandler {
     public void unzip(InputStream inputStream, String destDir, String... ignoredExtensions) {
         ZipUtils.decompress(inputStream,
                 (entryName, zipIn) -> store(UrlBuilder.of(destDir).appendPath(entryName).toString(), zipIn),
-                entryName -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()),
-                ignoredExtensions);
+                entryName -> mkdir(UrlBuilder.of(destDir).appendPath(entryName).toString()), ignoredExtensions);
     }
 
     @Override
-    public void zip(String dir, String[] names, OutputStream out,
-                    BiPredicate<String, Long> isAddEntry, Predicate<String> isAddDirEntry) {
+    public void zip(String dir, String[] names, OutputStream out, BiPredicate<String, Long> isAddEntry,
+            Predicate<String> isAddDirEntry) {
         ZipUtils.zip(dir, names, out, new ZipHandler() {
             @Override
             public boolean isDir(String filename) {
@@ -219,10 +243,8 @@ public class MinIoFileHandler implements FileHandler {
 
     private void renameFile(String from, String to) {
         try {
-            client.copyObject(CopyObjectArgs.builder()
-                    .bucket(bucket).object(to)
-                    .source(CopySource.builder().bucket(bucket).object(from).build())
-                    .build());
+            client.copyObject(CopyObjectArgs.builder().bucket(bucket).object(to)
+                    .source(CopySource.builder().bucket(bucket).object(from).build()).build());
             client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(from).build());
         } catch (Exception e) {
             throw new IllegalStateException(e);
@@ -300,8 +322,7 @@ public class MinIoFileHandler implements FileHandler {
 
     private String getObjectText(String filename) {
         String storeName = getStoreName(filename);
-        try (InputStream in = client.getObject(
-                GetObjectArgs.builder().bucket(bucket).object(storeName).build())) {
+        try (InputStream in = client.getObject(GetObjectArgs.builder().bucket(bucket).object(storeName).build())) {
             return IOUtils.toString(in, UTF_8);
         } catch (Exception e) {
             throw new IllegalStateException(e);
@@ -333,8 +354,7 @@ public class MinIoFileHandler implements FileHandler {
     private void copyFile(String src, String dest) {
         try {
             client.copyObject(CopyObjectArgs.builder().bucket(bucket).object(dest)
-                    .source(CopySource.builder().bucket(bucket).object(src).build())
-                    .build());
+                    .source(CopySource.builder().bucket(bucket).object(src).build()).build());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -379,6 +399,7 @@ public class MinIoFileHandler implements FileHandler {
 
     @Override
     public boolean deleteFileAndEmptyParentDir(String filename) {
+        // 对象存储为虚拟目录，不需要删除上级空文件夹
         return deleteDirectory(filename);
     }
 
@@ -398,7 +419,7 @@ public class MinIoFileHandler implements FileHandler {
 
     @Override
     public boolean deleteDirectory(String directory) {
-        handleDirectory(getStoreName(directory), true, item -> {
+        boolean found = handleDirectory(getStoreName(directory), true, item -> {
             try {
                 client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(item.objectName()).build());
             } catch (Exception e) {
@@ -406,8 +427,7 @@ public class MinIoFileHandler implements FileHandler {
             }
         });
         // 删除文件夹
-        deleteFile(directory);
-        return true;
+        return deleteFile(directory) || found;
     }
 
     @Nullable
@@ -421,41 +441,56 @@ public class MinIoFileHandler implements FileHandler {
         }
     }
 
-    private void handleDirectory(String directory, boolean recursive, Consumer<Item> consumer) {
+    private boolean handleDirectory(String directory, boolean recursive, Consumer<Item> consumer) {
         try {
             int maxKeys = 1000;
             String prefix = directory.endsWith(SLASH) || directory.isEmpty() ? directory : directory + SLASH;
             String startAfter = null;
             String prevStartAfter;
+            boolean found = false;
             do {
                 prevStartAfter = startAfter;
                 startAfter = handleDirectory(prefix, startAfter, maxKeys, recursive, consumer);
-            } while (startAfter != null && !startAfter.equals(prefix) && !startAfter.equals(prevStartAfter));
+                found = found || startAfter != null;
+            } while (startAfter != null && !startAfter.isEmpty() && !startAfter.equals(prefix)
+                    && !startAfter.equals(prevStartAfter));
+            return found;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
     }
 
+    /**
+     * 处理目录
+     * 
+     * @param prefix     前缀
+     * @param startAfter 开始位置
+     * @param maxKeys    最大数量
+     * @param recursive  是否递归
+     * @param consumer   消费者
+     * @return null 代表没有数据，空串 代表有数据，objectName 代表有更多数据（用于递归）
+     */
     @Nullable
     private String handleDirectory(String prefix, @Nullable String startAfter, int maxKeys, boolean recursive,
-                                   Consumer<Item> consumer)
-            throws ServerException, InsufficientDataException, ErrorResponseException,
+            Consumer<Item> consumer) throws ServerException, InsufficientDataException, ErrorResponseException,
             IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
             InternalException {
         int count = 0;
         String objectName = null;
-        Iterable<Result<Item>> results = client.listObjects(ListObjectsArgs.builder().bucket(bucket)
-                .prefix(prefix).startAfter(startAfter).recursive(recursive).maxKeys(maxKeys).build());
+        Iterable<Result<Item>> results = client.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(prefix)
+                .startAfter(startAfter).recursive(recursive).maxKeys(maxKeys).build());
         for (Result<Item> result : results) {
             Item item = new MinioItem(result.get());
             objectName = item.objectName();
             consumer.accept(item);
             count += 1;
         }
+        // count 大于等于 maxKeys，返回 objectName（代表有更多数据）
         if (count >= maxKeys) {
             return objectName;
         }
-        return null;
+        // count 大于 0，返回空串（代表有数据），否则返回 null（代表没有数据）
+        return count > 0 ? "" : null;
     }
 
     private String getStoreName(String filename) {

@@ -16,7 +16,7 @@ import java.util.Map;
  * @author PONY
  */
 public class FormPageDirective extends FormListDirective {
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -17,6 +18,7 @@ import java.io.Serializable;
  * @see org.springframework.data.domain.Pageable
  */
 public class OffsetLimitRequest implements Pageable, Serializable {
+    @Serial
     private static final long serialVersionUID = 6357260450418809170L;
 
     private final long offset;

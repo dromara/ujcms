@@ -16,20 +16,19 @@ public class StaticProps {
                     // r1
                     "menu.log", "operationLog:page", "loginLog:page", "shortMessage:page",
                     "menu.system", "processModel:page", "processInstance:page", "processHistory:page",
-                    "visitedPage:page", "entryPage:page", "visitSource:page", "visitEnv:page",
                     "generator:fulltext:reindexSite",
                     "articleReview:page",
                     // r2
                     "article:internalPush", "survey:page", "site:page", "config:grey:update",
                     "sensitiveWord:page", "errorWord:page", "siteSettings:editor:update",
                     "collection:page",
+                    "form:page", "formType:page", "formReview:page",
                     "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
                     "menu.stat.articleStat", "articleStatByUser:page", "articleStatByOrg:page", "articleStatByChannel:page",
                     // r3
                     "homepage:systemMonitor", "article:externalPush",
                     "performanceType:page", "menu.stat.performanceStat",
                     "menu.stat.performanceStat", "performanceStatByUser:page", "performanceStatByOrg:page",
-                    "form:page", "formType:page", "formReview:page",
                     "formReview:back", "formReview:delegate", "formReview:transfer",
                     "articleReview:back", "articleReview:delegate", "articleReview:transfer",
                     "org:updatePermission",

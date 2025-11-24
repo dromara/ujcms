@@ -48,6 +48,7 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("Form", new FormDirective(formService));
         configuration.setSharedVariable("FormList", new FormListDirective(formService, formTypeService));
         configuration.setSharedVariable("FormPage", new FormPageDirective(formService, formTypeService));
+        configuration.setSharedVariable("FormTypeList", new FormTypeListDirective(formTypeService));
         configuration.setSharedVariable("Vote", new VoteDirective(voteService));
         configuration.setSharedVariable("VoteList", new VoteListDirective(voteService));
         configuration.setSharedVariable("VotePage", new VotePageDirective(voteService));

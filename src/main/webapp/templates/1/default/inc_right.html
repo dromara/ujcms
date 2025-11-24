@@ -36,7 +36,22 @@
     [/@ArticleList]
   </div>
 
-  [#if config.epRank > 0]
+  [#if config.epRank gte 2]
+  <h5 class="mt-3 ml-2">
+    <i class="fab fa-wpforms text-primary"></i> <a href="${dy}/form-type" class="text-reset text-decoration-none">自定义表单</a>
+  </h5>
+  <div class="px-2 pb-2 mt-3">
+    [@FormTypeList limit='2'; beans]
+    [#list beans as bean]
+    <div class="mt-2 d-flex flex-row">
+      <div class="ml-2 text-truncate position-relative"><a href="${dy}/form-list/${bean.id?c}" class="cm-link small cm-dot-primary">${bean.name}</a></div>
+    </div>
+    [/#list]
+    [/@FormTypeList]
+  </div>
+  [/#if]
+
+  [#if config.epRank gte 1]
   <h5 class="mt-3 ml-2">
     <i class="far fa-clipboard text-primary"></i> <a href="${dy}/survey" class="text-reset text-decoration-none">调查问卷</a>
   </h5>

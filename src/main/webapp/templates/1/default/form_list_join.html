@@ -86,9 +86,11 @@
                      data-rule-required="true" data-msg-required="请输入验证码"
                      data-msg-remote="验证码错误">
               <div class="input-group-append">
-                <img id="captchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="input-group-text"
-                     style="cursor:pointer;padding:0;" title="点击重新获取验证码" alt="验证码"
-                     onclick="fetchCaptcha();$('#captcha').focus();">
+                <button type="button" class="input-group-text" style="padding:0;"
+                        title="点击重新获取验证码" onclick="fetchCaptcha();$('#captcha').focus();">
+                  <img id="captchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                       alt="验证码" style="display:block;">
+                </button>
                 <input type="hidden" id="captchaToken" name="captchaToken">
                 <script>
                   function fetchCaptcha() {

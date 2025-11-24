@@ -41,6 +41,7 @@ ujcms.database-bin-path:
 #ujcms.database-bin-path:
 
 # 人大金仓数据库（使用 PostgreSQL 驱动，官方推荐方式。不能使用 kingbase8 驱动）
+# 安装参数选项：数据库兼容模式(PG)，字符集编码(UTF8)，大小写敏感(YES)
 #spring.datasource.url: jdbc:postgresql://localhost:54321/ujcms
 #spring.datasource.username: postgres
 #spring.datasource.password: password

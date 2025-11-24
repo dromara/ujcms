@@ -252,33 +252,21 @@ public class QueryUtils {
      * 支持Like, Contain, StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE
      */
     public static String getOperator(String s) {
-        switch (s) {
-            case OPERATOR_LIKE,OPERATOR_CONTAINS,OPERATOR_STARTS_WITH,OPERATOR_ENDS_WITH:
-                return "LIKE";
-            case OPERATOR_IN,OPERATOR_ARRAY_IN:
-                return "IN";
-            case OPERATOR_NOT_IN:
-                return "NOT IN";
-            case OPERATOR_IS_NULL:
-                return "IS NULL";
-            case OPERATOR_IS_NOT_NULL:
-                return "IS NOT NULL";
-            case OPERATOR_EQ,OPERATOR_ARRAY_EQ:
-                return "=";
-            case OPERATOR_NE:
-                return "<>";
-            case OPERATOR_GT:
-                return ">";
-            case OPERATOR_GE:
-                return ">=";
-            case OPERATOR_LT:
-                return "<";
-            case OPERATOR_LE:
-                return "<=";
-            default:
-                throw new QueryException("QueryParser operator '" + s + "' not supported. Support: Like, Contain, " +
-                        "StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE, SubIn, SubEQ");
-        }
+        return switch (s) {
+            case OPERATOR_LIKE, OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> "LIKE";
+            case OPERATOR_IN, OPERATOR_ARRAY_IN -> "IN";
+            case OPERATOR_NOT_IN -> "NOT IN";
+            case OPERATOR_IS_NULL -> "IS NULL";
+            case OPERATOR_IS_NOT_NULL -> "IS NOT NULL";
+            case OPERATOR_EQ, OPERATOR_ARRAY_EQ -> "=";
+            case OPERATOR_NE -> "<>";
+            case OPERATOR_GT -> ">";
+            case OPERATOR_GE -> ">=";
+            case OPERATOR_LT -> "<";
+            case OPERATOR_LE -> "<=";
+            default -> throw new QueryException("QueryParser operator '" + s + "' not supported. Support: Like, Contain, " +
+                    "StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE, SubIn, SubEQ");
+        };
     }
 
     public static boolean isArrayQuery(String operator) {
@@ -292,18 +280,13 @@ public class QueryUtils {
 
     @Nullable
     private static Object getStringValue(@Nullable Object obj, String operator) {
-        switch (operator) {
-            case OPERATOR_IN,OPERATOR_ARRAY_IN,OPERATOR_NOT_IN:
-                return parseStrings(obj);
-            case OPERATOR_CONTAINS:
-                return "%" + obj + "%";
-            case OPERATOR_STARTS_WITH:
-                return obj + "%";
-            case OPERATOR_ENDS_WITH:
-                return "%" + obj;
-            default:
-                return obj;
-        }
+        return switch (operator) {
+            case OPERATOR_IN, OPERATOR_ARRAY_IN, OPERATOR_NOT_IN -> parseStrings(obj);
+            case OPERATOR_CONTAINS -> "%" + obj + "%";
+            case OPERATOR_STARTS_WITH -> obj + "%";
+            case OPERATOR_ENDS_WITH -> "%" + obj;
+            default -> obj;
+        };
     }
 
     @Nullable
@@ -336,49 +319,35 @@ public class QueryUtils {
         if (operator.equalsIgnoreCase(OPERATOR_IS_NULL) || operator.equalsIgnoreCase(OPERATOR_IS_NOT_NULL)) {
             return null;
         }
-        switch (type) {
-            case TYPE_STRING:
-                return getStringValue(obj, operator);
-            case TYPE_SHORT:
-                if (isInOrNotInOperator(operator)) {
-                    return parseShorts(obj);
-                }
-                return parseShort(obj);
-            case TYPE_INT,TYPE_INTEGER:
-                if (isInOrNotInOperator(operator)) {
-                    return parseIntegers(obj);
-                }
-                return parseInteger(obj);
-            case TYPE_LONG:
-                if (isInOrNotInOperator(operator)) {
-                    return parseLongs(obj);
-                }
-                return parseLong(obj);
-            case TYPE_DOUBLE:
-                if (isInOrNotInOperator(operator)) {
-                    return parseDoubles(obj);
-                }
-                return parseDouble(obj);
-            case TYPE_BIG_INTEGER:
-                if (isInOrNotInOperator(operator)) {
-                    return parseBigIntegers(obj);
-                }
-                return parseBigInteger(obj);
-            case TYPE_BIG_DECIMAL:
-                if (isInOrNotInOperator(operator)) {
-                    return parseBigDecimals(obj);
-                }
-                return parseBigDecimal(obj);
-            case TYPE_BOOLEAN:
-                return getBooleanValue(obj);
-            case TYPE_DATE_TIME:
-                return parseDate(obj);
-            case TYPE_DATE:
-                return getDateValue(obj, operator);
-            default:
-                throw new QueryException("QueryParser type '" + type + "' not supported. Support: " +
-                        "String, Int(Integer), Long, Double, Boolean, DateTime, Date, BigDecimal, BigInteger");
+        
+        return switch (type) {
+            case TYPE_STRING -> getStringValue(obj, operator);
+            case TYPE_SHORT -> getNumericValue(obj, operator, Short.class, QueryUtils::parseShort, QueryUtils::parseShorts);
+            case TYPE_INT, TYPE_INTEGER -> getNumericValue(obj, operator, Integer.class, QueryUtils::parseInteger, QueryUtils::parseIntegers);
+            case TYPE_LONG -> getNumericValue(obj, operator, Long.class, QueryUtils::parseLong, QueryUtils::parseLongs);
+            case TYPE_DOUBLE -> getNumericValue(obj, operator, Double.class, QueryUtils::parseDouble, QueryUtils::parseDoubles);
+            case TYPE_BIG_INTEGER -> getNumericValue(obj, operator, BigInteger.class, QueryUtils::parseBigInteger, QueryUtils::parseBigIntegers);
+            case TYPE_BIG_DECIMAL -> getNumericValue(obj, operator, BigDecimal.class, QueryUtils::parseBigDecimal, QueryUtils::parseBigDecimals);
+            case TYPE_BOOLEAN -> getBooleanValue(obj);
+            case TYPE_DATE_TIME -> parseDate(obj);
+            case TYPE_DATE -> getDateValue(obj, operator);
+            default -> throw new QueryException("QueryParser type '" + type + "' not supported. Support: " +
+                    "String, Int(Integer), Long, Double, Boolean, DateTime, Date, BigDecimal, BigInteger");
+        };
+    }
+
+    /**
+     * 获取数值类型的值，根据操作符决定返回单个值还是列表
+     */
+    @Nullable
+    private static <T extends Number> Object getNumericValue(@Nullable Object obj, String operator,
+                                                             Class<T> targetClass,
+                                                             Function<Object, T> singleParser,
+                                                             Function<Object, List<T>> listParser) {
+        if (isInOrNotInOperator(operator)) {
+            return listParser.apply(obj);
         }
+        return singleParser.apply(obj);
     }
 
     @Nullable

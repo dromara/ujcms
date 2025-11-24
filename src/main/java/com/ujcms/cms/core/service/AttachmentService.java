@@ -164,7 +164,7 @@ public class AttachmentService implements SiteDeleteListener {
     @Override
     public void preSiteDelete(Long siteId) {
         referMapper.deleteBySiteId(siteId);
-        mapper.delete(siteId);
+        mapper.deleteBySiteId(siteId);
     }
 
     @Override

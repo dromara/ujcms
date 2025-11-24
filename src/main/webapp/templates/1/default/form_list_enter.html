@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>${formType.name} - ${site.title}</title>
+    <meta name="_csrf" content="${_csrf.token}" />
+    <meta name="_csrf_header" content="${_csrf.headerName}" />
+    [#include 'inc_meta.html'/] [#include 'inc_css.html'/] [#include 'inc_js.html'/]
+    <link rel="stylesheet" href="${files}/vendor/flatpickr/dist/flatpickr.min.css" />
+    <script src="${files}/vendor/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="${files}/vendor/flatpickr/dist/l10n/index.js"></script>
+  </head>
+  <body>
+    [#include 'inc_header.html'/]
+    <div class="bg-gray-200">
+      <div class="container">
+        <nav class="row" aria-label="breadcrumb">
+          <ol class="col list-inline my-2">
+            <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+            <li class="list-inline-item">/</li>
+            <li class="list-inline-item"><a href="${dy}/form-list/${formType.id}">${formType.name}</a></li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+    <div class="container mt-3">
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#formModal">填写在线报名</button>
+      [@FormPage typeId=formType.id; pagedList]
+      <table class="table mt-3">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">姓名</th>
+            <th scope="col">性别</th>
+            <th scope="col">出生年月</th>
+            <th scope="col">地址</th>
+            <th scope="col">联系电话</th>
+            <th scope="col">电子邮箱</th>
+          </tr>
+        </thead>
+        <tbody>
+          [#list pagedList.content as form]
+          <tr>
+            <th scope="row"><a href="${dy}/form-item/${form.id?c}">${form.id}</a></th>
+            <td>${form.customs['name']}</td>
+            <td>${form.customs['gender']}</td>
+            <td>[#if form.customs['birthday']??]${format(form.customs['birthday'], 'yyyy-MM-dd')}[/#if]</td>
+            <td>${form.customs['address']}</td>
+            <td>${form.customs['phone']}</td>
+            <td>${form.customs['email']}</td>
+          </tr>
+          [/#list]
+        </tbody>
+      </table>
+      [#include 'inc_page.html'/] [/@FormPage]
+    </div>
+
+    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="formModalLabel">在线报名</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form id="validForm" action="${api}/form" method="post">
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="name">姓名<strong class="text-danger">*</strong></label>
+                <input type="text" class="form-control" id="name" name="customs[name]" maxlength="50" title="请填写姓名" required />
+              </div>
+              <div class="form-group">
+                <label for="gender">性别<strong class="text-danger">*</strong></label>
+                <select class="form-control" id="genderKey" name="customs[genderKey]" onchange="document.getElementById('gender').value = this.options[this.selectedIndex].text;">
+                  <option value="1" selected>男</option>
+                  <option value="2">女</option>
+                </select>
+                <input type="hidden" id="gender" name="customs[gender]" value="1" />
+              </div>
+              <div class="form-group">
+                <label for="birthday_local">出生日期</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="far fa-calendar-alt text-black-50"></i></span>
+                  </div>
+                  <input type="text" class="form-control datepicker date" id="birthday_local" name="birthday_local" onchange="if(this.value) $('#birthday').val(dayjs(this.value).toJSON()); else $('#birthday').val('')" autocomplete="off" />
+                  <input type="hidden" id="birthday" name="customs[birthday]" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="address">地址</label>
+                <input type="text" class="form-control" id="address" name="customs[address]" maxlength="150" title="请填写地址" />
+              </div>
+              <div class="form-group">
+                <label for="phone">联系电话</label>
+                <input type="text" class="form-control" id="phone" name="customs[phone]" maxlength="150" title="请填写联系电话" />
+              </div>
+              <div class="form-group">
+                <label for="email">电子邮箱</label>
+                <input type="text" class="form-control" id="email" name="customs[email]" maxlength="150" title="请填写电子邮箱" data-rule-email="true" data-msg-email="请填写有效的邮箱地址" />
+              </div>
+              <div class="form-group">
+                <label for="captcha">图形验证码<strong class="text-danger">*</strong></label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="captcha" name="captcha" autocomplete="off" data-rule-required="true" data-msg-required="请输入验证码" data-msg-remote="验证码错误" />
+                  <div class="input-group-append">
+                    <button type="button" class="input-group-text" style="padding: 0" title="点击重新获取验证码" onclick="fetchCaptcha();$('#captcha').focus();">
+                      <img id="captchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="验证码" style="display: block" />
+                    </button>
+                    <input type="hidden" id="captchaToken" name="captchaToken" />
+                    <script>
+                      function fetchCaptcha() {
+                        axios.get("${api}/captcha").then(function (response) {
+                          var data = response.data;
+                          if (data == null) return;
+                          $("#captchaImg").attr("src", "data:image/png;base64," + data.image);
+                          $("#captchaToken").val(data.token);
+                        });
+                      }
+
+                      fetchCaptcha();
+                    </script>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <input type="hidden" name="typeId" value="${formType.id}" />
+              <input type="hidden" name="siteId" value="${site.id}" />
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+              <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    [#include 'inc_footer.html'/] [#include 'inc_message_box.html'/]
+
+    <script>
+      $(function () {
+        $(".datepicker").each(function () {
+          var initValue = $(this).data("init-value");
+          if (initValue) {
+            $(this).val(dayjs(initValue).format("YYYY-MM-DD"));
+          }
+          $(this).change().flatpickr({
+            locale: "zh",
+            allowInput: true,
+            dateFormat: "Y-m-d",
+          });
+        });
+        $("#validForm").validate({
+          submitHandler: function (form) {
+            fetchCsrf().then(function () {
+              request.post(form.action, $(form).serializeJSON()).then(function (response) {
+                var data = response.data;
+                if (data.status !== 0) {
+                  showAlert(data.message);
+                } else {
+                  showSuccess();
+                }
+                location.reload();
+              });
+            });
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
+[/#escape]

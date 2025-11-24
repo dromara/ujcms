@@ -94,158 +94,249 @@ public class QueryParser {
         }
         QueryInfo info = new QueryInfo(table, tablePrefix);
         parseOrderBy(info, defaultOrderBy);
-        // 用于默认组
+        
         int nextSubGroup = 1000;
         for (Map.Entry<String, Object> entry : params.entrySet()) {
-            // EQ_price_Int
-            // Like_username
-            // Like_user-UserExt-realName
-            // Like_editUser@user-ext-username
-            // Like_1_questionExt-title
-            // Like_1-1_questionExt-markdown
-            // In_1_status
             String key = entry.getKey();
-            QueryUtils.validateQuery(key);
             Object value = entry.getValue();
+            
             if (isContinueKey(info, key, value)) {
                 continue;
             }
-            int index = key.indexOf(UNDERLINE);
-            if (index == -1) {
-                throw new IllegalArgumentException("Illegal query key format: " + key);
-            }
-            // 获取操作符
-            // EQ
-            // Like
-            // In
-            String operator = key.substring(0, index);
-            // price_Int
-            // username
-            // user-UserExt-realName
-            // editUser@user-ext-username
-            // 1_questionExt-title
-            // 1-1_questionExt-markdown
-            // 1_status
-            key = key.substring(index + 1);
-            if (key.isEmpty()) {
-                throw new IllegalArgumentException("Illegal query key format: " + key);
-            }
-            index = key.indexOf(UNDERLINE, Character.isDigit(key.charAt(0)) ? key.indexOf(UNDERLINE) + 1 : 0);
-            // 获取表及字段
-            // price
-            // username
-            // user-UserExt-realName
-            // editUser@user-ext-username
-            // 1_questionExt-title
-            // 1-1_questionExt-markdown
-            // 1_status
-            String columnPart;
-            String type = QueryUtils.TYPE_STRING;
-            // 后面没有类型
-            if (index == -1) {
-                columnPart = key;
-            } else {
-                columnPart = key.substring(0, index);
-                // Int
-                type = key.substring(index + 1);
-            }
-            parseWhereCondition(info, columnPart, operator, value, type, nextSubGroup);
+            
+            QueryKeyParts keyParts = parseQueryKey(key);
+            parseWhereCondition(info, keyParts.columnPart(), keyParts.operator(), 
+                              value, keyParts.type(), nextSubGroup);
             nextSubGroup += 1;
         }
         return info;
     }
 
+    /**
+     * 解析查询键，提取操作符、列部分和类型
+     * 
+     * @param key 查询键，格式如：EQ_price_Int, Like_username, In_1_status
+     * @return 解析后的键部分
+     */
+    private static QueryKeyParts parseQueryKey(String key) {
+        QueryUtils.validateQuery(key);
+        
+        int index = key.indexOf(UNDERLINE);
+        if (index == -1) {
+            throw new IllegalArgumentException("Illegal query key format: " + key);
+        }
+        
+        // 获取操作符：EQ, Like, In 等
+        String operator = key.substring(0, index);
+        
+        // 获取列部分和类型：price_Int, username, 1_questionExt-title 等
+        String remaining = key.substring(index + 1);
+        if (remaining.isEmpty()) {
+            throw new IllegalArgumentException("Illegal query key format: " + key);
+        }
+        
+        // 查找类型分隔符（第二个下划线）
+        // 如果第一个字符是数字，需要跳过第一个下划线（分组标识）
+        int typeIndex = remaining.indexOf(UNDERLINE, 
+            Character.isDigit(remaining.charAt(0)) ? remaining.indexOf(UNDERLINE) + 1 : 0);
+        
+        String columnPart;
+        String type = QueryUtils.TYPE_STRING;
+        
+        if (typeIndex == -1) {
+            columnPart = remaining;
+        } else {
+            columnPart = remaining.substring(0, typeIndex);
+            type = remaining.substring(typeIndex + 1);
+        }
+        
+        return new QueryKeyParts(operator, columnPart, type);
+    }
+
+    /**
+     * 查询键的组成部分
+     */
+    private record QueryKeyParts(String operator, String columnPart, String type) {
+    }
+
     private static void parseOrderBy(QueryInfo info, @Nullable String rawOrderBy) {
-        // username, created_desc
-        // username_desc
-        // user-UserExt-realName_desc
         if (rawOrderBy == null) {
             return;
         }
+        
         StringBuilder selectBuff = new StringBuilder();
         List<QueryInfo.OrderByCondition> orderByConditions = new ArrayList<>();
+        
         for (String orderBy : StringUtils.split(rawOrderBy, COMMA)) {
             orderBy = orderBy.trim();
             QueryUtils.validateQuery(orderBy);
-            String direction = null;
-            String type = null;
-            int index = orderBy.lastIndexOf("_");
-            if (index != -1) {
-                direction = orderBy.substring(index + 1);
-                orderBy = orderBy.substring(0, index);
-                if (DIRECTION_ASC.equals(direction) || DIRECTION_DESC.equals(direction)) {
-                    index = orderBy.indexOf(UNDERLINE);
-                    if (index != -1) {
-                        type = orderBy.substring(index + 1);
-                        orderBy = orderBy.substring(0, index);
-                    }
-                } else {
-                    type = direction;
-                    direction = null;
-                }
-            }
-            // order by 去掉 desc，用于生成 table join。
-            String column = parseJoinTable(info, orderBy);
-            String jsonColumn = null;
-            // 是否json查询
-            int jsonIndex = column.indexOf(DOLLAR);
-            if (jsonIndex >= 0) {
-                jsonColumn = underscoreToCamel(column.substring(jsonIndex + 1));
-                column = column.substring(0, jsonIndex);
-            }
-            orderByConditions.add(new QueryInfo.OrderByCondition(column, direction, jsonColumn, type));
-            if (!column.startsWith(MAIN_TABLE_ALIAS + POINT)) {
-                selectBuff.append(COMMA).append(column);
+            
+            OrderByParts parts = parseOrderByParts(orderBy);
+            String column = parseJoinTable(info, parts.columnPart());
+            ColumnInfo columnInfo = extractJsonColumn(column);
+            
+            orderByConditions.add(new QueryInfo.OrderByCondition(
+                columnInfo.column(), 
+                parts.direction(), 
+                columnInfo.jsonColumn(), 
+                parts.type()
+            ));
+            
+            if (!columnInfo.column().startsWith(MAIN_TABLE_ALIAS + POINT)) {
+                selectBuff.append(COMMA).append(columnInfo.column());
             }
         }
+        
         info.setOrderByConditions(orderByConditions);
         info.setSelectOrderBy(selectBuff.length() > 0 ? selectBuff.toString() : null);
     }
 
+    /**
+     * 解析OrderBy部分，提取列名、方向和类型
+     * 
+     * @param orderBy OrderBy字符串，如：username_desc, created_desc, username_Int
+     * @return 解析后的OrderBy部分
+     */
+    private static OrderByParts parseOrderByParts(String orderBy) {
+        String direction = null;
+        String type = null;
+        String columnPart = orderBy;
+        
+        int index = orderBy.lastIndexOf(UNDERLINE);
+        if (index != -1) {
+            String suffix = orderBy.substring(index + 1);
+            columnPart = orderBy.substring(0, index);
+            
+            // 检查是否是方向（asc/desc）
+            if (DIRECTION_ASC.equals(suffix) || DIRECTION_DESC.equals(suffix)) {
+                direction = suffix;
+                // 检查是否还有类型
+                index = columnPart.indexOf(UNDERLINE);
+                if (index != -1) {
+                    type = columnPart.substring(index + 1);
+                    columnPart = columnPart.substring(0, index);
+                }
+            } else {
+                // 不是方向，则是类型
+                type = suffix;
+            }
+        }
+        
+        return new OrderByParts(columnPart, direction, type);
+    }
+
+    /**
+     * OrderBy的组成部分
+     */
+    private record OrderByParts(String columnPart, @Nullable String direction, @Nullable String type) {
+    }
+
     private static void parseWhereCondition(QueryInfo info, String columnPart, String operator,
                                             @Nullable Object obj, String type, int nextSubGroup) {
-        // price
-        // username
-        // user-UserExt-realName
-        // editUser@user-ext-username
-        // 1_questionExt-title
-        // 1-1_questionExt-markdown
-        // 1_status
-
-        // 是否分组
-        int groupIndex = columnPart.indexOf("_");
-        String group = null;
-        if (groupIndex >= 0) {
-            group = columnPart.substring(0, groupIndex);
-            columnPart = columnPart.substring(groupIndex + 1);
-        }
-        String column = parseJoinTable(info, columnPart);
-        String jsonColumn = null;
-        // 是否json查询
-        int jsonIndex = column.indexOf(DOLLAR);
-        if (jsonIndex >= 0) {
-            jsonColumn = underscoreToCamel(column.substring(jsonIndex + 1));
-            column = column.substring(0, jsonIndex);
-        }
+        // 提取分组信息（如果有）
+        GroupInfo groupInfo = extractGroupInfo(columnPart);
+        String actualColumnPart = groupInfo.columnPart();
+        
+        // 解析表连接和列
+        String column = parseJoinTable(info, actualColumnPart);
+        ColumnInfo columnInfo = extractJsonColumn(column);
+        
+        // 转换值
         Object value = QueryUtils.getValue(type, obj, operator);
-        if (group != null) {
-            groupIndex = group.indexOf("-");
-            // 默认组
-            String subGroup = String.valueOf(nextSubGroup);
-            if (groupIndex != -1) {
-                subGroup = group.substring(groupIndex + 1);
-                group = group.substring(0, groupIndex);
-            }
-            Map<String, List<QueryInfo.WhereCondition>> orConditions =
-                    info.getWhereOrAndConditions().computeIfAbsent(group, k -> new HashMap<>(16));
-            List<QueryInfo.WhereCondition> orAndConditions =
-                    orConditions.computeIfAbsent(subGroup, k -> new ArrayList<>());
-            orAndConditions.add(new QueryInfo.WhereCondition(column, jsonColumn,
-                    QueryUtils.getOperator(operator), QueryUtils.isArrayQuery(operator), value, type));
+        
+        // 创建条件
+        QueryInfo.WhereCondition condition = new QueryInfo.WhereCondition(
+            columnInfo.column(), 
+            columnInfo.jsonColumn(),
+            QueryUtils.getOperator(operator), 
+            QueryUtils.isArrayQuery(operator), 
+            value, 
+            type
+        );
+        
+        // 添加到相应的条件列表
+        if (groupInfo.hasGroup()) {
+            addGroupedCondition(info, condition, groupInfo.group(), groupInfo.subGroup(), nextSubGroup);
         } else {
-            info.getWhereConditions().add(new QueryInfo.WhereCondition(column, jsonColumn,
-                    QueryUtils.getOperator(operator), QueryUtils.isArrayQuery(operator), value, type));
+            info.getWhereConditions().add(condition);
         }
+    }
+
+    /**
+     * 提取分组信息
+     * 
+     * @param columnPart 列部分，可能包含分组标识，如：1_questionExt-title, 1-1_username
+     * @return 分组信息和实际的列部分
+     */
+    private static GroupInfo extractGroupInfo(String columnPart) {
+        int groupIndex = columnPart.indexOf(UNDERLINE);
+        if (groupIndex < 0) {
+            return new GroupInfo(null, null, columnPart);
+        }
+        
+        String group = columnPart.substring(0, groupIndex);
+        String actualColumnPart = columnPart.substring(groupIndex + 1);
+        
+        // 检查是否有子组（用-分隔）
+        int subGroupIndex = group.indexOf(DASH);
+        String mainGroup = group;
+        String subGroup = null;
+        
+        if (subGroupIndex >= 0) {
+            mainGroup = group.substring(0, subGroupIndex);
+            subGroup = group.substring(subGroupIndex + 1);
+        }
+        
+        return new GroupInfo(mainGroup, subGroup, actualColumnPart);
+    }
+
+    /**
+     * 提取JSON列信息
+     * 
+     * @param column 列名，可能包含JSON路径，如：t_.mains_json_$abc
+     * @return 列信息和JSON列名
+     */
+    private static ColumnInfo extractJsonColumn(String column) {
+        int jsonIndex = column.indexOf(DOLLAR);
+        if (jsonIndex < 0) {
+            return new ColumnInfo(column, null);
+        }
+        
+        String jsonColumn = underscoreToCamel(column.substring(jsonIndex + 1));
+        String actualColumn = column.substring(0, jsonIndex);
+        return new ColumnInfo(actualColumn, jsonColumn);
+    }
+
+    /**
+     * 添加分组条件
+     */
+    private static void addGroupedCondition(QueryInfo info, QueryInfo.WhereCondition condition,
+                                           @Nullable String group, @Nullable String subGroup, int defaultSubGroup) {
+        if (group == null) {
+            throw new IllegalArgumentException("Group cannot be null when adding grouped condition");
+        }
+        String actualSubGroup = subGroup != null ? subGroup : String.valueOf(defaultSubGroup);
+        
+        Map<String, List<QueryInfo.WhereCondition>> orConditions =
+            info.getWhereOrAndConditions().computeIfAbsent(group, k -> new HashMap<>(16));
+        List<QueryInfo.WhereCondition> orAndConditions =
+            orConditions.computeIfAbsent(actualSubGroup, k -> new ArrayList<>());
+        orAndConditions.add(condition);
+    }
+
+    /**
+     * 分组信息
+     */
+    private record GroupInfo(@Nullable String group, @Nullable String subGroup, String columnPart) {
+        boolean hasGroup() {
+            return group != null;
+        }
+    }
+
+    /**
+     * 列信息（包含JSON列）
+     */
+    private record ColumnInfo(String column, @Nullable String jsonColumn) {
     }
 
     /**
@@ -303,157 +394,6 @@ public class QueryParser {
     public static final String DISTINCT = "Distinct";
     public static final String ORDER_BY = "OrderBy";
 
-    /**
-     * 五种情况
-     * <li> many-to-one: user                   -> user, user_, t.user_id_, user.id_
-     * <li> many-to-one: editUser@user          -> user, editUser_, t.edit_user_id_, editUser_.id_
-     * <li> one-to-one : @userExt               -> user_ext, userExt_, t.id_, userExt_.id_
-     * <li> one-to-many: UserRole               -> user_role, userRole_, t.id_, userRole_.user_id_ (user_id_ 通过leftTable推断)
-     * <li> one-to-many: descendant@OrgTree     -> org_tree, orgTree_, t.id_, orgTree_.descendant_id_
-     * <li> one-to-many: org@OrgTree@descendant -> org_tree, orgTree_, t.org_id_, orgTree_.descendant_id_
-     */
-    private static final class ParsedTable {
-        private String tablePart;
-        private String leftColumn = "";
-        private String rightColumn = "";
-        private String rightAlias;
-        private String rightTable;
-        private String leftId = "";
-        private String rightId = "";
-        private boolean one2one = false;
-        private boolean one2many = false;
-
-        public ParsedTable(String tablePart) {
-            this.tablePart = tablePart;
-            this.rightAlias = tablePart;
-            this.rightTable = tablePart;
-        }
-
-        /**
-         * 处理第一个 @
-         */
-        public void firstAt() {
-            int atIndex = tablePart.indexOf("@");
-            if (atIndex >= 0) {
-                // editUser
-                leftColumn = tablePart.substring(0, atIndex);
-                rightAlias = leftColumn;
-                // user
-                // questionExt
-                // UserExt
-                rightTable = tablePart.substring(atIndex + 1);
-                // 处理 one2one 情形 @userExt @questionExt。此时rightAlias为空串
-                if (leftColumn.isEmpty()) {
-                    one2one = true;
-                    rightAlias = rightTable;
-                }
-            }
-        }
-
-        /**
-         * 首字母大写，为one2many
-         */
-        public void upperCaseTable() {
-            if (Character.isUpperCase(rightTable.charAt(0))) {
-                one2many = true;
-                // 首字母换回小写
-                rightTable = rightTable.substring(0, 1).toLowerCase() + rightTable.substring(1);
-                // one2many 双 @ 情景：org@OrgTree@descendant
-                int atIndex = rightTable.indexOf("@");
-                if (atIndex >= 0) {
-                    rightColumn = rightTable.substring(atIndex + 1);
-                    rightTable = rightTable.substring(0, atIndex);
-                }
-                rightAlias = rightTable;
-            }
-        }
-
-        public void leftIdAndRightId(String leftTable) {
-            // 表别名下划线结尾，以免与数据库关键字冲突
-            // user_
-            // editUser_
-            // questionExt_
-            // userExt_
-            rightAlias = rightAlias + "_";
-            // t_.id_
-            // t_.user_id_
-            // t_.edit_user_id_
-            leftId = camelToUnderscore(rightAlias) + "id_";
-            if (one2many || one2one) {
-                leftId = "id_";
-                if (!rightColumn.isEmpty()) {
-                    leftId = camelToUnderscore(leftColumn) + "_id_";
-                }
-            }
-            // user_.id_
-            // userExt_.user_id_
-            rightId = "id_";
-            if (one2many) {
-                if (leftColumn.isEmpty()) {
-                    // origAlias为空，使用 leftTable 推断
-                    rightId = camelToUnderscore(leftTable) + "_id_";
-                } else {
-                    rightId = camelToUnderscore(rightColumn.isEmpty() ? leftColumn : rightColumn) + "_id_";
-                }
-            }
-        }
-
-        public String getTablePart() {
-            return tablePart;
-        }
-
-        public void setTablePart(String tablePart) {
-            this.tablePart = tablePart;
-        }
-
-        public String getLeftColumn() {
-            return leftColumn;
-        }
-
-        public void setLeftColumn(String leftColumn) {
-            this.leftColumn = leftColumn;
-        }
-
-        public String getRightColumn() {
-            return rightColumn;
-        }
-
-        public void setRightColumn(String rightColumn) {
-            this.rightColumn = rightColumn;
-        }
-
-        public String getRightAlias() {
-            return rightAlias;
-        }
-
-        public void setRightAlias(String rightAlias) {
-            this.rightAlias = rightAlias;
-        }
-
-        public String getRightTable() {
-            return rightTable;
-        }
-
-        public void setRightTable(String rightTable) {
-            this.rightTable = rightTable;
-        }
-
-        public String getLeftId() {
-            return leftId;
-        }
-
-        public void setLeftId(String leftId) {
-            this.leftId = leftId;
-        }
-
-        public String getRightId() {
-            return rightId;
-        }
-
-        public void setRightId(String rightId) {
-            this.rightId = rightId;
-        }
-    }
 
     /**
      * 工具类不需要实例化

@@ -19,18 +19,29 @@ import jakarta.xml.bind.DatatypeConverter;
 public class SmsUtils {    
     private static final Charset UTF8 = StandardCharsets.UTF_8;
 
-    public static byte[] hmac256(byte[] key, String message) throws NoSuchAlgorithmException, InvalidKeyException {
-        Mac mac = Mac.getInstance("HmacSHA256");
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key, mac.getAlgorithm());
-        mac.init(secretKeySpec);
-        return mac.doFinal(message.getBytes(UTF8));
+    public static byte[] hmac256(byte[] key, String message) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key, mac.getAlgorithm());
+            mac.init(secretKeySpec);
+            return mac.doFinal(message.getBytes(UTF8));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("HmacSHA256 algorithm not available", e);
+        } catch (InvalidKeyException e) {
+            throw new IllegalStateException("Invalid key for HMAC", e);
+        }
     }
 
-    public static String sha256Hex(String str) throws NoSuchAlgorithmException {
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        byte[] bytes = messageDigest.digest(str.getBytes(UTF8));
-        return DatatypeConverter.printHexBinary(bytes).toLowerCase();
+    public static String sha256Hex(String str) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = messageDigest.digest(str.getBytes(UTF8));
+            return DatatypeConverter.printHexBinary(bytes).toLowerCase();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
     }
+    
     private SmsUtils() {
         throw new IllegalStateException("Utility class");
     }

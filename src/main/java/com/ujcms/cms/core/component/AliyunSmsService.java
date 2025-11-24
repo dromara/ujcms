@@ -1,13 +1,17 @@
 package com.ujcms.cms.core.component;
 
-import java.nio.charset.Charset;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -21,29 +25,53 @@ import jakarta.xml.bind.DatatypeConverter;
 /**
  * 阿里云短信服务
  * <p>
- * API文档: https://api.aliyun.com/document/Dysmsapi/2017-05-25/SendSms
- * 签名机制: https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature
+ * API文档: https://api.aliyun.com/document/Dysmsapi/2017-05-25/SendSms 签名机制:
+ * https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature
  * 
  * @author PONY
  */
 @Service
 public class AliyunSmsService {
-    public static final String ACTION = "SendSms";
-    public static final String VERSION = "2017-05-25";
-    public static final String ALGORITHM = "ACS3-HMAC-SHA256";
     public static final String HOST = "dysmsapi.aliyuncs.com";
-    public static final String CONTENT_TYPE = "application/json";
-
+    private static final String ALGORITHM = "ACS3-HMAC-SHA256";
+    private static final String SMS_ACTION = "SendSms";
+    private static final String SMS_VERSION = "2017-05-25";
     private static final String SUCCESS_CODE = "OK";
-    private static final String CODE_KEY = "Code";
-    private static final String MESSAGE_KEY = "Message";
-    private static final Charset UTF8 = StandardCharsets.UTF_8;
+    private static final String HTTP_METHOD = "POST";
+    private static final String PATH = "/";
+    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private static final String EMPTY_BODY = "";
+
+    // 请求头名称常量
+    private static final String HEADER_HOST = "host";
+    private static final String HEADER_ACS_ACTION = "x-acs-action";
+    private static final String HEADER_ACS_VERSION = "x-acs-version";
+    private static final String HEADER_ACS_DATE = "x-acs-date";
+    private static final String HEADER_ACS_NONCE = "x-acs-signature-nonce";
+    private static final String HEADER_ACS_CONTENT_SHA256 = "x-acs-content-sha256";
+    private static final String HEADER_AUTHORIZATION = "Authorization";
+    private static final String HEADER_CONTENT_TYPE = "content-type";
+
+    // 查询参数名称常量
+    private static final String PARAM_PHONE_NUMBERS = "PhoneNumbers";
+    private static final String PARAM_SIGN_NAME = "SignName";
+    private static final String PARAM_TEMPLATE_CODE = "TemplateCode";
+    private static final String PARAM_TEMPLATE_PARAM = "TemplateParam";
+
+    // 响应字段名称常量
+    private static final String RESPONSE_CODE = "Code";
+    private static final String RESPONSE_MESSAGE = "Message";
+
+    // 线程安全的日期格式化器（DateTimeFormatter是线程安全的，无需ThreadLocal）
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT)
+            .withZone(ZoneOffset.UTC);
 
     private final RestClient restClient;
 
     public AliyunSmsService(RestClient.Builder restClientBuilder) {
         this.restClient = restClientBuilder.baseUrl("https://" + HOST).build();
     }
+
 
     /**
      * 发送短信
@@ -61,162 +89,274 @@ public class AliyunSmsService {
     public String sendSms(String accessKeyId, String accessKeySecret, String signName, String templateCode,
             String codeName, String code, String mobile) {
         try {
-            // 生成时间戳和日期
-            String timestamp = getUtcTimestamp();
-            String nonce = UUID.randomUUID().toString();
-
             // 构建查询参数
-            String queryString = buildQueryString(signName, templateCode, codeName, code, mobile);
+            Map<String, Object> processedQueryParams = buildQueryParams(signName, templateCode, codeName, code, mobile);
 
-            // 空请求体的 SHA256 值
-            String emptyBodySha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+            // 构建请求头
+            Map<String, String> headers = buildHeaders();
 
-            // 构建签名和授权信息
-            String authorization = buildAuthorization(accessKeyId, accessKeySecret, timestamp, nonce, 
-                    emptyBodySha256, queryString);
+            // 计算签名并添加到请求头
+            SignatureResult signatureResult = calculateSignature(accessKeySecret, processedQueryParams, headers);
+            addAuthorizationHeader(headers, accessKeyId, signatureResult.signature, signatureResult.signedHeaders);
 
-            // 发送请求
-            JsonNode response = sendRequest(timestamp, nonce, emptyBodySha256, authorization, queryString);
-
-            // 处理响应
-            return processResponse(response);
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            return "Signature error: " + e.getMessage();
+            // 发送请求并解析响应
+            JsonNode response = sendRequest(processedQueryParams, headers);
+            return parseResponse(response);
         } catch (Exception e) {
-            return "SMS send error: " + e.getMessage();
+            throw new IllegalStateException("Failed to send SMS", e);
         }
     }
 
     /**
-     * 获取 UTC 时间戳 (ISO 8601 格式)
+     * 构建查询参数
      */
-    private String getUtcTimestamp() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(new Date());
+    private Map<String, Object> buildQueryParams(String signName, String templateCode, String codeName, String code,
+            String mobile) {
+        String templateParam = buildTemplateParamJson(codeName, code);
+
+        Map<String, String> queryParams = new LinkedHashMap<>();
+        queryParams.put(PARAM_PHONE_NUMBERS, mobile);
+        queryParams.put(PARAM_SIGN_NAME, signName);
+        queryParams.put(PARAM_TEMPLATE_CODE, templateCode);
+        queryParams.put(PARAM_TEMPLATE_PARAM, templateParam);
+
+        Map<String, Object> processedQueryParams = new TreeMap<>();
+        processObject(processedQueryParams, "", queryParams);
+        return processedQueryParams;
     }
 
     /**
-     * 构建查询参数字符串
+     * 构建模板参数JSON
      */
-    private String buildQueryString(String signName, String templateCode, String codeName, 
-            String code, String mobile) {
-        // 构建模板参数 JSON
-        String templateParam = "{\"" + codeName + "\":\"" + code + "\"}";
-
-        // 按参数名称字母序排序构建查询字符串
-        return "PhoneNumbers=" + urlEncode(mobile) + 
-               "&SignName=" + urlEncode(signName) + 
-               "&TemplateCode=" + urlEncode(templateCode) + 
-               "&TemplateParam=" + urlEncode(templateParam);
+    private String buildTemplateParamJson(String codeName, String code) {
+        return "{\"" + codeName + "\":\"" + code + "\"}";
     }
 
     /**
-     * URL 编码
+     * 构建请求头
      */
-    private String urlEncode(String value) {
-        try {
-            return java.net.URLEncoder.encode(value, UTF8.name())
-                    .replace("+", "%20")
-                    .replace("*", "%2A")
-                    .replace("%7E", "~");
-        } catch (Exception e) {
-            throw new IllegalStateException("URL encode error", e);
-        }
+    private Map<String, String> buildHeaders() {
+        Map<String, String> headers = new TreeMap<>();
+        headers.put(HEADER_HOST, HOST);
+        headers.put(HEADER_ACS_ACTION, SMS_ACTION);
+        headers.put(HEADER_ACS_VERSION, SMS_VERSION);
+        headers.put(HEADER_ACS_DATE, formatCurrentDate());
+        headers.put(HEADER_ACS_NONCE, UUID.randomUUID().toString());
+
+        String hashedRequestPayload = SmsUtils.sha256Hex(EMPTY_BODY);
+        headers.put(HEADER_ACS_CONTENT_SHA256, hashedRequestPayload);
+        return headers;
     }
 
     /**
-     * 构建授权信息
+     * 格式化当前日期为UTC时间
      */
-    private String buildAuthorization(String accessKeyId, String accessKeySecret, String timestamp, 
-            String nonce, String contentSha256, String queryString)
-            throws NoSuchAlgorithmException, InvalidKeyException {
-        
-        // ************* 步骤 1：拼接规范请求串 *************
-        String canonicalHeaders = "host:" + HOST + "\n" + 
-                                 "x-acs-action:" + ACTION.toLowerCase() + "\n" +
-                                 "x-acs-content-sha256:" + contentSha256 + "\n" +
-                                 "x-acs-date:" + timestamp + "\n" +
-                                 "x-acs-signature-nonce:" + nonce + "\n" +
-                                 "x-acs-version:" + VERSION + "\n";
-        
-        String signedHeaders = "host;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-signature-nonce;x-acs-version";
-        
-        // CanonicalRequest = HTTPMethod + '\n' + CanonicalURI + '\n' + CanonicalQueryString + '\n' + 
-        //                    CanonicalHeaders + '\n' + SignedHeaders + '\n' + HashedRequestPayload
-        String canonicalRequest = "POST\n" +
-                                 "/\n" +
-                                 queryString + "\n" +
-                                 canonicalHeaders + "\n" +
-                                 signedHeaders + "\n" +
-                                 contentSha256;
-
-        // ************* 步骤 2：拼接待签名字符串 *************
-        String hashedCanonicalRequest = SmsUtils.sha256Hex(canonicalRequest);
-        String stringToSign = ALGORITHM + "\n" + hashedCanonicalRequest;
-
-        // ************* 步骤 3：计算签名 *************
-        String signature = calculateSignature(accessKeySecret, stringToSign);
-
-        // ************* 步骤 4：拼接 Authorization *************
-        return ALGORITHM + " Credential=" + accessKeyId + 
-               ",SignedHeaders=" + signedHeaders + 
-               ",Signature=" + signature;
+    private String formatCurrentDate() {
+        return DATE_FORMATTER.format(Instant.now());
     }
 
     /**
      * 计算签名
      */
-    private String calculateSignature(String accessKeySecret, String stringToSign)
-            throws NoSuchAlgorithmException, InvalidKeyException {
-        byte[] signatureBytes = SmsUtils.hmac256(accessKeySecret.getBytes(UTF8), stringToSign);
-        return DatatypeConverter.printHexBinary(signatureBytes).toLowerCase();
+    private SignatureResult calculateSignature(String accessKeySecret, Map<String, Object> processedQueryParams,
+            Map<String, String> headers) {
+        CanonicalHeadersResult canonicalHeadersResult = buildCanonicalHeaders(headers);
+        String canonicalQueryString = buildCanonicalQueryString(processedQueryParams);
+        String hashedRequestPayload = SmsUtils.sha256Hex(EMPTY_BODY);
+
+        String canonicalRequest = buildCanonicalRequest(canonicalQueryString, canonicalHeadersResult,
+                hashedRequestPayload);
+        String stringToSign = buildStringToSign(canonicalRequest);
+
+        byte[] signatureBytes = SmsUtils.hmac256(accessKeySecret.getBytes(StandardCharsets.UTF_8), stringToSign);
+        String signature = DatatypeConverter.printHexBinary(signatureBytes).toLowerCase();
+        return new SignatureResult(signature, canonicalHeadersResult.signedHeaders);
     }
 
     /**
-     * 发送 HTTP 请求
+     * 签名结果
      */
-    @Nullable
-    private JsonNode sendRequest(String timestamp, String nonce, String contentSha256, 
-            String authorization, String queryString) {
-        try {
-            return restClient.post()
-                    .uri("/?" + queryString)
-                    .header("Authorization", authorization)
-                    .header("Content-Type", CONTENT_TYPE)
-                    .header("host", HOST)
-                    .header("x-acs-action", ACTION)
-                    .header("x-acs-version", VERSION)
-                    .header("x-acs-date", timestamp)
-                    .header("x-acs-signature-nonce", nonce)
-                    .header("x-acs-content-sha256", contentSha256)
-                    .retrieve()
-                    .body(JsonNode.class);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to send SMS request", e);
+    private static class SignatureResult {
+        final String signature;
+        final String signedHeaders;
+
+        SignatureResult(String signature, String signedHeaders) {
+            this.signature = signature;
+            this.signedHeaders = signedHeaders;
         }
     }
 
     /**
-     * 处理响应结果
+     * 构建规范请求
+     */
+    private String buildCanonicalRequest(String canonicalQueryString, CanonicalHeadersResult canonicalHeadersResult,
+            String hashedRequestPayload) {
+        return String.join("\n", HTTP_METHOD, PATH, canonicalQueryString, canonicalHeadersResult.canonicalHeaders,
+                canonicalHeadersResult.signedHeaders, hashedRequestPayload);
+    }
+
+    /**
+     * 构建待签名字符串
+     */
+    private String buildStringToSign(String canonicalRequest) {
+        String hashedCanonicalRequest = SmsUtils.sha256Hex(canonicalRequest);
+        return ALGORITHM + "\n" + hashedCanonicalRequest;
+    }
+
+    /**
+     * 添加Authorization请求头
+     */
+    private void addAuthorizationHeader(Map<String, String> headers, String accessKeyId, String signature,
+            String signedHeaders) {
+        String authorization = String.format("%s Credential=%s,SignedHeaders=%s,Signature=%s", ALGORITHM, accessKeyId,
+                signedHeaders, signature);
+        headers.put(HEADER_AUTHORIZATION, authorization);
+    }
+
+    /**
+     * 发送HTTP请求
      */
     @Nullable
-    private String processResponse(@Nullable JsonNode response) {
-        // 检查响应码
-        if (response != null && response.has(CODE_KEY)) {
-            String responseCode = response.get(CODE_KEY).asText();
-            
-            // 成功状态码为 "OK"
-            if (SUCCESS_CODE.equalsIgnoreCase(responseCode)) {
-                return null; // null means success
+    private JsonNode sendRequest(Map<String, Object> processedQueryParams, Map<String, String> headers) {
+        URI uri = buildUri(processedQueryParams);
+        RestClient.RequestBodySpec requestSpec = restClient.post().uri(uri);
+
+        // 添加请求头
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            requestSpec = requestSpec.header(entry.getKey(), entry.getValue());
+        }
+
+        return requestSpec.retrieve().body(JsonNode.class);
+    }
+
+    /**
+     * 构建URI（包含查询参数）
+     */
+    private URI buildUri(Map<String, Object> processedQueryParams) {
+        StringBuilder uriBuilder = new StringBuilder(PATH);
+        if (!processedQueryParams.isEmpty()) {
+            uriBuilder.append("?");
+            uriBuilder.append(processedQueryParams.entrySet().stream()
+                    .map(entry -> percentCode(entry.getKey()) + "=" + percentCode(String.valueOf(entry.getValue())))
+                    .collect(Collectors.joining("&")));
+        }
+        return URI.create(uriBuilder.toString());
+    }
+
+    /**
+     * 处理复杂对象参数
+     */
+    private void processObject(Map<String, Object> map, String key, @Nullable Object value) {
+        if (value == null) {
+            return;
+        }
+
+        if (value instanceof List<?> list) {
+            for (int i = 0; i < list.size(); ++i) {
+                processObject(map, key + "." + (i + 1), list.get(i));
             }
+        } else if (value instanceof Map<?, ?> subMap) {
+            for (Map.Entry<?, ?> entry : subMap.entrySet()) {
+                processObject(map, key + "." + entry.getKey().toString(), entry.getValue());
+            }
+        } else {
+            String finalKey = key.startsWith(".") ? key.substring(1) : key;
 
-            // 返回错误信息
-            String message = response.has(MESSAGE_KEY) ? 
-                    response.get(MESSAGE_KEY).asText() : "Unknown error";
-            return "code: " + responseCode + ", message: " + message;
+            if (value instanceof byte[] byteArray) {
+                map.put(finalKey, new String(byteArray, StandardCharsets.UTF_8));
+            } else {
+                map.put(finalKey, String.valueOf(value));
+            }
+        }
+    }
+
+    /**
+     * 构建规范查询字符串
+     */
+    private String buildCanonicalQueryString(Map<String, Object> queryParams) {
+        return queryParams.entrySet().stream()
+                .map(entry -> percentCode(entry.getKey()) + "=" + percentCode(String.valueOf(entry.getValue())))
+                .collect(Collectors.joining("&"));
+    }
+
+    /**
+     * 构建规范头部信息
+     */
+    private CanonicalHeadersResult buildCanonicalHeaders(Map<String, String> headers) {
+        List<Map.Entry<String, String>> signedHeaders = headers.entrySet().stream()
+                .filter(this::isSignedHeader)
+                .sorted(Map.Entry.comparingByKey())
+                .toList();
+
+        StringBuilder canonicalHeaders = new StringBuilder();
+        StringBuilder signedHeadersString = new StringBuilder();
+
+        for (Map.Entry<String, String> entry : signedHeaders) {
+            String lowerKey = entry.getKey().toLowerCase();
+            String value = entry.getValue().trim();
+            canonicalHeaders.append(lowerKey).append(":").append(value).append("\n");
+            signedHeadersString.append(lowerKey).append(";");
         }
 
-        return "Invalid response format";
+        // 移除最后的分号
+        if (signedHeadersString.length() > 0) {
+            signedHeadersString.setLength(signedHeadersString.length() - 1);
+        }
+
+        return new CanonicalHeadersResult(canonicalHeaders.toString(), signedHeadersString.toString());
+    }
+
+    /**
+     * 判断是否为需要签名的请求头
+     */
+    private boolean isSignedHeader(Map.Entry<String, String> entry) {
+        String key = entry.getKey().toLowerCase();
+        return key.startsWith("x-acs-") || HEADER_HOST.equals(key) || HEADER_CONTENT_TYPE.equals(key);
+    }
+
+    private static class CanonicalHeadersResult {
+        final String canonicalHeaders;
+        final String signedHeaders;
+
+        CanonicalHeadersResult(String canonicalHeaders, String signedHeaders) {
+            this.canonicalHeaders = canonicalHeaders;
+            this.signedHeaders = signedHeaders;
+        }
+    }
+
+
+    /**
+     * URL编码
+     */
+    private String percentCode(@Nullable String str) {
+        if (str == null) {
+            return "";
+        }
+        try {
+            return URLEncoder.encode(str, StandardCharsets.UTF_8).replace("+", "%20").replace("*", "%2A").replace("%7E",
+                    "~");
+        } catch (Exception e) {
+            throw new IllegalStateException("UTF-8 encoding not supported", e);
+        }
+    }
+
+    /**
+     * 解析响应结果
+     */
+    @Nullable
+    private String parseResponse(@Nullable JsonNode response) {
+        if (response == null) {
+            return "Invalid response from SMS service";
+        }
+
+        String code = response.has(RESPONSE_CODE) ? response.get(RESPONSE_CODE).asText() : null;
+        String message = response.has(RESPONSE_MESSAGE) ? response.get(RESPONSE_MESSAGE).asText() : null;
+
+        if (SUCCESS_CODE.equals(code)) {
+            return null; // 成功
+        }
+
+        return "code: " + (code != null ? code : "Unknown") + ", message: "
+                + (message != null ? message : "Unknown error");
     }
 }
