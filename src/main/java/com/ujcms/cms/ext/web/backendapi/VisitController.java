@@ -1,19 +1,20 @@
 package com.ujcms.cms.ext.web.backendapi;
 
-import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.support.Contexts;
-import com.ujcms.cms.core.support.UrlConstants;
-import com.ujcms.cms.ext.domain.VisitStat;
-import com.ujcms.cms.ext.domain.VisitTrend;
-import com.ujcms.cms.ext.service.VisitStatService;
-import com.ujcms.cms.ext.service.VisitTrendService;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.lang.Nullable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import static com.ujcms.cms.core.support.Constants.validPage;
+import static com.ujcms.cms.core.support.Constants.validPageSize;
+import static com.ujcms.cms.ext.domain.VisitStat.DAY_FORMATTER;
+import static com.ujcms.cms.ext.domain.VisitStat.HOUR_FORMATTER;
+import static com.ujcms.cms.ext.domain.VisitStat.MINUTE_FORMATTER;
+import static com.ujcms.cms.ext.domain.VisitStat.MONTH_FORMATTER;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_BROWSER;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_COUNTRY;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_DEVICE;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_OS;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_PROVINCE;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_SOURCE;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_SOURCE_TYPE;
+import static com.ujcms.cms.ext.domain.VisitStat.TYPE_VISITOR;
+import static com.ujcms.commons.db.MyBatis.springPage;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -22,7 +23,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.ujcms.cms.ext.domain.VisitStat.*;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.lang.Nullable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.support.Contexts;
+import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.cms.ext.domain.VisitPage;
+import com.ujcms.cms.ext.domain.VisitStat;
+import com.ujcms.cms.ext.domain.VisitTrend;
+import com.ujcms.cms.ext.service.VisitPageService;
+import com.ujcms.cms.ext.service.VisitStatService;
+import com.ujcms.cms.ext.service.VisitTrendService;
 
 /**
  * 访问统计 Controller
@@ -34,10 +52,12 @@ import static com.ujcms.cms.ext.domain.VisitStat.*;
 public class VisitController {
     private final VisitTrendService visitTrendService;
     private final VisitStatService visitStatService;
+    private final VisitPageService visitPageService;
 
-    public VisitController(VisitTrendService visitTrendService, VisitStatService visitStatService) {
+    public VisitController(VisitTrendService visitTrendService, VisitStatService visitStatService, VisitPageService visitPageService) {
         this.visitTrendService = visitTrendService;
         this.visitStatService = visitStatService;
+        this.visitPageService = visitPageService;
     }
 
     @GetMapping("trend-stat")
@@ -115,6 +135,63 @@ public class VisitController {
             @RequestParam(name = "begin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
             @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
         return stat(TYPE_SOURCE_TYPE, begin, end);
+    }
+    
+    @GetMapping("visited-page-stat")
+    @PreAuthorize("hasAnyAuthority('visitedPage:list','*')")
+    public Page<VisitPage> visitedPageStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+                                           Integer page, Integer pageSize) {
+        Site site = Contexts.getCurrentSite();
+        return springPage(visitPageService.statByDate(site.getId(), VisitPage.TYPE_VISITED_URL,
+                begin != null ? begin.format(DAY_FORMATTER) : null,
+                end != null ? end.format(DAY_FORMATTER) : null,
+                validPage(page), validPageSize(pageSize)));
+    }
+
+    @GetMapping("entry-page-stat")
+    @PreAuthorize("hasAnyAuthority('entryPage:list','*')")
+    public Page<VisitPage> entryPageStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+                                         Integer page, Integer pageSize) {
+        Site site = Contexts.getCurrentSite();
+        return springPage(visitPageService.statByDate(site.getId(), VisitPage.TYPE_ENTRY_URL,
+                begin != null ? begin.format(DAY_FORMATTER) : null,
+                end != null ? end.format(DAY_FORMATTER) : null,
+                validPage(page), validPageSize(pageSize)));
+    }
+
+    @GetMapping("source-stat")
+    @PreAuthorize("hasAnyAuthority('visitSource:list','*')")
+    public Page<VisitStat> sourceStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+                                      Integer page, Integer pageSize) {
+        Site site = Contexts.getCurrentSite();
+        return springPage(visitStatService.statByDate(site.getId(), TYPE_SOURCE,
+                begin != null ? begin.format(DAY_FORMATTER) : null,
+                end != null ? end.format(DAY_FORMATTER) : null,
+                validPage(page), validPageSize(pageSize)));
+    }
+
+    @GetMapping("device-stat")
+    @PreAuthorize("hasAnyAuthority('visitDevice:list','*')")
+    public List<VisitStat> deviceStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        return stat(TYPE_DEVICE, begin, end);
+    }
+
+    @GetMapping("os-stat")
+    @PreAuthorize("hasAnyAuthority('visitOs:list','*')")
+    public List<VisitStat> osStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        return stat(TYPE_OS, begin, end);
+    }
+
+    @GetMapping("browser-stat")
+    @PreAuthorize("hasAnyAuthority('visitBrowser:list','*')")
+    public List<VisitStat> browserStat(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
+                                       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        return stat(TYPE_BROWSER, begin, end);
     }
 
     private List<VisitStat> stat(short type, @Nullable LocalDate begin, @Nullable LocalDate end) {
