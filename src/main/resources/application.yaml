@@ -2,12 +2,12 @@
 # 例如：`spring.datasource.username:root`是非法配置，`spring.datasource.username: root`才是合法配置。
 
 # 数据库连接 URL
-# `localhost`是数据库的IP地址，数据库安装在本机可直接用`localhost`或`127.0.0.1`，如安装在其它服务器，则填写IP，如`192.168.0.1`。
-# `3306`是数据库端口号，MySQL默认端口号就是`3306`，如安装数据库时，没有手动修改过端口号，则无需修改。
-# `ujcms`是数据库名，即创建数据库时，所填的数据库名。
-# `serverTimezone=Asia/Shanghai`是时区，中国使用上海时区也就是北京时间，不用改动。
-# `characterEncoding=UTF-8`是连接数据库的编码。不要改动。即使数据使用的是`utf8mb4`编码，此处依然使用`UTF-8`。
-spring.datasource.url: jdbc:mysql://localhost:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
+# `127.0.0.1` 是数据库的IP地址，数据库安装在本机可直接用 `127.0.0.1`，如安装在其它服务器，则填写相应 IP，如 `192.168.0.1`。
+# `3306` 是数据库端口号，MySQL默认端口号就是 `3306`，如安装数据库时，没有手动修改过端口号，则无需修改。
+# `ujcms` 是数据库名，即创建数据库时，所填的数据库名。
+# `serverTimezone=Asia/Shanghai` 是时区，中国使用上海时区也就是北京时间，不用改动。
+# `characterEncoding=UTF-8` 是连接数据库的编码。不要改动。即使数据使用的是`utf8mb4`编码，此处依然使用`UTF-8`。
+spring.datasource.url: jdbc:mysql://127.0.0.1:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
 # 数据库用户名（注意：所有配置名的冒号后必须保留一个英文空格）
 spring.datasource.username: root
 # 数据库密码（注意：所有配置名的冒号后必须保留一个英文空格）
@@ -23,7 +23,7 @@ ujcms.database-bin-path:
 
 
 # MariaDB 数据库
-#spring.datasource.url: jdbc:mariadb://localhost:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
+#spring.datasource.url: jdbc:mariadb://127.0.0.1:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
 #spring.datasource.username: root
 #spring.datasource.password: password
 #spring.datasource.driver-class-name: org.mariadb.jdbc.Driver
@@ -32,7 +32,7 @@ ujcms.database-bin-path:
 #ujcms.database-bin-path:
 
 # PostgreSQL数据库
-#spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
+#spring.datasource.url: jdbc:postgresql://127.0.0.1:5432/ujcms
 #spring.datasource.username: postgres
 #spring.datasource.password: password
 #spring.datasource.driver-class-name: org.postgresql.Driver
@@ -42,7 +42,7 @@ ujcms.database-bin-path:
 
 # 人大金仓数据库（使用 PostgreSQL 驱动，官方推荐方式。不能使用 kingbase8 驱动）
 # 安装参数选项：数据库兼容模式(PG)，字符集编码(UTF8)，大小写敏感(YES)
-#spring.datasource.url: jdbc:postgresql://localhost:54321/ujcms
+#spring.datasource.url: jdbc:postgresql://127.0.0.1:54321/ujcms
 #spring.datasource.username: postgres
 #spring.datasource.password: password
 #spring.datasource.driver-class-name: org.postgresql.Driver
@@ -53,7 +53,7 @@ ujcms.database-bin-path:
 # openGauss高斯数据库（使用仿 PostgreSQL 版驱动 org.opengauss:opengauss-jdbc:5.0.0，并删除 PostgreSQL 驱动）
 # 直接使用 PostgreSQL 驱动，会报 Invalid or unsupported by client SCRAM mechanisms 错误
 # 数据库的 owner 必须与连接的用户一致。一般情况下应该避免使用数据库自带的用户和库，可新建一个用户、一个库，并将该库的 owner 设置为这个用户
-#spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
+#spring.datasource.url: jdbc:postgresql://127.0.0.1:5432/ujcms
 #spring.datasource.username: gaussdb
 #spring.datasource.password: openGauss@123
 #spring.datasource.driver-class-name: org.postgresql.Driver
@@ -64,7 +64,7 @@ ujcms.database-bin-path:
 # vastbase海量数据库（使用仿 PostgreSQL 版驱动 cn.com.vastdata:vastbase-jdbc:2.9p，并删除 PostgreSQL 驱动）
 # 也可直接使用 openGauss 驱动 org.opengauss:opengauss-jdbc:5.0.0
 # 应先创建用户并赋予所有权限（或赋予必须的权限，如创建表权限等），再以该用户作为 owner 创建数据库
-#spring.datasource.url: jdbc:postgresql://localhost:5432/ujcms
+#spring.datasource.url: jdbc:postgresql://127.0.0.1:5432/ujcms
 #spring.datasource.username: gaussdb
 #spring.datasource.password: openGauss@123
 #spring.datasource.driver-class-name: org.postgresql.Driver
@@ -73,7 +73,7 @@ ujcms.database-bin-path:
 #ujcms.database-bin-path:
 
 # 瀚高数据库（不能使用 PostgreSQL 原版驱动）
-#spring.datasource.url: jdbc:highgo://localhost:5866/highgo
+#spring.datasource.url: jdbc:highgo://127.0.0.1:5866/highgo
 #spring.datasource.username: highgo
 #spring.datasource.password: Highgo@123
 #spring.datasource.driver-class-name: com.highgo.jdbc.Driver
@@ -82,7 +82,7 @@ ujcms.database-bin-path:
 #ujcms.database-bin-path:
 
 # 达梦数据库（不可直接创建模式；应该创建用户，达梦会自动创建同名模式；用户要赋予 RESOURCE 角色；使用新建的用户连接数据库）
-#spring.datasource.url: jdbc:dm://localhost:5236/UJCMS
+#spring.datasource.url: jdbc:dm://127.0.0.1:5236/UJCMS
 ## 达梦的用户名需与 spring.datasource.url 中的数据库名一致
 #spring.datasource.username: UJCMS
 #spring.datasource.password: Pass@0000
@@ -214,6 +214,10 @@ spring.jackson.mapper.DEFAULT_VIEW_INCLUSION: true
 spring.data.elasticsearch.repositories.enabled: false
 # 缓存类型。默认为内存缓存，集群环境需要设置为 redis
 spring.cache.type: caffeine
+# 禁用 Redis 和 Elasticsearch 自动配置（使用 caffeine 缓存且不使用 ES 时）
+spring.autoconfigure.exclude:
+  - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  - org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration
 # 如果多个应用共享一个redis，需要设置该值，以免冲突。默认：0
 #spring.redis.database: 0
 

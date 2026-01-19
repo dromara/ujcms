@@ -18,7 +18,7 @@
       <ol class="col list-inline my-2">
         [#assign parent = channel.parent!channel/]
         <li class="list-inline-item"><a class="btn btn-sm [#if parent.id == channel.id]btn-primary[#else]btn-link[/#if]" href="${parent.url}">全部</a></li>
-        [@ChannelList parentId=parent.id; list]
+        [@ChannelList parentId=parent.id isNav='true'; list]
         [#list list as bean]
         <li class="list-inline-item"><a class="btn btn-sm [#if channel.id == bean.id]btn-primary[#else]btn-link[/#if]" href="${bean.url}">${bean.name}</a></li>
         [/#list]

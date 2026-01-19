@@ -34,31 +34,31 @@ public class CacheConfig {
             // 内容统计缓存
             cacheManager.registerCustomCache(ContentStatCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(ContentStatCache.EXPIRES_MINUTE, TimeUnit.MINUTES)
-                    .maximumSize(ContentStatCache.MAXIMUM_SIZE).build());
+                    .maximumSize(ContentStatCache.MAXIMUM_SIZE).recordStats().build());
             // 验证码尝试次数缓存
             cacheManager.registerCustomCache(CaptchaCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(captchaProps.getExpires(), TimeUnit.MINUTES)
-                    .maximumSize(captchaProps.getMaximumSize()).build());
+                    .maximumSize(captchaProps.getMaximumSize()).recordStats().build());
             // IP登录尝试次数缓存
             cacheManager.registerCustomCache(IpLoginCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(IpLoginCache.EXPIRES, TimeUnit.MINUTES)
-                    .maximumSize(IpLoginCache.MAXIMUM_SIZE).build());
+                    .maximumSize(IpLoginCache.MAXIMUM_SIZE).recordStats().build());
             // IP短信发送次数缓存
             cacheManager.registerCustomCache(IpSmsCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(IpSmsCache.EXPIRES, TimeUnit.MINUTES)
-                    .maximumSize(IpSmsCache.MAXIMUM_SIZE).build());
+                    .maximumSize(IpSmsCache.MAXIMUM_SIZE).recordStats().build());
             // MyBatis二级缓存：GlobalSpringCache
             cacheManager.registerCustomCache(GlobalSpringCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(GlobalSpringCache.EXPIRES, TimeUnit.MINUTES)
-                    .maximumSize(GlobalSpringCache.MAXIMUM_SIZE).build());
+                    .maximumSize(GlobalSpringCache.MAXIMUM_SIZE).recordStats().build());
             // MyBatis二级缓存：ConfigSpringCache
             cacheManager.registerCustomCache(SiteSpringCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(SiteSpringCache.EXPIRES, TimeUnit.MINUTES)
-                    .maximumSize(SiteSpringCache.MAXIMUM_SIZE).build());
+                    .maximumSize(SiteSpringCache.MAXIMUM_SIZE).recordStats().build());
             // MyBatis二级缓存：GroupSpringCache
             cacheManager.registerCustomCache(GroupSpringCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(GroupSpringCache.EXPIRES, TimeUnit.MINUTES)
-                    .maximumSize(GroupSpringCache.MAXIMUM_SIZE).build());
+                    .maximumSize(GroupSpringCache.MAXIMUM_SIZE).recordStats().build());
         };
     }
 

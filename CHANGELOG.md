@@ -1,5 +1,11 @@
 # UJCMS 发版说明
 
+## ujcms-10.1.3
+
+* refactor: 栏目页的子栏目列表不显示非导航栏目
+* fix: 将 SeqMapper.xml 文件中的 'IsNotNull' 改为 'IS NOT NULL'
+* fix: 默认关闭 ES 和 Redis 的自动配置（autoconfig）
+
 ## ujcms-10.1.2
 
 * fix: 修复默认 admin 密码错误问题

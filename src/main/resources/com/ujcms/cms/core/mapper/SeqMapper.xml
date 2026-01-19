@@ -123,7 +123,7 @@
                     #{item}
                 </foreach>
             </when>
-            <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">#{condition.value}</when>
+            <when test="condition.operator != 'IS NULL' and condition.operator != 'IS NOT NULL'">#{condition.value}</when>
         </choose>
     </sql>
     <sql id="selectWhereJsonCondition">
@@ -183,7 +183,7 @@
                             #{item}
                         </foreach>
                     </when>
-                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IS NOT NULL'">
                         #{condition.value}
                     </when>
                 </choose>
@@ -232,7 +232,7 @@
                             #{item}
                         </foreach>
                     </when>
-                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IS NOT NULL'">
                         #{condition.value}
                     </when>
                 </choose>
@@ -284,7 +284,7 @@
                             #{item}
                         </foreach>
                     </when>
-                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IS NOT NULL'">
                         #{condition.value}
                     </when>
                 </choose>
@@ -326,7 +326,7 @@
                             #{item}
                         </foreach>
                     </when>
-                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IsNotNull'">
+                    <when test="condition.operator != 'IS NULL' and condition.operator != 'IS NOT NULL'">
                         #{condition.value}
                     </when>
                 </choose>

@@ -6,7 +6,7 @@
 
   <groupId>com.ujcms</groupId>
   <artifactId>ujcms</artifactId>
-  <version>10.1.2</version>
+  <version>10.1.3</version>
   <packaging>${project.packaging}</packaging>
 
   <name>UJCMS</name>
@@ -14,7 +14,7 @@
     UJCMS 是基于 Java 的 CMS 网站内容系统。使用 SpringBoot、MyBatis、Vite、Vue3、ElementPlus、TailwindCSS 等技术开发。
   </description>
   <url>https://www.ujcms.com</url>
-  <inceptionYear>2021-2025</inceptionYear>
+  <inceptionYear>2021-present</inceptionYear>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -129,6 +129,12 @@
     <java.version>17</java.version>
   </properties>
   <dependencies>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>

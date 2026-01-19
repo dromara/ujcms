@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class GmailCaptchaEngine extends com.octo.captcha.engine.image.ImageCaptchaEngine {
     @SuppressWarnings("unchecked")
-public GmailCaptchaEngine(WordGenerator wordGenerator, FontGenerator fontGenerator, ColorGenerator colorGenerator,
+    public GmailCaptchaEngine(WordGenerator wordGenerator, FontGenerator fontGenerator, ColorGenerator colorGenerator,
                               BackgroundGenerator background, int minWordLength, int maxWordLength, float radius) {
         TextPaster randomPaster = new GlyphsPaster(minWordLength, maxWordLength, colorGenerator,
                 new GlyphsVisitors[]{
