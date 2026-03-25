@@ -84,9 +84,13 @@ public class GeneratorController {
     public ResponseEntity<Body> updateAllHomeHtml() {
         SiteArgs args = SiteArgs.of().status(Collections.singletonList(Site.STATUS_NORMAL));
         List<Site> list = siteService.selectList(args);
+        // list中site的数据不完整，需要使用siteService.select重新获取
         for (Site site : list) {
-            htmlService.deleteHomeHtml(site);
-            htmlService.updateHomeHtml(site);
+            Site fullSite = siteService.select(site.getId());
+            if (fullSite != null) {
+                htmlService.deleteHomeHtml(fullSite);
+                htmlService.updateHomeHtml(fullSite);
+            }
         }
         return Responses.ok();
     }

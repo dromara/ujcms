@@ -1,5 +1,9 @@
 # UJCMS 发版说明
 
+## ujcms-10.1.4
+
+* fix: 自动置灰时生成 HTML 缺失 site customs 数据
+
 ## ujcms-10.1.3
 
 * refactor: 栏目页的子栏目列表不显示非导航栏目
