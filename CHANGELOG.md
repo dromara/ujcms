@@ -1,5 +1,9 @@
 # UJCMS 发版说明
 
+## ujcms-10.1.5
+
+* fix: 修复文章描述中出现转义字符的问题
+
 ## ujcms-10.1.4
 
 * fix: 自动置灰时生成 HTML 缺失 site customs 数据

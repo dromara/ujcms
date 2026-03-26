@@ -72,7 +72,7 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
     @JsonView(Views.Whole.class)
     public String getPlainText() {
         return Optional.ofNullable(getText())
-                .map(html -> StringEscapeUtils.escapeHtml4(Jsoup.parse(html).body().text()))
+                .map(html -> Jsoup.parse(html).body().text())
                 // 多个空格替换为一个空格，中文空格unicode为 \u3000
                 .map(text -> text.replaceAll("[\\s\u3000]+", " "))
                 .map(String::trim)
