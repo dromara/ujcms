@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.LeaderBoardMapper">
+    <resultMap id="ResultMap" type="com.ujcms.cms.ext.domain.LeaderBoard">
+        <id column="id_" jdbcType="BIGINT" property="id"/>
+        <result column="name_" jdbcType="VARCHAR" property="name"/>
+        <result column="count_" jdbcType="BIGINT" property="count"/>
+    </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.GlobalCache"/>
+    <select id="channelLeaderBoard" resultMap="ResultMap">
+        select t.id_, t.name_, count(article_.id_) AS count_
+        from ujcms_channel t
+        join ujcms_article article_ on t.id_ = article_.channel_id_
+        <where>
+            <if test="siteId != null">
+                and t.site_id_ = #{siteId}
+            </if>
+            <if test="begin != null">
+                and article_.publish_date_ &gt;= #{begin}
+            </if>
+            <if test="end != null">
+                and article_.publish_date_ &lt; #{end}
+            </if>
+            <if test="status != null and status.size &gt; 0">
+                <foreach collection="status" item="item" open="and article_.status_ in (" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        group by t.id_, t.name_
+        order by count_ desc
+    </select>
+    <select id="orgLeaderBoard" resultMap="ResultMap">
+        select t.id_, t.name_, count(article_.id_) AS count_
+        from ujcms_org t
+        <if test="orgId != null">
+        join ujcms_org_tree org_tree_ on t.id_ = org_tree_.descendant_id_
+        </if>
+        join ujcms_article article_ on t.id_ = article_.org_id_
+        <where>
+            <if test="orgId != null">
+                and org_tree_.ancestor_id_ = #{orgId}
+            </if>
+            <if test="begin != null">
+                and article_.publish_date_ &gt;= #{begin}
+            </if>
+            <if test="end != null">
+                and article_.publish_date_ &lt; #{end}
+            </if>
+            <if test="status != null and status.size &gt; 0">
+                <foreach close=")" collection="status" index="index" item="item" open="and article_.status_ in ("
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        group by t.id_, t.name_
+        order by count_ desc
+    </select>
+    <select id="userLeaderBoard" resultMap="ResultMap">
+        select t.id_, t.username_ AS name_, count(article_.id_) AS count_
+        from ujcms_user t
+        <if test="orgId != null">
+        join ujcms_org_tree org_tree_ on t.org_id_ = org_tree_.descendant_id_
+        </if>
+        join ujcms_article article_ on t.id_ = article_.user_id_
+        <where>
+            <if test="orgId != null">
+                and org_tree_.ancestor_id_ = #{orgId}
+            </if>
+            <if test="begin != null">
+                and article_.publish_date_ &gt;= #{begin}
+            </if>
+            <if test="end != null">
+                and article_.publish_date_ &lt; #{end}
+            </if>
+            <if test="status != null and status.size &gt; 0">
+                <foreach close=")" collection="status" index="index" item="item" open="and article_.status_ in ("
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        group by t.id_, t.username_
+        order by count_ desc
+    </select>
+</mapper>

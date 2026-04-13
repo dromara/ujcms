@@ -1,0 +1,101 @@
+package com.ujcms.cms.core.service;
+
+import com.github.pagehelper.Page;
+import com.github.pagehelper.page.PageMethod;
+import com.ujcms.cms.core.domain.Model;
+import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.domain.generated.GeneratedSite;
+import com.ujcms.cms.core.mapper.SiteMapper;
+import com.ujcms.cms.core.service.args.SiteArgs;
+import com.ujcms.common.query.QueryInfo;
+import com.ujcms.common.query.QueryParser;
+import org.owasp.html.PolicyFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * 站点 Service
+ *
+ * @author PONY
+ */
+@Service
+public class SiteService {
+    private final PolicyFactory policyFactory;
+    private final AttachmentService attachmentService;
+    private final ModelService modelService;
+    private final SiteMapper mapper;
+
+    public SiteService(PolicyFactory policyFactory, AttachmentService attachmentService,
+                       ModelService modelService, SiteMapper mapper) {
+        this.policyFactory = policyFactory;
+        this.attachmentService = attachmentService;
+        this.modelService = modelService;
+        this.mapper = mapper;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void update(Site bean) {
+        Model model = Optional.ofNullable(modelService.select(bean.getModelId())).orElseThrow(() ->
+                new IllegalArgumentException(Model.NOT_FOUND + bean.getModelId()));
+        bean.disassembleCustoms(model, policyFactory);
+        mapper.update(bean);
+        attachmentService.updateRefer(GeneratedSite.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void updateBase(Site bean) {
+        mapper.updateBase(bean);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void updateDomain(Long id, String protocol, String domain) {
+        mapper.updateDomain(id, protocol, domain);
+    }
+
+    @Nullable
+    public Site select(Long id) {
+        return mapper.select(id);
+    }
+
+    public Site getDefaultSite(Long defaultSiteId) {
+        return Optional.ofNullable(select(defaultSiteId))
+                .orElseThrow(() -> new IllegalStateException("default site not exist. id: " + defaultSiteId));
+    }
+
+    @Nullable
+    public Site findByDomain(String domain) {
+        return mapper.findByDomain(domain);
+    }
+
+    @Nullable
+    public Site findBySubDir(String subDir) {
+        return mapper.findBySubDir(subDir);
+    }
+
+    public List<Site> selectList(SiteArgs args) {
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedSite.TABLE_NAME, "order,id");
+        return mapper.selectAll(queryInfo, args.isQueryHasChildren(), args.getFullOrgId());
+    }
+
+    public List<Site> selectList(SiteArgs args, int offset, int limit) {
+        return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
+    }
+
+    public Page<Site> selectPage(SiteArgs args, int page, int pageSize) {
+        return PageMethod.startPage(page, pageSize).doSelectPage(() -> selectList(args));
+    }
+
+    public List<Site> listByUserIdAndOrgId(Long userId, Long orgId) {
+        return mapper.listByUserIdAndOrgId(userId, orgId);
+    }
+
+    @Nullable
+    public Site findFirstByUserIdAndOrgId(Long userId, Long orgId) {
+        List<Site> list = PageMethod.offsetPage(0, 1).doSelectPage(() -> mapper.listByUserIdAndOrgId(userId, orgId));
+        return list.stream().findFirst().orElse(null);
+    }
+}

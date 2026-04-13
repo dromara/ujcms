@@ -1,0 +1,496 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN" [#if article.doc??] class="has-pdf-viewer" [/#if]>
+
+<head>
+  <meta charset="utf-8">
+  <title>${article.title} - ${site.seoTitle!site.title}</title>
+  <meta name="keywords" content="${article.seoKeywords}">
+  <meta name="description" content="${article.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}" />
+  <meta name="_csrf_header" content="${_csrf.headerName}" />
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+  <link rel="stylesheet" href="${files}/vendor/pdfjs-dist/web/pdf_viewer.css">
+  <style>
+    html.has-pdf-viewer,
+    html.has-pdf-viewer body {
+      overflow: hidden;
+      height: 100%;
+      margin: 0;
+    }
+
+    #viewerContainer {
+      position: absolute;
+      inset: 0;
+      overflow: auto;
+    }
+
+    #pdfToolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #fff;
+      border-top: 1px solid #e9ecef;
+      border-bottom: 1px solid #e9ecef;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    #pdfToolbar .btn {
+      font-size: 0.875rem;
+      padding: 0.25rem 0.625rem;
+      border-radius: 0.25rem;
+      transition: all 0.15s ease;
+    }
+
+    #pdfToolbar .btn:hover {
+      background-color: #e9ecef;
+      border-color: #dee2e6;
+    }
+
+    #pdfToolbar .btn:focus-visible {
+      outline: 2px solid #0d6efd;
+      outline-offset: 2px;
+    }
+
+    #pdfToolbar .page-status {
+      font-size: 0.8125rem;
+      color: #6c757d;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .has-pdf-viewer .pdfViewer {
+      padding-bottom: 0;
+    }
+
+    .has-pdf-viewer .pdfViewer .page {
+      margin: 8px auto;
+      border: 1px solid #dee2e6;
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .vote-btn {
+      width: 48px;
+      height: 48px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .vote-btn:hover {
+      background-color: var(--bs-primary) !important;
+      color: white !important;
+    }
+
+    .vote-btn-danger:hover {
+      background-color: var(--bs-danger) !important;
+      color: white !important;
+    }
+
+    #viewerContainer:fullscreen .fs-hide,
+    #viewerContainer:-webkit-full-screen .fs-hide {
+      display: none !important;
+    }
+
+    #viewerContainer:fullscreen .fs-container,
+    #viewerContainer:-webkit-full-screen .fs-container {
+      max-width: 100% !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    #viewerContainer:fullscreen .fs-container>.row,
+    #viewerContainer:-webkit-full-screen .fs-container>.row {
+      margin: 0 !important;
+    }
+
+    #viewerContainer:fullscreen .fs-col,
+    #viewerContainer:-webkit-full-screen .fs-col {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 0 0 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+    }
+
+    #viewerContainer:fullscreen,
+    #viewerContainer:-webkit-full-screen {
+      background-color: #e9ecef;
+    }
+  </style>
+</head>
+
+<body tabindex="0">
+  [#if article.doc??]<div id="viewerContainer">[/#if]
+    <div class="fs-hide">
+      [#include 'inc_header.html'/]
+      [#include 'inc_message_box.html'/]
+      <div class="bg-gray-200">
+        <div class="container">
+          <nav class="row" aria-label="breadcrumb">
+            <ol class="col list-inline my-2">
+              <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+              [#list channel.paths as c]
+              <li class="list-inline-item">/</li>
+              <li class="list-inline-item">[@A bean=c/]</li>
+              [/#list]
+            </ol>
+          </nav>
+        </div>
+      </div>
+      <div class="container mt-4">
+        <div class="row">
+          <div class="col">
+            <h3 class="cm-ff-yh">${article.title}</h3>
+            <div class="mt-3 pb-2 border-bottom text-muted">
+              <span>${format(article.publishDate, 'yyyy-MM-dd HH:mm')}</span>
+              [#if article.source??]<span class="ms-2">${article.source}</span>[/#if]
+              [#if article.author??]<span class="ms-2">${article.author}</span>[/#if]
+              <i class="ms-2 far fa-eye"></i> <span id="views"></span>
+              <script>
+                request.get('${api}/article/view/${article.id?c}').then(function (response) {
+                  $('#views').text(response.data);
+                });
+              </script>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container mt-3 mb-5 fs-container">
+      <div class="row">
+        <!-- 左侧文档查看器 -->
+        <div class="col-lg-9 col-md-12 mb-4 fs-col">
+          [#if article.doc??]
+          <div id="pdfToolbar"
+            class="py-2 d-flex align-items-center justify-content-center gap-2 flex-wrap bg-light border border-bottom-0 rounded-top">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="prevPage" title="上一页">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="d-flex align-items-center gap-1">
+              <input type="number" id="pageNumber" class="form-control form-control-sm text-center" style="width: 52px;"
+                value="1" min="1">
+              <span class="page-status">/</span>
+              <span id="totalPages" class="page-status">0</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="nextPage" title="下一页">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="vr mx-1"></div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomOut" title="缩小">
+              <i class="fas fa-search-minus"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomIn" title="放大">
+              <i class="fas fa-search-plus"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="fitToggle" title="适合窗口宽度">
+              <i class="fas fa-text-width"></i>
+            </button>
+            <div class="vr mx-1"></div>
+            <a href="${article.docOrig!article.doc}" download="${article.title}.pdf"
+              class="btn btn-sm btn-outline-secondary" title="下载" target="_blank">
+              <i class="fas fa-download"></i>
+            </a>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="fullscreenToggle" title="全屏">
+              <i class="fas fa-expand"></i>
+            </button>
+          </div>
+          <div id="viewerWrapper" class="w-100 overflow-auto bg-light border border-top-0 rounded-bottom p-2">
+            <div id="viewer" class="pdfViewer"></div>
+          </div>
+          <script type="module">
+            import * as pdfjsLib from '${files}/vendor/pdfjs-dist/build/pdf.mjs';
+            import * as pdfjsViewer from '${files}/vendor/pdfjs-dist/web/pdf_viewer.mjs';
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '${files}/vendor/pdfjs-dist/build/pdf.worker.mjs';
+
+            const container = document.getElementById('viewerContainer');
+            const viewer = document.getElementById('viewer');
+            const eventBus = new pdfjsViewer.EventBus();
+            const pdfLinkService = new pdfjsViewer.PDFLinkService({ eventBus });
+            const pdfViewer = new pdfjsViewer.PDFViewer({
+              container,
+              viewer,
+              eventBus,
+              linkService: pdfLinkService,
+              findController: new pdfjsViewer.PDFFindController({ eventBus, linkService: pdfLinkService }),
+              scriptingManager: new pdfjsViewer.PDFScriptingManager({
+                eventBus,
+                sandboxBundleSrc: '${files}/vendor/pdfjs-dist/build/pdf.sandbox.mjs',
+              }),
+            });
+            pdfLinkService.setViewer(pdfViewer);
+
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+            const pageNumberInput = document.getElementById('pageNumber');
+            const totalPagesSpan = document.getElementById('totalPages');
+            const fitToggleBtn = document.getElementById('fitToggle');
+            const fullscreenToggleBtn = document.getElementById('fullscreenToggle');
+            const viewerWrapper = document.getElementById('viewerWrapper');
+
+            const CSS_UNITS = 96.0 / 72.0;
+            let pdfPageWidth = 0;
+            let currentFitMode = 'page';
+            let userZoomed = false;
+            let suppressScaleTracking = false;
+
+            // Intercept container.scrollTop writes to suppress PDF.js's internal scrollIntoView during scale changes.
+            const _scrollTopDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop');
+            let _scrollLocked = false;
+            Object.defineProperty(container, 'scrollTop', {
+              get() { return _scrollTopDesc.get.call(this); },
+              set(v) { if (!_scrollLocked) _scrollTopDesc.set.call(this, v); },
+              configurable: true,
+            });
+
+            function computeFitWidthScale() {
+              if (pdfPageWidth > 0) {
+                // Use the wrapper's width (constrained to the col-lg-9 column), minus p-2 padding.
+                return (viewerWrapper.clientWidth - 16) / (pdfPageWidth * CSS_UNITS);
+              }
+              return null;
+            }
+
+            function applyScale(scaleValueOrFn) {
+              suppressScaleTracking = true;
+              const savedScrollTop = container.scrollTop;
+              _scrollLocked = true;
+              scaleValueOrFn();
+              userZoomed = false;
+              requestAnimationFrame(() => {
+                _scrollLocked = false;
+                container.scrollTop = savedScrollTop;
+              });
+            }
+
+            function applyFitMode() {
+              if (currentFitMode === 'width') {
+                applyScale(() => {
+                  const scale = computeFitWidthScale();
+                  pdfViewer.currentScale = scale ?? (pdfViewer.currentScaleValue = 'page-width', pdfViewer.currentScale);
+                });
+                fitToggleBtn.innerHTML = '<i class="fas fa-compress-alt"></i>';
+                fitToggleBtn.title = '适应页面';
+              } else {
+                applyScale(() => { pdfViewer.currentScaleValue = 'page-fit'; });
+                fitToggleBtn.innerHTML = '<i class="fas fa-text-width"></i>';
+                fitToggleBtn.title = '适合窗口宽度';
+              }
+            }
+
+            function updatePageButtons() {
+              prevPageBtn.disabled = pdfViewer.currentPageNumber <= 1;
+              nextPageBtn.disabled = pdfViewer.currentPageNumber >= pdfViewer.pagesCount;
+            }
+
+            eventBus.on('pagesinit', () => {
+              applyFitMode();
+              updatePageButtons();
+              container.scrollTop = 0;
+            });
+
+            eventBus.on('pagechanging', ({ pageNumber }) => {
+              pageNumberInput.value = pageNumber;
+              updatePageButtons();
+            });
+
+            eventBus.on('scalechanging', () => {
+              if (suppressScaleTracking) { suppressScaleTracking = false; return; }
+              userZoomed = true;
+            });
+
+            prevPageBtn.addEventListener('click', () => {
+              if (pdfViewer.currentPageNumber > 1) pdfViewer.currentPageNumber--;
+            });
+            nextPageBtn.addEventListener('click', () => {
+              if (pdfViewer.currentPageNumber < pdfViewer.pagesCount) pdfViewer.currentPageNumber++;
+            });
+
+            pageNumberInput.addEventListener('change', () => {
+              let page = parseInt(pageNumberInput.value, 10);
+              if (Number.isNaN(page)) page = 1;
+              pdfViewer.currentPageNumber = Math.max(1, Math.min(page, pdfViewer.pagesCount));
+              pageNumberInput.value = pdfViewer.currentPageNumber;
+            });
+
+            document.getElementById('zoomOut').addEventListener('click', () => { userZoomed = true; pdfViewer.decreaseScale(); });
+            document.getElementById('zoomIn').addEventListener('click', () => { userZoomed = true; pdfViewer.increaseScale(); });
+
+            fitToggleBtn.addEventListener('click', () => {
+              currentFitMode = currentFitMode === 'width' ? 'page' : 'width';
+              applyFitMode();
+            });
+
+            fullscreenToggleBtn.addEventListener('click', () => {
+              if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(() => { });
+              } else {
+                document.exitFullscreen();
+              }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+              const isFs = !!document.fullscreenElement;
+              fullscreenToggleBtn.innerHTML = isFs ? '<i class="fas fa-compress"></i>' : '<i class="fas fa-expand"></i>';
+              fullscreenToggleBtn.title = isFs ? '退出全屏' : '全屏';
+              if (!userZoomed) {
+                if (isFs) {
+                  // In fullscreen use page-fit (like the native browser viewer) to avoid huge text on large monitors.
+                  applyScale(() => { pdfViewer.currentScaleValue = 'page-fit'; });
+                } else {
+                  applyFitMode();
+                }
+              }
+            });
+
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+              clearTimeout(resizeTimer);
+              resizeTimer = setTimeout(() => { if (!userZoomed) applyFitMode(); }, 200);
+            });
+
+            // Keyboard navigation: PageDown/Up scrolls; Left/Right arrows switch pages.
+            document.addEventListener('keydown', (e) => {
+              if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+              const h = container.clientHeight;
+              if (e.key === 'PageDown' || e.key === 'ArrowDown') { e.preventDefault(); container.scrollBy({ top: h * 0.9, behavior: 'smooth' }); }
+              else if (e.key === 'PageUp' || e.key === 'ArrowUp') { e.preventDefault(); container.scrollBy({ top: -h * 0.9, behavior: 'smooth' }); }
+              else if (e.key === 'ArrowRight') { e.preventDefault(); if (pdfViewer.currentPageNumber < pdfViewer.pagesCount) pdfViewer.currentPageNumber++; }
+              else if (e.key === 'ArrowLeft') { e.preventDefault(); if (pdfViewer.currentPageNumber > 1) pdfViewer.currentPageNumber--; }
+            });
+
+            (async () => {
+              const pdfDocument = await pdfjsLib.getDocument({
+                url: '${article.doc}',
+                cMapUrl: '${files}/vendor/pdfjs-dist/cmaps/',
+                cMapPacked: true,
+                enableXfa: true,
+                rangeChunkSize: 65536,
+                disableStream: true,
+                disableAutoFetch: true,
+              }).promise;
+              const viewport = (await pdfDocument.getPage(1)).getViewport({ scale: 1.0 });
+              pdfPageWidth = viewport.width;
+              pdfViewer.setDocument(pdfDocument);
+              pdfLinkService.setDocument(pdfDocument, null);
+              totalPagesSpan.textContent = pdfDocument.numPages;
+              pageNumberInput.max = pdfDocument.numPages;
+              updatePageButtons();
+            })();
+          </script>
+          [/#if]
+        </div>
+
+        <!-- 右侧附属内容区 -->
+        <div class="col-lg-3 col-md-12 fs-hide">
+          <div class="sticky-top" style="top: 20px; z-index: 5;">
+
+            <!-- 文档评价卡片 -->
+            <div class="card mb-4 rounded-3" style="border: 1px solid #dee2e6; box-shadow: 0 1px 6px rgba(0,0,0,0.07);">
+              <div class="card-body">
+                <h5 class="card-title text-primary pb-2 border-bottom mb-3">
+                  <i class="far fa-thumbs-up me-2"></i>文档评价
+                </h5>
+                <div class="d-flex justify-content-around mt-2 pt-2">
+                  <div class="cm-pointer text-center text-primary" onclick="voteUp()">
+                    <div
+                      class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 vote-btn">
+                      <i class="far fa-thumbs-up fa-lg"></i>
+                    </div>
+                    <span id="ups" class="h6 mb-0 text-dark fw-bold"></span>
+                    <div class="small text-muted mt-1">有用</div>
+                  </div>
+                  <div class="cm-pointer text-center text-danger" onclick="voteDown()">
+                    <div
+                      class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 vote-btn vote-btn-danger">
+                      <i class="far fa-thumbs-down fa-lg"></i>
+                    </div>
+                    <span id="downs" class="h6 mb-0 text-dark fw-bold"></span>
+                    <div class="small text-muted mt-1">无用</div>
+                  </div>
+                </div>
+                <script>
+                  function voteUp() {
+                    fetchCsrf().then(function () {
+                      request.post('${api}/article/up/${article.id?c}').then(function (response) {
+                        if (response.data <= 0) { alert('您已经参与过一次！'); return; }
+                        $('#ups').text(response.data);
+                      });
+                    });
+                  }
+                  function voteDown() {
+                    fetchCsrf().then(function () {
+                      request.post('${api}/article/down/${article.id?c}').then(function (response) {
+                        if (response.data <= 0) { alert('您已经参与过一次！'); return; }
+                        $('#downs').text(response.data);
+                      });
+                    });
+                  }
+                  request.get('${api}/article/buffer/${article.id?c}').then(function (response) {
+                    $('#ups').text(response.data.ups);
+                    $('#downs').text(response.data.downs);
+                  });
+                </script>
+              </div>
+            </div>
+
+            <!-- 延伸阅读卡片 -->
+            <div class="card rounded-3" style="border: 1px solid #dee2e6; box-shadow: 0 1px 6px rgba(0,0,0,0.07);">
+              <div class="card-body">
+                <h5 class="card-title text-primary pb-2 border-bottom mb-3">
+                  <i class="fas fa-link me-2"></i>延伸阅读
+                </h5>
+
+                <div class="mb-4">
+                  <div class="text-uppercase text-muted fw-semibold mb-1 small">上一篇</div>
+                  [@ArticleNext id=article.id order=article.order channelId=article.channelId
+                  isDesc=article.channel.orderDesc; bean]
+                  [#if bean??]
+                  <div class="ps-2 border-start border-2 border-primary-subtle">
+                    [@A bean=bean class="text-decoration-none d-block text-dark small cm-link"/]
+                  </div>
+                  [#else]<span class="text-muted fst-italic small">已是第一篇</span>[/#if]
+                  [/@ArticleNext]
+                </div>
+
+                <div class="mb-3">
+                  <div class="text-uppercase text-muted fw-semibold mb-1 small">下一篇</div>
+                  [@ArticlePrev id=article.id order=article.order channelId=article.channelId
+                  isDesc=article.channel.orderDesc; bean]
+                  [#if bean??]
+                  <div class="ps-2 border-start border-2 border-primary-subtle">
+                    [@A bean=bean class="text-decoration-none d-block text-dark small cm-link"/]
+                  </div>
+                  [#else]<span class="text-muted fst-italic small">已是最后一篇</span>[/#if]
+                  [/@ArticlePrev]
+                </div>
+
+                <h6 class="text-muted small fw-bold mt-4 pt-3 border-top">相关文档</h6>
+                [@EsArticleList q=article.title channelId=article.channelId excludeId=article.id limit=5; list]
+                <ul class="list-unstyled mb-0">
+                  [#list list as bean]
+                  <li class="text-truncate mb-2">
+                    <i class="far fa-file-alt text-muted me-1"></i>
+                    [@A bean=bean class="text-decoration-none text-dark small cm-link"/]
+                  </li>
+                  [/#list]
+                </ul>
+                [/@EsArticleList]
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    [#include 'inc_footer.html'/]
+    [#if article.doc??]
+  </div>[/#if]
+</body>
+
+</html>
+[/#escape]

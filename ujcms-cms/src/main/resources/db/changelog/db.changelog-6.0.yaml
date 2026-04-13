@@ -1,0 +1,113 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1673708062494-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: src_id_
+                  remarks: 源文章ID
+                  type: INT(10)
+            tableName: ujcms_article
+  - changeSet:
+      id: 1673708062494-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: src_id_
+            indexName: idx_article_src
+            tableName: ujcms_article
+  - changeSet:
+      id: 1673708062494-4
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: src_id_
+            baseTableName: ujcms_article
+            constraintName: fk_article_src
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+  - changeSet:
+      id: 1673791836036-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: type_
+                  remarks: 类型(0:常规,1:复制,2:映射,3:引用)
+                  type: SMALLINT(5)
+            tableName: ujcms_article
+  - changeSet:
+      id: 1673791836036-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: input_type_
+                  remarks: 录入类型(0:常规,1:投稿,2:采集,3:接口,4:站内推送,5:站外推送)
+                  type: SMALLINT(5)
+            tableName: ujcms_article
+  - changeSet:
+      id: 1673791836036-3
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_article_file
+            constraintName: fk_articlefile_article
+  - changeSet:
+      id: 1673791836036-4
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_article_image
+            constraintName: fk_articleimage_article
+  - changeSet:
+      id: 1673791836036-5
+      author: PONY (generated)
+      changes:
+        - dropTable:
+            tableName: ujcms_article_file
+  - changeSet:
+      id: 1673791836036-6
+      author: PONY (generated)
+      changes:
+        - dropTable:
+            tableName: ujcms_article_image
+  - changeSet:
+      id: 1673791836036-7
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: type_
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1678982467157-2
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: upload_settings_
+            newDataType: varchar(2000)
+            tableName: ujcms_config
+  - changeSet:
+      id: 6.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v6.0
+

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.ujcms</groupId>
+		<artifactId>ujcms</artifactId>
+		<version>11.0.0</version>
+	</parent>
+
+	<artifactId>ujcms-starter</artifactId>
+	<packaging>${project.packaging}</packaging>
+	<name>UJCMS Starter</name>
+	<description>UJCMS 启动模块</description>
+
+	<dependencies>
+		<!-- UJCMS CMS -->
+		<dependency>
+			<groupId>com.ujcms</groupId>
+			<artifactId>ujcms-cms</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- JDBC 驱动 -->
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mariadb.jdbc</groupId>
+			<artifactId>mariadb-java-client</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.dameng</groupId>
+			<artifactId>DmJdbcDriver8</artifactId>
+			<version>${DmJdbcDriver8.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- openGauss 驱动，需将 postgresql 原版驱动删除 -->
+		<!--<dependency>-->
+		<!--    <groupId>org.opengauss</groupId>-->
+		<!--    <artifactId>opengauss-jdbc</artifactId>-->
+		<!--    <version>${opengauss-jdbc.version}</version>-->
+		<!--    <scope>runtime</scope>-->
+		<!--</dependency>-->
+		<!-- vastbase(海量数据库) 驱动，需将 postgresql 原版驱动删除 -->
+		<!--<dependency>-->
+		<!--    <groupId>cn.com.vastdata</groupId>-->
+		<!--    <artifactId>vastbase-jdbc</artifactId>-->
+		<!--    <version>${vastbase-jdbc.version}</version>-->
+		<!--    <scope>runtime</scope>-->
+		<!--</dependency>-->
+		<!-- 瀚高数据库 驱动 -->
+		<dependency>
+			<groupId>com.highgo</groupId>
+			<artifactId>HgdbJdbc</artifactId>
+			<version>${HgdbJdbc.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- 开发模式工具。开发模式下自动取消模板缓存、修改class后自动重启等功能 -->
+		<!-- https://docs.spring.io/spring-boot/docs/2.4.3/reference/htmlsingle/#using-boot-devtools -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>jar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<project.packaging>jar</project.packaging>
+			</properties>
+		</profile>
+		<profile>
+			<id>war</id>
+			<properties>
+				<project.packaging>war</project.packaging>
+			</properties>
+			<dependencies>
+				<!-- 打包成 war 需要设置 scope 为 provided -->
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>ujcms-${project.version}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<skip>false</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

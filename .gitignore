@@ -1,0 +1,54 @@
+# ===================================================
+# Java / Maven
+# ===================================================
+HELP.md
+target/
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Allow source files in target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ===================================================
+# IDE — IntelliJ IDEA
+# ===================================================
+.idea
+*.iws
+*.iml
+*.ipr
+
+# ===================================================
+# IDE — VS Code
+# ===================================================
+.vscode/*
+!.vscode/extensions.json
+
+# ===================================================
+# IDE — Spring Tool Suite / Eclipse
+# ===================================================
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# ===================================================
+# IDE — NetBeans
+# ===================================================
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ===================================================
+# OS
+# ===================================================
+.DS_Store
+Thumbs.db

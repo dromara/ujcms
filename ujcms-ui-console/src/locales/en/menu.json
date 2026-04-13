@@ -1,0 +1,27 @@
+{
+  "menu.homepage": "Home",
+  "menu.personal": "Personal",
+  "menu.personal.password": "Change Password",
+  "menu.content": "Content",
+  "menu.content.article": "Article",
+  "menu.content.channel": "Channel",
+  "menu.content.blockItem": "Block Item",
+  "menu.content.attachment": "Attachment",
+  "menu.content.generator": "Generator",
+  "menu.user": "User",
+  "menu.user.org": "Org",
+  "menu.user.group": "Group",
+  "menu.user.role": "Role",
+  "menu.user.user": "User",
+  "menu.config": "Config",
+  "menu.config.globalSettings": "Global Settings",
+  "menu.config.siteSettings": "Site Settings",
+  "menu.config.block": "Block",
+  "menu.config.model": "Model",
+  "menu.config.dictType": "Dictionary Type",
+  "menu.config.dict": "Dictionary",
+  "menu.system": "System",
+  "menu.system.site": "Site",
+
+  "": ""
+}

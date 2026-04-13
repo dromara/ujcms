@@ -1,0 +1,93 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${site.title}</title>
+  <meta name="keywords" content="${site.seoKeywords}">
+  <meta name="description" content="${site.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+  [#if config.greyStyle]
+    <style>
+      body {
+        filter: grayscale(.95);
+        -webkit-filter: grayscale(.95);
+      }
+    </style>
+  [/#if]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="container mt-4">
+  <div class="row">
+    <div class="col col-lg-8">
+      [@BlockItemList block='focus' limit='5'; beans]
+        <div id="carouselCaptions" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            [#list beans as bean]
+              <button type="button" data-bs-target="#carouselCaptions" data-bs-slide-to="${bean_index?c}" class="[#if bean_index==0]active[/#if]" aria-current="true" aria-label="Slide"></button>
+            [/#list]
+          </div>
+          <div class="carousel-inner rounded-sm">
+            [#list beans as bean]
+              <div class="carousel-item[#if bean_index==0] active[/#if]">
+                [@A bean=bean class="text-reset text-decoration-none"]
+                  <img src="${bean.image}" class="d-block w-100" alt="...">
+                  <div class="carousel-caption d-none d-md-block">
+                    <p>${bean.title}</p>
+                  </div>
+                [/@A]
+              </div>
+            [/#list]
+          </div>
+          <a class="carousel-control-prev" href="#carouselCaptions" role="button" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#carouselCaptions" role="button" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </a>
+        </div>
+        
+      [/@BlockItemList]
+
+      <script>var lastArticleDate = null;</script>
+      <div class="mt-4 h4">最新文章</div>
+      [@ArticleList channel='news' isIncludeSubChannel='true' limit=pageSize!10 orderBy='publishDate_desc'; list]
+        <ul id="articleList" class="list-unstyled mt-4">
+          [#include 'part_article_items.html'/]
+        </ul>
+      [/@ArticleList]
+      <div class="text-center">
+        <button id="appendArticlesButton" type="button" class="btn btn-outline-primary btn-sm" onclick="appendArticles()">点击加载更多</button>
+      </div>
+      <script>
+        function appendArticles() {
+          var $button = $('#appendArticlesButton');
+          var buttonText = $button.text();
+          $button.text('加载中...');
+          axios.get('${dy}/app/articles', {params: {lastArticleDate}}).then(function (response) {
+            if (response.data) {
+              $('#articleList').append(response.data);
+              $button.text(buttonText);
+            } else {
+              $button.text('没有更多了').attr('disabled', true);
+            }
+          });
+        }
+      </script>
+    </div>
+    [#include 'inc_right.html'/]
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+</body>
+</html>
+[/#escape]

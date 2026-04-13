@@ -1,0 +1,4 @@
+com.ujcms.common.captcha.CaptchaAutoConfiguration
+com.ujcms.common.sms.IpSmsAutoConfiguration
+com.ujcms.common.security.oauth.OauthAutoConfiguration
+

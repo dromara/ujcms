@@ -1,0 +1,52 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${channel.title} - ${site.title}</title>
+  <meta name="keywords" content="${channel.seoKeywords}">
+  <meta name="description" content="${channel.seoDescription}">
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#include 'inc_header.html'/]
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-6">
+      <h3>栏目排行</h3>
+      [@LeaderBoardList type='channel' period='none' isPublished='false' limit='10'; beans]
+      [#list beans as bean]
+      <div>${bean.name} / ${bean.count}</div>
+      [/#list]
+      [/@LeaderBoardList]
+
+      <h3 class="mt-3">文章浏览量排行</h3>
+      [@ArticleList orderBy='@articleExt-yearViews_desc' limit='10'; beans]
+      [#list beans as bean]
+      <div>${bean.title} / ${bean.yearViews}</div>
+      [/#list]
+      [/@ArticleList]
+    </div>
+    <div class="col-6">
+      <h3>组织排行</h3>
+      [@LeaderBoardList type='org' period='none' isPublished='false' limit='10'; beans]
+      [#list beans as bean]
+      <div>${bean.name} / ${bean.count}</div>
+      [/#list]
+      [/@LeaderBoardList]
+      <h3 class="mt-3">用户排行</h3>
+      [@LeaderBoardList type='user' period='none' isPublished='false' limit='10'; beans]
+      [#list beans as bean]
+      <div>${bean.name} / ${bean.count}</div>
+      [/#list]
+      [/@LeaderBoardList]
+    </div>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+<script>axios.get('${api}/channel/view/${channel.id?c}');</script>
+</body>
+</html>
+[/#escape]

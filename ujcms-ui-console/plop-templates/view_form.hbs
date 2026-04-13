@@ -1,0 +1,41 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+import { query{{pascalCase name}}, create{{pascalCase name}}, update{{pascalCase name}}, delete{{pascalCase name}} } from '@/api/{{kebabCase path}}';
+import DialogForm from '@/components/DialogForm.vue';
+import LabelTip from '@/components/LabelTip.vue';
+
+defineOptions({
+  name: '{{pascalCase name}}Form',
+});
+const visible = defineModel<boolean>({ default: false });
+defineProps<{ beanId?: string; beanIds: string[] }>();
+defineEmits({ finished: null });
+const focus = ref<any>();
+const values = ref<any>({});
+</script>
+
+<template>
+  <dialog-form
+    v-model="visible"
+    v-model:values="values"
+    :name="$t('menu.{{camelCase path}}.{{camelCase name}}')"
+    :query-bean="query{{pascalCase name}}"
+    :create-bean="create{{pascalCase name}}"
+    :update-bean="update{{pascalCase name}}"
+    :delete-bean="delete{{pascalCase name}}"
+    :bean-id="beanId"
+    :bean-ids="beanIds"
+    :focus="focus"
+    :init-values="() => ({})"
+    :to-values="(bean) => ({ ...bean })"
+    perms="{{camelCase name}}"
+    @finished="() => $emit('finished')"
+  >
+    <template #default="{}">
+      <el-form-item prop="name" :rules="{ required: true, message: () => $t('v.required') }">
+        <template #label><label-tip message="{{camelCase name}}.name" /></template>
+        <el-input ref="focus" v-model="values.name" maxlength="50"></el-input>
+      </el-form-item>
+    </template>
+  </dialog-form>
+</template>

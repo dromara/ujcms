@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ArticleBufferMapper">
+    <resultMap id="ResultMap" type="com.ujcms.cms.core.domain.ArticleBuffer">
+        <id column="id_" jdbcType="BIGINT" property="id"/>
+        <result column="comments_" jdbcType="INTEGER" property="comments"/>
+        <result column="downloads_" jdbcType="INTEGER" property="downloads"/>
+        <result column="favorites_" jdbcType="INTEGER" property="favorites"/>
+        <result column="ups_" jdbcType="INTEGER" property="ups"/>
+        <result column="downs_" jdbcType="INTEGER" property="downs"/>
+        <result column="views_" jdbcType="BIGINT" property="views"/>
+        <result column="day_views_" jdbcType="INTEGER" property="dayViews"/>
+        <result column="week_views_" jdbcType="INTEGER" property="weekViews"/>
+        <result column="month_views_" jdbcType="INTEGER" property="monthViews"/>
+        <result column="quarter_views_" jdbcType="INTEGER" property="quarterViews"/>
+        <result column="year_views_" jdbcType="BIGINT" property="yearViews"/>
+    </resultMap>
+    <update id="resetDayViews">
+        update ujcms_article_ext
+        set day_views_ = 0
+    </update>
+    <update id="resetWeekViews">
+        update ujcms_article_ext
+        set week_views_ = 0
+    </update>
+    <update id="resetMonthViews">
+        update ujcms_article_ext
+        set month_views_ = 0
+    </update>
+    <update id="resetQuarterViews">
+        update ujcms_article_ext
+        set quarter_views_ = 0
+    </update>
+    <update id="resetYearViews">
+        update ujcms_article_ext
+        set year_views_ = 0
+    </update>
+
+    <update id="updateBatch">
+        update ujcms_article_ext
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="day_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then day_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="week_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then week_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="month_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then month_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="quarter_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then quarter_views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="year_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then year_views_+#{item.views}
+                </foreach>
+            </trim>
+        </trim>
+        where id_ in
+        <foreach close=")" collection="list" index="index" item="item" open="(" separator=",">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+    <select id="select" parameterType="long" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_article_ext t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <update id="update" parameterType="com.ujcms.cms.core.domain.ArticleBuffer">
+        update ujcms_article_ext
+        set comments_      = #{comments,jdbcType=INTEGER},
+            downloads_     = #{downloads,jdbcType=INTEGER},
+            favorites_     = #{favorites,jdbcType=INTEGER},
+            ups_           = #{ups,jdbcType=INTEGER},
+            downs_         = #{downs,jdbcType=INTEGER},
+            views_         = #{views,jdbcType=BIGINT},
+            day_views_     = #{dayViews,jdbcType=INTEGER},
+            week_views_    = #{weekViews,jdbcType=INTEGER},
+            month_views_   = #{monthViews,jdbcType=INTEGER},
+            quarter_views_ = #{quarterViews,jdbcType=INTEGER},
+            year_views_    = #{yearViews,jdbcType=BIGINT}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <sql id="Column_List">
+        t.id_, t.comments_, t.downloads_, t.favorites_, t.ups_, t.downs_, t.views_, t.day_views_, t.week_views_, t.month_views_, t.quarter_views_, t.year_views_
+    </sql>
+</mapper>

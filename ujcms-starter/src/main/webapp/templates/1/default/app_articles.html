@@ -1,0 +1,5 @@
+[#escape x as (x)!?html]
+[@ArticleList channel='news' isIncludeSubChannel='true' Q_LT_publishDate_DateTime=Params.lastArticleDate! limit='10' orderBy='publishDate_desc, id_desc'; list]
+  [#include 'part_article_items.html'/]
+[/@ArticleList]
+[/#escape]

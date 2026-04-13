@@ -1,0 +1,8 @@
+export const query{{pascalCase name}}{{pascalCase type}} = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/{{kebabCase sub}}/{{kebabCase name}}', { params })).data;
+export const query{{pascalCase name}} = async (id: string): Promise<any> => (await axios.get(`/backend/{{kebabCase sub}}/{{kebabCase name}}/${id}`)).data;
+export const create{{pascalCase name}} = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/{{kebabCase sub}}/{{kebabCase name}}', data)).data;
+export const update{{pascalCase name}} = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/{{kebabCase sub}}/{{kebabCase name}}?_method=put', data)).data;
+{{#if isList}}
+export const update{{pascalCase name}}Order = async (fromId: string, toId: string): Promise<any> => (await axios.post('/backend/{{kebabCase sub}}/{{kebabCase name}}/update-order', { fromId, toId })).data;
+{{/if}}
+export const delete{{pascalCase name}} = async (data: string[]): Promise<any> => (await axios.post('/backend/{{kebabCase sub}}/{{kebabCase name}}?_method=delete', data)).data;

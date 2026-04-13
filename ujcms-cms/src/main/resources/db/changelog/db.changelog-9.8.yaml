@@ -1,0 +1,475 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1736935590649-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 采集ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: channel_id_
+                  remarks: 栏目ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(150)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: UTF-8
+                  name: charset_
+                  remarks: 字符集
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+                  name: user_agent_
+                  remarks: 用户代理
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: interval_min_
+                  remarks: 最小间隔时间
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: interval_max_
+                  remarks: 最大间隔时间
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: list_urls_
+                  remarks: 列表地址
+                  type: VARCHAR(2000)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: list_desc_
+                  remarks: 倒序采集
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 2
+                  name: page_begin_
+                  remarks: 页码开始
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 10
+                  name: page_end_
+                  remarks: 页码结束
+                  type: INT
+              - column:
+                  name: list_area_pattern_
+                  remarks: 列表区域规则
+                  type: VARCHAR(1500)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: list_area_reg_
+                  remarks: 列表区域是否正则
+                  type: CHAR(1)
+              - column:
+                  name: item_area_pattern_
+                  remarks: 条目区域规则
+                  type: VARCHAR(1500)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: item_area_reg_
+                  remarks: 条目区域是否正则
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: item_url_pattern_
+                  remarks: 文章地址规则
+                  type: VARCHAR(1500)
+              - column:
+                  name: item_url_filter_
+                  remarks: 文章地址过滤
+                  type: VARCHAR(3000)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: item_url_reg_
+                  remarks: 文章地址是否正则
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: item_url_js_
+                  remarks: 文章地址是否JS
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: auto_submit_
+                  remarks: 是否自动提交
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: allow_duplicate_
+                  remarks: 是否允许重复标题
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: download_image_
+                  remarks: 是否下载正文中的图片
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: current_pages_
+                  remarks: 当前采集页数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: current_items_
+                  remarks: 当前采集条数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: success_count_
+                  remarks: 当前采集成功数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: total_count_
+                  remarks: 当前采集总数
+                  type: INT
+              - column:
+                  name: error_info_
+                  remarks: 当前错误信息
+                  type: MEDIUMTEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:未运行,1:运行中,2:暂停,3:完成,4:出错)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            tableName: ujcms_collection
+  - changeSet:
+      id: 1736935590649-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 采集字段ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: collection_id_
+                  remarks: 采集ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: code_
+                  remarks: 代码
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 类型(1:系统字段,2:自定义字段)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: data_type_
+                  remarks: 数据类型(1:文本,2:日期,11:图片,12:音频,13:视频,14:附件,21:图片集,22:附件集)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: source_
+                  remarks: 来源(1:详细页,2:列表页,3:固定值)
+                  type: SMALLINT
+              - column:
+                  name: static_value_
+                  remarks: 固定值
+                  type: VARCHAR(900)
+              - column:
+                  name: date_format_
+                  remarks: 日期格式
+                  type: VARCHAR(150)
+              - column:
+                  name: area_pattern_
+                  remarks: 区域规则
+                  type: VARCHAR(1500)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: area_reg_
+                  remarks: 区域是否正则
+                  type: CHAR(1)
+              - column:
+                  name: item_pattern_
+                  remarks: 条目规则
+                  type: VARCHAR(1500)
+              - column:
+                  name: item_filter_
+                  remarks: 条目过滤
+                  type: VARCHAR(3000)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: item_reg_
+                  remarks: 条目是否正则
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: item_js_
+                  remarks: 条目是否JS
+                  type: CHAR(1)
+              - column:
+                  name: data_url_
+                  remarks: 数据URL
+                  type: VARCHAR(255)
+              - column:
+                  name: data_filter_
+                  remarks: 数据过滤
+                  type: VARCHAR(3000)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: data_js_
+                  remarks: 数据是否JS
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: INT
+            tableName: ujcms_collection_field
+  - changeSet:
+      id: 1736935590649-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: channel_id_
+            indexName: idx_collection_channel
+            tableName: ujcms_collection
+  - changeSet:
+      id: 1736935590649-4
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_collection_site
+            tableName: ujcms_collection
+  - changeSet:
+      id: 1736935590649-5
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_collection_user
+            tableName: ujcms_collection
+  - changeSet:
+      id: 1736935590649-6
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: collection_id_
+            indexName: idx_collectionfield_collection
+            tableName: ujcms_collection_field
+  - changeSet:
+      id: 1736935590649-7
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: channel_id_
+            baseTableName: ujcms_collection
+            constraintName: fk_collection_channel
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_channel
+            validate: true
+  - changeSet:
+      id: 1736935590649-8
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_collection
+            constraintName: fk_collection_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1736935590649-9
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_collection
+            constraintName: fk_collection_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1736935590649-10
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: collection_id_
+            baseTableName: ujcms_collection_field
+            constraintName: fk_collectionfield_collection
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_collection
+            validate: true
+  - changeSet:
+      id: 1740826630938-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: article_static_path_
+                  remarks: 独立静态路径
+                  type: VARCHAR(100)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1742877373495-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: book_
+                  remarks: 是否书籍目录
+                  type: CHAR(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1742877373495-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: real_
+                  remarks: 是否文章栏目
+                  type: CHAR(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1743827708470-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: channel_static_path_
+                  remarks: 栏目静态路径
+                  type: VARCHAR(100)
+            tableName: ujcms_channel
+

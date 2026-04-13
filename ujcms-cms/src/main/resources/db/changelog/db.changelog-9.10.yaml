@@ -1,0 +1,85 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1759662600010-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: seo_title_
+                  remarks: SEO标题
+                  type: VARCHAR(450)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1759662600010-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: seo_keywords_
+                  remarks: SEO关键词
+                  type: VARCHAR(450)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1759662600010-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: seo_description_
+                  remarks: SEO描述
+                  type: VARCHAR(3000)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1759662600010-4-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: seo_keywords_
+                  valueComputed: (select t.seo_keywords_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1759662600010-5-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: seo_description_
+                  valueComputed: (select t.seo_description_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1759662600010-6-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: seo_title_
+                  valueComputed: (select t.seo_title_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1759724882460-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: seo_description_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1759724882460-2
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: seo_keywords_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1759724882460-3
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: seo_title_
+            tableName: ujcms_channel_ext

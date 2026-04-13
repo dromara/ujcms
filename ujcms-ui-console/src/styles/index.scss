@@ -1,0 +1,33 @@
+@use './transition.scss';
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  @apply bg-gray-100;
+}
+
+#app {
+  height: 100%;
+}
+
+// global css
+.app-block {
+  @apply shadow-sm;
+  @apply bg-white;
+}
+
+.inline-form .el-form-item {
+  margin-bottom: 0;
+}
+
+.bpmn-property-item {
+  @apply py-1 px-2 text-xs rounded cursor-pointer text-primary;
+  background-color: var(--el-color-primary-light-9);
+  border: solid 1px var(--el-color-primary-light-8);
+}

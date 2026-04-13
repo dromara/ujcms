@@ -1,0 +1,13 @@
+<!DOCTYPE generatorConfiguration PUBLIC        "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="default" targetRuntime="MyBatis3DynamicSql">
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver" connectionURL="jdbc:mysql://127.0.0.1:3306/ujcms?serverTimezone=UTC"
+                        userId="root" password="password"/>
+
+        <javaModelGenerator targetPackage="com.ujcms.cms.core.domain" targetProject="src/test/java"/>
+        <javaClientGenerator targetPackage="com.ujcms.cms.core.mapper" targetProject="src/test/java"/>
+
+        <table tableName="ujcms_org" domainObjectName="Org"/>
+    </context>
+</generatorConfiguration>

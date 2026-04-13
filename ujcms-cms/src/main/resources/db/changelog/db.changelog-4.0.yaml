@@ -1,0 +1,731 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1655701370781-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: sys_
+                  remarks: 是否系统字典
+                  type: TINYINT(3)
+            tableName: ujcms_dict
+  - changeSet:
+      id: 1655701370781-4
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: type_
+                  remarks: 类型(常规:0,投稿:1,采集:2,接口:3,站内推送:4,站外推送:5)
+                  type: SMALLINT(5)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1655712497557-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: baidu_push_
+                  remarks: 是否百度推送
+                  type: TINYINT(3)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1655701370782-3-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: alias_
+                  value: sys_article_source
+            tableName: ujcms_dict_type
+            where: id_ = 1
+  - changeSet:
+      id: 1655712497558-5-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: next_val_
+                  valueComputed: next_val_ + 500
+            tableName: ujcms_seq
+            where: name_ = 'dict'
+  - changeSet:
+      id: 1655701370782-6-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: id_
+                  valueComputed: id_ + 500
+            tableName: ujcms_dict
+  - changeSet:
+      id: 1655780148098-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: process_key_
+                  remarks: 流程标识
+                  type: VARCHAR(50)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1655794419999-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: process_instance_id_
+                  remarks: 流程实例ID
+                  type: VARCHAR(64)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1655869928177-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: reject_reason_
+                  remarks: 退回原因
+                  type: VARCHAR(900)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1656408029750-1
+      author: PONY (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: article_id_, stat_day_
+            constraintName: pk_ujcms_article_stat
+            tableName: ujcms_article_stat
+  - changeSet:
+      id: 1656408029750-2
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: tag_id_
+              - column:
+                  name: article_id_
+            indexName: idx_articletag_composite
+            tableName: ujcms_article_tag
+  - changeSet:
+      id: 1656408029750-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: descendant_id_
+              - column:
+                  name: ancestor_id_
+            indexName: idx_channeltree_composite
+            tableName: ujcms_channel_tree
+  - changeSet:
+      id: 1656408029750-4
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: channel_id_
+              - column:
+                  name: group_id_
+            indexName: idx_groupaccess_composite
+            tableName: ujcms_group_access
+  - changeSet:
+      id: 1656408029750-5
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: descendant_id_
+              - column:
+                  name: ancestor_id_
+            indexName: idx_orgtree_composite
+            tableName: ujcms_org_tree
+  - changeSet:
+      id: 1656408029750-6
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: channel_id_
+              - column:
+                  name: role_id_
+            indexName: idx_rolearticle_composite
+            tableName: ujcms_role_article
+  - changeSet:
+      id: 1656408029750-7
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: descendant_id_
+              - column:
+                  name: ancestor_id_
+            indexName: idx_sitetree_composite
+            tableName: ujcms_site_tree
+  - changeSet:
+      id: 1656408029750-8
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: role_id_
+              - column:
+                  name: user_id_
+            indexName: idx_userrole_composite
+            tableName: ujcms_user_role
+  - changeSet:
+      id: 1656408029750-9
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_articlestat_article
+            tableName: ujcms_article_stat
+  - changeSet:
+      id: 1656408029750-10
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_articletag_tag
+            tableName: ujcms_article_tag
+  - changeSet:
+      id: 1656408029750-11
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_channeltree_descendant
+            tableName: ujcms_channel_tree
+  - changeSet:
+      id: 1656408029750-12
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_groupaccess_channel
+            tableName: ujcms_group_access
+  - changeSet:
+      id: 1656408029750-13
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_orgtree_descendant
+            tableName: ujcms_org_tree
+  - changeSet:
+      id: 1656408029750-14
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_rolearticle_channel
+            tableName: ujcms_role_article
+  - changeSet:
+      id: 1656408029750-15
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_sitetree_descendant
+            tableName: ujcms_site_tree
+  - changeSet:
+      id: 1656408029750-16
+      author: PONY (generated)
+      changes:
+        - dropIndex:
+            indexName: idx_userrole_role
+            tableName: ujcms_user_role
+  - changeSet:
+      id: 1656408293905-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: id_
+                  remarks: 文章自定义ID
+                  type: BIGINT(19)
+            tableName: ujcms_article_custom
+  - changeSet:
+      id: 1656408293905-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: id_
+                  remarks: 文章文件ID
+                  type: BIGINT(19)
+            tableName: ujcms_article_file
+  - changeSet:
+      id: 1656408293905-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: id_
+                  remarks: 文章图片ID
+                  type: BIGINT(19)
+            tableName: ujcms_article_image
+  - changeSet:
+      id: 1656408293905-4
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: id_
+                  remarks: 附件引用ID
+                  type: BIGINT(19)
+            tableName: ujcms_attachment_refer
+  - changeSet:
+      id: 1656408293905-5
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: id_
+                  remarks: 栏目自定义ID
+                  type: BIGINT(19)
+            tableName: ujcms_channel_custom
+  - changeSet:
+      id: 1656408293905-6
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: id_
+                  remarks: 站点自定义ID
+                  type: BIGINT(19)
+            tableName: ujcms_site_custom
+  - changeSet:
+      id: 1656409371804-2
+      author: PONY (generated)
+      changes:
+        - dropPrimaryKey:
+            constraintName: pk_ujcms_attachment_refer
+            tableName: ujcms_attachment_refer
+  - changeSet:
+      id: 1656409371804-1
+      author: PONY (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: attachment_id_, refer_type_, refer_id_
+            constraintName: idx_attachmentrefer_unique
+            tableName: ujcms_attachment_refer
+  - changeSet:
+      id: 1656409371805-1-sql
+      author: PONY
+      changes:
+        - sql:
+            dbms: mysql
+            sql: SET @i:=0; update ujcms_article_file set id_ = (@i:=@i+1);
+  - changeSet:
+      id: 1656409371805-2-sql
+      author: PONY
+      changes:
+        - sql:
+            dbms: mysql
+            sql: SET @i:=0; update ujcms_article_image set id_ = (@i:=@i+1);
+  - changeSet:
+      id: 1656409371805-3-sql
+      author: PONY
+      changes:
+        - sql:
+            dbms: mysql
+            sql: SET @i:=0; update ujcms_article_custom set id_ = (@i:=@i+1);
+  - changeSet:
+      id: 1656409371805-4-sql
+      author: PONY
+      changes:
+        - sql:
+            dbms: mysql
+            sql: SET @i:=0; update ujcms_channel_custom set id_ = (@i:=@i+1);
+  - changeSet:
+      id: 1656409371805-5-sql
+      author: PONY
+      changes:
+        - sql:
+            dbms: mysql
+            sql: SET @i:=0; update ujcms_site_custom set id_ = (@i:=@i+1);
+  - changeSet:
+      id: 1656409371805-6-sql
+      author: PONY
+      changes:
+        - sql:
+            dbms: mysql
+            sql: SET @i:=0; update ujcms_attachment_refer set id_ = (@i:=@i+1);
+  - changeSet:
+      id: 1656411043643-7
+      author: PONY (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id_
+            constraintName: pk_ujcms_article_custom
+            tableName: ujcms_article_custom
+  - changeSet:
+      id: 1656411043643-8
+      author: PONY (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id_
+            constraintName: pk_ujcms_article_file
+            tableName: ujcms_article_file
+  - changeSet:
+      id: 1656411043643-9
+      author: PONY (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id_
+            constraintName: pk_ujcms_article_image
+            tableName: ujcms_article_image
+  - changeSet:
+      id: 1656411043643-10
+      author: PONY (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id_
+            constraintName: pk_ujcms_attachment_refer
+            tableName: ujcms_attachment_refer
+  - changeSet:
+      id: 1656411043643-11
+      author: PONY (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id_
+            constraintName: pk_ujcms_channel_custom
+            tableName: ujcms_channel_custom
+  - changeSet:
+      id: 1656411043643-12
+      author: PONY (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id_
+            constraintName: pk_ujcms_site_custom
+            tableName: ujcms_site_custom
+  - changeSet:
+      id: 1656411043643-1
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: bigint(19)
+            columnName: id_
+            tableName: ujcms_article_custom
+            validate: true
+  - changeSet:
+      id: 1656411043643-2
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: bigint(19)
+            columnName: id_
+            tableName: ujcms_article_file
+            validate: true
+  - changeSet:
+      id: 1656411043643-3
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: bigint(19)
+            columnName: id_
+            tableName: ujcms_article_image
+            validate: true
+  - changeSet:
+      id: 1656411043643-4
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: bigint(19)
+            columnName: id_
+            tableName: ujcms_attachment_refer
+            validate: true
+  - changeSet:
+      id: 1656411043643-5
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: bigint(19)
+            columnName: id_
+            tableName: ujcms_channel_custom
+            validate: true
+  - changeSet:
+      id: 1656411043643-6
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: bigint(19)
+            columnName: id_
+            tableName: ujcms_site_custom
+            validate: true
+  - changeSet:
+      id: 1656429026898-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: audio_
+                  remarks: 音频
+                  type: VARCHAR(255)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1656510509445-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: video_duration_
+                  remarks: 视频时长
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1656510509445-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: audio_duration_
+                  remarks: 音频时长
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1656510509445-3
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: video_time_
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1656659256477-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: security_settings_
+                  remarks: 安全设置
+                  type: VARCHAR(1000)
+            tableName: ujcms_config
+  - changeSet:
+      id: 1656908870494-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: video_orig_
+                  remarks: 原视频
+                  type: VARCHAR(255)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1656908870494-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: audio_orig_
+                  remarks: 原音频
+                  type: VARCHAR(255)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1657165543809-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: sms_settings_
+                  remarks: 短信设置
+                  type: VARCHAR(1000)
+            tableName: ujcms_config
+  - changeSet:
+      id: 1657343139402-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 短信ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 类型(1:手机短信,2:邮件短信)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: receiver_
+                  remarks: 接收人(手机号码或邮件地址)
+                  type: VARCHAR(100)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: code_
+                  remarks: 验证码
+                  type: VARCHAR(10)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: send_date_
+                  remarks: 发送时间
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: attempts_
+                  remarks: 尝试次数
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ip_
+                  remarks: IP地址
+                  type: VARCHAR(45)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: usage_
+                  remarks: 用途(0:测试,1:注册,2:登录,3:双因子登录,4:找回密码,5:修改手机号码,6:修改邮箱地址)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:未使用,1:验证正确,2:验证错误,3:已过期)
+                  type: SMALLINT
+            remarks: 短信表
+            tableName: ujcms_short_message
+  - changeSet:
+      id: 1657343139402-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: password_modified_
+                  remarks: 密码修改时间
+                  type: DATETIME
+            tableName: ujcms_user
+  - changeSet:
+      id: 1657363822003-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 登录日志ID
+                  type: INT
+              - column:
+                  name: user_id_
+                  remarks: 用户ID
+                  type: INT
+              - column:
+                  name: login_name_
+                  remarks: 登录名
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ip_
+                  remarks: IP地址
+                  type: VARCHAR(45)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  name: type_
+                  remarks: 类型(1:登录,2:退出)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: status_
+                  remarks: 状态(0:成功,1:用户名不存在,2:密码错误,3:验证码错误,4:短信错误)
+                  type: SMALLINT
+            tableName: ujcms_login_log
+  - changeSet:
+      id: 1657363822003-2
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_loginlog_user
+            tableName: ujcms_login_log
+  - changeSet:
+      id: 1657363822003-3
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_login_log
+            constraintName: fk_loginlog_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1657436773762-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: history_password_
+                  remarks: 历史密码(70*24)
+                  type: VARCHAR(3000)
+            tableName: ujcms_user_ext
+
+
+

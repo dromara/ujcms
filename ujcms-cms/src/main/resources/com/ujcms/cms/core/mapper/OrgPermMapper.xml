@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.OrgPermMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.OrgPerm">
+    <id column="org_id_" jdbcType="BIGINT" property="orgId" />
+    <id column="perm_org_id_" jdbcType="BIGINT" property="permOrgId" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.OrgPerm" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.OrgPerm" />
+  <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+
+  <select id="listPermOrgByOrgId" resultType="long">
+    select t.perm_org_id_
+    from ujcms_org_perm t
+    where t.org_id_ = #{orgId}
+    <if test="ancestorOrgId != null">
+      and t.perm_org_id_ in (select orgTree.descendant_id_ from ujcms_org_tree orgTree where orgTree.ancestor_id_ = #{ancestorOrgId})
+    </if>
+  </select>
+
+  <delete id="deleteByOrgId">
+    delete
+    from ujcms_org_perm
+    where org_id_ = #{orgId} or perm_org_id_ = #{orgId}
+  </delete>
+  <delete id="deleteByOrgIdAndAncestorOrgId">
+    delete
+    from ujcms_org_perm
+    where org_id_ = #{orgId}
+    <if test="ancestorOrgId != null">
+      and perm_org_id_ in (select orgTree.descendant_id_ from ujcms_org_tree orgTree where orgTree.ancestor_id_ = #{ancestorOrgId})
+    </if>
+  </delete>
+
+  <select id="select" parameterType="map" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_org_perm t
+    where t.org_id_ = #{orgId,jdbcType=BIGINT}
+    and t.perm_org_id_ = #{permOrgId,jdbcType=BIGINT}
+  </select><insert id="insert" parameterType="com.ujcms.cms.core.domain.OrgPerm">
+    insert into ujcms_org_perm (org_id_, perm_org_id_)
+    values (#{orgId,jdbcType=BIGINT}, #{permOrgId,jdbcType=BIGINT})
+  </insert><sql id="Column_List">
+    t.org_id_, t.perm_org_id_
+  </sql></mapper>

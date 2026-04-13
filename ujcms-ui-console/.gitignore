@@ -1,0 +1,68 @@
+# ===================================================
+# Node
+# ===================================================
+node_modules/
+
+# ===================================================
+# Build outputs
+# ===================================================
+dist/
+dist-ssr/
+coverage/
+
+# ===================================================
+# Logs
+# ===================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===================================================
+# Environment / local config
+# ===================================================
+# Vite .env files contain only public build-time config (VITE_*) and are
+# committed so users know how to configure the app. Put secrets in .env.local,
+# which is git-ignored by the *.local rule below.
+*.local
+
+# ===================================================
+# TypeScript / Vite artifacts
+# ===================================================
+*.tsbuildinfo
+*.timestamp-*-*.mjs
+
+# ===================================================
+# Cache
+# ===================================================
+.eslintcache
+
+# ===================================================
+# Testing
+# ===================================================
+/cypress/videos/
+/cypress/screenshots/
+__screenshots__/
+test-results/
+playwright-report/
+
+# ===================================================
+# IDE / Editor
+# ===================================================
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ===================================================
+# OS
+# ===================================================
+.DS_Store
+Thumbs.db

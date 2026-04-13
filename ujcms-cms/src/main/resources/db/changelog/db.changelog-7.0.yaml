@@ -1,0 +1,1435 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1682691725814-3
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(50)
+              - column:
+                  name: value_
+                  remarks: 值
+                  type: MEDIUMTEXT
+            remarks: 全局表
+            tableName: ujcms_global
+  - changeSet:
+      id: 1682691725814-4
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: self_views_
+                  remarks: 栏目页浏览次数
+                  type: BIGINT
+            tableName: ujcms_channel_buffer
+  - changeSet:
+      id: 1682691725814-5
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: self_views_
+                  remarks: 首页浏览次数
+                  type: BIGINT
+            tableName: ujcms_site_buffer
+  - changeSet:
+      id: 1682691725814-6
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: today_views_
+                  remarks: 今日浏览次数
+                  type: INT(10)
+            tableName: ujcms_site_buffer
+  - changeSet:
+      id: 1682691725814-7
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: yesterday_views_
+                  remarks: 昨日浏览次数
+                  type: INT(10)
+            tableName: ujcms_site_buffer
+  - changeSet:
+      id: 1682691725814-8
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: max_views_
+                  remarks: 最高浏览次数
+                  type: INT(10)
+            tableName: ujcms_site_buffer
+  - changeSet:
+      id: 1682691725814-9
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: max_date_
+                  remarks: 最高浏览日期
+                  type: DATETIME
+            tableName: ujcms_site_buffer
+  - changeSet:
+      id: 1682691725814-10
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_article_stat
+            constraintName: fk_articlestat_article
+  - changeSet:
+      id: 1682691725814-11
+      author: PONY (generated)
+      changes:
+        - dropTable:
+            tableName: ujcms_article_stat
+  - changeSet:
+      id: 1682691725814-12
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: stat_day_
+            tableName: ujcms_article_buffer
+  - changeSet:
+      id: 1682692262471-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: modified_
+                  valueComputed: created_
+            tableName: ujcms_article_ext
+            where: modified_ IS NULL
+  - changeSet:
+      id: 1682692262471-2-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: modified_user_id_
+                  valueComputed: user_id_
+            tableName: ujcms_article
+            where: modified_user_id_ IS NULL
+  - changeSet:
+      id: 1682692262472-2
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: datetime
+            columnName: modified_
+            tableName: ujcms_article_ext
+            validate: true
+  - changeSet:
+      id: 1682692262472-4
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: int(10)
+            columnName: modified_user_id_
+            tableName: ujcms_article
+            validate: true
+  -  changeSet:
+       id:  1684209496186-1-changes
+       author:  PONY
+       changes:
+         - validCheckSum: 8:1564c2874ccb1ce2f8ffcb8cf185dcd2
+         - renameColumn:
+             columnDataType: CHAR(1)
+             newColumnName: gender2_
+             oldColumnName: gender_
+             remarks: 性别(m:男,f:女,n:保密)
+             tableName: ujcms_user_ext
+  -  changeSet:
+       id:  1684209496186-2-changes
+       author:  PONY
+       changes:
+         - validCheckSum: 8:7b09364fb1682828208ca1c8aa5ac793
+         - renameColumn:
+             columnDataType: CHAR(1)
+             newColumnName: gender2_
+             oldColumnName: gender_
+             remarks: 性别(m:男,f:女,n:保密)
+             tableName: ujcms_user_openid
+  - changeSet:
+      id: 1684210936367-9
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: gender_
+                  remarks: 性别(0:保密,1:男,2:女)
+                  type: SMALLINT(5)
+            tableName: ujcms_user_ext
+  - changeSet:
+      id: 1684210936367-10
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: gender_
+                  remarks: 性别(0:保密,1:男,2:女)
+                  type: SMALLINT(5)
+            tableName: ujcms_user_openid
+  - changeSet:
+      id: 1684210936368-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: gender_
+                  valueComputed: CASE WHEN gender2_='m' THEN 1 WHEN gender2_='f' THEN 2 ELSE 0 END
+            tableName: ujcms_user_ext
+  - changeSet:
+      id: 1684210936368-2-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: gender_
+                  valueComputed: CASE WHEN gender2_='m' THEN 1 WHEN gender2_='f' THEN 2 ELSE 0 END
+            tableName: ujcms_user_openid
+  - changeSet:
+      id: 1684211719554-5
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: gender2_
+            tableName: ujcms_user_ext
+  - changeSet:
+      id: 1684211719554-6
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: gender2_
+            tableName: ujcms_user_openid
+  - changeSet:
+      id: 1684213908126-1
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: all_access_permission_
+            newDataType: char(1)
+            tableName: ujcms_group
+  - changeSet:
+      id: 1684213908126-2
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: all_access_permission_
+            defaultValue: '1'
+            tableName: ujcms_group
+  - changeSet:
+      id: 1684213908126-3
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: all_article_permission_
+            newDataType: char(1)
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-4
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: all_article_permission_
+            defaultValue: '1'
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-5
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: all_channel_permission_
+            newDataType: char(1)
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-6
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: all_channel_permission_
+            defaultValue: '1'
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-7
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: all_grant_permission_
+            newDataType: char(1)
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-8
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: all_grant_permission_
+            defaultValue: '1'
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-9
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: all_permission_
+            newDataType: char(1)
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-10
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: all_permission_
+            defaultValue: '0'
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-11
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: allow_comment_
+            newDataType: char(1)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1684213908126-12
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: allow_comment_
+            defaultValue: '1'
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1684213908126-13
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: allow_comment_
+            newDataType: char(1)
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-14
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: allow_comment_
+            defaultValue: '1'
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-15
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: allow_contribute_
+            newDataType: char(1)
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-16
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: allow_contribute_
+            defaultValue: '0'
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-17
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: allow_search_
+            newDataType: char(1)
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-18
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: allow_search_
+            defaultValue: '1'
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-19
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: audit_
+            newDataType: char(1)
+            tableName: ujcms_operation_log
+  - changeSet:
+      id: 1684213908126-20
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: audit_
+            defaultValue: '0'
+            tableName: ujcms_operation_log
+  - changeSet:
+      id: 1684213908126-21
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: baidu_push_
+            newDataType: char(1)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1684213908126-22
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: baidu_push_
+            defaultValue: '0'
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1684213908126-23
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: description_required_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-24
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: description_required_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-25
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: enabled_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-26
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: enabled_
+            defaultValue: '1'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-27
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: enabled_
+            newDataType: char(1)
+            tableName: ujcms_block_item
+  - changeSet:
+      id: 1684213908126-28
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: enabled_
+            defaultValue: '1'
+            tableName: ujcms_block_item
+  - changeSet:
+      id: 1684213908126-29
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: enabled_
+            newDataType: char(1)
+            tableName: ujcms_dict
+  - changeSet:
+      id: 1684213908126-30
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: enabled_
+            defaultValue: '1'
+            tableName: ujcms_dict
+  - changeSet:
+      id: 1684213908126-31
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: global_permission_
+            newDataType: char(1)
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-32
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: global_permission_
+            defaultValue: '0'
+            tableName: ujcms_role
+  - changeSet:
+      id: 1684213908126-33
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: image_required_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-34
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: image_required_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-35
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: link_url_required_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-36
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: link_url_required_
+            defaultValue: '1'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-37
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: mobile_image_required_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-38
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: mobile_image_required_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-39
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: multi_domain_
+            newDataType: char(1)
+            tableName: ujcms_config
+  - changeSet:
+      id: 1684213908126-40
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: multi_domain_
+            defaultValue: '0'
+            tableName: ujcms_config
+  - changeSet:
+      id: 1684213908126-41
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: nav_
+            newDataType: char(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1684213908126-42
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: nav_
+            defaultValue: '1'
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1684213908126-45
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: open_
+            newDataType: char(1)
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1684213908126-46
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: open_
+            defaultValue: '1'
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1684213908126-47
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: recommendable_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-48
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: recommendable_
+            defaultValue: '1'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-49
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: recommended_
+            newDataType: char(1)
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1684213908126-50
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: recommended_
+            defaultValue: '0'
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1684213908126-51
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: replied_
+            newDataType: char(1)
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1684213908126-52
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: replied_
+            defaultValue: '0'
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1684213908126-53
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: subtitle_required_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-54
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: subtitle_required_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-55
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: sys_
+            newDataType: char(1)
+            tableName: ujcms_dict
+  - changeSet:
+      id: 1684213908126-56
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: sys_
+            defaultValue: '0'
+            tableName: ujcms_dict
+  - changeSet:
+      id: 1684213908126-57
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: sys_
+            newDataType: char(1)
+            tableName: ujcms_dict_type
+  - changeSet:
+      id: 1684213908126-58
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: sys_
+            defaultValue: '0'
+            tableName: ujcms_dict_type
+  - changeSet:
+      id: 1684213908126-59
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: target_blank_
+            newDataType: char(1)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1684213908126-60
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: target_blank_
+            defaultValue: '0'
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1684213908126-61
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: target_blank_
+            newDataType: char(1)
+            tableName: ujcms_block_item
+  - changeSet:
+      id: 1684213908126-62
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: target_blank_
+            defaultValue: '0'
+            tableName: ujcms_block_item
+  - changeSet:
+      id: 1684213908126-63
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: target_blank_
+            newDataType: char(1)
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-64
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: target_blank_
+            defaultValue: '0'
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1684213908126-65
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: used_
+            newDataType: char(1)
+            tableName: ujcms_attachment
+  - changeSet:
+      id: 1684213908126-66
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: used_
+            defaultValue: '0'
+            tableName: ujcms_attachment
+  - changeSet:
+      id: 1684213908126-67
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: video_required_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-68
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: video_required_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-69
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: with_description_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-70
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: with_description_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-71
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: with_image_
+            newDataType: char(1)
+            tableName: ujcms_article
+  - changeSet:
+      id: 1684213908126-72
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: with_image_
+            defaultValue: '0'
+            tableName: ujcms_article
+  - changeSet:
+      id: 1684213908126-73
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: with_image_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-74
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: with_image_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-75
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: with_link_url_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-76
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: with_link_url_
+            defaultValue: '1'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-77
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: with_mobile_image_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-78
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: with_mobile_image_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-79
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: with_subtitle_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-80
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: with_subtitle_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-81
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: with_video_
+            newDataType: char(1)
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684213908126-82
+      author: PONY (generated)
+      changes:
+        - addDefaultValue:
+            columnDataType: char(1)
+            columnName: with_video_
+            defaultValue: '0'
+            tableName: ujcms_block
+  - changeSet:
+      id: 1684832752757-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 访问日志ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 用户ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: url_
+                  remarks: URL地址
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: entry_url_
+                  remarks: 入口URL地址
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: source_
+                  remarks: 来源
+                  type: VARCHAR(80)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: country_
+                  remarks: 国家
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: province_
+                  remarks: 省份
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: device_
+                  remarks: 设备
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: os_
+                  remarks: 操作系统
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: browser_
+                  remarks: 浏览器
+                  type: VARCHAR(50)
+              - column:
+                  name: user_agent_
+                  remarks: 用户代理
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: count_
+                  remarks: 访问次数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: si_
+                  remarks: 会话标识
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: uv_
+                  remarks: 访客标识
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ip_
+                  remarks: IP地址
+                  type: VARCHAR(45)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: date_
+                  remarks: 访问日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: duration_
+                  remarks: 访问时长
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: new_visitor_
+                  remarks: 是否新访客
+                  type: CHAR(1)
+            remarks: 访问_日志表
+            tableName: ujcms_visit_log
+  - changeSet:
+      id: 1684832752757-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 访问_受访页面ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: url_
+                  remarks: 受访URL
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: pv_count_
+                  remarks: 访问量
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: uv_count_
+                  remarks: 访客数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: ip_count_
+                  remarks: IP数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: date_string_
+                  remarks: 统计日期(yyyyMMdd)
+                  type: CHAR(8)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 类型(1:访问地址,2:入口地址)
+                  type: SMALLINT
+            remarks: 访问_受访页面表
+            tableName: ujcms_visit_page
+  - changeSet:
+      id: 1684832752757-3
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 访问_统计ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(100)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: pv_count_
+                  remarks: 访问量
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: uv_count_
+                  remarks: 访客数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: ip_count_
+                  remarks: IP数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: nv_count_
+                  remarks: 新访客数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: bounce_count_
+                  remarks: 跳出数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: duration_
+                  remarks: 访问时长
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: date_string_
+                  remarks: 统计日期(yyyyMMdd)
+                  type: CHAR(8)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 统计类型(1:新老客户,2:来源,3:国家,4:省份,5:设备,6:操作系统,7:浏览器)
+                  type: SMALLINT
+            remarks: 访问_统计表
+            tableName: ujcms_visit_stat
+  - changeSet:
+      id: 1684832752757-4
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 访问_趋势ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: pv_count_
+                  remarks: 访问量
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: uv_count_
+                  remarks: 访客数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: ip_count_
+                  remarks: IP数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: nv_count_
+                  remarks: 新访客数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: bounce_count_
+                  remarks: 跳出数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: duration_
+                  remarks: 访问时长
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: date_string_
+                  remarks: 统计日期(yyyyMMddHHmm)
+                  type: VARCHAR(12)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: period_
+                  remarks: 统计周期(1:分,2:时,3:日,4:月)
+                  type: SMALLINT
+            remarks: 访问_趋势表
+            tableName: ujcms_visit_trend
+  - changeSet:
+      id: 1684832752757-5
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_visit_log_site
+            tableName: ujcms_visit_log
+  - changeSet:
+      id: 1684832752757-6
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_visit_log_user
+            tableName: ujcms_visit_log
+  - changeSet:
+      id: 1684832752757-7
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_visit_page_site
+            tableName: ujcms_visit_page
+  - changeSet:
+      id: 1684832752757-8
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_visit_stat_site
+            tableName: ujcms_visit_stat
+  - changeSet:
+      id: 1684832752757-9
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_visit_trend_site
+            tableName: ujcms_visit_trend
+  - changeSet:
+      id: 1684832752757-10
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_visit_log
+            constraintName: fk_visit_log_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1684832752757-11
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_visit_log
+            constraintName: fk_visit_log_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1684832752757-12
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_visit_page
+            constraintName: fk_visit_page_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1684832752757-13
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_visit_stat
+            constraintName: fk_visit_stat_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1684832752757-14
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_visit_trend
+            constraintName: fk_visit_trend_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1686021500192-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: DATETIME
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1686021500192-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: modified_
+                  remarks: 修改日期
+                  type: DATETIME
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 7.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v7.0
+
+

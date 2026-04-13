@@ -1,0 +1,26 @@
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  // 与 tailwindcss 的 xl 保持一致
+  $xl: 1536px
+);
+
+// 如果只是按需导入，则可以忽略以下内容。
+// 如果你想导入所有样式:
+@use 'element-plus/theme-chalk/src/index.scss' as *;
+
+// dialog body 与标题的padding太大，原30px改为10px。
+.el-dialog__body {
+  padding-top: 10px;
+}
+// drawer header 下边距太大，再加上drawer body的padding，内容被挤的太靠下。原32px改为4px。
+.el-drawer__header {
+  margin-bottom: 4px;
+}
+// Popconfirm 使用p的默认上下margin，但p的margin被tailwind默认样式设置为0。
+.el-popconfirm__main {
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+// Button 和 Button 之间的间距过大，原12px改为8px。
+.el-button + .el-button {
+  margin-left: 8px;
+}
