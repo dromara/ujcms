@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watchEffect, nextTick } from 'vue';
-import { LocationQueryValue, useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import type { LocationQueryValue } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { User, Lock, Picture, Cellphone } from '@element-plus/icons-vue';
 
@@ -120,13 +121,36 @@ const handleLogin = () => {
     <el-form ref="form" :model="bean" class="mx-auto md:max-w-xs">
       <el-alert v-if="error" :title="error" type="error" class="mb-3" :closable="false" show-icon />
       <el-form-item prop="username" :rules="[{ required: true, message: () => $t('v.required') }]">
-        <el-input ref="focus" v-model="bean.username" name="username" :placeholder="$t('username')" :prefix-icon="User" autocomplete="on" />
+        <el-input
+          ref="focus"
+          v-model="bean.username"
+          name="username"
+          maxlength="30"
+          :placeholder="$t('username')"
+          :prefix-icon="User"
+          autocomplete="on"
+        />
       </el-form-item>
       <el-form-item prop="password" :rules="[{ required: true, message: () => $t('v.required') }]">
-        <el-input ref="password" v-model="bean.password" type="password" name="password" :placeholder="$t('password')" :prefix-icon="Lock" show-password />
+        <el-input
+          ref="password"
+          v-model="bean.password"
+          type="password"
+          name="password"
+          maxlength="64"
+          :placeholder="$t('password')"
+          :prefix-icon="Lock"
+          show-password
+        />
       </el-form-item>
       <el-form-item v-if="isDisplayShortMessage" prop="shortMessageValue" :rules="[{ required: true, message: () => $t('v.required') }]">
-        <el-input v-model="bean.shortMessageValue" name="shortMessageValue" :placeholder="$t('shortMessage')" :prefix-icon="Cellphone">
+        <el-input
+          v-model="bean.shortMessageValue"
+          name="shortMessageValue"
+          maxlength="10"
+          :placeholder="$t('shortMessage')"
+          :prefix-icon="Cellphone"
+        >
           <template #append>
             <el-button :disabled="shortMessageTimer < 60" @click="() => (getShortMessageVisible = true)">{{ shortMessageText }}</el-button>
           </template>
@@ -150,7 +174,7 @@ const handleLogin = () => {
         ]"
         class="captcha"
       >
-        <el-input v-model="bean.captcha" name="captcha" :placeholder="$t('captcha')" :prefix-icon="Picture">
+        <el-input v-model="bean.captcha" name="captcha" maxlength="10" :placeholder="$t('captcha')" :prefix-icon="Picture">
           <template #append>
             <el-image
               :src="captchaData"

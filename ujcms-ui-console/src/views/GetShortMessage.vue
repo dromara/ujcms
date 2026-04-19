@@ -107,7 +107,7 @@ const handleSubmit = () => {
         ]"
         class="captcha"
       >
-        <el-input v-model="bean.captcha" name="captcha" :placeholder="$t('captcha')" :prefix-icon="Picture">
+        <el-input v-model="bean.captcha" name="captcha" maxlength="10" :placeholder="$t('captcha')" :prefix-icon="Picture">
           <template #append>
             <el-image
               :src="captchaData"

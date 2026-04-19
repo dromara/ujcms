@@ -24,6 +24,7 @@ src/main/webapp/cp/
 # Node / Gulp
 # ===================================================
 node_modules/
+dist/
 logs/
 *.log
 npm-debug.log*

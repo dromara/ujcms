@@ -122,6 +122,7 @@
 
   "error.title": "错误信息",
   "error.forbidden": "对不起，您没有该功能的访问权限",
+  "error.notFound": "数据不存在或已被删除",
   "error.fileMaxSize": "文件大小不能超过 {size}",
   "error.jodConverterNotEnabled": "Office转换器未开启",
   "error.enterprise": "本功能在商业版中提供。请联系官方网站 <a href=\"https://www.ujcms.com\" target=\"_blank\" class=\"text-primary\">https://www.ujcms.com</a> 购买。支持正版，我们会做的更好！",

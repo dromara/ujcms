@@ -5,7 +5,7 @@
 
 	<groupId>com.ujcms</groupId>
 	<artifactId>ujcms</artifactId>
-	<version>11.0.0</version>
+	<version>11.0.1</version>
 	<packaging>pom</packaging>
 
 	<name>UJCMS</name>
@@ -136,6 +136,7 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- MyBatis -->
 			<dependency>
 				<groupId>org.mybatis.spring.boot</groupId>
 				<artifactId>mybatis-spring-boot-starter</artifactId>
@@ -147,15 +148,232 @@
 				<version>${pagehelper-spring-boot-starter.version}</version>
 			</dependency>
 			<dependency>
-			  <groupId>org.springdoc</groupId>
-			  <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			  <version>${springdoc-openapi-starter-webmvc-ui.version}</version>
+				<groupId>org.mybatis.caches</groupId>
+				<artifactId>mybatis-caffeine</artifactId>
+				<version>${mybatis-caffeine.version}</version>
+			</dependency>
+			<!-- SpringDoc -->
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				<version>${springdoc-openapi-starter-webmvc-ui.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.therapi</groupId>
+				<artifactId>therapi-runtime-javadoc</artifactId>
+				<version>${therapi-runtime-javadoc.version}</version>
 			</dependency>
 			<!-- Flowable 工作流 -->
 			<dependency>
-			  <groupId>org.flowable</groupId>
-			  <artifactId>flowable-spring-boot-starter-process</artifactId>
-			  <version>${flowable-spring-boot-starter.version}</version>
+				<groupId>org.flowable</groupId>
+				<artifactId>flowable-spring-boot-starter-process</artifactId>
+				<version>${flowable-spring-boot-starter.version}</version>
+			</dependency>
+			<!-- FreeMarker Java 8+ -->
+			<dependency>
+				<groupId>no.api.freemarker</groupId>
+				<artifactId>freemarker-java8</artifactId>
+				<version>${freemarker-java8.version}</version>
+			</dependency>
+			<!-- Apache Lucene -->
+			<dependency>
+				<groupId>org.apache.lucene</groupId>
+				<artifactId>lucene-core</artifactId>
+				<version>${lucene.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.lucene</groupId>
+				<artifactId>lucene-queryparser</artifactId>
+				<version>${lucene.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.lucene</groupId>
+				<artifactId>lucene-analyzers-common</artifactId>
+				<version>${lucene.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.lucene</groupId>
+				<artifactId>lucene-highlighter</artifactId>
+				<version>${lucene.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.lucene</groupId>
+				<artifactId>lucene-queries</artifactId>
+				<version>${lucene.version}</version>
+			</dependency>
+			<!-- 中文分词 -->
+			<dependency>
+				<groupId>com.github.magese</groupId>
+				<artifactId>ik-analyzer</artifactId>
+				<version>${ik-analyzer.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.lionsoul</groupId>
+				<artifactId>jcseg-analyzer</artifactId>
+				<version>${jcseg-analyzer.version}</version>
+			</dependency>
+			<!-- Apache Commons -->
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons-io.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-net</groupId>
+				<artifactId>commons-net</artifactId>
+				<version>${commons-net.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-validator</groupId>
+				<artifactId>commons-validator</artifactId>
+				<version>${commons-validator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>${commons-collections4.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-text</artifactId>
+				<version>${commons-text.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>info.debatty</groupId>
+				<artifactId>java-string-similarity</artifactId>
+				<version>${java-string-similarity.version}</version>
+			</dependency>
+			<!-- Security -->
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>${bcprov-jdk18on.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcpkix-jdk18on</artifactId>
+				<version>${bcprov-jdk18on.version}</version>
+			</dependency>
+			<!-- HTML -->
+			<dependency>
+				<groupId>org.jsoup</groupId>
+				<artifactId>jsoup</artifactId>
+				<version>${jsoup.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+				<artifactId>owasp-java-html-sanitizer</artifactId>
+				<version>${owasp-java-html-sanitizer.version}</version>
+			</dependency>
+			<!-- Captcha -->
+			<dependency>
+				<groupId>io.leopard.thirdparty</groupId>
+				<artifactId>jcaptcha-core</artifactId>
+				<version>${jcaptcha.version}</version>
+			</dependency>
+			<!-- Image -->
+			<dependency>
+				<groupId>net.coobird</groupId>
+				<artifactId>thumbnailator</artifactId>
+				<version>${thumbnailator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.sejda.imageio</groupId>
+				<artifactId>webp-imageio</artifactId>
+				<version>${webp-imageio.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.im4java</groupId>
+				<artifactId>im4java</artifactId>
+				<version>${im4java.version}</version>
+			</dependency>
+			<!-- Document -->
+			<dependency>
+				<groupId>org.jodconverter</groupId>
+				<artifactId>jodconverter-local-lo</artifactId>
+				<version>${jodconverter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jodconverter</groupId>
+				<artifactId>jodconverter-spring-boot-starter</artifactId>
+				<version>${jodconverter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.pdfbox</groupId>
+				<artifactId>pdfbox</artifactId>
+				<version>${pdfbox.version}</version>
+			</dependency>
+			<!-- Media -->
+			<dependency>
+				<groupId>ws.schild</groupId>
+				<artifactId>jave-core</artifactId>
+				<version>${jave.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ws.schild</groupId>
+				<artifactId>jave-all-deps</artifactId>
+				<version>${jave.version}</version>
+			</dependency>
+			<!-- IP -->
+			<dependency>
+				<groupId>org.lionsoul</groupId>
+				<artifactId>ip2region</artifactId>
+				<version>${ip2region.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.ujcms</groupId>
+				<artifactId>ip-region-data</artifactId>
+				<version>${ip-region-data.version}</version>
+			</dependency>
+			<!-- 浏览器 UserAgent 识别组件 -->
+			<dependency>
+				<groupId>com.github.ua-parser</groupId>
+				<artifactId>uap-java</artifactId>
+				<version>${uap-java.version}</version>
+			</dependency>
+			<!-- Markdown 解析组件 -->
+			<dependency>
+				<groupId>org.commonmark</groupId>
+				<artifactId>commonmark</artifactId>
+				<version>${commonmark.version}</version>
+			</dependency>
+			<!-- 计算机信息获取组件 -->
+			<dependency>
+				<groupId>com.github.oshi</groupId>
+				<artifactId>oshi-core</artifactId>
+				<version>${oshi-core.version}</version>
+			</dependency>
+			<!-- MinIO 对象存储 -->
+			<dependency>
+				<groupId>io.minio</groupId>
+				<artifactId>minio</artifactId>
+				<version>${minio.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>okhttp</artifactId>
+				<version>${okhttp.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>okhttp-jvm</artifactId>
+				<version>${okhttp.version}</version>
+			</dependency>
+			<!-- JDBC 驱动 -->
+			<dependency>
+				<groupId>com.dameng</groupId>
+				<artifactId>DmJdbcDriver8</artifactId>
+				<version>${DmJdbcDriver8.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.highgo</groupId>
+				<artifactId>HgdbJdbc</artifactId>
+				<version>${HgdbJdbc.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

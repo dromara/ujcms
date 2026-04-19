@@ -883,6 +883,7 @@ const titleSimilarity = async (title: string, excludeId?: string) => {
                 >
                   <el-autocomplete
                     v-model="values.source"
+                    maxlength="50"
                     value-key="name"
                     :fetch-suggestions="async (query: string, callback: any) => callback(await fetchSourceList(query))"
                     class="w-full"

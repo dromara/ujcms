@@ -14,7 +14,6 @@ import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.Views;
-import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http404Exception;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -98,9 +97,9 @@ public class VoteController {
     public ResponseEntity<Body> updateOrder(@RequestBody @Valid MoveOrderParams params) {
         Site site = Contexts.getCurrentSite();
         Vote fromBean = Optional.ofNullable(service.select(params.getFromId()))
-                .orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getFromId()));
+                .orElseThrow(() -> new Http404Exception(NOT_FOUND + params.getFromId()));
         Vote toBean = Optional.ofNullable(service.select(params.getToId()))
-                .orElseThrow(() -> new Http400Exception(NOT_FOUND + params.getToId()));
+                .orElseThrow(() -> new Http404Exception(NOT_FOUND + params.getToId()));
         ValidUtils.dataInSite(fromBean.getSiteId(), site.getId());
         ValidUtils.dataInSite(toBean.getSiteId(), site.getId());
         service.moveOrder(fromBean.getId(), toBean.getId());

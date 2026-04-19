@@ -12,7 +12,6 @@ import com.ujcms.cms.core.web.support.ValidUtils;
 import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Responses.Body;
-import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http404Exception;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -83,7 +82,7 @@ public class DictController {
     public ResponseEntity<Body> update(@RequestBody @Valid Dict bean) {
         Dict dict = service.select(bean.getId());
         if (dict == null) {
-            throw new Http400Exception(Dict.NOT_FOUND + bean.getId());
+            throw new Http404Exception(Dict.NOT_FOUND + bean.getId());
         }
         validateBean(dict.getTypeId());
         Entities.copy(bean, dict);
@@ -99,7 +98,7 @@ public class DictController {
         for (Long id : ids) {
             Dict bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception(Dict.NOT_FOUND + id);
+                throw new Http404Exception(Dict.NOT_FOUND + id);
             }
             validateBean(bean.getTypeId());
             list.add(bean);
@@ -115,7 +114,7 @@ public class DictController {
         ids.forEach(id -> {
             Dict bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception(Dict.NOT_FOUND + id);
+                throw new Http404Exception(Dict.NOT_FOUND + id);
             }
             validateBean(bean.getTypeId());
             service.delete(id);
@@ -126,7 +125,7 @@ public class DictController {
     private void validateBean(Long typeId) {
         DictType type = typeService.select(typeId);
         if (type == null) {
-            throw new Http400Exception(DictType.NOT_FOUND + typeId);
+            throw new Http404Exception(DictType.NOT_FOUND + typeId);
         }
         ValidUtils.dataInSite(type.getSiteId(), Contexts.getCurrentSiteId());
     }

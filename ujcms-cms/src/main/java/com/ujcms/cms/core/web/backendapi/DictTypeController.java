@@ -12,6 +12,7 @@ import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.exception.Http400Exception;
+import com.ujcms.common.web.exception.Http404Exception;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -64,7 +65,7 @@ public class DictTypeController {
     public Object show(@PathVariable Long id) {
         DictType bean = service.select(id);
         if (bean == null) {
-            throw new Http400Exception(DictType.NOT_FOUND + id);
+            throw new Http404Exception(DictType.NOT_FOUND + id);
         }
         return bean;
     }
@@ -90,7 +91,7 @@ public class DictTypeController {
         User user = Contexts.getCurrentUser();
         DictType dictType = service.select(bean.getId());
         if (dictType == null) {
-            throw new Http400Exception(DictType.NOT_FOUND + bean.getId());
+            throw new Http404Exception(DictType.NOT_FOUND + bean.getId());
         }
         boolean origGlobal = dictType.isGlobal();
         String origAlias = dictType.getAlias();
@@ -110,7 +111,7 @@ public class DictTypeController {
         for (Long id : ids) {
             DictType bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception(DictType.NOT_FOUND + id);
+                throw new Http404Exception(DictType.NOT_FOUND + id);
             }
             dataInSite(bean.getSiteId(), siteId);
             globalPermission(bean.isGlobal(), user.hasGlobalPermission());
@@ -129,7 +130,7 @@ public class DictTypeController {
         for (Long id : ids) {
             DictType bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception(DictType.NOT_FOUND + id);
+                throw new Http404Exception(DictType.NOT_FOUND + id);
             }
             dataInSite(bean.getSiteId(), siteId);
             globalPermission(bean.isGlobal(), user.hasGlobalPermission());

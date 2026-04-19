@@ -39,12 +39,12 @@ const values = ref<any>({});
       <el-row>
         <el-col :span="12">
           <el-form-item prop="name" :label="$t('task.name')">
-            <el-input v-model="values.name"></el-input>
+            <el-input v-model="values.name" maxlength="50"></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item prop="user.username" :label="$t('task.user')">
-            <el-input v-model="values.user.username"></el-input>
+            <el-input v-model="values.user.username" maxlength="30"></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">

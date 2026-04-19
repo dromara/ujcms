@@ -22,6 +22,7 @@ import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.Servlets;
 import com.ujcms.common.web.Views;
 import com.ujcms.common.web.exception.Http400Exception;
+import com.ujcms.common.web.exception.Http404Exception;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -115,7 +116,7 @@ public class ArticleController {
     public Article show(@PathVariable Long id) {
         Article bean = service.select(id);
         if (bean == null) {
-            throw new Http400Exception(Article.NOT_FOUND + id);
+            throw new Http404Exception(Article.NOT_FOUND + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
         return bean;
@@ -153,7 +154,7 @@ public class ArticleController {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         Article article = Optional.ofNullable(service.select(bean.getId()))
-                .orElseThrow(() -> new Http400Exception(Article.NOT_FOUND + bean.getId()));
+                .orElseThrow(() -> new Http404Exception(Article.NOT_FOUND + bean.getId()));
         ValidUtils.dataInSite(article.getSiteId(), site.getId());
         Long origChannelId = article.getChannelId();
         Entities.copy(bean, article, EXCLUDE_FIELDS);
@@ -176,9 +177,9 @@ public class ArticleController {
         Site site = Contexts.getCurrentSite();
         User user = Contexts.getCurrentUser();
         Article fromBean = Optional.ofNullable(service.select(params.getFromId()))
-                .orElseThrow(() -> new Http400Exception(Article.NOT_FOUND + params.getFromId()));
+                .orElseThrow(() -> new Http404Exception(Article.NOT_FOUND + params.getFromId()));
         Article toBean = Optional.ofNullable(service.select(params.getToId()))
-                .orElseThrow(() -> new Http400Exception(Article.NOT_FOUND + params.getToId()));
+                .orElseThrow(() -> new Http404Exception(Article.NOT_FOUND + params.getToId()));
         ValidUtils.dataInSite(fromBean.getSiteId(), site.getId());
         ValidUtils.dataInSite(toBean.getSiteId(), site.getId());
         service.moveOrder(fromBean.getId(), toBean.getId());

@@ -70,6 +70,12 @@ export const handleError = ({ timestamp, message, path, error, exception, trace,
     removeAccessToken();
     removeRefreshToken();
     showMessageBox();
+  } else if (status === 404) {
+    ElMessageBox({
+      title: t('error.title'),
+      type: 'warning',
+      message: h('div', null, [h('p', { class: 'text-lg' }, t('error.notFound')), message ? h('p', { class: 'mt-2' }, message) : null]),
+    });
   } else if (status === 403) {
     ElMessageBox({
       title: String(status),

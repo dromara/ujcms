@@ -14,7 +14,6 @@ import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.Servlets;
-import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http404Exception;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -141,7 +140,7 @@ public class MessageBoardController {
         for (Long id : ids) {
             MessageBoard bean = service.select(id);
             if (bean == null) {
-                throw new Http400Exception(MessageBoard.NOT_FOUND + id);
+                throw new Http404Exception(MessageBoard.NOT_FOUND + id);
             }
             ValidUtils.dataInSite(bean.getSiteId(), siteId);
             service.delete(id);
