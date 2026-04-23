@@ -12,7 +12,7 @@
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
-  <link rel="stylesheet" href="${files}/vendor/pdfjs-dist/web/pdf_viewer.css">
+  <link rel="stylesheet" href="${files}/vendor/pdfjs-dist/web/pdf_viewer.css?v=${v}">
   <style>
     html.has-pdf-viewer,
     html.has-pdf-viewer body {
@@ -202,10 +202,10 @@
             <div id="viewer" class="pdfViewer"></div>
           </div>
           <script type="module">
-            import * as pdfjsLib from '${files}/vendor/pdfjs-dist/build/pdf.mjs';
-            import * as pdfjsViewer from '${files}/vendor/pdfjs-dist/web/pdf_viewer.mjs';
+            import * as pdfjsLib from '${files}/vendor/pdfjs-dist/build/pdf.mjs?v=${v}';
+            import * as pdfjsViewer from '${files}/vendor/pdfjs-dist/web/pdf_viewer.mjs?v=${v}';
 
-            pdfjsLib.GlobalWorkerOptions.workerSrc = '${files}/vendor/pdfjs-dist/build/pdf.worker.mjs';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '${files}/vendor/pdfjs-dist/build/pdf.worker.mjs?v=${v}';
 
             const container = document.getElementById('viewerContainer');
             const viewer = document.getElementById('viewer');
@@ -219,7 +219,7 @@
               findController: new pdfjsViewer.PDFFindController({ eventBus, linkService: pdfLinkService }),
               scriptingManager: new pdfjsViewer.PDFScriptingManager({
                 eventBus,
-                sandboxBundleSrc: '${files}/vendor/pdfjs-dist/build/pdf.sandbox.mjs',
+                sandboxBundleSrc: '${files}/vendor/pdfjs-dist/build/pdf.sandbox.mjs?v=${v}',
               }),
             });
             pdfLinkService.setViewer(pdfViewer);
@@ -366,7 +366,7 @@
             (async () => {
               const pdfDocument = await pdfjsLib.getDocument({
                 url: '${article.doc}',
-                cMapUrl: '${files}/vendor/pdfjs-dist/cmaps/',
+                cMapUrl: '${files}/vendor/pdfjs-dist/cmaps/?v=${v}',
                 cMapPacked: true,
                 enableXfa: true,
                 rangeChunkSize: 65536,

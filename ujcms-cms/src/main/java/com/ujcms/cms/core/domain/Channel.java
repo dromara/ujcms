@@ -255,6 +255,11 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
         return getSite().isHtmlEnabled() ? getStaticFullUrl(page) : getDynamicFullUrl(page);
     }
 
+    @Schema(description = "完整动态URL地址")
+    public String getDynamicFullUrl() {
+        return getDynamicFullUrl(1);
+    }
+
     public String getDynamicFullUrl(int page) {
         String linkUrl = getLinkUrl();
         if (getType() == TYPE_LINK && StringUtils.isNotBlank(linkUrl)) {

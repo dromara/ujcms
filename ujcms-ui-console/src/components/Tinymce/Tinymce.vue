@@ -116,7 +116,7 @@ export default defineComponent({
           'quickimage media | blockquote codesample table | bullist numlist | indent2em outdent indent lineheight | forecolor backcolor | fontselect fontsizeselect formatselect | ' +
           'superscript subscript charmap | hr | ltr rtl | visualblocks visualchars | restoredraft undo redo | preview searchreplace',
         font_formats:
-          '宋体=SimSun; 微软雅黑=Microsoft YaHei; 楷体=SimKai,KaiTi; 黑体=SimHei; 隶书=SimLi,LiSu; Andale Mono=andale mono,times;Arial=arial,helvetica,sans-serif;' +
+          '宋体=SimSun; 仿宋GB2312=FangSong_GB2312,FangSong,STFangsong; 微软雅黑=Microsoft YaHei; 楷体=SimKai,KaiTi; 黑体=SimHei; 隶书=SimLi,LiSu; Andale Mono=andale mono,times;Arial=arial,helvetica,sans-serif;' +
           'Arial Black=arial black,avant garde;Comic Sans MS=comic sans ms,sans-serif;Helvetica=helvetica;Impact=impact,chicago;Times New Roman=times new roman,times',
         fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 36px 48px 64px 72px 96px',
         quickbars_selection_toolbar: 'bold italic | h2 h3 blockquote | link',

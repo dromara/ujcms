@@ -203,6 +203,7 @@ public class Props {
 
     public void setVersion(String version) {
         this.version = version;
+        Frontends.setVersion(version);
     }
 
     public int getDatacenterId() {

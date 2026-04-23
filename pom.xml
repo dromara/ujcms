@@ -5,7 +5,7 @@
 
 	<groupId>com.ujcms</groupId>
 	<artifactId>ujcms</artifactId>
-	<version>11.0.1</version>
+	<version>11.0.2</version>
 	<packaging>pom</packaging>
 
 	<name>UJCMS</name>

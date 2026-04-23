@@ -1,25 +1,25 @@
 [#escape x as (x)!?html]
-<script src="${files}/vendor/es6-promise-polyfill/promise.min.js"></script>
-<script src="${files}/vendor/jquery/dist/jquery.min.js"></script>
-<script src="${files}/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${files}/vendor/axios/dist/axios.min.js"></script>
-<script src="${files}/vendor/js-cookie/dist/js.cookie.min.js"></script>
-<script src="${files}/vendor/dayjs/dayjs.min.js"></script>
+<script src="${files}/vendor/es6-promise-polyfill/promise.min.js?v=${v}"></script>
+<script src="${files}/vendor/jquery/dist/jquery.min.js?v=${v}"></script>
+<script src="${files}/vendor/bootstrap/dist/js/bootstrap.bundle.min.js?v=${v}"></script>
+<script src="${files}/vendor/axios/dist/axios.min.js?v=${v}"></script>
+<script src="${files}/vendor/js-cookie/dist/js.cookie.min.js?v=${v}"></script>
+<script src="${files}/vendor/dayjs/dayjs.min.js?v=${v}"></script>
 
-<script src="${files}/vendor/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="${files}/vendor/jquery-validation/dist/additional-methods.js"></script>
-<script src="${files}/vendor/jquery-validation/dist/localization/messages_zh.js"></script>
-<script src="${files}/vendor/jquery-serializejson/jquery.serializejson.min.js"></script>
-<script src="${files}/js/jquery-validation-bootstrap5.js"></script>
+<script src="${files}/vendor/jquery-validation/dist/jquery.validate.min.js?v=${v}"></script>
+<script src="${files}/vendor/jquery-validation/dist/additional-methods.js?v=${v}"></script>
+<script src="${files}/vendor/jquery-validation/dist/localization/messages_zh.js?v=${v}"></script>
+<script src="${files}/vendor/jquery-serializejson/jquery.serializejson.min.js?v=${v}"></script>
+<script src="${files}/js/jquery-validation-bootstrap5.js?v=${v}"></script>
 [#--
-<script src="${files}/js/main.js"></script>
+<script src="${files}/js/main.js?v=${v}"></script>
 --]
 <script>
   const visitApi = "${api}";
   const visitSiteId = "${site.id?c}";
   (function () {
     const visit = document.createElement("script");
-    visit.src = "${files}/js/visit.js";
+    visit.src = "${files}/js/visit.js?v=${v}";
     const s = document.getElementsByTagName("script")[0];
     s.parentNode.insertBefore(visit, s);
   })();

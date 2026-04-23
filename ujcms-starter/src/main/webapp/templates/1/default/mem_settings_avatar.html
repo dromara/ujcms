@@ -8,8 +8,8 @@
   <meta name="_csrf_header" content="${_csrf.headerName}">
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
-  <link rel="stylesheet" href="${files}/vendor/blueimp-file-upload/css/jquery.fileupload.css">
-  <link rel="stylesheet" href="${files}/vendor/cropperjs/dist/cropper.min.css">
+  <link rel="stylesheet" href="${files}/vendor/blueimp-file-upload/css/jquery.fileupload.css?v=${v}">
+  <link rel="stylesheet" href="${files}/vendor/cropperjs/dist/cropper.min.css?v=${v}">
   <style>
     /* Limit image width to avoid overflow the container */
     img {
@@ -74,13 +74,13 @@
 
 [#include 'inc_footer.html'/]
 [#include 'inc_message_box.html'/]
-<script src="${files}/vendor/blueimp-file-upload/js/vendor/jquery.ui.widget.min.js"></script>
-<script src="${files}/vendor/blueimp-file-upload/js/jquery.iframe-transport.min.js"></script>
-<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload.min.js"></script>
-<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload-process.min.js"></script>
-<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload-validate.min.js"></script>
-<script src="${files}/vendor/cropperjs/dist/cropper.min.js"></script>
-<script src="${files}/vendor/jquery-cropper/dist/jquery-cropper.min.js"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/vendor/jquery.ui.widget.min.js?v=${v}"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.iframe-transport.min.js?v=${v}"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload.min.js?v=${v}"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload-process.min.js?v=${v}"></script>
+<script src="${files}/vendor/blueimp-file-upload/js/jquery.fileupload-validate.min.js?v=${v}"></script>
+<script src="${files}/vendor/cropperjs/dist/cropper.min.js?v=${v}"></script>
+<script src="${files}/vendor/jquery-cropper/dist/jquery-cropper.min.js?v=${v}"></script>
 <script>
   $(function () {
     var header = $('meta[name="_csrf_header"]').attr('content');

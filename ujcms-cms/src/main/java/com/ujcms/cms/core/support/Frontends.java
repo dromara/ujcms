@@ -36,6 +36,7 @@ public class Frontends {
     public static final String SITE = "site";
     public static final String DEFAULT_SITE = "defaultSite";
     public static final String FILES = "files";
+    public static final String V = "v";
     public static final String PAGE = "page";
     public static final String PAGE_SIZE = "pageSize";
     public static final String URL = "url";
@@ -44,6 +45,16 @@ public class Frontends {
     public static final String PAGE_URL_RESOLVER = "pageUrlResolver";
 
     public static final String TEMPLATE_URL = "templateUrl";
+
+    private static String version = "";
+
+    /**
+     * 设置系统版本号。由 {@link Props#setVersion(String)} 在属性绑定时推送。
+     * 用于模板中对静态资源 URL 追加 {@code ?v=${v}}，避免升级后浏览器仍加载旧版本的 JS/CSS。
+     */
+    public static void setVersion(String version) {
+        Frontends.version = version;
+    }
 
     public static void setUser(HttpServletRequest request, @Nullable User user) {
         request.setAttribute(USER, user);
@@ -60,11 +71,12 @@ public class Frontends {
         request.setAttribute(PARAMS, new HttpRequestParametersHashModel(request));
         request.setAttribute(CTX, request.getContextPath());
         request.setAttribute(DY, site.getDy());
-        request.setAttribute(DEF, defaultSite.getDynamicUrl());
+        request.setAttribute(DEF, stripTrailingSlash(defaultSite.getDynamicUrl()));
         request.setAttribute(CONFIG, site.getConfig());
         request.setAttribute(SITE, site);
         request.setAttribute(DEFAULT_SITE, defaultSite);
         request.setAttribute(FILES, site.getFilesPath());
+        request.setAttribute(V, version);
         // 根据
         // freemarker.ext.jakarta.servlet.AllHttpScopesHashModel#get
         // org.springframework.web.servlet.view.AbstractView#createMergedOutputModel
@@ -89,11 +101,12 @@ public class Frontends {
         dataModel.put(PARAMS, Collections.emptyMap());
         dataModel.put(CTX, Optional.ofNullable(site.getConfig().getContextPath()).orElse(""));
         dataModel.put(DY, site.getDy());
-        dataModel.put(DEF, defaultSite.getDynamicUrl());
+        dataModel.put(DEF, stripTrailingSlash(defaultSite.getDynamicUrl()));
         dataModel.put(CONFIG, site.getConfig());
         dataModel.put(SITE, site);
         dataModel.put(DEFAULT_SITE, defaultSite);
         dataModel.put(FILES, site.getFilesPath());
+        dataModel.put(V, version);
         dataModel.put(PAGE, page);
         dataModel.put(URL, url);
         dataModel.put(API, site.getApi());
@@ -114,6 +127,11 @@ public class Frontends {
         return getSite(env).getId();
     }
 
+
+    private static String stripTrailingSlash(String url) {
+        // `def` 作为前缀使用（如 `${def}/login`），去掉末尾 `/` 避免拼接出 `//login`
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    }
 
     /**
      * 工具类不需要实例化

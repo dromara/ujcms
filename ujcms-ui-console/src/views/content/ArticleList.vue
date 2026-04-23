@@ -455,8 +455,8 @@ const cancelSticky = async (id: string) => {
             <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
             <el-table-column property="title" :label="$t('article.title')" min-width="280" sort-by="@articleExt-title" sortable="custom">
               <template #default="{ row }">
-                <!-- <el-button type="primary" link @click="() => openArticleLink(row.status, row.url, row.dynamicUrl)">{{ row.title }}</el-button> -->
-                <el-link href="javascript:" :underline="false" @click="() => openArticleLink(row.status, row.url, row.dynamicUrl)">{{ row.title }}</el-link>
+                <!-- <el-button type="primary" link @click="() => openArticleLink(row.status, row.url, row.dynamicFullUrl)">{{ row.title }}</el-button> -->
+                <el-link href="javascript:" :underline="false" @click="() => openArticleLink(row.status, row.url, row.dynamicFullUrl)">{{ row.title }}</el-link>
                 <el-tag
                   v-for="item in row.blockItemList"
                   :key="item.id"

@@ -64,7 +64,7 @@ const generatedKeyVisible = ref<boolean>(false);
     </div>
     <div class="h-full">
       <div v-if="currentSite" class="inline-block h-full">
-        <el-link class="h-full px-3 hover:bg-gray-100" :href="currentSite.url" :underline="false" :title="$t('siteHome')" target="_blank">
+        <el-link class="h-full px-3 hover:bg-gray-100" :href="currentSite.fullUrl" :underline="false" :title="$t('siteHome')" target="_blank">
           <el-icon :size="16" class="align-text-top"><HomeFilled /></el-icon>
         </el-link>
       </div>

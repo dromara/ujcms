@@ -1,3 +1,11 @@
+.build_docker: &build_docker
+  # 声明式的构建环境 https://docs.cnb.cool/
+  # 可以去dockerhub上 https://hub.docker.com/_/maven 找到您需要maven和jdk版本
+  image: maven:3.9-eclipse-temurin-17-noble
+  volumes:
+    # 声明式的构建缓存 https://docs.cnb.cool/zh/grammar/pipeline.html#volumes
+    - /root/.m2:copy-on-write
+
 .env_setting: &env_setting
   name: version env setting
   script: |
@@ -19,16 +27,16 @@
     LATEST_MAJOR_TAG=$(git tag | grep "^v${MAJOR}\." | sort -V | tail -n 1)
     echo "LATEST_MAJOR_TAG: ${LATEST_MAJOR_TAG}"
 
-    DOCKER_TARGET="${IMAGE_NAME}:${VERSION},${IMAGE_NAME}:${MAJOR}.${MINOR}"
-    if [ "$CURRENT_TAG" = "$LATEST_MAJOR_TAG" ]; then DOCKER_TARGET="${DOCKER_TARGET},${IMAGE_NAME}:${MAJOR}"; fi
-    if [ "$CURRENT_TAG" = "$LATEST_TAG" ]; then DOCKER_TARGET="${DOCKER_TARGET},${IMAGE_NAME}:latest"; fi
-    echo "##[set-output docker_target=$DOCKER_TARGET]"
+    BUILDX_TAGS="-t ${IMAGE_NAME}:${VERSION} -t ${IMAGE_NAME}:${MAJOR}.${MINOR}"
+    if [ "$CURRENT_TAG" = "$LATEST_MAJOR_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:${MAJOR}"; fi
+    if [ "$CURRENT_TAG" = "$LATEST_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:latest"; fi
+    echo "##[set-output buildx_tags=$BUILDX_TAGS]"
   exports:
     version: VERSION
     major: MAJOR
     minor: MINOR
     patch: PATCH
-    docker_target: DOCKER_TARGET
+    buildx_tags: BUILDX_TAGS
 
 .env_testing: &env_testing
   name: version env testing
@@ -37,15 +45,7 @@
     echo "MAJOR: ${MAJOR}"
     echo "MINOR: ${MINOR}"
     echo "PATCH: ${PATCH}"
-    echo "DOCKER_TARGET: ${DOCKER_TARGET}"
-
-.build_docker: &build_docker
-  # 声明式的构建环境 https://docs.cnb.cool/
-  # 可以去dockerhub上 https://hub.docker.com/_/maven 找到您需要maven和jdk版本
-  image: maven:3.9-eclipse-temurin-17-noble
-  volumes:
-    # 声明式的构建缓存 https://docs.cnb.cool/zh/grammar/pipeline.html#volumes
-    - /root/.m2:copy-on-write
+    echo "BUILDX_TAGS: ${BUILDX_TAGS}"
 
 .node_pnpm: &node_pnpm
   name: node pnpm
@@ -62,117 +62,61 @@
     pnpm --dir ujcms-ui-console install
     pnpm --dir ujcms-ui-console build:starter
 
-.build_jobs: &build_jobs
-  - <<: *env_setting
-  - <<: *env_testing
-  - <<: *node_pnpm
-  - name: mvn package
-    script: |
-      sed -i "s#CNB_REPO_SLUG#${CNB_REPO_SLUG}#g" ".cnb/maven-settings.xml"
-      cat ".cnb/maven-settings.xml"
-      mvn -B clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -s .cnb/maven-settings.xml
-  - name: docker login
-    script: docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
-  - name: docker build
-    script: docker buildx build --progress=plain --push -t ${IMAGE_NAME}:${VERSION}-linux-${PLATFORM} .
-  - name: resolve
-    type: cnb:resolve
-    options:
-      key: build-${PLATFORM}
+.mvn_package: &mvn_package
+  name: mvn package
+  script: |
+    sed -i "s#CNB_REPO_SLUG#${CNB_REPO_SLUG}#g" ".cnb/maven-settings.xml"
+    cat ".cnb/maven-settings.xml"
+    mvn -B clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -s .cnb/maven-settings.xml
 
-.await_amd64: &await_amd64
-  name: await the amd64
-  type: cnb:await
-  options:
-    key: build-amd64
+.docker_login: &docker_login
+  name: docker login
+  script: docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
 
-.await_arm64: &await_arm64
-  name: await the arm64
-  type: cnb:await
-  options:
-    key: build-arm64
-
-.docker_manifest: &docker_manifest
-  name: docker manifest
-  env:
-    VERSION_NAME: ${VERSION}
-  image: cnbcool/manifest
-  settings:
-    username: ${DOCKER_USER}
-    password: ${DOCKER_TOKEN}
-    target: ${DOCKER_TARGET}
-    template: ${IMAGE_NAME}:${VERSION}-OS-ARCH
-    platforms:
-      - linux/amd64
-      - linux/arm64
-
-.docker_remove_tag: &docker_remove_tag
-  name: docker remove tag
-  type: artifact:remove-tag
-  options:
-    name: ${CNB_REPO_NAME}
-    tags:
-      - ${VERSION}-linux-amd64
-      - ${VERSION}-linux-arm64
-    type: docker
+.docker_buildx: &docker_buildx
+  name: docker buildx build
+  script: |
+    docker buildx build --progress=plain --platform linux/amd64,linux/arm64 ${BUILDX_TAGS} --push .
 
 .trigger_deploy: &trigger_deploy
-  - name: trigger deploy CNB image to server
-    image: cnbcool/webhook
-    imports:
-      - https://cnb.cool/ujcms/secrets/-/blob/main/env.yml
-    settings:
-      urls:
-        - https://api.cnb.cool/ujcms/deploy/-/build/start
-      method: POST
-      content_type: application/json
-      headers:
-        - "Accept=application/json"
-      template: |
-        {
-          "event": "api_trigger_deploy_cnb"
-        }
-      token_type: "Bearer"
-      token_value: "$CNB_TRIGGER_TOKEN"
+  name: trigger deploy CNB image to server
+  image: cnbcool/webhook
+  imports:
+    - https://cnb.cool/ujcms/secrets/-/blob/main/env.yml
+  settings:
+    urls:
+      - https://api.cnb.cool/ujcms/deploy/-/build/start
+    method: POST
+    content_type: application/json
+    headers:
+      - "Accept=application/json"
+    template: |
+      {
+        "event": "api_trigger_deploy_cnb"
+      }
+    token_type: "Bearer"
+    token_value: "$CNB_TRIGGER_TOKEN"
 
 
 # 分支名
 v*.*.*:
   tag_push:
-    - name: docker build amd64
-      runner:
-        tags: cnb:arch:amd64
+    - name: docker buildx multi-platform
       docker: *build_docker
       services:
-        - docker
-      env:
-        IMAGE_NAME: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}
-        PLATFORM: amd64
-      stages: *build_jobs
-
-    - name: docker build arm64
-      runner:
-        tags: cnb:arch:arm64:v8
-      docker: *build_docker
-      services:
-        - docker
-      env:
-        IMAGE_NAME: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}
-        PLATFORM: arm64
-      stages: *build_jobs
-
-    - name: docker manifest and remove tag
-      services:
-        - docker
+        - name: docker
+          options:
+            rootlessBuildkitd:
+              enabled: true
       env:
         IMAGE_NAME: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}
       stages:
-        - <<: *await_amd64
-        - <<: *await_arm64
         - <<: *env_setting
         - <<: *env_testing
-        - <<: *docker_manifest
-        - <<: *docker_remove_tag
+        - <<: *node_pnpm
+        - <<: *mvn_package
+        - <<: *docker_login
+        - <<: *docker_buildx
         - <<: *trigger_deploy
 
 $:
