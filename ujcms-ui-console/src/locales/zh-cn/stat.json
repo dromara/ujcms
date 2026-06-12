@@ -1,0 +1,51 @@
+{
+  "visit.now": "现在",
+  "visit.today": "今日",
+  "visit.yesterday": "昨日",
+  "visit.last7day": "最近7日",
+  "visit.last30day": "最近30日",
+  "visit.last3month": "最近3月",
+  "visit.last6month": "最近6月",
+  "visit.lastYear": "最近一年",
+  "visit.all": "全部",
+  "visit.pv": "浏览量(PV)",
+  "visit.uv": "访客数(UV)",
+  "visit.ip": "IP数",
+  "visit.bounceRate": "跳出率",
+  "visit.averageDuration": "平均访问时长",
+  "visit.averagePv": "平均访问页数",
+  "visit.url": "受访页面",
+  "visit.entryUrl": "入口页面",
+
+  "visitTrend.yesterdayPv": "昨日浏览量(PV)",
+  "visitTrend.todayPv": "今日浏览量(PV)",
+
+  "visitVisitor.newVisitor": "新访客",
+  "visitVisitor.oldVisitor": "老访客",
+  "visitVisitor.pv": "浏览量",
+  "visitVisitor.uv": "访客数",
+
+  "visitSource.name": "来源",
+  "visitSource.type.DIRECT": "直接访问",
+  "visitSource.type.INNER": "内部链接",
+  "visitSource.type.OUTER": "外部链接",
+  "visitSource.type.SEARCH": "搜索引擎",
+  "visitDevice.name": "设备",
+  "visitOs.name": "操作系统",
+  "visitBrowser.name": "浏览器",
+
+  "articleStat.user":"用户",
+  "articleStat.org":"组织",
+  "articleStat.channel":"栏目",
+  "articleStat.total":"总录入数",
+  "articleStat.published":"已发布数",
+  "articleStat.unpublished":"未发布数",
+
+  "performanceStat.user":"用户",
+  "performanceStat.org":"组织",
+  "performanceStat.score":"分",
+  "performanceStat.totalCount":"总发布数",
+  "performanceStat.totalScore":"总绩效分",
+
+  "": ""
+}

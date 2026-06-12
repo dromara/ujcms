@@ -1,0 +1,43 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>${channel.title} - ${site.title}</title>
+  <meta name="keywords" content="${channel.seoKeywords}">
+  <meta name="description" content="${channel.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#include 'inc_header.html'/]
+[#include 'inc_message_box.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        [#list channel.paths as c]
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item">[@A bean=c/]</li>
+        [/#list]
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-12">
+      <h3 class="cm-ff-yh">${channel.name}</h3>
+      <div class="mt-4 article-content">[#noescape]${channel.text!}[/#noescape]</div>
+    </div>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+<script>axios.get('${api}/channel/view/${channel.id?c}');</script>
+</body>
+</html>
+[/#escape]

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.PerformanceStatMapper">
+    <resultMap id="PerformanceMap" type="java.util.HashMap" autoMapping="true"/>
+    <resultMap id="ResultMap" type="com.ujcms.cms.ext.domain.PerformanceStat">
+        <result column="total_count_" jdbcType="INTEGER" property="totalCount"/>
+        <result column="total_score_" jdbcType="INTEGER" property="totalScore"/>
+        <result column="user_id_" jdbcType="BIGINT" property="userId"/>
+        <result column="org_id_" jdbcType="BIGINT" property="orgId"/>
+
+        <association columnPrefix="performance_type_" resultMap="PerformanceMap" property="performanceMap"/>
+
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user"
+                     select="com.ujcms.cms.core.mapper.UserMapper.select"/>
+        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org"
+                     select="com.ujcms.cms.core.mapper.OrgMapper.select"/>
+    </resultMap>
+    <select id="statBy" resultMap="ResultMap">
+        select
+        <if test="type == 'user'">
+            t.user_id_,
+        </if>
+        <if test="type == 'org'">
+            t.org_id_,
+        </if>
+        <foreach collection="performanceTypes" index="index" item="performanceType" close="," separator=",">
+            sum(CASE WHEN channel_.performance_type_id_ = ${performanceType.id} THEN 1 ELSE 0 END) as
+            performance_type_${performanceType.id}
+        </foreach>
+        <foreach collection="performanceTypes" index="index" item="performanceType" open="sum(CASE " close=" ELSE 0 END) as total_score_,">
+            WHEN channel_.performance_type_id_ = ${performanceType.id} THEN ${performanceType.score}
+        </foreach>
+        count(*) as total_count_
+        from ujcms_article t
+        join ujcms_channel channel_ on t.channel_id_ = channel_.id_
+        <where>
+            t.status_ in (0,1,5)
+            and channel_.performance_type_id_ is not null
+            <if test="siteId != null">
+                and t.site_id_ = #{siteId}
+            </if>
+            <if test="begin != null">
+                and t.publish_date_ &gt;= #{begin}
+            </if>
+            <if test="end != null">
+                and t.publish_date_ &lt; #{end}
+            </if>
+        </where>
+        <if test="type == 'user'">
+            group by t.user_id_
+        </if>
+        <if test="type == 'org'">
+            group by t.org_id_
+        </if>
+        order by total_score_ desc
+    </select>
+</mapper>

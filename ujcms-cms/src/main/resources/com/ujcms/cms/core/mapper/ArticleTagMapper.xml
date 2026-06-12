@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ArticleTagMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ArticleTag">
+    <id column="article_id_" jdbcType="BIGINT" property="articleId" />
+    <id column="tag_id_" jdbcType="BIGINT" property="tagId" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.ArticleTag" />
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.ArticleTag">
+    <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.select" />
+    <association column="tag_id_" javaType="com.ujcms.cms.core.domain.Tag" property="tag" select="com.ujcms.cms.core.mapper.TagMapper.select" />
+  </resultMap>
+  <select id="listByArticleId" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_article_tag t
+    where t.article_id_ = #{articleId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByArticleId" parameterType="long">
+    delete
+    from ujcms_article_tag
+    where article_id_ = #{articleId}
+  </delete>
+  <delete id="deleteByTagId" parameterType="long">
+    delete
+    from ujcms_article_tag
+    where tag_id_ = #{tagId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_article_tag
+    where article_id_ in (select t.id_ from ujcms_article t where t.site_id_ = #{siteId,jdbcType=BIGINT})
+  </delete>
+
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_article_tag" />
+    </include>
+  </select>
+  <select id="select" parameterType="map" resultMap="ResultMap">
+    select 
+    <include refid="Column_List" />
+    from ujcms_article_tag t
+    where t.article_id_ = #{articleId,jdbcType=BIGINT}
+      and t.tag_id_ = #{tagId,jdbcType=BIGINT}
+  </select>
+  <delete id="delete" parameterType="map">
+    delete from ujcms_article_tag
+    where article_id_ = #{articleId,jdbcType=BIGINT}
+      and tag_id_ = #{tagId,jdbcType=BIGINT}
+  </delete><update id="update" parameterType="com.ujcms.cms.core.domain.ArticleTag">
+    update ujcms_article_tag
+    set order_ = #{order,jdbcType=INTEGER}
+    where article_id_ = #{articleId,jdbcType=BIGINT}
+      and tag_id_ = #{tagId,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.ArticleTag">
+    update ujcms_article_tag
+    set order_ = #{order,jdbcType=INTEGER}
+    where article_id_ = #{articleId,jdbcType=BIGINT}
+      and tag_id_ = #{tagId,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleTag">
+    insert into ujcms_article_tag (article_id_, tag_id_, order_)
+    values (#{articleId,jdbcType=BIGINT}, #{tagId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.article_id_, t.tag_id_, t.order_
+  </sql></mapper>

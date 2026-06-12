@@ -1,0 +1,130 @@
+.build_docker: &build_docker
+  # 声明式的构建环境 https://docs.cnb.cool/
+  # 可以去dockerhub上 https://hub.docker.com/_/maven 找到您需要maven和jdk版本
+  image: maven:3.9-eclipse-temurin-17-noble
+  volumes:
+    # 声明式的构建缓存 https://docs.cnb.cool/zh/grammar/pipeline.html#volumes
+    - /root/.m2:copy-on-write
+
+.env_setting: &env_setting
+  name: version env setting
+  script: |
+    echo "CNB_BRANCH: ${CNB_BRANCH}"
+    VERSION="${CNB_BRANCH#v}"
+    MAJOR=$(echo "$VERSION" | cut -d'.' -f1)
+    MINOR=$(echo "$VERSION" | cut -d'.' -f2)
+    PATCH=$(echo "$VERSION" | cut -d'.' -f3)
+    echo "##[set-output version=$VERSION]"
+    echo "##[set-output major=$MAJOR]"
+    echo "##[set-output minor=$MINOR]"
+    echo "##[set-output patch=$PATCH]"
+
+    git fetch --quiet --tags
+    CURRENT_TAG=${CNB_BRANCH}
+    echo "CURRENT_TAG: ${CURRENT_TAG}"
+    LATEST_TAG=$(git tag | sort -V | tail -n 1)
+    echo "LATEST_TAG: ${LATEST_TAG}"
+    LATEST_MAJOR_TAG=$(git tag | grep "^v${MAJOR}\." | sort -V | tail -n 1)
+    echo "LATEST_MAJOR_TAG: ${LATEST_MAJOR_TAG}"
+
+    BUILDX_TAGS="-t ${IMAGE_NAME}:${VERSION} -t ${IMAGE_NAME}:${MAJOR}.${MINOR}"
+    if [ "$CURRENT_TAG" = "$LATEST_MAJOR_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:${MAJOR}"; fi
+    if [ "$CURRENT_TAG" = "$LATEST_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:latest"; fi
+    echo "##[set-output buildx_tags=$BUILDX_TAGS]"
+  exports:
+    version: VERSION
+    major: MAJOR
+    minor: MINOR
+    patch: PATCH
+    buildx_tags: BUILDX_TAGS
+
+.env_testing: &env_testing
+  name: version env testing
+  script: |
+    echo "VERSION: ${VERSION}"
+    echo "MAJOR: ${MAJOR}"
+    echo "MINOR: ${MINOR}"
+    echo "PATCH: ${PATCH}"
+    echo "BUILDX_TAGS: ${BUILDX_TAGS}"
+
+.node_pnpm: &node_pnpm
+  name: node pnpm
+  image: node:22
+  volumes:
+    # npm 的缓存目录。这个地址需要使用 npm config get cache 命令确认
+    - /root/.npm:copy-on-write
+    # pnpm 的缓存目录。这个地址需要使用 pnpm store path 命令确认
+    - /workspace/.pnpm-store/v10:copy-on-write
+  script: |
+    npm install -g pnpm
+    pnpm --dir ujcms-starter install
+    pnpm --dir ujcms-starter build
+    pnpm --dir ujcms-ui-console install
+    pnpm --dir ujcms-ui-console build:starter
+
+.mvn_package: &mvn_package
+  name: mvn package
+  script: |
+    sed -i "s#CNB_REPO_SLUG#${CNB_REPO_SLUG}#g" ".cnb/maven-settings.xml"
+    cat ".cnb/maven-settings.xml"
+    mvn -B clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -s .cnb/maven-settings.xml
+
+.docker_login: &docker_login
+  name: docker login
+  script: docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
+
+.docker_buildx: &docker_buildx
+  name: docker buildx build
+  script: |
+    docker buildx build --progress=plain --platform linux/amd64,linux/arm64 ${BUILDX_TAGS} --push .
+
+.trigger_deploy: &trigger_deploy
+  name: trigger deploy CNB image to server
+  image: cnbcool/webhook
+  imports:
+    - https://cnb.cool/ujcms/secrets/-/blob/main/env.yml
+  settings:
+    urls:
+      - https://api.cnb.cool/ujcms/deploy/-/build/start
+    method: POST
+    content_type: application/json
+    headers:
+      - "Accept=application/json"
+    template: |
+      {
+        "event": "api_trigger_deploy_cnb"
+      }
+    token_type: "Bearer"
+    token_value: "$CNB_TRIGGER_TOKEN"
+
+
+# 分支名
+v*.*.*:
+  tag_push:
+    - name: docker buildx multi-platform
+      docker: *build_docker
+      services:
+        - name: docker
+          options:
+            rootlessBuildkitd:
+              enabled: true
+      env:
+        IMAGE_NAME: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}
+      stages:
+        - <<: *env_setting
+        - <<: *env_testing
+        - <<: *node_pnpm
+        - <<: *mvn_package
+        - <<: *docker_login
+        - <<: *docker_buildx
+        - <<: *trigger_deploy
+
+$:
+  vscode:
+    - docker:
+        build: .ide/Dockerfile
+        volumes:
+          - /root/.m2:copy-on-write
+      services:
+        - vscode
+        - docker

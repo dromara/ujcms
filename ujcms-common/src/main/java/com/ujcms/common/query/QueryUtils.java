@@ -1,0 +1,539 @@
+package com.ujcms.common.query;
+
+import com.ujcms.common.web.Dates;
+import com.ujcms.common.web.Servlets;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.springframework.lang.Nullable;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.NumberUtils;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.temporal.TemporalAccessor;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+/**
+ * 查询工具类
+ *
+ * @author PONY
+ */
+public class QueryUtils {
+    /**
+     * 查询前缀
+     */
+    public static final String QUERY_PREFIX = "Q_";
+    /**
+     * 自定义字段前缀
+     */
+    public static final String CUSTOMS_PREFIX = "customs_";
+
+    /**
+     * 从 http 请求中获取查询参数
+     */
+    public static Map<String, Object> getQueryMap(@Nullable String queryString) {
+        return getQueryMap(getParams(queryString), QUERY_PREFIX);
+    }
+
+    public static Map<String, String> getParams(@Nullable String queryString) {
+        return getParams(Servlets.parseQueryString(queryString));
+    }
+
+    public static Map<String, String> getParams(MultiValueMap<String, String> paramsMultiMap) {
+        return paramsMultiMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> joinByComma(entry.getValue())));
+    }
+
+    public static Map<String, Object> getQueryMap(Map<String, String> params, String prefix) {
+        return params.entrySet().stream().filter(entry -> entry.getKey().startsWith(prefix))
+                .collect(Collectors.toMap(entry -> entry.getKey().substring(prefix.length()), Map.Entry::getValue));
+    }
+
+    private static final Pattern QUERY_PATTERN = Pattern.compile("[\\w@$-]*");
+    private static final Pattern TABLE_PATTERN = Pattern.compile("[\\w]*");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("[\\w.]*");
+    private static final Pattern JSON_FIELD_PATTERN = Pattern.compile("[\\w]*");
+    private static final Pattern ORDER_BY_PATTERN = Pattern.compile("[\\w ,.]*");
+
+    /**
+     * 只允许 字母 数字 下划线 中划线 @
+     */
+    public static void validateQuery(String key) {
+        if (!QUERY_PATTERN.matcher(key).matches()) {
+            throw new QueryException("QueryParser只允许 字母 数字 下划线 中划线 @ $：" + key);
+        }
+    }
+
+    /**
+     * 只允许 字母 数字 下划线
+     */
+    public static void validateTable(String table) {
+        if (!TABLE_PATTERN.matcher(table).matches()) {
+            throw new QueryException("QueryParser table 只允许 字母 数字 下划线：" + table);
+        }
+    }
+
+    /**
+     * 只允许 字母 数字 下划线 .
+     */
+    public static void validateField(String field) {
+        if (!FIELD_PATTERN.matcher(field).matches()) {
+            throw new QueryException("QueryParser field 只允许 字母 数字 下划线 .：" + field);
+        }
+    }
+
+    /**
+     * 只允许 字母 数字 下划线
+     */
+    public static void validateJsonField(String field) {
+        if (!JSON_FIELD_PATTERN.matcher(field).matches()) {
+            throw new QueryException("QueryParser json field 只允许 字母 数字 下划线：" + field);
+        }
+    }
+
+
+    /**
+     * 只允许 字母 数字 下划线
+     */
+    public static void validateOrderBy(@Nullable String orderBy) {
+        if (StringUtils.isBlank(orderBy)) {
+            return;
+        }
+        if (!ORDER_BY_PATTERN.matcher(orderBy).matches()) {
+            throw new QueryException("QueryParser orderBy 只允许 字母 数字 空格 下划线 . ,：" + orderBy);
+        }
+    }
+
+
+    /**
+     * 驼峰名转下划线
+     *
+     * <p>如：editUser -> edit_user。可加前缀[prefix]，如 prefix = jspbb_，editUser -> jspbb_edit_user，mainsJson$abc -> mains_json_$abc
+     */
+    public static String camelToUnderscore(String name) {
+        StringBuilder buff = new StringBuilder();
+        for (char c : name.toCharArray()) {
+            // 遇到 $ 符号
+            if (Character.isUpperCase(c) || c == '$') {
+                buff.append("_").append(Character.toLowerCase(c));
+            } else {
+                buff.append(c);
+            }
+        }
+        return buff.toString();
+    }
+
+    public static String underscoreToCamel(String name) {
+        StringBuilder buff = new StringBuilder();
+        boolean upperCase = false;
+        for (char c : name.toCharArray()) {
+            if (c == '_') {
+                upperCase = true;
+            } else if (upperCase) {
+                buff.append(Character.toUpperCase(c));
+                upperCase = false;
+            } else {
+                buff.append(c);
+            }
+        }
+        return buff.toString();
+    }
+
+    /**
+     * 与 [StringUtils.join] 不同，null 和 空串 当做不存在，不参与 join
+     *
+     * @param list 需要 join 的数组，可以为 null
+     * @return join 后的字符串。没有内容则为空串
+     */
+    public static String joinByComma(Collection<String> list) {
+        if (list.isEmpty()) {
+            return "";
+        }
+        StringBuilder buff = new StringBuilder();
+        for (String s : list) {
+            if (s != null && !s.isEmpty()) {
+                buff.append(s).append(',');
+            }
+        }
+        // 去除最后一个分隔符
+        return (buff.length() > 1) ? buff.substring(0, buff.length() - 1) : "";
+    }
+
+
+    public static final String TYPE_STRING = "String";
+    public static final String TYPE_INT = "Int";
+    public static final String TYPE_INTEGER = "Integer";
+    public static final String TYPE_SHORT = "Short";
+    public static final String TYPE_LONG = "Long";
+    public static final String TYPE_DOUBLE = "Double";
+    public static final String TYPE_BIG_INTEGER = "BigInteger";
+    public static final String TYPE_BIG_DECIMAL = "BigDecimal";
+    public static final String TYPE_BOOLEAN = "Boolean";
+    public static final String TYPE_DATE_TIME = "DateTime";
+    public static final String TYPE_DATE = "Date";
+
+    /**
+     * 字符串使用 LIKE 可以支持通配符，如`%`
+     */
+    public static final String OPERATOR_LIKE = "Like";
+    /**
+     * 包含字符串。前后加通配符，如`%name%`
+     */
+    public static final String OPERATOR_CONTAINS = "Contains";
+    /**
+     * 字符串开头。后加通配符，如`name%`
+     */
+    public static final String OPERATOR_STARTS_WITH = "StartsWith";
+    /**
+     * 字符串结尾。前加通配符，如`%name`
+     */
+    public static final String OPERATOR_ENDS_WITH = "EndsWith";
+
+    /**
+     * 等于 `=` equals
+     */
+    public static final String OPERATOR_EQ = "EQ";
+    /**
+     * 不等于 `!=` not equals
+     */
+    public static final String OPERATOR_NE = "NE";
+    /**
+     * 大于 `>` greater than
+     */
+    public static final String OPERATOR_GT = "GT";
+    /**
+     * 大于等于 `>=` greater than or equal to
+     */
+    public static final String OPERATOR_GE = "GE";
+    /**
+     * 小于 `<` less then
+     */
+    public static final String OPERATOR_LT = "LT";
+    /**
+     * 小于等于 `<=` less than or equal to
+     */
+    public static final String OPERATOR_LE = "LE";
+
+    public static final String OPERATOR_IN = "In";
+    public static final String OPERATOR_NOT_IN = "NotIn";
+    public static final String OPERATOR_IS_NULL = "IsNull";
+    public static final String OPERATOR_IS_NOT_NULL = "IsNotNull";
+
+    public static final String OPERATOR_ARRAY_EQ = "ArrayEQ";
+    public static final String OPERATOR_ARRAY_IN = "ArrayIn";
+
+    public static final String DIRECTION_ASC = "asc";
+    public static final String DIRECTION_DESC = "desc";
+
+    public static final String COMMA = ",";
+    public static final String DOLLAR = "$";
+    public static final String POINT = ".";
+    public static final String SPACE = " ";
+    public static final String DASH = "-";
+    public static final String UNDERLINE = "_";
+
+    /**
+     * 支持Like, Contain, StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE
+     */
+    public static String getOperator(String s) {
+        return switch (s) {
+            case OPERATOR_LIKE, OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> "LIKE";
+            case OPERATOR_IN, OPERATOR_ARRAY_IN -> "IN";
+            case OPERATOR_NOT_IN -> "NOT IN";
+            case OPERATOR_IS_NULL -> "IS NULL";
+            case OPERATOR_IS_NOT_NULL -> "IS NOT NULL";
+            case OPERATOR_EQ, OPERATOR_ARRAY_EQ -> "=";
+            case OPERATOR_NE -> "<>";
+            case OPERATOR_GT -> ">";
+            case OPERATOR_GE -> ">=";
+            case OPERATOR_LT -> "<";
+            case OPERATOR_LE -> "<=";
+            default -> throw new QueryException("QueryParser operator '" + s + "' not supported. Support: Like, Contain, " +
+                    "StartsWith, EndsWith, In, NotIn, IsNull, IsNotNull, EQ, NE, GT, LT, GE, LE, ArrayIn, ArrayEQ");
+        };
+    }
+
+    public static boolean isArrayQuery(String operator) {
+        return operator.equalsIgnoreCase(OPERATOR_ARRAY_IN) || operator.equalsIgnoreCase(OPERATOR_ARRAY_EQ);
+    }
+
+    private static boolean isInOrNotInOperator(String operator) {
+        return operator.equalsIgnoreCase(OPERATOR_IN) || operator.equalsIgnoreCase(OPERATOR_ARRAY_IN)
+                || operator.equalsIgnoreCase(OPERATOR_NOT_IN);
+    }
+
+    @Nullable
+    private static Object getStringValue(@Nullable Object obj, String operator) {
+        return switch (operator) {
+            case OPERATOR_IN, OPERATOR_ARRAY_IN, OPERATOR_NOT_IN -> parseStrings(obj);
+            case OPERATOR_CONTAINS -> "%" + obj + "%";
+            case OPERATOR_STARTS_WITH -> obj + "%";
+            case OPERATOR_ENDS_WITH -> "%" + obj;
+            default -> obj;
+        };
+    }
+
+    @Nullable
+    private static Object getBooleanValue(@Nullable Object obj) {
+        Boolean bool = parseBoolean(obj);
+        if (bool == null) {
+            return null;
+        }
+        // 数据库中使用char(1)代替布尔类型
+        return bool ? "1" : "0";
+    }
+
+    @Nullable
+    private static Object getDateValue(@Nullable Object obj, String operator) {
+        OffsetDateTime date = parseDate(obj);
+        // 日期类型判断小于时，需要加一天。比如大于 2008-10-01 小于 2008-10-02，实际上应该小于 2008-10-03 00:00:00
+        if (date != null && Strings.CI.equalsAny(operator, OPERATOR_LE, OPERATOR_LT)) {
+            date = date.plusDays(1);
+        }
+        return date;
+    }
+
+
+    /**
+     * 支持 String, Int(Integer), Long, Double, Boolean, DateTime, Date, BigDecimal, BigInteger
+     */
+    @Nullable
+    public static Object getValue(String type, @Nullable Object obj, String operator) {
+        // IS NULL 和 IS NOT NULL 不需要 value，直接返回空串
+        if (operator.equalsIgnoreCase(OPERATOR_IS_NULL) || operator.equalsIgnoreCase(OPERATOR_IS_NOT_NULL)) {
+            return null;
+        }
+        
+        return switch (type) {
+            case TYPE_STRING -> getStringValue(obj, operator);
+            case TYPE_SHORT -> getNumericValue(obj, operator, Short.class, QueryUtils::parseShort, QueryUtils::parseShorts);
+            case TYPE_INT, TYPE_INTEGER -> getNumericValue(obj, operator, Integer.class, QueryUtils::parseInteger, QueryUtils::parseIntegers);
+            case TYPE_LONG -> getNumericValue(obj, operator, Long.class, QueryUtils::parseLong, QueryUtils::parseLongs);
+            case TYPE_DOUBLE -> getNumericValue(obj, operator, Double.class, QueryUtils::parseDouble, QueryUtils::parseDoubles);
+            case TYPE_BIG_INTEGER -> getNumericValue(obj, operator, BigInteger.class, QueryUtils::parseBigInteger, QueryUtils::parseBigIntegers);
+            case TYPE_BIG_DECIMAL -> getNumericValue(obj, operator, BigDecimal.class, QueryUtils::parseBigDecimal, QueryUtils::parseBigDecimals);
+            case TYPE_BOOLEAN -> getBooleanValue(obj);
+            case TYPE_DATE_TIME -> parseDate(obj);
+            case TYPE_DATE -> getDateValue(obj, operator);
+            default -> throw new QueryException("QueryParser type '" + type + "' not supported. Support: " +
+                    "String, Int(Integer), Long, Double, Boolean, DateTime, Date, BigDecimal, BigInteger");
+        };
+    }
+
+    /**
+     * 获取数值类型的值，根据操作符决定返回单个值还是列表
+     */
+    @Nullable
+    private static <T extends Number> Object getNumericValue(@Nullable Object obj, String operator,
+                                                             Class<T> targetClass,
+                                                             Function<Object, T> singleParser,
+                                                             Function<Object, List<T>> listParser) {
+        if (isInOrNotInOperator(operator)) {
+            return listParser.apply(obj);
+        }
+        return singleParser.apply(obj);
+    }
+
+    @Nullable
+    public static Boolean parseBoolean(@Nullable Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Boolean bool) {
+            return bool;
+        }
+        if (obj instanceof String string) {
+            return Boolean.valueOf(string);
+        }
+        throw new QueryException("Cannot parse to Boolean: " + obj);
+    }
+
+    @Nullable
+    public static OffsetDateTime parseDate(@Nullable Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof TemporalAccessor temporalAccessor) {
+            return Dates.from(temporalAccessor);
+        }
+        if (obj instanceof Date date) {
+            return Dates.ofDate(date);
+        }
+        if (obj instanceof String string) {
+            if (StringUtils.isBlank(string)) {
+                return null;
+            }
+            return Dates.parse(string);
+        }
+        throw new QueryException("Cannot parse to OffsetDateTime: " + obj);
+    }
+
+    @Nullable
+    public static String parseString(@Nullable Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof String string) {
+            return string;
+        }
+        if (obj instanceof Number) {
+            return obj.toString();
+        }
+        if (obj instanceof TemporalAccessor temporalAccessor) {
+            return Instant.from(temporalAccessor).toString();
+        }
+        if (obj instanceof Date date) {
+            return date.toInstant().toString();
+        }
+        if (obj instanceof Collection<?> collection) {
+            return StringUtils.joinWith(",", collection.toArray());
+        }
+        if (obj.getClass().isArray()) {
+            return StringUtils.joinWith(",", obj);
+        }
+        throw new QueryException("Cannot parse to String: " + obj);
+    }
+
+    @Nullable
+    public static List<String> parseStrings(@Nullable Object obj) {
+        return parseList(obj, String.class, Object::toString);
+    }
+
+    @Nullable
+    public static Integer parseInteger(@Nullable Object obj) {
+        return parseNumber(obj, Integer.class);
+    }
+
+    @Nullable
+    public static List<Integer> parseIntegers(@Nullable Object obj) {
+        return parseList(obj, Integer.class, QueryUtils::parseInteger);
+    }
+
+    @Nullable
+    public static Short parseShort(@Nullable Object value) {
+        return parseNumber(value, Short.class);
+    }
+
+    @Nullable
+    public static List<Short> parseShorts(@Nullable Object obj) {
+        return parseList(obj, Short.class, QueryUtils::parseShort);
+    }
+
+    @Nullable
+    public static Long parseLong(@Nullable Object obj) {
+        return parseNumber(obj, Long.class);
+    }
+
+    @Nullable
+    public static List<Long> parseLongs(@Nullable Object obj) {
+        return parseList(obj, Long.class, QueryUtils::parseLong);
+    }
+
+    @Nullable
+    public static Double parseDouble(@Nullable Object obj) {
+        return parseNumber(obj, Double.class);
+    }
+
+    @Nullable
+    public static List<Double> parseDoubles(@Nullable Object obj) {
+        return parseList(obj, Double.class, QueryUtils::parseDouble);
+    }
+
+    @Nullable
+    public static BigInteger parseBigInteger(@Nullable Object obj) {
+        return parseNumber(obj, BigInteger.class);
+    }
+
+    @Nullable
+    public static List<BigInteger> parseBigIntegers(@Nullable Object obj) {
+        return parseList(obj, BigInteger.class, QueryUtils::parseBigInteger);
+    }
+
+    @Nullable
+    public static BigDecimal parseBigDecimal(@Nullable Object obj) {
+        return parseNumber(obj, BigDecimal.class);
+    }
+
+    @Nullable
+    public static List<BigDecimal> parseBigDecimals(@Nullable Object obj) {
+        return parseList(obj, BigDecimal.class, QueryUtils::parseBigDecimal);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static <T extends Number> T parseNumber(@Nullable Object obj, Class<T> targetClass) {
+        if (obj == null) {
+            return null;
+        }
+        Class<?> clazz = obj.getClass();
+        if (clazz.equals(targetClass)) {
+            return (T) obj;
+        }
+        if (obj instanceof Number number) {
+            return NumberUtils.convertNumberToTargetClass(number, targetClass);
+        }
+        if (obj instanceof String s) {
+            if (StringUtils.isBlank(s)) {
+                return null;
+            }
+            return NumberUtils.parseNumber(s, targetClass);
+        }
+        throw new QueryException("Cannot parse to Number: " + obj);
+    }
+
+    @Nullable
+    public static <T extends Number> List<T> parseNumbers(@Nullable Object obj, Class<T> targetClass) {
+        return parseList(obj, targetClass, it -> parseNumber(it, targetClass));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static <T> List<T> parseList(@Nullable Object obj, Class<T> targetClass, Function<Object, T> parser) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Collection<?> collection) {
+            if (targetClass.equals(getGenericsClass(obj))) {
+                return (List<T>) obj;
+            }
+            return collection.stream().map(parser).toList();
+        }
+        if (targetClass.equals(obj.getClass().getComponentType())) {
+            return Arrays.asList((T[]) obj);
+        }
+        if (obj instanceof String string) {
+            return Arrays.stream(StringUtils.split(string, ",")).map(parser).toList();
+        }
+        throw new QueryException("Cannot parse to List: " + obj);
+    }
+
+    @Nullable
+    public static Class<?> getGenericsClass(Object obj) {
+        Type type = obj.getClass().getGenericSuperclass();
+        if (type instanceof ParameterizedType parameterizedType) {
+            Type[] actualTypes = parameterizedType.getActualTypeArguments();
+            if (actualTypes.length > 0 && actualTypes[0] instanceof Class<?>) {
+                return (Class<?>) actualTypes[0];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 工具类不需要实例化
+     */
+    private QueryUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+}

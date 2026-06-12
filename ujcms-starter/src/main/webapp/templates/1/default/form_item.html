@@ -1,0 +1,48 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>表单详情 - ${site.title}</title>
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#include 'inc_header.html'/]
+[#include 'inc_message_box.html'/]
+<div class="bg-gray-200">
+  <div class="container">
+    <nav class="row" aria-label="breadcrumb">
+      <ol class="col list-inline my-2">
+        <li class="list-inline-item"><a href="${site.url}">首页</a></li>
+        <li class="list-inline-item">/</li>
+        <li class="list-inline-item"><a href="${dy}/form-list/${formType.id?c}">${formType.name}</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<div class="container mt-4">
+  <table class="table table-bordered">
+    <tbody>
+    <tr>
+      <th scope="row" class="w-25">创建人</th>
+      <td>${form.user.username}</td>
+    </tr>
+    <tr>
+      <th scope="row">创建日期</th>
+      <td>${format(form.created, 'yyyy-MM-dd HH:mm')}</td>
+    </tr>
+    <tr>
+      <th scope="row">IP</th>
+      <td>${form.ip}</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+[#include 'inc_footer.html'/]
+</body>
+</html>
+[/#escape]

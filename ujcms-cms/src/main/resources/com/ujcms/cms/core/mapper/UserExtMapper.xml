@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.UserExtMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.UserExt">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="birthday_" jdbcType="TIMESTAMP" property="birthday" />
+    <result column="location_" jdbcType="VARCHAR" property="location" />
+    <result column="bio_" jdbcType="VARCHAR" property="bio" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="history_password_" jdbcType="VARCHAR" property="historyPassword" />
+    <result column="login_date_" jdbcType="TIMESTAMP" property="loginDate" />
+    <result column="login_ip_" jdbcType="VARCHAR" property="loginIp" />
+    <result column="login_count_" jdbcType="INTEGER" property="loginCount" />
+    <result column="error_date_" jdbcType="TIMESTAMP" property="errorDate" />
+    <result column="error_count_" jdbcType="INTEGER" property="errorCount" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.UserExt" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.UserExt" />
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_user_ext" />
+        </include>
+    </select>
+    <select id="select" parameterType="long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_user_ext t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="long">
+        delete
+        from ujcms_user_ext
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.UserExt">
+    update ujcms_user_ext
+    set birthday_ = #{birthday,jdbcType=TIMESTAMP},
+      location_ = #{location,jdbcType=VARCHAR},
+      bio_ = #{bio,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      history_password_ = #{historyPassword,jdbcType=VARCHAR},
+      login_date_ = #{loginDate,jdbcType=TIMESTAMP},
+      login_ip_ = #{loginIp,jdbcType=VARCHAR},
+      login_count_ = #{loginCount,jdbcType=INTEGER},
+      error_date_ = #{errorDate,jdbcType=TIMESTAMP},
+      error_count_ = #{errorCount,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.UserExt">
+    update ujcms_user_ext
+    set birthday_ = #{birthday,jdbcType=TIMESTAMP},
+      location_ = #{location,jdbcType=VARCHAR},
+      bio_ = #{bio,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      history_password_ = #{historyPassword,jdbcType=VARCHAR},
+      login_date_ = #{loginDate,jdbcType=TIMESTAMP},
+      login_ip_ = #{loginIp,jdbcType=VARCHAR},
+      login_count_ = #{loginCount,jdbcType=INTEGER},
+      error_date_ = #{errorDate,jdbcType=TIMESTAMP},
+      error_count_ = #{errorCount,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserExt">
+    insert into ujcms_user_ext (id_, birthday_, location_, bio_, created_, history_password_, login_date_, login_ip_, login_count_, error_date_, error_count_)
+    values (#{id,jdbcType=BIGINT}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{historyPassword,jdbcType=VARCHAR}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})
+  </insert><sql id="Column_List">
+    t.id_, t.birthday_, t.location_, t.bio_, t.created_, t.history_password_, t.login_date_, t.login_ip_, t.login_count_, t.error_date_, t.error_count_
+  </sql></mapper>

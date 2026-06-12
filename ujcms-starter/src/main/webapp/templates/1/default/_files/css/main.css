@@ -1,0 +1,110 @@
+@charset "UTF-8";
+.cm-navbar {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.cm-navbar .navbar-nav .nav-link {
+  font-size: 18px;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 16px;
+  padding-right: 16px;
+  color: var(--bs-body-color, #212529);
+  transition: color 0.15s ease-in-out;
+}
+.cm-navbar .navbar-nav .nav-link.active {
+  color: var(--bs-primary, #0d6efd);
+}
+
+.navbar-nav-scroll {
+  max-width: 100%;
+  height: 2.5rem;
+  /*margin-top: .25rem;*/
+  overflow: hidden;
+}
+
+.navbar-nav-scroll .navbar-nav {
+  /*padding-bottom: 2rem;*/
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cm-hidden {
+  display: none !important;
+}
+
+.cm-pointer {
+  cursor: pointer;
+}
+
+.cm-ff-yh {
+  font-family: "Microsoft YaHei", 微软雅黑, "MicrosoftJhengHei", serif;
+}
+
+.cm-block-head-bottom {
+  border-bottom: solid 2px;
+  border-color: var(--bs-primary, #0d6efd);
+  display: inline-block;
+  padding-bottom: 0.3rem;
+}
+
+.cm-trans-bottom {
+  width: 100%;
+  bottom: 0;
+  position: absolute;
+  background-color: rgba(var(--bs-dark-rgb, 0, 0, 0), 0.5);
+}
+
+.cm-media-img, .cm-d-flex-img {
+  max-width: 180px;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: var(--bs-border-radius);
+}
+
+@media screen and (max-width: 767.98px) {
+  .cm-media-img, .cm-d-flex-img {
+    max-width: 120px;
+    max-height: 80px;
+  }
+}
+.cm-video-card {
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: var(--bs-border-radius);
+  padding: 6px;
+  background-color: var(--bs-body-bg, #fff);
+}
+
+.cm-video-card .card-img-top {
+  border-radius: calc(var(--bs-border-radius) - 4px);
+}
+
+.cm-link {
+  color: var(--bs-body-color, #212529);
+  text-decoration: none;
+}
+.cm-link:hover {
+  color: var(--bs-primary, #0d6efd);
+}
+
+a,
+a:hover,
+a:focus {
+  text-decoration: none;
+}
+
+.btn-link,
+.btn-link:hover,
+.btn-link:focus {
+  text-decoration: none;
+}
+
+.es-highlight em {
+  color: var(--bs-danger, #dc3545);
+  font-style: normal;
+  font-weight: bold;
+}

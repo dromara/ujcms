@@ -1,0 +1,1096 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1696255120396-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: editor_settings_
+                  remarks: 编辑器设置
+                  type: VARCHAR(1000)
+            tableName: ujcms_site
+  - changeSet:
+      id: 1696740992905-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: order_
+                  remarks: 排序
+                  type: BIGINT
+            tableName: ujcms_article
+  - changeSet:
+      id: 1696740992906-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: order_
+                  valueComputed: id_
+            tableName: ujcms_article
+  - changeSet:
+      id: 1696741922530-2
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: order_
+            indexName: idx_article_order
+            tableName: ujcms_article
+  - changeSet:
+      id: 1696741922530-1
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: BIGINT
+            columnName: order_
+            tableName: ujcms_article
+            validate: true
+  - changeSet:
+      id: 1696838891143-1
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_item
+  - changeSet:
+      id: 1696838891143-2
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_site
+  - changeSet:
+      id: 1696838891143-3
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_survey
+  - changeSet:
+      id: 1696839283179-1
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: item_id_
+            indexName: idx_surveyoption_item
+            tableName: ujcms_survey_option
+  - changeSet:
+      id: 1696839283179-2
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_surveyoption_site
+            tableName: ujcms_survey_option
+  - changeSet:
+      id: 1696839283179-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_id_
+            indexName: idx_surveyoption_survey
+            tableName: ujcms_survey_option
+  - changeSet:
+      id: 1696839283179-4
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: item_id_
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_item
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey_item
+            validate: true
+  - changeSet:
+      id: 1696839283179-5
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1696839283179-6
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_id_
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_survey
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey
+            validate: true
+  - changeSet:
+      id: 1696840721931-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: order_desc_
+                  remarks: 是否倒序排序
+                  type: CHAR(1)
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1696934804450-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 留言类别ID
+                  type: INT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(90)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 留言类别表
+            tableName: ujcms_message_board_type
+  - changeSet:
+      id: 1696934804450-2
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_messageboardtype_site
+            tableName: ujcms_message_board_type
+  - changeSet:
+      id: 1696934804450-3
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_message_board_type
+            constraintName: fk_messageboardtype_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1696936608891-2
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: type_id_
+            indexName: idx_messageboard_type
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1696936608891-3
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: type_id_
+            baseTableName: ujcms_message_board
+            constraintName: fk_messageboard_type
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_message_board_type
+            validate: true
+  - changeSet:
+      id: 1696936608892-1-sql
+      author: PONY
+      changes:
+        - delete:
+            tableName: ujcms_dict
+            where: type_id_=10
+  - changeSet:
+      id: 1696936608892-2-sql
+      author: PONY
+      changes:
+        - delete:
+            tableName: ujcms_dict_type
+            where: id_=10
+  - changeSet:
+      id: 1698830814959-1
+      author: PONY (generated)
+      changes:
+        - modifyDataType:
+            columnName: name_
+            newDataType: varchar(150)
+            tableName: ujcms_role
+  - changeSet:
+      id: 1698831755259-1
+      author: PONY (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: varchar(150)
+            columnName: name_
+            tableName: ujcms_role
+            validate: true
+  - changeSet:
+      id: 1698832348567-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 绩效类型ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: score_
+                  remarks: 分数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: order_
+                  remarks: 排序
+                  type: BIGINT
+            remarks: 绩效类型表
+            tableName: ujcms_performance_type
+  - changeSet:
+      id: 1698832348567-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: performance_type_id_
+                  remarks: 绩效类型ID
+                  type: INT(10)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1698832348567-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: performance_type_id_
+            indexName: idx_channel_performance_type
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1698832348567-4
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_performancetype_site
+            tableName: ujcms_performance_type
+  - changeSet:
+      id: 1698832348567-5
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: performance_type_id_
+            baseTableName: ujcms_channel
+            constraintName: fk_channel_performance_type
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_performance_type
+            validate: true
+  - changeSet:
+      id: 1698832348567-6
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_performance_type
+            constraintName: fk_performancetype_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1698832348568-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: FILENAME
+                  value: /db/changelog/liquibase.quartz.init.xml
+            tableName: DATABASECHANGELOG
+            where: ID='quartz-init'
+  - changeSet:
+      id: 1700802019080-1
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:b665d98a5b62312ccc985307065d8194
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: all_status_permission_
+                  remarks: 所有状态权限
+                  type: CHAR(1)
+            tableName: ujcms_role
+  - changeSet:
+      id: 1701247563114-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: DATETIME
+            tableName: ujcms_article
+  - changeSet:
+      id: 1701247563114-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: modified_
+                  remarks: 修改日期
+                  type: DATETIME
+            tableName: ujcms_article
+  - changeSet:
+      id: 1701247563114-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: offline_date_
+                  remarks: 下线日期
+                  type: DATETIME
+            tableName: ujcms_article
+  - changeSet:
+      id: 1701247563114-4
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: sticky_date_
+                  remarks: 置顶时间
+                  type: DATETIME
+            tableName: ujcms_article
+  - changeSet:
+      id: 1701247563115-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: created_
+                  valueComputed: (select t.created_ from ujcms_article_ext t where t.id_ = ujcms_article.id_)
+              - column:
+                  name: modified_
+                  valueComputed: (select t.modified_ from ujcms_article_ext t where t.id_ = ujcms_article.id_)
+            tableName: ujcms_article
+  - changeSet:
+      id: 1701248645085-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: created_
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701248645085-2
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: modified_
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701248645085-3
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: offline_date_
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701248645085-4
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: sticky_date_
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701597400042-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 20
+                  name: page_size_
+                  remarks: 每页条数
+                  type: SMALLINT(5)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597400042-2
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:cf9823132fb83ea3505db3c029e4d26c
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: order_desc_
+                  remarks: 是否倒序排序
+                  type: CHAR(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597400042-3
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:8dc791c0532f2cdfe5b74da151d8ead2
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: allow_comment_
+                  remarks: 是否允许评论
+                  type: CHAR(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597400042-4
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:a00a47b2970a24cdbc8b694d0ea5936a
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: allow_contribute_
+                  remarks: 是否允许投稿
+                  type: CHAR(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597400042-5
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:58df4203448dd5e61295b45db357b62a
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: allow_search_
+                  remarks: 是否允许搜索
+                  type: CHAR(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597400042-6
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: DATETIME
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597400042-7
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: modified_
+                  remarks: 修改日期
+                  type: DATETIME
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597400043-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: page_size_
+                  valueComputed: (select t.page_size_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+              - column:
+                  name: order_desc_
+                  valueComputed: (select t.order_desc_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+              - column:
+                  name: allow_comment_
+                  valueComputed: (select t.allow_comment_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+              - column:
+                  name: allow_contribute_
+                  valueComputed: (select t.allow_contribute_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+              - column:
+                  name: allow_search_
+                  valueComputed: (select t.allow_search_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+              - column:
+                  name: created_
+                  valueComputed: (select t.created_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+              - column:
+                  name: modified_
+                  valueComputed: (select t.modified_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701597799038-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: allow_comment_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1701597799038-2
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: allow_contribute_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1701597799038-3
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: allow_search_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1701597799038-4
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: created_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1701597799038-5
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: modified_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1701597799038-6
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: order_desc_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1701597799038-7
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: page_size_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1701680249593-1
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:382ceaff31d17ea7cde08cd426457500
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: views_
+                  remarks: 浏览次数
+                  type: BIGINT
+            tableName: ujcms_site
+  - changeSet:
+      id: 1701680249593-2
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:f22850502450442726a0c8a83c30655c
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: self_views_
+                  remarks: 首页浏览次数
+                  type: BIGINT
+            tableName: ujcms_site
+  - changeSet:
+      id: 1701680249593-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: today_views_
+                  remarks: 今日浏览次数
+                  type: INT(10)
+            tableName: ujcms_site
+  - changeSet:
+      id: 1701680249593-4
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:8d9a55792d416048107290ad991f6f3c
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: views_
+                  remarks: 浏览次数
+                  type: BIGINT
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701680249593-5
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:2aa5767c1157eb2fbbc9e87c268e4362
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: self_views_
+                  remarks: 栏目页浏览次数
+                  type: BIGINT
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701680249593-6
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: yesterday_views_
+                  remarks: 昨日浏览次数
+                  type: INT(10)
+            tableName: ujcms_site
+  - changeSet:
+      id: 1701680249593-7
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: max_views_
+                  remarks: 最高浏览次数
+                  type: INT(10)
+            tableName: ujcms_site
+  - changeSet:
+      id: 1701680249593-8
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: max_date_
+                  remarks: 最高浏览日期
+                  type: DATETIME
+            tableName: ujcms_site
+  - changeSet:
+      id: 1701680249594-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: self_views_
+                  valueComputed: (select t.self_views_ from ujcms_channel_buffer t where t.id_ = ujcms_channel.id_)
+              - column:
+                  name: views_
+                  valueComputed: (select t.views_ from ujcms_channel_buffer t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1701680249594-2-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: views_
+                  valueComputed: (select t.views_ from ujcms_site_buffer t where t.id_ = ujcms_site.id_)
+              - column:
+                  name: self_views_
+                  valueComputed: (select t.self_views_ from ujcms_site_buffer t where t.id_ = ujcms_site.id_)
+              - column:
+                  name: today_views_
+                  valueComputed: (select t.today_views_ from ujcms_site_buffer t where t.id_ = ujcms_site.id_)
+              - column:
+                  name: yesterday_views_
+                  valueComputed: (select t.yesterday_views_ from ujcms_site_buffer t where t.id_ = ujcms_site.id_)
+              - column:
+                  name: max_views_
+                  valueComputed: (select t.max_views_ from ujcms_site_buffer t where t.id_ = ujcms_site.id_)
+              - column:
+                  name: max_date_
+                  valueComputed: (select t.max_date_ from ujcms_site_buffer t where t.id_ = ujcms_site.id_)
+            tableName: ujcms_site
+  - changeSet:
+      id: 1701680914657-1
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_channel_buffer
+            constraintName: fk_channelbuffer_channel
+  - changeSet:
+      id: 1701680914657-2
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_site_buffer
+            constraintName: fk_sitebuffer_site
+  - changeSet:
+      id: 1701680914657-3
+      author: PONY (generated)
+      changes:
+        - dropTable:
+            tableName: ujcms_channel_buffer
+  - changeSet:
+      id: 1701680914657-4
+      author: PONY (generated)
+      changes:
+        - dropTable:
+            tableName: ujcms_site_buffer
+  - changeSet:
+      id: 1701682230934-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: comments_
+                  remarks: 评论次数
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: downloads_
+                  remarks: 下载次数
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: favorites_
+                  remarks: 收藏次数
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-4
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: ups_
+                  remarks: 顶
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-5
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: downs_
+                  remarks: 踩
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-6
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:dc90f4357a1a1f20a8d1cf317a5696b4
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: views_
+                  remarks: 浏览次数
+                  type: BIGINT
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-7
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: day_views_
+                  remarks: 日浏览次数
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-8
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: week_views_
+                  remarks: 周浏览次数
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-9
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: month_views_
+                  remarks: 月浏览次数
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-10
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: quarter_views_
+                  remarks: 季浏览次数
+                  type: INT(10)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-11
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:392882e3b9c8f65bf8f419558946cd34
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: year_views_
+                  remarks: 年浏览次数
+                  type: BIGINT
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682230934-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: comments_
+                  valueComputed: (select t.comments_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: downloads_
+                  valueComputed: (select t.downloads_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: favorites_
+                  valueComputed: (select t.favorites_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: ups_
+                  valueComputed: (select t.ups_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: downs_
+                  valueComputed: (select t.downs_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: views_
+                  valueComputed: (select t.views_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: day_views_
+                  valueComputed: (select t.day_views_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: week_views_
+                  valueComputed: (select t.week_views_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: month_views_
+                  valueComputed: (select t.month_views_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: quarter_views_
+                  valueComputed: (select t.quarter_views_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+              - column:
+                  name: year_views_
+                  valueComputed: (select t.year_views_ from ujcms_article_buffer t where t.id_ = ujcms_article_ext.id_)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1701682894156-1
+      author: PONY (generated)
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_article_buffer
+            constraintName: fk_articlebuffer_article
+  - changeSet:
+      id: 1701682894156-2
+      author: PONY (generated)
+      changes:
+        - dropTable:
+            tableName: ujcms_article_buffer
+  - changeSet:
+      id: 1702444486049-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: online_date_
+                  remarks: 上线日期
+                  type: DATETIME
+            tableName: ujcms_article
+  - changeSet:
+      id: 1705651238012-8
+      author: PONY (generated)
+      changes:
+        - dropNotNullConstraint:
+            columnDataType: varchar(100)
+            columnName: password_
+            tableName: ujcms_user
+  - changeSet:
+      id: 1705651238012-9
+      author: PONY (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(100)
+            columnName: password_
+            tableName: ujcms_user
+  - changeSet:
+      id: 9.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v9.0

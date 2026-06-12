@@ -1,0 +1,43 @@
+{
+  "list": "列表",
+  "add": "新增",
+  "edit": "编辑",
+  "delete": "删除",
+  "search": "查询",
+  "back": "返回",
+  "submit": "提交",
+  "reset": "重置",
+  "cancel": "取消",
+  "save": "保存",
+  "create": "创建",
+  "update": "更新",
+  "success": "成功",
+
+  "confirmDelete": "您确定删除吗？",
+
+  "form.prev": "上一条",
+  "form.next": "下一条",
+  "form.unsaved": "未保存",
+  "form.continuous": "连续模式。保存后依然留在当前页面",
+  "table.action": "操作",
+  "table.selection": "选择框",
+  "table.columnsReset": "列重置",
+  "table.columnsSetting": "列设置",
+
+  "v.required": "this field is required",
+  "v.fix": "请修正此字段",
+  "v.email": "请输入有效的电子邮箱",
+  "v.url": "请输入有效的网址",
+  "v.date": "请输入有效的日期 (YYYY-MM-DD)",
+  "v.number": "请输入有效的数字",
+  "v.integer": "请输入有效的整数",
+  "v.equal": "两次输入不一致",
+  "v.min": "请输入不小于 {min} 的数值",
+  "v.max": "请输入不大于 {max} 的数值",
+  "v.range": "请输入范围在 {min} 到 {max} 之间的数值",
+  "v.minLength": "最少要输入 {minLength} 个字符",
+  "v.maxLength": "最多可以输入 {maxLength} 个字符",
+  "v.rangeLength": "请输入长度在 {min} 到 {max} 之间的字符串",
+
+  "": ""
+}
