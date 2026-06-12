@@ -1,0 +1,47 @@
+{
+  "org.name": "名称",
+  "org.address": "地址",
+  "org.phone": "电话",
+  "org.contacts": "联系人",
+  "org.order": "顺序",
+
+  "group.name": "名称",
+  "group.description": "描述",
+  "group.order": "顺序",
+
+  "role.name": "名称",
+  "role.description": "描述",
+  "role.permission": "功能权限",
+  "role.order": "顺序",
+
+  "user.username": "用户名",
+  "user.group": "用户组",
+  "user.org": "组织",
+  "user.role": "角色",
+  "user.password": "密码",
+  "user.passwordAgain": "确认密码",
+  "user.email": "电子邮箱",
+  "user.mobile": "手机号",
+  "user.avatar": "头像",
+  "user.rank": "等级",
+  "user.rank.tooltip": "数值越小等级越高。等级高的用户可以管理等级低的用户，等级低的用户不能管理等级高的用户",
+  "user.status": "状态",
+
+  "user.ext.realName": "真实姓名",
+  "user.ext.created": "创建日期",
+  "user.ext.gender": "性别",
+  "user.ext.birthday": "出生日期",
+  "user.ext.location": "居住地",
+  "user.ext.bio": "自我介绍",
+  "user.ext.loginDate": "最后登录日期",
+  "user.ext.loginIp": "最后登录IP",
+  "user.ext.loginCount": "登录次数",
+  "user.ext.errorDate": "登录错误日期",
+  "user.ext.errorCount": "登录错误次数",
+
+  "user.error.usernameExist": "username exist",
+  "user.error.emailExist": "email exist",
+  "user.error.mobileExist": "mobile exist",
+
+  "": ""
+}

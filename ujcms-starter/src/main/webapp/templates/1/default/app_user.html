@@ -1,0 +1,21 @@
+[#escape x as (x)!?html]
+  [#if user??]
+  <div class="dropdown ms-3 d-none d-xl-block">
+    <img src="${user.smallAvatar!config.register.avatar}" alt="${user.username}" title="${user.username}" class="rounded-circle dropdown-toggle" data-bs-toggle="dropdown"
+         style="width:36px;height:36px;cursor:pointer;">
+    <div class="dropdown-menu dropdown-menu-end">
+      <a class="dropdown-item" href="${def}${user.homepage}"><i class="far fa-user"></i> <span>个人主页</span></a>
+      <a class="dropdown-item" href="${def}/settings/profile"><i class="fas fa-cog"></i> <span>设置</span></a>
+      <form action="${ctx}/logout" method="post">
+        <button class="dropdown-item" type="submit"><i class="fas fa-sign-out-alt"></i> <span>退出</span></button>
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+      </form>
+    </div>
+  </div>
+  [#else]
+  <div class="ms-3">
+    <a class="btn btn-light text-primary" href="${def}/login">登录</a>
+    <a class="btn btn-primary" href="${def}/register">注册</a>
+  </div>
+  [/#if]
+[/#escape]

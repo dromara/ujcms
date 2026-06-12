@@ -1,0 +1,122 @@
+package com.ujcms.generator.mybatis.xml;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+
+import org.mybatis.generator.api.IntrospectedColumn;
+import org.mybatis.generator.api.dom.OutputUtilities;
+import org.mybatis.generator.api.dom.xml.Attribute;
+import org.mybatis.generator.api.dom.xml.TextElement;
+import org.mybatis.generator.api.dom.xml.XmlElement;
+import org.mybatis.generator.codegen.mybatis3.ListUtilities;
+import org.mybatis.generator.codegen.mybatis3.MyBatis3FormattingUtilities;
+import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.AbstractXmlElementGenerator;
+
+/**
+ * update 不包含 order_ 字段的更新
+ */
+public class XmlUpdateElement extends AbstractXmlElementGenerator {
+
+    protected final boolean isSimple;
+
+    public XmlUpdateElement(boolean isSimple) {
+        super();
+        this.isSimple = isSimple;
+    }
+
+    protected XmlElement buildUpdateElement(String id,boolean withBlobs) {
+        XmlElement answer = new XmlElement("update"); //$NON-NLS-1$
+
+        answer.addAttribute(new Attribute("id", id)); //$NON-NLS-1$
+        answer.addAttribute(new Attribute("parameterType", //$NON-NLS-1$
+                introspectedTable.getBaseRecordType()));
+
+        context.getCommentGenerator().addComment(answer);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("update "); //$NON-NLS-1$
+        sb.append(introspectedTable.getFullyQualifiedTableNameAtRuntime());
+        answer.addElement(new TextElement(sb.toString()));
+
+        // set up for first column
+        sb.setLength(0);
+        sb.append("set "); //$NON-NLS-1$
+
+        List<IntrospectedColumn> columnList = ListUtilities
+                .removeGeneratedAlwaysColumns(introspectedTable.getNonPrimaryKeyColumns());
+
+        String updateExcludes = introspectedTable.getTableConfigurationProperty("updateExcludes");
+        List<String> updateExcludeList = Optional.ofNullable(updateExcludes).map(it -> it.split(",")).stream()
+                .flatMap(Arrays::stream).map(String::trim).toList();
+
+        // 修改 begin
+        columnList = columnList.stream().filter(introspectedColumn -> {
+            String columnName = MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn);
+            String orderColumn = "order_";
+            List<String> orderTypes = Collections.singletonList("Long");
+            String columnJavaType = introspectedColumn.getFullyQualifiedJavaType().getShortName();
+            boolean isBlob = introspectedColumn.isBLOBColumn()
+                    || "json".equalsIgnoreCase(introspectedColumn.getJdbcTypeName())
+                    || "jsonb".equalsIgnoreCase(introspectedColumn.getJdbcTypeName());
+            boolean order = orderColumn.equals(columnName) && orderTypes.contains(columnJavaType);
+            return !order && !updateExcludeList.contains(columnName)
+                    && (withBlobs || !isBlob);
+        }).toList();
+        // 修改 end
+
+        for (Iterator<IntrospectedColumn> iter = columnList.iterator(); iter.hasNext();) {
+            IntrospectedColumn introspectedColumn = iter.next();
+
+            String columnName = MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn);
+            sb.append(columnName);
+            sb.append(" = "); //$NON-NLS-1$
+            String parameterClause = MyBatis3FormattingUtilities.getParameterClause(introspectedColumn);
+            if (columnName.endsWith("_json_")
+                    && (parameterClause.contains("LONGVARCHAR") || parameterClause.contains("CLOB"))) {
+                parameterClause = parameterClause.replace("LONGVARCHAR", "OTHER");
+                parameterClause = parameterClause.replace("CLOB", "OTHER");
+            }
+            sb.append(parameterClause);
+
+            if (iter.hasNext()) {
+                sb.append(',');
+            }
+
+            answer.addElement(new TextElement(sb.toString()));
+
+            // set up for the next column
+            if (iter.hasNext()) {
+                sb.setLength(0);
+                OutputUtilities.xmlIndent(sb, 1);
+            }
+        }
+
+        boolean and = false;
+        for (IntrospectedColumn introspectedColumn : introspectedTable.getPrimaryKeyColumns()) {
+            sb.setLength(0);
+            if (and) {
+                sb.append("  and "); //$NON-NLS-1$
+            } else {
+                sb.append("where "); //$NON-NLS-1$
+                and = true;
+            }
+
+            sb.append(MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn));
+            sb.append(" = "); //$NON-NLS-1$
+            sb.append(MyBatis3FormattingUtilities.getParameterClause(introspectedColumn));
+            answer.addElement(new TextElement(sb.toString()));
+        }
+        return answer;
+    }
+
+    @Override
+    public void addElements(XmlElement parentElement) {
+        XmlElement answer = buildUpdateElement(introspectedTable.getUpdateByPrimaryKeyStatementId(), true);
+        if (context.getPlugins().sqlMapUpdateByPrimaryKeyWithoutBLOBsElementGenerated(answer, introspectedTable)) {
+            parentElement.addElement(answer);
+        }
+    }
+}

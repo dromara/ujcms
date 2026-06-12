@@ -1,0 +1,120 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1718533128302-1
+      author: PONY (generated)
+      changes:
+        - setTableRemarks:
+            remarks: 示例表
+            tableName: ujcms_example
+  - changeSet:
+      id: 1720001803357-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: table_name_
+                  remarks: 表名
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: current_id_
+                  remarks: 当前主键值
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: orig_id_
+                  remarks: 原主键值
+                  type: VARCHAR(255)
+              - column:
+                  name: orig_parent_id_
+                  remarks: 原上级主键值
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 类型(1:数据迁移,2:站点导入)
+                  type: SMALLINT
+            remarks: 导入数据表
+            tableName: ujcms_import_data
+  - changeSet:
+      id: 1724213214377-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: grey_settings_
+                  remarks: 置灰设置
+                  type: VARCHAR(2000)
+            tableName: ujcms_config
+  - changeSet:
+      id: 1724774444757-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '***'
+                  name: replacement_
+                  remarks: 替换词
+                  type: VARCHAR(90)
+            tableName: ujcms_sensitive_word
+  - changeSet:
+      id: 1724828105241-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(3000)
+            tableName: ujcms_site
+  - changeSet:
+      id: 1735635660658-1
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_blockitem_article
+            tableName: ujcms_block_item
+  - changeSet:
+      id: 1735636061806-1
+      author: PONY (generated)
+      dbms: '!dm'
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            indexName: uk_blockitem_block_article
+            tableName: ujcms_block_item
+      changes:
+        - dropUniqueConstraint:
+            constraintName: uk_blockitem_block_article
+            tableName: ujcms_block_item
+  - changeSet:
+      id: 1735636061806-1-dm
+      author: PONY (generated)
+      changes:
+        - sql:
+            dbms: 'dm'
+            sql: alter table UJCMS_BLOCK_ITEM drop constraint UK_BLOCKITEM_BLOCK_ARTICLE;
+
+

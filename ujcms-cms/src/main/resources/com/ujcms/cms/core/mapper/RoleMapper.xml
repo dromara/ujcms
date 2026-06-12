@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.RoleMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Role">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="all_permission_" jdbcType="CHAR" property="allPermission" />
+    <result column="all_grant_permission_" jdbcType="CHAR" property="allGrantPermission" />
+    <result column="global_permission_" jdbcType="CHAR" property="globalPermission" />
+    <result column="all_article_permission_" jdbcType="CHAR" property="allArticlePermission" />
+    <result column="all_channel_permission_" jdbcType="CHAR" property="allChannelPermission" />
+    <result column="data_scope_" jdbcType="SMALLINT" property="dataScope" />
+    <result column="all_status_permission_" jdbcType="CHAR" property="allStatusPermission" />
+    <result column="rank_" jdbcType="SMALLINT" property="rank" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="scope_" jdbcType="SMALLINT" property="scope" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Role">
+    <result column="permission_" jdbcType="LONGVARCHAR" property="permission" />
+    <result column="grant_permission_" jdbcType="LONGVARCHAR" property="grantPermission" />
+  </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Role">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
+    </resultMap>
+    <select id="listByUserId" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_role t
+        join ujcms_user_role ur on t.id_ = ur.role_id_
+        where ur.user_id_ = #{userId}
+    </select>
+    <select id="articleRoleList" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_role t
+        join ujcms_role_article ra on t.id_ = ra.role_id_
+        where ra.channel_id_ = #{channelId}
+    </select>
+    <select id="channelRoleList" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_role t
+        join ujcms_role_channel rc on t.id_ = rc.role_id_
+        where rc.channel_id_ = #{channelId}
+    </select>
+    <delete id="deleteBySiteId" parameterType="long">
+        delete
+        from ujcms_role
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_role" />
+        </include>
+    </select>
+    <select id="select" parameterType="long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_role t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="long">
+        delete
+        from ujcms_role
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Role">
+    update ujcms_role
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      all_permission_ = #{allPermission,jdbcType=CHAR},
+      all_grant_permission_ = #{allGrantPermission,jdbcType=CHAR},
+      global_permission_ = #{globalPermission,jdbcType=CHAR},
+      all_article_permission_ = #{allArticlePermission,jdbcType=CHAR},
+      all_channel_permission_ = #{allChannelPermission,jdbcType=CHAR},
+      data_scope_ = #{dataScope,jdbcType=SMALLINT},
+      all_status_permission_ = #{allStatusPermission,jdbcType=CHAR},
+      rank_ = #{rank,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER},
+      permission_ = #{permission,jdbcType=LONGVARCHAR},
+      grant_permission_ = #{grantPermission,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Role">
+    update ujcms_role
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      all_permission_ = #{allPermission,jdbcType=CHAR},
+      all_grant_permission_ = #{allGrantPermission,jdbcType=CHAR},
+      global_permission_ = #{globalPermission,jdbcType=CHAR},
+      all_article_permission_ = #{allArticlePermission,jdbcType=CHAR},
+      all_channel_permission_ = #{allChannelPermission,jdbcType=CHAR},
+      data_scope_ = #{dataScope,jdbcType=SMALLINT},
+      all_status_permission_ = #{allStatusPermission,jdbcType=CHAR},
+      rank_ = #{rank,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      scope_ = #{scope,jdbcType=SMALLINT},
+      order_ = #{order,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Role">
+    insert into ujcms_role (id_, site_id_, name_, description_, all_permission_, all_grant_permission_, global_permission_, all_article_permission_, all_channel_permission_, data_scope_, all_status_permission_, rank_, type_, scope_, order_, permission_, grant_permission_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{allPermission,jdbcType=CHAR}, #{allGrantPermission,jdbcType=CHAR}, #{globalPermission,jdbcType=CHAR}, #{allArticlePermission,jdbcType=CHAR}, #{allChannelPermission,jdbcType=CHAR}, #{dataScope,jdbcType=SMALLINT}, #{allStatusPermission,jdbcType=CHAR}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{permission,jdbcType=LONGVARCHAR}, #{grantPermission,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.description_, t.all_permission_, t.all_grant_permission_, t.global_permission_, t.all_article_permission_, t.all_channel_permission_, t.data_scope_, t.all_status_permission_, t.rank_, t.type_, t.scope_, t.order_, t.permission_, t.grant_permission_
+  </sql></mapper>

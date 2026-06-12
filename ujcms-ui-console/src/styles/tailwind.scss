@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  div:focus,
+  button:focus {
+    outline: none;
+  }
+}
+
+// @layer utilities {
+//   .sidebar-bg {
+//     @apply bg-gray-800;
+//   }
+// }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ChannelBufferMapper">
+    <resultMap id="ResultMap" type="com.ujcms.cms.core.domain.ChannelBuffer">
+        <id column="id_" jdbcType="BIGINT" property="id"/>
+        <result column="views_" jdbcType="BIGINT" property="views"/>
+        <result column="self_views_" jdbcType="BIGINT" property="selfViews"/>
+    </resultMap>
+
+    <update id="updateBatch">
+        update ujcms_channel
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="self_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then self_views_+#{item.selfViews}
+                </foreach>
+            </trim>
+        </trim>
+        where id_ in
+        <foreach close=")" collection="list" index="index" item="item" open="(" separator=",">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+    <select id="select" parameterType="long" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_channel t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <update id="update" parameterType="com.ujcms.cms.core.domain.ChannelBuffer">
+        update ujcms_channel
+        set views_      = #{views,jdbcType=BIGINT},
+            self_views_ = #{selfViews,jdbcType=BIGINT}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <sql id="Column_List">
+        t.id_, t.views_, t.self_views_
+    </sql>
+</mapper>

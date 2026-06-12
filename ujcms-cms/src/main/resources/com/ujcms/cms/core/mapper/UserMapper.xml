@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.UserMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.User">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="group_id_" jdbcType="BIGINT" property="groupId" />
+    <result column="org_id_" jdbcType="BIGINT" property="orgId" />
+    <result column="username_" jdbcType="VARCHAR" property="username" />
+    <result column="password_" jdbcType="VARCHAR" property="password" />
+    <result column="email_" jdbcType="VARCHAR" property="email" />
+    <result column="mobile_" jdbcType="VARCHAR" property="mobile" />
+    <result column="alias_" jdbcType="VARCHAR" property="alias" />
+    <result column="nickname_" jdbcType="VARCHAR" property="nickname" />
+    <result column="real_name_" jdbcType="VARCHAR" property="realName" />
+    <result column="gender_" jdbcType="SMALLINT" property="gender" />
+    <result column="avatar_" jdbcType="VARCHAR" property="avatar" />
+    <result column="password_modified_" jdbcType="TIMESTAMP" property="passwordModified" />
+    <result column="rank_" jdbcType="SMALLINT" property="rank" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.User" />
+    <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.User">
+    </resultMap>
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.User">
+        <association column="id_" fetchType="lazy" javaType="com.ujcms.cms.core.domain.UserExt" property="ext" select="com.ujcms.cms.core.mapper.UserExtMapper.select" />
+        <association column="group_id_" javaType="com.ujcms.cms.core.domain.Group" property="group" select="com.ujcms.cms.core.mapper.GroupMapper.select" />
+        <association column="org_id_" javaType="com.ujcms.cms.core.domain.Org" property="org" select="com.ujcms.cms.core.mapper.OrgMapper.select" />
+        <collection column="id_" fetchType="lazy" javaType="ArrayList" property="roleList" select="com.ujcms.cms.core.mapper.RoleMapper.listByUserId" />
+        <collection column="id_" fetchType="lazy" javaType="ArrayList" property="orgList" select="com.ujcms.cms.core.mapper.OrgMapper.listByUserId" />
+    </resultMap>
+
+    <select id="countByCreated" resultType="int">
+        select count(*)
+        from ujcms_user t
+        <if test="created != null">
+            join ujcms_user_ext ext_ on t.id_ = ext_.id_
+        </if>
+        <where>
+            <if test="created != null">
+                ext_.created_ &gt;= #{created}
+            </if>
+        </where>
+    </select>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin">
+        <if test="orgId != null">
+            join ujcms_org_tree orgTree on t.org_id_ = orgTree.descendant_id_
+        </if>
+    </sql>
+    <sql id="selectAllWhere">
+        <if test="orgId != null">
+            and orgTree.ancestor_id_ = #{orgId}
+        </if>
+    </sql>
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_user" />
+        </include>
+    </select>
+    <select id="selectByUsername" resultMap="ResultMap">
+        SELECT
+        <include refid="Column_List" />
+        FROM ujcms_user t
+        WHERE t.username_ = #{username}
+    </select>
+    <select id="selectByEmail" resultMap="ResultMap">
+        SELECT
+        <include refid="Column_List" />
+        FROM ujcms_user t
+        WHERE t.email_ = #{email}
+    </select>
+    <select id="selectByMobile" resultMap="ResultMap">
+        SELECT
+        <include refid="Column_List" />
+        FROM ujcms_user t
+        WHERE t.mobile_ = #{mobile}
+    </select>
+    <select id="selectByOpenid" resultMap="ResultMap">
+        SELECT
+        <include refid="Column_List" />
+        FROM ujcms_user t
+        JOIN ujcms_user_openid o ON t.id_ = o.user_id_
+        WHERE o.provider_ = #{provider} and o.openid_ = #{openid}
+    </select>
+    <select id="existsByOrgId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_user
+                           WHERE org_id_ = #{orgId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="existsByGroupId" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_user
+                           WHERE group_id_ = #{groupId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="existsByRoleId" resultType="int">
+        select case
+                   when exists(
+                           select *
+                           from ujcms_user t
+                           where t.id_ in (select ur.user_id_ from ujcms_user_role ur where ur.role_id_ = #{roleId})
+                             and t.org_id_ not in
+                                 (select ot.descendant_id_ from ujcms_org_tree ot where ot.ancestor_id_ = #{notOrgId})
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="selectRefer" parameterType="long" resultMap="ReferResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_user t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="select" parameterType="long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_user t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="long">
+        delete
+        from ujcms_user
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.User">
+    update ujcms_user
+    set group_id_ = #{groupId,jdbcType=BIGINT},
+      org_id_ = #{orgId,jdbcType=BIGINT},
+      username_ = #{username,jdbcType=VARCHAR},
+      password_ = #{password,jdbcType=VARCHAR},
+      email_ = #{email,jdbcType=VARCHAR},
+      mobile_ = #{mobile,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      nickname_ = #{nickname,jdbcType=VARCHAR},
+      real_name_ = #{realName,jdbcType=VARCHAR},
+      gender_ = #{gender,jdbcType=SMALLINT},
+      avatar_ = #{avatar,jdbcType=VARCHAR},
+      password_modified_ = #{passwordModified,jdbcType=TIMESTAMP},
+      rank_ = #{rank,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.User">
+    update ujcms_user
+    set group_id_ = #{groupId,jdbcType=BIGINT},
+      org_id_ = #{orgId,jdbcType=BIGINT},
+      username_ = #{username,jdbcType=VARCHAR},
+      password_ = #{password,jdbcType=VARCHAR},
+      email_ = #{email,jdbcType=VARCHAR},
+      mobile_ = #{mobile,jdbcType=VARCHAR},
+      alias_ = #{alias,jdbcType=VARCHAR},
+      nickname_ = #{nickname,jdbcType=VARCHAR},
+      real_name_ = #{realName,jdbcType=VARCHAR},
+      gender_ = #{gender,jdbcType=SMALLINT},
+      avatar_ = #{avatar,jdbcType=VARCHAR},
+      password_modified_ = #{passwordModified,jdbcType=TIMESTAMP},
+      rank_ = #{rank,jdbcType=SMALLINT},
+      type_ = #{type,jdbcType=SMALLINT},
+      status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.User">
+    insert into ujcms_user (id_, group_id_, org_id_, username_, password_, email_, mobile_, alias_, nickname_, real_name_, gender_, avatar_, password_modified_, rank_, type_, status_)
+    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+  </insert><sql id="Column_List">
+    t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.email_, t.mobile_, t.alias_, t.nickname_, t.real_name_, t.gender_, t.avatar_, t.password_modified_, t.rank_, t.type_, t.status_
+  </sql></mapper>

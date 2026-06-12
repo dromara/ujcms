@@ -1,0 +1,1348 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1686732952061-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 易错词ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: correct_
+                  remarks: 正确词
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+            remarks: 易错词表
+            tableName: ujcms_error_word
+  - changeSet:
+      id: 1686732952061-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 敏感词ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+            remarks: 敏感词表
+            tableName: ujcms_sensitive_word
+  - changeSet:
+      id: 1689738001791-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 投票ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(3000)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(3000)
+              - column:
+                  name: begin_date_
+                  remarks: 开始日期
+                  type: datetime
+              - column:
+                  name: end_date_
+                  remarks: 结束日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: order_date_
+                  remarks: 排序日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: interval_
+                  remarks: 重复投票间隔天数(0:不可重复投票)
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: times_
+                  remarks: 参与人次
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: mode_
+                  remarks: 模式(1:独立访客,2:独立IP,3:独立用户)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: multiple_
+                  remarks: 是否多选
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+            remarks: 投票表
+            tableName: ujcms_vote
+  - changeSet:
+      id: 1689738001791-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 投票选项ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: vote_id_
+                  remarks: 投票ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: count_
+                  remarks: 得票数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: order_
+                  remarks: 排序
+                  type: INT
+            remarks: 投票选项表
+            tableName: ujcms_vote_option
+  - changeSet:
+      id: 1689738001791-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_vote_site
+            tableName: ujcms_vote
+  - changeSet:
+      id: 1689738001791-4
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: vote_id_
+            indexName: idx_voteoption_vote
+            tableName: ujcms_vote_option
+  - changeSet:
+      id: 1689738001791-5
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_vote
+            constraintName: fk_vote_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1689738001791-6
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: vote_id_
+            baseTableName: ujcms_vote_option
+            constraintName: fk_voteoption_vote
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_vote
+            validate: true
+  - changeSet:
+      id: 1689738319551-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 问卷ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(3000)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(3000)
+              - column:
+                  name: begin_date_
+                  remarks: 开始日期
+                  type: datetime
+              - column:
+                  name: end_date_
+                  remarks: 结束日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: order_date_
+                  remarks: 排序日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: mode_
+                  remarks: 模式(1:独立访客,2:独立IP,3:独立用户)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: times_
+                  remarks: 参与人次
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: interval_
+                  remarks: 重复问答间隔天数(0:不可重复问答)
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+            remarks: 调查问卷表
+            tableName: ujcms_survey
+  - changeSet:
+      id: 1689738319551-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 问卷条目ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_id_
+                  remarks: 问卷ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(3000)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: order_
+                  remarks: 排序
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: multiple_
+                  remarks: 是否多选
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: essay_
+                  remarks: 是否问答
+                  type: CHAR(1)
+            remarks: 调查问卷条目表
+            tableName: ujcms_survey_item
+  - changeSet:
+      id: 1689738319551-3
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 问卷选项ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_id_
+                  remarks: 问卷ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: item_id_
+                  remarks: 问卷条目ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: count_
+                  remarks: 得票数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: order_
+                  remarks: 排序
+                  type: INT
+            remarks: 调查问卷选项表
+            tableName: ujcms_survey_option
+  - changeSet:
+      id: 1689738319551-7
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_survey_site
+            tableName: ujcms_survey
+  - changeSet:
+      id: 1689738319551-8
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_surveyitem_site
+            tableName: ujcms_survey_item
+  - changeSet:
+      id: 1689738319551-9
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_id_
+            indexName: idx_surveyitem_survey
+            tableName: ujcms_survey_item
+  - changeSet:
+      id: 1689738319551-10
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_survey
+            constraintName: fk_survey_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1689738319551-11
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_survey_item
+            constraintName: fk_surveyitem_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1689738319551-12
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_id_
+            baseTableName: ujcms_survey_item
+            constraintName: fk_surveyitem_survey
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey
+            validate: true
+  - changeSet:
+      id: 1689738319551-13
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: item_id_
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_item
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey_item
+            validate: true
+  - changeSet:
+      id: 1689738319551-14
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1689738319551-15
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_id_
+            baseTableName: ujcms_survey_option
+            constraintName: fk_surveyoption_survey
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey
+            validate: true
+  - changeSet:
+      id: 1689837792675-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 动作ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  name: user_id_
+                  remarks: 用户ID
+                  type: INT
+              - column:
+                  name: ip_
+                  remarks: IP
+                  type: VARCHAR(45)
+              - column:
+                  name: cookie_
+                  remarks: Cookie
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ref_type_
+                  remarks: 动作对象类型
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ref_id_
+                  remarks: 动作对象ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ref_option_
+                  remarks: 动作选项
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 动作表
+            tableName: ujcms_action
+  - changeSet:
+      id: 1689837792675-2
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_action_site
+            tableName: ujcms_action
+  - changeSet:
+      id: 1689837792675-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_action_user
+            tableName: ujcms_action
+  - changeSet:
+      id: 1689837792675-4
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_action
+            constraintName: fk_action_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1689837792675-5
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_action
+            constraintName: fk_action_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1690638757689-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 问卷反馈ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_id_
+                  remarks: 问卷ID
+                  type: INT
+              - column:
+                  name: user_id_
+                  remarks: 用户ID
+                  type: INT
+              - column:
+                  name: ip_
+                  remarks: IP地址
+                  type: VARCHAR(45)
+              - column:
+                  name: cookie_
+                  remarks: Cookie
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 调查问卷反馈表
+            tableName: ujcms_survey_feedback
+  - changeSet:
+      id: 1690638757689-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 主键ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_item_id_
+                  remarks: 问卷选项ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_feedback_id_
+                  remarks: 问卷反馈ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_id_
+                  remarks: 问卷ID
+                  type: INT
+              - column:
+                  name: answer_
+                  remarks: 回答
+                  type: MEDIUMTEXT
+            remarks: 调查问卷条目与调查反馈关联表
+            tableName: ujcms_survey_item_feedback
+  - changeSet:
+      id: 1690638757689-3
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 主键ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_option_id_
+                  remarks: 问卷选项ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_feedback_id_
+                  remarks: 问卷反馈ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_id_
+                  remarks: 问卷ID
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: survey_item_id_
+                  remarks: 问卷条目ID
+                  type: INT
+            remarks: 调查问卷选项与调查反馈关联表
+            tableName: ujcms_survey_option_feedback
+  - changeSet:
+      id: 1690638757689-4
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_surveyfeedback_site
+            tableName: ujcms_survey_feedback
+  - changeSet:
+      id: 1690638757689-5
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_id_
+            indexName: idx_surveyfeedback_survey
+            tableName: ujcms_survey_feedback
+  - changeSet:
+      id: 1690638757689-6
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_surveyfeedback_user
+            tableName: ujcms_survey_feedback
+  - changeSet:
+      id: 1690638757689-7
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_feedback_id_
+            indexName: idx_surveyitemfeed_feed
+            tableName: ujcms_survey_item_feedback
+  - changeSet:
+      id: 1690638757689-8
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_item_id_
+            indexName: idx_surveyitemfeed_item
+            tableName: ujcms_survey_item_feedback
+  - changeSet:
+      id: 1690638757689-9
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_id_
+            indexName: idx_surveyitemfeed_survey
+            tableName: ujcms_survey_item_feedback
+  - changeSet:
+      id: 1690638757689-10
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_feedback_id_
+            indexName: idx_surveyoptionfeed_feed
+            tableName: ujcms_survey_option_feedback
+  - changeSet:
+      id: 1690638757689-11
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_item_id_
+            indexName: idx_surveyoptionfeed_item
+            tableName: ujcms_survey_option_feedback
+  - changeSet:
+      id: 1690638757689-12
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_option_id_
+            indexName: idx_surveyoptionfeed_option
+            tableName: ujcms_survey_option_feedback
+  - changeSet:
+      id: 1690638757689-13
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: survey_id_
+            indexName: idx_surveyoptionfeed_survey
+            tableName: ujcms_survey_option_feedback
+  - changeSet:
+      id: 1690638757689-14
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_survey_feedback
+            constraintName: fk_surveyfeedback_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1690638757689-15
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_id_
+            baseTableName: ujcms_survey_feedback
+            constraintName: fk_surveyfeedback_survey
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey
+            validate: true
+  - changeSet:
+      id: 1690638757689-16
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_survey_feedback
+            constraintName: fk_surveyfeedback_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1690638757689-17
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_feedback_id_
+            baseTableName: ujcms_survey_item_feedback
+            constraintName: fk_surveyitemfeed_feed
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey_feedback
+            validate: true
+  - changeSet:
+      id: 1690638757689-18
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_item_id_
+            baseTableName: ujcms_survey_item_feedback
+            constraintName: fk_surveyitemfeed_item
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey_item
+            validate: true
+  - changeSet:
+      id: 1690638757689-19
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_id_
+            baseTableName: ujcms_survey_item_feedback
+            constraintName: fk_surveyitemfeed_survey
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey
+            validate: true
+  - changeSet:
+      id: 1690638757689-20
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_feedback_id_
+            baseTableName: ujcms_survey_option_feedback
+            constraintName: fk_surveyoptionfeed_feed
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey_feedback
+            validate: true
+  - changeSet:
+      id: 1690638757689-21
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_item_id_
+            baseTableName: ujcms_survey_option_feedback
+            constraintName: fk_surveyoptionfeed_item
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey_item
+            validate: true
+  - changeSet:
+      id: 1690638757689-22
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_option_id_
+            baseTableName: ujcms_survey_option_feedback
+            constraintName: fk_surveyoptionfeed_option
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey_option
+            validate: true
+  - changeSet:
+      id: 1690638757689-23
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: survey_id_
+            baseTableName: ujcms_survey_option_feedback
+            constraintName: fk_surveyoptionfeed_survey
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_survey
+            validate: true
+  - changeSet:
+      id: 1690945769388-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: place_
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1690945769388-2
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: user_type_
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1690947802354-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: profession_
+            tableName: ujcms_message_board
+  - changeSet:
+      id: 1691295938978-1
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:dff193fa8269826ae05a82ad6e030c62
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: DIRECT
+                  name: source_type_
+                  remarks: 来源类型(DIRECT:直接访问,INNER:内部链接,OUTER:外部链接,SEARCH:搜索引擎)
+                  type: VARCHAR(20)
+            tableName: ujcms_visit_log
+  - changeSet:
+      id: 1691380534562-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: markdown_
+                  remarks: Markdown正文
+                  type: MEDIUMTEXT(16777215)
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1691380534562-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: editor_type_
+                  remarks: 编辑器类型(1:富文本编辑器,2:Markdown编辑器)
+                  type: SMALLINT(5)
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1691729970999-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: ID
+                  type: INT
+              - column:
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(90)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(450)
+              - column:
+                  name: height_
+                  remarks: 身高
+                  type: INT
+              - column:
+                  name: birthday_
+                  remarks: 出生日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+            tableName: ujcms_example
+  - changeSet:
+      id: 1692501829341-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: target_blank_
+                  remarks: 是否新窗口打开
+                  type: CHAR(1)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692501829341-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: image_
+                  remarks: 图片
+                  type: VARCHAR(255)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692501829341-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: link_url_
+                  remarks: 转向链接地址
+                  type: VARCHAR(255)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692501829342-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: target_blank_
+                  valueComputed: (select t.target_blank_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692501829342-2-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: image_
+                  valueComputed: (select t.image_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692501829342-3-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: link_url_
+                  valueComputed: (select t.link_url_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692503932912-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: image_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1692503932912-2
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: link_url_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1692503932912-3
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: target_blank_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1692678197817-1
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: article_template_
+                  remarks: 文章模板
+                  type: VARCHAR(255)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692678197817-2
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: channel_template_
+                  remarks: 栏目模板
+                  type: VARCHAR(255)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692678197818-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: article_template_
+                  valueComputed: (select t.article_template_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692678197818-2-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: channel_template_
+                  valueComputed: (select t.channel_template_ from ujcms_channel_ext t where t.id_ = ujcms_channel.id_)
+            tableName: ujcms_channel
+  - changeSet:
+      id: 1692678599742-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: article_template_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1692678599742-2
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: channel_template_
+            tableName: ujcms_channel_ext
+  - changeSet:
+      id: 1692678599743-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: type_
+                  valueComputed: 4
+            tableName: ujcms_channel
+            where: type_ = 5
+  - changeSet:
+      id: 1693018299934-2
+      author: PONY (generated)
+      changes:
+        - validCheckSum: 8:952636977f5d7697808a3098bd1d8d60
+        - addColumn:
+            columns:
+              - column:
+                  name: real_name_
+                  remarks: 真实姓名
+                  type: VARCHAR(150)
+            tableName: ujcms_user
+  - changeSet:
+      id: 1693018299934-3
+      author: PONY (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: gender_
+                  remarks: 性别(0:保密,1:男,2:女)
+                  type: SMALLINT(5)
+            tableName: ujcms_user
+  - changeSet:
+      id: 1693018299935-1-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: real_name_
+                  valueComputed: (select t.real_name_ from ujcms_user_ext t where t.id_ = ujcms_user.id_)
+            tableName: ujcms_user
+  - changeSet:
+      id: 1693018299935-2-sql
+      author: PONY
+      changes:
+        - update:
+            columns:
+              - column:
+                  name: gender_
+                  valueComputed: (select t.gender_ from ujcms_user_ext t where t.id_ = ujcms_user.id_)
+            tableName: ujcms_user
+  - changeSet:
+      id: 1693019033702-1
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: gender_
+            tableName: ujcms_user_ext
+  - changeSet:
+      id: 1693019033702-2
+      author: PONY (generated)
+      changes:
+        - dropColumn:
+            columnName: real_name_
+            tableName: ujcms_user_ext
+  - changeSet:
+      id: 8.0
+      author: PROJECT-VERSION
+      changes:
+        - tagDatabase:
+            tag: v8.0

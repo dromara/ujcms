@@ -1,0 +1,7 @@
+[#if exception?? && exception=='com.ujcms.cms.core.web.support.SiteDisabledException']
+  [#include 'site_disabled.html'/]
+[#elseif status == 503]
+  [#include '503_status.html'/]
+[#else]
+  [#include '500_status.html'/]
+[/#if]
