@@ -15,6 +15,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Role;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -32,6 +33,13 @@ import java.util.Optional;
  * 操作日志通知器。使用 Spring 原生 AOP API 实现，不依赖 aspectjweaver（EPL-2.0 协议，与 GPL 协议不兼容）。
  * <p>
  * 须标注为 {@code ROLE_INFRASTRUCTURE}，否则 {@code InfrastructureAdvisorAutoProxyCreator} 不会应用本通知器。
+ * <p>
+ * 作为 {@code Advisor} Bean，本类会被自动代理基础设施通过 {@code findAdvisorBeans()} 提前实例化：当
+ * {@code @EnableSpringDataWebSupport} 注册的 {@code projectingArgumentResolverBeanPostProcessor} 在 BPP
+ * 注册阶段被创建并触发自动代理时，本通知器即被实例化。若其依赖（{@code UserService} 等）以普通方式注入，
+ * 就会在 BPP 注册尚未完成时连锁初始化 Service → Mapper → 数据源 → Liquibase，触发大量
+ * BeanPostProcessorChecker "not eligible for ... all BeanPostProcessors" 警告。因这些依赖仅在拦截器实际
+ * 执行（请求期）才用到，故用 {@link Lazy} 延迟注入，使提前实例化只持有惰性代理，从而消除连锁过早初始化。
  *
  * @author PONY
  */
@@ -40,7 +48,7 @@ import java.util.Optional;
 public class OperationLogAdvisor extends DefaultPointcutAdvisor {
     private static final long serialVersionUID = 1L;
 
-    public OperationLogAdvisor(UserService userService, OperationLogService service, Props props) {
+    public OperationLogAdvisor(@Lazy UserService userService, @Lazy OperationLogService service, @Lazy Props props) {
         super(AnnotationMatchingPointcut.forMethodAnnotation(com.ujcms.cms.core.aop.annotations.OperationLog.class),
                 new OperationLogInterceptor(userService, service, props));
     }

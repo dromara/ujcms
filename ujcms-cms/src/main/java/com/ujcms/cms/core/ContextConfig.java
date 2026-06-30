@@ -59,7 +59,12 @@ public class ContextConfig implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         // 支持 java.time API
-        configuration.setObjectWrapper(new Java8ObjectWrapper(freemarker.template.Configuration.VERSION_2_3_31));
+        Java8ObjectWrapper objectWrapper = new Java8ObjectWrapper(freemarker.template.Configuration.VERSION_2_3_31);
+        // 收紧成员访问策略，禁止模板访问 ServletContext、Spring 容器、ClassLoader、InstanceManager 等能力型类型，
+        // 防止后台模板编辑功能（SSTI）经这些实时引用提权为远程命令执行（RCE）。
+        objectWrapper.setMemberAccessPolicy(
+                new SecureMemberAccessPolicy(freemarker.template.Configuration.VERSION_2_3_31));
+        configuration.setObjectWrapper(objectWrapper);
         // 标签
         configuration.setSharedVariable("SiteList", new SiteListDirective(siteService));
         configuration.setSharedVariable("Site", new SiteDirective(siteService));

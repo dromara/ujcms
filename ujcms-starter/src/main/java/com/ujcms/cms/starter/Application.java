@@ -29,6 +29,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.nimbusds.jose.KeyLengthException;
@@ -36,6 +37,7 @@ import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.service.UserService;
+import com.ujcms.cms.core.support.HardenedFreeMarkerView;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.Utils;
 import com.ujcms.cms.core.web.support.BackendInterceptor;
@@ -265,6 +267,20 @@ public class Application extends SpringBootServletInitializer {
             // pdf.js 使用 mjs，需要设置媒体类型为 application/javascript，否则无法访问
             // spring boot 2 需设置，spring boot 3 默认已支持
             configurer.mediaType("mjs", MediaType.valueOf("application/javascript"));
+        }
+
+        /**
+         * 覆盖 Spring Boot 自动配置的 FreeMarker 视图解析器，改用 {@link HardenedFreeMarkerView}，
+         * 以移除模板中实时的 {@code Application}/{@code Session}/{@code Request} 等 Servlet 作用域变量，
+         * 防止后台模板编辑功能（SSTI）经其取得 ServletContext/Spring 容器引用提权为 RCE。
+         * Bean 名称须为 {@code freeMarkerViewResolver}，以替换自动配置的同名 Bean。
+         */
+        @Bean
+        public FreeMarkerViewResolver freeMarkerViewResolver(FreeMarkerProperties properties) {
+            FreeMarkerViewResolver resolver = new FreeMarkerViewResolver();
+            properties.applyToMvcViewResolver(resolver);
+            resolver.setViewClass(HardenedFreeMarkerView.class);
+            return resolver;
         }
 
         @Bean
