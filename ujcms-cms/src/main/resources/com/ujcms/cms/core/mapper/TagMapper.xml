@@ -73,6 +73,10 @@
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Tag">
     insert into ujcms_tag (id_, site_id_, user_id_, name_, description_, created_, refers_)
     values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{refers,jdbcType=INTEGER})
-  </insert><sql id="Column_List">
+  </insert><update id="updateUser">
+    update ujcms_tag
+    set user_id_ = #{toUserId}
+    where user_id_ = #{fromUserId}
+  </update><sql id="Column_List">
     t.id_, t.site_id_, t.user_id_, t.name_, t.description_, t.created_, t.refers_
   </sql></mapper>

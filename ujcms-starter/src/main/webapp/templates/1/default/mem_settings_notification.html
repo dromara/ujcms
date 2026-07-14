@@ -1,0 +1,179 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>通知 - ${site.title}</title>
+  [#include 'mem_settings_head.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="list-group mt-2">
+        [#assign settings = 'notification'/]
+        [#include 'mem_settings_left.html'/]
+      </div>
+    </div>
+    <div class="col-sm-9">
+      <h3 class="py-3 border-bottom">通知 <span id="notificationTotal" class="small text-muted"></span></h3>
+      <div class="d-flex flex-wrap align-items-center mt-3">
+        <div class="btn-group btn-group-sm" role="group" id="notificationTabs"></div>
+        <span class="ms-auto">
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="readAll()">全部已读</button>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearRead()">清空已读</button>
+        </span>
+      </div>
+      <ul id="notificationList" class="list-unstyled mb-0"></ul>
+      <div id="notificationEmpty" class="text-muted my-3 d-none">暂无通知</div>
+      <div class="text-center my-3 d-none" id="notificationMore">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadNotifications(notificationPage + 1)">加载更多</button>
+      </div>
+    </div>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+<script>
+  var notificationPage = 1;
+  // null：全部；false：未读
+  var currentIsRead = null;
+  var typeLabels = {
+    1: '系统公告',
+    2: '评论回复',
+    3: '@提及',
+    4: '关注文章新评论',
+    5: '关注栏目新文章',
+    6: '好友申请',
+    7: '好友通过'
+  };
+
+  function renderTabs() {
+    var $tabs = $('#notificationTabs').empty();
+    function addTab(isRead, name) {
+      $('<button type="button">').addClass('btn ' + (currentIsRead === isRead ? 'btn-primary' : 'btn-outline-primary'))
+              .text(name)
+              .on('click', function () {
+                currentIsRead = isRead;
+                renderTabs();
+                loadNotifications(1);
+              })
+              .appendTo($tabs);
+    }
+    addTab(null, '全部');
+    addTab(false, '未读');
+  }
+
+  function refreshBadge() {
+    axios.get('${api}/notification/unread-count').then(function (response) {
+      var count = Number(response.data) || 0;
+      $('#settingsNotificationBadge').text(count > 99 ? '99+' : count).toggleClass('d-none', count <= 0);
+      $('#headerNotificationCount').text(count > 99 ? '99+' : count).toggleClass('d-none', count <= 0);
+    });
+  }
+
+  function resolveLink(bean) {
+    if (bean.article && bean.article.url) return bean.article.url;
+    if (bean.channel && bean.channel.url) return bean.channel.url;
+    return bean.url || null;
+  }
+
+  function senderName(bean) {
+    if (!bean.sender) return '系统';
+    if (bean.sender.id === '0') return '匿名网友';
+    return bean.sender.nickname || bean.sender.username;
+  }
+
+  function openNotification(bean, link) {
+    function navigate() {
+      if (link) window.location.href = link;
+    }
+    if (bean.read) {
+      navigate();
+      return;
+    }
+    fetchCsrf().then(function () {
+      request.put('${api}/notification/read', {ids: [bean.id]}).then(function () {
+        refreshBadge();
+        if (link) {
+          navigate();
+        } else {
+          loadNotifications(1);
+        }
+      });
+    });
+  }
+
+  function renderNotification(bean) {
+    var link = resolveLink(bean);
+    var li = $('<li class="mt-3 pb-3 border-bottom">').css('cursor', link || !bean.read ? 'pointer' : 'default');
+    var titleLine = $('<div>');
+    if (!bean.read) {
+      titleLine.append($('<span class="badge bg-danger me-2">').text('未读'));
+    }
+    titleLine.append($('<span class="badge bg-secondary me-2">').text(typeLabels[bean.type] || '通知'));
+    titleLine.append($('<span>').addClass(bean.read ? 'text-muted' : 'fw-bold').text(bean.title || ''));
+    li.append(titleLine);
+    if (bean.text) {
+      li.append($('<div class="small mt-1' + (bean.read ? ' text-muted' : '') + '">').text(bean.text));
+    }
+    var meta = $('<div class="small text-muted mt-1">');
+    meta.append($('<span>').text(senderName(bean)));
+    meta.append(document.createTextNode(' · ' + dayjs(bean.created).format('YYYY-MM-DD HH:mm')));
+    li.append(meta);
+    li.on('click', function () {
+      openNotification(bean, link);
+    });
+    return li;
+  }
+
+  function loadNotifications(page) {
+    var params = {page: page, pageSize: 10};
+    if (currentIsRead !== null) {
+      params.isRead = currentIsRead;
+    }
+    axios.get('${api}/notification/page', {params: params}).then(function (response) {
+      var data = response.data;
+      if (page === 1) $('#notificationList').empty();
+      (data.content || []).forEach(function (bean) {
+        $('#notificationList').append(renderNotification(bean));
+      });
+      $('#notificationTotal').text('(' + data.page.totalElements + ')');
+      notificationPage = page;
+      // Long 序列化为字符串，须转为数字比较
+      $('#notificationMore').toggleClass('d-none', Number(data.page.totalPages) <= page);
+      $('#notificationEmpty').toggleClass('d-none', Number(data.page.totalElements) !== 0);
+    });
+  }
+
+  function readAll() {
+    fetchCsrf().then(function () {
+      request.put('${api}/notification/read-all').then(function () {
+        showSuccess('已全部标记为已读！');
+        refreshBadge();
+        loadNotifications(1);
+      });
+    });
+  }
+
+  function clearRead() {
+    if (!confirm('确定清空已读通知？')) return;
+    fetchCsrf().then(function () {
+      request.delete('${api}/notification/read').then(function () {
+        showSuccess('已清空已读通知！');
+        loadNotifications(1);
+      });
+    });
+  }
+
+  renderTabs();
+  loadNotifications(1);
+</script>
+</body>
+</html>
+[/#escape]

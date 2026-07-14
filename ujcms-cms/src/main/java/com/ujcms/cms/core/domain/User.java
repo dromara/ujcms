@@ -340,6 +340,14 @@ public class User extends GeneratedUser implements UserDetails {
     }
 
     /**
+     * 是否管理员类型（系统管理员、安全管理员、审计管理员、常规管理员）。私信发送门禁的豁免条件
+     */
+    @JsonIgnore
+    public boolean isAdminType() {
+        return getType() < TYPE_MEMBER;
+    }
+
+    /**
      * 是否未激活
      */
     @JsonIgnore

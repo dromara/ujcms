@@ -9,7 +9,7 @@ import { currentUser, hasPermission } from '@/stores/useCurrentUser';
 import { queryContentStat } from '@/api/personal';
 import { queryTrendStat, queryVisitorStat, querySourceTypeStat } from '@/api/stat';
 import { queryArticlePendingCount, queryArticleRejectCount, queryFormPendingCount, queryFormRejectCount } from '@/api/content';
-import { queryMessageBoardUnreviewedCount } from '@/api/interaction';
+import { queryCommentUnreviewedCount, queryMessageBoardUnreviewedCount } from '@/api/interaction';
 
 const { t, n } = useI18n();
 dayjs.extend(duration);
@@ -132,6 +132,10 @@ const unreviewedMessageBoard = ref<number>(0);
 const fetchUnreviewedMessageBoard = async () => {
   unreviewedMessageBoard.value = await queryMessageBoardUnreviewedCount();
 };
+const unreviewedComment = ref<number>(0);
+const fetchUnreviewedComment = async () => {
+  unreviewedComment.value = await queryCommentUnreviewedCount();
+};
 const pendingForm = ref<number>(0);
 const fetchPendingForm = async () => {
   if (currentUser.epRank >= 3) {
@@ -156,6 +160,9 @@ onMounted(async () => {
   }
   if (hasPermission('messageBoard:list')) {
     fetchUnreviewedMessageBoard();
+  }
+  if (hasPermission('comment:list')) {
+    fetchUnreviewedComment();
   }
   initTrendChart();
   initSourceTypeChart();
@@ -247,6 +254,23 @@ onMounted(async () => {
             <div>
               <el-link class="ml-1 text-xl" type="warning" :underline="false" @click="() => $router.push({ path: '/interaction/message-board', query: { status: 1 } })">
                 {{ unreviewedMessageBoard }}
+              </el-link>
+            </div>
+          </div>
+        </div>
+      </el-col>
+      <el-col v-if="unreviewedComment > 0" :span="6">
+        <div class="mb-3 shadow-md bg-warning-lighter">
+          <div class="flex items-center justify-between px-4 py-3 text-xl text-warning">
+            <div class="flex items-center">
+              <el-icon><BellFilled /></el-icon>
+              <el-link class="ml-1 text-base" type="warning" :underline="false" @click="() => $router.push({ path: '/interaction/comment', query: { status: 1 } })">
+                {{ $t('todo.unreviewedComment') }}
+              </el-link>
+            </div>
+            <div>
+              <el-link class="ml-1 text-xl" type="warning" :underline="false" @click="() => $router.push({ path: '/interaction/comment', query: { status: 1 } })">
+                {{ unreviewedComment }}
               </el-link>
             </div>
           </div>

@@ -171,5 +171,26 @@
         }
       });
     }
+
+    // 评论 @提及 渲染：与服务端 MentionParser 相同的标记规则（@ 前必须是字符集外的字符或行首，1-30 个用户名字符）。
+    // 纯文本用 createTextNode、提及用 attr/text 组装链接，不使用 .html()，避免 XSS
+    function linkifyMentions(text) {
+      var regex = /(^|[^0-9A-Za-z一-龥._-])@([0-9A-Za-z一-龥._-]{1,30})(?![0-9A-Za-z一-龥._-])/g;
+      var nodes = [];
+      var lastIndex = 0;
+      var match;
+      while ((match = regex.exec(text)) !== null) {
+        var start = match.index + match[1].length;
+        if (start > lastIndex) {
+          nodes.push(document.createTextNode(text.substring(lastIndex, start)));
+        }
+        nodes.push($('<a class="cm-link">').attr('href', '${def}/users/name/' + encodeURIComponent(match[2])).text('@' + match[2])[0]);
+        lastIndex = start + 1 + match[2].length;
+      }
+      if (lastIndex < text.length) {
+        nodes.push(document.createTextNode(text.substring(lastIndex)));
+      }
+      return nodes;
+    }
   </script>
 [/#escape]

@@ -1,0 +1,191 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783555200000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 会话ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 用户ID(收件箱所有者)
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: peer_id_
+                  remarks: 对方用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: unread_
+                  remarks: 未读消息数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: last_time_
+                  remarks: 最后消息时间
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: ''
+                  name: last_text_
+                  remarks: 最后消息摘要
+                  type: VARCHAR(100)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 私信会话
+            tableName: ujcms_conversation
+  - changeSet:
+      id: 1783555200000-2
+      author: PONY
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id_, peer_id_
+            constraintName: uk_conversation_user_peer
+            tableName: ujcms_conversation
+  - changeSet:
+      id: 1783555200000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: peer_id_
+            indexName: idx_conversation_peer
+            tableName: ujcms_conversation
+  - changeSet:
+      id: 1783555200000-4
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_conversation
+            constraintName: fk_conversation_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783555200000-5
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: peer_id_
+            baseTableName: ujcms_conversation
+            constraintName: fk_conversation_peer
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783555200000-6
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 私信ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: conversation_id_
+                  remarks: 会话ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: sender_id_
+                  remarks: 发送用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: text_
+                  remarks: 内容
+                  type: VARCHAR(1000)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 私信
+            tableName: ujcms_message
+  - changeSet:
+      id: 1783555200000-7
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: conversation_id_
+            indexName: idx_message_conversation
+            tableName: ujcms_message
+  - changeSet:
+      id: 1783555200000-8
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: sender_id_
+            indexName: idx_message_sender
+            tableName: ujcms_message
+  - changeSet:
+      id: 1783555200000-9
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: conversation_id_
+            baseTableName: ujcms_message
+            constraintName: fk_message_conversation
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_conversation
+            validate: true
+  - changeSet:
+      id: 1783555200000-10
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: sender_id_
+            baseTableName: ujcms_message
+            constraintName: fk_message_sender
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true

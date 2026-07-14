@@ -92,4 +92,13 @@ public interface TagMapper {
      * @return 删除条数
      */
     int deleteBySiteId(Long siteId);
+
+    /**
+     * 将某用户创建的Tag改派给另一用户。用于删除会员时把其博文所创标签改派为匿名，避免 fk_tag_user 阻断删除
+     *
+     * @param fromUserId 原用户ID
+     * @param toUserId   目标用户ID
+     * @return 更新条数
+     */
+    int updateUser(@Param("fromUserId") Long fromUserId, @Param("toUserId") Long toUserId);
 }

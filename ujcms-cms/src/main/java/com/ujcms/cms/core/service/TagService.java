@@ -3,7 +3,9 @@ package com.ujcms.cms.core.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
 import com.ujcms.cms.core.domain.Tag;
+import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
+import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.mapper.ArticleTagMapper;
 import com.ujcms.cms.core.mapper.TagMapper;
 import com.ujcms.cms.core.service.args.TagArgs;
@@ -23,7 +25,7 @@ import java.util.Objects;
  * @author PONY
  */
 @Service
-public class TagService implements SiteDeleteListener {
+public class TagService implements SiteDeleteListener, UserDeleteListener {
     private final ArticleTagMapper articleTagMapper;
     private final TagMapper mapper;
     private final SnowflakeSequence snowflakeSequence;
@@ -86,6 +88,13 @@ public class TagService implements SiteDeleteListener {
     @Override
     public void preSiteDelete(Long siteId) {
         mapper.delete(siteId);
+    }
+
+    @Override
+    public void preUserDelete(Long userId) {
+        // 将该用户创建的标签改派为匿名，避免 fk_tag_user 阻断用户删除（会员博文可创建标签）。
+        // 与 ArticleService.preUserDelete 改派 modifiedUserId 一致：标签是站点共享词汇，改派而非删除
+        mapper.updateUser(userId, User.ANONYMOUS_ID);
     }
 
     @Override

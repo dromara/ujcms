@@ -23,6 +23,9 @@
 
   "menu.interaction": "互动",
   "menu.interaction.messageBoard": "留言管理",
+  "menu.interaction.comment": "评论管理",
+  "menu.interaction.notification": "系统通知",
+  "menu.interaction.message": "私信",
   "menu.interaction.vote": "投票管理",
   "menu.interaction.survey": "调查问卷",
   "menu.interaction.collection": "采集管理",

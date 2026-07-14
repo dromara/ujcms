@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.domain.generated.GeneratedArticle;
 import com.ujcms.cms.core.generator.HtmlService;
+import com.ujcms.cms.core.listener.ArticleDeleteListener;
+import com.ujcms.cms.core.listener.ArticlePublishListener;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
@@ -28,6 +30,8 @@ import org.flowable.common.engine.impl.identity.Authentication;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.owasp.html.PolicyFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,6 +122,8 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames);
         attachmentService.insertRefer(GeneratedArticle.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.save(EsArticle.of(article)));
+        // 读取最终状态：有流程时 startProcess 可能已将状态改为待审核
+        firePublishListeners(bean);
     }
 
     private void startProcess(Article article, String processKey, Long userId) {
@@ -223,11 +229,14 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         insertRelatedList(bean.getId(), bean.getSiteId(), userId, tagNames);
         attachmentService.updateRefer(GeneratedArticle.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
         Optional.ofNullable(select(bean.getId())).ifPresent(article -> articleLucene.update(EsArticle.of(article)));
+        firePublishListeners(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void update(Article bean) {
         mapper.update(bean);
+        // 覆盖工作流审核通过和定时上线任务的发布路径
+        firePublishListeners(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -239,6 +248,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     public void update(Article bean, ArticleExt ext) {
         mapper.update(bean);
         extMapper.update(ext);
+        firePublishListeners(bean);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -260,6 +270,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
             }
         }
         deleteProcessIfNecessary(bean, user);
+        deleteListeners.forEach(it -> it.preArticleDelete(bean.getId()));
         attachmentService.deleteRefer(GeneratedArticle.TABLE_NAME, bean.getId());
         extMapper.delete(bean.getId());
         tagService.reduceReferByArticleId(bean.getId());
@@ -466,5 +477,27 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     public int deleteListenerOrder() {
         // 栏目(100), 区块(200), **文章(300)**、区块项(400)
         return 300;
+    }
+
+    private void firePublishListeners(Article bean) {
+        if (bean.getStatus() == STATUS_PUBLISHED) {
+            publishListeners.forEach(it -> it.afterArticlePublish(bean));
+        }
+    }
+
+    private List<ArticleDeleteListener> deleteListeners = Collections.emptyList();
+
+    @Lazy
+    @Autowired(required = false)
+    public void setDeleteListeners(List<ArticleDeleteListener> deleteListeners) {
+        this.deleteListeners = deleteListeners;
+    }
+
+    private List<ArticlePublishListener> publishListeners = Collections.emptyList();
+
+    @Lazy
+    @Autowired(required = false)
+    public void setPublishListeners(List<ArticlePublishListener> publishListeners) {
+        this.publishListeners = publishListeners;
     }
 }

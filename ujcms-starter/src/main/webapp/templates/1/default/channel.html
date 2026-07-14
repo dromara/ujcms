@@ -6,15 +6,18 @@
   <title>${channel.title} - ${site.title}</title>
   <meta name="keywords" content="${channel.seoKeywords}">
   <meta name="description" content="${channel.seoDescription}">
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
   [#include 'inc_meta.html'/]
   [#include 'inc_css.html'/]
   [#include 'inc_js.html'/]
 </head>
 <body>
 [#include 'inc_header.html'/]
+[#include 'inc_message_box.html'/]
 <div class="bg-gray-200">
   <div class="container">
-    <nav class="row" aria-label="breadcrumb">
+    <nav class="row align-items-center" aria-label="breadcrumb">
       <ol class="col list-inline my-2">
         [#assign parent = channel.parent!channel/]
         <li class="list-inline-item"><a class="btn btn-sm [#if parent.id == channel.id]btn-primary[#else]btn-link[/#if]" href="${parent.url}">全部</a></li>
@@ -24,6 +27,9 @@
         [/#list]
         [/@ChannelList]
       </ol>
+      <div class="col-auto">
+        <button type="button" id="followBtn" class="btn btn-sm btn-outline-primary" onclick="toggleFollow()">关注栏目</button>
+      </div>
     </nav>
   </div>
 </div>
@@ -74,6 +80,38 @@
 </div>
 [#include 'inc_footer.html'/]
 <script>axios.get('${api}/channel/view/${channel.id?c}');</script>
+<script>
+  var followed = false;
+
+  function updateFollowBtn() {
+    $('#followBtn').text(followed ? '已关注' : '关注栏目')
+            .toggleClass('btn-primary', followed).toggleClass('btn-outline-primary', !followed);
+  }
+
+  axios.get('${api}/follow/exists', {params: {channelId: '${channel.id?c}'}}).then(function (response) {
+    followed = response.data === true;
+    updateFollowBtn();
+  });
+
+  [#if user??]
+  function toggleFollow() {
+    fetchCsrf().then(function () {
+      var promise = followed
+              ? request.delete('${api}/follow', {params: {channelId: '${channel.id?c}'}})
+              : request.post('${api}/follow', {channelId: '${channel.id?c}'});
+      promise.then(function () {
+        followed = !followed;
+        updateFollowBtn();
+        showSuccess(followed ? '关注成功！' : '已取消关注！');
+      });
+    });
+  }
+  [#else]
+  function toggleFollow() {
+    showAlert('请登录后关注！');
+  }
+  [/#if]
+</script>
 </body>
 </html>
 [/#escape]

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.ConversationMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Conversation">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="peer_id_" jdbcType="BIGINT" property="peerId" />
+    <result column="unread_" jdbcType="INTEGER" property="unread" />
+    <result column="last_time_" jdbcType="TIMESTAMP" property="lastTime" />
+    <result column="last_text_" jdbcType="VARCHAR" property="lastText" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Conversation">
+        <association column="peer_id_" javaType="com.ujcms.cms.core.domain.User" property="peer" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+    </resultMap>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_conversation" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_conversation t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="findByUserIdAndPeerId" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_conversation t
+        where t.user_id_ = #{userId,jdbcType=BIGINT}
+          and t.peer_id_ = #{peerId,jdbcType=BIGINT}
+    </select>
+    <select id="sumUnread" parameterType="java.lang.Long" resultType="long">
+        select coalesce(sum(unread_), 0)
+        from ujcms_conversation
+        where user_id_ = #{userId,jdbcType=BIGINT}
+    </select>
+    <update id="updateLast">
+        update ujcms_conversation
+        set last_text_ = #{lastText,jdbcType=VARCHAR},
+            last_time_ = #{lastTime,jdbcType=TIMESTAMP}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateLastAndIncUnread">
+        update ujcms_conversation
+        set unread_    = unread_ + 1,
+            last_text_ = #{lastText,jdbcType=VARCHAR},
+            last_time_ = #{lastTime,jdbcType=TIMESTAMP}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="clearUnread">
+        update ujcms_conversation
+        set unread_ = 0
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and peer_id_ = #{peerId,jdbcType=BIGINT}
+    </update>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_conversation
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByUserId" parameterType="java.lang.Long">
+        delete
+        from ujcms_conversation
+        where user_id_ = #{userId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByPeerId" parameterType="java.lang.Long">
+        delete
+        from ujcms_conversation
+        where peer_id_ = #{peerId,jdbcType=BIGINT}
+    </delete><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Conversation">
+    insert into ujcms_conversation (id_, user_id_, peer_id_, unread_, last_time_, last_text_, created_)
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{peerId,jdbcType=BIGINT}, #{unread,jdbcType=INTEGER}, #{lastTime,jdbcType=TIMESTAMP}, #{lastText,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP})
+  </insert><sql id="Column_List">
+    t.id_, t.user_id_, t.peer_id_, t.unread_, t.last_time_, t.last_text_, t.created_
+  </sql></mapper>

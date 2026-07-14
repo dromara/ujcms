@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.MessageMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Message">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="conversation_id_" jdbcType="BIGINT" property="conversationId" />
+    <result column="sender_id_" jdbcType="BIGINT" property="senderId" />
+    <result column="text_" jdbcType="VARCHAR" property="text" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Message">
+        <association column="sender_id_" javaType="com.ujcms.cms.core.domain.User" property="sender" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+    </resultMap>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_message" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_message t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByConversationId" parameterType="java.lang.Long">
+        delete
+        from ujcms_message
+        where conversation_id_ = #{conversationId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByConversationUserId" parameterType="java.lang.Long">
+        delete
+        from ujcms_message
+        where conversation_id_ in
+              (select id_ from ujcms_conversation where user_id_ = #{userId,jdbcType=BIGINT})
+    </delete>
+    <delete id="deleteByConversationPeerId" parameterType="java.lang.Long">
+        delete
+        from ujcms_message
+        where conversation_id_ in
+              (select id_ from ujcms_conversation where peer_id_ = #{peerId,jdbcType=BIGINT})
+    </delete><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Message">
+    insert into ujcms_message (id_, conversation_id_, sender_id_, text_, created_)
+    values (#{id,jdbcType=BIGINT}, #{conversationId,jdbcType=BIGINT}, #{senderId,jdbcType=BIGINT}, #{text,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP})
+  </insert><sql id="Column_List">
+    t.id_, t.conversation_id_, t.sender_id_, t.text_, t.created_
+  </sql></mapper>

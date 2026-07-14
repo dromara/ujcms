@@ -48,7 +48,7 @@ import jakarta.validation.constraints.Pattern;
  * @author PONY
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties({"watermarkSettings", "htmlSettings", "messageBoardSettings", "handler"})
+@JsonIgnoreProperties({"watermarkSettings", "htmlSettings", "messageBoardSettings", "commentSettings", "handler"})
 public class Site extends GeneratedSite implements Anchor, TreeEntity {
 
     /**
@@ -243,8 +243,17 @@ public class Site extends GeneratedSite implements Anchor, TreeEntity {
             builder.appendProtocol(getProtocol()).appendDomain(getDomain()).appendPort(getConfig().getPort());
         }
         builder.appendPath(getConfig().getContextPath()).appendPath(getSubDir());
-        String url = builder.toString();
-        return url.isEmpty() ? "/" : url;
+        return normalizeUrl(builder.toString());
+    }
+
+    /**
+     * 补全根路径。无部署路径的子目录站点会生成 {@code subDir} 这样的地址，浏览器会将其当作相对当前页面的地址解析，须补上开头的 {@code /}
+     */
+    private static String normalizeUrl(String url) {
+        if (Strings.CS.startsWithAny(url, SLASH, HTTP_PROTOCOL, HTTPS_PROTOCOL)) {
+            return url;
+        }
+        return SLASH + url;
     }
 
     /**
@@ -304,8 +313,7 @@ public class Site extends GeneratedSite implements Anchor, TreeEntity {
         builder.appendPath(storageUrl).appendPath(getSubDir());
         builder.appendPath(isAppendMobilePath ? Html.MOBILE_PATH : null);
         builder.appendPath(url);
-        String result = builder.toString();
-        return result.isEmpty() ? "/" : result;
+        return normalizeUrl(builder.toString());
     }
 
     private String getStaticFullUrl(String storageUrl, boolean isAppendMobilePath, String url) {
@@ -483,6 +491,37 @@ public class Site extends GeneratedSite implements Anchor, TreeEntity {
             setMessageBoardSettings(Constants.MAPPER.writeValueAsString(messageBoard));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot write value of MessageBoard", e);
+        }
+    }
+
+    /**
+     * 评论设置
+     */
+    @Nullable
+    private Comment comment;
+
+    @Valid
+    public Comment getComment() {
+        if (comment != null) {
+            return comment;
+        }
+        String settings = getCommentSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Comment();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Comment.class);
+        } catch (JsonProcessingException e) {
+            return new Comment();
+        }
+    }
+
+    public void setComment(Comment comment) {
+        this.comment = comment;
+        try {
+            setCommentSettings(Constants.MAPPER.writeValueAsString(comment));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Comment", e);
         }
     }
 
@@ -910,6 +949,72 @@ public class Site extends GeneratedSite implements Anchor, TreeEntity {
 
         public void setLoginRequired(boolean loginRequired) {
             this.loginRequired = loginRequired;
+        }
+    }
+
+    @Schema(name = "Site.Comment", description = "评论设置")
+    public static class Comment implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+        /**
+         * 是否开启
+         */
+        private boolean enabled = true;
+        /**
+         * 是否需要登录
+         */
+        private boolean loginRequired = true;
+        /**
+         * 是否需要审核
+         */
+        private boolean auditRequired = true;
+        /**
+         * 是否开启图片。新增的存储和滥用面，默认关闭
+         */
+        private boolean imageEnabled = false;
+        /**
+         * 单条评论最多图片数
+         */
+        private int imageMaxCount = 3;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isLoginRequired() {
+            return loginRequired;
+        }
+
+        public void setLoginRequired(boolean loginRequired) {
+            this.loginRequired = loginRequired;
+        }
+
+        public boolean isAuditRequired() {
+            return auditRequired;
+        }
+
+        public void setAuditRequired(boolean auditRequired) {
+            this.auditRequired = auditRequired;
+        }
+
+        public boolean isImageEnabled() {
+            return imageEnabled;
+        }
+
+        public void setImageEnabled(boolean imageEnabled) {
+            this.imageEnabled = imageEnabled;
+        }
+
+        public int getImageMaxCount() {
+            return imageMaxCount;
+        }
+
+        public void setImageMaxCount(int imageMaxCount) {
+            this.imageMaxCount = imageMaxCount;
         }
     }
 

@@ -1,0 +1,186 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>我的好友 - ${site.title}</title>
+  [#include 'mem_settings_head.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="list-group mt-2">
+        [#assign settings = 'friend'/]
+        [#include 'mem_settings_left.html'/]
+      </div>
+    </div>
+    <div class="col-sm-9">
+      <h3 class="py-3 border-bottom">我的好友 <span id="friendTotal" class="small text-muted"></span></h3>
+      <div class="btn-group btn-group-sm mt-3" role="group" id="friendTabs"></div>
+      <ul id="friendList" class="list-unstyled mb-0"></ul>
+      <div id="friendEmpty" class="text-muted my-3 d-none"></div>
+      <div class="text-center my-3 d-none" id="friendMore">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadList(friendPage + 1)">加载更多</button>
+      </div>
+    </div>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+<script>
+  var friendPage = 1;
+  // friends：好友；pending：新的朋友；sent：我发出的
+  var currentTab = 'friends';
+  var pendingCount = 0;
+  var tabs = [
+    {key: 'friends', name: '好友', url: '${api}/friend/page', empty: '暂无好友'},
+    {key: 'pending', name: '新的朋友', url: '${api}/friend/pending', empty: '暂无好友申请'},
+    {key: 'sent', name: '我发出的', url: '${api}/friend/sent', empty: '暂无发出的申请'}
+  ];
+
+  function renderTabs() {
+    var $tabs = $('#friendTabs').empty();
+    tabs.forEach(function (tab) {
+      var btn = $('<button type="button">')
+              .addClass('btn ' + (currentTab === tab.key ? 'btn-primary' : 'btn-outline-primary'))
+              .text(tab.name)
+              .on('click', function () {
+                currentTab = tab.key;
+                renderTabs();
+                loadList(1);
+              });
+      if (tab.key === 'pending' && pendingCount > 0) {
+        btn.append($('<span class="badge bg-danger ms-1">').text(pendingCount > 99 ? '99+' : pendingCount));
+      }
+      btn.appendTo($tabs);
+    });
+  }
+
+  function refreshPendingCount() {
+    axios.get('${api}/friend/pending-count').then(function (response) {
+      pendingCount = Number(response.data) || 0;
+      renderTabs();
+    });
+  }
+
+  function userLine(refer) {
+    refer = refer || {};
+    var line = $('<div class="d-flex align-items-center flex-grow-1 me-3" style="min-width:0;">');
+    var avatar = $('<span class="me-2 flex-shrink-0">');
+    if (refer.avatar) {
+      avatar.append($('<img class="rounded-circle" style="width:40px;height:40px;object-fit:cover;" alt="">')
+              .attr('src', refer.avatar));
+    } else {
+      avatar.append($('<i class="fas fa-user-circle text-secondary" style="font-size:40px;">'));
+    }
+    line.append(avatar);
+    var body = $('<div style="min-width:0;">');
+    body.append($('<div class="text-truncate">')
+            .append($('<a class="cm-link">').attr('href', '${def}/users/' + refer.id).text(refer.nickname || refer.username || '')));
+    line.append(body);
+    return line;
+  }
+
+  function metaLine(bean, label) {
+    return $('<div class="small text-muted mt-1">')
+            .text(label + ' ' + dayjs(bean.created).format('YYYY-MM-DD HH:mm'));
+  }
+
+  function renderRow(bean) {
+    var li = $('<li class="mt-3 pb-3 border-bottom d-flex align-items-center">');
+    var actions = $('<span class="flex-shrink-0">');
+    if (currentTab === 'friends') {
+      var friend = bean.friend || {};
+      var line = userLine(friend);
+      line.children().last().append(metaLine(bean, '好友于'));
+      li.append(line);
+      actions.append($('<a class="btn btn-sm btn-outline-primary me-2">').text('发私信')
+              .attr('href', '${def}/settings/message?peerId=' + friend.id));
+      actions.append($('<button type="button" class="btn btn-sm btn-outline-danger">').text('删除好友')
+              .on('click', function () {
+                if (!confirm('确定删除该好友？')) return;
+                removeRelation(friend.id, '已删除好友！');
+              }));
+    } else if (currentTab === 'pending') {
+      var requester = bean.user || {};
+      var pendingLine = userLine(requester);
+      pendingLine.children().last().append(metaLine(bean, '申请于'));
+      li.append(pendingLine);
+      actions.append($('<button type="button" class="btn btn-sm btn-primary me-2">').text('接受')
+              .on('click', function () {
+                acceptRequest(requester.id);
+              }));
+      actions.append($('<button type="button" class="btn btn-sm btn-outline-secondary">').text('拒绝')
+              .on('click', function () {
+                removeRelation(requester.id, '已拒绝申请！');
+              }));
+    } else {
+      var target = bean.friend || {};
+      var sentLine = userLine(target);
+      sentLine.children().last().append(metaLine(bean, '申请于'));
+      li.append(sentLine);
+      actions.append($('<button type="button" class="btn btn-sm btn-outline-secondary">').text('取消申请')
+              .on('click', function () {
+                removeRelation(target.id, '已取消申请！');
+              }));
+    }
+    li.append(actions);
+    return li;
+  }
+
+  function currentTabInfo() {
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].key === currentTab) return tabs[i];
+    }
+    return tabs[0];
+  }
+
+  function loadList(page) {
+    var tab = currentTabInfo();
+    axios.get(tab.url, {params: {page: page, pageSize: 10}}).then(function (response) {
+      var data = response.data;
+      if (page === 1) $('#friendList').empty();
+      (data.content || []).forEach(function (bean) {
+        $('#friendList').append(renderRow(bean));
+      });
+      $('#friendTotal').text('(' + data.page.totalElements + ')');
+      friendPage = page;
+      // Long 序列化为字符串，须转为数字比较
+      $('#friendMore').toggleClass('d-none', Number(data.page.totalPages) <= page);
+      $('#friendEmpty').text(tab.empty).toggleClass('d-none', Number(data.page.totalElements) !== 0);
+    });
+  }
+
+  function acceptRequest(userId) {
+    fetchCsrf().then(function () {
+      request.put('${api}/friend/accept', {userId: userId}).then(function () {
+        showSuccess('已通过好友申请！');
+        refreshPendingCount();
+        loadList(1);
+      });
+    });
+  }
+
+  function removeRelation(userId, message) {
+    fetchCsrf().then(function () {
+      request.delete('${api}/friend', {params: {userId: userId}}).then(function () {
+        showSuccess(message);
+        refreshPendingCount();
+        loadList(1);
+      });
+    });
+  }
+
+  renderTabs();
+  refreshPendingCount();
+  loadList(1);
+</script>
+</body>
+</html>
+[/#escape]

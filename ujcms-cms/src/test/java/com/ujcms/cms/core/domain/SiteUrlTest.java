@@ -38,6 +38,13 @@ class SiteUrlTest {
     }
 
     @Test
+    void getDynamicUrl_singleDomain_noContextPath_withSubDir_startsWithSlash() {
+        Site site = createSite();
+        site.setSubDir("sub");
+        assertEquals("/sub", site.getDynamicUrl());
+    }
+
+    @Test
     void getDynamicUrl_multiDomain_includesProtocolAndDomain() {
         Site site = createSite();
         site.getConfig().setMultiDomain(true);

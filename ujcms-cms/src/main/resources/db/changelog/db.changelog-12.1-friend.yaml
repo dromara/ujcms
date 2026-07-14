@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783468800000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 好友ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: friend_id_
+                  remarks: 好友用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: status_
+                  remarks: 状态(0:已通过,1:待通过)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 好友
+            tableName: ujcms_friend
+  - changeSet:
+      id: 1783468800000-2
+      author: PONY
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id_, friend_id_
+            constraintName: uk_friend_user_friend
+            tableName: ujcms_friend
+  - changeSet:
+      id: 1783468800000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: friend_id_
+            indexName: idx_friend_friend
+            tableName: ujcms_friend
+  - changeSet:
+      id: 1783468800000-4
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_friend
+            constraintName: fk_friend_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783468800000-5
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: friend_id_
+            baseTableName: ujcms_friend
+            constraintName: fk_friend_friend
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true

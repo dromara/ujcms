@@ -93,6 +93,24 @@ export const routes: Array<RouteRecordRaw> = [
         meta: { title: 'menu.interaction.messageBoard', requiresPermission: 'messageBoard:page' },
       },
       {
+        path: 'comment',
+        name: 'CommentList',
+        component: () => import('@/views/interaction/CommentList.vue'),
+        meta: { title: 'menu.interaction.comment', requiresPermission: 'comment:page' },
+      },
+      {
+        path: 'notification',
+        name: 'NotificationSend',
+        component: () => import('@/views/interaction/NotificationSend.vue'),
+        meta: { title: 'menu.interaction.notification', requiresPermission: 'notification:send' },
+      },
+      {
+        path: 'message',
+        name: 'MessageList',
+        component: () => import('@/views/interaction/MessageList.vue'),
+        meta: { title: 'menu.interaction.message', requiresPermission: 'message:page' },
+      },
+      {
         path: 'vote',
         name: 'VoteList',
         component: () => import('@/views/interaction/VoteList.vue'),

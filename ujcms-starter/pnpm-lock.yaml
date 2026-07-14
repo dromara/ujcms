@@ -73,24 +73,6 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
 
-  src/main/webapp/templates/1/default/_files/vendor/pdfjs-dist:
-    optionalDependencies:
-      '@napi-rs/canvas':
-        specifier: ^0.1.96
-        version: 0.1.97
-      node-readable-to-web-readable-stream:
-        specifier: ^0.4.2
-        version: 0.4.2
-
-  src/main/webapp/templates/2/default/_files/vendor/pdfjs-dist:
-    optionalDependencies:
-      '@napi-rs/canvas':
-        specifier: ^0.1.96
-        version: 0.1.97
-      node-readable-to-web-readable-stream:
-        specifier: ^0.4.2
-        version: 0.4.2
-
 packages:
 
   '@fortawesome/fontawesome-free@5.15.4':

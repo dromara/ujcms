@@ -10,6 +10,28 @@ export const updateMessageBoardStatus = async (ids: string[], status: number): P
   (await axios.post('/backend/ext/message-board/status?_method=put', { ids, status })).data;
 export const deleteMessageBoard = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/message-board?_method=delete', data)).data;
 
+export const queryCommentPage = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/ext/comment', { params })).data;
+export const queryCommentUnreviewedCount = async (params?: Record<string, any>): Promise<any> =>
+  (await axios.get('/backend/ext/comment/unreviewed-count', { params })).data;
+export const queryComment = async (id: string): Promise<any> => (await axios.get(`/backend/ext/comment/${id}`)).data;
+export const updateComment = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/comment?_method=put', data)).data;
+export const updateCommentStatus = async (ids: string[], status: number): Promise<any> =>
+  (await axios.post('/backend/ext/comment/status?_method=put', { ids, status })).data;
+export const deleteComment = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/comment?_method=delete', data)).data;
+
+export const sendSystemNotification = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/notification/system', data)).data;
+export const queryNotificationUserList = async (q: string): Promise<any> => (await axios.get('/backend/ext/notification/user', { params: { q } })).data;
+
+export const queryConversationPage = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/ext/message/conversation', { params })).data;
+export const queryConversationUnreadCount = async (): Promise<any> => (await axios.get('/backend/ext/message/conversation/unread-count')).data;
+export const queryMessagePage = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/ext/message', { params })).data;
+export const sendMessage = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/message', data)).data;
+export const bulkSendMessage = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/message/bulk', data)).data;
+export const readConversation = async (peerId: string): Promise<any> => (await axios.post('/backend/ext/message/read?_method=put', { peerId })).data;
+export const deleteConversation = async (peerId: string): Promise<any> =>
+  (await axios.post('/backend/ext/message/conversation?_method=delete', null, { params: { peerId } })).data;
+export const queryMessageUserList = async (q: string): Promise<any> => (await axios.get('/backend/ext/message/user', { params: { q } })).data;
+
 export const queryVotePage = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/ext/vote', { params })).data;
 export const queryVote = async (id: string): Promise<any> => (await axios.get(`/backend/ext/vote/${id}`)).data;
 export const createVote = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/vote', data)).data;

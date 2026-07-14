@@ -66,6 +66,16 @@ public class SiteSettingsController {
         return Responses.ok();
     }
 
+    @PutMapping("comment")
+    @PreAuthorize("hasAnyAuthority('siteSettings:comment:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateComment", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updateComment(@RequestBody @Valid Site.Comment bean) {
+        Site site = Contexts.getCurrentSite();
+        site.setComment(bean);
+        service.update(site);
+        return Responses.ok();
+    }
+
     @PutMapping("editor")
     @PreAuthorize("hasAnyAuthority('siteSettings:editor:update','*')")
     @OperationLog(module = "siteSettings", operation = "updateMessageBoard", type = OperationType.UPDATE)

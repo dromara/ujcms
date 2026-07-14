@@ -137,6 +137,11 @@ public class AttachmentService implements SiteDeleteListener {
         return mapper.select(id);
     }
 
+    @Nullable
+    public Attachment findByUrl(String url) {
+        return mapper.findByUrl(url);
+    }
+
     public List<Attachment> selectList(AttachmentArgs args) {
         QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedAttachment.TABLE_NAME, "id_desc");
         return mapper.selectAll(queryInfo);

@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 public class ContextConfig implements InitializingBean {
     private final SiteService siteService;
     private final VoteService voteService;
+    private final CommentService commentService;
     private final MessageBoardService messageBoardService;
     private final MessageBoardTypeService messageBoardTypeService;
     private final SurveyService surveyService;
@@ -26,13 +27,15 @@ public class ContextConfig implements InitializingBean {
     private final ExampleService exampleService;
     private final freemarker.template.Configuration configuration;
 
-    public ContextConfig(SiteService siteService, VoteService voteService, MessageBoardService messageBoardService,
+    public ContextConfig(SiteService siteService, VoteService voteService, CommentService commentService,
+                         MessageBoardService messageBoardService,
                          MessageBoardTypeService messageBoardTypeService, SurveyService surveyService,
                          LeaderBoardService leaderBoardService, FormService formService,
                          FormTypeService formTypeService, ExampleService exampleService,
                          freemarker.template.Configuration configuration) {
         this.siteService = siteService;
         this.voteService = voteService;
+        this.commentService = commentService;
         this.messageBoardService = messageBoardService;
         this.messageBoardTypeService = messageBoardTypeService;
         this.surveyService = surveyService;
@@ -52,6 +55,8 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("Vote", new VoteDirective(voteService));
         configuration.setSharedVariable("VoteList", new VoteListDirective(voteService));
         configuration.setSharedVariable("VotePage", new VotePageDirective(voteService));
+        configuration.setSharedVariable("CommentList", new CommentListDirective(commentService));
+        configuration.setSharedVariable("CommentPage", new CommentPageDirective(commentService));
         configuration.setSharedVariable("MessageBoardList", new MessageBoardListDirective(messageBoardService));
         configuration.setSharedVariable("MessageBoardPage", new MessageBoardPageDirective(messageBoardService));
         configuration.setSharedVariable("MessageBoardTypeList",

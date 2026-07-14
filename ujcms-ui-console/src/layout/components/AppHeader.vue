@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { Fold, Expand, HomeFilled, User, SwitchButton } from '@element-plus/icons-vue';
+import { Fold, Expand, HomeFilled, Message, User, SwitchButton } from '@element-plus/icons-vue';
 import { setCookieLocale } from '@/utils/common';
 import { languages } from '@/i18n';
 import { queryCurrentSiteList } from '@/api/login';
 import { currentUser, perm, hasPermission, isInclude, logout } from '@/stores/useCurrentUser';
 import { useAppStateStore } from '@/stores/appStateStore';
 import { useCurrentSiteStore } from '@/stores/currentSiteStore';
+import { useMessageStore } from '@/stores/messageStore';
 import BreadCrumb from '@/components/BreadCrumb/index.vue';
 import PasswordForm from '@/views/personal/PasswordForm.vue';
 import MachineCode from '@/views/personal/MachineCode.vue';
@@ -32,8 +33,15 @@ const changeSiteId = (id: string) => {
   setCurrentSiteId(id);
   window.location.reload();
 };
+const messageStore = useMessageStore();
 onMounted(() => {
   fetchSiteList();
+  if (hasPermission('message:list')) {
+    messageStore.startPolling();
+  }
+});
+onUnmounted(() => {
+  messageStore.stopPolling();
 });
 
 const changeLocale = (lang: string) => {
@@ -62,10 +70,15 @@ const generatedKeyVisible = ref<boolean>(false);
       </div>
       <bread-crumb class="inline-block" />
     </div>
-    <div class="h-full">
+    <div class="flex items-center h-full">
+      <router-link v-if="hasPermission('message:list')" to="/interaction/message" class="inline-flex items-center h-full px-3 hover:bg-gray-100" :title="$t('menu.interaction.message')">
+        <el-badge :value="messageStore.unreadCount" :hidden="messageStore.unreadCount <= 0" :max="99" class="flex">
+          <el-icon :size="16"><Message /></el-icon>
+        </el-badge>
+      </router-link>
       <div v-if="currentSite" class="inline-block h-full">
         <el-link class="h-full px-3 hover:bg-gray-100" :href="currentSite.fullUrl" :underline="false" :title="$t('siteHome')" target="_blank">
-          <el-icon :size="16" class="align-text-top"><HomeFilled /></el-icon>
+          <el-icon :size="16"><HomeFilled /></el-icon>
         </el-link>
       </div>
       <el-dropdown v-if="currentSite" class="h-full">

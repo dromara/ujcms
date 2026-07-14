@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.CommentMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Comment">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="parent_id_" jdbcType="BIGINT" property="parentId" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="ip_" jdbcType="VARCHAR" property="ip" />
+    <result column="recommended_" jdbcType="CHAR" property="recommended" />
+    <result column="status_" jdbcType="SMALLINT" property="status" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.Comment">
+    <result column="text_" jdbcType="LONGVARCHAR" property="text" />
+    <result column="images_json_" jdbcType="LONGVARCHAR" property="imagesJson" />
+  </resultMap>
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.Comment">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.selectRefer" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+    </resultMap>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_comment" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_comment t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_comment
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByParentId" parameterType="java.lang.Long">
+        delete
+        from ujcms_comment
+        where parent_id_ = #{parentId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByArticleId" parameterType="java.lang.Long">
+        delete
+        from ujcms_comment
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="java.lang.Long">
+        delete
+        from ujcms_comment
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <update id="addArticleComments">
+        update ujcms_article_ext
+        set comments_ = comments_ + #{amount,jdbcType=INTEGER}
+        where id_ = #{articleId,jdbcType=BIGINT}
+          and comments_ + #{amount,jdbcType=INTEGER} &gt;= 0
+    </update><update id="update" parameterType="com.ujcms.cms.ext.domain.Comment">
+    update ujcms_comment
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      article_id_ = #{articleId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      parent_id_ = #{parentId,jdbcType=BIGINT},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      ip_ = #{ip,jdbcType=VARCHAR},
+      recommended_ = #{recommended,jdbcType=CHAR},
+      status_ = #{status,jdbcType=SMALLINT},
+      text_ = #{text,jdbcType=LONGVARCHAR},
+      images_json_ = #{imagesJson,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Comment">
+    insert into ujcms_comment (id_, site_id_, article_id_, user_id_, parent_id_, created_, ip_, recommended_, status_, text_, images_json_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{ip,jdbcType=VARCHAR}, #{recommended,jdbcType=CHAR}, #{status,jdbcType=SMALLINT}, #{text,jdbcType=LONGVARCHAR}, #{imagesJson,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.article_id_, t.user_id_, t.parent_id_, t.created_, t.ip_, t.recommended_, t.status_, t.text_, t.images_json_
+  </sql></mapper>

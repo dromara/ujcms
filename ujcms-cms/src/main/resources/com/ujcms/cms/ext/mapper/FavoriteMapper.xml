@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.FavoriteMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Favorite">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="group_id_" jdbcType="BIGINT" property="groupId" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Favorite">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.selectRefer" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+    </resultMap>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_favorite" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_favorite t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="findByArticleIdAndUserId" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_favorite t
+        where t.article_id_ = #{articleId,jdbcType=BIGINT}
+          and t.user_id_ = #{userId,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_favorite
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByArticleId" parameterType="java.lang.Long">
+        delete
+        from ujcms_favorite
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="java.lang.Long">
+        delete
+        from ujcms_favorite
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <update id="updateGroupId">
+        update ujcms_favorite
+        set group_id_ = #{groupId,jdbcType=BIGINT}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="clearGroupId" parameterType="java.lang.Long">
+        update ujcms_favorite
+        set group_id_ = null
+        where group_id_ = #{groupId,jdbcType=BIGINT}
+    </update>
+    <update id="clearGroupIdByUserId" parameterType="java.lang.Long">
+        update ujcms_favorite
+        set group_id_ = null
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and group_id_ is not null
+    </update>
+    <update id="addArticleFavorites">
+        update ujcms_article_ext
+        set favorites_ = favorites_ + #{amount,jdbcType=INTEGER}
+        where id_ = #{articleId,jdbcType=BIGINT}
+          and favorites_ + #{amount,jdbcType=INTEGER} &gt;= 0
+    </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Favorite">
+    insert into ujcms_favorite (id_, site_id_, article_id_, user_id_, group_id_, created_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.article_id_, t.user_id_, t.group_id_, t.created_
+  </sql></mapper>

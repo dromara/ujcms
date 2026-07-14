@@ -9,6 +9,7 @@ import {
   updateSiteWatermarkSettings,
   updateSiteEditorSettings,
   updateSiteMessageBoardSettings,
+  updateSiteCommentSettings,
   updateSiteCustomsSettings,
   queryCurrentSiteThemeList,
   queryModelList,
@@ -51,6 +52,9 @@ if (hasPermission('siteSettings:editor:update') && (currentUser.epRank >= 2 || c
 if (hasPermission('siteSettings:messageBoard:update')) {
   types.push('messageBoard');
 }
+if (hasPermission('siteSettings:comment:update')) {
+  types.push('comment');
+}
 if (hasPermission('siteSettings:customs:update')) {
   types.push('customs');
 }
@@ -75,6 +79,8 @@ const switchType = () => {
     }
   } else if (type.value === 'messageBoard') {
     values.value = site.value.messageBoard;
+  } else if (type.value === 'comment') {
+    values.value = site.value.comment;
   } else if (type.value === 'customs') {
     values.value = site.value.customs;
   } else {
@@ -127,6 +133,8 @@ const handleSubmit = () => {
         await updateSiteEditorSettings(values.value);
       } else if (type.value === 'messageBoard') {
         await updateSiteMessageBoardSettings(values.value);
+      } else if (type.value === 'comment') {
+        await updateSiteCommentSettings(values.value);
       } else if (type.value === 'customs') {
         await updateSiteCustomsSettings(values.value);
       } else {
@@ -329,6 +337,40 @@ const handleSubmit = () => {
               <el-form-item prop="loginRequired" :rules="{ required: true, message: () => $t('v.required') }">
                 <template #label><label-tip message="site.messageBoard.loginRequired" /></template>
                 <el-switch v-model="values.loginRequired"></el-switch>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </template>
+        <template v-else-if="type === 'comment'">
+          <el-row>
+            <el-col :span="12">
+              <el-form-item prop="enabled" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.comment.enabled" /></template>
+                <el-switch v-model="values.enabled"></el-switch>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="loginRequired" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.comment.loginRequired" /></template>
+                <el-switch v-model="values.loginRequired"></el-switch>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="auditRequired" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.comment.auditRequired" /></template>
+                <el-switch v-model="values.auditRequired"></el-switch>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="imageEnabled" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.comment.imageEnabled" help /></template>
+                <el-switch v-model="values.imageEnabled"></el-switch>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="imageMaxCount" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.comment.imageMaxCount" /></template>
+                <el-input-number v-model="values.imageMaxCount" :min="1" :max="9"></el-input-number>
               </el-form-item>
             </el-col>
           </el-row>

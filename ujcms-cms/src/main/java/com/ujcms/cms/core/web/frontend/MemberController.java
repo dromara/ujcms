@@ -7,6 +7,7 @@ import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.common.web.exception.Http404Exception;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,6 +58,22 @@ public class MemberController {
     public String passwordReset(@PathVariable(required = false) String subDir, HttpServletRequest request) {
         Site site = siteResolver.resolve(request, subDir);
         return site.assembleTemplate(PASSWORD_RESET_TEMPLATE);
+    }
+
+    /**
+     * 用户名解析跳转。供评论 @提及 链接使用（见 docs/spec/membership/comment-mention.md），
+     * 与注册时的用户名重复校验等价，不新增用户名枚举面
+     */
+    @GetMapping({"/users/name/{username}", "/{subDir:[\\w-]+}/users/name/{username}"})
+    public String userByName(@PathVariable String username, @PathVariable(required = false) String subDir,
+                             HttpServletRequest request) {
+        siteResolver.resolve(request, subDir);
+        User targetUser = Optional.ofNullable(userService.selectByUsername(username))
+                .orElseThrow(() -> new Http404Exception("User not found. Username: " + username));
+        if (StringUtils.isNotBlank(subDir)) {
+            return "redirect:/" + subDir + "/users/" + targetUser.getId();
+        }
+        return "redirect:/users/" + targetUser.getId();
     }
 
     @GetMapping({"/users/{id}", "/{subDir:[\\w-]+}/users/{id}"})

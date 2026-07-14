@@ -11,6 +11,10 @@
                  style="width:36px;height:36px;cursor:pointer;">
             <div class="dropdown-menu dropdown-menu-end">
               <a class="dropdown-item" href="${def}${user.homepage}"><i class="far fa-user"></i> <span>个人主页</span></a>
+              <a class="dropdown-item" href="${def}/settings"><i class="fas fa-tachometer-alt"></i> <span>个人中心</span></a>
+              <a class="dropdown-item" href="${def}/settings/favorite"><i class="far fa-star"></i> <span>我的收藏</span></a>
+              <a class="dropdown-item" href="${def}/settings/message"><i class="far fa-envelope"></i> <span>我的私信</span></a>
+              <a class="dropdown-item" href="${def}/settings/notification"><i class="far fa-bell"></i> <span>通知</span></a>
               <a class="dropdown-item" href="${def}/settings/profile"><i class="fas fa-cog"></i> <span>设置</span></a>
               <form action="${ctx}/logout" method="post">
                 <button class="dropdown-item" type="submit"><i class="fas fa-sign-out-alt"></i> <span>退出</span></button>

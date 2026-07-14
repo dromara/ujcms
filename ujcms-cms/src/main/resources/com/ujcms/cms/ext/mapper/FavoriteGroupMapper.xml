@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.FavoriteGroupMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.FavoriteGroup">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="BaseResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_favorite_group" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_favorite_group t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_favorite_group
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByUserId" parameterType="java.lang.Long">
+        delete
+        from ujcms_favorite_group
+        where user_id_ = #{userId,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.FavoriteGroup">
+    update ujcms_favorite_group
+    set user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      created_ = #{created,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.FavoriteGroup">
+    insert into ujcms_favorite_group (id_, user_id_, name_, created_)
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP})
+  </insert><sql id="Column_List">
+    t.id_, t.user_id_, t.name_, t.created_
+  </sql></mapper>

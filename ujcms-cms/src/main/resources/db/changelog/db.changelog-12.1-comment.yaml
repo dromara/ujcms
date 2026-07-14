@@ -1,0 +1,164 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783123200000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 评论ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 评论用户ID
+                  type: BIGINT
+              - column:
+                  name: parent_id_
+                  remarks: 上级评论ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ip_
+                  remarks: IP地址
+                  type: VARCHAR(45)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: recommended_
+                  remarks: 是否推荐
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: status_
+                  remarks: 状态(0:已审核,1:未审核,2:已屏蔽)
+                  type: SMALLINT
+              - column:
+                  name: text_
+                  remarks: 评论内容
+                  type: MEDIUMTEXT
+            remarks: 评论
+            tableName: ujcms_comment
+  - changeSet:
+      id: 1783123200000-2
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_comment_site
+            tableName: ujcms_comment
+  - changeSet:
+      id: 1783123200000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_comment_article
+            tableName: ujcms_comment
+  - changeSet:
+      id: 1783123200000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_comment_user
+            tableName: ujcms_comment
+  - changeSet:
+      id: 1783123200000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: parent_id_
+            indexName: idx_comment_parent
+            tableName: ujcms_comment
+  - changeSet:
+      id: 1783123200000-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_comment
+            constraintName: fk_comment_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783123200000-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: article_id_
+            baseTableName: ujcms_comment
+            constraintName: fk_comment_article
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+  - changeSet:
+      id: 1783123200000-8
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_comment
+            constraintName: fk_comment_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783123200000-9
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: comment_settings_
+                  remarks: 评论设置
+                  type: VARCHAR(1000)
+            tableName: ujcms_site

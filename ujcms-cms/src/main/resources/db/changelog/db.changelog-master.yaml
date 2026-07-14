@@ -38,3 +38,27 @@ databaseChangeLog:
   - include:
       file: liquibase.quartz.init.xml
       relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-comment.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-favorite.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-notification.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-follow.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-friend.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-message.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-comment-image.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-follow-users.yaml
+      relativeToChangelogFile: true

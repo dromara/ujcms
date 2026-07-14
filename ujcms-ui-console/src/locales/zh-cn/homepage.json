@@ -10,6 +10,7 @@
   "todo.pendingForm": "待审核表单",
   "todo.rejectedForm": "已退回表单",
   "todo.unreviewedMessageBoard": "未审核留言",
+  "todo.unreviewedComment": "未审核评论",
 
   "systemInfo.version": "版本号",
   "systemInfo.os": "操作系统",

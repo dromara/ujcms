@@ -141,6 +141,19 @@
   "log.messageBoard.updateStatus": "修改留言状态",
   "log.messageBoard.delete": "删除留言",
 
+  "log.comment": "评论管理",
+  "log.comment.update": "修改评论",
+  "log.comment.updateStatus": "修改评论状态",
+  "log.comment.delete": "删除评论",
+
+  "log.notification": "系统通知",
+  "log.notification.sendSystem": "发送系统通知",
+
+  "log.message": "私信",
+  "log.message.send": "发送私信",
+  "log.message.bulkSend": "群发私信",
+  "log.message.deleteConversation": "删除私信会话",
+
   "log.messageBoardType": "留言类型管理",
   "log.messageBoardType.create": "新增留言类型",
   "log.messageBoardType.update": "修改留言类型",
@@ -246,6 +259,7 @@
   "log.siteSettings.updateWatermark": "修改站点水印设置",
   "log.siteSettings.updateEditor": "修改站点编辑器设置",
   "log.siteSettings.updateMessageBoard": "修改站点留言板设置",
+  "log.siteSettings.updateComment": "修改站点评论设置",
   "log.siteSettings.updateCustoms": "修改站点自定义设置",
   "log.siteSettings.updateHtml": "修改站点静态页设置",
 

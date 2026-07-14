@@ -193,6 +193,7 @@
   "site.settings.watermark": "水印设置",
   "site.settings.editor": "编辑器设置",
   "site.settings.messageBoard": "留言板设置",
+  "site.settings.comment": "评论设置",
   "site.settings.html": "静态化设置",
   "site.settings.customs": "自定义设置",
 
@@ -239,6 +240,15 @@
 
   "site.messageBoard.enabled": "是否开启",
   "site.messageBoard.loginRequired": "是否需要登录",
+
+  "site.comment.enabled": "是否开启",
+  "site.comment.loginRequired": "是否需要登录",
+  "site.comment.loginRequired.tooltip": "关闭后允许匿名评论",
+  "site.comment.auditRequired": "是否需要审核",
+  "site.comment.auditRequired.tooltip": "关闭后评论无需审核直接显示",
+  "site.comment.imageEnabled": "是否开启图片",
+  "site.comment.imageEnabled.tooltip": "开启后登录会员可在评论中上传图片",
+  "site.comment.imageMaxCount": "单条评论图片数上限",
 
   "model.fun.systemFields": "系统字段",
   "model.fun.customFields": "自定义字段",

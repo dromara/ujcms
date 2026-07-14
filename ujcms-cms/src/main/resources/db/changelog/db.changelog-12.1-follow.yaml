@@ -1,0 +1,158 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783382400000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 关注ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 关注用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: type_
+                  remarks: 类型(1:文章,2:栏目)
+                  type: SMALLINT
+              - column:
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  name: channel_id_
+                  remarks: 栏目ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 关注
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783382400000-2
+      author: PONY
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id_, article_id_
+            constraintName: uk_follow_user_article
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783382400000-3
+      author: PONY
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id_, channel_id_
+            constraintName: uk_follow_user_channel
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783382400000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_follow_site
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783382400000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+              - column:
+                  name: user_id_
+            indexName: idx_follow_article
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783382400000-6
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: channel_id_
+              - column:
+                  name: user_id_
+            indexName: idx_follow_channel
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783382400000-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_follow
+            constraintName: fk_follow_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783382400000-8
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_follow
+            constraintName: fk_follow_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783382400000-9
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: article_id_
+            baseTableName: ujcms_follow
+            constraintName: fk_follow_article
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+  - changeSet:
+      id: 1783382400000-10
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: channel_id_
+            baseTableName: ujcms_follow
+            constraintName: fk_follow_channel
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_channel
+            validate: true

@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783728000000-1
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: to_user_id_
+                  remarks: 被关注用户ID(type=3)
+                  type: BIGINT
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783728000000-2
+      author: PONY
+      changes:
+        - dropNotNullConstraint:
+            columnDataType: BIGINT
+            columnName: site_id_
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783728000000-3
+      author: PONY
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id_, to_user_id_
+            constraintName: uk_follow_user_to_user
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783728000000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: to_user_id_
+              - column:
+                  name: user_id_
+            indexName: idx_follow_to_user
+            tableName: ujcms_follow
+  - changeSet:
+      id: 1783728000000-5
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: to_user_id_
+            baseTableName: ujcms_follow
+            constraintName: fk_follow_to_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true

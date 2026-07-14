@@ -49,6 +49,8 @@
       </div>
       [/#if]
       <div class="mt-2 pb-2 border-bottom small text-muted">
+        <span class="float-end cm-pointer text-info" onclick="toggleFavorite()"><i id="favoriteIcon" class="far fa-star"></i> 收藏 <span id="favorites"></span></span>
+        <span class="float-end cm-pointer text-info me-3" onclick="toggleFollow()"><i id="followIcon" class="far fa-bell"></i> <span id="followLabel">关注</span></span>
         <span>${format(article.publishDate, 'yyyy-MM-dd HH:mm')}</span>
         [#if article.source??]<span class="ms-2">${article.source}</span>[/#if]
         [#if article.author??]<span class="ms-2">${article.author}</span>[/#if]
@@ -133,8 +135,298 @@
         axios.get('${api}/article/buffer/${article.id?c}').then(function (response) {
           $('#ups').text(response.data.ups);
           $('#downs').text(response.data.downs);
+          $('#favorites').text(response.data.favorites);
         });
+
+        var favorited = false;
+
+        function updateFavoriteIcon() {
+          $('#favoriteIcon').attr('class', favorited ? 'fas fa-star' : 'far fa-star');
+        }
+
+        axios.get('${api}/favorite/exists', {params: {articleId: '${article.id?c}'}}).then(function (response) {
+          favorited = response.data === true;
+          updateFavoriteIcon();
+        });
+
+        [#if user??]
+        function toggleFavorite() {
+          fetchCsrf().then(function () {
+            var promise = favorited
+                    ? request.delete('${api}/favorite', {params: {articleId: '${article.id?c}'}})
+                    : request.post('${api}/favorite', {articleId: '${article.id?c}'});
+            promise.then(function (response) {
+              favorited = !favorited;
+              $('#favorites').text(response.data);
+              updateFavoriteIcon();
+              showSuccess(favorited ? '收藏成功！' : '已取消收藏！');
+            });
+          });
+        }
+        [#else]
+        function toggleFavorite() {
+          showAlert('请登录后收藏！');
+        }
+        [/#if]
+
+        var followed = false;
+
+        function updateFollowLabel() {
+          $('#followIcon').attr('class', followed ? 'fas fa-bell' : 'far fa-bell');
+          $('#followLabel').text(followed ? '已关注' : '关注');
+        }
+
+        axios.get('${api}/follow/exists', {params: {articleId: '${article.id?c}'}}).then(function (response) {
+          followed = response.data === true;
+          updateFollowLabel();
+        });
+
+        [#if user??]
+        function toggleFollow() {
+          fetchCsrf().then(function () {
+            var promise = followed
+                    ? request.delete('${api}/follow', {params: {articleId: '${article.id?c}'}})
+                    : request.post('${api}/follow', {articleId: '${article.id?c}'});
+            promise.then(function () {
+              followed = !followed;
+              updateFollowLabel();
+              showSuccess(followed ? '关注成功！' : '已取消关注！');
+            });
+          });
+        }
+        [#else]
+        function toggleFollow() {
+          showAlert('请登录后关注！');
+        }
+        [/#if]
       </script>
+
+      [#if article.allowComment && site.comment.enabled]
+      <h5 class="mt-4 border-bottom"><span class="cm-block-head-bottom">评论 <span id="commentTotal" class="small text-muted"></span></span></h5>
+      [#if user?? || !site.comment.loginRequired]
+      <form id="commentForm" class="bg-light p-3 mt-3">
+        [#if user??]
+        <div class="dropdown mb-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="mentionBtn" onclick="toggleMentionDropdown()">
+            <i class="fas fa-at"></i> @好友
+          </button>
+          <div class="dropdown-menu" id="mentionDropdown" style="max-height:12rem;overflow-y:auto;"></div>
+        </div>
+        [/#if]
+        <textarea class="form-control" id="commentText" rows="3" maxlength="2000" placeholder="发表评论" required></textarea>
+        [#if user?? && site.comment.imageEnabled]
+        <div id="commentImagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+        [/#if]
+        <div class="d-flex align-items-center mt-2">
+          <div class="input-group input-group-sm me-2" style="max-width:15rem;">
+            <input type="text" class="form-control" id="commentCaptcha" placeholder="验证码" autocomplete="off" required>
+            <img id="commentCaptchaImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="input-group-text"
+                 style="cursor:pointer;padding:0;" title="点击重新获取验证码" alt="验证码"
+                 onclick="fetchCommentCaptcha();$('#commentCaptcha').focus();">
+            <input type="hidden" id="commentCaptchaToken">
+          </div>
+          [#if user?? && site.comment.imageEnabled]
+          <button type="button" class="btn btn-outline-secondary btn-sm me-2" onclick="$('#commentImageInput').trigger('click')">
+            <i class="far fa-image"></i> 添加图片
+          </button>
+          <input type="file" id="commentImageInput" class="d-none" accept="image/*" multiple>
+          [/#if]
+          <button type="submit" class="btn btn-primary btn-sm">发表评论</button>
+        </div>
+      </form>
+      [#else]
+      <div class="bg-light p-3 mt-3 text-muted">请<a href="${def}/login">登录</a>后发表评论</div>
+      [/#if]
+      <ul id="commentList" class="list-unstyled mb-0"></ul>
+      <div class="text-center my-3 d-none" id="commentMore">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadComments(commentPage + 1)">加载更多</button>
+      </div>
+      <script>
+        var commentPage = 1;
+        // 页面已加载评论的会员用户名，供 @好友 下拉合并使用
+        var commentUsernames = [];
+
+        function renderComment(bean) {
+          var name = (bean.user && bean.user.id !== 0 && (bean.user.nickname || bean.user.username)) || '匿名网友';
+          if (bean.user && Number(bean.user.id) !== 0 && bean.user.username && commentUsernames.indexOf(bean.user.username) < 0) {
+            commentUsernames.push(bean.user.username);
+          }
+          var item = $('<li class="mt-3 pb-3 border-bottom">')
+                  .append($('<div class="small text-muted">')
+                          .append($('<i class="far fa-user">'))
+                          .append(document.createTextNode(' ' + name))
+                          .append($('<i class="ms-2 far fa-clock">'))
+                          .append(document.createTextNode(' ' + dayjs(bean.created).format('YYYY-MM-DD HH:mm'))))
+                  .append($('<div class="mt-1">').css('white-space', 'pre-wrap').append(linkifyMentions(bean.text || '')));
+          if (bean.images && bean.images.length > 0) {
+            var imagesDiv = $('<div class="d-flex flex-wrap gap-2 mt-2">');
+            bean.images.forEach(function (url) {
+              // 通过 attr 设置图片地址，避免拼接 HTML 引入 XSS
+              imagesDiv.append($('<img class="rounded gallery-img" style="width:100px;height:100px;object-fit:cover" alt="评论图片">').attr('src', url));
+            });
+            item.append(imagesDiv);
+          }
+          return item;
+        }
+
+        function loadComments(page) {
+          axios.get('${api}/comment/page', {params: {articleId: '${article.id?c}', page: page, pageSize: 10}}).then(function (response) {
+            var data = response.data;
+            if (page === 1) $('#commentList').empty();
+            (data.content || []).forEach(function (bean) {
+              $('#commentList').append(renderComment(bean));
+            });
+            $('#commentTotal').text('(' + data.page.totalElements + ')');
+            commentPage = page;
+            $('#commentMore').toggleClass('d-none', data.page.totalPages <= page);
+            // 重新初始化 PhotoSwipe，使新增的评论图片可点击放大
+            initPhotoSwipeFromDOM('.gallery-img');
+          });
+        }
+
+        loadComments(1);
+
+        [#if user?? || !site.comment.loginRequired]
+        function fetchCommentCaptcha() {
+          axios.get('${api}/captcha').then(function (response) {
+            var data = response.data;
+            if (data == null) return;
+            $('#commentCaptchaImg').attr('src', 'data:image/png;base64,' + data.image);
+            $('#commentCaptchaToken').val(data.token);
+          });
+        }
+
+        fetchCommentCaptcha();
+
+        [#if user??]
+        // @好友 插入按钮：首次点击加载好友列表，与页面已加载评论的用户名合并；点击用户名追加到输入框末尾
+        var mentionFriendNames = null;
+
+        function renderMentionDropdown() {
+          var names = mentionFriendNames.slice();
+          commentUsernames.forEach(function (name) {
+            if (name !== '${user.username}' && names.indexOf(name) < 0) {
+              names.push(name);
+            }
+          });
+          var dropdown = $('#mentionDropdown').empty();
+          if (names.length === 0) {
+            dropdown.append($('<span class="dropdown-item-text small text-muted">').text('暂无好友，可直接输入 @用户名'));
+            return;
+          }
+          names.forEach(function (name) {
+            dropdown.append($('<button type="button" class="dropdown-item">').text('@' + name).on('click', function () {
+              var textarea = $('#commentText');
+              textarea.val(textarea.val() + '@' + name + ' ').trigger('focus');
+              $('#mentionDropdown').removeClass('show');
+            }));
+          });
+        }
+
+        function toggleMentionDropdown() {
+          var dropdown = $('#mentionDropdown');
+          if (dropdown.hasClass('show')) {
+            dropdown.removeClass('show');
+            return;
+          }
+          if (mentionFriendNames === null) {
+            axios.get('${api}/friend').then(function (response) {
+              mentionFriendNames = [];
+              (response.data || []).forEach(function (bean) {
+                if (bean.friend && bean.friend.username && mentionFriendNames.indexOf(bean.friend.username) < 0) {
+                  mentionFriendNames.push(bean.friend.username);
+                }
+              });
+              renderMentionDropdown();
+              dropdown.addClass('show');
+            });
+            return;
+          }
+          renderMentionDropdown();
+          dropdown.addClass('show');
+        }
+
+        $(document).on('click', function (event) {
+          if ($(event.target).closest('#mentionBtn, #mentionDropdown').length === 0) {
+            $('#mentionDropdown').removeClass('show');
+          }
+        });
+        [/#if]
+
+        [#if user?? && site.comment.imageEnabled]
+        var commentImages = [];
+
+        function renderCommentImagePreviews() {
+          var container = $('#commentImagePreview').empty();
+          commentImages.forEach(function (url, index) {
+            container.append($('<div class="position-relative">')
+                    .append($('<img class="rounded border" style="width:64px;height:64px;object-fit:cover" alt="评论图片">').attr('src', url))
+                    .append($('<button type="button" class="btn-close position-absolute top-0 end-0 bg-white" aria-label="移除">').on('click', function () {
+                      commentImages.splice(index, 1);
+                      renderCommentImagePreviews();
+                    })));
+          });
+        }
+
+        $('#commentImageInput').on('change', function () {
+          var maxCount = ${site.comment.imageMaxCount};
+          var files = Array.prototype.slice.call(this.files);
+          this.value = '';
+          if (files.length === 0) return;
+          if (commentImages.length + files.length > maxCount) {
+            showAlert('最多上传 ' + maxCount + ' 张图片！');
+            files = files.slice(0, Math.max(maxCount - commentImages.length, 0));
+          }
+          fetchCsrf().then(function () {
+            files.forEach(function (file) {
+              var formData = new FormData();
+              formData.append('file', file);
+              request.post('${api}/upload/image-upload', formData).then(function (response) {
+                if (commentImages.length < maxCount) {
+                  commentImages.push(response.data.url);
+                  renderCommentImagePreviews();
+                }
+              });
+            });
+          });
+        });
+        [/#if]
+
+        $('#commentForm').on('submit', function (event) {
+          event.preventDefault();
+          var text = $.trim($('#commentText').val());
+          if (!text) return;
+          fetchCsrf().then(function () {
+            request.post('${api}/comment', {
+              articleId: '${article.id?c}',
+              text: text,
+              [#if user?? && site.comment.imageEnabled]
+              images: commentImages,
+              [/#if]
+              captcha: $('#commentCaptcha').val(),
+              captchaToken: $('#commentCaptchaToken').val()
+            }).then(function (response) {
+              if (response.data.status === 0) {
+                $('#commentText').val('');
+                $('#commentCaptcha').val('');
+                [#if user?? && site.comment.imageEnabled]
+                commentImages = [];
+                renderCommentImagePreviews();
+                [/#if]
+                fetchCommentCaptcha();
+                [#if site.comment.auditRequired]
+                showSuccess('评论成功，等待管理员审核！');
+                [#else]
+                loadComments(1);
+                showSuccess('评论成功！');
+                [/#if]
+              }
+            });
+          });
+        });
+        [/#if]
+      </script>
+      [/#if]
 
       <ul class="mt-4 list-unstyled">
         [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; bean]
@@ -157,6 +449,31 @@
           [/#list]
         </ul>
       [/@EsArticleList]
+
+      <!-- 猜你喜欢：登录会员的个性化推荐。静态页对所有访客一致，故客户端拉取 /recommend；匿名返回 []，卡片保持隐藏 -->
+      <div id="recommendCard" class="d-none">
+        <h5 class="mt-4 border-bottom"><span class="cm-block-head-bottom">猜你喜欢</span></h5>
+        <ul id="recommendList" class="list-unstyled mt-3"></ul>
+      </div>
+      <script>
+        (function () {
+          axios.get('${api}/recommend', {params: {limit: 5}}).then(function (response) {
+            var list = response.data || [];
+            if (list.length === 0) {
+              return;
+            }
+            var $list = $('#recommendList').empty();
+            list.forEach(function (bean) {
+              var li = $('<li class="text-truncate mt-2">');
+              li.append($('<a class="cm-link">').attr('href', bean.url).text(bean.title || '无标题'));
+              $list.append(li);
+            });
+            $('#recommendCard').removeClass('d-none');
+          }).catch(function () {
+            // 匿名 [] 或任何失败：卡片保持隐藏，不影响上方静态「相关新闻」
+          });
+        })();
+      </script>
     </div>
     [#include 'inc_right.html'/]
   </div>

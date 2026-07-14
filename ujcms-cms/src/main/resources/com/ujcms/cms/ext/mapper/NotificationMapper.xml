@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.NotificationMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Notification">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="sender_id_" jdbcType="BIGINT" property="senderId" />
+    <result column="type_" jdbcType="SMALLINT" property="type" />
+    <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+    <result column="comment_id_" jdbcType="BIGINT" property="commentId" />
+    <result column="channel_id_" jdbcType="BIGINT" property="channelId" />
+    <result column="title_" jdbcType="VARCHAR" property="title" />
+    <result column="text_" jdbcType="VARCHAR" property="text" />
+    <result column="url_" jdbcType="VARCHAR" property="url" />
+    <result column="read_" jdbcType="CHAR" property="read" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.Notification">
+        <association column="sender_id_" javaType="com.ujcms.cms.core.domain.User" property="sender" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+        <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.selectRefer" />
+        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel" select="com.ujcms.cms.core.mapper.ChannelMapper.selectRefer" />
+    </resultMap>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_notification" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_notification t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="countUnread" parameterType="java.lang.Long" resultType="long">
+        select count(*)
+        from ujcms_notification
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and read_ = '0'
+    </select>
+    <update id="updateRead">
+        update ujcms_notification
+        set read_ = '1'
+        where id_ in
+        <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id,jdbcType=BIGINT}</foreach>
+        and user_id_ = #{userId,jdbcType=BIGINT}
+    </update>
+    <update id="updateAllRead" parameterType="java.lang.Long">
+        update ujcms_notification
+        set read_ = '1'
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and read_ = '0'
+    </update>
+    <delete id="deleteByIds">
+        delete
+        from ujcms_notification
+        where id_ in
+        <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id,jdbcType=BIGINT}</foreach>
+        and user_id_ = #{userId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteReadByUserId" parameterType="java.lang.Long">
+        delete
+        from ujcms_notification
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and read_ = '1'
+    </delete>
+    <delete id="deleteByArticleId" parameterType="java.lang.Long">
+        delete
+        from ujcms_notification
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByChannelId" parameterType="java.lang.Long">
+        delete
+        from ujcms_notification
+        where channel_id_ = #{channelId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="java.lang.Long">
+        delete
+        from ujcms_notification
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByUserId" parameterType="java.lang.Long">
+        delete
+        from ujcms_notification
+        where user_id_ = #{userId,jdbcType=BIGINT}
+    </delete>
+    <update id="clearSenderId" parameterType="java.lang.Long">
+        update ujcms_notification
+        set sender_id_ = null
+        where sender_id_ = #{userId,jdbcType=BIGINT}
+    </update>
+    <select id="findArticlePublishNotified" parameterType="java.lang.Long" resultType="string">
+        select publish_notified_
+        from ujcms_article_ext
+        where id_ = #{articleId,jdbcType=BIGINT}
+    </select>
+    <update id="claimArticlePublishNotified" parameterType="java.lang.Long">
+        update ujcms_article_ext
+        set publish_notified_ = '1'
+        where id_ = #{articleId,jdbcType=BIGINT}
+          and publish_notified_ = '0'
+    </update>
+    <select id="findCommentNotified" parameterType="java.lang.Long" resultType="string">
+        select notified_
+        from ujcms_comment
+        where id_ = #{commentId,jdbcType=BIGINT}
+    </select>
+    <update id="claimCommentNotified" parameterType="java.lang.Long">
+        update ujcms_comment
+        set notified_ = '1'
+        where id_ = #{commentId,jdbcType=BIGINT}
+          and notified_ = '0'
+    </update>
+    <insert id="insertBatch">
+        insert into ujcms_notification (id_, site_id_, user_id_, sender_id_, type_, article_id_, comment_id_,
+        channel_id_, title_, text_, url_, read_, created_)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=BIGINT}, #{item.siteId,jdbcType=BIGINT}, #{item.userId,jdbcType=BIGINT},
+            #{item.senderId,jdbcType=BIGINT}, #{item.type,jdbcType=SMALLINT}, #{item.articleId,jdbcType=BIGINT},
+            #{item.commentId,jdbcType=BIGINT}, #{item.channelId,jdbcType=BIGINT}, #{item.title,jdbcType=VARCHAR},
+            #{item.text,jdbcType=VARCHAR}, #{item.url,jdbcType=VARCHAR}, #{item.read,jdbcType=CHAR},
+            #{item.created,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Notification">
+    insert into ujcms_notification (id_, site_id_, user_id_, sender_id_, type_, article_id_, comment_id_, channel_id_, title_, text_, url_, read_, created_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{senderId,jdbcType=BIGINT}, #{type,jdbcType=SMALLINT}, #{articleId,jdbcType=BIGINT}, #{commentId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{text,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{read,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.user_id_, t.sender_id_, t.type_, t.article_id_, t.comment_id_, t.channel_id_, t.title_, t.text_, t.url_, t.read_, t.created_
+  </sql></mapper>

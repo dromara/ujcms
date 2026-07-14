@@ -42,6 +42,21 @@ class ChannelUrlTest {
     }
 
     @Test
+    void getDynamicUrl_subDir_noContextPath_isRootRelative() {
+        site.setSubDir("en");
+        Channel channel = createChannel("news");
+        assertEquals("/en/channel/news", channel.getDynamicUrl());
+    }
+
+    @Test
+    void getDynamicUrl_subDir_withContextPath() {
+        site.getConfig().setContextPath("/ctx");
+        site.setSubDir("en");
+        Channel channel = createChannel("news");
+        assertEquals("/ctx/en/channel/news", channel.getDynamicUrl());
+    }
+
+    @Test
     void getDynamicUrl_page2_appendsPageNumber() {
         Channel channel = createChannel("news");
         assertEquals("/channel/news/2", channel.getDynamicUrl(2));

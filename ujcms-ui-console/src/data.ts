@@ -207,6 +207,34 @@ export function getPermsTreeData(): any[] {
           ],
         },
         {
+          label: t('menu.interaction.comment'),
+          key: 'comment.key',
+          perms: ['comment:page', 'comment:list'],
+          children: [
+            { label: t('list'), key: 'comment:page' },
+            { label: t('edit'), key: 'comment:update', perms: ['comment:update', 'comment:show'] },
+            { label: t('updateStatus'), key: 'comment:updateStatus', perms: ['comment:updateStatus'] },
+            { label: t('delete'), key: 'comment:delete', perms: ['comment:delete'] },
+          ],
+        },
+        {
+          label: t('menu.interaction.notification'),
+          key: 'notification.key',
+          perms: ['notification:send'],
+          children: [{ label: t('notification.op.send'), key: 'notification:send' }],
+        },
+        {
+          label: t('menu.interaction.message'),
+          key: 'message.key',
+          perms: ['message:page', 'message:list'],
+          children: [
+            { label: t('list'), key: 'message:page' },
+            { label: t('message.op.send'), key: 'message:send', perms: ['message:send'] },
+            { label: t('message.op.bulkSend'), key: 'message:bulkSend', perms: ['message:bulkSend'] },
+            { label: t('delete'), key: 'message:delete', perms: ['message:delete'] },
+          ],
+        },
+        {
           label: t('menu.interaction.vote'),
           key: 'vote.key',
           perms: ['vote:page', 'vote:list'],
@@ -400,6 +428,7 @@ export function getPermsTreeData(): any[] {
             { label: t('site.settings.watermark'), key: 'siteSettings:watermark:update', perms: ['siteSettings:watermark:update'] },
             { label: t('site.settings.editor'), key: 'siteSettings:editor:update', perms: ['siteSettings:editor:update'] },
             { label: t('site.settings.messageBoard'), key: 'siteSettings:messageBoard:update', perms: ['siteSettings:messageBoard:update'] },
+            { label: t('site.settings.comment'), key: 'siteSettings:comment:update', perms: ['siteSettings:comment:update'] },
             { label: t('site.settings.customs'), key: 'siteSettings:customs:update', perms: ['siteSettings:customs:update'] },
           ],
         },

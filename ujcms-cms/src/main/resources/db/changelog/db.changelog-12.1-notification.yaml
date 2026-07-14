@@ -1,0 +1,250 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783296000000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 通知ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 接收用户ID
+                  type: BIGINT
+              - column:
+                  name: sender_id_
+                  remarks: 发送用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: type_
+                  remarks: 类型(1:系统公告,2:评论回复,3:@提及,4:关注文章新评论,5:关注栏目新文章,6:好友申请,7:好友通过)
+                  type: SMALLINT
+              - column:
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  name: comment_id_
+                  remarks: 评论ID
+                  type: BIGINT
+              - column:
+                  name: channel_id_
+                  remarks: 栏目ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(255)
+              - column:
+                  name: text_
+                  remarks: 内容
+                  type: VARCHAR(1000)
+              - column:
+                  name: url_
+                  remarks: 链接地址
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: read_
+                  remarks: 是否已读
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 通知
+            tableName: ujcms_notification
+  - changeSet:
+      id: 1783296000000-2
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+              - column:
+                  name: read_
+            indexName: idx_notification_user_read
+            tableName: ujcms_notification
+  - changeSet:
+      id: 1783296000000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_notification_site
+            tableName: ujcms_notification
+  - changeSet:
+      id: 1783296000000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_notification_article
+            tableName: ujcms_notification
+  - changeSet:
+      id: 1783296000000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: channel_id_
+            indexName: idx_notification_channel
+            tableName: ujcms_notification
+  - changeSet:
+      id: 1783296000000-6
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: sender_id_
+            indexName: idx_notification_sender
+            tableName: ujcms_notification
+  - changeSet:
+      id: 1783296000000-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_notification
+            constraintName: fk_notification_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783296000000-8
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: sender_id_
+            baseTableName: ujcms_notification
+            constraintName: fk_notification_sender
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783296000000-9
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_notification
+            constraintName: fk_notification_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783296000000-10
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: article_id_
+            baseTableName: ujcms_notification
+            constraintName: fk_notification_article
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+  - changeSet:
+      id: 1783296000000-11
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: channel_id_
+            baseTableName: ujcms_notification
+            constraintName: fk_notification_channel
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_channel
+            validate: true
+  - changeSet:
+      id: 1783296000000-12
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  # 存量评论视为已分发，避免历史数据触发通知
+                  defaultValue: '1'
+                  name: notified_
+                  remarks: 是否已分发通知
+                  type: CHAR(1)
+            tableName: ujcms_comment
+  - changeSet:
+      id: 1783296000000-13
+      author: PONY
+      changes:
+        - addDefaultValue:
+            columnDataType: CHAR(1)
+            columnName: notified_
+            defaultValue: '0'
+            tableName: ujcms_comment
+  - changeSet:
+      id: 1783296000000-14
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  # 存量文章视为已分发，避免历史数据触发通知
+                  defaultValue: '1'
+                  name: publish_notified_
+                  remarks: 是否已分发发布通知
+                  type: CHAR(1)
+            tableName: ujcms_article_ext
+  - changeSet:
+      id: 1783296000000-15
+      author: PONY
+      changes:
+        - addDefaultValue:
+            columnDataType: CHAR(1)
+            columnName: publish_notified_
+            defaultValue: '0'
+            tableName: ujcms_article_ext

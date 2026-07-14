@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783641600000-1
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: images_json_
+                  remarks: 评论图片JSON
+                  type: JSON
+            tableName: ujcms_comment

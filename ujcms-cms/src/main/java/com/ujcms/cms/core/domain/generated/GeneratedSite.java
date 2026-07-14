@@ -196,6 +196,14 @@ public class GeneratedSite implements Serializable {
     private String messageBoardSettings;
 
     /**
+     * 评论设置
+     */
+    @Length(max = 1000)
+    @Nullable
+    @Schema(description="评论设置")
+    private String commentSettings;
+
+    /**
      * 状态(0:正常,1:关闭)
      */
     @NotNull

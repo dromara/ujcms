@@ -9,6 +9,7 @@ import com.ujcms.common.captcha.CaptchaCache;
 import com.ujcms.common.captcha.CaptchaProperties;
 import com.ujcms.common.captcha.IpLoginCache;
 import com.ujcms.common.sms.IpSmsCache;
+import com.ujcms.common.social.FriendRequestCache;
 import org.springframework.boot.autoconfigure.cache.CacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.EnableCaching;
@@ -47,6 +48,10 @@ public class CacheConfig {
             cacheManager.registerCustomCache(IpSmsCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(IpSmsCache.EXPIRES, TimeUnit.MINUTES)
                     .maximumSize(IpSmsCache.MAXIMUM_SIZE).recordStats().build());
+            // 好友申请次数缓存
+            cacheManager.registerCustomCache(FriendRequestCache.CACHE_NAME, Caffeine.newBuilder()
+                    .expireAfterWrite(FriendRequestCache.EXPIRES, TimeUnit.MINUTES)
+                    .maximumSize(FriendRequestCache.MAXIMUM_SIZE).recordStats().build());
             // MyBatis二级缓存：GlobalSpringCache
             cacheManager.registerCustomCache(GlobalSpringCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(GlobalSpringCache.EXPIRES, TimeUnit.MINUTES)
@@ -60,6 +65,11 @@ public class CacheConfig {
                     .expireAfterWrite(GroupSpringCache.EXPIRES, TimeUnit.MINUTES)
                     .maximumSize(GroupSpringCache.MAXIMUM_SIZE).recordStats().build());
         };
+    }
+
+    @Bean
+    public FriendRequestCache friendRequestCache() {
+        return new FriendRequestCache();
     }
 
     @Bean

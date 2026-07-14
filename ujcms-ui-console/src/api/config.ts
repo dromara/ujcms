@@ -42,6 +42,8 @@ export const updateSiteWatermarkSettings = async (data: Record<string, any>): Pr
 export const updateSiteEditorSettings = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/site-settings/editor?_method=put', data)).data;
 export const updateSiteMessageBoardSettings = async (data: Record<string, any>): Promise<any> =>
   (await axios.post('/backend/core/site-settings/message-board?_method=put', data)).data;
+export const updateSiteCommentSettings = async (data: Record<string, any>): Promise<any> =>
+  (await axios.post('/backend/core/site-settings/comment?_method=put', data)).data;
 export const querySiteHtmlSettings = async (): Promise<any> => (await axios.get('/backend/core/site-settings/html')).data;
 export const updateSiteHtmlSettings = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/site-settings/html?_method=put', data)).data;
 export const queryCurrentSiteThemeList = async (): Promise<any> => (await axios.get('/backend/core/site/theme')).data;
