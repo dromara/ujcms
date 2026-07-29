@@ -5,7 +5,7 @@
 
 	<groupId>com.ujcms</groupId>
 	<artifactId>ujcms-code-generator</artifactId>
-	<version>12.1.0</version>
+	<version>12.3.0</version>
 	<name>UJCMS Code Generator</name>
 	<description>UJCMS MyBatis 代码生成器</description>
 

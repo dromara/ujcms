@@ -407,6 +407,15 @@
   "performanceType.score": "分数",
   "performanceType.score.tooltip": "每发表一篇文章能够得到的分数",
 
+  "friendLinkType.name": "名称",
+  "friendLinkType.alias": "别名",
+  "friendLinkType.type": "类型",
+  "friendLinkType.type.text": "文字链接",
+  "friendLinkType.type.image": "图片链接",
+  "friendLinkType.imageWidth": "图片宽度",
+  "friendLinkType.imageHeight": "图片高度",
+  "friendLinkType.description": "描述",
+  "friendLinkType.error.aliasExist": "别名已存在",
   "messageBoardType.name": "名称",
   "messageBoardType.description": "描述",
 

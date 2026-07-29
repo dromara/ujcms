@@ -84,9 +84,12 @@
         <ul id="dashNotificationList" class="list-group list-group-flush"></ul>
       </div>
 
-      <!-- 猜你喜欢：个性化推荐，无信号或接口未就绪时整卡隐藏 -->
+      <!-- 猜你喜欢：个性化推荐，无信号或接口未就绪时整卡隐藏。换一批按钮在多于一批时显示 -->
       <div id="recommendCard" class="card settings-card d-none">
-        <div class="card-header"><span>猜你喜欢</span></div>
+        <div class="card-header">
+          <span>猜你喜欢</span>
+          <a id="dashRecommendRefresh" class="small text-decoration-none d-none" href="javascript:void(0)"><i class="fas fa-sync-alt"></i> 换一批</a>
+        </div>
         <div class="card-body">
           <div id="dashRecommendList" class="row g-3"></div>
         </div>
@@ -171,26 +174,41 @@
   }).catch(function () {
   });
 
-  // 猜你喜欢（消费 you-might-like 的推荐接口）
-  axios.get('${api}/recommend', {params: {limit: 6}}).then(function (response) {
-    var list = response.data || [];
-    if (list.length === 0) {
-      return;
-    }
-    var $list = $('#dashRecommendList').empty();
-    list.forEach(function (bean) {
-      var col = $('<div class="col-12 col-md-6">');
-      var row = $('<a class="d-flex align-items-center text-reset text-decoration-none">').attr('href', bean.url);
-      if (bean.image) {
-        row.append($('<img class="rounded me-2 flex-shrink-0" style="width:64px;height:48px;object-fit:cover;" alt="">').attr('src', bean.image));
+  // 猜你喜欢（消费 you-might-like 的推荐分页接口）。换一批 = 轮换缓存 Top-K 的分页切片，超过末页时回绕
+  var dashRecommendPage = 1;
+  var dashRecommendTotalPages = 1;
+
+  function loadDashRecommend(page) {
+    axios.get('${api}/recommend/page', {params: {page: page, pageSize: 6}}).then(function (response) {
+      var data = response.data || {};
+      var list = data.content || [];
+      if (list.length === 0) {
+        return;
       }
-      row.append($('<span class="text-truncate">').text(bean.title || '无标题'));
-      col.append(row);
-      $list.append(col);
+      dashRecommendPage = page;
+      // Long 序列化为字符串，须转为数字比较
+      dashRecommendTotalPages = Number((data.page || {}).totalPages || 1);
+      var $list = $('#dashRecommendList').empty();
+      list.forEach(function (bean) {
+        var col = $('<div class="col-12 col-md-6">');
+        var row = $('<a class="d-flex align-items-center text-reset text-decoration-none">').attr('href', bean.url);
+        if (bean.image) {
+          row.append($('<img class="rounded me-2 flex-shrink-0" style="width:64px;height:48px;object-fit:cover;" alt="">').attr('src', bean.image));
+        }
+        row.append($('<span class="text-truncate">').text(bean.title || '无标题'));
+        col.append(row);
+        $list.append(col);
+      });
+      $('#recommendCard').removeClass('d-none');
+      $('#dashRecommendRefresh').toggleClass('d-none', dashRecommendTotalPages <= 1);
+    }).catch(function () {
     });
-    $('#recommendCard').removeClass('d-none');
-  }).catch(function () {
+  }
+
+  $('#dashRecommendRefresh').on('click', function () {
+    loadDashRecommend(dashRecommendPage % dashRecommendTotalPages + 1);
   });
+  loadDashRecommend(1);
 </script>
 </body>
 </html>

@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * FreeMarker 成员访问策略。在官方 {@link DefaultMemberAccessPolicy} 的基础上，额外禁止访问一批
@@ -40,8 +41,7 @@ public class SecureMemberAccessPolicy implements MemberAccessPolicy {
      * 通过类名加载，类在当前运行环境不存在时（不同 Servlet 容器、可选依赖未引入）自动跳过。
      */
     private static final String[] BLACKLISTED_TYPE_NAMES = {
-            // 反射、类加载与进程执行
-            "java.lang.Class",
+            // 反射、类加载与进程执行（java.lang.Class 单独处理，见 CLASS_NAME_ONLY）
             "java.lang.ClassLoader",
             "java.lang.Runtime",
             "java.lang.Process",
@@ -72,6 +72,31 @@ public class SecureMemberAccessPolicy implements MemberAccessPolicy {
             // 数据源（可经此取得数据库连接）
             "javax.sql.DataSource",
             "java.sql.Connection",
+    };
+
+    /**
+     * {@code java.lang.Class} 上允许访问的“纯名称”方法。仅返回字符串、不产生任何能力，
+     * 用于兼容模板中常见的 {@code obj.class.simpleName} 写法（如登录页按异常类型提示）。
+     * 其余成员（{@code newInstance}、{@code classLoader}、{@code methods}、{@code constructors} 等）仍全部禁止。
+     */
+    private static final Set<String> SAFE_CLASS_METHOD_NAMES = Set.of("getName", "getSimpleName", "getCanonicalName");
+
+    /** {@code java.lang.Class} 专用策略：仅暴露纯名称方法，禁止字段与构造器。 */
+    private static final ClassMemberAccessPolicy CLASS_NAME_ONLY = new ClassMemberAccessPolicy() {
+        @Override
+        public boolean isMethodExposed(Method method) {
+            return method.getDeclaringClass() == Class.class && SAFE_CLASS_METHOD_NAMES.contains(method.getName());
+        }
+
+        @Override
+        public boolean isConstructorExposed(Constructor<?> constructor) {
+            return false;
+        }
+
+        @Override
+        public boolean isFieldExposed(Field field) {
+            return false;
+        }
     };
 
     /** 拒绝目标对象一切成员访问的策略。 */
@@ -111,6 +136,10 @@ public class SecureMemberAccessPolicy implements MemberAccessPolicy {
 
     @Override
     public ClassMemberAccessPolicy forClass(Class<?> contextClass) {
+        // java.lang.Class 为 final，直接比较即可：仅放行纯名称方法，其余成员一律禁止。
+        if (contextClass == Class.class) {
+            return CLASS_NAME_ONLY;
+        }
         for (Class<?> blocked : blacklist) {
             if (blocked.isAssignableFrom(contextClass)) {
                 return DENY_ALL;

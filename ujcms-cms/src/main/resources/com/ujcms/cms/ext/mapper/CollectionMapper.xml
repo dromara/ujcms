@@ -51,6 +51,35 @@
              else 0
              end as non_zero_exists
   </select>
+  <select id="selectStatus" parameterType="java.lang.Long" resultType="java.lang.Short">
+    select status_
+    from ujcms_collection
+    where id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <update id="startRunning" parameterType="java.lang.Long">
+    update ujcms_collection
+    set status_ = 1
+    where id_ = #{id,jdbcType=BIGINT} and status_ &lt;&gt; 1
+  </update>
+  <update id="updateProgress">
+    update ujcms_collection
+    set current_pages_ = #{currentPages,jdbcType=INTEGER},
+      current_items_ = #{currentItems,jdbcType=INTEGER},
+      success_count_ = #{successCount,jdbcType=INTEGER},
+      total_count_ = #{totalCount,jdbcType=INTEGER}
+    where id_ = #{id,jdbcType=BIGINT} and status_ = 1
+  </update>
+  <update id="updateStatus">
+    update ujcms_collection
+    set status_ = #{status,jdbcType=SMALLINT},
+      error_info_ = #{errorInfo,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateStatusIfRunning">
+    update ujcms_collection
+    set status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT} and status_ = 1
+  </update>
   <update id="moveUp">
     update ujcms_collection
     set order_ = order_ + 1

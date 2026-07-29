@@ -10,7 +10,6 @@ import com.ujcms.common.query.QueryUtils;
 import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Views;
-import com.ujcms.common.web.exception.Http400Exception;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -108,9 +107,9 @@ public class ExampleController {
     @PostMapping
     public ResponseEntity<Responses.Body> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "示例对象")
-            @RequestBody @Valid ExampleParams params) {
+            @RequestBody @Valid ExampleParams params, HttpServletRequest request) {
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
-            throw new Http400Exception("Captcha is incorrect.");
+            return Responses.failure(request, "error.captchaIncorrect");
         }
         Example example = new Example();
         Entities.copy(params, example);

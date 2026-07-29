@@ -30,6 +30,7 @@ public class SettingController {
     private static final String SETTINGS_ACCOUNT_TEMPLATE = "mem_settings_account";
     private static final String SETTINGS_COMMENT_TEMPLATE = "mem_settings_comment";
     private static final String SETTINGS_FAVORITE_TEMPLATE = "mem_settings_favorite";
+    private static final String SETTINGS_HISTORY_TEMPLATE = "mem_settings_history";
     private static final String SETTINGS_FOLLOW_TEMPLATE = "mem_settings_follow";
     private static final String SETTINGS_FRIEND_TEMPLATE = "mem_settings_friend";
     private static final String SETTINGS_MESSAGE_TEMPLATE = "mem_settings_message";
@@ -78,6 +79,13 @@ public class SettingController {
     public String favorite(@PathVariable(required = false) String subDir, HttpServletRequest request) {
         Site site = siteResolver.resolve(request, subDir);
         return site.assembleTemplate(SETTINGS_FAVORITE_TEMPLATE);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/history")
+    public String history(@PathVariable(required = false) String subDir, HttpServletRequest request) {
+        Site site = siteResolver.resolve(request, subDir);
+        return site.assembleTemplate(SETTINGS_HISTORY_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")

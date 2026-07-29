@@ -62,3 +62,12 @@ databaseChangeLog:
   - include:
       file: db.changelog-12.1-follow-users.yaml
       relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.1-view-history.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.3-friend-link.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.3-schedule-task.yaml
+      relativeToChangelogFile: true

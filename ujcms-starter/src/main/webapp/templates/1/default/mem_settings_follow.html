@@ -162,7 +162,7 @@
     }
     fetchCsrf().then(function () {
       request.delete('${api}/follow', {params: params}).then(function () {
-        showSuccess('已取消关注！');
+        displaySuccess('已取消关注！');
         loadFollows(1);
       });
     });

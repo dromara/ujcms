@@ -125,6 +125,8 @@
   "collection.op.start": "启动",
   "collection.op.pause": "暂停",
   "collection.op.stop": "停止",
+  "collection.op.clearRecords": "清空记录",
+  "collection.confirmClearRecords": "确定清空采集记录吗？清空后重新采集将全量抓取",
   "collection.op.showError": "查看错误",
   "collection.steps.0": "基础信息",
   "collection.steps.1": "列表页数据",

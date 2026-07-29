@@ -63,6 +63,22 @@ export const updateBlockItem = async (data: Record<string, any>): Promise<any> =
 export const updateBlockItemOrder = async (fromId: string, toId: string): Promise<any> => (await axios.post('/backend/core/block-item/update-order', { fromId, toId })).data;
 export const deleteBlockItem = async (data: string[]): Promise<any> => (await axios.post('/backend/core/block-item?_method=delete', data)).data;
 
+export const queryFriendLinkList = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/ext/friend-link', { params })).data;
+export const queryFriendLink = async (id: string): Promise<any> => (await axios.get(`/backend/ext/friend-link/${id}`)).data;
+export const createFriendLink = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/friend-link', data)).data;
+export const updateFriendLink = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/friend-link?_method=put', data)).data;
+export const updateFriendLinkOrder = async (fromId: string, toId: string): Promise<any> => (await axios.post('/backend/ext/friend-link/update-order', { fromId, toId })).data;
+export const deleteFriendLink = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/friend-link?_method=delete', data)).data;
+
+export const queryFriendLinkTypeList = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/ext/friend-link-type', { params })).data;
+export const queryFriendLinkType = async (id: string): Promise<any> => (await axios.get(`/backend/ext/friend-link-type/${id}`)).data;
+export const createFriendLinkType = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/friend-link-type', data)).data;
+export const updateFriendLinkType = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/ext/friend-link-type?_method=put', data)).data;
+export const updateFriendLinkTypeOrder = async (fromId: string, toId: string): Promise<any> =>
+  (await axios.post('/backend/ext/friend-link-type/update-order', { fromId, toId })).data;
+export const deleteFriendLinkType = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/friend-link-type?_method=delete', data)).data;
+export const friendLinkTypeAliasExist = async (alias: string): Promise<any> => (await axios.get('/backend/ext/friend-link-type/alias-exist', { params: { alias } })).data;
+
 export const queryDictList = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/core/dict', { params })).data;
 export const queryDictListByAlias = async (alias: string, name?: string): Promise<any> => (await axios.get('/backend/core/dict/list-by-alias', { params: { alias, name } })).data;
 export const queryDict = async (id: string): Promise<any> => (await axios.get(`/backend/core/dict/${id}`)).data;

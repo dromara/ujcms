@@ -94,6 +94,9 @@
           if (data.status === 0) {
             showSuccess();
             location.href = '${dy}/example';
+          } else {
+            displayAlert(data.message || '操作失败！');
+            fetchCaptcha();
           }
         });
       }

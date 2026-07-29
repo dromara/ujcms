@@ -64,6 +64,7 @@ export const deleteCollection = async (data: string[]): Promise<any> => (await a
 export const startCollection = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/collection/start?_method=put', data)).data;
 export const pauseCollection = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/collection/pause?_method=put', data)).data;
 export const stopCollection = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/collection/stop?_method=put', data)).data;
+export const clearCollectionRecords = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/collection/clear-records?_method=put', data)).data;
 export const collectionSetupListUrls = async (listUrls: string, pageBegin: number, pageEnd: number, listDesc: boolean): Promise<any> =>
   (await axios.get(`/backend/ext/collection/setup/list-urls`, { params: { listUrls, pageBegin, pageEnd, listDesc } })).data;
 export const collectionSetupDetailUrls = async (

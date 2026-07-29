@@ -112,7 +112,7 @@
           fetchCsrf().then(function() {
             request.post('${api}/article/up/${article.id?c}').then(function (response) {
               if (response.data <= 0) {
-                alert("您已经参与过一次！");
+                displayAlert('您已经参与过一次！');
                 return;
               }
               $('#ups').text(response.data);
@@ -124,7 +124,7 @@
           fetchCsrf().then(function() {
             request.post('${api}/article/down/${article.id?c}').then(function (response) {
               if (response.data <= 0) {
-                alert("您已经参与过一次！");
+                displayAlert('您已经参与过一次！');
                 return;
               }
               $('#downs').text(response.data);
@@ -159,13 +159,13 @@
               favorited = !favorited;
               $('#favorites').text(response.data);
               updateFavoriteIcon();
-              showSuccess(favorited ? '收藏成功！' : '已取消收藏！');
+              displaySuccess(favorited ? '收藏成功！' : '已取消收藏！');
             });
           });
         }
         [#else]
         function toggleFavorite() {
-          showAlert('请登录后收藏！');
+          displayAlert('请登录后收藏！');
         }
         [/#if]
 
@@ -190,13 +190,13 @@
             promise.then(function () {
               followed = !followed;
               updateFollowLabel();
-              showSuccess(followed ? '关注成功！' : '已取消关注！');
+              displaySuccess(followed ? '关注成功！' : '已取消关注！');
             });
           });
         }
         [#else]
         function toggleFollow() {
-          showAlert('请登录后关注！');
+          displayAlert('请登录后关注！');
         }
         [/#if]
       </script>
@@ -208,7 +208,7 @@
         [#if user??]
         <div class="dropdown mb-2">
           <button type="button" class="btn btn-outline-secondary btn-sm" id="mentionBtn" onclick="toggleMentionDropdown()">
-            <i class="fas fa-at"></i> @好友
+            <i class="fas fa-at"></i> 好友
           </button>
           <div class="dropdown-menu" id="mentionDropdown" style="max-height:12rem;overflow-y:auto;"></div>
         </div>
@@ -247,14 +247,20 @@
         var commentUsernames = [];
 
         function renderComment(bean) {
-          var name = (bean.user && bean.user.id !== 0 && (bean.user.nickname || bean.user.username)) || '匿名网友';
-          if (bean.user && Number(bean.user.id) !== 0 && bean.user.username && commentUsernames.indexOf(bean.user.username) < 0) {
+          var isMember = bean.user && Number(bean.user.id) !== 0;
+          var name = (isMember && (bean.user.nickname || bean.user.username)) || '匿名网友';
+          if (isMember && bean.user.username && commentUsernames.indexOf(bean.user.username) < 0) {
             commentUsernames.push(bean.user.username);
           }
+          // 会员用户名链接到其个人主页，匿名评论保持纯文本
+          var nameNode = isMember
+                  ? $('<a class="cm-link">').attr('href', '${def}/users/' + bean.user.id).text(name)[0]
+                  : document.createTextNode(name);
           var item = $('<li class="mt-3 pb-3 border-bottom">')
                   .append($('<div class="small text-muted">')
                           .append($('<i class="far fa-user">'))
-                          .append(document.createTextNode(' ' + name))
+                          .append(document.createTextNode(' '))
+                          .append(nameNode)
                           .append($('<i class="ms-2 far fa-clock">'))
                           .append(document.createTextNode(' ' + dayjs(bean.created).format('YYYY-MM-DD HH:mm'))))
                   .append($('<div class="mt-1">').css('white-space', 'pre-wrap').append(linkifyMentions(bean.text || '')));
@@ -374,7 +380,7 @@
           this.value = '';
           if (files.length === 0) return;
           if (commentImages.length + files.length > maxCount) {
-            showAlert('最多上传 ' + maxCount + ' 张图片！');
+            displayAlert('最多上传 ' + maxCount + ' 张图片！');
             files = files.slice(0, Math.max(maxCount - commentImages.length, 0));
           }
           fetchCsrf().then(function () {
@@ -415,11 +421,14 @@
                 [/#if]
                 fetchCommentCaptcha();
                 [#if site.comment.auditRequired]
-                showSuccess('评论成功，等待管理员审核！');
+                displaySuccess('评论成功，等待管理员审核！');
                 [#else]
                 loadComments(1);
-                showSuccess('评论成功！');
+                displaySuccess('评论成功！');
                 [/#if]
+              } else {
+                displayAlert(response.data.message || '操作失败！');
+                fetchCommentCaptcha();
               }
             });
           });

@@ -14,6 +14,7 @@
   "menu.content.articleReview": "文章审核",
   "menu.content.channel": "栏目管理",
   "menu.content.blockItem": "区块管理",
+  "menu.content.friendLink": "友情链接",
   "menu.content.dict": "字典管理",
   "menu.content.tag": "TAG管理",
   "menu.content.form": "表单管理",
@@ -77,6 +78,7 @@
   "menu.config.dictType": "字典设置",
   "menu.config.formType": "表单类型",
   "menu.config.performanceType": "绩效类型",
+  "menu.config.friendLinkType": "友情链接类型",
   "menu.config.messageBoardType": "留言类型",
 
   "menu.log": "日志",
@@ -90,6 +92,7 @@
   "menu.system.processInstance": "流程实例",
   "menu.system.processHistory": "历史流程",
   "menu.system.task": "任务管理",
+  "menu.system.scheduleTask": "定时任务",
   "menu.system.sensitiveWord": "敏感词管理",
   "menu.system.errorWord": "易错词管理",
   "menu.system.importData": "数据迁移",

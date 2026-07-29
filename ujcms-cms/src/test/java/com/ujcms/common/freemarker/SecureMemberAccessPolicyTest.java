@@ -52,6 +52,26 @@ class SecureMemberAccessPolicyTest {
         assertEquals("ok", process(configuration(true), "${bean.name}", model));
     }
 
+    /** 模板常见写法 {@code obj.class.simpleName}（如登录页按异常类型提示）不应被拦截。 */
+    @Test
+    void allowsClassNameGetters() throws Exception {
+        Map<String, Object> model = new HashMap<>();
+        model.put("bean", new SampleBean());
+        assertEquals("SampleBean", process(configuration(true), "${bean.class.simpleName}", model));
+        assertEquals(SampleBean.class.getName(), process(configuration(true), "${bean.class.name}", model));
+    }
+
+    /** {@code java.lang.Class} 上除纯名称方法外的成员（如 classLoader、methods）仍被禁止。 */
+    @Test
+    void blocksClassCapabilityMembers() {
+        Map<String, Object> model = new HashMap<>();
+        model.put("bean", new SampleBean());
+        assertThrows(TemplateException.class,
+                () -> process(configuration(true), "${bean.class.classLoader}", model));
+        assertThrows(TemplateException.class,
+                () -> process(configuration(true), "${bean.class.methods[0]}", model));
+    }
+
     /** 不启用策略时，SpEL 解析器的 parseExpression/getValue 可被调用——即漏洞利用链可达。 */
     @Test
     void spelReachableWithoutPolicy() throws Exception {

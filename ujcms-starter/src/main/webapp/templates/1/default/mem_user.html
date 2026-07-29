@@ -137,7 +137,7 @@
     fetchCsrf().then(function () {
       request.post('${api}/friend', {userId: targetUserId}).then(function (response) {
         // 交叉申请时直接成为好友
-        showSuccess(response.data === 'accepted' ? '对方也申请了您，已成为好友！' : '已发送好友申请！');
+        displaySuccess(response.data === 'accepted' ? '对方也申请了您，已成为好友！' : '已发送好友申请！');
         loadRelation();
       });
     });
@@ -146,7 +146,7 @@
   function acceptFriend() {
     fetchCsrf().then(function () {
       request.put('${api}/friend/accept', {userId: targetUserId}).then(function () {
-        showSuccess('已通过好友申请！');
+        displaySuccess('已通过好友申请！');
         loadRelation();
       });
     });
@@ -155,7 +155,7 @@
   function removeRelation(message) {
     fetchCsrf().then(function () {
       request.delete('${api}/friend', {params: {userId: targetUserId}}).then(function () {
-        showSuccess(message);
+        displaySuccess(message);
         loadRelation();
       });
     });
@@ -164,7 +164,7 @@
   function follow() {
     fetchCsrf().then(function () {
       request.post('${api}/follow', {toUserId: targetUserId}).then(function () {
-        showSuccess('已关注！');
+        displaySuccess('已关注！');
         loadFollowRelation();
         loadUserStat();
       });
@@ -174,7 +174,7 @@
   function unfollow() {
     fetchCsrf().then(function () {
       request.delete('${api}/follow', {params: {toUserId: targetUserId}}).then(function () {
-        showSuccess('已取消关注！');
+        displaySuccess('已取消关注！');
         loadFollowRelation();
         loadUserStat();
       });
@@ -182,23 +182,23 @@
   }
   [#else]
   function requestFriend() {
-    showAlert('请登录后添加好友！');
+    displayAlert('请登录后添加好友！');
   }
 
   function acceptFriend() {
-    showAlert('请登录后操作！');
+    displayAlert('请登录后操作！');
   }
 
   function removeRelation() {
-    showAlert('请登录后操作！');
+    displayAlert('请登录后操作！');
   }
 
   function follow() {
-    showAlert('请登录后关注！');
+    displayAlert('请登录后关注！');
   }
 
   function unfollow() {
-    showAlert('请登录后操作！');
+    displayAlert('请登录后操作！');
   }
   [/#if]
 

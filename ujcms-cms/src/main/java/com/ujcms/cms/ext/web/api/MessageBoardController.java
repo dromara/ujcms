@@ -17,7 +17,6 @@ import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Servlets;
 import com.ujcms.common.web.Views;
-import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http401Exception;
 import com.ujcms.common.web.exception.Http403Exception;
 import com.ujcms.common.web.exception.Http404Exception;
@@ -161,7 +160,7 @@ public class MessageBoardController {
             userId = user.getId();
         }
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
-            throw new Http400Exception("Captcha is incorrect.");
+            return Responses.failure(request, "error.captchaIncorrect");
         }
         MessageBoard messageBoard = new MessageBoard();
         Entities.copy(params, messageBoard,

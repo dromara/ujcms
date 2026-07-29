@@ -102,13 +102,13 @@
       promise.then(function () {
         followed = !followed;
         updateFollowBtn();
-        showSuccess(followed ? '关注成功！' : '已取消关注！');
+        displaySuccess(followed ? '关注成功！' : '已取消关注！');
       });
     });
   }
   [#else]
   function toggleFollow() {
-    showAlert('请登录后关注！');
+    displayAlert('请登录后关注！');
   }
   [/#if]
 </script>

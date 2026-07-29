@@ -154,7 +154,7 @@
   function readAll() {
     fetchCsrf().then(function () {
       request.put('${api}/notification/read-all').then(function () {
-        showSuccess('已全部标记为已读！');
+        displaySuccess('已全部标记为已读！');
         refreshBadge();
         loadNotifications(1);
       });
@@ -165,7 +165,7 @@
     if (!confirm('确定清空已读通知？')) return;
     fetchCsrf().then(function () {
       request.delete('${api}/notification/read').then(function () {
-        showSuccess('已清空已读通知！');
+        displaySuccess('已清空已读通知！');
         loadNotifications(1);
       });
     });

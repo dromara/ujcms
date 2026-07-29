@@ -54,13 +54,13 @@
     # npm 的缓存目录。这个地址需要使用 npm config get cache 命令确认
     - /root/.npm:copy-on-write
     # pnpm 的缓存目录。这个地址需要使用 pnpm store path 命令确认
-    - /workspace/.pnpm-store/v10:copy-on-write
+    - /workspace/.pnpm-store/v11:copy-on-write
   script: |
-    npm install -g pnpm
-    pnpm --dir ujcms-starter install
-    pnpm --dir ujcms-starter build
-    pnpm --dir ujcms-ui-console install
-    pnpm --dir ujcms-ui-console build:starter
+    npm install -g pnpm --silent
+    pnpm --reporter=silent --dir ujcms-starter install
+    pnpm --reporter=silent --dir ujcms-starter run build --silent
+    pnpm --reporter=silent --dir ujcms-ui-console install
+    pnpm --reporter=silent --dir ujcms-ui-console run build:starter --logLevel warn
 
 .mvn_package: &mvn_package
   name: mvn package

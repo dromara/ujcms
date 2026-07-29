@@ -28,6 +28,14 @@
             <property name="pageable" value="false"/>
             <property name="order" value="true"/>
         </table>
+        <table tableName="ujcms_friend_link" domainObjectName="FriendLink">
+            <property name="pageable" value="false"/>
+            <property name="order" value="true"/>
+        </table>
+        <table tableName="ujcms_collection_record" domainObjectName="CollectionRecord">
+            <property name="service" value="false"/>
+            <property name="controller" value="false"/>
+        </table>
         <table tableName="ujcms_visit_log" domainObjectName="VisitLog">
             <property name="controller" value="false"/>
         </table>

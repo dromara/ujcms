@@ -21,7 +21,7 @@ public class StaticProps {
                     // r2
                     "article:internalPush", "survey:page", "site:page", "config:grey:update",
                     "sensitiveWord:page", "errorWord:page", "siteSettings:editor:update",
-                    "collection:page",
+                    "collection:page", "scheduleTask:page",
                     "form:page", "formType:page", "formReview:page",
                     "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
                     "menu.stat.articleStat", "articleStatByUser:page", "articleStatByOrg:page", "articleStatByChannel:page",

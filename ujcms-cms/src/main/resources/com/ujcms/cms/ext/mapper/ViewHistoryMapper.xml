@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.ViewHistoryMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.ViewHistory">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="updated_" jdbcType="TIMESTAMP" property="updated" />
+  </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.ext.domain.ViewHistory">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.selectRefer" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+    </resultMap>
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_view_history" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_view_history t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="findByArticleIdAndUserId" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_view_history t
+        where t.article_id_ = #{articleId,jdbcType=BIGINT}
+          and t.user_id_ = #{userId,jdbcType=BIGINT}
+    </select>
+    <update id="touch">
+        update ujcms_view_history
+        set updated_ = #{updated,jdbcType=TIMESTAMP}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_view_history
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByArticleId" parameterType="java.lang.Long">
+        delete
+        from ujcms_view_history
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="java.lang.Long">
+        delete
+        from ujcms_view_history
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByUserId" parameterType="java.lang.Long">
+        delete
+        from ujcms_view_history
+        where user_id_ = #{userId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteStale">
+        delete
+        from ujcms_view_history
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and updated_ &lt; #{before,jdbcType=TIMESTAMP}
+    </delete><insert id="insert" parameterType="com.ujcms.cms.ext.domain.ViewHistory">
+    insert into ujcms_view_history (id_, site_id_, article_id_, user_id_, created_, updated_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{updated,jdbcType=TIMESTAMP})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.article_id_, t.user_id_, t.created_, t.updated_
+  </sql></mapper>

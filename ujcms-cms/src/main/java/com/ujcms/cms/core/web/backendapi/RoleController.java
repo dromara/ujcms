@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_PRIVATE;
@@ -72,7 +73,7 @@ public class RoleController {
         User currentUser = Contexts.getCurrentUser();
         Role role = new Role();
         Entities.copy(bean, role, Role.PERMISSION_FIELDS);
-        validateBean(role, false, role.getRank(), currentUser);
+        validateBean(role, false, role.getRank(), null, currentUser);
         // 赋予当前用户相同的数据权限
         role.setAllPermission(currentUser.hasAllPermission());
         role.setAllGrantPermission(currentUser.hasAllGrantPermission());
@@ -95,8 +96,9 @@ public class RoleController {
         }
         boolean origGlobal = role.isGlobal();
         Short origRank = role.getRank();
+        Short origScope = role.getScope();
         Entities.copy(bean, role, Role.PERMISSION_FIELDS);
-        validateBean(role, origGlobal, origRank, currentUser);
+        validateBean(role, origGlobal, origRank, origScope, currentUser);
         service.update(role, getCurrentSiteId());
         return Responses.ok();
     }
@@ -111,8 +113,9 @@ public class RoleController {
             throw new Http404Exception(ROLE_NOT_FOUND + bean.getId());
         }
         Short origRank = role.getRank();
+        Short origScope = role.getScope();
         Entities.copyIncludes(bean, role, Role.PERMISSION_FIELDS);
-        validateBean(role, false, origRank, currentUser);
+        validateBean(role, false, origRank, origScope, currentUser);
         service.update(role, bean.getArticlePermissions(), bean.getChannelPermissions(), bean.getOrgPermissions(),
                 getCurrentSiteId());
         return Responses.ok();
@@ -185,10 +188,12 @@ public class RoleController {
         globalPermission(isGlobal, currentUser.hasGlobalPermission());
     }
 
-    private void validateBean(Role role, boolean origGlobal, Short origRank, User currentUser) {
+    private void validateBean(Role role, boolean origGlobal, Short origRank, @Nullable Short origScope,
+                              User currentUser) {
         boolean isGlobal = role.isGlobal() || origGlobal;
         validatePermission(role.getSiteId(), isGlobal, origRank, role.getRank(), currentUser);
-        if (scopeNotAllowed(role.getScope(), role.getId())) {
+        // 共享范围未修改时不校验，避免存量数据不符合规则（如私有角色已被本机构外用户使用）导致无法保存
+        if (!Objects.equals(role.getScope(), origScope) && scopeNotAllowed(role.getScope(), role.getId())) {
             throw new Http400Exception("scope not allowed " + role.getScope());
         }
     }

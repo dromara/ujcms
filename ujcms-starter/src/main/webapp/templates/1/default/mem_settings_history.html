@@ -1,0 +1,113 @@
+<!doctype html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>最近浏览 - ${site.title}</title>
+  [#include 'mem_settings_head.html'/]
+  [#include 'inc_meta.html'/]
+  [#include 'inc_css.html'/]
+  [#include 'inc_js.html'/]
+</head>
+<body>
+[#assign headerShadow=true/]
+[#include 'inc_header.html'/]
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="list-group mt-2">
+        [#assign settings = 'history'/]
+        [#include 'mem_settings_left.html'/]
+      </div>
+    </div>
+    <div class="col-sm-9">
+      <div class="settings-page-header">最近浏览 <span id="historyTotal" class="small text-muted fw-normal"></span></div>
+      <div class="card settings-card">
+        <div class="card-header">
+          <span class="small text-muted">仅记录登录后浏览的文章</span>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearHistory()">清空浏览记录</button>
+        </div>
+        <div class="card-body">
+          <ul id="historyList" class="list-unstyled mb-0"></ul>
+          <div id="historyEmpty" class="settings-empty d-none">
+            <i class="fas fa-history"></i>
+            <div>暂无浏览记录</div>
+          </div>
+          <div class="text-center my-3 d-none" id="historyMore">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadHistory(historyPage + 1)">加载更多</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+[#include 'inc_footer.html'/]
+[#include 'inc_message_box.html'/]
+<script>
+  var historyPage = 1;
+
+  function renderHistory(bean) {
+    var article = bean.article || {};
+    var li = $('<li class="mt-3 pb-3 border-bottom d-flex align-items-center">');
+    if (article.image) {
+      li.append($('<img class="me-3 flex-shrink-0 rounded" style="width:80px;height:60px;object-fit:cover;" alt="">')
+              .attr('src', article.image));
+    }
+    var body = $('<div class="flex-grow-1 me-3" style="min-width:0;">');
+    body.append($('<div class="text-truncate">')
+            .append($('<a class="cm-link">').attr('href', article.url).text(article.title || '')));
+    var meta = $('<div class="small text-muted mt-1">');
+    if (article.publishDate) {
+      meta.append($('<i class="far fa-calendar-alt">'))
+              .append(document.createTextNode(' ' + dayjs(article.publishDate).format('YYYY-MM-DD')));
+    }
+    meta.append($('<i class="ms-2 fas fa-history">'))
+            .append(document.createTextNode(' 浏览于 ' + dayjs(bean.updated).format('YYYY-MM-DD HH:mm')));
+    body.append(meta);
+    li.append(body);
+    li.append($('<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0">').text('删除记录')
+            .on('click', function () {
+              removeHistory(article.id);
+            }));
+    return li;
+  }
+
+  function loadHistory(page) {
+    axios.get('${api}/view-history/page', {params: {page: page, pageSize: 10}}).then(function (response) {
+      var data = response.data;
+      if (page === 1) $('#historyList').empty();
+      (data.content || []).forEach(function (bean) {
+        $('#historyList').append(renderHistory(bean));
+      });
+      $('#historyTotal').text('(' + data.page.totalElements + ')');
+      historyPage = page;
+      // Long 序列化为字符串，须转为数字比较
+      $('#historyMore').toggleClass('d-none', Number(data.page.totalPages) <= page);
+      $('#historyEmpty').toggleClass('d-none', Number(data.page.totalElements) !== 0);
+    });
+  }
+
+  function removeHistory(articleId) {
+    fetchCsrf().then(function () {
+      request.delete('${api}/view-history', {params: {articleId: articleId}}).then(function () {
+        displaySuccess('已删除该记录！');
+        loadHistory(1);
+      });
+    });
+  }
+
+  function clearHistory() {
+    if (!confirm('确定清空全部浏览记录？此操作不可恢复。')) return;
+    fetchCsrf().then(function () {
+      request.delete('${api}/view-history/clear').then(function () {
+        displaySuccess('已清空浏览记录！');
+        loadHistory(1);
+      });
+    });
+  }
+
+  loadHistory(1);
+</script>
+</body>
+</html>
+[/#escape]

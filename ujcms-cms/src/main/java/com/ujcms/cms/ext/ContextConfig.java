@@ -24,6 +24,8 @@ public class ContextConfig implements InitializingBean {
     private final LeaderBoardService leaderBoardService;
     private final FormService formService;
     private final FormTypeService formTypeService;
+    private final FriendLinkService friendLinkService;
+    private final FriendLinkTypeService friendLinkTypeService;
     private final ExampleService exampleService;
     private final freemarker.template.Configuration configuration;
 
@@ -31,8 +33,9 @@ public class ContextConfig implements InitializingBean {
                          MessageBoardService messageBoardService,
                          MessageBoardTypeService messageBoardTypeService, SurveyService surveyService,
                          LeaderBoardService leaderBoardService, FormService formService,
-                         FormTypeService formTypeService, ExampleService exampleService,
-                         freemarker.template.Configuration configuration) {
+                         FormTypeService formTypeService, FriendLinkService friendLinkService,
+                         FriendLinkTypeService friendLinkTypeService,
+                         ExampleService exampleService, freemarker.template.Configuration configuration) {
         this.siteService = siteService;
         this.voteService = voteService;
         this.commentService = commentService;
@@ -42,6 +45,8 @@ public class ContextConfig implements InitializingBean {
         this.leaderBoardService = leaderBoardService;
         this.formService = formService;
         this.formTypeService = formTypeService;
+        this.friendLinkService = friendLinkService;
+        this.friendLinkTypeService = friendLinkTypeService;
         this.exampleService = exampleService;
         this.configuration = configuration;
     }
@@ -61,6 +66,10 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("MessageBoardPage", new MessageBoardPageDirective(messageBoardService));
         configuration.setSharedVariable("MessageBoardTypeList",
                 new MessageBoardTypeListDirective(messageBoardTypeService));
+        configuration.setSharedVariable("FriendLinkList",
+                new FriendLinkListDirective(friendLinkService, friendLinkTypeService));
+        configuration.setSharedVariable("FriendLinkTypeList",
+                new FriendLinkTypeListDirective(friendLinkTypeService));
         configuration.setSharedVariable("Survey", new SurveyDirective(surveyService));
         configuration.setSharedVariable("SurveyList", new SurveyListDirective(surveyService));
         configuration.setSharedVariable("SurveyPage", new SurveyPageDirective(surveyService));

@@ -6,6 +6,7 @@
   "menu.content.article": "Article",
   "menu.content.channel": "Channel",
   "menu.content.blockItem": "Block Item",
+  "menu.content.friendLink": "Friend Link",
   "menu.content.attachment": "Attachment",
   "menu.content.generator": "Generator",
   "menu.user": "User",
@@ -19,8 +20,10 @@
   "menu.config.block": "Block",
   "menu.config.model": "Model",
   "menu.config.dictType": "Dictionary Type",
+  "menu.config.friendLinkType": "Friend Link Type",
   "menu.config.dict": "Dictionary",
   "menu.system": "System",
+  "menu.system.scheduleTask": "Schedule Task",
   "menu.system.site": "Site",
 
   "": ""

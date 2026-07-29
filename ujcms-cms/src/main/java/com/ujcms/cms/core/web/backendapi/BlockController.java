@@ -29,6 +29,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
@@ -81,7 +82,7 @@ public class BlockController {
         User currentUser = Contexts.getCurrentUser();
         Block block = new Block();
         Entities.copy(bean, block, "siteId");
-        validateBean(block, false, null, currentUser);
+        validateBean(block, false, null, null, currentUser);
         service.insert(block, getCurrentSiteId());
         return Responses.ok();
     }
@@ -97,8 +98,9 @@ public class BlockController {
         }
         boolean origGlobal = block.isGlobal();
         String origAlias = block.getAlias();
+        Short origScope = block.getScope();
         Entities.copy(bean, block, "siteId");
-        validateBean(block, origGlobal, origAlias, user);
+        validateBean(block, origGlobal, origAlias, origScope, user);
         service.update(block, Contexts.getCurrentSiteId());
         return Responses.ok();
     }
@@ -154,9 +156,11 @@ public class BlockController {
         globalPermission(isGlobal, currentUser.hasGlobalPermission());
     }
 
-    private void validateBean(Block block, boolean origGlobal, @Nullable String origAlias, User currentUser) {
+    private void validateBean(Block block, boolean origGlobal, @Nullable String origAlias, @Nullable Short origScope,
+                              User currentUser) {
         validatePermission(block.getSiteId(), block.isGlobal() || origGlobal, currentUser);
-        if (scopeNotAllowed(block.getScope(), block.getId())) {
+        // 共享范围未修改时不校验，避免存量数据不符合规则（如私有区块已被其它站点使用）导致无法保存
+        if (!Objects.equals(block.getScope(), origScope) && scopeNotAllowed(block.getScope(), block.getId())) {
             throw new Http400Exception("scope not allowed " + block.getScope());
         }
         if (!block.getAlias().equals(origAlias) && aliasExist(block.getAlias(), block.getScope())) {

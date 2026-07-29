@@ -366,8 +366,12 @@
             (async () => {
               const pdfDocument = await pdfjsLib.getDocument({
                 url: '${article.doc}',
-                cMapUrl: '${files}/vendor/pdfjs-dist/cmaps/?v=${v}',
+                // 工厂 URL 必须以 / 结尾（pdf.js 直接拼接文件名），不能带 ?v= 查询参数
+                cMapUrl: '${files}/vendor/pdfjs-dist/cmaps/',
                 cMapPacked: true,
+                standardFontDataUrl: '${files}/vendor/pdfjs-dist/standard_fonts/',
+                wasmUrl: '${files}/vendor/pdfjs-dist/wasm/',
+                iccUrl: '${files}/vendor/pdfjs-dist/iccs/',
                 enableXfa: true,
                 rangeChunkSize: 65536,
                 disableStream: true,

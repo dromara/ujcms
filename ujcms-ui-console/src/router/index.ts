@@ -53,6 +53,12 @@ export const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/content/BlockItemList.vue'),
         meta: { title: 'menu.content.blockItem', requiresPermission: 'blockItem:page' },
       },
+      {
+        path: 'friend-link',
+        name: 'FriendLinkList',
+        component: () => import('@/views/content/FriendLinkList.vue'),
+        meta: { title: 'menu.content.friendLink', requiresPermission: 'friendLink:page' },
+      },
       { path: 'dict', name: 'DictList', component: () => import('@/views/content/DictList.vue'), meta: { title: 'menu.content.dict', requiresPermission: 'dict:page' } },
       { path: 'tag', name: 'TagList', component: () => import('@/views/content/TagList.vue'), meta: { title: 'menu.content.tag', requiresPermission: 'tag:page' } },
       {
@@ -221,6 +227,12 @@ export const routes: Array<RouteRecordRaw> = [
         name: 'PerformanceTypeList',
         component: () => import('@/views/EnterprisePage.vue'),
         meta: { title: 'menu.config.performanceType', requiresPermission: 'performanceType:page' },
+      },
+      {
+        path: 'friend-link-type',
+        name: 'FriendLinkTypeList',
+        component: () => import('@/views/config/FriendLinkTypeList.vue'),
+        meta: { title: 'menu.config.friendLinkType', requiresPermission: 'friendLinkType:page' },
       },
       {
         path: 'message-board-type',
@@ -404,6 +416,12 @@ export const routes: Array<RouteRecordRaw> = [
         name: 'ErrorWordList',
         component: () => import('@/views/EnterprisePage.vue'),
         meta: { title: 'menu.system.errorWord', requiresPermission: 'errorWord:page' },
+      },
+      {
+        path: 'schedule-task',
+        name: 'ScheduleTaskList',
+        component: () => import('@/views/system/ScheduleTaskList.vue'),
+        meta: { title: 'menu.system.scheduleTask', requiresPermission: 'scheduleTask:page' },
       },
       {
         path: 'import-data',

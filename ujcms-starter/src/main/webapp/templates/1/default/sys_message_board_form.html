@@ -131,6 +131,9 @@
           if (data.status === 0) {
             showSuccess('留言成功，等待管理员审核！');
             location.href = '${dy}/message-board';
+          } else {
+            displayAlert(data.message || '操作失败！');
+            fetchCaptcha();
           }
         });
       }

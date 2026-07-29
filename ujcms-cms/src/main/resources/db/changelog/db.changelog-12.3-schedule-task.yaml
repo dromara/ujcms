@@ -1,0 +1,225 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783428610775-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 定时任务ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(450)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: type_
+                  remarks: 类型(html:更新全部静态页,fulltext:生成本站索引,collection:定时采集)
+                  type: VARCHAR(50)
+              - column:
+                  name: ref_id_
+                  remarks: 引用ID(如采集ID)
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: cron_
+                  remarks: Cron表达式
+                  type: VARCHAR(120)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+              - column:
+                  name: last_run_at_
+                  remarks: 最近执行时间
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: last_status_
+                  remarks: 最近执行状态(0:未运行,1:成功,2:失败)
+                  type: SMALLINT
+              - column:
+                  name: error_info_
+                  remarks: 错误信息
+                  type: MEDIUMTEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 定时任务表
+            tableName: ujcms_schedule_task
+  - changeSet:
+      id: 1783428610775-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 采集记录ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: collection_id_
+                  remarks: 采集ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: url_md5_
+                  remarks: URL的MD5值
+                  type: CHAR(32)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: url_
+                  remarks: URL
+                  type: VARCHAR(2000)
+              - column:
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 采集时间
+                  type: datetime
+            remarks: 采集记录表
+            tableName: ujcms_collection_record
+  - changeSet:
+      id: 1783428610775-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_scheduletask_site
+            tableName: ujcms_schedule_task
+  - changeSet:
+      id: 1783428610775-4
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_scheduletask_user
+            tableName: ujcms_schedule_task
+  - changeSet:
+      id: 1783428610775-5
+      author: PONY (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: collection_id_, url_md5_
+            constraintName: uk_collectionrecord_coll_url
+            tableName: ujcms_collection_record
+  - changeSet:
+      id: 1783428610775-6
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_collectionrecord_site
+            tableName: ujcms_collection_record
+  - changeSet:
+      id: 1783428610775-7
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_schedule_task
+            constraintName: fk_scheduletask_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783428610775-8
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_schedule_task
+            constraintName: fk_scheduletask_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783428610775-9
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: collection_id_
+            baseTableName: ujcms_collection_record
+            constraintName: fk_collectionrecord_collection
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_collection
+            validate: true
+  - changeSet:
+      id: 1783428610775-10
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_collection_record
+            constraintName: fk_collectionrecord_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true

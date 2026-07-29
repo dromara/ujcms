@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.CollectionRecordMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.CollectionRecord">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="collection_id_" jdbcType="BIGINT" property="collectionId" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="url_md5_" jdbcType="CHAR" property="urlMd5" />
+    <result column="url_" jdbcType="VARCHAR" property="url" />
+    <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+  <select id="existsByUrl" resultType="int">
+    select case
+             when exists(
+               select *
+               from ujcms_collection_record t
+               where t.collection_id_ = #{collectionId,jdbcType=BIGINT} and t.url_md5_ = #{urlMd5,jdbcType=CHAR}
+             ) then 1
+             else 0
+             end as non_zero_exists
+  </select>
+  <delete id="deleteByCollectionId" parameterType="long">
+    delete
+    from ujcms_collection_record
+    where collection_id_ = #{collectionId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_collection_record
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ujcms.cms.ext.domain.CollectionRecord">
+    insert into ujcms_collection_record (id_, collection_id_, site_id_, url_md5_, url_, article_id_, created_)
+    values (#{id,jdbcType=BIGINT}, #{collectionId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{urlMd5,jdbcType=CHAR}, #{url,jdbcType=VARCHAR}, #{articleId,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP})
+  </insert>
+</mapper>

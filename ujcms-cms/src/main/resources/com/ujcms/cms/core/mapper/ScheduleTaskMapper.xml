@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ScheduleTaskMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ScheduleTask">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="user_id_" jdbcType="BIGINT" property="userId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="type_" jdbcType="VARCHAR" property="type" />
+    <result column="ref_id_" jdbcType="BIGINT" property="refId" />
+    <result column="cron_" jdbcType="VARCHAR" property="cron" />
+    <result column="enabled_" jdbcType="CHAR" property="enabled" />
+    <result column="last_run_at_" jdbcType="TIMESTAMP" property="lastRunAt" />
+    <result column="last_status_" jdbcType="SMALLINT" property="lastStatus" />
+    <result column="order_" jdbcType="BIGINT" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.ScheduleTask">
+    <result column="error_info_" jdbcType="LONGVARCHAR" property="errorInfo" />
+  </resultMap>
+  <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.ScheduleTask" />
+
+  <update id="moveUp">
+    update ujcms_schedule_task
+    set order_ = order_ + 1
+    where order_ &lt; #{from} and order_ &gt;= #{to}
+  </update>
+  <update id="moveDown">
+    update ujcms_schedule_task
+    set order_ = order_ - 1
+    where order_ &gt; #{from} and order_ &lt;= #{to}
+  </update>
+  <update id="updateOrder">
+    update ujcms_schedule_task
+    set order_ = #{order}
+    where id_ = #{id}
+  </update>
+  <update id="updateRunResult">
+    update ujcms_schedule_task
+    set last_run_at_ = #{lastRunAt,jdbcType=TIMESTAMP},
+      last_status_ = #{lastStatus,jdbcType=SMALLINT},
+      error_info_ = #{errorInfo,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="listEnabled" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_schedule_task t
+    where t.enabled_ = '1'
+    order by t.order_, t.id_
+  </select>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_schedule_task
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByUserId" parameterType="long">
+    delete
+    from ujcms_schedule_task
+    where user_id_ = #{userId,jdbcType=BIGINT}
+  </delete>
+
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_schedule_task" />
+    </include>
+  </select>
+  <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_schedule_task t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="delete" parameterType="java.lang.Long">
+    delete
+    from ujcms_schedule_task
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete><update id="update" parameterType="com.ujcms.cms.core.domain.ScheduleTask">
+    update ujcms_schedule_task
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=VARCHAR},
+      ref_id_ = #{refId,jdbcType=BIGINT},
+      cron_ = #{cron,jdbcType=VARCHAR},
+      enabled_ = #{enabled,jdbcType=CHAR},
+      last_run_at_ = #{lastRunAt,jdbcType=TIMESTAMP},
+      last_status_ = #{lastStatus,jdbcType=SMALLINT},
+      error_info_ = #{errorInfo,jdbcType=LONGVARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.ScheduleTask">
+    update ujcms_schedule_task
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      user_id_ = #{userId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      type_ = #{type,jdbcType=VARCHAR},
+      ref_id_ = #{refId,jdbcType=BIGINT},
+      cron_ = #{cron,jdbcType=VARCHAR},
+      enabled_ = #{enabled,jdbcType=CHAR},
+      last_run_at_ = #{lastRunAt,jdbcType=TIMESTAMP},
+      last_status_ = #{lastStatus,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.ScheduleTask">
+    insert into ujcms_schedule_task (id_, site_id_, user_id_, name_, type_, ref_id_, cron_, enabled_, last_run_at_, last_status_, order_, error_info_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{refId,jdbcType=BIGINT}, #{cron,jdbcType=VARCHAR}, #{enabled,jdbcType=CHAR}, #{lastRunAt,jdbcType=TIMESTAMP}, #{lastStatus,jdbcType=SMALLINT}, #{order,jdbcType=BIGINT}, #{errorInfo,jdbcType=LONGVARCHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.user_id_, t.name_, t.type_, t.ref_id_, t.cron_, t.enabled_, t.last_run_at_, t.last_status_, t.order_, t.error_info_
+  </sql></mapper>

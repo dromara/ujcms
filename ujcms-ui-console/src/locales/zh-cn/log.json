@@ -160,6 +160,17 @@
   "log.messageBoardType.updateOrder": "修改留言类型顺序",
   "log.messageBoardType.delete": "删除留言类型",
 
+  "log.friendLink": "友情链接管理",
+  "log.friendLink.create": "新增友情链接",
+  "log.friendLink.update": "修改友情链接",
+  "log.friendLink.updateOrder": "修改友情链接顺序",
+  "log.friendLink.delete": "删除友情链接",
+  "log.friendLinkType": "友情链接类型管理",
+  "log.friendLinkType.create": "新增友情链接类型",
+  "log.friendLinkType.update": "修改友情链接类型",
+  "log.friendLinkType.updateOrder": "修改友情链接类型顺序",
+  "log.friendLinkType.delete": "删除友情链接类型",
+
   "log.vote": "投票管理",
   "log.vote.create": "新增投票",
   "log.vote.update": "修改投票",
@@ -178,6 +189,7 @@
   "log.collection.updateOrder": "修改采集顺序",
   "log.collection.start": "开始采集",
   "log.collection.stop": "停止采集",
+  "log.collection.clearRecords": "清空采集记录",
   "log.collection.delete": "删除投票",
 
   "log.example": "示例管理",
@@ -352,6 +364,12 @@
 
   "log.task": "任务管理",
   "log.task.delete": "删除任务",
+  "log.scheduleTask": "定时任务管理",
+  "log.scheduleTask.create": "新增定时任务",
+  "log.scheduleTask.update": "修改定时任务",
+  "log.scheduleTask.updateOrder": "修改定时任务顺序",
+  "log.scheduleTask.delete": "删除定时任务",
+  "log.scheduleTask.run": "立即执行定时任务",
 
   "log.sensitiveWord":"敏感词管理",
   "log.sensitiveWord.create": "新增敏感词",

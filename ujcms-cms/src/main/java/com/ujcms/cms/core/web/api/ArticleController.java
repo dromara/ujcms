@@ -293,7 +293,9 @@ public class ArticleController {
     @Operation(summary = "获取文章浏览次数")
     @GetMapping("/view/{id:[\\d]+}")
     public long view(@Parameter(description = "文章ID") @PathVariable Long id) {
-        return viewCountService.viewArticle(id);
+        // 登录会员的浏览会触发浏览监听器（如浏览历史记录），匿名浏览仅计数
+        Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(GeneratedUser::getId).orElse(null);
+        return viewCountService.viewArticle(id, userId);
     }
 
     @Operation(summary = "顶文章")

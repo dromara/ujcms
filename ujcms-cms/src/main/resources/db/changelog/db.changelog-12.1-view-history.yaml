@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783814400000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 浏览历史ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 浏览用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 首次浏览日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_
+                  remarks: 最后浏览日期
+                  type: datetime
+            remarks: 浏览历史
+            tableName: ujcms_view_history
+  - changeSet:
+      id: 1783814400000-2
+      author: PONY
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id_, article_id_
+            constraintName: uk_view_history_user_article
+            tableName: ujcms_view_history
+  - changeSet:
+      id: 1783814400000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_view_history_site
+            tableName: ujcms_view_history
+  - changeSet:
+      id: 1783814400000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_view_history_article
+            tableName: ujcms_view_history
+  - changeSet:
+      id: 1783814400000-5
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_view_history
+            constraintName: fk_view_history_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783814400000-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: article_id_
+            baseTableName: ujcms_view_history
+            constraintName: fk_view_history_article
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+  - changeSet:
+      id: 1783814400000-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_view_history
+            constraintName: fk_view_history_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true

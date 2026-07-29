@@ -7,6 +7,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -32,16 +34,30 @@ import static com.ujcms.common.file.FilesEx.SLASH;
  */
 @Component
 public class DownloadHandler {
+    private static final Logger logger = LoggerFactory.getLogger(DownloadHandler.class);
+
+    /**
+     * 连接超时（毫秒）
+     */
+    private static final int CONNECT_TIMEOUT = 10_000;
+    /**
+     * 读取超时（毫秒）
+     */
+    private static final int READ_TIMEOUT = 30_000;
+
     @Nullable
     public String download(String url, String type, String userAgent, FileHandler fileHandler, String basePath) {
         try {
             URL source = new URL(url);
-            // file（下载）支持重定向支持，其他的不支持。
-            HttpURLConnection.setFollowRedirects(TYPE_FILE.equals(type));
             HttpURLConnection connection = (HttpURLConnection) source.openConnection();
+            // file（下载）支持重定向，其他的不支持。使用实例级设置，避免静态全局设置的线程安全问题
+            connection.setInstanceFollowRedirects(TYPE_FILE.equals(type));
+            connection.setConnectTimeout(CONNECT_TIMEOUT);
+            connection.setReadTimeout(READ_TIMEOUT);
             connection.setRequestProperty("User-Agent", userAgent);
             connection.connect();
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                logger.warn("Download skipped, HTTP {}: {}", connection.getResponseCode(), url);
                 return null;
             }
             String contentType = connection.getContentType();
@@ -74,6 +90,8 @@ public class DownloadHandler {
                 FileUtils.deleteQuietly(tempFile);
             }
         } catch (Exception e) {
+            // 下载失败跳过该资源，但记录日志，便于排查
+            logger.warn("Download failed: {}", url, e);
             return null;
         }
     }

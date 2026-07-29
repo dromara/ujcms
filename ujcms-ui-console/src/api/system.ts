@@ -26,6 +26,16 @@ export const createTask = async (data: Record<string, any>): Promise<any> => (aw
 export const updateTask = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/task?_method=put', data)).data;
 export const deleteTask = async (data: string[]): Promise<any> => (await axios.post('/backend/core/task?_method=delete', data)).data;
 
+export const queryScheduleTaskList = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/core/schedule-task', { params })).data;
+export const queryScheduleTask = async (id: string): Promise<any> => (await axios.get(`/backend/core/schedule-task/${id}`)).data;
+export const queryScheduleTaskTypes = async (): Promise<any> => (await axios.get('/backend/core/schedule-task/types')).data;
+export const scheduleTaskCronValid = async (cron: string): Promise<any> => (await axios.get('/backend/core/schedule-task/cron-valid', { params: { cron } })).data;
+export const createScheduleTask = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/schedule-task', data)).data;
+export const updateScheduleTask = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/schedule-task?_method=put', data)).data;
+export const updateScheduleTaskOrder = async (fromId: string, toId: string): Promise<any> => (await axios.post('/backend/core/schedule-task/update-order', { fromId, toId })).data;
+export const deleteScheduleTask = async (data: string[]): Promise<any> => (await axios.post('/backend/core/schedule-task?_method=delete', data)).data;
+export const runScheduleTask = async (data: string[]): Promise<any> => (await axios.post('/backend/core/schedule-task/run', data)).data;
+
 export const queryProcessModelList = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/core/process-model', { params })).data;
 export const queryProcessModel = async (id: string): Promise<any> => (await axios.get(`/backend/core/process-model/${id}`)).data;
 export const queryProcessModelXml = async (id: string): Promise<any> => (await axios.get(`/backend/core/process-model/xml/${id}`)).data;

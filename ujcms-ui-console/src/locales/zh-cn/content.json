@@ -181,6 +181,16 @@
   "blockItem.enabled": "是否启用",
   "blockItem.error.linkUrl": "必须以 http 或 / 开头",
 
+  "friendLink.name": "名称",
+  "friendLink.url": "链接地址",
+  "friendLink.url.tooltip": "必须以 http 或 / 开头。如：https://www.ujcms.com",
+  "friendLink.logo": "Logo图片",
+  "friendLink.description": "描述",
+  "friendLink.type": "类型",
+  "friendLink.targetBlank": "新窗口打开",
+  "friendLink.enabled": "是否启用",
+  "friendLink.error.url": "必须以 http 或 / 开头",
+
   "dict.type": "类型",
   "dict.name": "名称",
   "dict.value": "键值",

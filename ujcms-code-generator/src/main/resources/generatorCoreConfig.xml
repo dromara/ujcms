@@ -155,6 +155,10 @@
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_task" domainObjectName="Task"/>
+        <table tableName="ujcms_schedule_task" domainObjectName="ScheduleTask">
+            <property name="pageable" value="false"/>
+            <property name="order" value="true"/>
+        </table>
         <table tableName="ujcms_short_message" domainObjectName="ShortMessage">
             <property name="controller" value="false"/>
         </table>

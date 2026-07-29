@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.ujcms.cms.core.domain.*;
 import com.ujcms.cms.core.domain.global.GlobalViewCount;
+import com.ujcms.cms.core.listener.ArticleViewListener;
 import com.ujcms.cms.core.mapper.ArticleBufferMapper;
 import com.ujcms.cms.core.mapper.ChannelBufferMapper;
 import com.ujcms.cms.core.mapper.SiteBufferMapper;
@@ -12,6 +13,8 @@ import com.ujcms.common.web.Dates;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +53,7 @@ public class ViewCountService {
         this.sqlSessionTemplate = sqlSessionTemplate;
     }
 
-    public long viewArticle(Long id) {
+    public long viewArticle(Long id, @Nullable Long userId) {
         Article article = articleService.select(id);
         if (article == null) {
             return 0;
@@ -59,6 +62,10 @@ public class ViewCountService {
         // 增加文章浏览次数
         Optional.ofNullable(getCurrentArticleViewsCache().get(id, key -> new AtomicInteger()))
                 .ifPresent(AtomicInteger::incrementAndGet);
+        // 会员浏览回调（如浏览历史记录）。匿名浏览不回调
+        if (userId != null) {
+            viewListeners.forEach(it -> it.afterArticleView(article, userId));
+        }
         return article.getViews();
     }
 
@@ -278,6 +285,14 @@ public class ViewCountService {
      */
     private static final Cache<Long, AtomicInteger> ARTICLE_EVEN_VIEWS_CACHE = Caffeine.newBuilder()
             .expireAfterWrite(2, TimeUnit.MINUTES).maximumSize(20_000_000).build();
+    private List<ArticleViewListener> viewListeners = Collections.emptyList();
+
+    @Lazy
+    @Autowired(required = false)
+    public void setViewListeners(List<ArticleViewListener> viewListeners) {
+        this.viewListeners = viewListeners;
+    }
+
     /**
      * SQL语句循环条数。ArticleBuffer一条记录有13个参数，13*120=1560个参数。最多可支持17个参数（17*120=2040）。
      * SQL Server最多支持2100个参数。

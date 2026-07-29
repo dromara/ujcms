@@ -237,7 +237,7 @@
     if (!confirm('确定删除该会话？仅删除自己一侧的记录，对方不受影响。')) return;
     fetchCsrf().then(function () {
       request.delete('${api}/conversation', {params: {peerId: currentPeerId}}).then(function () {
-        showSuccess('已删除会话！');
+        displaySuccess('已删除会话！');
         currentPeerId = null;
         $('#threadPane').addClass('d-none');
         $('#threadEmpty').removeClass('d-none');

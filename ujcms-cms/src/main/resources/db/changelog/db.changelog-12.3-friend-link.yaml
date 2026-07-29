@@ -1,0 +1,207 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1785249796119-1
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 友情链接类型ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: alias_
+                  remarks: 别名
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 类型(1:文字链接,2:图片链接)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 200
+                  name: image_width_
+                  remarks: 图片宽度
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 60
+                  name: image_height_
+                  remarks: 图片高度
+                  type: INT
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 友情链接类型表
+            tableName: ujcms_friend_link_type
+  - changeSet:
+      id: 1785249796119-2
+      author: PONY (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 友情链接ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: type_id_
+                  remarks: 类型ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: url_
+                  remarks: 链接地址
+                  type: VARCHAR(255)
+              - column:
+                  name: logo_
+                  remarks: Logo图片
+                  type: VARCHAR(255)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: target_blank_
+                  remarks: 是否新窗口打开
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 友情链接表
+            tableName: ujcms_friend_link
+  - changeSet:
+      id: 1785249796119-3
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_friendlinktype_site
+            tableName: ujcms_friend_link_type
+  - changeSet:
+      id: 1785249796119-4
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_friendlink_site
+            tableName: ujcms_friend_link
+  - changeSet:
+      id: 1785249796119-5
+      author: PONY (generated)
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: type_id_
+            indexName: idx_friendlink_type
+            tableName: ujcms_friend_link
+  - changeSet:
+      id: 1785249796119-6
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_friend_link_type
+            constraintName: fk_friendlinktype_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1785249796119-7
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_friend_link
+            constraintName: fk_friendlink_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1785249796119-8
+      author: PONY (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: type_id_
+            baseTableName: ujcms_friend_link
+            constraintName: fk_friendlink_type
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_friend_link_type
+            validate: true

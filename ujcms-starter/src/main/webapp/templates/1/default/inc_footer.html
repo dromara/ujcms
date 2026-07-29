@@ -1,5 +1,40 @@
 [#escape x as (x)!?html]
-  <div class="bg-gray-600 gray-300 mt-4">
+<div class="mt-4">
+  [#-- 友情链接：紧贴页脚上方全站展示。每个类型一个下拉框，页面底部空间不足时自动向上弹出 --]
+  [@FriendLinkTypeList; types]
+    [#if types?has_content]
+      <div class="bg-light border-top">
+        <div class="container py-3">
+          <div class="row g-3 align-items-center">
+            <div class="col-12 col-lg-auto fw-bold"><i class="fas fa-link text-primary"></i> 友情链接</div>
+            [#list types as type]
+              [@FriendLinkList typeId=type.id; links]
+                [#if links?has_content]
+                  <div class="col-12 col-md-4 col-lg">
+                    <div class="dropdown">
+                      <button type="button" class="btn bg-white border w-100 d-flex justify-content-between align-items-center dropdown-toggle"
+                              data-bs-toggle="dropdown" aria-expanded="false">${type.name}</button>
+                      <ul class="dropdown-menu w-100 shadow overflow-auto" style="max-height:300px;">
+                        [#list links as link]
+                          [#-- 图片链接类型且已上传Logo时展示Logo图片，否则展示文字链接 --]
+                          [#if type.type == 2 && link.logo?has_content]
+                            <li>[@A bean=link class="dropdown-item" title=link.description!]<img src="${link.logo}" alt="${link.name}" height="24">[/@A]</li>
+                          [#else]
+                            <li>[@A bean=link class="dropdown-item" title=link.description!/]</li>
+                          [/#if]
+                        [/#list]
+                      </ul>
+                    </div>
+                  </div>
+                [/#if]
+              [/@FriendLinkList]
+            [/#list]
+          </div>
+        </div>
+      </div>
+    [/#if]
+  [/@FriendLinkTypeList]
+  <div class="bg-gray-600 gray-300">
     <div class="container py-4 text-center small">
       <p>
         <a href="${dy}/sitemap.xml" class="text-reset">站点地图</a>
@@ -33,4 +68,5 @@
       </p>
     </div>
   </div>
+</div>
 [/#escape]

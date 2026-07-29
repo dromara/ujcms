@@ -92,7 +92,7 @@
     if (!confirm('确定删除该评论？该评论下的回复也会一并删除，且不可恢复。')) return;
     fetchCsrf().then(function () {
       request.delete('${api}/comment/' + id).then(function () {
-        showSuccess('已删除！');
+        displaySuccess('已删除！');
         loadMyComments(1);
       });
     });

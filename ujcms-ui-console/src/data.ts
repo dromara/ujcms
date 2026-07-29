@@ -116,6 +116,17 @@ export function getPermsTreeData(): any[] {
           ],
         },
         {
+          label: t('menu.content.friendLink'),
+          key: 'friendLink.key',
+          perms: ['friendLink:page', 'friendLink:list', 'friendLinkType:list'],
+          children: [
+            { label: t('list'), key: 'friendLink:page' },
+            { label: t('add'), key: 'friendLink:create', perms: ['friendLink:create'] },
+            { label: t('edit'), key: 'friendLink:update', perms: ['friendLink:update', 'friendLink:show'] },
+            { label: t('delete'), key: 'friendLink:delete', perms: ['friendLink:delete'] },
+          ],
+        },
+        {
           label: t('menu.content.dict'),
           key: 'dict.key',
           perms: ['dict:page', 'dict:list', 'dictType:list'],
@@ -267,6 +278,7 @@ export function getPermsTreeData(): any[] {
             { label: t('delete'), key: 'collection:delete', perms: ['collection:delete'] },
             { label: t('collection.op.start'), key: 'collection:start', perms: ['collection:start'] },
             { label: t('collection.op.stop'), key: 'collection:stop', perms: ['collection:stop'] },
+            { label: t('collection.op.clearRecords'), key: 'collection:clearRecords', perms: ['collection:clearRecords'] },
           ],
         },
         // {
@@ -485,6 +497,17 @@ export function getPermsTreeData(): any[] {
             { label: t('add'), key: 'performanceType:create', perms: ['performanceType:create'] },
             { label: t('edit'), key: 'performanceType:update', perms: ['performanceType:update', 'performanceType:show'] },
             { label: t('delete'), key: 'performanceType:delete', perms: ['performanceType:delete'] },
+          ],
+        },
+        {
+          label: t('menu.config.friendLinkType'),
+          key: 'friendLinkType.key',
+          perms: ['friendLinkType:page', 'friendLinkType:list', 'friendLinkType:validation'],
+          children: [
+            { label: t('list'), key: 'friendLinkType:page' },
+            { label: t('add'), key: 'friendLinkType:create', perms: ['friendLinkType:create'] },
+            { label: t('edit'), key: 'friendLinkType:update', perms: ['friendLinkType:update', 'friendLinkType:show'] },
+            { label: t('delete'), key: 'friendLinkType:delete', perms: ['friendLinkType:delete'] },
           ],
         },
         {
@@ -759,8 +782,20 @@ export function getPermsTreeData(): any[] {
           ],
         },
         {
+          label: t('menu.system.scheduleTask'),
+          key: 'scheduleTask.key',
+          perms: ['scheduleTask:page', 'scheduleTask:list', 'scheduleTask:validation'],
+          children: [
+            { label: t('list'), key: 'scheduleTask:page' },
+            { label: t('add'), key: 'scheduleTask:create', perms: ['scheduleTask:create'] },
+            { label: t('edit'), key: 'scheduleTask:update', perms: ['scheduleTask:update', 'scheduleTask:show'] },
+            { label: t('delete'), key: 'scheduleTask:delete', perms: ['scheduleTask:delete'] },
+            { label: t('scheduleTask.op.run'), key: 'scheduleTask:run', perms: ['scheduleTask:run', 'scheduleTask:show'] },
+          ],
+        },
+        {
           label: t('menu.system.importData'),
-          key: 'importData.key',
+          key: 'importData:show',
           perms: ['importData:show'],
         },
         // {
@@ -882,6 +917,8 @@ export const logModules = [
   'article',
   'channel',
   'blockItem',
+  'friendLink',
+  'friendLinkType',
   'dict',
   'tag',
   'form',
@@ -918,6 +955,7 @@ export const logModules = [
   'site',
   'process',
   'task',
+  'scheduleTask',
   'sensitiveWord',
   'errorWord',
   'importData',
@@ -989,6 +1027,16 @@ export const logNames = [
   'messageBoardType.updateOrder',
   'messageBoardType.delete',
 
+  'friendLink.create',
+  'friendLink.update',
+  'friendLink.updateOrder',
+  'friendLink.delete',
+
+  'friendLinkType.create',
+  'friendLinkType.update',
+  'friendLinkType.updateOrder',
+  'friendLinkType.delete',
+
   'vote.create',
   'vote.update',
   'vote.updateOrder',
@@ -1004,6 +1052,7 @@ export const logNames = [
   'collection.updateOrder',
   'collection.start',
   'collection.stop',
+  'collection.clearRecords',
   'collection.delete',
 
   'example.create',
@@ -1153,6 +1202,12 @@ export const logNames = [
   'process.deleteProcessInstance',
 
   'task.delete',
+
+  'scheduleTask.create',
+  'scheduleTask.update',
+  'scheduleTask.updateOrder',
+  'scheduleTask.delete',
+  'scheduleTask.run',
 
   'sensitiveWord.create',
   'sensitiveWord.update',

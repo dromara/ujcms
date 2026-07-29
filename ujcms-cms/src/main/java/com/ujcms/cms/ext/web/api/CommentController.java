@@ -233,7 +233,7 @@ public class CommentController {
             userId = user.getId();
         }
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
-            throw new Http400Exception("Captcha is incorrect.");
+            return Responses.failure(request, "error.captchaIncorrect");
         }
         if (StringUtils.isBlank(params.getText())) {
             throw new Http400Exception("Comment text is required.");

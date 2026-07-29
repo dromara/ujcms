@@ -160,7 +160,7 @@
   function acceptRequest(userId) {
     fetchCsrf().then(function () {
       request.put('${api}/friend/accept', {userId: userId}).then(function () {
-        showSuccess('已通过好友申请！');
+        displaySuccess('已通过好友申请！');
         refreshPendingCount();
         loadList(1);
       });
@@ -170,7 +170,7 @@
   function removeRelation(userId, message) {
     fetchCsrf().then(function () {
       request.delete('${api}/friend', {params: {userId: userId}}).then(function () {
-        showSuccess(message);
+        displaySuccess(message);
         refreshPendingCount();
         loadList(1);
       });

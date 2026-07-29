@@ -11,9 +11,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -99,19 +104,42 @@ public class CollectorUtils {
         return results;
     }
 
+    /**
+     * 连接超时（毫秒）
+     */
+    private static final int CONNECT_TIMEOUT = 10_000;
+    /**
+     * 读取超时（毫秒）
+     */
+    private static final int SOCKET_TIMEOUT = 30_000;
+
+    /**
+     * 共享连接池的 HttpClient。设置超时时间，避免远程站点无响应时采集线程被永久阻塞
+     */
+    private static final CloseableHttpClient HTTP_CLIENT = HttpClientBuilder.create()
+            .setMaxConnTotal(20)
+            .setMaxConnPerRoute(10)
+            .setDefaultRequestConfig(RequestConfig.custom()
+                    .setConnectTimeout(CONNECT_TIMEOUT)
+                    .setSocketTimeout(SOCKET_TIMEOUT)
+                    .setConnectionRequestTimeout(CONNECT_TIMEOUT)
+                    .build())
+            .evictExpiredConnections()
+            .evictIdleConnections(30, TimeUnit.SECONDS)
+            .build();
+
     public static String fetchContent(String url, String userAgent, String charset) throws IOException {
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setUserAgent(userAgent);
-        try (CloseableHttpClient client = builder.build()) {
-            HttpGet httpGet = new HttpGet(url);
-            try (CloseableHttpResponse response = client.execute(httpGet)) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    return EntityUtils.toString(entity, charset);
-                } else {
-                    return "Status Code: " + response.getStatusLine().getStatusCode();
-                }
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader(HttpHeaders.USER_AGENT, userAgent);
+        try (CloseableHttpResponse response = HTTP_CLIENT.execute(httpGet)) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            HttpEntity entity = response.getEntity();
+            // 非 2xx 响应视为错误，避免将错误页当作内容采集
+            if (statusCode < HttpStatus.SC_OK || statusCode >= HttpStatus.SC_MULTIPLE_CHOICES) {
+                EntityUtils.consumeQuietly(entity);
+                throw new IOException("HTTP " + statusCode + " fetching URL: " + url);
             }
+            return entity != null ? EntityUtils.toString(entity, charset) : StringUtils.EMPTY;
         }
     }
 
