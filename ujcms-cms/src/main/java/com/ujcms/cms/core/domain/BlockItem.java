@@ -54,7 +54,7 @@ public class BlockItem extends GeneratedBlockItem implements Anchor, OrderEntity
     }
 
     @Schema(description = "转向链接")
-    @Pattern(regexp = "^(http|/).*$")
+    @Pattern(regexp = "^$|^(http|/).*$")
     @Nullable
     @Override
     public String getLinkUrl() {

@@ -13,13 +13,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -28,6 +28,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.lang.Nullable;
@@ -54,7 +55,9 @@ import io.minio.errors.InternalException;
 import io.minio.errors.InvalidResponseException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
+import io.minio.http.HttpUtils;
 import io.minio.messages.Item;
+import okhttp3.OkHttpClient;
 
 /**
  * MinIO文件处理类
@@ -62,6 +65,18 @@ import io.minio.messages.Item;
  * @author PONY
  */
 public class MinIoFileHandler implements FileHandler {
+    /**
+     * 所有 MinIO 客户端共用的 HTTP 客户端。
+     * <p>
+     * OkHttpClient 内部持有连接池和线程池，官方建议全局复用。每次请求都新建 MinioClient（进而新建 OkHttpClient），
+     * 会不断产生空闲连接和线程。另外 MinIO 默认的连接、读、写超时均为 5 分钟，对象存储网络异常（如大文件分片上传卡住）时，
+     * 请求会长时间没有任何响应，这里使用更短的超时时间，让错误尽快暴露出来。
+     * <p>
+     * 读写超时针对单次 socket 读写操作，而非整个请求，正常的大文件上传不受影响。
+     */
+    private static final OkHttpClient HTTP_CLIENT = HttpUtils.newDefaultHttpClient(
+            TimeUnit.SECONDS.toMillis(10), TimeUnit.SECONDS.toMillis(120), TimeUnit.SECONDS.toMillis(120));
+
     private final MinioClient client;
     private final String bucket;
     /**
@@ -75,7 +90,8 @@ public class MinIoFileHandler implements FileHandler {
 
     public MinIoFileHandler(String endpoint, String region, String bucket, String accessKey, String secretKey,
             String storePrefix, String displayPrefix) {
-        this.client = MinioClient.builder().endpoint(endpoint).region(region).credentials(accessKey, secretKey).build();
+        this.client = MinioClient.builder().endpoint(endpoint).region(region).credentials(accessKey, secretKey)
+                .httpClient(HTTP_CLIENT).build();
         this.bucket = bucket;
         this.storePrefix = storePrefix;
         this.displayPrefix = displayPrefix;
@@ -292,21 +308,24 @@ public class MinIoFileHandler implements FileHandler {
     @Nullable
     @Override
     public File getFile(String filename) {
+        String storeName = getStoreName(filename);
+        String extension = FilenameUtils.getExtension(storeName);
+        File tempFile;
         try {
-            String storeName = getStoreName(filename);
-            String extension = FilenameUtils.getExtension(storeName);
-            Path tempFile = Files.createTempFile(null, "." + extension);
-            try {
-                client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(storeName)
-                        .filename(tempFile.toString()).overwrite(true).build());
-                return tempFile.toFile();
-            } finally {
-                Files.deleteIfExists(tempFile);
-            }
+            tempFile = Files.createTempFile(null, "." + extension).toFile();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+        try {
+            client.downloadObject(DownloadObjectArgs.builder().bucket(bucket).object(storeName)
+                    .filename(tempFile.getAbsolutePath()).overwrite(true).build());
+            return tempFile;
         } catch (ErrorResponseException e) {
             // 文件不存在
+            FileUtils.deleteQuietly(tempFile);
             return null;
         } catch (Exception e) {
+            FileUtils.deleteQuietly(tempFile);
             throw new IllegalStateException(e);
         }
     }

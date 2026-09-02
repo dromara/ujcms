@@ -3,6 +3,7 @@ databaseChangeLog:
       id: 1783555200000-1
       author: PONY
       changes:
+        - validCheckSum: 9:f524ddc07f05db69fcd4faf321e6f700
         - createTable:
             columns:
               - column:
@@ -40,7 +41,6 @@ databaseChangeLog:
               - column:
                   constraints:
                     nullable: false
-                  defaultValue: ''
                   name: last_text_
                   remarks: 最后消息摘要
                   type: VARCHAR(100)

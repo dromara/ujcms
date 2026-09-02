@@ -127,7 +127,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
 
     @Nullable
     @Schema(description = "转向链接")
-    @Pattern(regexp = "^(http|/).*$")
+    @Pattern(regexp = "^$|^(http|/).*$")
     @Override
     public String getLinkUrl() {
         return super.getLinkUrl();

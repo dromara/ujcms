@@ -608,7 +608,7 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     @Schema(description = "跳转链接")
     @Nullable
-    @Pattern(regexp = "^(http|/).*$")
+    @Pattern(regexp = "^$|^(http|/).*$")
     public String getLinkUrl() {
         Article articleSrc = getSrc();
         if (getType() == TYPE_REFER && articleSrc != null) {

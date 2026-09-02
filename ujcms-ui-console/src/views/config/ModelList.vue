@@ -103,7 +103,7 @@ const deletable = (bean: any) => bean.id > 10;
     </div>
     <el-radio-group v-model="modelType" class="mt-3" @change="() => fetchData()">
       <!-- ['article', 'channel', 'user', 'site', 'global'] -->
-      <el-radio-button v-for="n in currentUser.epRank >= 3 ? ['article', 'channel', 'form', 'site', 'global'] : ['article', 'channel', 'site', 'global']" :key="n" :value="n">{{ $t(`model.type.${n}`) }}</el-radio-button>
+      <el-radio-button v-for="n in currentUser.epRank >= 2 ? ['article', 'channel', 'form', 'site', 'global'] : ['article', 'channel', 'site', 'global']" :key="n" :value="n">{{ $t(`model.type.${n}`) }}</el-radio-button>
     </el-radio-group>
     <div class="app-block">
       <el-table ref="table" v-loading="loading" :data="data" @selection-change="(rows) => (selection = rows)" @row-dblclick="(row) => handleEdit(row.id)" @sort-change="handleSort">

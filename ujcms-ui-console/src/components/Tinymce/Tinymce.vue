@@ -219,9 +219,23 @@ export default defineComponent({
             const xhr = new XMLHttpRequest();
             xhr.open('POST', uploadUrl);
 
-            // xhr.upload.onprogress = (e) => {
-            //   progress((e.loaded / e.total) * 100);
-            // };
+            // 上传进度提示。视频等大文件上传耗时较长，没有任何提示会让人误以为没有反应。
+            // 进度条只反映浏览器到服务器的上传进度，到达 100% 后服务器还需转存到文件存储（如对象存储）。
+            const notification = tinymce.activeEditor.notificationManager.open({
+              text: t('uploading'),
+              type: 'info',
+              progressBar: true,
+              closeButton: false,
+            });
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) {
+                notification.progressBar.value(Math.round((e.loaded / e.total) * 100));
+              }
+            };
+            // 无论成功、失败还是中止，都关闭提示
+            xhr.onloadend = () => {
+              notification.close();
+            };
 
             xhr.onload = () => {
               if (xhr.status === 403) {
@@ -259,6 +273,8 @@ export default defineComponent({
             formData.append('file', file, file.name);
 
             Object.entries(getAuthHeaders()).forEach(([key, value]: any) => xhr.setRequestHeader(key, value));
+            // 与 images_upload_handler 保持一致，带上当前站点，否则多站点时文件会存到默认站点下
+            Object.entries(getSiteHeaders()).forEach(([key, value]: any) => xhr.setRequestHeader(key, value));
             xhr.send(formData);
           };
 

@@ -113,45 +113,58 @@ public class MessageService {
     }
 
     /**
-     * 常规发送写入：找到或创建双方会话行，插入两份消息副本，更新发送方摘要、
-     * 接收方摘要并原子自增未读数。会话行按所有者用户ID升序处理
+     * 常规发送写入：先按所有者用户ID升序落实双方会话行，再插入两份消息副本。
+     * 会话行不存在时直接以本条消息的摘要、时间、未读数新建，已存在时更新摘要、时间并为接收方原子自增未读数。
+     * 新建会话行绝不携带空摘要：Oracle 系数据库（达梦、openGauss、Vastbase 等）会把空串存为 NULL，与非空约束冲突。
+     * 会话行一律先于消息副本写入，两行会话锁按所有者用户ID升序获取，消息副本的外键共享锁落在本事务已持有的行上
      */
     private Message doSend(Long senderId, Long receiverId, String text, OffsetDateTime now) {
         String excerpt = StringUtils.substring(text, 0, Message.EXCERPT_MAX_LENGTH);
-        boolean senderFirst = senderId.compareTo(receiverId) < 0;
-        Conversation senderConv;
-        Conversation receiverConv;
-        if (senderFirst) {
-            senderConv = findOrCreate(senderId, receiverId, now);
-            receiverConv = findOrCreate(receiverId, senderId, now);
+        Long senderConvId;
+        Long receiverConvId;
+        if (senderId.compareTo(receiverId) < 0) {
+            senderConvId = touch(senderId, receiverId, excerpt, now, false);
+            receiverConvId = touch(receiverId, senderId, excerpt, now, true);
         } else {
-            receiverConv = findOrCreate(receiverId, senderId, now);
-            senderConv = findOrCreate(senderId, receiverId, now);
+            receiverConvId = touch(receiverId, senderId, excerpt, now, true);
+            senderConvId = touch(senderId, receiverId, excerpt, now, false);
         }
-        Message sent = insertCopy(senderConv.getId(), senderId, text, now);
-        insertCopy(receiverConv.getId(), senderId, text, now);
-        if (senderFirst) {
-            conversationMapper.updateLast(senderConv.getId(), excerpt, now);
-            conversationMapper.updateLastAndIncUnread(receiverConv.getId(), excerpt, now);
-        } else {
-            conversationMapper.updateLastAndIncUnread(receiverConv.getId(), excerpt, now);
-            conversationMapper.updateLast(senderConv.getId(), excerpt, now);
-        }
+        Message sent = insertCopy(senderConvId, senderId, text, now);
+        insertCopy(receiverConvId, senderId, text, now);
         return sent;
     }
 
-    private Conversation findOrCreate(Long userId, Long peerId, OffsetDateTime now) {
+    /**
+     * 落实一方的会话行并返回其ID。不存在则以本条消息的摘要、时间、未读数直接新建；
+     * 已存在则更新摘要与时间，接收方一侧原子自增未读数
+     *
+     * @param userId   会话行所有者用户ID
+     * @param peerId   对方用户ID
+     * @param excerpt  最后消息摘要（非空）
+     * @param now      最后消息时间
+     * @param received 行所有者是否为本条消息的接收方（是则计入未读）
+     * @return 会话ID
+     */
+    private Long touch(Long userId, Long peerId, String excerpt, OffsetDateTime now, boolean received) {
         Conversation conversation = conversationMapper.findByUserIdAndPeerId(userId, peerId);
-        if (conversation == null) {
-            conversation = new Conversation();
-            conversation.setId(snowflakeSequence.nextId());
-            conversation.setUserId(userId);
-            conversation.setPeerId(peerId);
-            conversation.setLastTime(now);
-            conversation.setCreated(now);
-            conversationMapper.insert(conversation);
+        if (conversation != null) {
+            if (received) {
+                conversationMapper.updateLastAndIncUnread(conversation.getId(), excerpt, now);
+            } else {
+                conversationMapper.updateLast(conversation.getId(), excerpt, now);
+            }
+            return conversation.getId();
         }
-        return conversation;
+        conversation = new Conversation();
+        conversation.setId(snowflakeSequence.nextId());
+        conversation.setUserId(userId);
+        conversation.setPeerId(peerId);
+        conversation.setUnread(received ? 1 : 0);
+        conversation.setLastTime(now);
+        conversation.setLastText(excerpt);
+        conversation.setCreated(now);
+        conversationMapper.insert(conversation);
+        return conversation.getId();
     }
 
     private Message insertCopy(Long conversationId, Long senderId, String text, OffsetDateTime now) {
