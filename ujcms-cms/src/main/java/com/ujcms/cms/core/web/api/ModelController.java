@@ -4,7 +4,9 @@ import com.ujcms.cms.core.domain.Model;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.ModelService;
 import com.ujcms.cms.core.web.directive.ModelListDirective;
+import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.common.query.QueryParser;
 import com.ujcms.common.query.QueryUtils;
 import com.ujcms.common.web.exception.Http404Exception;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,6 +59,7 @@ public class ModelController {
     public List<Model> list(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
+        QueryParser.validatePublicOrderBy(params.get(Directives.ORDER_BY));
         return ModelListDirective.query(params, site.getId(), modelService);
     }
 

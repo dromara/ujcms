@@ -60,6 +60,27 @@ public class QueryUtils {
                 .collect(Collectors.toMap(entry -> entry.getKey().substring(prefix.length()), Map.Entry::getValue));
     }
 
+    /**
+     * 排序参数名
+     */
+    private static final String PARAM_ORDER_BY = "orderBy";
+
+    /**
+     * 获取前台接口的查询参数。前台接口的参数由匿名用户传入，不允许关联敏感表（如用户表）或查询敏感字段（如密码、IP、联系方式），
+     * 包括 {@code Q_} 查询条件、{@code Q_OrderBy} 和 {@code orderBy} 排序。不符合要求则抛出 400 异常
+     */
+    public static Map<String, Object> getPublicQueryMap(Map<String, String> params) {
+        Map<String, Object> queryMap = getQueryMap(params, QUERY_PREFIX);
+        for (Map.Entry<String, Object> entry : queryMap.entrySet()) {
+            QueryParser.validatePublicKey(entry.getKey());
+            if (QueryParser.ORDER_BY.equals(entry.getKey()) && entry.getValue() instanceof String orderBy) {
+                QueryParser.validatePublicOrderBy(orderBy);
+            }
+        }
+        QueryParser.validatePublicOrderBy(params.get(PARAM_ORDER_BY));
+        return queryMap;
+    }
+
     private static final Pattern QUERY_PATTERN = Pattern.compile("[\\w@$-]*");
     private static final Pattern TABLE_PATTERN = Pattern.compile("[\\w]*");
     private static final Pattern FIELD_PATTERN = Pattern.compile("[\\w.]*");

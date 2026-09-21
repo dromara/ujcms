@@ -57,8 +57,9 @@ public class MessageBoardController {
         Site site = siteResolver.resolve(request, subDir);
         validateEnabled(site);
         MessageBoard messageBoard = service.select(id);
-        if (messageBoard == null) {
-            throw new Http404Exception("MessageBoard not found. ID=" + id);
+        // 前台只允许查看已审核且公开的留言
+        if (messageBoard == null || !messageBoard.isDisplayable()) {
+            throw new Http404Exception(MessageBoard.NOT_FOUND + id);
         }
         modelMap.put("messageBoard", messageBoard);
         return site.assembleTemplate(TEMPLATE_ITEM);

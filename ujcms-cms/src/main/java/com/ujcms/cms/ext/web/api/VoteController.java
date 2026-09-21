@@ -3,7 +3,6 @@ package com.ujcms.cms.ext.web.api;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.common.db.MyBatis.springPage;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -77,7 +76,7 @@ public class VoteController {
     private <T> T query(HttpServletRequest request, BiFunction<VoteArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        VoteArgs args = VoteArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        VoteArgs args = VoteArgs.of(QueryUtils.getPublicQueryMap(params));
         VoteListDirective.assemble(args, params, site.getId());
         return handle.apply(args, params);
     }

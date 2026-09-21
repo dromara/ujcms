@@ -48,6 +48,13 @@ public class MessageBoardArgs extends BaseQueryArgs {
         return this;
     }
 
+    public MessageBoardArgs isOpen(@Nullable Boolean isOpen) {
+        if (isOpen != null) {
+            queryMap.put("EQ_open_Boolean", isOpen);
+        }
+        return this;
+    }
+
     public MessageBoardArgs status(Collection<Short> status) {
         if (!status.isEmpty()) {
             queryMap.put("In_status_Short", status);

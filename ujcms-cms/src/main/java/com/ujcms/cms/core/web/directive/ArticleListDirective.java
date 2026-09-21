@@ -104,6 +104,15 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         return channelIds;
     }
 
+    /**
+     * 前台接口允许获取的文章状态。只允许已发布、已归档，其它状态（草稿、待审核、已删除等）一律忽略；没有合法状态则为已发布
+     */
+    public static List<Short> publicStatus(Map<String, ?> params) {
+        List<Short> status = Optional.ofNullable(getShorts(params, STATUS)).orElse(Collections.emptyList()).stream()
+                .filter(it -> it == Article.STATUS_PUBLISHED || it == Article.STATUS_ARCHIVED).toList();
+        return status.isEmpty() ? Collections.singletonList(Article.STATUS_PUBLISHED) : status;
+    }
+
     public static void assemble(ArticleArgs args, Map<String, ?> params, Long defaultSiteId,
                                 ChannelService channelService) {
         Long siteId = getLong(params, SITE_ID);

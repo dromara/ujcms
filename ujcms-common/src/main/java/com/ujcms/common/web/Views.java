@@ -22,4 +22,10 @@ public interface Views {
     interface Whole extends List {
     }
 
+    /**
+     * 仅用于后台数据的序列化。前台接口使用 {@link List} 或 {@link Whole} 时，标注了该视图的字段（如IP、联系方式等隐私数据）不会输出
+     */
+    interface Backend extends Whole {
+    }
+
 }

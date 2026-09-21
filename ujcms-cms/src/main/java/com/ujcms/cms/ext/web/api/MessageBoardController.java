@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -40,7 +41,6 @@ import java.util.function.BiFunction;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.common.db.MyBatis.springPage;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 留言 Controller
@@ -67,8 +67,11 @@ public class MessageBoardController {
     private <T> T query(HttpServletRequest request, BiFunction<MessageBoardArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        MessageBoardArgs args = MessageBoardArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        MessageBoardArgs args = MessageBoardArgs.of(QueryUtils.getPublicQueryMap(params));
         MessageBoardListDirective.assemble(args, params, site.getId());
+        // 前台接口只允许获取已审核且公开的数据
+        args.status(Collections.singleton(MessageBoard.STATUS_AUDITED));
+        args.isOpen(true);
         return handle.apply(args, params);
     }
 
@@ -126,11 +129,13 @@ public class MessageBoardController {
 
     @Operation(summary = "获取留言对象")
     @ApiResponses(value = {@ApiResponse(description = "留言对象")})
+    @JsonView(Views.Whole.class)
     @GetMapping("/{id:\\d+}")
     public MessageBoard show(@Parameter(description = "留言ID") @PathVariable Long id) {
         MessageBoard bean = service.select(id);
-        if (bean == null) {
-            throw new Http404Exception("MessageBoard not found. ID: " + id);
+        // 前台接口只允许获取已审核且公开的数据
+        if (bean == null || !bean.isDisplayable()) {
+            throw new Http404Exception(MessageBoard.NOT_FOUND + id);
         }
         if (!bean.getSite().getMessageBoard().isEnabled()) {
             throw new Http403Exception("MessageBoard is not enabled.");

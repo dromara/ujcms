@@ -4,7 +4,9 @@ import com.ujcms.cms.core.domain.BlockItem;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.BlockItemService;
 import com.ujcms.cms.core.web.directive.BlockItemListDirective;
+import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.common.query.QueryParser;
 import com.ujcms.common.query.QueryUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,8 +51,6 @@ public class BlockItemController {
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isAllSite", description = "是否获取所有站点区块项列表。如：`true` `false`，默认`false`",
             schema = @Schema(type = "boolean"))
-    @Parameter(in = ParameterIn.QUERY, name = "isEnabled", description = "是否启用。可选值：`all`(全部), `false`(禁用), `true`(启用)。默认值：启用",
-            schema = @Schema(type = "string", allowableValues = {"all", "false", "true"}, defaultValue = "true"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
@@ -57,7 +58,10 @@ public class BlockItemController {
     @GetMapping
     public List<BlockItem> list(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);
-        Map<String, String> params = QueryUtils.getParams(request.getQueryString());
+        Map<String, String> params = new HashMap<>(QueryUtils.getParams(request.getQueryString()));
+        QueryParser.validatePublicOrderBy(params.get(Directives.ORDER_BY));
+        // 前台接口只允许获取启用的数据
+        params.put("isEnabled", "true");
         return BlockItemListDirective.query(params, site.getId(), service);
     }
 

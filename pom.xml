@@ -5,7 +5,7 @@
 
 	<groupId>com.ujcms</groupId>
 	<artifactId>ujcms</artifactId>
-	<version>12.3.2</version>
+	<version>12.3.3</version>
 	<packaging>pom</packaging>
 
 	<name>UJCMS</name>
@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.10</version>
+		<version>3.5.16</version>
 		<relativePath />
 	</parent>
 	<properties>
@@ -122,7 +122,7 @@
 		<!-- vastbase(海量数据库) JDBC驱动 -->
 		<vastbase-jdbc.version>2.13.2v</vastbase-jdbc.version>
 		<!-- 瀚高 JDBC驱动 -->
-		<HgdbJdbc.version>6.2.4</HgdbJdbc.version>
+		<HgdbJdbc.version>6.2.5</HgdbJdbc.version>
 
 		<!-- 此项设置可以让IntelliJ IDEA自动识别Spring Boot工程，可以直接点击右上角运行按钮启动程序。 -->
 		<!-- 同时也是 spring-boot:run 插件查找主类的依据，多模块项目必须在根 pom 中声明。 -->

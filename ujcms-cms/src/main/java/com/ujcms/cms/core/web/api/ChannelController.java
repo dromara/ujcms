@@ -4,14 +4,20 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.component.ViewCountService;
 import com.ujcms.cms.core.domain.Channel;
 import com.ujcms.cms.core.domain.ChannelBuffer;
+import com.ujcms.cms.core.domain.Group;
 import com.ujcms.cms.core.domain.Site;
+import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ChannelBufferService;
 import com.ujcms.cms.core.service.ChannelService;
+import com.ujcms.cms.core.service.GroupService;
 import com.ujcms.cms.core.service.args.ChannelArgs;
+import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.web.directive.ChannelListDirective;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.common.query.QueryUtils;
 import com.ujcms.common.web.Views;
+import com.ujcms.common.web.exception.Http401Exception;
+import com.ujcms.common.web.exception.Http403Exception;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -19,6 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +37,7 @@ import java.util.Map;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
+import static com.ujcms.cms.core.web.frontend.ChannelController.hasAccessPermission;
 
 /**
  * 栏目前台 接口
@@ -45,13 +52,16 @@ public class ChannelController {
     private final ChannelService channelService;
     private final ChannelBufferService bufferService;
     private final ViewCountService viewCountService;
+    private final GroupService groupService;
 
     public ChannelController(SiteResolver siteResolver, ChannelService channelService,
-                             ChannelBufferService bufferService, ViewCountService viewCountService) {
+                             ChannelBufferService bufferService, ViewCountService viewCountService,
+                             GroupService groupService) {
         this.siteResolver = siteResolver;
         this.channelService = channelService;
         this.bufferService = bufferService;
         this.viewCountService = viewCountService;
+        this.groupService = groupService;
     }
 
     /**
@@ -124,7 +134,7 @@ public class ChannelController {
     public List<Channel> list(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        ChannelArgs args = ChannelArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        ChannelArgs args = ChannelArgs.of(QueryUtils.getPublicQueryMap(params));
         ChannelListDirective.assemble(args, params, site.getId(), channelService);
         return ChannelListDirective.selectList(channelService, args, params);
     }
@@ -143,7 +153,7 @@ public class ChannelController {
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
     @GetMapping("/{id:[\\d]+}")
     public Channel show(@Parameter(description = "栏目ID") @PathVariable Long id) {
-        return channelService.select(id);
+        return validateAccess(channelService.select(id));
     }
 
     /**
@@ -165,7 +175,27 @@ public class ChannelController {
         if (siteId == null) {
             siteId = siteResolver.resolve(request).getId();
         }
-        return channelService.findBySiteIdAndAlias(siteId, alias);
+        return validateAccess(channelService.findBySiteIdAndAlias(siteId, alias));
+    }
+
+    /**
+     * 检查栏目浏览权限。与前台栏目页保持一致：未登录用户使用游客组权限
+     */
+    @Nullable
+    private Channel validateAccess(@Nullable Channel channel) {
+        if (channel == null) {
+            return null;
+        }
+        User user = Contexts.findCurrentUser();
+        if (user == null) {
+            Group anonGroup = groupService.getAnonymous();
+            if (!hasAccessPermission(anonGroup, channel.getSiteId(), channel.getId(), groupService)) {
+                throw new Http401Exception();
+            }
+        } else if (!hasAccessPermission(user.getGroup(), channel.getSiteId(), channel.getId(), groupService)) {
+            throw new Http403Exception("Channel access forbidden. ID: " + channel.getId());
+        }
+        return channel;
     }
 
     @Operation(summary = "获取栏目浏览次数")

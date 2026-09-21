@@ -33,7 +33,6 @@ import java.util.function.BiFunction;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.common.db.MyBatis.springPage;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 表单 Controller
@@ -54,7 +53,7 @@ public class FormController {
 
     private <T> T query(HttpServletRequest request, BiFunction<FormArgs, Map<String, String>, T> handle) {
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        FormArgs args = FormArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        FormArgs args = FormArgs.of(QueryUtils.getPublicQueryMap(params));
         FormListDirective.assemble(args, params, typeService);
         return handle.apply(args, params);
     }

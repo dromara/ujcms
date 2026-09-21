@@ -21,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.lang.Nullable;
 
+import com.ujcms.common.web.exception.Http400Exception;
+
 /**
  * Like_name
  * Like_name
@@ -64,6 +66,74 @@ public class QueryParser {
     public static QueryInfo parse(@Nullable Map<String, Object> params, String table,
                                   @Nullable String defaultOrderBy) {
         return parse(params, table, defaultOrderBy, TABLE_PREFIX);
+    }
+
+    /**
+     * 前台接口不允许关联的表（前缀匹配，不区分大小写）。防止通过关联用户、组织、角色等表，以查询条件或排序的方式探测敏感数据
+     */
+    private static final List<String> PUBLIC_DENIED_TABLES = List.of(
+            "user", "org", "role", "group", "config", "loginlog", "operationlog", "shortmessage");
+    /**
+     * 前台接口不允许查询的字段（包含匹配，不区分大小写）
+     */
+    private static final List<String> PUBLIC_DENIED_COLUMN_PARTS = List.of("password", "salt", "secret", "token");
+    /**
+     * 前台接口不允许查询的字段（完全匹配，不区分大小写）
+     */
+    private static final List<String> PUBLIC_DENIED_COLUMNS = List.of(
+            "ip", "mobile", "phone", "email", "address", "contact", "realname");
+
+    /**
+     * 校验前台接口的查询键。前台接口的查询参数由匿名用户传入，不允许关联敏感表或查询敏感字段
+     *
+     * @param key 查询键，格式如：EQ_price_Int, Like_user-username, In_1_status
+     */
+    public static void validatePublicKey(String key) {
+        if (key.equalsIgnoreCase(DISTINCT) || key.equals(ORDER_BY)) {
+            return;
+        }
+        String columnPart = extractGroupInfo(parseQueryKey(key).columnPart()).columnPart();
+        validatePublicColumnPart(columnPart, key);
+    }
+
+    /**
+     * 校验前台接口的排序参数。按敏感字段排序同样可以探测数据
+     *
+     * @param orderBy 排序字符串，如：publishDate_desc,id_desc
+     */
+    public static void validatePublicOrderBy(@Nullable String orderBy) {
+        if (orderBy == null) {
+            return;
+        }
+        for (String item : StringUtils.split(orderBy, COMMA)) {
+            item = item.trim();
+            QueryUtils.validateQuery(item);
+            validatePublicColumnPart(parseOrderByParts(item).columnPart(), item);
+        }
+    }
+
+    private static void validatePublicColumnPart(String columnPart, String raw) {
+        // 去除JSON字段。JSON字段为自定义字段，无需校验
+        int jsonIndex = columnPart.indexOf(DOLLAR);
+        if (jsonIndex >= 0) {
+            columnPart = columnPart.substring(0, jsonIndex);
+        }
+        // editUser@user-@userExt-username => [editUser@user | @userExt | username]
+        String[] parts = columnPart.split(DASH);
+        for (int i = 0; i < parts.length - 1; i += 1) {
+            // editUser@user, @userExt, org@OrgTree@descendant
+            for (String table : StringUtils.split(parts[i], '@')) {
+                String lowerTable = table.toLowerCase();
+                if (PUBLIC_DENIED_TABLES.stream().anyMatch(lowerTable::startsWith)) {
+                    throw new Http400Exception("Query not allowed: " + raw);
+                }
+            }
+        }
+        String column = parts[parts.length - 1].toLowerCase();
+        if (PUBLIC_DENIED_COLUMNS.contains(column)
+                || PUBLIC_DENIED_COLUMN_PARTS.stream().anyMatch(column::contains)) {
+            throw new Http400Exception("Query not allowed: " + raw);
+        }
     }
 
     private static boolean isContinueKey(QueryInfo info, String key, @Nullable Object value) {

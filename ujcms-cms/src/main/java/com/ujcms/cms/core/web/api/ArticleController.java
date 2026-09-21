@@ -4,7 +4,6 @@ import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.cms.core.web.frontend.ChannelController.hasAccessPermission;
 import static com.ujcms.common.db.MyBatis.springPage;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 import java.util.Collection;
 import java.util.List;
@@ -97,8 +96,10 @@ public class ArticleController {
     private <T> T query(HttpServletRequest request, BiFunction<ArticleArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        ArticleArgs args = ArticleArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        ArticleArgs args = ArticleArgs.of(QueryUtils.getPublicQueryMap(params));
         ArticleListDirective.assemble(args, params, site.getId(), channelService);
+        // 前台接口只允许获取已发布、已归档的数据
+        args.status(ArticleListDirective.publicStatus(params));
         return handle.apply(args, params);
     }
 
@@ -135,7 +136,7 @@ public class ArticleController {
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "excludeId", description = "不包含的文章ID。多个用英文逗号分隔，如`1,2,5`",
             schema = @Schema(type = "string", format = "int64 array"))
-    @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:已发布,1:已归档,5:待发布,10:草稿,11:待审核,12:审核中,20:已删除,21:已下线,22:已退回。默认：0（已发布）",
+    @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:已发布,1:已归档。其它状态不可获取。默认：0（已发布）",
             schema = @Schema(type = "string", format = "int16 array"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeSubChannel", description = "是否包含子栏目的文章。如：`true` `false`，默认`true`",
             schema = @Schema(type = "boolean"))

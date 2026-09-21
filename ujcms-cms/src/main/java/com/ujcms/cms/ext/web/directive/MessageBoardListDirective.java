@@ -14,6 +14,7 @@ import freemarker.template.TemplateModel;
 import org.springframework.data.domain.Page;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +53,7 @@ public class MessageBoardListDirective implements TemplateDirectiveModel {
      */
     public static final String IS_ALL_SITE = "isAllSite";
     /**
-     * 状态。短整型(Short)。
+     * 状态。短整型(Short)。默认：0(已审核)。
      */
     public static final String STATUS = "status";
 
@@ -67,7 +68,9 @@ public class MessageBoardListDirective implements TemplateDirectiveModel {
         Optional.ofNullable(getLong(params, USER_ID)).ifPresent(args::userId);
         Optional.ofNullable(getBoolean(params, IS_RECOMMENDED)).ifPresent(args::isRecommended);
         Optional.ofNullable(getBoolean(params, IS_REPLIED)).ifPresent(args::isReplied);
-        Optional.ofNullable(getShorts(params, STATUS)).ifPresent(args::status);
+        // 默认只获取已审核数据
+        args.status(Optional.ofNullable(getShorts(params, STATUS))
+                .orElse(Collections.singletonList(MessageBoard.STATUS_AUDITED)));
         Directives.handleOrderBy(args.getQueryMap(), params, "created_desc,id_desc");
     }
 

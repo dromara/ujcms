@@ -22,13 +22,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 站点前台 接口
@@ -57,8 +57,6 @@ public class SiteController {
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "isIncludeChildren", description = "是否包含子站点。如：`true` `false`，默认`false`",
             schema = @Schema(type = "boolean"))
-    @Parameter(in = ParameterIn.QUERY, name = "status", description = "状态。0:正常, 1:关闭。默认：0（正常）",
-            schema = @Schema(type = "string", format = "int16 array"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
             schema = @Schema(type = "integer", format = "int32"))
     @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
@@ -66,8 +64,10 @@ public class SiteController {
     @GetMapping
     public List<Site> list(HttpServletRequest request) {
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        SiteArgs args = SiteArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        SiteArgs args = SiteArgs.of(QueryUtils.getPublicQueryMap(params));
         SiteListDirective.assemble(args, params);
+        // 前台接口只允许获取正常状态的站点
+        args.status(Collections.singletonList(Site.STATUS_NORMAL));
         return SiteListDirective.selectList(service, args, params);
     }
 
@@ -85,7 +85,12 @@ public class SiteController {
     @Operation(summary = "站点对象_Site")
     @GetMapping("/{id:[\\d]+}")
     public Site show(@Parameter(description = "站点ID") @PathVariable Long id) {
-        return service.select(id);
+        Site site = service.select(id);
+        // 前台接口只允许获取正常状态的站点
+        if (site == null || !site.isEnabled()) {
+            throw new Http404Exception("Site not found. ID: " + id);
+        }
+        return site;
     }
 
     @Operation(summary = "获取站点缓冲对象，并记录浏览量")

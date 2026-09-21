@@ -27,7 +27,6 @@ import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 友情链接 Controller
@@ -52,8 +51,10 @@ public class FriendLinkController {
     private <T> T query(HttpServletRequest request, BiFunction<FriendLinkArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        FriendLinkArgs args = FriendLinkArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        FriendLinkArgs args = FriendLinkArgs.of(QueryUtils.getPublicQueryMap(params));
         FriendLinkListDirective.assemble(args, params, site.getId(), typeService);
+        // 前台接口只允许获取启用的数据
+        args.enabled(true);
         return handle.apply(args, params);
     }
 
@@ -63,8 +64,6 @@ public class FriendLinkController {
     @Parameter(in = ParameterIn.QUERY, name = "typeId", description = "类型ID。默认获取全部类型",
             schema = @Schema(type = "integer", format = "int64"))
     @Parameter(in = ParameterIn.QUERY, name = "typeAlias", description = "类型别名。按别名获取指定类型的友情链接",
-            schema = @Schema(type = "string"))
-    @Parameter(in = ParameterIn.QUERY, name = "isEnabled", description = "是否启用。可选值：all(全部), false(禁用)。默认获取启用数据",
             schema = @Schema(type = "string"))
     @Parameter(in = ParameterIn.QUERY, name = "offset", description = "从第几条数据开始获取。默认为0，即从第一条开始获取",
             schema = @Schema(type = "integer", format = "int32"))

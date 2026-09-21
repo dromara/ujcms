@@ -30,7 +30,6 @@ import java.util.function.BiFunction;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.common.db.MyBatis.springPage;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * Tag前台 接口
@@ -52,7 +51,7 @@ public class TagController {
     private <T> T query(HttpServletRequest request, BiFunction<TagArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        TagArgs args = TagArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        TagArgs args = TagArgs.of(QueryUtils.getPublicQueryMap(params));
         TagListDirective.assemble(args, params, site.getId());
         return handle.apply(args, params);
     }

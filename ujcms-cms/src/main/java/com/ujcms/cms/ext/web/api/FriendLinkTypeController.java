@@ -26,7 +26,6 @@ import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 友情链接类型 Controller
@@ -48,7 +47,7 @@ public class FriendLinkTypeController {
     private <T> T query(HttpServletRequest request, BiFunction<FriendLinkTypeArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        FriendLinkTypeArgs args = FriendLinkTypeArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        FriendLinkTypeArgs args = FriendLinkTypeArgs.of(QueryUtils.getPublicQueryMap(params));
         FriendLinkTypeListDirective.assemble(args, params, site.getId());
         return handle.apply(args, params);
     }

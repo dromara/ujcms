@@ -26,7 +26,6 @@ import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 留言类型 Controller
@@ -48,7 +47,7 @@ public class MessageBoardTypeController {
     private <T> T query(HttpServletRequest request, BiFunction<MessageBoardTypeArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        MessageBoardTypeArgs args = MessageBoardTypeArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        MessageBoardTypeArgs args = MessageBoardTypeArgs.of(QueryUtils.getPublicQueryMap(params));
         MessageBoardTypeListDirective.assemble(args, params, site.getId());
         return handle.apply(args, params);
     }

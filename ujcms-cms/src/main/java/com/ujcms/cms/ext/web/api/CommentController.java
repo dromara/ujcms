@@ -51,7 +51,6 @@ import java.util.function.BiFunction;
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 import static com.ujcms.common.db.MyBatis.springPage;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 评论 Controller
@@ -85,7 +84,7 @@ public class CommentController {
     private <T> T query(HttpServletRequest request, BiFunction<CommentArgs, Map<String, String>, T> handle) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
-        CommentArgs args = CommentArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        CommentArgs args = CommentArgs.of(QueryUtils.getPublicQueryMap(params));
         CommentListDirective.assemble(args, params, site.getId());
         // 前台接口只允许获取已审核数据
         args.status(Collections.singleton(Comment.STATUS_AUDITED));

@@ -1,5 +1,6 @@
 package com.ujcms.common.query;
 
+import com.ujcms.common.web.exception.Http400Exception;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -361,6 +362,64 @@ class QueryParserTest {
         assertNotNull(orderBy.getJsonColumn());
         assertEquals("customField", orderBy.getJsonColumn());
         assertEquals("desc", orderBy.getDirection());
+    }
+
+    @Test
+    void testValidatePublicKeyAllowed() {
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("ArrayEQ_@articleExt-mainsJson$color_Int"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("ArrayEQ_@articleExt-mainsJson$phone"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("LT_publishDate_DateTime"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("In_status_Short"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("EQ_userId_Long"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("Like_1_title"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("Like_channel-name"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("Distinct"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("OrderBy"));
+    }
+
+    @Test
+    void testValidatePublicKeyDenied() {
+        List<String> keys = List.of(
+                // 关联敏感表
+                "StartsWith_user-password", "EQ_user-username", "EQ_editUser@user-username",
+                "Contains_@userExt-mobile", "Like_user-@userExt-realName", "EQ_1_user-username",
+                "EQ_org@OrgTree@descendant-name", "IsNotNull_user-id", "EQ_channel-user-username",
+                // 敏感字段
+                "EQ_ip", "Contains_1_phone", "Contains_1-1_email", "Like_address", "EQ_contact",
+                "IsNull_mobile", "EQ_passwordModified_DateTime");
+        for (String key : keys) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validatePublicKey(key), key);
+        }
+    }
+
+    @Test
+    void testValidatePublicOrderBy() {
+        assertDoesNotThrow(() -> QueryParser.validatePublicOrderBy(null));
+        assertDoesNotThrow(() -> QueryParser.validatePublicOrderBy("publishDate_desc,id_desc"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicOrderBy("sticky_desc, order_asc"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicOrderBy("@articleExt-mainsJson$price_Int_desc"));
+        for (String orderBy : List.of("user-password_desc", "user-password", "id_desc,editUser@user-username",
+                "ip_desc", "@userExt-mobile_asc")) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validatePublicOrderBy(orderBy), orderBy);
+        }
+    }
+
+    @Test
+    void testGetPublicQueryMap() {
+        Map<String, String> params = new HashMap<>();
+        params.put("Q_LT_publishDate_DateTime", "2026-01-01");
+        params.put("status", "1");
+        params.put("orderBy", "publishDate_desc");
+        Map<String, Object> queryMap = QueryUtils.getPublicQueryMap(params);
+        assertEquals(1, queryMap.size());
+        assertEquals("2026-01-01", queryMap.get("LT_publishDate_DateTime"));
+
+        assertThrows(Http400Exception.class,
+                () -> QueryUtils.getPublicQueryMap(Map.of("Q_StartsWith_user-password", "$2a")));
+        assertThrows(Http400Exception.class,
+                () -> QueryUtils.getPublicQueryMap(Map.of("Q_OrderBy", "user-password")));
+        assertThrows(Http400Exception.class,
+                () -> QueryUtils.getPublicQueryMap(Map.of("orderBy", "user-password_desc")));
     }
 }
 

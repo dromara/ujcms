@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.ujcms.common.db.MyBatis.springPage;
-import static com.ujcms.common.query.QueryUtils.QUERY_PREFIX;
 
 /**
  * 示例 API Controller
@@ -61,7 +60,7 @@ public class ExampleController {
         // 获取查询参数
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
         // 获取标签其它查询参数。非必须，可用 `ExampleArgs args = ExampleArgs.of();` 代替。
-        ExampleArgs args = ExampleArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        ExampleArgs args = ExampleArgs.of(QueryUtils.getPublicQueryMap(params));
         // 加入name查询条件
         args.name(name);
         // 数据起始位置
@@ -85,7 +84,7 @@ public class ExampleController {
         // 获取查询参数
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
         // 获取标签其它查询参数。非必须，可用 `ExampleArgs args = ExampleArgs.of();` 代替。
-        ExampleArgs args = ExampleArgs.of(QueryUtils.getQueryMap(params, QUERY_PREFIX));
+        ExampleArgs args = ExampleArgs.of(QueryUtils.getPublicQueryMap(params));
         // 加入name查询条件
         args.name(name);
         // 第几页
