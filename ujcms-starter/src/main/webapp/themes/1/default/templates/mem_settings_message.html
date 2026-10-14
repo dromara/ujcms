@@ -1,0 +1,238 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'message'/]
+[#escape x as (x)!?html]
+[@layout title='我的私信 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings" class="cm-link text-slate-700">个人中心</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">我的私信</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3"
+    x-data="{
+      conversations: [], convPage: 1, convTotalPages: 1, convTotal: null,
+      peerId: null, peerName: '',
+      messages: [], earliestId: null, latestId: null, hasEarlier: false,
+      replyText: '', sending: false, pollTimer: null,
+      userName(refer) { return (refer && (refer.nickname || refer.username)) || ''; },
+      isReceived(bean) { return String(bean.senderId) === this.peerId; },
+      async loadConversations(page) {
+        try {
+          const d = await window.request('GET', '${api}/conversation/page?page=' + page + '&pageSize=10');
+          if (page === 1) this.conversations = [];
+          this.conversations.push(...((d && d.content) || []));
+          this.convPage = page;
+          this.convTotal = d.page ? String(d.page.totalElements) : null;
+          this.convTotalPages = Number((d.page || {}).totalPages || 1);
+          // 深度链接的对方已有会话时，补全会话标题
+          if (this.peerId && !this.peerName) {
+            const hit = this.conversations.find(c => c.peer && String(c.peer.id) === this.peerId);
+            if (hit) this.peerName = this.userName(hit.peer);
+          }
+        } catch (e) { window.displayAlert(e.message || '加载失败'); }
+      },
+      async openThread(peer) {
+        this.peerId = String(peer.id);
+        this.peerName = this.userName(peer);
+        this.messages = [];
+        this.replyText = '';
+        this.earliestId = null;
+        this.latestId = null;
+        this.hasEarlier = false;
+        try {
+          const d = await window.request('GET', '${api}/message?peerId=' + encodeURIComponent(this.peerId) + '&page=1&pageSize=20');
+          const content = (d && d.content) || [];
+          // 接口按ID倒序返回，展示时正序（旧在前，新在后）
+          this.messages = content.slice().reverse();
+          if (content.length > 0) {
+            this.latestId = content[0].id;
+            this.earliestId = content[content.length - 1].id;
+            this.scrollToBottom();
+            this.markRead();
+          }
+          this.hasEarlier = Number((d.page || {}).totalPages || 1) > 1;
+        } catch (e) { window.displayAlert(e.message || '加载失败'); }
+      },
+      async loadEarlier() {
+        if (!this.peerId || !this.earliestId) return;
+        try {
+          const d = await window.request('GET', '${api}/message?peerId=' + encodeURIComponent(this.peerId)
+            + '&beforeId=' + encodeURIComponent(this.earliestId) + '&page=1&pageSize=20');
+          const content = (d && d.content) || [];
+          // 倒序返回，正序后整体前插，旧消息保持在最上方
+          this.messages = content.slice().reverse().concat(this.messages);
+          if (content.length > 0) this.earliestId = content[content.length - 1].id;
+          this.hasEarlier = Number((d.page || {}).totalPages || 1) > 1;
+        } catch (e) { window.displayAlert(e.message || '加载失败'); }
+      },
+      async pollNew() {
+        if (!this.peerId || !this.latestId) return;
+        try {
+          const d = await window.request('GET', '${api}/message?peerId=' + encodeURIComponent(this.peerId)
+            + '&afterId=' + encodeURIComponent(this.latestId) + '&page=1&pageSize=100');
+          const content = (d && d.content) || [];
+          if (content.length === 0) return;
+          this.messages = this.messages.concat(content.slice().reverse());
+          this.latestId = content[0].id;
+          this.scrollToBottom();
+          this.markRead();
+        } catch (e) { /* 静默 */ }
+      },
+      async markRead() {
+        try {
+          await window.fetchCsrf();
+          await window.request('PUT', '${api}/conversation/read', { peerId: this.peerId });
+          this.loadConversations(1);
+          window.dispatchEvent(new CustomEvent('unread-changed'));
+        } catch (e) { /* 静默 */ }
+      },
+      async send() {
+        const text = this.replyText.trim();
+        if (!text || !this.peerId || this.sending) return;
+        this.sending = true;
+        try {
+          await window.fetchCsrf();
+          // 门禁错误（如：需先互加好友）以提示条展示
+          const bean = await window.request('POST', '${api}/message', { userId: this.peerId, text: text });
+          this.messages.push(bean);
+          this.latestId = bean.id;
+          this.replyText = '';
+          this.scrollToBottom();
+          this.loadConversations(1);
+        } catch (e) {
+          window.displayAlert(e.message || '发送失败');
+        } finally {
+          this.sending = false;
+        }
+      },
+      async removeConversation() {
+        if (!this.peerId) return;
+        if (!confirm('确定删除该会话？仅删除自己一侧的记录，对方不受影响。')) return;
+        try {
+          await window.fetchCsrf();
+          await window.request('DELETE', '${api}/conversation?peerId=' + encodeURIComponent(this.peerId));
+          window.displaySuccess('已删除会话！');
+          this.peerId = null;
+          this.messages = [];
+          this.loadConversations(1);
+        } catch (e) { window.displayAlert(e.message || '删除失败'); }
+      },
+      scrollToBottom() {
+        this.$nextTick(() => {
+          const pane = this.$refs.messagePane;
+          if (pane) pane.scrollTop = pane.scrollHeight;
+        });
+      },
+      init() {
+        this.loadConversations(1);
+        // 深度链接：/settings/message?peerId= 直接打开与对方的会话（尚无会话时同样可打开并发送）
+        const initPeerId = new URLSearchParams(location.search).get('peerId');
+        if (initPeerId) this.openThread({ id: initPeerId });
+        // 打开会话期间每30秒轮询新消息
+        this.pollTimer = setInterval(() => this.pollNew(), 30000);
+      }
+    }"
+  >
+    <div class="flex items-baseline gap-2 pb-2 border-b border-slate-200">
+      <h1 class="flex items-center gap-2 text-xl font-bold font-display">
+        <span class="size-5 text-primary inline-block">[@icon 'forum-outline'/]</span>
+        <span>我的私信</span>
+      </h1>
+      <span class="text-sm text-slate-500" x-show="convTotal !== null" x-text="'(' + convTotal + ')'"></span>
+    </div>
+
+    <div class="mt-3 grid grid-cols-1 lg:grid-cols-3 gap-5">
+      [#-- 会话列表 --]
+      <div class="lg:col-span-1">
+        <ul class="divide-y divide-slate-100">
+          <template x-for="bean in conversations" :key="bean.id">
+            <li>
+              <button type="button" @click="openThread(bean.peer || {})"
+                      class="w-full py-2.5 flex items-center gap-2.5 text-left hover:bg-slate-50 rounded px-1"
+                      :class="bean.peer && String(bean.peer.id) === peerId ? 'bg-slate-50' : ''">
+                <img :src="(bean.peer || {}).avatar || '${config.register.avatar}'" alt=""
+                     class="size-10 rounded-full object-cover shrink-0">
+                <span class="flex-1 min-w-0">
+                  <span class="flex items-baseline gap-2">
+                    <span class="truncate text-sm font-medium" x-text="userName(bean.peer)"></span>
+                    <span class="ml-auto shrink-0 text-xs text-slate-400"
+                          x-text="window.formatDateTime(bean.lastTime).slice(5)"></span>
+                  </span>
+                  <span class="block truncate text-xs text-slate-500" x-text="bean.lastText || ''"></span>
+                </span>
+                <span x-show="Number(bean.unread) > 0" x-cloak
+                      x-text="Number(bean.unread) > 99 ? '99+' : bean.unread"
+                      class="shrink-0 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs leading-none"></span>
+              </button>
+            </li>
+          </template>
+        </ul>
+        <p x-show="convTotal === '0'" x-cloak class="py-6 text-center text-sm text-slate-500">暂无会话</p>
+        <div x-show="convTotalPages > convPage" x-cloak class="text-center py-3">
+          <button type="button" @click="loadConversations(convPage + 1)"
+                  class="px-3 py-1.5 rounded border border-slate-300 text-xs hover:bg-slate-50">加载更多</button>
+        </div>
+      </div>
+
+      [#-- 会话窗格 --]
+      <div class="lg:col-span-2 lg:border-l lg:border-slate-200 lg:pl-5">
+        <p x-show="!peerId" class="py-10 text-center text-sm text-slate-500">请选择会话</p>
+
+        <div x-show="peerId" x-cloak>
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-200">
+            <span class="flex-1 font-semibold truncate" x-text="peerName || '会话'"></span>
+            <button type="button" @click="removeConversation()"
+                    class="shrink-0 px-2 py-1 rounded border border-rose-200 text-rose-600 text-xs hover:bg-rose-50">删除会话</button>
+          </div>
+
+          <div x-show="hasEarlier" x-cloak class="text-center py-2">
+            <button type="button" @click="loadEarlier()"
+                    class="px-3 py-1 rounded border border-slate-300 text-xs hover:bg-slate-50">加载更早</button>
+          </div>
+
+          <div x-ref="messagePane" class="h-90 overflow-y-auto py-3 space-y-2" aria-live="polite">
+            <template x-for="bean in messages" :key="bean.id">
+              <div class="flex" :class="isReceived(bean) ? 'justify-start' : 'justify-end'">
+                <div class="max-w-[75%]">
+                  <p class="text-xs text-slate-400" :class="isReceived(bean) ? 'text-left' : 'text-right'"
+                     x-text="window.formatDateTime(bean.created)"></p>
+                  <p class="mt-0.5 px-3 py-2 rounded-lg text-sm whitespace-pre-wrap wrap-break-word"
+                     :class="isReceived(bean) ? 'bg-slate-100 text-slate-800' : 'bg-primary text-primary-foreground'"
+                     x-text="bean.text || ''"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div class="mt-2 space-y-2">
+            <label for="replyText" class="sr-only">私信内容</label>
+            <textarea id="replyText" rows="3" maxlength="1000" x-model="replyText"
+                      placeholder="输入私信内容，最多1000字"
+                      class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"></textarea>
+            <div class="flex justify-end">
+              <button type="button" @click="send()" :disabled="sending"
+                      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+                <span class="size-4 inline-block">[@icon 'send'/]</span>
+                <span>发送</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+[/@layout]
+[/#escape]

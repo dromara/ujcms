@@ -5,7 +5,7 @@ import com.ujcms.cms.core.domain.Global;
 import com.ujcms.cms.core.domain.global.GlobalData;
 import com.ujcms.cms.core.mapper.GlobalMapper;
 import com.ujcms.cms.core.support.Constants;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

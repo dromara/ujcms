@@ -11,15 +11,17 @@ import static com.ujcms.common.query.QueryUtils.camelToUnderscore;
 import static com.ujcms.common.query.QueryUtils.underscoreToCamel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.ujcms.common.web.exception.Http400Exception;
 
@@ -82,6 +84,13 @@ public class QueryParser {
      */
     private static final List<String> PUBLIC_DENIED_COLUMNS = List.of(
             "ip", "mobile", "phone", "email", "address", "contact", "realname");
+    /**
+     * 前台接口不允许查询、排序的大字段（表名 → 字段，均为小写）。它们没有索引，LIKE 或排序都是全表扫描，
+     * 匿名请求不应当能触发：文章正文、Markdown 源、大字段型自定义字段（clobsJson，含其下的 {@code $字段}）。
+     * 按表限定，不波及别的表里同名的字段
+     */
+    private static final Map<String, List<String>> PUBLIC_DENIED_TABLE_COLUMNS = Map.of(
+            "articleext", List.of("text", "markdown", "clobsjson"));
 
     /**
      * 校验前台接口的查询键。前台接口的查询参数由匿名用户传入，不允许关联敏感表或查询敏感字段
@@ -92,8 +101,9 @@ public class QueryParser {
         if (key.equalsIgnoreCase(DISTINCT) || key.equals(ORDER_BY)) {
             return;
         }
-        String columnPart = extractGroupInfo(parseQueryKey(key).columnPart()).columnPart();
-        validatePublicColumnPart(columnPart, key);
+        GroupInfo groupInfo = extractGroupInfo(parseQueryKey(key).columnPart());
+        validateRequestGroup(groupInfo, key);
+        validatePublicColumnPart(groupInfo.columnPart(), key);
     }
 
     /**
@@ -110,6 +120,164 @@ public class QueryParser {
             QueryUtils.validateQuery(item);
             validatePublicColumnPart(parseOrderByParts(item).columnPart(), item);
         }
+    }
+
+    /**
+     * 后台接口不允许查询、排序的字段（列名，不区分大小写）：凭证类的列，任何表上都不行
+     */
+    private static final List<String> BACKEND_DENIED_COLUMN_PARTS = List.of("password", "secret");
+    private static final List<String> BACKEND_DENIED_COLUMNS = List.of("salt", "token", "aeskey");
+    private static final String BACKEND_DENIED_COLUMN_SUFFIX = "tokenhash";
+    /**
+     * 后台接口不允许关联的表（完全匹配，不区分大小写）：全局配置表的各列都是设置与密钥
+     */
+    private static final String BACKEND_DENIED_TABLE = "config";
+
+    /**
+     * 校验后台接口的查询参数（docs/spec/article-data-permission/plan.md D19）：操作员传入的条件与排序不得指向凭证类的列
+     * （主表或关联表上的都不行），也不得关联全局配置表。这是所有后台列表接口共同的下限，各接口可再按
+     * {@link #validateJoins} 收窄。不符合要求则抛出 400 异常
+     *
+     * @param key   查询键（已去除 {@code Q_} 前缀），如：EQ_price_Int, Like_user-username, OrderBy
+     * @param value 查询值。只在键为 {@code OrderBy} 时看它
+     */
+    public static void validateBackendKey(String key, @Nullable Object value) {
+        if (key.equalsIgnoreCase(DISTINCT)) {
+            return;
+        }
+        if (key.equals(ORDER_BY)) {
+            if (value instanceof String orderBy) {
+                for (String item : StringUtils.split(orderBy, COMMA)) {
+                    item = item.trim();
+                    QueryUtils.validateQuery(item);
+                    validateBackendColumnPart(stripGroup(parseOrderByParts(item).columnPart()), item);
+                }
+            }
+            return;
+        }
+        GroupInfo groupInfo = extractGroupInfo(parseQueryKey(key).columnPart());
+        validateRequestGroup(groupInfo, key);
+        validateBackendColumnPart(groupInfo.columnPart(), key);
+    }
+
+    /**
+     * 服务端条件组的前缀（docs/spec/article-data-permission/plan.md D26）：代码写入查询表的 OR 组——站点范围
+     * {@code 0scope}（本站或全局）、上级或自身 {@code 0tree}、关键字 {@code 0q}、发布期 {@code 0online} / {@code 0start} /
+     * {@code 0end}——组名以 {@code 0} 开头；请求传入的组只许 {@code 1} 起的正整数（子组为数字），两者永不同组。
+     * 否则请求可以把自己的条件并入服务端的 OR 组（{@code ?Q_GT_1_id_Long=0}），把“本站或全局”扩成“本站或全局或任意”
+     */
+    public static final String SERVER_GROUP_PREFIX = "0";
+    private static final Pattern REQUEST_GROUP_PATTERN = Pattern.compile("[1-9]\\d*");
+    private static final Pattern REQUEST_SUB_GROUP_PATTERN = Pattern.compile("\\d+");
+
+    /**
+     * 校验请求传入的分组：主组须是 1 起的正整数，子组须是数字；以 {@value #SERVER_GROUP_PREFIX} 开头的组名留给服务端。
+     * 两个请求入口（{@link #validateBackendKey}、{@link #validatePublicKey}）都经此处；服务端写入的键不经校验
+     */
+    private static void validateRequestGroup(GroupInfo groupInfo, String raw) {
+        String group = groupInfo.group();
+        if (group == null) {
+            return;
+        }
+        String subGroup = groupInfo.subGroup();
+        if (!REQUEST_GROUP_PATTERN.matcher(group).matches()
+                || (subGroup != null && !REQUEST_SUB_GROUP_PATTERN.matcher(subGroup).matches())) {
+            throw new Http400Exception("Query not allowed: " + raw);
+        }
+    }
+
+    private static void validateBackendColumnPart(String columnPart, String raw) {
+        String[] parts = splitPath(columnPart, raw);
+        for (int i = 0; i < parts.length - 1; i += 1) {
+            for (String table : StringUtils.split(parts[i], '@')) {
+                if (BACKEND_DENIED_TABLE.equalsIgnoreCase(table)) {
+                    throw new Http400Exception("Query not allowed: " + raw);
+                }
+            }
+        }
+        String column = parts[parts.length - 1].toLowerCase();
+        if (BACKEND_DENIED_COLUMNS.contains(column) || column.endsWith(BACKEND_DENIED_COLUMN_SUFFIX)
+                || BACKEND_DENIED_COLUMN_PARTS.stream().anyMatch(column::contains)) {
+            throw new Http400Exception("Query not allowed: " + raw);
+        }
+    }
+
+    /**
+     * 许可路径的通配后缀：{@code @articleExt-*} 许可该关联下的任何列。只该用于主表行的一对一扩展表——那是同一行拆开存放，
+     * 凭证列的下限（{@link #validateBackendKey}）仍然适用
+     */
+    public static final String ANY_COLUMN = "*";
+
+    /**
+     * 校验请求传入的查询只关联许可的字段（docs/spec/article-data-permission/plan.md D18、D24）：一个列表接口只回答它展示的东西。
+     * 主表自身的列（含 JSON 自定义字段）无需列出，总是许可；带关联的路径须在许可之列。条件与排序都看。
+     * 不符合要求则抛出 400 异常
+     *
+     * @param queryMap     查询参数（已去除 {@code Q_} 前缀）
+     * @param allowedPaths 许可的关联路径，如 {@code user-username}、{@code @formExt-clobsJson}（JSON 字段名不计）、
+     *                     {@code @userExt-*}（该关联下的任何列）。空集合即只许主表自身的列
+     */
+    public static void validateJoins(Map<String, Object> queryMap, Collection<String> allowedPaths) {
+        for (Map.Entry<String, Object> entry : queryMap.entrySet()) {
+            String key = entry.getKey();
+            if (key.equalsIgnoreCase(DISTINCT)) {
+                continue;
+            }
+            if (key.equals(ORDER_BY)) {
+                if (entry.getValue() instanceof String orderBy) {
+                    for (String item : StringUtils.split(orderBy, COMMA)) {
+                        item = item.trim();
+                        QueryUtils.validateQuery(item);
+                        requireAllowedPath(stripGroup(parseOrderByParts(item).columnPart()), allowedPaths, item);
+                    }
+                }
+                continue;
+            }
+            requireAllowedPath(extractGroupInfo(parseQueryKey(key).columnPart()).columnPart(), allowedPaths, key);
+        }
+    }
+
+    private static void requireAllowedPath(String columnPart, Collection<String> allowedPaths, String raw) {
+        String[] parts = splitPath(columnPart, raw);
+        if (parts.length <= 1) {
+            return;
+        }
+        if (allowedPaths.contains(String.join(DASH, parts))) {
+            return;
+        }
+        parts[parts.length - 1] = ANY_COLUMN;
+        if (allowedPaths.contains(String.join(DASH, parts))) {
+            return;
+        }
+        throw new Http400Exception("Query not allowed: " + raw);
+    }
+
+    /**
+     * 去除分组标识（与 {@link #parseJoinTable} 同一规则：第一个下划线之前的部分）
+     */
+    private static String stripGroup(String columnPart) {
+        int underIndex = columnPart.indexOf(UNDERLINE);
+        return underIndex >= 0 ? columnPart.substring(underIndex + 1) : columnPart;
+    }
+
+    /**
+     * 按关联拆分路径（{@code editUser@user-@userExt-username} → {@code [editUser@user, @userExt, username]}），
+     * 去除末段的 JSON 字段名：JSON 字段是自定义字段，不参与校验。JSON 字段名只能在末段（解析器也是如此：
+     * 关联段里的 {@code $} 不是合法的表名），出现在别处即拒绝
+     */
+    private static String[] splitPath(String columnPart, String raw) {
+        String[] parts = columnPart.split(DASH);
+        for (int i = 0; i < parts.length - 1; i += 1) {
+            if (parts[i].contains(DOLLAR)) {
+                throw new Http400Exception("Query not allowed: " + raw);
+            }
+        }
+        String column = parts[parts.length - 1];
+        int jsonIndex = column.indexOf(DOLLAR);
+        if (jsonIndex >= 0) {
+            parts[parts.length - 1] = column.substring(0, jsonIndex);
+        }
+        return parts;
     }
 
     private static void validatePublicColumnPart(String columnPart, String raw) {
@@ -134,11 +302,21 @@ public class QueryParser {
                 || PUBLIC_DENIED_COLUMN_PARTS.stream().anyMatch(column::contains)) {
             throw new Http400Exception("Query not allowed: " + raw);
         }
+        // 字段所在的表：路径里最后一段关联的最后一个表名，如 @articleExt-text => articleExt
+        if (parts.length > 1) {
+            String[] tables = StringUtils.split(parts[parts.length - 2], '@');
+            String table = tables.length > 0 ? tables[tables.length - 1].toLowerCase() : "";
+            if (PUBLIC_DENIED_TABLE_COLUMNS.getOrDefault(table, List.of()).contains(column)) {
+                throw new Http400Exception("Query not allowed: " + raw);
+            }
+        }
     }
 
     private static boolean isContinueKey(QueryInfo info, String key, @Nullable Object value) {
         if (key.equalsIgnoreCase(DISTINCT)) {
-            info.setDistinct(true);
+            // Distinct=false 就是不去重：以前只看键不看值，传 false 也开启了 DISTINCT
+            info.setDistinct(!Boolean.FALSE.equals(value)
+                    && !(value instanceof String string && "false".equalsIgnoreCase(string.trim())));
             return true;
         }
         // 除了 IsNull 和 IsNotNull，其它的value都不能为null或空串。

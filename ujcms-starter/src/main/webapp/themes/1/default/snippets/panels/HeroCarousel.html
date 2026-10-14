@@ -1,0 +1,73 @@
+[#--
+  面板片段：焦点轮播（HeroCarousel v2）。区域指令 [@region] 按面板组件分派至此（page-regions §7.4）。
+  片段以 items（条目列表，字段平铺）/ settings / panel（面板元信息）取得已解析内容——区块内容或
+  手工编排幻灯由 mode 设置在解析期决定，片段无感知（component-settings §4.2）。
+  渲染为 Alpine 全幅轮播（原 index.html 硬编码 焦点图轮播 的组件化移植，component-settings §13）：
+  自动轮播 5s、悬停暂停、圆点/箭头导航；首图 fetchpriority=high（首屏 LCP），其余懒加载。
+  圆点靠右下角，标题条右侧留出圆点的宽度（pr-24）：标题再长也不会压在圆点上，窄屏最多折两行。
+  计时器始终只有一个：start() 先清后建，悬停期间不建。鼠标停在轮播上点击箭头/圆点只换图、保持暂停，
+  移开后从头计 5s；触屏与键盘操作没有悬停，点击后直接重新计时。
+--]
+[#escape x as (x)!?html]
+[#if items?size gt 0]
+<div
+  x-data="{
+    active: 0,
+    count: ${items?size?c},
+    timer: null,
+    hover: false,
+    start() { this.stop(); if (!this.hover) this.timer = setInterval(() => this.active = (this.active + 1) % this.count, 5000); },
+    stop() { clearInterval(this.timer); this.timer = null; },
+    go(i) { this.active = (i + this.count) % this.count; this.start(); }
+  }"
+  x-init="start()"
+  @pointerenter="hover = true; stop()"
+  @pointerleave="hover = false; start()"
+  class="relative overflow-hidden rounded-md"
+  role="region"
+  aria-label="焦点图轮播"
+>
+  <div class="relative aspect-[16/8]">
+    [#list items as item]
+      <a
+        href="${item.link.url}"
+        [#if (item.link.targetBlank)!false]target="_blank"[/#if]
+        x-show="active === ${item_index?c}"
+        x-transition.opacity.duration.500ms
+        class="absolute inset-0 block"
+      >
+        [#-- 首图即 LCP：首屏优先拉取；其余幻灯片懒加载 --]
+        [#if (item.image.url)?has_content]
+        <img src="${item.image.url}" alt="${(item.image.alt)!item.headline}" class="w-full h-full object-cover"[#if item_index == 0] fetchpriority="high"[#else] loading="lazy" decoding="async"[/#if]>
+        [/#if]
+        <div class="absolute inset-x-0 bottom-0 pl-4 pr-24 py-3 bg-gradient-to-t from-black/85 to-transparent text-white">
+          <p class="line-clamp-2">${item.headline}</p>
+          [#if (item.subhead)?has_content]<p class="text-sm text-white/80 truncate">${item.subhead}</p>[/#if]
+        </div>
+      </a>
+    [/#list]
+  </div>
+  <div class="absolute right-2 bottom-2 flex z-10">
+    [#list items as item]
+      <button
+        type="button"
+        @click="go(${item_index?c})"
+        class="p-2 inline-flex items-center justify-center"
+        aria-label="第 ${(item_index+1)?c} 张"
+      >
+        <span
+          :class="active === ${item_index?c} ? 'bg-white' : 'bg-white/40'"
+          class="block size-2 rounded-full transition-colors"
+        ></span>
+      </button>
+    [/#list]
+  </div>
+  <button type="button" @click="go(active - 1)" class="absolute left-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center" aria-label="上一张">
+    <span class="size-6 inline-block">[@icon 'chevron-left'/]</span>
+  </button>
+  <button type="button" @click="go(active + 1)" class="absolute right-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center" aria-label="下一张">
+    <span class="size-6 inline-block">[@icon 'chevron-right'/]</span>
+  </button>
+</div>
+[/#if]
+[/#escape]

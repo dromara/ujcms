@@ -1,0 +1,45 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#--
+  「加盟意向」表单的单条提交详情。
+--]
+[@layout title=((form.customs['contactPerson'])!(form.id?c)) + ' - ' + formType.name + ' - ' + site.title]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/form-type" class="cm-link">自定义表单</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/form-list/${formType.id?c}" class="cm-link">${formType.name}</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">#${form.id}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <h1 class="flex items-center gap-2 text-2xl font-bold font-display border-b border-slate-200 pb-2">
+    <span class="size-6 text-primary inline-block">[@icon 'dynamic-form-outline'/]</span>
+    <span>${formType.name} #${form.id}</span>
+  </h1>
+
+  <dl class="grid grid-cols-1 sm:grid-cols-[8rem_1fr] gap-y-2 text-sm rounded border border-slate-200 bg-white p-4">
+    <dt class="font-semibold text-slate-600">联系人</dt>
+    <dd class="text-slate-800">${form.customs['contactPerson']}</dd>
+
+    <dt class="font-semibold text-slate-600">联系电话</dt>
+    <dd class="text-slate-800">${form.customs['phone']}</dd>
+
+    <dt class="font-semibold text-slate-600">联系地址</dt>
+    <dd class="text-slate-800">${form.customs['address']}</dd>
+
+    <dt class="font-semibold text-slate-600">从业经历</dt>
+    <dd class="text-slate-800 whitespace-pre-wrap wrap-break-word">${form.customs['experience']}</dd>
+
+    <dt class="font-semibold text-slate-600">提交时间</dt>
+    <dd class="text-slate-500">${format(form.created, 'yyyy-MM-dd HH:mm')}</dd>
+  </dl>
+</div>
+[/@layout]
+[/#escape]

@@ -1,0 +1,78 @@
+databaseChangeLog:
+  # 主题包库（install-flow §6 P3 / D5）：
+  #
+  # 一、package_storage_settings_：主题包存储点（Q1 决议——独立存储点，LOCAL 默认自有根目录
+  #   /theme-packages，不复用模板存储的保留目录；与 ThemeDirScanner 的 {siteId}/{theme} 遍历
+  #   互不相扰）。与其余 *_settings_ 列同约定：MEDIUMTEXT + 整列 SM4-GCM 加密
+  #   （Sm4StringTypeHandler 挂在 ConfigMapper.xml，与本 DDL 无关）。
+  #
+  # 二、ujcms_theme_package：主题包元数据——全局行（无 site_id_，D5：包是站点无关制品，
+  #   实例才按站点落地）。ZIP 本体按 <name>/<version>.zip 存于包存储点；同名同版本唯一
+  #   （写入面 upsert，最后写入生效——库是包的家，不是不可变仓）。
+  - changeSet:
+      id: 13.0-theme-package
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: package_storage_settings_
+                  remarks: 主题包存储点设置
+                  type: MEDIUMTEXT
+        - createTable:
+            tableName: ujcms_theme_package
+            remarks: 主题包
+            columns:
+              - column:
+                  name: id_
+                  remarks: 主题包ID
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name_
+                  remarks: 主题名称
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version_
+                  remarks: 版本
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sha256_
+                  remarks: SHA-256摘要(十六进制小写)
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size_
+                  remarks: 包字节数
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_
+                  remarks: 来源(marketplace,upload,export,bundled)
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: marketplace_slug_
+                  remarks: 市场条目标识
+                  type: VARCHAR(100)
+              - column:
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: ujcms_theme_package
+            columnNames: name_, version_
+            constraintName: uk_theme_package_name_version

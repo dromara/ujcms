@@ -1,0 +1,48 @@
+[#include '../snippets/icon.html'/]
+[#--
+  主布局宏：页面以 [#include '../layout/theme.html'/] 引入（不要用 [#import]——include 在调用方命名空间
+  执行，页面的 [#assign isHome=true/] 等变量对 header/footer 可见，[@icon] 宏也随之对页面与
+  [@region] 渲染的面板片段生效），再以 [@layout title=... extraHead=extraHead]页面主体[/@layout] 包裹。
+  extraHead / extraScripts 通过 [#assign x]…[/#assign] 捕获（捕获时已按页面 [#escape] 规则转义，
+  此处以 [#noescape] 原样输出，不会二次转义）。
+--]
+[#macro layout title='' keywords='' description='' canonical='' extraHead='' extraScripts='']
+[#escape x as (x)!?html]
+<!doctype html>
+<html lang="${site.langTag}">
+<head>
+  <meta charset="utf-8">
+  <title>[#if title?has_content]${title}[#else]${site.title}[/#if]</title>
+  [#if keywords?has_content]<meta name="keywords" content="${keywords}">[/#if]
+  [#if description?has_content]<meta name="description" content="${description}">[/#if]
+  [#if canonical?has_content]<link rel="canonical" href="${canonical}">[/#if]
+  [#-- 语言备选（hreflang，multilingual P3）：仅 exact 对等条目；孤立自引用无意义，>=2 条才输出。
+       x-default 取组内排序（order_）第一的成员；文章页 exact 恒 false，故不产生文章级 hreflang --]
+  [@LangSiteList isExactOnly=true; alternates]
+  [#if alternates?size gt 1]
+  [#list alternates as alt]
+  <link rel="alternate" hreflang="${alt.lang}" href="${alt.fullUrl}">
+  [/#list]
+  <link rel="alternate" hreflang="x-default" href="${alternates[0].fullUrl}">
+  [/#if]
+  [/@LangSiteList]
+  <style>
+    :root{--color-primary:oklch(48% 0.22 263);--color-primary-foreground:oklch(98% 0 0);--color-muted-foreground:oklch(48% 0.015 250)}
+    html{font-family:'Microsoft YaHei','PingFang SC',system-ui,sans-serif}
+    body{background:#fff;color:#0f172a;-webkit-font-smoothing:antialiased;margin:0}
+  </style>
+  [#include '../snippets/meta.html'/]
+  [#include '../snippets/css.html'/]
+  [#if extraHead?has_content][#noescape]${extraHead}[/#noescape][/#if]
+</head>
+<body class="bg-white text-slate-900 antialiased[#if config.greyStyle] grayscale-[0.95][/#if]">
+  [#include '../snippets/header.html'/]
+  [#include '../snippets/message_box.html'/]
+  <main>[#nested/]</main>
+  [#include '../snippets/footer.html'/]
+  [#include '../snippets/js.html'/]
+  [#if extraScripts?has_content][#noescape]${extraScripts}[/#noescape][/#if]
+</body>
+</html>
+[/#escape]
+[/#macro]

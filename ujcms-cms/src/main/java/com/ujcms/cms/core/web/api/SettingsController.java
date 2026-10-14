@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.web.api;
 
 import com.ujcms.cms.core.domain.Config;
+import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.ShortMessageService;
@@ -114,7 +115,7 @@ public class SettingsController {
             return failure;
         }
         if (!shortMessageService.validateCode(params.emailMessageId, params.email, params.emailMessageValue,
-                config.getEmail().getCodeExpires())) {
+                config.getEmail().getCodeExpires(), ShortMessage.USAGE_MODIFY_EMAIL)) {
             return Responses.failure(request, "error.emailMessageIncorrect");
         }
         user.setEmail(params.email);
@@ -137,7 +138,7 @@ public class SettingsController {
             return failure;
         }
         if (!shortMessageService.validateCode(params.mobileMessageId, params.mobile, params.mobileMessageValue,
-                config.getSms().getCodeExpires())) {
+                config.getSms().getCodeExpires(), ShortMessage.USAGE_MODIFY_MOBILE)) {
             return Responses.failure(request, "error.mobileMessageIncorrect");
         }
         user.setMobile(params.mobile);

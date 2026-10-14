@@ -1,0 +1,409 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-dicts.schema.json",
+  "dictTypes": [
+    {
+      "alias": "download_language",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "简体中文",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "繁体中文",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "英文",
+          "value": "3"
+        }
+      ],
+      "name": "下载_语言",
+      "originId": "download_language"
+    },
+    {
+      "alias": "download_license",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "免费软件",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "收费软件",
+          "value": "2"
+        }
+      ],
+      "name": "下载_授权",
+      "originId": "download_license"
+    },
+    {
+      "alias": "download_star",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "★★★★★",
+          "value": "5"
+        },
+        {
+          "enabled": true,
+          "name": "★★★★☆",
+          "value": "4"
+        },
+        {
+          "enabled": true,
+          "name": "★★★☆☆",
+          "value": "3"
+        },
+        {
+          "enabled": true,
+          "name": "★★☆☆☆",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "★☆☆☆☆",
+          "value": "1"
+        }
+      ],
+      "name": "下载_星级",
+      "originId": "download_star"
+    },
+    {
+      "alias": "download_system",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "桌面端",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "移动端",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "网页端",
+          "value": "3"
+        },
+        {
+          "enabled": true,
+          "name": "服务器端",
+          "value": "4"
+        },
+        {
+          "enabled": true,
+          "name": "跨平台",
+          "value": "5"
+        }
+      ],
+      "name": "下载_环境",
+      "originId": "download_system"
+    },
+    {
+      "alias": "download_type",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "国产软件",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "国外软件",
+          "value": "2"
+        }
+      ],
+      "name": "下载_类型",
+      "originId": "download_type"
+    },
+    {
+      "alias": "form_gender",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "男",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "女",
+          "value": "2"
+        }
+      ],
+      "name": "表单_性别",
+      "originId": "form_gender"
+    },
+    {
+      "alias": "product_bike_type",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "公路车",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "山地车",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "旅行车",
+          "value": "3"
+        }
+      ],
+      "name": "产品_自行车_类型",
+      "originId": "product_bike_type"
+    },
+    {
+      "alias": "product_camera_mount",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "单反卡口",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "无反卡口",
+          "value": "2"
+        }
+      ],
+      "name": "产品_相机_卡口",
+      "originId": "product_camera_mount"
+    },
+    {
+      "alias": "product_camera_type",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "定焦",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "变焦",
+          "value": "2"
+        }
+      ],
+      "name": "产品_相机_类型",
+      "originId": "product_camera_type"
+    },
+    {
+      "alias": "product_phone_screen",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "5.0-5.49英寸",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "5.5-5.99英寸",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "6.0-6.49英寸",
+          "value": "3"
+        },
+        {
+          "enabled": true,
+          "name": "6.5英寸以上",
+          "value": "4"
+        }
+      ],
+      "name": "产品_手机_屏幕尺寸",
+      "originId": "product_phone_screen"
+    },
+    {
+      "alias": "product_phone_storage",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "64GB",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "128GB",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "256GB",
+          "value": "3"
+        },
+        {
+          "enabled": true,
+          "name": "512GB",
+          "value": "4"
+        },
+        {
+          "enabled": true,
+          "name": "1TB",
+          "value": "5"
+        }
+      ],
+      "name": "产品_手机_机身存储",
+      "originId": "product_phone_storage"
+    },
+    {
+      "alias": "video_area",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "华语",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "美国",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "欧洲",
+          "value": "3"
+        },
+        {
+          "enabled": true,
+          "name": "韩国",
+          "value": "4"
+        },
+        {
+          "enabled": true,
+          "name": "日本",
+          "value": "5"
+        },
+        {
+          "enabled": true,
+          "name": "其它",
+          "value": "6"
+        }
+      ],
+      "name": "视频_地区",
+      "originId": "video_area"
+    },
+    {
+      "alias": "video_type",
+      "dataType": 0,
+      "entries": [
+        {
+          "enabled": true,
+          "name": "喜剧",
+          "value": "1"
+        },
+        {
+          "enabled": true,
+          "name": "悲剧",
+          "value": "2"
+        },
+        {
+          "enabled": true,
+          "name": "爱情",
+          "value": "3"
+        },
+        {
+          "enabled": true,
+          "name": "动作",
+          "value": "4"
+        },
+        {
+          "enabled": true,
+          "name": "枪战",
+          "value": "5"
+        },
+        {
+          "enabled": true,
+          "name": "犯罪",
+          "value": "6"
+        },
+        {
+          "enabled": true,
+          "name": "惊悚",
+          "value": "7"
+        },
+        {
+          "enabled": true,
+          "name": "恐怖",
+          "value": "8"
+        },
+        {
+          "enabled": true,
+          "name": "悬疑",
+          "value": "9"
+        },
+        {
+          "enabled": true,
+          "name": "动画",
+          "value": "10"
+        },
+        {
+          "enabled": true,
+          "name": "家庭",
+          "value": "11"
+        },
+        {
+          "enabled": true,
+          "name": "奇幻",
+          "value": "12"
+        },
+        {
+          "enabled": true,
+          "name": "魔幻",
+          "value": "13"
+        },
+        {
+          "enabled": true,
+          "name": "科幻",
+          "value": "14"
+        },
+        {
+          "enabled": true,
+          "name": "战争",
+          "value": "15"
+        },
+        {
+          "enabled": true,
+          "name": "武侠",
+          "value": "16"
+        },
+        {
+          "enabled": true,
+          "name": "青春",
+          "value": "17"
+        },
+        {
+          "enabled": true,
+          "name": "功夫",
+          "value": "18"
+        },
+        {
+          "enabled": true,
+          "name": "灾难",
+          "value": "19"
+        }
+      ],
+      "name": "视频_类型",
+      "originId": "video_type"
+    }
+  ]
+}

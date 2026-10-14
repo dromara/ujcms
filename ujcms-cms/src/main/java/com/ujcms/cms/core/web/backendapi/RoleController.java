@@ -15,7 +15,7 @@ import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http404Exception;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 

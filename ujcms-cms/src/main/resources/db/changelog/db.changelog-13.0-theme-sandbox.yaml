@@ -1,0 +1,86 @@
+databaseChangeLog:
+  # 主题沙箱预览站注册表（原 11.x-theme-sandbox；docs/spec/sandbox-preview-site/plan.md §3.1 / D10）：
+  #   - 沙箱 = 真实站点 + 本表一行溯源（沙箱站点 / 源站点 / 候选主题 / 创建人 / 创建时间）；
+  #     站点生命周期完全走既有站点机制，本表只做标记与守卫。
+  #   - 两个站点外键 RESTRICT：悬挂注册行结构性不可能。沙箱站点删除时由
+  #     ThemeSandboxSiteDeleteListener 在级联中先行清除本表行；作为源站点仍有沙箱的站点
+  #     由 error.siteHasSandboxes 守卫拒绝删除（§3.4）。
+  #   - 社区版携带本表闲置（form/survey 先例）；service/controller 在 commercial/t2。
+  #   - uk_theme_sandbox_site 先建，fk_theme_sandbox_site 复用其作支撑索引。
+  - changeSet:
+      id: 13.0-theme-sandbox
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 沙箱ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 沙箱站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: origin_site_id_
+                  remarks: 源站点ID(候选主题所在站点)
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: theme_name_
+                  remarks: 候选主题名称(裸名)
+                  type: VARCHAR(128)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 创建用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 主题沙箱预览站注册表(每沙箱站点一行)
+            tableName: ujcms_theme_sandbox
+        - addUniqueConstraint:
+            columnNames: site_id_
+            constraintName: uk_theme_sandbox_site
+            tableName: ujcms_theme_sandbox
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_theme_sandbox
+            constraintName: fk_theme_sandbox_site
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: origin_site_id_
+            baseTableName: ujcms_theme_sandbox
+            constraintName: fk_theme_sandbox_origin_site
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_theme_sandbox
+            constraintName: fk_theme_sandbox_user
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true

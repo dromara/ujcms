@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.ext.mapper.LinkMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.ext.domain.Link">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="group_id_" jdbcType="BIGINT" property="groupId" />
+    <result column="name_" jdbcType="VARCHAR" property="name" />
+    <result column="url_" jdbcType="VARCHAR" property="linkUrl" />
+    <result column="channel_id_" jdbcType="BIGINT" property="channelId" />
+    <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+    <result column="logo_" jdbcType="VARCHAR" property="logo" />
+    <result column="description_" jdbcType="VARCHAR" property="description" />
+    <result column="target_blank_" jdbcType="CHAR" property="targetBlank" />
+    <result column="enabled_" jdbcType="CHAR" property="enabled" />
+    <result column="order_" jdbcType="BIGINT" property="order" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.Link" />
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.Link">
+        <association column="group_id_" javaType="com.ujcms.cms.ext.domain.LinkGroup" property="group" select="com.ujcms.cms.ext.mapper.LinkGroupMapper.select" />
+        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel" select="com.ujcms.cms.core.mapper.ChannelMapper.select" />
+        <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.select" />
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
+    </resultMap>
+
+    <update id="moveUp">
+        update ujcms_link
+        set order_ = order_ + 1
+        where order_ &lt; #{from}
+          and order_ &gt;= #{to}
+    </update>
+    <update id="moveDown">
+        update ujcms_link
+        set order_ = order_ - 1
+        where order_ &gt; #{from}
+          and order_ &lt;= #{to}
+    </update>
+    <update id="updateOrder">
+        update ujcms_link
+        set order_ = #{order}
+        where id_ = #{id}
+    </update>
+
+    <sql id="selectAllSelect" />
+    <sql id="selectAllJoin" />
+    <sql id="selectAllWhere" />
+    <select id="selectAll" resultMap="ResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_link" />
+        </include>
+    </select>
+    <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_link t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete
+        from ujcms_link
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByGroupId" parameterType="java.lang.Long">
+        delete
+        from ujcms_link
+        where group_id_ = #{groupId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByChannelId" parameterType="java.lang.Long">
+        delete
+        from ujcms_link
+        where channel_id_ = #{channelId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByArticleId" parameterType="java.lang.Long">
+        delete
+        from ujcms_link
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="java.lang.Long">
+        delete
+        from ujcms_link
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.Link">
+    update ujcms_link
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      group_id_ = #{groupId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      url_ = #{linkUrl,jdbcType=VARCHAR},
+      channel_id_ = #{channelId,jdbcType=BIGINT},
+      article_id_ = #{articleId,jdbcType=BIGINT},
+      logo_ = #{logo,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      target_blank_ = #{targetBlank,jdbcType=CHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.ext.domain.Link">
+    update ujcms_link
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      group_id_ = #{groupId,jdbcType=BIGINT},
+      name_ = #{name,jdbcType=VARCHAR},
+      url_ = #{linkUrl,jdbcType=VARCHAR},
+      channel_id_ = #{channelId,jdbcType=BIGINT},
+      article_id_ = #{articleId,jdbcType=BIGINT},
+      logo_ = #{logo,jdbcType=VARCHAR},
+      description_ = #{description,jdbcType=VARCHAR},
+      target_blank_ = #{targetBlank,jdbcType=CHAR},
+      enabled_ = #{enabled,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Link">
+    insert into ujcms_link (id_, site_id_, group_id_, name_, url_, channel_id_, article_id_, logo_, description_, target_blank_, enabled_, order_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{channelId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{logo,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.group_id_, t.name_, t.url_, t.channel_id_, t.article_id_, t.logo_, t.description_, t.target_blank_, t.enabled_, t.order_
+  </sql></mapper>

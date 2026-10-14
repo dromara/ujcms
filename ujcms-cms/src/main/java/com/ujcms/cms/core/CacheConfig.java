@@ -2,6 +2,7 @@ package com.ujcms.cms.core;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.ujcms.cms.core.component.ContentStatCache;
+import com.ujcms.cms.core.component.IpInteractionCache;
 import com.ujcms.cms.core.domain.cache.GlobalSpringCache;
 import com.ujcms.cms.core.domain.cache.GroupSpringCache;
 import com.ujcms.cms.core.domain.cache.SiteSpringCache;
@@ -9,6 +10,7 @@ import com.ujcms.common.captcha.CaptchaCache;
 import com.ujcms.common.captcha.CaptchaProperties;
 import com.ujcms.common.captcha.IpLoginCache;
 import com.ujcms.common.sms.IpSmsCache;
+import com.ujcms.common.sms.SmsCooldownCache;
 import com.ujcms.common.social.FriendRequestCache;
 import org.springframework.boot.autoconfigure.cache.CacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -48,6 +50,14 @@ public class CacheConfig {
             cacheManager.registerCustomCache(IpSmsCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(IpSmsCache.EXPIRES, TimeUnit.MINUTES)
                     .maximumSize(IpSmsCache.MAXIMUM_SIZE).recordStats().build());
+            // 验证码发送冷却缓存
+            cacheManager.registerCustomCache(SmsCooldownCache.CACHE_NAME, Caffeine.newBuilder()
+                    .expireAfterWrite(SmsCooldownCache.EXPIRES_SECONDS, TimeUnit.SECONDS)
+                    .maximumSize(SmsCooldownCache.MAXIMUM_SIZE).recordStats().build());
+            // IP匿名互动（投票/调查/顶踩）限流次数缓存
+            cacheManager.registerCustomCache(IpInteractionCache.CACHE_NAME, Caffeine.newBuilder()
+                    .expireAfterWrite(IpInteractionCache.EXPIRES_MINUTE, TimeUnit.MINUTES)
+                    .maximumSize(IpInteractionCache.MAXIMUM_SIZE).recordStats().build());
             // 好友申请次数缓存
             cacheManager.registerCustomCache(FriendRequestCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(FriendRequestCache.EXPIRES, TimeUnit.MINUTES)

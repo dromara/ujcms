@@ -1,0 +1,61 @@
+databaseChangeLog:
+  # 等保三级 / 密评三级合规（原 11.8 + 11.x-audit-log-drop-fk——13.0 重整；默认关闭，开箱行为不变）：
+  #   1. operation_log / login_log 增加 sign_（VARCHAR(64)，可空）：开启审计完整性后存放该行的
+  #      HMAC-SM3 签名；未开启时为 NULL（合法的"未签名行"）。
+  #   2. ujcms_user 增加 pwd_must_change_（CHAR(1)，默认 '0'）：首次登录强制改密标记，开启
+  #      Config.Security.forceChangePasswordOnFirstLogin 后于登录时强制改密；默认 false 不影响行为。
+  #      布尔列沿用 audit_ 的 CHAR(1) 约定。
+  #   3. 审计日志表去外键：审计防删改开启时，站点/用户删除有意保留历史审计行
+  #      （OperationLogService/LoginLogService 注释即约定"日志保留历史 siteId/userId，无外键"），
+  #      而建库外键（RESTRICT）会使此时的站点/用户删除直接失败——去外键对齐设计。
+  #      未开启防删改时行为不变（服务在删除站点/用户前仍显式删除对应日志行）。
+  #      MySQL 删除外键后其伴生索引保留，删除性能不受影响；无外键自建索引的库
+  #      （PostgreSQL 等）本就无此索引。
+
+  - changeSet:
+      id: 13.0-audit-log-sign
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_operation_log
+            columns:
+              - column:
+                  name: sign_
+                  type: VARCHAR(64)
+                  remarks: 审计签名(HMAC-SM3)
+        - addColumn:
+            tableName: ujcms_login_log
+            columns:
+              - column:
+                  name: sign_
+                  type: VARCHAR(64)
+                  remarks: 审计签名(HMAC-SM3)
+
+  - changeSet:
+      id: 13.0-user-pwd-must-change
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_user
+            columns:
+              - column:
+                  name: pwd_must_change_
+                  type: CHAR(1)
+                  defaultValue: '0'
+                  constraints:
+                    nullable: false
+                  remarks: 首次登录强制改密(0:否,1:是)
+
+  - changeSet:
+      id: 13.0-audit-log-drop-fk
+      author: PONY
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_operation_log
+            constraintName: fk_operationlog_site
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_operation_log
+            constraintName: fk_operationlog_user
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_login_log
+            constraintName: fk_loginlog_user

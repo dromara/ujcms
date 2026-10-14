@@ -1,0 +1,25 @@
+[#escape x as (x)!?html]
+<div
+  x-data="{
+    show: false,
+    msg: '',
+    kind: 'info',
+    handle(e) {
+      this.msg = e.detail.msg;
+      this.kind = e.detail.kind || 'info';
+      this.show = true;
+      setTimeout(() => { this.show = false }, 3500);
+    }
+  }"
+  @toast.window="handle($event)"
+  x-show="show"
+  x-transition.opacity
+  x-cloak
+  class="fixed top-4 right-4 z-50 max-w-sm rounded-md px-4 py-3 shadow-lg"
+  :class="kind === 'success' ? 'bg-emerald-600 text-white' : kind === 'alert' ? 'bg-amber-500 text-white' : 'bg-slate-800 text-white'"
+  role="alert"
+  aria-live="polite"
+>
+  <span x-text="msg"></span>
+</div>
+[/#escape]

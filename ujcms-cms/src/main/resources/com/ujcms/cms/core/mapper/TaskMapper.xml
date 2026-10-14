@@ -5,7 +5,7 @@
     <result column="site_id_" jdbcType="BIGINT" property="siteId" />
     <result column="user_id_" jdbcType="BIGINT" property="userId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
-    <result column="begin_date_" jdbcType="TIMESTAMP" property="beginDate" />
+    <result column="start_date_" jdbcType="TIMESTAMP" property="startDate" />
     <result column="end_date_" jdbcType="TIMESTAMP" property="endDate" />
     <result column="current_" jdbcType="INTEGER" property="current" />
     <result column="total_" jdbcType="INTEGER" property="total" />
@@ -49,7 +49,7 @@
     set site_id_ = #{siteId,jdbcType=BIGINT},
       user_id_ = #{userId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
-      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      start_date_ = #{startDate,jdbcType=TIMESTAMP},
       end_date_ = #{endDate,jdbcType=TIMESTAMP},
       current_ = #{current,jdbcType=INTEGER},
       total_ = #{total,jdbcType=INTEGER},
@@ -62,7 +62,7 @@
     set site_id_ = #{siteId,jdbcType=BIGINT},
       user_id_ = #{userId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
-      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      start_date_ = #{startDate,jdbcType=TIMESTAMP},
       end_date_ = #{endDate,jdbcType=TIMESTAMP},
       current_ = #{current,jdbcType=INTEGER},
       total_ = #{total,jdbcType=INTEGER},
@@ -70,8 +70,8 @@
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Task">
-    insert into ujcms_task (id_, site_id_, user_id_, name_, begin_date_, end_date_, current_, total_, type_, status_, error_info_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{current,jdbcType=INTEGER}, #{total,jdbcType=INTEGER}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{errorInfo,jdbcType=LONGVARCHAR})
+    insert into ujcms_task (id_, site_id_, user_id_, name_, start_date_, end_date_, current_, total_, type_, status_, error_info_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{startDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{current,jdbcType=INTEGER}, #{total,jdbcType=INTEGER}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{errorInfo,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.user_id_, t.name_, t.begin_date_, t.end_date_, t.current_, t.total_, t.type_, t.status_, t.error_info_
+    t.id_, t.site_id_, t.user_id_, t.name_, t.start_date_, t.end_date_, t.current_, t.total_, t.type_, t.status_, t.error_info_
   </sql></mapper>

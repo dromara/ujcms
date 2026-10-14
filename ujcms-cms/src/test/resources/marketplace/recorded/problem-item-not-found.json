@@ -1,0 +1,1 @@
+{"detail":"item not found: no-such-item","instance":"/api/v1/catalog/items/no-such-item","status":404,"title":"Not found","code":"not_found"}

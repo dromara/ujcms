@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  /* Matches the template-theme baseline's _src/style.css `--font-display`. Used on
+     headings (`font-display` Tailwind utility) for parity with the FreeMarker
+     and default themes. */
+  --font-display: 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  --color-cms-canvas: #ffffff;
+  --color-cms-surface: #ffffff;
+  --color-cms-border: #e2e8f0;
+  --color-cms-content: #0f172a;
+  --color-cms-content-muted: #64748b;
+  --color-cms-primary: #2563eb;
+  --color-cms-primary-soft: #dbeafe;
+}
+
+html,
+body {
+  background: var(--color-cms-canvas);
+  color: var(--color-cms-content);
+  font-family: var(--font-sans);
+}
+
+.article-body {
+  line-height: 1.75;
+  word-break: break-word;
+}
+.article-body p {
+  margin: 0.75rem 0;
+}
+.article-body h2,
+.article-body h3,
+.article-body h4 {
+  margin: 1.25rem 0 0.5rem;
+  font-weight: 600;
+}
+.article-body h2 {
+  font-size: 1.25rem;
+}
+.article-body h3 {
+  font-size: 1.125rem;
+}
+.article-body ul,
+.article-body ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+.article-body ul {
+  list-style: disc;
+}
+.article-body ol {
+  list-style: decimal;
+}
+.article-body img,
+.article-body video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+}
+.article-body a {
+  color: var(--color-cms-primary);
+  text-decoration: underline;
+}
+.article-body a:hover {
+  text-decoration: none;
+}
+.article-body table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  width: 100%;
+}
+.article-body th,
+.article-body td {
+  border: 1px solid var(--color-cms-border);
+  padding: 0.5rem 0.75rem;
+}
+.article-body blockquote {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-cms-border);
+  color: var(--color-cms-content-muted);
+}

@@ -12,10 +12,15 @@
     <result column="image_" jdbcType="VARCHAR" property="image" />
     <result column="mobile_image_" jdbcType="VARCHAR" property="mobileImage" />
     <result column="video_" jdbcType="VARCHAR" property="video" />
+    <result column="start_date_" jdbcType="TIMESTAMP" property="startDate" />
+    <result column="end_date_" jdbcType="TIMESTAMP" property="endDate" />
     <result column="target_blank_" jdbcType="CHAR" property="targetBlank" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
     <result column="order_" jdbcType="BIGINT" property="order" />
-  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.BlockItem" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.BlockItem">
+    <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
+    <result column="clobs_json_" jdbcType="OTHER" property="clobsJson" />
+  </resultMap>
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.BlockItem">
         <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article" property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.select" />
         <association column="block_id_" javaType="com.ujcms.cms.core.domain.Block" property="block" select="com.ujcms.cms.core.mapper.BlockMapper.select" />
@@ -26,6 +31,37 @@
         from ujcms_block_item t
         where t.block_id_ = #{blockId}
           and t.article_id_ = #{articleId}
+    </select>
+    <select id="countByBlockId" resultType="int">
+        select count(*)
+        from ujcms_block_item t
+        where t.block_id_ = #{blockId}
+    </select>
+    <!-- 文章列表用：一批文章的区块项，一条语句连同区块的名称取出，不逐项嵌套查询区块、文章、站点。
+         只取列表要显示的列（标题、是否启用、所属区块） -->
+    <resultMap id="ArticleListResultMap" type="com.ujcms.cms.core.domain.BlockItem">
+        <id column="id_" jdbcType="BIGINT" property="id" />
+        <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+        <result column="block_id_" jdbcType="BIGINT" property="blockId" />
+        <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+        <result column="title_" jdbcType="VARCHAR" property="title" />
+        <result column="enabled_" jdbcType="CHAR" property="enabled" />
+        <result column="order_" jdbcType="BIGINT" property="order" />
+        <association javaType="com.ujcms.cms.core.domain.Block" property="block">
+            <id column="block_id_" jdbcType="BIGINT" property="id" />
+            <result column="block_name_" jdbcType="VARCHAR" property="name" />
+            <result column="block_item_model_id_" jdbcType="BIGINT" property="blockItemModelId" />
+        </association>
+    </resultMap>
+    <select id="listByArticleIds" resultMap="ArticleListResultMap">
+        select t.id_, t.site_id_, t.block_id_, t.article_id_, t.title_, t.enabled_, t.order_,
+               block_.name_ as block_name_, block_.block_item_model_id_
+        from ujcms_block_item t join ujcms_block block_ on block_.id_ = t.block_id_
+        where t.article_id_ in
+        <foreach close=")" collection="articleIds" item="item" open="(" separator=",">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+        order by t.article_id_, t.id_
     </select>
     <select id="listByArticleId" resultMap="ResultMap">
         select
@@ -109,8 +145,12 @@
       image_ = #{image,jdbcType=VARCHAR},
       mobile_image_ = #{mobileImage,jdbcType=VARCHAR},
       video_ = #{video,jdbcType=VARCHAR},
+      start_date_ = #{startDate,jdbcType=TIMESTAMP},
+      end_date_ = #{endDate,jdbcType=TIMESTAMP},
       target_blank_ = #{targetBlank,jdbcType=CHAR},
-      enabled_ = #{enabled,jdbcType=CHAR}
+      enabled_ = #{enabled,jdbcType=CHAR},
+      mains_json_ = #{mainsJson,jdbcType=OTHER},
+      clobs_json_ = #{clobsJson,jdbcType=OTHER}
     where id_ = #{id,jdbcType=BIGINT}
   </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.BlockItem">
     update ujcms_block_item
@@ -124,12 +164,14 @@
       image_ = #{image,jdbcType=VARCHAR},
       mobile_image_ = #{mobileImage,jdbcType=VARCHAR},
       video_ = #{video,jdbcType=VARCHAR},
+      start_date_ = #{startDate,jdbcType=TIMESTAMP},
+      end_date_ = #{endDate,jdbcType=TIMESTAMP},
       target_blank_ = #{targetBlank,jdbcType=CHAR},
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.BlockItem">
-    insert into ujcms_block_item (id_, site_id_, block_id_, article_id_, title_, subtitle_, description_, link_url_, image_, mobile_image_, video_, target_blank_, enabled_, order_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{blockId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{mobileImage,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})
+    insert into ujcms_block_item (id_, site_id_, block_id_, article_id_, title_, subtitle_, description_, link_url_, image_, mobile_image_, video_, start_date_, end_date_, target_blank_, enabled_, order_, mains_json_, clobs_json_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{blockId,jdbcType=BIGINT}, #{articleId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{mobileImage,jdbcType=VARCHAR}, #{video,jdbcType=VARCHAR}, #{startDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{targetBlank,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.block_id_, t.article_id_, t.title_, t.subtitle_, t.description_, t.link_url_, t.image_, t.mobile_image_, t.video_, t.target_blank_, t.enabled_, t.order_
+    t.id_, t.site_id_, t.block_id_, t.article_id_, t.title_, t.subtitle_, t.description_, t.link_url_, t.image_, t.mobile_image_, t.video_, t.start_date_, t.end_date_, t.target_blank_, t.enabled_, t.order_, t.mains_json_, t.clobs_json_
   </sql></mapper>

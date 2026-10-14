@@ -21,16 +21,11 @@ public interface Consumer3<T, U, V> {
     void accept(T t, U u, V v);
 
     /**
-     * Returns a composed {@code Consumer3} that performs, in sequence, this
-     * operation followed by the {@code after} operation. If performing either
-     * operation throws an exception, it is relayed to the caller of the
-     * composed operation.  If performing this operation throws an exception,
-     * the {@code after} operation will not be performed.
+     * 组合两个消费函数：先执行当前函数，再用同一组参数执行 {@code after}。
+     * 当前函数抛出异常时不再执行 {@code after}，异常原样抛给调用方。
      *
-     * @param after the operation to perform after this operation
-     * @return a composed {@code Consumer3} that performs in sequence this
-     * operation followed by the {@code after} operation
-     * @throws NullPointerException if {@code after} is null
+     * @param after 随后执行的函数，不能为 null
+     * @return 依次执行两个函数的组合函数
      */
     default Consumer3<T, U, V> andThen(Consumer3<? super T, ? super U, ? super V> after) {
         Objects.requireNonNull(after);

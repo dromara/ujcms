@@ -1,0 +1,21 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-topics.schema.json",
+  "topics": [
+    {
+      "alias": "featured",
+      "articles": [
+        "a-wetland-egrets-return",
+        "a-fullscreen-smartphone",
+        "a-mountain-rescue-film",
+        "a-island-climate-threat"
+      ],
+      "ext": {
+        "seoDescription": "编辑部每周从各频道挑出最值得细读的报道、新品与影片。"
+      },
+      "image": "{{asset:img/topic/hot-air-balloons-valley.jpg}}",
+      "originId": "t-featured",
+      "text": "<p>每到周末，各部门的编辑都会坐下来，从这一周发出的稿件里各挑一篇自己最想推荐的内容。标准只有一条：读完之后，还愿意转给朋友。</p>\n<p>本期入选的是四篇：城北湿地的白鹭归来、一座珊瑚岛应对海平面上升的办法、一款全面屏手机的上手体验，以及一部把全部故事放进一个雨夜的救援题材影片。它们来自新闻、产品和视频三个频道，篇幅有长有短，可以按自己的时间慢慢读。</p>",
+      "title": "编辑精选"
+    }
+  ]
+}

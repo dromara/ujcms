@@ -1,0 +1,95 @@
+databaseChangeLog:
+  # PII 整列加密（原 11.6 + 11.7——13.0 重整）：
+  #
+  # 一、ujcms_message_board 联系方式列（联系人/电话/邮箱/地址）改为 MEDIUMTEXT，
+  #   以容纳整列 SM4-GCM 密文（由 MessageBoardMapper.xml 上的 Sm4StringTypeHandler 加密）。
+  #   这些列不参与任何 WHERE 等值查询，可安全整列加密。
+  #
+  # 二、用户 PII（手机号 / 邮箱）可搜索加密（blind index 盲索引方案）：
+  #   1. ujcms_user.mobile_ / email_ 改为 MEDIUMTEXT，容纳随机 IV 的 SM4-GCM 整列密文
+  #      （由 UserMapper.xml 上的 Sm4StringTypeHandler 加密）。
+  #   2. 新增 mobile_index_ / email_index_（VARCHAR(64)，存 HMAC-SM3 十六进制盲索引），
+  #      并各建一个 UNIQUE 索引，替代原先仅靠应用层的查重，提供 DB 级唯一性。
+  #      索引列空值存 NULL（PiiBlindIndex 对空白值返回 null），UNIQUE 下允许大量无手机号 /
+  #      邮箱的用户并存。MySQL/MariaDB/PostgreSQL/Kingbase/达梦的 UNIQUE 索引允许多个
+  #      NULL；SQL Server 的 UNIQUE 索引只允许单个 NULL——若部署于 SQL Server，需改为
+  #      过滤索引（WHERE col IS NOT NULL），本仓库主库为 MySQL，迁移须在目标库上验证。
+  #
+  # 类型转换取"删列-重加"而非 modifyDataType：Oracle 系（达梦）禁止 VARCHAR2→CLOB 直接
+  # ALTER（ORA-22858）；变更日志仅服务全新建库（引导数据脚本在其后执行，表恒为空），
+  # 无数据可保全（详见 db.changelog-13.0-config.yaml 的说明）。
+  # 引导脚本以明文写入 mobile_/email_ 属预期：历史明文在下次保存时透明转为密文（懒迁移）。
+
+  - changeSet:
+      id: 13.0-message-board-contact-to-mediumtext
+      author: PONY
+      changes:
+        - dropColumn:
+            tableName: ujcms_message_board
+            columns:
+              - column: { name: contact_ }
+              - column: { name: phone_ }
+              - column: { name: email_ }
+              - column: { name: address_ }
+        - addColumn:
+            tableName: ujcms_message_board
+            columns:
+              - column:
+                  name: contact_
+                  remarks: 联系人
+                  type: MEDIUMTEXT
+              - column:
+                  name: phone_
+                  remarks: 电话号码
+                  type: MEDIUMTEXT
+              - column:
+                  name: email_
+                  remarks: 电子邮箱
+                  type: MEDIUMTEXT
+              - column:
+                  name: address_
+                  remarks: 联系地址
+                  type: MEDIUMTEXT
+
+  - changeSet:
+      id: 13.0-user-pii-encryption
+      author: PONY
+      changes:
+        - dropColumn:
+            tableName: ujcms_user
+            columns:
+              - column: { name: mobile_ }
+              - column: { name: email_ }
+        - addColumn:
+            tableName: ujcms_user
+            columns:
+              - column:
+                  name: mobile_
+                  remarks: 手机号码
+                  type: MEDIUMTEXT
+              - column:
+                  name: email_
+                  remarks: 电子邮箱
+                  type: MEDIUMTEXT
+              - column:
+                  name: mobile_index_
+                  remarks: 手机号盲索引(HMAC-SM3)
+                  type: VARCHAR(64)
+              - column:
+                  name: email_index_
+                  remarks: 邮箱盲索引(HMAC-SM3)
+                  type: VARCHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: mobile_index_
+            indexName: uk_user_mobile_index
+            tableName: ujcms_user
+            unique: true
+        - createIndex:
+            columns:
+              - column:
+                  name: email_index_
+            indexName: uk_user_email_index
+            tableName: ujcms_user
+            unique: true

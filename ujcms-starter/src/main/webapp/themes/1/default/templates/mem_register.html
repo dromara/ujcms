@@ -1,0 +1,231 @@
+[#include '../layout/theme.html'/]
+[#include '../snippets/auth_shell.html'/]
+[#escape x as (x)!?html]
+[#assign extraHead]
+<script src="${assets}/vendor/sm-crypto/dist/sm2.js?v=${v}" defer></script>
+<script src="${assets}/js/auth.js?v=${v}" defer></script>
+[/#assign]
+[@layout title='注册 - ' + site.title extraHead=extraHead]
+[@authShell heading='加入' + (site.name!'UJCMS') intro='注册账号后可以发表评论、收藏文章、关注作者，并接收站内通知。' tab='register']
+
+    <div
+      x-data="{
+        username: '', password: '', confirm: '',
+        email: '', mobile: '',
+        captcha: '', captchaToken: '', captchaImg: '',
+        emailMessageValue: '', emailMessageId: '',
+        mobileMessageValue: '', mobileMessageId: '',
+        mobileCountdown: 0, mobileTimer: null,
+        emailCountdown: 0,  emailTimer: null,
+        showPassword: false,
+        submitting: false,
+        verifyMode: ${config.register.verifyMode?c},
+        async fetchCaptcha() {
+          try {
+            const data = await window.request('GET', '${api}/captcha');
+            this.captchaImg = 'data:image/png;base64,' + data.image;
+            this.captchaToken = data.token;
+          } catch (e) { /* tolerate */ }
+        },
+        requestMobileSms() {
+          if (!/^1\d{10}$/.test(this.mobile)) { window.displayAlert('请填写有效的手机号码'); return; }
+          $dispatch('request-mobile-sms', { receiver: this.mobile, usage: 1, onSuccess: id => {
+            this.mobileMessageId = id; this.mobileCountdown = 90;
+            clearInterval(this.mobileTimer);
+            this.mobileTimer = setInterval(() => { if (--this.mobileCountdown <= 0) clearInterval(this.mobileTimer); }, 1000);
+          }});
+        },
+        requestEmailSms() {
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.email)) { window.displayAlert('请填写有效的邮箱地址'); return; }
+          $dispatch('request-email-sms', { receiver: this.email, usage: 1, onSuccess: id => {
+            this.emailMessageId = id; this.emailCountdown = 90;
+            clearInterval(this.emailTimer);
+            this.emailTimer = setInterval(() => { if (--this.emailCountdown <= 0) clearInterval(this.emailTimer); }, 1000);
+          }});
+        },
+        async checkUsername() {
+          if (!this.username) return true;
+          try {
+            const ok = await window.request('GET', '${api}/user/username-not-exist?username=' + encodeURIComponent(this.username));
+            return ok === true;
+          } catch (e) { return true; }
+        },
+        async submit() {
+          if (this.submitting) return;
+          if (this.password !== this.confirm) { window.displayAlert('两次输入不相同'); return; }
+          if (!(await this.checkUsername())) { window.displayAlert('用户名已存在'); return; }
+          this.submitting = true;
+          try {
+            await window.fetchCsrf();
+            const body = {
+              username: this.username,
+              password: await window.sm2Encrypt(this.password),
+            };
+            if (this.verifyMode === 1 || this.verifyMode === 2) {
+              body.captcha = this.captcha; body.captchaToken = this.captchaToken;
+            } else if (this.verifyMode === 3) {
+              body.email = this.email; body.emailMessageValue = this.emailMessageValue;
+              body.emailMessageId = this.emailMessageId || null;
+            } else if (this.verifyMode === 4) {
+              body.mobile = this.mobile; body.mobileMessageValue = this.mobileMessageValue;
+              body.mobileMessageId = this.mobileMessageId || null;
+            }
+            const res = await window.request('POST', '${api}/register', body);
+            if (res && res.status === 100) {
+              window.displayAlert(res.message || '注册成功，等待管理员审核');
+            } else {
+              window.displaySuccess('注册成功，正在登录…');
+              const f = document.createElement('form');
+              f.method = 'POST'; f.action = '${ctx}/login'; f.style.display = 'none';
+              const csrf = document.querySelector('meta[name=_csrf]').content;
+              const add = (n, v) => { const i = document.createElement('input'); i.name = n; i.value = v; f.appendChild(i); };
+              add('username', this.username);
+              add('password', await window.sm2Encrypt(this.password));
+              add('_csrf', csrf);
+              document.body.appendChild(f);
+              f.submit();
+            }
+          } catch (e) {
+            window.displayAlert(e.message || '注册失败');
+          } finally {
+            this.submitting = false;
+          }
+        }
+      }"
+      x-init="if (verifyMode === 1 || verifyMode === 2) fetchCaptcha()"
+    >
+      [#if !config.register.enabled]
+        <div class="py-8 text-center">
+          <div class="size-12 mx-auto mb-3 inline-flex items-center justify-center rounded-full bg-slate-100 text-slate-400">
+            <span class="size-6 inline-block">[@icon 'info-outline'/]</span>
+          </div>
+          <p class="text-slate-600 font-medium">注册暂时关闭</p>
+          <p class="text-slate-500 text-sm mt-1">请稍后再试</p>
+        </div>
+      [#else]
+      <form @submit.prevent="submit" class="space-y-4">
+        <div>
+          <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5">用户名</label>
+          <input id="username" type="text" required autocomplete="username"
+                 minlength="${config.register.usernameMinLength?c}"
+                 maxlength="${config.register.usernameMaxLength?c}"
+                 pattern="${config.register.usernameRegex}"
+                 x-model="username"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+          <p class="mt-1 text-xs text-slate-500">支持字母、数字、汉字、下划线、中划线、点号</p>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-slate-700 mb-1.5">密码</label>
+          <div class="relative">
+            <input id="password" required autocomplete="new-password"
+                   :type="showPassword ? 'text' : 'password'"
+                   minlength="${config.security.passwordMinLength?c}"
+                   maxlength="${config.security.passwordMaxLength?c}"
+                   x-model="password"
+                   class="block w-full rounded-md border border-slate-300 px-3 py-2.5 pr-10 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            <button type="button" @click="showPassword = !showPassword"
+                    :aria-label="showPassword ? '隐藏密码' : '显示密码'"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 size-7 inline-flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+              <span class="size-4 inline-block">[@icon 'visibility-outline'/]</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium text-slate-700 mb-1.5">确认密码</label>
+          <input id="confirmPassword" type="password" required autocomplete="new-password"
+                 x-model="confirm"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+        </div>
+
+        [#-- verifyMode 1（不验证）/ 2（人工验证）：图形验证码 --]
+        [#if config.register.verifyMode == 1 || config.register.verifyMode == 2]
+          <div>
+            <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码</label>
+            <div class="flex gap-2">
+              <input id="captcha" type="text" required maxlength="8" autocomplete="off"
+                     x-model="captcha"
+                     class="flex-1 min-w-0 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+              <img :src="captchaImg" alt="图形验证码" @click="fetchCaptcha"
+                   class="h-11 sm:h-10 w-32 shrink-0 rounded-md border border-slate-300 cursor-pointer object-contain bg-slate-50 hover:border-primary transition-colors" title="点击换一张">
+            </div>
+          </div>
+        [/#if]
+
+        [#-- verifyMode 3：邮箱 + 邮件验证码 --]
+        [#if config.register.verifyMode == 3]
+          <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">邮箱地址</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 size-4 inline-block text-slate-400 pointer-events-none">[@icon 'mail-outline'/]</span>
+              <input id="email" type="email" required autocomplete="email"
+                     x-model="email"
+                     class="block w-full rounded-md border border-slate-300 pl-9 pr-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            </div>
+          </div>
+          <div>
+            <label for="emailMessageValue" class="block text-sm font-medium text-slate-700 mb-1.5">邮件验证码</label>
+            <div class="flex gap-2">
+              <input id="emailMessageValue" type="text" required maxlength="8" autocomplete="one-time-code"
+                     x-model="emailMessageValue"
+                     class="flex-1 min-w-0 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+              <button type="button" @click="requestEmailSms" :disabled="emailCountdown > 0"
+                      class="px-3 rounded-md border border-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 hover:border-primary hover:text-primary disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:text-slate-700 transition-colors">
+                <span x-show="emailCountdown <= 0">获取验证码</span>
+                <span x-show="emailCountdown > 0" x-cloak><span x-text="emailCountdown"></span> 秒</span>
+              </button>
+            </div>
+          </div>
+        [/#if]
+
+        [#-- verifyMode 4：手机 + 短信验证码 --]
+        [#if config.register.verifyMode == 4]
+          <div>
+            <label for="mobile" class="block text-sm font-medium text-slate-700 mb-1.5">手机号码</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 size-4 inline-block text-slate-400 pointer-events-none">[@icon 'phone-android-outline'/]</span>
+              <input id="mobile" type="tel" required pattern="^1\d{10}$" autocomplete="tel"
+                     x-model="mobile"
+                     class="block w-full rounded-md border border-slate-300 pl-9 pr-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            </div>
+          </div>
+          <div>
+            <label for="mobileMessageValue" class="block text-sm font-medium text-slate-700 mb-1.5">短信验证码</label>
+            <div class="flex gap-2">
+              <input id="mobileMessageValue" type="text" required maxlength="8" autocomplete="one-time-code"
+                     x-model="mobileMessageValue"
+                     class="flex-1 min-w-0 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+              <button type="button" @click="requestMobileSms" :disabled="mobileCountdown > 0"
+                      class="px-3 rounded-md border border-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 hover:border-primary hover:text-primary disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:text-slate-700 transition-colors">
+                <span x-show="mobileCountdown <= 0">获取验证码</span>
+                <span x-show="mobileCountdown > 0" x-cloak><span x-text="mobileCountdown"></span> 秒</span>
+              </button>
+            </div>
+          </div>
+        [/#if]
+
+        <button type="submit" :disabled="submitting"
+                class="w-full px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+          <span x-show="!submitting">注册</span>
+          <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+            <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span>注册中…</span>
+          </span>
+        </button>
+
+        <p class="text-center text-xs text-slate-500">
+          注册即代表您同意 <a href="#" class="text-primary hover:underline">服务条款</a>
+        </p>
+
+        [#include '../snippets/auth_oauth.html'/]
+      </form>
+      [/#if]
+    </div>
+[/@authShell]
+
+[#if config.register.verifyMode == 3 || config.register.verifyMode == 4]
+  [#include '../snippets/short_message.html'/]
+[/#if]
+[/@layout]
+[/#escape]

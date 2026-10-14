@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Minimal local schema for Google's image sitemap extension
+  (https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps):
+  <image:image><image:loc>…</image:loc></image:image>. Google deprecated caption / title /
+  geo_location / license, so only loc is modelled. sitemap.xsd validates foreign elements
+  strictly, hence this offline stand-in (same reason as xhtml-link.xsd).
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://www.google.com/schemas/sitemap-image/1.1"
+            elementFormDefault="qualified">
+  <xsd:element name="image">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="loc" type="xsd:anyURI"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

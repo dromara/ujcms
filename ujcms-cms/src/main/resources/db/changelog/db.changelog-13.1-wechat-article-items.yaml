@@ -1,0 +1,22 @@
+databaseChangeLog:
+  # 公众号多图文推送（wechat design.md §3.2）。13.0 已发布，12.5-wechat 原变更集不可再改，
+  # 故以升级变更集补列：items_json_ 记录一篇草稿内的各篇文章（顺序、文章ID、标题快照、发布后链接），
+  # 第一篇为头条，article_id_/title_/article_url_ 继续保存头条信息。
+  # columnExists 守卫使其对开发期已含该列的库幂等（MARK_RAN）；全新建库与既有 13.0 库同走此处。
+  - changeSet:
+      id: 13.1-wechat-article-items
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_wechat_article
+                columnName: items_json_
+      changes:
+        - addColumn:
+            tableName: ujcms_wechat_article
+            columns:
+              - column:
+                  name: items_json_
+                  remarks: 图文列表JSON
+                  type: JSON

@@ -14,7 +14,7 @@ export const useCurrentSiteStore = defineStore('ujcmsCurrentSiteStore', {
     },
   },
   persist: {
-    paths: ['currentSiteId'],
+    pick: ['currentSiteId'],
     storage: sessionStorage,
   },
 });

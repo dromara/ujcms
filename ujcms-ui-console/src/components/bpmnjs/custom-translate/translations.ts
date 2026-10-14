@@ -1,3 +1,9 @@
+/*
+ * Derived from bpmn-js-i18n (https://github.com/bpmn-io/bpmn-js-i18n), translations/zn.js.
+ * Copyright (c) 2019 camunda Services GmbH. MIT License (licenses/MIT.txt).
+ *
+ * Modified for UJCMS: entries below the marker comment were added. First modified before 2026-04-19.
+ */
 /**
  * https://github.com/bpmn-io/bpmn-js-i18n/blob/main/translations/zn.js
  */

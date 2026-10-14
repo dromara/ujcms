@@ -1,0 +1,193 @@
+databaseChangeLog:
+  # 字典（docs/spec/dictionary）：条目层级（parent_id_）退役——无控制台编辑器、无级联字段绑定、
+  # 无树形输出，出厂种子亦全为平铺。建表变更集在已发布的 10.0-whole（校验和被升级脚本钉住），
+  # 故只追加、不改写。三步各自独立并带前置条件：MySQL DDL 自动提交，中途失败可重跑；
+  # FK 复用 idx_dict_parent 作后备索引（createIndex 先于 addForeignKey），须先删 FK 再删索引。
+  - changeSet:
+      id: 13.0-dict-drop-parent-fk
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - foreignKeyConstraintExists:
+            foreignKeyName: fk_dict_parent
+            foreignKeyTableName: ujcms_dict
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_dict
+            constraintName: fk_dict_parent
+  - changeSet:
+      id: 13.0-dict-drop-parent-index
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            indexName: idx_dict_parent
+            tableName: ujcms_dict
+      changes:
+        - dropIndex:
+            indexName: idx_dict_parent
+            tableName: ujcms_dict
+  - changeSet:
+      id: 13.0-dict-drop-parent-column
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - columnExists:
+            tableName: ujcms_dict
+            columnName: parent_id_
+      changes:
+        - dropColumn:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: parent_id_ }
+
+  # 站点语言字典 sys_site_lang（docs/spec/dictionary P4）：新库由 SystemCoreBootstrap 写入——Liquibase
+  # 运行时 ujcms_config 尚空，本变更集 MARK_RAN；既有库（已引导、尚无该别名）由此补齐同一批固定 ID 行
+  # （引导器在非空库上绝不重跑）。两条 sqlCheck 隐含 AND；行清单（固定 ID 5..16，语种对齐政府门户
+  # 通行做法）须与 SystemCoreBootstrap.SITE_LANGS 一致。
+  - changeSet:
+      id: 13.0-dict-sys-site-lang
+      author: PONY
+      # 2026-09-02 就地扩充语种清单（3→12）改变了校验和；放行旧校验和，免于重建既有开发库。
+      # 旧库该变更集已记录（MARK_RAN/EXECUTED），不会重跑——新增的 9 个语种需在“字典管理”手工补充或重建库
+      validCheckSum:
+        - 9:3d6438b56cc3983f1eb0794d6b78201b
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: '1'
+            sql: select count(*) from ujcms_config
+        - sqlCheck:
+            expectedResult: '0'
+            sql: select count(*) from ujcms_dict_type where alias_ = 'sys_site_lang'
+      changes:
+        - insert:
+            tableName: ujcms_dict_type
+            columns:
+              - column: { name: id_, valueNumeric: 3 }
+              - column: { name: name_, value: 站点语言 }
+              - column: { name: alias_, value: sys_site_lang }
+              - column: { name: scope_, valueNumeric: 2 }
+              - column: { name: data_type_, valueNumeric: 0 }
+              - column: { name: order_, valueNumeric: 32767 }
+              - column: { name: sys_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 5 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: '简体中文' }
+              - column: { name: value_, value: 'zh-CN' }
+              - column: { name: order_, valueNumeric: 1 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 6 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: '繁體中文' }
+              - column: { name: value_, value: 'zh-TW' }
+              - column: { name: order_, valueNumeric: 2 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 7 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'English' }
+              - column: { name: value_, value: 'en' }
+              - column: { name: order_, valueNumeric: 3 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 8 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: '日本語' }
+              - column: { name: value_, value: 'ja' }
+              - column: { name: order_, valueNumeric: 4 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 9 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: '한국어' }
+              - column: { name: value_, value: 'ko' }
+              - column: { name: order_, valueNumeric: 5 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 10 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'Deutsch' }
+              - column: { name: value_, value: 'de' }
+              - column: { name: order_, valueNumeric: 6 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 11 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'Français' }
+              - column: { name: value_, value: 'fr' }
+              - column: { name: order_, valueNumeric: 7 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 12 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'Español' }
+              - column: { name: value_, value: 'es' }
+              - column: { name: order_, valueNumeric: 8 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 13 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'Português' }
+              - column: { name: value_, value: 'pt' }
+              - column: { name: order_, valueNumeric: 9 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 14 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'Русский' }
+              - column: { name: value_, value: 'ru' }
+              - column: { name: order_, valueNumeric: 10 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 15 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'العربية' }
+              - column: { name: value_, value: 'ar' }
+              - column: { name: order_, valueNumeric: 11 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }
+        - insert:
+            tableName: ujcms_dict
+            columns:
+              - column: { name: id_, valueNumeric: 16 }
+              - column: { name: type_id_, valueNumeric: 3 }
+              - column: { name: name_, value: 'Italiano' }
+              - column: { name: value_, value: 'it' }
+              - column: { name: order_, valueNumeric: 12 }
+              - column: { name: sys_, value: '0' }
+              - column: { name: enabled_, value: '1' }

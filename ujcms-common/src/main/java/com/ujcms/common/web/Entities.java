@@ -15,6 +15,8 @@ import java.util.*;
 
 /**
  * 实体类工具。用于 Controller 拷贝属性。
+ * <p>
+ * 属性拷贝的写法改编自 Spring Framework 的 BeanUtils#copyProperties（Apache License 2.0，见 NOTICE）。
  *
  * @author PONY
  * @see org.springframework.beans.BeanUtils#copyProperties(Object, Object)

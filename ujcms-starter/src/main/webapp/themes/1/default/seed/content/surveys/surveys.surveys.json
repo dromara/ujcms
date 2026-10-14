@@ -1,0 +1,83 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-surveys.schema.json",
+  "surveys": [
+    {
+      "description": "忙完一周，周末是难得能自己做主的两天。有人只想在家补觉，有人一早就去湿地公园晨跑，也有人约上朋友坐一小时城际列车到邻近的小城走走。生活部想听听大家的周末是怎么过的，调查结果将用于策划今后的周末出行专题。",
+      "enabled": true,
+      "interval": 0,
+      "items": [
+        {
+          "essay": false,
+          "multiple": false,
+          "options": [
+            "在家休息",
+            "外出活动",
+            "看当天的心情"
+          ],
+          "title": "您通常怎样度过周末？"
+        },
+        {
+          "essay": false,
+          "multiple": false,
+          "options": [
+            "市内逛逛就好",
+            "更想短途出行",
+            "两种都可以"
+          ],
+          "title": "如果出门，您更愿意在市内逛逛，还是来一次短途出行？"
+        },
+        {
+          "essay": false,
+          "multiple": true,
+          "options": [
+            "花费",
+            "天气",
+            "交通是否方便",
+            "人多不多"
+          ],
+          "title": "安排周末活动时，您最在意哪些因素？"
+        },
+        {
+          "essay": true,
+          "multiple": false,
+          "title": "您还希望我们介绍哪些周末好去处？"
+        }
+      ],
+      "mode": 1,
+      "originId": "s-3aa4adb4",
+      "title": "周末去哪儿：市民休闲方式调查"
+    },
+    {
+      "enabled": true,
+      "interval": 0,
+      "items": [
+        {
+          "essay": false,
+          "multiple": false,
+          "options": [
+            "早晨通勤路上",
+            "午休时间",
+            "晚上睡前",
+            "时间不固定"
+          ],
+          "title": "您通常在什么时候访问本站？"
+        },
+        {
+          "essay": false,
+          "multiple": true,
+          "options": [
+            "本地新闻",
+            "图片故事",
+            "视频节目",
+            "软件与资料下载",
+            "产品评测"
+          ],
+          "title": "您最希望本站加强哪些内容？"
+        }
+      ],
+      "mode": 1,
+      "originId": "s-b22db674",
+      "title": "读者体验与满意度调查"
+    }
+  ]
+}

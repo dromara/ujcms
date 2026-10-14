@@ -1,0 +1,106 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'comment'/]
+[#escape x as (x)!?html]
+[@layout title='我的评论 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings" class="cm-link text-slate-700">个人中心</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">我的评论</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3"
+    x-data="{
+      items: [], page: 1, totalPages: 1, total: null, loading: false,
+      statusChips: {0:['已发布','bg-emerald-100 text-emerald-700'],1:['待审核','bg-amber-100 text-amber-700'],2:['已屏蔽','bg-rose-100 text-rose-700']},
+      chip(s) { return this.statusChips[Number(s)] || ['未知', 'bg-slate-200 text-slate-600']; },
+      async load(page) {
+        if (this.loading) return;
+        this.loading = true;
+        try {
+          const d = await window.request('GET', '${api}/comment/my/page?page=' + page + '&pageSize=10');
+          if (page === 1) this.items = [];
+          this.items.push(...((d && d.content) || []));
+          this.total = d.page ? String(d.page.totalElements) : null;
+          this.page = page;
+          this.totalPages = Number((d.page || {}).totalPages || 1);
+        } catch (e) {
+          window.displayAlert(e.message || '加载失败');
+        } finally {
+          this.loading = false;
+        }
+      },
+      async remove(id) {
+        if (!confirm('确定删除该评论？该评论下的回复也会一并删除，且不可恢复。')) return;
+        try {
+          await window.fetchCsrf();
+          await window.request('DELETE', '${api}/comment/' + id);
+          window.displaySuccess('已删除！');
+          this.load(1);
+        } catch (e) {
+          window.displayAlert(e.message || '删除失败');
+        }
+      }
+    }"
+    x-init="load(1)"
+  >
+    <div class="flex items-baseline gap-2 pb-2 border-b border-slate-200">
+      <h1 class="flex items-center gap-2 text-xl font-bold font-display">
+        <span class="size-5 text-primary inline-block">[@icon 'comment-outline'/]</span>
+        <span>我的评论</span>
+      </h1>
+      <span class="text-sm text-slate-500" x-show="total !== null" x-text="'(' + total + ')'"></span>
+    </div>
+
+    <ul class="divide-y divide-slate-100">
+      <template x-for="bean in items" :key="bean.id">
+        <li class="py-4 space-y-2">
+          <div class="flex items-center gap-2 text-sm">
+            <a class="cm-link font-medium flex-1 truncate"
+               :href="(bean.article && bean.article.url) || '#'"
+               x-text="(bean.article && bean.article.title) || '（文章已删除）'"></a>
+            <span class="px-2 py-0.5 rounded text-xs shrink-0" :class="chip(bean.status)[1]" x-text="chip(bean.status)[0]"></span>
+            <button type="button" @click="remove(bean.id)"
+                    class="shrink-0 px-2 py-1 rounded border border-rose-200 text-rose-600 text-xs hover:bg-rose-50">删除</button>
+          </div>
+          [#-- 评论正文：先转义再链接化 @提及，见 theme.js linkifyMentions --]
+          <p class="text-sm whitespace-pre-wrap wrap-break-word" x-html="window.linkifyMentions(bean.text || '', '${def}')"></p>
+          <div x-show="bean.images && bean.images.length > 0" class="flex flex-wrap gap-2">
+            <template x-for="url in (bean.images || [])" :key="url">
+              <img :src="url" alt="评论图片" class="size-24 rounded object-cover">
+            </template>
+          </div>
+          <p class="text-xs text-slate-400 flex items-center gap-1">
+            <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+            <span x-text="window.formatDateTime(bean.created)"></span>
+          </p>
+        </li>
+      </template>
+    </ul>
+
+    <div x-show="total === '0'" x-cloak class="py-12 text-center">
+      <div class="size-12 mx-auto mb-3 inline-flex items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <span class="size-6 inline-block">[@icon 'comment-outline'/]</span>
+      </div>
+      <p class="text-slate-500 text-sm">暂无评论</p>
+    </div>
+
+    <div x-show="totalPages > page" x-cloak class="text-center my-4">
+      <button type="button" @click="load(page + 1)" :disabled="loading"
+              class="px-4 py-2 rounded border border-slate-300 text-sm hover:bg-slate-50 disabled:opacity-60">加载更多</button>
+    </div>
+  </section>
+</div>
+[/@layout]
+[/#escape]

@@ -2,7 +2,7 @@ package com.ujcms.common.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +14,7 @@ import java.text.DecimalFormat;
 /**
  * 计时器。用于记录请求执行时间。
  *
- * @author liufang
+ * @author PONY
  */
 public class TimerInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(TimerInterceptor.class);

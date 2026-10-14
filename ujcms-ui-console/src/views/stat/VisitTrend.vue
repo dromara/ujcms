@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref, shallowRef } from 'vue';
+import { onMounted, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import dayjs from 'dayjs';
-import echarts, { ECOption } from '@/utils/echarts';
+import echarts, { type ECOption } from '@/utils/echarts';
 import { queryTrendStat } from '@/api/stat';
+import { enumParam, useRouteState } from '@/composables/useRouteState';
 
 const { t } = useI18n();
 
-const dateRange = ref<string>('last30day');
+// 统计时段存于 query.range（docs/spec/console-view-state）：视图在刷新、页签往返时都会重建，对比各统计页时不应回到近30天
+const { range: dateRange } = useRouteState({
+  range: enumParam('last30day', ['today', 'yesterday', 'last7day', 'last30day', 'last3month', 'last6month', 'lastYear', 'all']),
+});
 const getBeginByDateRange = (range: string): string | undefined => {
   switch (range) {
     case 'now':
@@ -46,7 +50,7 @@ const initTrendChart = async (range: string) => {
   const list = await queryTrendStat({ begin: getBeginByDateRange(range), end: getEndByDateRange(range) });
   const option: ECOption = {
     tooltip: { trigger: 'axis' },
-    legend: { data: [t('visit.pv'), t('visit.uv'), t('visit.ip')] },
+    legend: { top: 0, data: [t('visit.pv'), t('visit.uv'), t('visit.ip')] },
     grid: { left: 16, right: 24, top: 40, bottom: 8, containLabel: true },
     xAxis: { type: 'category', boundaryGap: false, axisTick: { show: false }, data: list.map((item) => item.dateString) },
     yAxis: { type: 'value', minInterval: 1 },

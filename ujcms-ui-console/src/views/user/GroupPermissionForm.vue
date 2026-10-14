@@ -6,6 +6,7 @@ import { currentUser } from '@/stores/useCurrentUser';
 import { queryGroup, updateGroupPermission, groupAccessPermissions } from '@/api/user';
 import { queryChannelList } from '@/api/content';
 import LabelTip from '@/components/LabelTip.vue';
+import { loadOrClose } from '@/utils/common';
 
 defineOptions({
   name: 'GroupPermissionForm',
@@ -28,7 +29,7 @@ const channelData = ref<any[]>([]);
 const disabled = computed(() => currentUser.rank > bean.value.rank);
 const fetchGroup = async () => {
   if (beanId?.value != null) {
-    bean.value = await queryGroup(beanId.value);
+    bean.value = await loadOrClose(() => queryGroup(beanId.value), () => emit('update:modelValue', false));
     values.value = { ...bean.value };
   }
 };

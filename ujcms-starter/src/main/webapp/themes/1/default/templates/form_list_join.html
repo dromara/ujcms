@@ -1,0 +1,66 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#--
+  「加盟意向」表单的按类型提交列表。自定义字段列：
+  contactPerson / phone / address。
+  提交入口走通用的 /form-create/{typeId} 页面（form_submit.html 渲染），
+  不再像旧版那样在本页内嵌弹窗，减少每模板重复。
+--]
+[#assign createUrl = dy + '/form-create/' + formType.id?c/]
+[@layout title=formType.name + ' - ' + site.title]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/form-type" class="cm-link">自定义表单</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">${formType.name}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <div class="flex justify-between items-baseline border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'dynamic-form-outline'/]</span>
+      <span>${formType.name}</span>
+    </h1>
+    <a href="${createUrl}" class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">填写加盟意向</a>
+  </div>
+
+  [@FormPage typeId=formType.id; pagedList]
+  [#if pagedList.totalElements == 0]
+    <p class="py-8 text-center text-slate-500">暂无表单提交记录</p>
+  [#else]
+    <div class="overflow-x-auto rounded border border-slate-200">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-slate-600">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left font-semibold">ID</th>
+            <th scope="col" class="px-3 py-2 text-left font-semibold">联系人</th>
+            <th scope="col" class="px-3 py-2 text-left font-semibold">联系电话</th>
+            <th scope="col" class="px-3 py-2 text-left font-semibold">联系地址</th>
+            <th scope="col" class="px-3 py-2 text-left font-semibold">提交时间</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white">
+          [#list pagedList.content as form]
+            <tr class="hover:bg-slate-50">
+              <td class="px-3 py-2"><a href="${dy}/form-item/${form.id?c}" class="cm-link font-medium">${form.id}</a></td>
+              <td class="px-3 py-2">${form.customs['contactPerson']}</td>
+              <td class="px-3 py-2">${form.customs['phone']}</td>
+              <td class="px-3 py-2 text-slate-500">${form.customs['address']}</td>
+              <td class="px-3 py-2 text-slate-500">${format(form.created, 'yyyy-MM-dd HH:mm')}</td>
+            </tr>
+          [/#list]
+        </tbody>
+      </table>
+    </div>
+
+    [#include '../snippets/page.html'/]
+  [/#if]
+  [/@FormPage]
+</div>
+[/@layout]
+[/#escape]

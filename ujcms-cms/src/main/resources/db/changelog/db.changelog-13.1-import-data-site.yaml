@@ -1,0 +1,84 @@
+databaseChangeLog:
+  # 数据迁移的对应关系表按站点隔离（docs/spec/data-migration/plan.md D5）。此前只按“表 + 原主键”查：两个站点各自从不同的源库
+  # 迁入时原主键相撞，文章会认到别站的栏目、“已迁入”的跳过也会误判，删除对应关系更是清掉全部站点的。存量行回填到默认站点
+  # （单站点安装即准确；多站点安装见该 spec 的升级说明）。各步骤以 columnExists / indexExists / foreignKeyConstraintExists 守卫，幂等
+  - changeSet:
+      id: 13.1-import-data-site-add
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_import_data
+                columnName: site_id_
+      changes:
+        - addColumn:
+            tableName: ujcms_import_data
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+                  defaultValueNumeric: 0
+        # 存量行归到默认站点（全局设置里的默认站点；表为空时无事发生）
+        - sql:
+            sql: update ujcms_import_data set site_id_ = (select min(c.default_site_id_) from ujcms_config c) where site_id_ = 0
+        - dropDefaultValue:
+            tableName: ujcms_import_data
+            columnName: site_id_
+            columnDataType: BIGINT
+  - changeSet:
+      id: 13.1-import-data-site-index
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - indexExists:
+                tableName: ujcms_import_data
+                indexName: idx_import_data_site_table_orig
+      changes:
+        - createIndex:
+            tableName: ujcms_import_data
+            indexName: idx_import_data_site_table_orig
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: table_name_
+              - column:
+                  name: orig_id_
+  - changeSet:
+      id: 13.1-import-data-orig-index-drop
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            tableName: ujcms_import_data
+            indexName: idx_import_data_table_orig
+      changes:
+        - dropIndex:
+            tableName: ujcms_import_data
+            indexName: idx_import_data_table_orig
+  - changeSet:
+      id: 13.1-import-data-site-fk
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - foreignKeyConstraintExists:
+                foreignKeyTableName: ujcms_import_data
+                foreignKeyName: fk_import_data_site
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_import_data
+            constraintName: fk_import_data_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true

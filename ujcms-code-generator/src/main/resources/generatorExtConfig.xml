@@ -8,7 +8,7 @@
             <property name="suppressAllComments" value="true"/>
             <!--<property name="addRemarkComments" value="true"/>-->
         </commentGenerator>
-        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver" connectionURL="jdbc:mysql://localhost:3306/ujcms?serverTimezone=UTC"
+        <jdbcConnection driverClass="org.mariadb.jdbc.Driver" connectionURL="jdbc:mariadb://localhost:3306/ujcms?allowPublicKeyRetrieval=true&amp;nullDatabaseMeansCurrent=true"
                         userId="ujcms" password="password"/>
 
         <javaTypeResolver type="com.ujcms.generator.mybatis.Java8TypeResolver">
@@ -28,13 +28,17 @@
             <property name="pageable" value="false"/>
             <property name="order" value="true"/>
         </table>
-        <table tableName="ujcms_friend_link" domainObjectName="FriendLink">
+        <table tableName="ujcms_link" domainObjectName="Link">
             <property name="pageable" value="false"/>
             <property name="order" value="true"/>
+            <!-- url_ 映射为 linkUrl：getUrl() 为派生渲染值（栏目/文章引用迟绑），不得回写列（link-groups D1） -->
+            <columnOverride column="url_" property="linkUrl"/>
         </table>
-        <table tableName="ujcms_collection_record" domainObjectName="CollectionRecord">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
+        <table tableName="ujcms_link_group" domainObjectName="LinkGroup">
+            <property name="pageable" value="false"/>
+            <property name="order" value="true"/>
+            <!-- 来源三元组由种子导入器专管（theme-seed-export E4f / D42）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
         </table>
         <table tableName="ujcms_visit_log" domainObjectName="VisitLog">
             <property name="controller" value="false"/>
@@ -48,12 +52,17 @@
         <table tableName="ujcms_visit_page" domainObjectName="VisitPage">
             <property name="controller" value="false"/>
         </table>
-        <table tableName="ujcms_vote" domainObjectName="Vote"/>
+        <table tableName="ujcms_vote" domainObjectName="Vote">
+            <!-- 来源三元组由种子导入器专管（theme-seed-export E4b / D29）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
+        </table>
         <table tableName="ujcms_vote_option" domainObjectName="VoteOption">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_survey" domainObjectName="Survey">
+            <!-- 来源三元组由种子导入器专管（theme-seed-export E4d / D35）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
@@ -85,21 +94,9 @@
             <property name="pageable" value="false"/>
             <property name="order" value="true"/>
             <property name="controller" value="false"/>
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
         </table>
         <table tableName="ujcms_form_ext" domainObjectName="FormExt">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_import_data" domainObjectName="ImportData">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-        </table>
-        <table tableName="ujcms_collection" domainObjectName="Collection">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
-            <property name="order" value="true"/>
-        </table>
-        <table tableName="ujcms_collection_field" domainObjectName="CollectionField">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>

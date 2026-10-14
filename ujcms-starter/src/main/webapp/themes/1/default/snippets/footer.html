@@ -1,0 +1,97 @@
+[#escape x as (x)!?html]
+[#-- 友情链接：紧贴页脚上方全站展示（footer-links 展示位的链接组，主题清单 linkSlots 声明）。
+     每组一个下拉框，向上弹出；无数据时整条隐藏 --]
+[#assign linkBandShown = false/]
+[@LinkGroupList slot='footer-links'; linkGroups]
+[#if linkGroups?size gt 0]
+[#assign linkBandShown = true/]
+<div class="bg-slate-100 border-t border-slate-200 mt-12">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
+    <span class="inline-flex items-center gap-1.5 font-semibold text-sm shrink-0">
+      <span class="size-4 inline-block text-primary">[@icon 'link'/]</span>
+      <span>友情链接</span>
+    </span>
+    [#list linkGroups as group]
+      [@LinkList groupId=group.id; links]
+        [#if links?size gt 0]
+          <div x-data="{ open: false }" @click.outside="open = false" class="relative flex-1 min-w-40 max-w-64">
+            <button type="button" @click="open = !open" :aria-expanded="open"
+                    class="w-full flex justify-between items-center gap-2 px-3 py-2 rounded border border-slate-300 bg-white text-sm hover:border-primary">
+              <span class="truncate">${group.name}</span>
+              <span class="size-4 inline-block text-slate-400 transition-transform" :class="open ? '-rotate-90' : 'rotate-90'">[@icon 'chevron-right'/]</span>
+            </button>
+            <ul x-show="open" x-transition.opacity x-cloak
+                class="absolute bottom-full left-0 right-0 mb-1 max-h-72 overflow-y-auto rounded-md bg-white shadow-lg ring-1 ring-slate-200 py-1 z-30">
+              [#list links as link]
+                <li>
+                  [#-- 图片链接类型且已上传Logo时展示Logo图片，否则展示文字链接 --]
+                  [#if group.type == 2 && link.logo?has_content]
+                    [@A bean=link class="block px-3 py-1.5 hover:bg-slate-50" title=link.description!]<img src="${link.logo}" alt="${link.name}" class="h-6 w-auto">[/@A]
+                  [#else]
+                    [@A bean=link class="block px-3 py-1.5 text-sm hover:bg-slate-50 hover:text-primary truncate" title=link.description!/]
+                  [/#if]
+                </li>
+              [/#list]
+            </ul>
+          </div>
+        [/#if]
+      [/@LinkList]
+    [/#list]
+  </div>
+</div>
+[/#if]
+[/@LinkGroupList]
+
+<footer class="bg-slate-700 text-slate-100 [#if linkBandShown]mt-0[#else]mt-12[/#if]">
+  <div class="max-w-6xl mx-auto px-4 py-6 text-center text-sm space-y-2">
+    <p>
+      <a href="${dy}/sitemap.xml" class="text-slate-100 hover:text-white">站点地图</a>
+      <span class="ml-3">在线访客: <span id="onlineVisitors">—</span></span>
+      <span class="ml-3">今日访问量: <span id="siteTodayViews">—</span></span>
+      <span class="ml-3">昨日访问量: <span id="siteYesterdayViews">—</span></span>
+      <span class="ml-3">总访问量: <span id="siteViews">—</span></span>
+    </p>
+    [#-- 版权：公司名称绑定主题设置 footer.company（留空回退站点名称）；data-ujcms-setting 供构建器齿轮深链（visual-builder §8.1） --]
+    [#if (theme.config.footer.company)?has_content]
+      [#assign footerCompany = theme.config.footer.company/]
+    [#else]
+      [#assign footerCompany = site.name/]
+    [/#if]
+    <p>
+      <span data-ujcms-setting="footer.company">&copy; 2021-${.now?string('yyyy')} ${footerCompany} 版权所有</span>
+      <span class="ml-3">Powered by <strong><a href="https://www.ujcms.com" target="_blank" class="text-slate-100 hover:text-white">UJCMS</a></strong></span>
+    </p>
+    [#-- 备案：公安备案号/备案码绑定主题设置 footer.gonganIcp / footer.gonganCode，ICP 备案号绑定 footer.icp；留空隐藏 --]
+    [#if (theme.config.footer.gonganIcp)?has_content || (theme.config.footer.icp)?has_content]
+      <p class="flex flex-wrap items-center justify-center gap-3">
+        [#if (theme.config.footer.gonganIcp)?has_content]
+          <span data-ujcms-setting="footer.gonganIcp" class="inline-flex items-center gap-1">
+            <img src="https://www.beian.gov.cn/img/new/gongan.png" alt="公安备案" class="inline">
+            <a href="[#if (theme.config.footer.gonganCode)?has_content]https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${theme.config.footer.gonganCode}[#else]https://www.beian.gov.cn[/#if]" target="_blank" class="text-slate-100 hover:text-white">${theme.config.footer.gonganIcp}</a>
+          </span>
+        [/#if]
+        [#if (theme.config.footer.icp)?has_content]
+          <span data-ujcms-setting="footer.icp"><a href="https://beian.miit.gov.cn" target="_blank" class="text-slate-100 hover:text-white">${theme.config.footer.icp}</a></span>
+        [/#if]
+      </p>
+    [/#if]
+  </div>
+</footer>
+
+<script nonce="${csp_nonce!''}">
+  (function () {
+    function loadStats() {
+      fetch("${api}/visit/online-visitors").then(r => r.json()).then(n => {
+        document.getElementById('onlineVisitors').textContent = n;
+      }).catch(() => {});
+      fetch("${api}/site/view/${site.id?c}").then(r => r.json()).then(d => {
+        document.getElementById('siteTodayViews').textContent = d.todayViews;
+        document.getElementById('siteYesterdayViews').textContent = d.yesterdayViews;
+        document.getElementById('siteViews').textContent = d.views;
+      }).catch(() => {});
+    }
+    if (document.readyState !== 'loading') loadStats();
+    else document.addEventListener('DOMContentLoaded', loadStats);
+  })();
+</script>
+[/#escape]

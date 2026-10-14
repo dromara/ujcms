@@ -68,6 +68,18 @@ export const findTreeItem = (tree: any[], predicate: (value: any, index: number,
 
 export const sortTreeData = (data: any[]): any[] => flatTree(toTree(data));
 
+/**
+ * el-tree 的 filter-node-method：按节点名称过滤，忽略大小写与首尾空白（与 AsideEntityList 的搜索口径一致）。
+ *
+ * @param value 过滤词
+ * @param data 节点数据
+ * @returns 是否显示该节点
+ */
+export const filterTreeNodeByName = (value: string, data: any): boolean => {
+  const text = value?.trim().toLowerCase();
+  return !text || String(data.name ?? '').toLowerCase().includes(text);
+};
+
 const doDisableSubtree = (data: any[], disabledId: string | number, disabled: boolean): any[] => {
   data.forEach((item) => {
     if (disabled || item.id === disabledId) {

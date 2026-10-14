@@ -12,7 +12,9 @@
     <result column="login_count_" jdbcType="INTEGER" property="loginCount" />
     <result column="error_date_" jdbcType="TIMESTAMP" property="errorDate" />
     <result column="error_count_" jdbcType="INTEGER" property="errorCount" />
-  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.UserExt" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.UserExt">
+    <result column="preferences_" jdbcType="LONGVARCHAR" property="preferencesJson" />
+  </resultMap>
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.UserExt" />
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
@@ -43,7 +45,8 @@
       login_ip_ = #{loginIp,jdbcType=VARCHAR},
       login_count_ = #{loginCount,jdbcType=INTEGER},
       error_date_ = #{errorDate,jdbcType=TIMESTAMP},
-      error_count_ = #{errorCount,jdbcType=INTEGER}
+      error_count_ = #{errorCount,jdbcType=INTEGER},
+      preferences_ = #{preferencesJson,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.UserExt">
     update ujcms_user_ext
@@ -56,11 +59,19 @@
       login_ip_ = #{loginIp,jdbcType=VARCHAR},
       login_count_ = #{loginCount,jdbcType=INTEGER},
       error_date_ = #{errorDate,jdbcType=TIMESTAMP},
-      error_count_ = #{errorCount,jdbcType=INTEGER}
+      error_count_ = #{errorCount,jdbcType=INTEGER},
+      preferences_ = #{preferencesJson,jdbcType=LONGVARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.UserExt">
-    insert into ujcms_user_ext (id_, birthday_, location_, bio_, created_, history_password_, login_date_, login_ip_, login_count_, error_date_, error_count_)
-    values (#{id,jdbcType=BIGINT}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{historyPassword,jdbcType=VARCHAR}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER})
+    insert into ujcms_user_ext (id_, birthday_, location_, bio_, created_, history_password_, login_date_, login_ip_, login_count_, error_date_, error_count_, preferences_)
+    values (#{id,jdbcType=BIGINT}, #{birthday,jdbcType=TIMESTAMP}, #{location,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{historyPassword,jdbcType=VARCHAR}, #{loginDate,jdbcType=TIMESTAMP}, #{loginIp,jdbcType=VARCHAR}, #{loginCount,jdbcType=INTEGER}, #{errorDate,jdbcType=TIMESTAMP}, #{errorCount,jdbcType=INTEGER}, #{preferencesJson,jdbcType=LONGVARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.birthday_, t.location_, t.bio_, t.created_, t.history_password_, t.login_date_, t.login_ip_, t.login_count_, t.error_date_, t.error_count_
-  </sql></mapper>
+    t.id_, t.birthday_, t.location_, t.bio_, t.created_, t.history_password_, t.login_date_, t.login_ip_, t.login_count_, t.error_date_, t.error_count_, t.preferences_
+  </sql>
+    <!-- 控制台偏好只写一列（docs/spec/console-shell）：不经 update 的全列 SET，免于并发下把登录时间等回写为旧值 -->
+    <update id="updatePreferences">
+        update ujcms_user_ext
+        set preferences_ = #{preferences,jdbcType=LONGVARCHAR}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

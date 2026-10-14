@@ -7,8 +7,11 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.cms.core.web.support.ValidUtils;
 import com.ujcms.cms.ext.domain.MessageBoard;
+import com.ujcms.cms.ext.domain.MessageBoardType;
 import com.ujcms.cms.ext.service.MessageBoardService;
+import com.ujcms.cms.ext.service.MessageBoardTypeService;
 import com.ujcms.cms.ext.service.args.MessageBoardArgs;
 import com.ujcms.cms.ext.web.directive.MessageBoardListDirective;
 import com.ujcms.common.captcha.CaptchaTokenService;
@@ -36,6 +39,7 @@ import jakarta.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
@@ -53,13 +57,15 @@ import static com.ujcms.common.db.MyBatis.springPage;
 public class MessageBoardController {
     private final CaptchaTokenService captchaTokenService;
     private final MessageBoardService service;
+    private final MessageBoardTypeService typeService;
     private final SiteResolver siteResolver;
     private final Props props;
 
     public MessageBoardController(CaptchaTokenService captchaTokenService, MessageBoardService service,
-                                  SiteResolver siteResolver, Props props) {
+                                  MessageBoardTypeService typeService, SiteResolver siteResolver, Props props) {
         this.captchaTokenService = captchaTokenService;
         this.service = service;
+        this.typeService = typeService;
         this.siteResolver = siteResolver;
         this.props = props;
     }
@@ -129,7 +135,7 @@ public class MessageBoardController {
 
     @Operation(summary = "获取留言对象")
     @ApiResponses(value = {@ApiResponse(description = "留言对象")})
-    @JsonView(Views.Whole.class)
+    @JsonView(Views.List.class)
     @GetMapping("/{id:\\d+}")
     public MessageBoard show(@Parameter(description = "留言ID") @PathVariable Long id) {
         MessageBoard bean = service.select(id);
@@ -167,6 +173,10 @@ public class MessageBoardController {
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
             return Responses.failure(request, "error.captchaIncorrect");
         }
+        // 留言类型须属于提交站点：跨站点 typeId 会让本站留言行引用他站类型，使类型所属站点删除时外键受阻
+        MessageBoardType type = Optional.ofNullable(typeService.select(params.getTypeId()))
+                .orElseThrow(() -> new Http404Exception("MessageBoardType not found. ID: " + params.getTypeId()));
+        ValidUtils.dataInSite(type.getSiteId(), site.getId());
         MessageBoard messageBoard = new MessageBoard();
         Entities.copy(params, messageBoard,
                 "userId", "replyUserId", "replyText", "created", "replyDate",

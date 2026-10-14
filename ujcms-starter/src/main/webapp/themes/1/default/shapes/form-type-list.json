@@ -1,0 +1,12 @@
+{
+  "name": "FormTypeList",
+  "version": "1.0.0",
+  "description": "自动列出可用的表单入口（商业版标准版及以上功能）。",
+  "label": { "zh-CN": "自定义表单", "en": "Form type list" },
+  "tags": ["region", "aside", "interaction"],
+  "presentation": { "icon": "list", "group": { "zh-CN": "互动组件", "en": "Interaction" }, "order": 14, "thumbnail": "thumbnails/form-type-list.svg" },
+  "settings": {
+    "title": { "type": "text", "max": 150, "default": "自定义表单", "label": { "zh-CN": "栏目标题", "en": "Section title" } },
+    "limit": { "type": "number", "default": 2, "min": 1, "max": 10, "integer": true, "label": { "zh-CN": "条数", "en": "Count" } }
+  }
+}

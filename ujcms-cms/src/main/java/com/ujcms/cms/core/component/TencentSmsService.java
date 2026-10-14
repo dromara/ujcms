@@ -7,14 +7,16 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ujcms.common.sms.SmsError;
 import com.ujcms.common.sms.SmsUtils;
 
 import jakarta.xml.bind.DatatypeConverter;
@@ -28,6 +30,10 @@ import jakarta.xml.bind.DatatypeConverter;
  */
 @Service
 public class TencentSmsService {
+    /**
+     * 服务商标识
+     */
+    public static final String PROVIDER = "tencentcloud";
     public static final String ACTION = "SendSms";
     public static final String VERSION = "2021-01-11";
     public static final String ALGORITHM = "TC3-HMAC-SHA256";
@@ -70,6 +76,24 @@ public class TencentSmsService {
     private static final String HEADER_HOST_LOWER = "host";
     private static final String SIGNED_HEADERS = "content-type;host;x-tc-action";
 
+    // 错误码对照官方文档：https://cloud.tencent.com/document/product/382/55981
+    // 账号、应用级限额（LimitExceeded.AppDailyLimit、LimitExceeded.DailyLimit 等）是管理员在腾讯云控制台设置的总量阈值，
+    // 终端用户稍后重试无效，归入其它错误。LimitExceeded.PhoneNumberCountLimit 是单次提交号码个数超限，不是频率限制。
+    // 错误码：号码维度的发送频率限制
+    private static final Set<String> CODES_RATE_LIMITED = Set.of(
+            // 单个手机号30秒内下发短信条数超过设定的上限
+            "LimitExceeded.PhoneNumberThirtySecondLimit",
+            // 单个手机号1小时内下发短信条数超过设定的上限
+            "LimitExceeded.PhoneNumberOneHourLimit",
+            // 单个手机号日下发短信条数超过设定的上限
+            "LimitExceeded.PhoneNumberDailyLimit",
+            // 单个手机号下发相同内容超过设定的上限
+            "LimitExceeded.PhoneNumberSameContentDailyLimit",
+            // 下发短信命中了频率限制策略
+            "LimitExceeded.DeliveryFrequencyLimit");
+    // 错误码：手机号格式错误
+    private static final String CODE_INCORRECT_PHONE_NUMBER = "InvalidParameterValue.IncorrectPhoneNumber";
+
     // 默认国际区号
     private static final String DEFAULT_COUNTRY_CODE = "+86";
 
@@ -96,7 +120,7 @@ public class TencentSmsService {
      * @return 返回 {@code null} 代表成功，否则返回错误信息
      */
     @Nullable
-    public String sendSms(SmsConfig config, String mobile, String code) {
+    public SmsError sendSms(SmsConfig config, String mobile, String code) {
         try {
             String timestamp = getCurrentTimestamp();
             String date = getUtcDate(timestamp);
@@ -105,7 +129,7 @@ public class TencentSmsService {
             JsonNode response = sendRequest(config, timestamp, authorization, payload);
             return processResponse(response);
         } catch (Exception e) {
-            return "SMS send error: " + e.getMessage();
+            return SmsError.other(PROVIDER, "SMS send error: " + e.getMessage());
         }
     }
 
@@ -209,15 +233,15 @@ public class TencentSmsService {
      * 处理响应结果
      */
     @Nullable
-    private String processResponse(@Nullable JsonNode response) {
+    private SmsError processResponse(@Nullable JsonNode response) {
         if (response == null || !response.has(RESPONSE_KEY)) {
-            return "Invalid response from SMS service";
+            return SmsError.other(PROVIDER, "Invalid response from SMS service");
         }
 
         JsonNode responseNode = response.get(RESPONSE_KEY);
 
         // 检查是否有错误
-        String error = checkForError(responseNode);
+        SmsError error = checkForError(responseNode);
         if (error != null) {
             return error;
         }
@@ -230,7 +254,7 @@ public class TencentSmsService {
      * 检查响应中的错误
      */
     @Nullable
-    private String checkForError(JsonNode responseNode) {
+    private SmsError checkForError(JsonNode responseNode) {
         if (!responseNode.has(ERROR_KEY)) {
             return null;
         }
@@ -238,14 +262,14 @@ public class TencentSmsService {
         JsonNode error = responseNode.get(ERROR_KEY);
         String errorCode = error.has(CODE_KEY) ? error.get(CODE_KEY).asText() : "Unknown";
         String errorMessage = error.has(MESSAGE_KEY) ? error.get(MESSAGE_KEY).asText() : "Unknown error";
-        return "code: " + errorCode + ", message: " + errorMessage;
+        return SmsError.of(classify(errorCode), PROVIDER, errorCode, errorMessage);
     }
 
     /**
      * 检查发送状态
      */
     @Nullable
-    private String checkSendStatus(JsonNode responseNode) {
+    private SmsError checkSendStatus(JsonNode responseNode) {
         if (!responseNode.has(SEND_STATUS_SET_KEY)) {
             return null;
         }
@@ -264,7 +288,20 @@ public class TencentSmsService {
         }
 
         String message = sendStatus.has(MESSAGE_KEY) ? sendStatus.get(MESSAGE_KEY).asText() : "Unknown error";
-        return "code: " + statusCode + ", message: " + message;
+        return SmsError.of(classify(statusCode), PROVIDER, statusCode, message);
+    }
+
+    /**
+     * 错误码分类
+     */
+    private static SmsError.Kind classify(String code) {
+        if (CODES_RATE_LIMITED.contains(code)) {
+            return SmsError.Kind.RATE_LIMITED;
+        }
+        if (CODE_INCORRECT_PHONE_NUMBER.equals(code)) {
+            return SmsError.Kind.INVALID_MOBILE;
+        }
+        return SmsError.Kind.OTHER;
     }
 
     /**

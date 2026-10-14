@@ -1,14 +1,12 @@
 package com.ujcms.cms.ext.web.frontend;
 
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.cms.ext.domain.Example;
 import com.ujcms.cms.ext.service.ExampleService;
 import com.ujcms.common.web.exception.Http404Exception;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -16,13 +14,11 @@ import java.util.Map;
  *
  * @author PONY
  */
-// @Controller("frontendExampleController")
+// @FrontendController("frontendExampleController")
 public class ExampleController {
-    private final SiteResolver siteResolver;
     private final ExampleService service;
 
-    public ExampleController(SiteResolver siteResolver, ExampleService service) {
-        this.siteResolver = siteResolver;
+    public ExampleController(ExampleService service) {
         this.service = service;
     }
 
@@ -30,22 +26,18 @@ public class ExampleController {
     private static final String TEMPLATE_FORM = "sys_example_form";
     private static final String TEMPLATE_ITEM = "sys_example_item";
 
-    @GetMapping({"/example", "/{subDir:[\\w-]+}/example"})
-    public String index(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/example")
+    public String index(Site site) {
         return site.assembleTemplate(TEMPLATE);
     }
 
-    @GetMapping({"/example/create", "/{subDir:[\\w-]+}/example/create"})
-    public String create(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/example/create")
+    public String create(Site site) {
         return site.assembleTemplate(TEMPLATE_FORM);
     }
 
-    @GetMapping({"/example/{id}", "/{subDir:[\\w-]+}/example/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
-                       HttpServletRequest request, Map<String, Object> modelMap) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/example/{id}")
+    public String show(Site site, @PathVariable Long id, Map<String, Object> modelMap) {
         Example example = service.select(id);
         if (example == null) {
             throw new Http404Exception("Example not found. ID=" + id);

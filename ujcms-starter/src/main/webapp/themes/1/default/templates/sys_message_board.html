@@ -1,0 +1,125 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign mbUrl = dy + '/message-board'/]
+[#assign isReplied = Params.isReplied!''/]
+[#assign typeIdParam = Params.typeId!''/]
+[#assign userIdParam = Params.userId!''/]
+[@layout title='留言板 - ' + site.title keywords='留言板,' + (site.seoKeywords!'') description=site.seoDescription!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">留言板</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <div class="flex justify-between items-baseline border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'comment-outline'/]</span>
+      <a href="${mbUrl}" class="cm-link">留言板</a>
+    </h1>
+    <a href="${mbUrl}/create"
+       class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">我要留言</a>
+  </div>
+
+  [#-- 回复状态筛选 --]
+  <div class="flex flex-wrap gap-2 text-sm">
+    [#if isReplied == '']
+      <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">全部留言</span>
+    [#else]
+      <a href="${addParam(mbUrl, mbUrl, 'isReplied')}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">全部留言</a>
+    [/#if]
+    [#if isReplied == 'true']
+      <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">已回复</span>
+    [#else]
+      <a href="${addParam(mbUrl, mbUrl, 'isReplied', 'true')}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">已回复</a>
+    [/#if]
+    [#if isReplied == 'false']
+      <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">未回复</span>
+    [#else]
+      <a href="${addParam(mbUrl, mbUrl, 'isReplied', 'false')}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">未回复</a>
+    [/#if]
+  </div>
+
+  [#-- 类别筛选 --]
+  [@MessageBoardTypeList; typeList]
+  [#if typeList?size gt 0]
+    <div class="flex flex-wrap gap-2 text-sm">
+      [#if typeIdParam == '']
+        <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">全部类别</span>
+      [#else]
+        <a href="${addParam(mbUrl, mbUrl, 'typeId')}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">全部类别</a>
+      [/#if]
+      [#list typeList as type]
+        [#assign typeIdStr = type.id?c/]
+        [#if typeIdParam == typeIdStr]
+          <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">${type.name}</span>
+        [#else]
+          <a href="${addParam(mbUrl, mbUrl, 'typeId', typeIdStr)}"
+             class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">${type.name}</a>
+        [/#if]
+      [/#list]
+    </div>
+  [/#if]
+  [/@MessageBoardTypeList]
+
+  [#-- 用户范围筛选（仅登录时显示） --]
+  [#if user??]
+    [#assign userIdStr = user.id?c/]
+    <div class="flex flex-wrap gap-2 text-sm">
+      [#if userIdParam == '']
+        <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">全部用户</span>
+      [#else]
+        <a href="${addParam(mbUrl, mbUrl, 'userId')}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">全部用户</a>
+      [/#if]
+      [#if userIdParam == userIdStr]
+        <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">我的留言</span>
+      [#else]
+        <a href="${addParam(mbUrl, mbUrl, 'userId', userIdStr)}"
+           class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">我的留言</a>
+      [/#if]
+    </div>
+  [/#if]
+
+  [@MessageBoardPage typeId=typeIdParam userId=userIdParam isReplied=isReplied status='0'; pagedList]
+  [#if pagedList.totalElements == 0]
+    <p class="py-8 text-center text-slate-500">暂无留言</p>
+  [#else]
+    <ul class="divide-y divide-slate-200">
+      [#list pagedList.content as bean]
+        <li class="py-3 space-y-2 relative">
+          <div class="flex items-center gap-2 text-sm">
+            <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs">${bean.type.name}</span>
+            <a href="${mbUrl}/${bean.id?c}"
+               class="cm-link font-medium flex-1 truncate">[#if bean.title?has_content]${bean.title}[#else]${substring(bean.text, 100, '...')}[/#if]</a>
+            [#if bean.replied]
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs">已回复</span>
+            [#else]
+              <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-xs">未回复</span>
+            [/#if]
+          </div>
+          <p class="text-sm text-slate-500 line-clamp-2">${substring(bean.text, 400, '...')}</p>
+          <div class="flex justify-between items-center text-xs text-slate-500">
+            <span class="inline-flex items-center gap-1">
+              <span class="size-3 inline-block">[@icon 'person-outline'/]</span>
+              ${bean.user.username!bean.nickname!'匿名网友'}
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+              ${format(bean.created, 'yyyy-MM-dd')}
+            </span>
+          </div>
+        </li>
+      [/#list]
+    </ul>
+
+    [#include '../snippets/page.html'/]
+  [/#if]
+  [/@MessageBoardPage]
+</div>
+[/@layout]
+[/#escape]

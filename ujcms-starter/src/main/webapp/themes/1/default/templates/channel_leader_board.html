@@ -1,0 +1,62 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title="${channel.title} - ${site.title}" keywords=channel.seoKeywords!'' description=channel.seoDescription!'']
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+  <section class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">栏目排行</h2>
+    [@LeaderBoardList type='channel' period='none' isPublished='false' limit='10'; channelLeaders]
+    <ul class="divide-y divide-slate-100">
+      [#list channelLeaders as bean]
+        <li class="py-2 flex items-center justify-between text-sm">
+          <span class="truncate">${bean.name}</span>
+          <span class="text-slate-500 ml-2 shrink-0">${bean.count}</span>
+        </li>
+      [/#list]
+    </ul>
+    [/@LeaderBoardList]
+
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2 mt-6">文章浏览量排行</h2>
+    [@ArticleList orderBy='@articleExt-yearViews_desc' limit='10'; viewLeaders]
+    <ul class="divide-y divide-slate-100">
+      [#list viewLeaders as bean]
+        <li class="py-2 flex items-center justify-between text-sm">
+          <a href="${bean.url}" class="cm-link truncate">${bean.title}</a>
+          <span class="text-slate-500 ml-2 shrink-0">${bean.yearViews}</span>
+        </li>
+      [/#list]
+    </ul>
+    [/@ArticleList]
+  </section>
+
+  <section class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">组织排行</h2>
+    [@LeaderBoardList type='org' period='none' isPublished='false' limit='10'; orgLeaders]
+    <ul class="divide-y divide-slate-100">
+      [#list orgLeaders as bean]
+        <li class="py-2 flex items-center justify-between text-sm">
+          <span class="truncate">${bean.name}</span>
+          <span class="text-slate-500 ml-2 shrink-0">${bean.count}</span>
+        </li>
+      [/#list]
+    </ul>
+    [/@LeaderBoardList]
+
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2 mt-6">用户排行</h2>
+    [@LeaderBoardList type='user' period='none' isPublished='false' limit='10'; userLeaders]
+    <ul class="divide-y divide-slate-100">
+      [#list userLeaders as bean]
+        <li class="py-2 flex items-center justify-between text-sm">
+          <span class="truncate">${bean.name}</span>
+          <span class="text-slate-500 ml-2 shrink-0">${bean.count}</span>
+        </li>
+      [/#list]
+    </ul>
+    [/@LeaderBoardList]
+  </section>
+
+</div>
+
+<script nonce="${csp_nonce!''}">fetch('${api}/channel/view/${channel.id?c}').catch(()=>{});</script>
+[/@layout]
+[/#escape]

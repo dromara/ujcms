@@ -1,0 +1,75 @@
+databaseChangeLog:
+  # 模板编辑历史（原 11.x-template-history；docs/spec/template-history/plan.md，
+  # design-review-2026-07 P3-6 / T6）：
+  #   - 只追加：控制台模板文件管理器的保存/上传/删除按文件捕获文本内容；回填（backfill）在下次保存时
+  #     补记特性上线前或旁路写入（主题安装、ZIP 上传、改名移动、ssh 直改）的被替换状态；
+  #     行从不更新，无乐观锁列（文件管理器本无并发控制，恢复同为 last-write-wins 的一次新写入）。
+  #   - 以存储相对路径 path_ 为键（模板存储是一棵全局树，路径已编码归属站点；全局权限可写任意路径），
+  #     刻意不设 site_id_/外键——历史须在主题卸载、覆盖行变迁后仍可恢复；站点隔离由端点按
+  #     checkId 子树规则强制，不靠列。
+  #   - 仅文本文件（编辑器 TEXT_EXTENSIONS + json）、单版本 ≤1MB、路径 ≤200 字符（列 600 = 3×，
+  #     兼容按字节计数的国产库）；保留上限每路径 50 条，追加后事务内裁剪。
+  #   - 恢复 = 经 FileHandler.store 的一次标准写入（source=restore + restored_from_ 溯源），
+  #     已删除文件凭历史重建。约定沿用 region-history：日期 datetime、大文本 MEDIUMTEXT（跨库通行）。
+  #   - 路径点查/前缀列表/裁剪共用 idx_template_history_path；id_ 为雪花ID单调，倒序即时间倒序。
+  - changeSet:
+      id: 13.0-template-history
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 历史ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: path_
+                  remarks: 存储相对路径(如/1/default/templates/index.html)
+                  type: VARCHAR(600)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: content_
+                  remarks: 文件文本内容(UTF-8,捕获时≤1MB)
+                  type: MEDIUMTEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: length_
+                  remarks: 内容字节数(UTF-8,写入时冗余,列表展示免解析)
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: source_
+                  remarks: 来源(save:保存|upload:上传|backfill:回填|delete:删除|restore:恢复)
+                  type: VARCHAR(16)
+              - column:
+                  name: restored_from_
+                  remarks: 恢复来源历史ID(仅source_=restore)
+                  type: BIGINT
+              - column:
+                  name: actor_
+                  remarks: 操作人用户名(写入时冗余,不建外键)
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 模板编辑历史表(只追加)
+            tableName: ujcms_template_history
+        - createIndex:
+            columns:
+              - column:
+                  name: path_
+            indexName: idx_template_history_path
+            tableName: ujcms_template_history

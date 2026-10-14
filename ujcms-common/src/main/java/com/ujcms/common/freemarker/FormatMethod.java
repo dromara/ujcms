@@ -25,7 +25,7 @@ import java.util.Optional;
  * <li>支持 ZonedDateTime。使用 ZonedDateTime 自带的 TimeZone 信息。
  * </ul>
  *
- * @author liufang
+ * @author PONY
  */
 public class FormatMethod implements TemplateMethodModelEx {
     private DateTimeFormatter defaultOrPatternFormatted(final String pattern, final Locale locale) {
@@ -63,6 +63,10 @@ public class FormatMethod implements TemplateMethodModelEx {
 
     /**
      * Creates a Temporal object filling the missing fields of the provided time with default values.
+     * <p>
+     * Derived from Thymeleaf (thymeleaf-extras-java8time, TemporalObjects#zonedTime), Copyright (c) 2011-2014,
+     * The THYMELEAF team (http://www.thymeleaf.org), Apache License 2.0 (licenses/Apache-2.0.txt).
+     * Modified for UJCMS: OffsetDateTime is converted with atZoneSameInstant.
      *
      * @param target        the temporal object to be converted
      * @param defaultZoneId the default value for ZoneId

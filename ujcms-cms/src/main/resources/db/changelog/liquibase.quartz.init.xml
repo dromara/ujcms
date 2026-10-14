@@ -1,3 +1,13 @@
+<!--
+  Derived from Quartz Scheduler (https://github.com/quartz-scheduler/quartz):
+  quartz/src/main/resources/org/quartz/impl/jdbcjobstore/liquibase.quartz.init.xml
+  All content copyright Terracotta, Inc., unless otherwise indicated. Licensed under the Apache License,
+  Version 2.0 (licenses/Apache-2.0.txt in the root of the source distribution).
+
+  Modified for UJCMS by 南昌蓝智科技有限公司: the postgresql entry of the blob_type property also lists
+  kingbase8, kingbase, opengauss and highgo. Modified before 2026-04-19; later changes are in the VCS log.
+  Do not move or rename this file: Liquibase identifies the change set by this path.
+-->
 <databaseChangeLog
   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

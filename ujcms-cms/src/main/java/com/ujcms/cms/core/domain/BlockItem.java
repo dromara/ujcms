@@ -8,11 +8,14 @@ import com.ujcms.cms.core.domain.generated.GeneratedBlockItem;
 import com.ujcms.cms.core.support.Anchor;
 import com.ujcms.common.db.order.OrderEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.lang.Nullable;
+import com.ujcms.cms.core.security.HtmlSanitizeService;
+import org.jspecify.annotations.Nullable;
 
 import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -50,6 +53,10 @@ public class BlockItem extends GeneratedBlockItem implements Anchor, OrderEntity
         List<String> urls = new ArrayList<>();
         Optional.ofNullable(getImage()).ifPresent(urls::add);
         Optional.ofNullable(getMobileImage()).ifPresent(urls::add);
+        Model model = getBlockItemModel();
+        if (model != null) {
+            urls.addAll(model.getUrlsFromMap(getCustoms()));
+        }
         return urls;
     }
 
@@ -61,10 +68,51 @@ public class BlockItem extends GeneratedBlockItem implements Anchor, OrderEntity
         return super.getLinkUrl();
     }
 
+    /**
+     * 自定义字段
+     */
+    @Nullable
+    private transient Map<String, Object> customs;
+
+    @Schema(description = "自定义字段")
+    public Map<String, Object> getCustoms() {
+        if (customs != null) {
+            return customs;
+        }
+        customs = new HashMap<>(16);
+        Model model = getBlockItemModel();
+        if (model == null) {
+            return customs;
+        }
+        customs.putAll(model.assembleMap(getMainsJson()));
+        customs.putAll(model.assembleMap(getClobsJson()));
+        return customs;
+    }
+
+    public void setCustoms(Map<String, Object> customs) {
+        this.customs = customs;
+    }
+
+    public void disassembleCustoms(Model model, HtmlSanitizeService sanitizeService) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), sanitizeService);
+        setCustoms(map);
+        model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
+    }
+
+    /**
+     * 获取区块项模型。BlockItem 自身不持有模型 FK；模型定义在父 Block 上，所有同一 Block 下的
+     * BlockItem 共享同一模型。返回 {@code null} 表示该 Block 未配置自定义模型。
+     */
+    @JsonIgnore
+    @Nullable
+    public Model getBlockItemModel() {
+        return getBlock().getBlockItemModel();
+    }
+
     @Nullable
     @JsonIncludeProperties({"id", "title"})
     private Article article;
-    @JsonIncludeProperties({"id", "name"})
+    @JsonIncludeProperties({"id", "name", "blockItemModelId"})
     private Block block = new Block();
     @JsonIncludeProperties({"id", "name"})
     private Site site = new Site();

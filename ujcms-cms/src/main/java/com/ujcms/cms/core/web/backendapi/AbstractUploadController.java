@@ -18,11 +18,12 @@ import com.ujcms.common.web.exception.LogicException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -80,6 +81,16 @@ public abstract class AbstractUploadController {
                 extension = Images.getFormatName(tempFile);
                 if (extension == null) {
                     throw new Http400Exception("Image format type not supported.");
+                }
+                // 退化图片（签名完好但数据截断/损坏）须在此显式失败为 400：否则后续缩放步骤的解码异常
+                // 带 EOFException 因由，被 Spring 的断连客户端静默机制吞成空 200 响应
+                // （docs/spec/upload-degenerate-image/plan.md）
+                try {
+                    if (ImageIO.read(tempFile) == null) {
+                        throw new Http400Exception("Image file is corrupt or unreadable.");
+                    }
+                } catch (IOException e) {
+                    throw new Http400Exception("Image file is corrupt or unreadable: " + e.getMessage());
                 }
                 File newFile = new File(FilenameUtils.removeExtension(tempFile.getName()) + "." + extension);
                 if (tempFile.renameTo(newFile)) {

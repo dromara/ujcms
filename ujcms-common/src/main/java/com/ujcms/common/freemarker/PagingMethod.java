@@ -20,9 +20,10 @@ import java.util.regex.Pattern;
  * <li>静态页目录地址：      /news/index_2.html        -> /news/index_3.html
  * </ul>
  *
- * @author liufang
+ * @author PONY
  */
 public class PagingMethod implements TemplateMethodModelEx {
+    @SuppressWarnings("rawtypes")
     @Override
     public Object exec(List args) throws TemplateModelException {
         Integer page = null;

@@ -1,0 +1,80 @@
+[#--
+JSON-LD 结构化数据宏：向搜索引擎与生成式引擎（GEO）提供页面的结构化描述。
+
+页面采用方式（include 后按页面类型调用对应宏，置于 extraHead 内）：
+  [#include '../snippets/jsonld.html'/]
+  [@articleJsonLd article/]      文章页：NewsArticle（article.aiGenerated 时附 AIGC 布尔属性，隐式标识之一）
+  [@breadcrumbJsonLd channel/]   文章页、栏目页：BreadcrumbList（来自 channel.paths）
+  [@websiteJsonLd site/]         首页：WebSite + Organization
+
+站点设置 site.geo.jsonLdEnabled 关闭时，所有宏不输出任何内容。
+JSON 不能做 HTML 转义：宏体以 [#noescape] 显式原样输出，所有插值一律经 ?json_string 转义。
+--]
+[#escape x as (x)!?html]
+[#macro articleJsonLd article]
+[#if site.geo.jsonLdEnabled]
+[#-- 图片、Logo 须为绝对地址（schema.org URL 类型）：上传文件存的是根相对路径，经 site.absoluteUrl 补 origin --]
+[#assign jsonLdImage = site.absoluteUrl(article.image!)!/]
+[#assign jsonLdLogo = site.absoluteUrl(site.logo!)!/]
+[#noescape]<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "${article.title?json_string}",
+  "description": "${article.description?json_string}",
+  "datePublished": "${format(article.publishDate, "yyyy-MM-dd'T'HH:mm:ssXXX")}",
+[#if article.modified??]
+  "dateModified": "${format(article.modified, "yyyy-MM-dd'T'HH:mm:ssXXX")}",
+[/#if]
+[#-- 作者优先取文章署名（编辑填写的“作者”字段），无署名时回退到录入用户 --]
+[#if article.author?has_content]
+  "author": {"@type": "Person", "name": "${article.author?json_string}"},
+[#elseif article.user??]
+  "author": {"@type": "Person", "name": "${(article.user.nickname?has_content)?then(article.user.nickname, article.user.username)?json_string}"},
+[/#if]
+  "publisher": {
+    "@type": "Organization",
+    "name": "${site.name?json_string}"[#if jsonLdLogo?has_content],
+    "logo": {"@type": "ImageObject", "url": "${jsonLdLogo?json_string}"}[/#if]
+  },
+[#if jsonLdImage?has_content]
+  "image": "${jsonLdImage?json_string}",
+[/#if]
+[#if article.aiGenerated]
+  "AIGC": true,
+[/#if]
+  "mainEntityOfPage": "${article.fullUrl?json_string}"
+}
+</script>[/#noescape]
+[/#if]
+[/#macro]
+[#macro breadcrumbJsonLd channel]
+[#if site.geo.jsonLdEnabled]
+[#noescape]<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+[#list channel.paths as c]
+    {"@type": "ListItem", "position": ${c?index + 1}, "name": "${c.name?json_string}", "item": "${c.fullUrl?json_string}"}[#sep],[/#sep]
+[/#list]
+  ]
+}
+</script>[/#noescape]
+[/#if]
+[/#macro]
+[#macro websiteJsonLd site]
+[#if site.geo.jsonLdEnabled]
+[#assign jsonLdLogo = site.absoluteUrl(site.logo!)!/]
+[#noescape]<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {"@type": "WebSite", "name": "${site.name?json_string}", "url": "${site.fullUrl?json_string}"},
+    {"@type": "Organization", "name": "${site.name?json_string}"[#if jsonLdLogo?has_content], "logo": "${jsonLdLogo?json_string}"[/#if]}
+  ]
+}
+</script>[/#noescape]
+[/#if]
+[/#macro]
+[/#escape]

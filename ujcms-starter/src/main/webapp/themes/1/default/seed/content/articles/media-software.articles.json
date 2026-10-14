@@ -1,0 +1,34 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "media-software",
+      "customs": {
+        "language": "英文",
+        "languageKey": "3",
+        "license": "收费软件",
+        "licenseKey": "2",
+        "star": "★★★★☆",
+        "starKey": "4",
+        "system": [
+          "跨平台"
+        ],
+        "systemKey": [
+          "5"
+        ],
+        "type": "国外软件",
+        "typeKey": "2"
+      },
+      "ext": {
+        "file": "{{asset:media/file_demo.zip}}",
+        "fileLength": 158,
+        "fileName": "文档阅读器_3.2.0.zip"
+      },
+      "image": "{{asset:img/media-software/document-reader-icon.jpg}}",
+      "originId": "a-document-reader",
+      "publishOffsetDays": -34,
+      "text": "<p>这是一款专注于阅读和批注的 <strong>PDF 阅读器</strong>，桌面端与移动端共用同一个文档库。上千页的图纸两三秒就能打开，批注写在文档里，换一台设备可以接着看。软件为英文界面，按大版本一次性买断，一份授权可用于本人的三台设备。</p>\n<h3>主要功能</h3>\n<ul>\n<li>阅读：单页、双页、连续滚动三种视图，夜间模式和护眼纸色一键切换；</li>\n<li>检索：目录、缩略图和全文搜索并列，扫描件可以先做文字识别再搜索；</li>\n<li>批注：高亮、下划线、便签和手写笔迹，全部批注可汇总导出为一份摘要；</li>\n<li>表单与签名：直接填写可编辑表单，手写签名保存后可以重复使用；</li>\n<li>页面整理：合并、拆分、旋转和重排页面，为文件设置打开口令；</li>\n<li>朗读与翻译：选中段落即可朗读或查看译文，读外文资料更省力。</li>\n</ul>\n<h3>3.2.0 更新内容</h3>\n<ul>\n<li>新增分屏对照，同一份文档的两处内容可以左右并排阅读；</li>\n<li>文字识别速度提高约四成，竖排和表格版式识别得更准；</li>\n<li>修复了个别带图层的工程图在缩放时出现白块的问题。</li>\n</ul>\n<h3>运行环境</h3>\n<table>\n<thead>\n<tr><th>项目</th><th>要求</th></tr>\n</thead>\n<tbody>\n<tr><td>桌面端</td><td>主流桌面操作系统，近三个大版本</td></tr>\n<tr><td>移动端</td><td>主流移动操作系统，近两个大版本</td></tr>\n<tr><td>内存</td><td>4GB 及以上</td></tr>\n<tr><td>存储空间</td><td>约 300 兆可用空间</td></tr>\n</tbody>\n</table>\n<h3>试用与授权</h3>\n<p>安装后有十四天的完整试用期，功能不受限制。到期前在“帮助”菜单里输入序列号，即可转为正式版，试用期间留下的批注和书签全部保留。团队一次采购五份以上，可以申请集中管理的授权文件。</p>",
+      "title": "PDF 文档阅读器"
+    }
+  ]
+}

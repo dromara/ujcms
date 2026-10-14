@@ -1,0 +1,19 @@
+{
+  "name": "home",
+  "label": { "zh-CN": "首页", "en": "Home" },
+  "order": 10,
+  "template": "index",
+  "route": "/",
+  "slots": {
+    "main": {
+      "kind": "region",
+      "label": { "zh-CN": "主区域", "en": "Main" },
+      "description": "首页主栏（轮播至最新文章之间）；种子预置 焦点轮播。",
+      "allowedShapes": ["HeroCarousel"],
+      "allowedRowLayouts": ["full", "halves", "thirds", "twoThirdsLeft", "twoThirdsRight",
+                            "quarters", "sidebarLeft", "sidebarRight"],
+      "constraints": { "maxRows": 20, "maxPanelsPerColumn": 6 }
+    },
+    "aside": { "kind": "region", "shared": "site" }
+  }
+}

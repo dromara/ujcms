@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.ArticleExt;
 import com.ujcms.common.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -32,6 +32,36 @@ public interface ArticleExtMapper {
      * @return 更新条数
      */
     int update(ArticleExt bean);
+
+    /**
+     * 更新内容列（编辑保存专用）：不含静态页路径、流程实例ID、退回原因——这些列由各自的定向语句写入
+     *
+     * @param bean 实体对象
+     * @return 更新条数
+     */
+    int updateContent(ArticleExt bean);
+
+    /**
+     * 只更新静态页路径（静态化专用）
+     *
+     * @param id               文章ID
+     * @param staticFile       PC端静态页路径
+     * @param mobileStaticFile 手机端静态页路径
+     * @return 更新条数
+     */
+    int updateStaticFile(@Param("id") Long id, @Param("staticFile") @Nullable String staticFile,
+                         @Param("mobileStaticFile") @Nullable String mobileStaticFile);
+
+    /**
+     * 只更新流程实例ID与退回原因（审批流程专用）
+     *
+     * @param id                文章ID
+     * @param processInstanceId 流程实例ID
+     * @param rejectReason      退回原因
+     * @return 更新条数
+     */
+    int updateProcess(@Param("id") Long id, @Param("processInstanceId") @Nullable String processInstanceId,
+                      @Param("rejectReason") @Nullable String rejectReason);
 
     /**
      * 删除数据

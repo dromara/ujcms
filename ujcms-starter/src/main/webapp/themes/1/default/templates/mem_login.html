@@ -1,0 +1,93 @@
+[#include '../layout/theme.html'/]
+[#include '../snippets/auth_shell.html'/]
+[#escape x as (x)!?html]
+[#assign extraHead]
+<script src="${assets}/vendor/sm-crypto/dist/sm2.js?v=${v}" defer></script>
+<script src="${assets}/js/auth.js?v=${v}" defer></script>
+[/#assign]
+[@layout title='登录 - ' + site.title extraHead=extraHead]
+[@authShell heading='欢迎回来' intro='登录后可以发表评论、收藏文章、关注作者，并接收站内通知。' tab='login']
+
+    [#if Params.error??]
+      <div role="alert" class="mb-4 px-4 py-3 rounded-md border border-rose-200 bg-rose-50 text-rose-700 text-sm flex items-start gap-2">
+        <span class="size-4 inline-block mt-0.5 shrink-0">[@icon 'info-outline'/]</span>
+        <span>用户名或密码错误</span>
+      </div>
+    [#elseif Params.logout??]
+      <div role="status" class="mb-4 px-4 py-3 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm flex items-start gap-2">
+        <span class="size-4 inline-block mt-0.5 shrink-0">[@icon 'check-circle-outline'/]</span>
+        <span>您已退出登录</span>
+      </div>
+    [/#if]
+
+      <form
+        action="${ctx}/login"
+        method="post"
+        x-data="{
+          username: '',
+          password: '',
+          rememberMe: true,
+          showPassword: false,
+          submitting: false,
+          async submit(ev) {
+            if (this.submitting) return;
+            this.submitting = true;
+            try {
+              ev.target.querySelector('input[name=password]').value = await window.sm2Encrypt(this.password);
+              ev.target.submit();
+            } catch (e) {
+              window.displayAlert(e.message || '登录失败');
+              this.submitting = false;
+            }
+          }
+        }"
+        @submit.prevent="submit"
+        class="space-y-4"
+      >
+        <div>
+          <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5">用户名 / 邮箱 / 手机号</label>
+          <input id="username" name="username" type="text" autocomplete="username" required autofocus
+                 x-model="username"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-baseline mb-1.5">
+            <label for="password" class="block text-sm font-medium text-slate-700">密码</label>
+            <a href="${def}/password-reset" class="text-xs text-slate-500 hover:text-primary transition-colors">忘记密码？</a>
+          </div>
+          <div class="relative">
+            <input id="password" name="password" required autocomplete="current-password"
+                   :type="showPassword ? 'text' : 'password'"
+                   x-model="password"
+                   class="block w-full rounded-md border border-slate-300 px-3 py-2.5 pr-10 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            <button type="button" @click="showPassword = !showPassword"
+                    :aria-label="showPassword ? '隐藏密码' : '显示密码'"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 size-7 inline-flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+              <span class="size-4 inline-block">[@icon 'visibility-outline'/]</span>
+            </button>
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2 text-sm text-slate-600 select-none">
+          <input type="checkbox" name="remember-me" x-model="rememberMe" class="rounded border-slate-300 text-primary focus:ring-primary/20">
+          <span>记住我</span>
+        </label>
+
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+
+        <button type="submit" :disabled="submitting"
+                class="w-full px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+          <span x-show="!submitting">登录</span>
+          <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+            <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span>登录中…</span>
+          </span>
+        </button>
+
+        [#assign targetUrl = Params.targetUrl!''/]
+        [#include '../snippets/auth_oauth.html'/]
+      </form>
+[/@authShell]
+[/@layout]
+[/#escape]

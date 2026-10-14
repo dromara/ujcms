@@ -1,0 +1,97 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783420000000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 信箱类型ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(90)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 信箱类型表
+            tableName: ujcms_mailbox_type
+  - changeSet:
+      id: 1783420000000-2
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_mailboxtype_site
+            tableName: ujcms_mailbox_type
+  - changeSet:
+      id: 1783420000000-3
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_mailbox_type
+            constraintName: fk_mailboxtype_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783420000000-4
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: mailbox_type_id_
+                  remarks: 信箱类型ID
+                  type: BIGINT
+            tableName: ujcms_mailbox
+  - changeSet:
+      id: 1783420000000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: mailbox_type_id_
+            indexName: idx_mailbox_type
+            tableName: ujcms_mailbox
+  - changeSet:
+      id: 1783420000000-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: mailbox_type_id_
+            baseTableName: ujcms_mailbox
+            constraintName: fk_mailbox_type
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_mailbox_type
+            validate: true

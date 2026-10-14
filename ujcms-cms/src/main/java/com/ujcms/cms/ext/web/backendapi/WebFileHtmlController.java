@@ -36,7 +36,7 @@ public class WebFileHtmlController extends AbstractWebFileController {
 
     @Override
     protected List<String> getExcludes() {
-        return Arrays.asList(EXCLUDES_WEB_INF, EXCLUDES_META_INF, EXCLUDES_CP, EXCLUDES_TEMPLATES, EXCLUDES_UPLOADS);
+        return Arrays.asList(EXCLUDES_WEB_INF, EXCLUDES_META_INF, EXCLUDES_CP, EXCLUDES_THEMES, EXCLUDES_UPLOADS);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class WebFileHtmlController extends AbstractWebFileController {
 
     @PostMapping("copy")
     @PreAuthorize("hasAnyAuthority('webFileHtml:copy','*')")
-    @OperationLog(module = "webFileHtml", operation = "create", type = OperationType.CREATE)
+    @OperationLog(module = "webFileHtml", operation = "copy", type = OperationType.CREATE)
     public ResponseEntity<Responses.Body> copy(@RequestBody @Valid AbstractWebFileController.WebFileBatchParams params) {
         Site site = Contexts.getCurrentSite();
         return super.copy(params, site.getConfig().getHtmlStorage());
@@ -91,7 +91,7 @@ public class WebFileHtmlController extends AbstractWebFileController {
 
     @PostMapping("move")
     @PreAuthorize("hasAnyAuthority('webFileHtml:move','*')")
-    @OperationLog(module = "webFileHtml", operation = "move", type = OperationType.CREATE)
+    @OperationLog(module = "webFileHtml", operation = "move", type = OperationType.UPDATE)
     public ResponseEntity<Responses.Body> move(@RequestBody @Valid AbstractWebFileController.WebFileBatchParams params) {
         Site site = Contexts.getCurrentSite();
         return super.move(params, site.getConfig().getHtmlStorage());
@@ -99,7 +99,7 @@ public class WebFileHtmlController extends AbstractWebFileController {
 
     @PostMapping("upload")
     @PreAuthorize("hasAnyAuthority('webFileHtml:upload','*')")
-    @OperationLog(module = "webFileHtml", operation = "create", type = OperationType.CREATE)
+    @OperationLog(module = "webFileHtml", operation = "upload", type = OperationType.CREATE)
     public ResponseEntity<Responses.Body> upload(@RequestParam(value = "file") MultipartFile file, String parentId) {
         Site site = Contexts.getCurrentSite();
         return super.upload(file, parentId, site.getConfig().getHtmlStorage());

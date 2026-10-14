@@ -1,8 +1,9 @@
 package com.ujcms.cms.core;
 
-import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -11,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
@@ -22,10 +23,11 @@ import org.springframework.util.Assert;
 
 import com.ujcms.cms.core.component.ViewCountService;
 import com.ujcms.cms.core.domain.Article;
+import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.generator.HtmlGenerator;
 import com.ujcms.cms.core.service.ArticleService;
-import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.service.SiteService;
 
 /**
  * 定时任务 配置
@@ -45,6 +47,7 @@ public class ScheduleConfig {
     public void flushViewCountTask() {
         viewCountService.flushSiteViews();
         viewCountService.flushChannelViews();
+        viewCountService.flushTopicViews();
         viewCountService.flushArticleViews();
     }
 
@@ -127,29 +130,37 @@ public class ScheduleConfig {
     public static class UpdateArticleStatusJob extends QuartzJobBean {
         private final ArticleService articleService;
         private final HtmlGenerator htmlGenerator;
-        private final ConfigService configService;
+        private final SiteService siteService;
 
         public UpdateArticleStatusJob(ArticleService articleService, HtmlGenerator htmlGenerator,
-                                      ConfigService configService) {
+                                      SiteService siteService) {
             this.articleService = articleService;
             this.htmlGenerator = htmlGenerator;
-            this.configService = configService;
+            this.siteService = siteService;
         }
 
+        /**
+         * 置顶到期、到点上线、到点下线由 {@link ArticleService#applySchedule()} 以定向 SQL 完成并逐篇收尾（重建索引、
+         * 发布监听）。这里只负责重新生成静态页：按站点分组，没有开启静态化的站点不必生成。
+         * <p>
+         * 以前在这里对每篇文章 {@code adjustStatus()} 后整行写回，写回的是批量 SQL 之前读出的旧值——到期的置顶就这样
+         * 又被写了回来，永不到期（docs/spec/article-management/plan.md H1）
+         */
         @Override
         protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-            List<Article> stickyArticles = articleService.listAndUpdateStickyDate();
-            List<Article> onlineArticles = articleService.listAndUpdateOnlineStatus();
-            List<Article> offlineArticles = articleService.listAndUpdateOfflineStatus();
-            List<Article> articles = Stream.of(stickyArticles, onlineArticles, offlineArticles)
-                    .flatMap(Collection::stream).toList();
-            for (Article article : articles) {
-                article.adjustStatus();
-                articleService.update(article);
+            List<Article> articles = articleService.applySchedule();
+            if (articles.isEmpty()) {
+                return;
             }
-            Long siteId = configService.getUnique().getDefaultSiteId();
+            Map<Long, List<Article>> bySite = articles.stream().collect(
+                    Collectors.groupingBy(Article::getSiteId, LinkedHashMap::new, Collectors.toList()));
             String taskName = "task.html.articleRelated";
-            htmlGenerator.updateArticleRelatedHtml(siteId, User.ANONYMOUS_ID, taskName, articles, null);
+            bySite.forEach((siteId, list) -> {
+                Site site = siteService.select(siteId);
+                if (site != null && site.isHtmlEnabled()) {
+                    htmlGenerator.updateArticleRelatedHtml(siteId, User.ANONYMOUS_ID, taskName, list, null);
+                }
+            });
         }
     }
 

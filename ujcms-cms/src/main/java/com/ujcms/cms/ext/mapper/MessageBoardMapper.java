@@ -5,7 +5,7 @@ import com.ujcms.common.query.QueryInfo;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -37,6 +37,22 @@ public interface MessageBoardMapper {
      * @return 删除条数
      */
     int delete(Long id);
+
+    /**
+     * 根据站点ID删除数据（站点删除级联）
+     *
+     * @param siteId 站点ID
+     * @return 删除条数
+     */
+    int deleteBySiteId(Long siteId);
+
+    /**
+     * 根据 类型ID 查询数据是否存在
+     *
+     * @param typeId 类型ID
+     * @return 数据是否存在。0: 不存在, 1: 存在。
+     */
+    int existsByTypeId(Long typeId);
 
     /**
      * 根据主键获取数据

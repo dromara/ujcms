@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.Objects;
 
 import static com.ujcms.cms.core.support.Constants.validPage;
@@ -47,11 +48,16 @@ public class CommentController {
         this.service = service;
     }
 
+    /**
+     * 列表的查询条件、排序可以关联的字段（docs/spec/article-data-permission/plan.md D24）：评论列表按评论人的用户名排序
+     */
+    private static final Set<String> QUERY_JOINS = Set.of("user-username");
+
     @GetMapping
     @PreAuthorize("hasAnyAuthority('comment:list','*')")
     public Page<Comment> list(@RequestParam("page") Integer page, @RequestParam("pageSize") Integer pageSize,
                               HttpServletRequest request) {
-        CommentArgs args = CommentArgs.of(getQueryMap(request.getQueryString()))
+        CommentArgs args = CommentArgs.of(getQueryMap(request.getQueryString(), QUERY_JOINS))
                 .siteId(Contexts.getCurrentSiteId());
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }

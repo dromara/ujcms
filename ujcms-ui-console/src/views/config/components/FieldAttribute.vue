@@ -1,90 +1,69 @@
 <script lang="ts" setup>
-import { ref, toRefs, watchEffect } from 'vue';
-import { queryDictTypeList } from '@/api/config';
-import { queryDictList } from '@/api/content';
+import { computed, ref, toRefs, watchEffect, type PropType } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { queryDictList } from '@/api/config';
 import LabelTip from '@/components/LabelTip.vue';
+import { SHOW_IN_LIST_MODEL_TYPES, validateField } from './fieldRules';
 
-const props = defineProps({ selected: { type: Object, required: true } });
-const { selected: field } = toRefs(props);
-const dictTypeList = ref<any[]>([]);
-const dictList = ref<any[]>([]);
-watchEffect(async () => {
-  if (field.value.type === 'date' && !field.value.dateType) {
-    field.value.dateType = 'date';
-  }
-  if (field.value.type === 'switch' && !field.value.inactiveValue) {
-    field.value.inactiveValue = '0';
-  }
-  if (field.value.type === 'switch' && !field.value.activeValue) {
-    field.value.activeValue = '1';
-  }
-  if (['radio', 'checkbox'].includes(field.value.type) && !field.value.checkStyle) {
-    field.value.checkStyle = 'default';
-  }
-  if (['checkbox', 'multipleSelect'].includes(field.value.type) && !field.value.defaultValue) {
-    field.value.defaultValue = [];
-  }
-  if (['checkbox', 'multipleSelect'].includes(field.value.type)) {
-    field.value.multiple = true;
-  }
-  if (['radio', 'checkbox', 'select', 'multipleSelect'].includes(field.value.type)) {
-    dictTypeList.value = await queryDictTypeList();
-  }
+// 选中字段的属性面板。字段的默认属性在装载/创建时由 fieldRules.normalizeField 补齐，这里只编辑，选中不再改动字段
+// （否则未保存守卫会把一次点击算作改动）。
+const props = defineProps({
+  selected: { type: Object, required: true },
+  // 全部字段：代码重名、键名冲突要看全表
+  fields: { type: Array as PropType<any[]>, default: () => [] },
+  modelType: { type: String, default: '' },
+  // 全局模型只能绑定全局共享的字典类型（model-management M8）
+  modelGlobal: { type: Boolean, default: false },
+  dictTypes: { type: Array as PropType<any[]>, default: () => [] },
+  // 字段装载时的代码（已保存的字段）；改动它会让已录入内容中该字段的数据不再显示
+  originalCode: { type: String, default: undefined },
 });
+const { selected: field, fields, dictTypes } = toRefs(props);
+const { t } = useI18n();
+const dictList = ref<any[]>([]);
 watchEffect(async () => {
   if (field.value.dictTypeId != null) {
     dictList.value = await queryDictList({ typeId: field.value.dictTypeId });
   }
 });
+// 全局模型只列全局字典类型；已绑定的本站类型仍列出（禁用）以显示其名称，由操作员改绑
+const dictTypeOptions = computed(() => {
+  if (!props.modelGlobal) {
+    return dictTypes.value;
+  }
+  return dictTypes.value.filter((item) => item.scope === 2 || String(item.id) === String(field.value.dictTypeId));
+});
+const dictTypeNotGlobal = computed(() => props.modelGlobal && dictTypes.value.some((item) => String(item.id) === String(field.value.dictTypeId) && item.scope !== 2));
+const codeChanged = computed(() => props.originalCode != null && props.originalCode !== field.value.code);
+const showInListAllowed = computed(() => SHOW_IN_LIST_MODEL_TYPES.includes(props.modelType));
 const dictTypeChange = (typeId: string) => {
   field.value.defaultValue = field.value.multiple ? [] : undefined;
   field.value.defaultValueKey = field.value.multiple ? [] : undefined;
-  field.value.dataType = dictTypeList.value.find((item: any) => item.id === typeId)?.dataType === 1 ? 'number' : 'string';
+  field.value.dataType = dictTypes.value.find((item: any) => item.id === typeId)?.dataType === 1 ? 'number' : 'string';
+};
+// 代码规则与保存前的全表校验同源（fieldRules.validateField）
+const codeValidator = (rule: any, value: any, callback: any) => {
+  const message = validateField(field.value, fields.value, t).code;
+  if (message) {
+    callback(message);
+    return;
+  }
+  callback();
 };
 </script>
 
-<!--
-      { label: '单行文本', type: 'text' },
-      { label: '多行文本', type: 'textarea' },
-      { label: '计数器', type: 'number' },
-      { label: '日期选择器', type: 'date' },
-      { label: '颜色选择器', type: 'color' },
-      { label: '滑块', type: 'slider' },
-      { label: '单选框组', type: 'radio' },
-      { label: '多选框组', type: 'checkbox' },
-      { label: '下拉单选', type: 'select' },
-      { label: '下拉多选', type: 'multipleSelect' },
-      { label: '级联选择', type: 'cascader' },
-      { label: '开关', type: 'switch' },
-      { label: '富文本编辑器', type: 'tinyEditor' },
-      { label: '图片上传', type: 'imageUpload' },
-      { label: '视频上传', type: 'videoUpload' },
-      { label: '音频上传', type: 'audioUpload' },
-      { label: '文件上传', type: 'fileUpload' },
--->
 <template>
-  <el-form-item
-    prop="code"
-    :label="$t('model.field.code')"
-    :rules="[
-      { required: true, message: () => $t('v.required') },
-      {
-        validator: (rule: any, value: any, callback: any) => {
-          if (!/^[a-zA-Z0-9]+$/.test(value)) {
-            callback($t('model.field.error.invalidCode'));
-            return;
-          }
-          callback();
-        },
-      },
-    ]"
-  >
+  <el-form-item :label="$t('model.field.type')">
+    <span>{{ $t(`model.fieldType.${field.type}`) }}</span>
+  </el-form-item>
+  <el-form-item prop="code" :label="$t('model.field.code')" :rules="[{ required: true, message: () => $t('v.required') }, { validator: codeValidator }]">
     <el-input v-model="field.code" maxlength="50"></el-input>
+    <div v-if="codeChanged" class="w-full text-xs text-warning leading-5">{{ $t('model.field.codeChangedTip') }}</div>
   </el-form-item>
   <el-form-item prop="name" :label="$t('model.field.name')" :rules="{ required: true, message: () => $t('v.required') }">
     <el-input v-model="field.name" maxlength="50"></el-input>
   </el-form-item>
-  <template v-if="['tinyEditor', 'textarea'].includes(field.type)">
+  <template v-if="['richEditor', 'textarea'].includes(field.type)">
     <el-form-item prop="clob" :label="$t('model.field.clob')">
       <template #label><label-tip message="model.field.clob" help /></template>
       <el-switch v-model="field.clob"></el-switch>
@@ -93,15 +72,15 @@ const dictTypeChange = (typeId: string) => {
   <el-form-item prop="double" :label="$t('model.field.double')">
     <el-switch v-model="field.double"></el-switch>
   </el-form-item>
-  <template v-if="['text', 'textarea', 'number', 'date', 'color', 'slider', 'switch', 'radio', 'checkbox', 'select', 'multipleSelect'].includes(field.type)">
-    <el-form-item prop="required" :label="$t('model.field.showInList')">
+  <template v-if="showInListAllowed && ['text', 'textarea', 'number', 'date', 'color', 'slider', 'switch', 'radio', 'checkbox', 'select', 'multipleSelect'].includes(field.type)">
+    <el-form-item prop="showInList" :label="$t('model.field.showInList')">
       <el-switch v-model="field.showInList"></el-switch>
     </el-form-item>
   </template>
   <el-form-item prop="required" :label="$t('model.field.required')">
     <el-switch v-model="field.required"></el-switch>
   </el-form-item>
-  <template v-if="['text', 'textarea', 'number', 'select', 'multipleSelect', 'videoUpload', 'audioUpload', 'fileUpload', 'tinyEditor'].includes(field.type)">
+  <template v-if="['text', 'textarea', 'number', 'select', 'multipleSelect', 'videoUpload', 'audioUpload', 'fileUpload', 'richEditor'].includes(field.type)">
     <el-form-item prop="placeholder" :label="$t('model.field.placeholder')">
       <el-input v-model="field.placeholder" maxlength="100"></el-input>
     </el-form-item>
@@ -162,14 +141,6 @@ const dictTypeChange = (typeId: string) => {
     <el-form-item prop="defaultValue" :label="$t('model.field.defaultValue')">
       <el-switch v-model="field.defaultValue"></el-switch>
     </el-form-item>
-    <!--
-    <el-form-item prop="activeValue" :label="$t('model.field.activeValue')" :rules="{ required: true, message: () => $t('v.required') }">
-      <el-input v-model="field.activeValue" maxlength="20"></el-input>
-    </el-form-item>
-    <el-form-item prop="inactiveValue" :label="$t('model.field.inactiveValue')" :rules="{ required: true, message: () => $t('v.required') }">
-      <el-input v-model="field.inactiveValue" maxlength="20"></el-input>
-    </el-form-item>
-     -->
   </template>
   <template v-if="['radio', 'checkbox'].includes(field.type)">
     <el-form-item prop="checkStyle" :label="$t('model.field.checkStyle')">
@@ -186,8 +157,9 @@ const dictTypeChange = (typeId: string) => {
   <template v-if="['radio', 'checkbox', 'select', 'multipleSelect'].includes(field.type)">
     <el-form-item prop="dictTypeId" :label="$t('model.field.dictType')" :rules="{ required: true, message: () => $t('v.required') }">
       <el-select v-model="field.dictTypeId" class="w-full" @change="(typeId) => dictTypeChange(typeId)">
-        <el-option v-for="item in dictTypeList" :key="item.id" :value="item.id" :label="`${item.name}(${item.alias})`"></el-option>
+        <el-option v-for="item in dictTypeOptions" :key="item.id" :value="item.id" :label="`${item.name}(${item.alias})`" :disabled="modelGlobal && item.scope !== 2"></el-option>
       </el-select>
+      <div v-if="dictTypeNotGlobal" class="w-full text-xs text-warning leading-5">{{ $t('model.field.dictType.globalOnly') }}</div>
     </el-form-item>
     <el-form-item prop="dataType" :label="$t('model.field.dataType')">
       <el-select v-model="field.dataType" class="w-full" disabled>
@@ -238,12 +210,18 @@ const dictTypeChange = (typeId: string) => {
       <el-input v-model.number="field.fileMaxSize" maxlength="5"></el-input>
     </el-form-item>
   </template>
-  <template v-if="['tinyEditor'].includes(field.type)">
+  <template v-if="['richEditor'].includes(field.type)">
     <el-form-item prop="minHeight" :label="$t('model.field.minHeight')">
       <el-input-number v-model="field.minHeight" :min="1" :max="65535"></el-input-number>
     </el-form-item>
     <el-form-item prop="maxHeight" :label="$t('model.field.maxHeight')">
       <el-input-number v-model="field.maxHeight" :min="1" :max="65535"></el-input-number>
+    </el-form-item>
+    <el-form-item prop="policy">
+      <template #label><label-tip message="model.field.policy" help /></template>
+      <el-select v-model="field.policy" clearable class="w-full">
+        <el-option v-for="n in ['rich', 'basic', 'strict']" :key="n" :value="n" :label="$t(`model.field.policy.${n}`)"></el-option>
+      </el-select>
     </el-form-item>
   </template>
 </template>

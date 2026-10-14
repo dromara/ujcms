@@ -11,7 +11,7 @@ import com.ujcms.common.security.CaptchaIncorrectException;
 import com.ujcms.common.security.IpExcessiveAttemptsException;
 import com.ujcms.common.security.Secures;
 import com.ujcms.common.web.Servlets;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;

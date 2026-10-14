@@ -1,0 +1,91 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title="${channel.title} - ${site.title}" keywords=channel.seoKeywords!'' description=channel.seoDescription!'']
+[#-- Breadcrumb sub-nav --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    [#assign parent = channel.parent!channel/]
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      [#if parent.id == channel.id]
+        <li><a href="${parent.url}" class="px-2 py-1 rounded bg-primary text-primary-foreground">全部</a></li>
+      [#else]
+        <li><a href="${parent.url}" class="px-2 py-1 rounded text-primary hover:bg-slate-200">全部</a></li>
+      [/#if]
+      [@ChannelList parentId=parent.id; siblingList]
+      [#list siblingList as bean]
+        <li>
+          [#if channel.id == bean.id]
+            <a href="${bean.url}" class="px-2 py-1 rounded bg-primary text-primary-foreground">${bean.name}</a>
+          [#else]
+            <a href="${bean.url}" class="px-2 py-1 rounded text-primary hover:bg-slate-200">${bean.name}</a>
+          [/#if]
+        </li>
+      [/#list]
+      [/@ChannelList]
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-4 space-y-4">
+
+  [#-- Facet UI rendered only on leaf channels (no sub-channels).
+       Wrapped in a single div so the parent's space-y-4 doesn't add margin between facet
+       rows — they stack tightly with their per-row border + py-1. --]
+  [#assign customsQueryMap={}/]
+  [#if channel.children?size lte 0]
+    <div>
+      [#list channel.articleModel.fieldList?filter(field->['radio','checkbox','select','multipleSelect']?seq_contains(field.type)) as field]
+        [#assign param=field.code+'Key'/]
+        <div class="py-1 border-b border-slate-200 flex flex-wrap items-center gap-2 text-sm">
+          [#if Params[param]??]
+            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="px-2 py-1 rounded text-primary hover:bg-slate-100">全部${field.name}</a>
+          [#else]
+            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="px-2 py-1 rounded bg-slate-200 text-slate-700">全部${field.name}</a>
+          [/#if]
+          [@DictList typeId=field.dictTypeId; dictList]
+          [#list dictList as dict]
+            [#if Params[param]! == dict.value]
+              <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}" class="px-2 py-1 rounded bg-slate-200 text-slate-700">${dict.name}</a>
+            [#else]
+              <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}" class="px-2 py-1 rounded text-primary hover:bg-slate-100">${dict.name}</a>
+            [/#if]
+          [/#list]
+          [/@DictList]
+        </div>
+        [#assign customsQueryMap=customsQueryMap + {'ArrayEQ_@articleExt-mainsJson$'+param+(field.dataType == 'number')?string('_Int',''): Params[param]!}/]
+      [/#list]
+    </div>
+  [/#if]
+
+  [@ArticlePage channelId=channel.id isIncludeSubChannel='true' Q_=customsQueryMap orderBy=channel.orderDesc?string('sticky_desc,order_desc','sticky_desc,order_asc'); pagedList]
+    [#if pagedList.content?size == 0]
+      <p class="py-8 text-center text-slate-500">暂无商品</p>
+    [#else]
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        [#list pagedList.content as bean]
+          <div class="bg-white rounded border border-slate-200 hover:shadow-md transition-shadow overflow-hidden">
+            <a href="${bean.url}" class="block">
+              <div class="h-44 flex items-center justify-center p-3 bg-slate-50">
+                [#if bean.image?has_content]
+                  <img src="${bean.image}" alt="${bean.title}" class="max-w-full max-h-full object-contain">
+                [/#if]
+              </div>
+              <div class="p-2 space-y-2">
+                <p class="text-sm truncate text-slate-700 hover:text-primary transition-colors">${bean.title}</p>
+                [#if (bean.customs['price'])?has_content]
+                  <p class="text-lg font-semibold text-red-600"><small class="text-xs">￥</small>${bean.customs['price']}</p>
+                [/#if]
+              </div>
+            </a>
+          </div>
+        [/#list]
+      </div>
+    [/#if]
+    [#include '../snippets/page.html'/]
+  [/@ArticlePage]
+
+</div>
+
+<script nonce="${csp_nonce!''}">fetch('${api}/channel/view/${channel.id?c}').catch(()=>{});</script>
+[/@layout]
+[/#escape]

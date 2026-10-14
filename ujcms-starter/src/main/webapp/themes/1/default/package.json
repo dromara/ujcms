@@ -1,0 +1,21 @@
+{
+  "name": "ujcms-default",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:icons": "node _src/build-icons.mjs",
+    "build:vendor": "node _src/build-vendor.mjs",
+    "build:css": "tailwindcss -i _src/style.css -o assets/css/style.css --minify",
+    "build": "npm run build:icons && npm run build:vendor && npm run build:css",
+    "watch": "tailwindcss -i _src/style.css -o assets/css/style.css --watch"
+  },
+  "devDependencies": {
+    "@iconify/json": "^2.2.0",
+    "@tailwindcss/cli": "^4.0.0",
+    "cropperjs": "^1.6.2",
+    "pdfjs-dist": "^5.6.205",
+    "sm-crypto": "^0.5.7",
+    "tailwindcss": "^4.0.0"
+  }
+}

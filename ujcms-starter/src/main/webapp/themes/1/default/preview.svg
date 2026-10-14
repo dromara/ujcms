@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <rect x="0" y="0" width="800" height="64" fill="#022c22" fill-opacity="0.35"/>
+  <rect x="48" y="20" width="120" height="24" rx="4" fill="#ffffff" fill-opacity="0.85"/>
+  <rect x="480" y="24" width="60" height="16" rx="4" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="560" y="24" width="60" height="16" rx="4" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="640" y="24" width="60" height="16" rx="4" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="48" y="110" width="704" height="180" rx="8" fill="#ffffff" fill-opacity="0.12"/>
+  <rect x="48" y="320" width="220" height="120" rx="8" fill="#ffffff" fill-opacity="0.1"/>
+  <rect x="290" y="320" width="220" height="120" rx="8" fill="#ffffff" fill-opacity="0.1"/>
+  <rect x="532" y="320" width="220" height="120" rx="8" fill="#ffffff" fill-opacity="0.1"/>
+  <text x="84" y="200" font-family="system-ui, sans-serif" font-size="56" font-weight="700"
+        fill="#ffffff" fill-opacity="0.95">UJCMS Default</text>
+  <text x="86" y="248" font-family="system-ui, sans-serif" font-size="24"
+        fill="#ffffff" fill-opacity="0.7">UJCMS 默认主题 · FreeMarker</text>
+</svg>

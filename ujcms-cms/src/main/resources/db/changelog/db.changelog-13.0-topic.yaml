@@ -1,0 +1,336 @@
+databaseChangeLog:
+  # 专题（原 11.2，并入 11.9 的来源三元组——13.0 重整按最终结构直建）：
+  #   ujcms_topic / ujcms_topic_tree（闭包树）/ ujcms_article_topic（文章关联），
+  #   以及 ujcms_config.topic_url_（专题 URL 前缀）。
+  #   索引先于外键创建：唯一键/索引最左列即外键列时，MySQL 复用其作支撑索引，
+  #   避免再自动生成一条冗余的单列外键索引。
+
+  - changeSet:
+      id: 13.0-config-topic-url
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: topic_url_
+                  remarks: 专题URL地址
+                  type: VARCHAR(50)
+
+  - changeSet:
+      id: 13.0-create-topic
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 专题ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  name: parent_id_
+                  remarks: 上级专题ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: topic_model_id_
+                  remarks: 专题模型ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(450)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: alias_
+                  remarks: 别名
+                  type: VARCHAR(50)
+              - column:
+                  name: image_
+                  remarks: 标题图
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 20
+                  name: page_size_
+                  remarks: 分页条数
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: order_desc_
+                  remarks: 倒序排序
+                  type: CHAR(1)
+              - column:
+                  name: topic_static_path_
+                  remarks: 静态路径
+                  type: VARCHAR(100)
+              - column:
+                  name: seo_title_
+                  remarks: SEO标题
+                  type: VARCHAR(150)
+              - column:
+                  name: seo_keywords_
+                  remarks: SEO关键词
+                  type: VARCHAR(150)
+              - column:
+                  name: seo_description_
+                  remarks: SEO描述
+                  type: VARCHAR(255)
+              - column:
+                  name: topic_template_
+                  remarks: 专题模板
+                  type: VARCHAR(255)
+              - column:
+                  name: static_file_
+                  remarks: 静态化文件路径
+                  type: VARCHAR(255)
+              - column:
+                  name: mobile_static_file_
+                  remarks: 移动端静态化文件路径
+                  type: VARCHAR(255)
+              - column:
+                  name: text_
+                  remarks: 正文（HTML）
+                  type: MEDIUMTEXT
+              - column:
+                  name: markdown_
+                  remarks: 正文（Markdown）
+                  type: MEDIUMTEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: editor_type_
+                  remarks: 编辑器类型(1:富文本编辑器,2:Markdown编辑器)
+                  type: SMALLINT
+              - column:
+                  name: mains_json_
+                  remarks: 自定义主字段JSON
+                  type: JSON
+              - column:
+                  name: clobs_json_
+                  remarks: 自定义大字段JSON
+                  type: JSON
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: modified_
+                  remarks: 修改日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: depth_
+                  remarks: 层级
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 999999
+                  name: order_
+                  remarks: 排列顺序
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: views_
+                  remarks: 浏览次数
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: self_views_
+                  remarks: 专题页浏览次数
+                  type: BIGINT
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+            remarks: 专题表
+            tableName: ujcms_topic
+        - addUniqueConstraint:
+            columnNames: site_id_, alias_
+            constraintName: uk_topic_site_alias
+            tableName: ujcms_topic
+        - createIndex:
+            columns:
+              - column:
+                  name: parent_id_
+            indexName: idx_topic_parent
+            tableName: ujcms_topic
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_topic_origin
+            tableName: ujcms_topic
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_topic
+            constraintName: fk_topic_site
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: parent_id_
+            baseTableName: ujcms_topic
+            constraintName: fk_topic_parent
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_topic
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: topic_model_id_
+            baseTableName: ujcms_topic
+            constraintName: fk_topic_model
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_model
+            validate: true
+
+  - changeSet:
+      id: 13.0-create-topic-tree
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: ancestor_id_
+                  remarks: 祖先ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: descendant_id_
+                  remarks: 后代ID
+                  type: BIGINT
+            remarks: 专题树形结构表
+            tableName: ujcms_topic_tree
+        - createIndex:
+            columns:
+              - column:
+                  name: descendant_id_
+            indexName: idx_topic_tree_descendant
+            tableName: ujcms_topic_tree
+        - addForeignKeyConstraint:
+            baseColumnNames: ancestor_id_
+            baseTableName: ujcms_topic_tree
+            constraintName: fk_topic_tree_ancestor
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_topic
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: descendant_id_
+            baseTableName: ujcms_topic_tree
+            constraintName: fk_topic_tree_descendant
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_topic
+            validate: true
+
+  # 文章关联表：article_id_ 为主键最左列，无需另建单列索引
+  - changeSet:
+      id: 13.0-create-article-topic
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: topic_id_
+                  remarks: 专题ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 999999
+                  name: order_
+                  remarks: 在该专题内的排序
+                  type: INT
+            remarks: 文章与专题关联表
+            tableName: ujcms_article_topic
+        - createIndex:
+            columns:
+              - column:
+                  name: topic_id_
+              - column:
+                  name: order_
+            indexName: idx_article_topic_topic
+            tableName: ujcms_article_topic
+        - addForeignKeyConstraint:
+            baseColumnNames: article_id_
+            baseTableName: ujcms_article_topic
+            constraintName: fk_article_topic_article
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: topic_id_
+            baseTableName: ujcms_article_topic
+            constraintName: fk_article_topic_topic
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_topic
+            validate: true

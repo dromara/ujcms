@@ -1,6 +1,6 @@
 package com.ujcms.common.web.exception;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * SC_SERVICE_UNAVAILABLE 服务不可用 异常。用于页面暂时不可访问，比如网站临时维护、服务器压力过大等情况。

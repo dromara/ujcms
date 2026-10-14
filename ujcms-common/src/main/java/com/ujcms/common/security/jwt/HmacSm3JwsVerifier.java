@@ -1,3 +1,26 @@
+/*
+ * nimbus-jose-jwt
+ *
+ * Copyright 2012-2016, Connect2id Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+ * this file except in compliance with the License. You may obtain a copy of the
+ * License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+/*
+ * Modified for UJCMS by 南昌蓝智科技有限公司 (https://www.ujcms.com). Derived from Nimbus JOSE + JWT:
+ * com.nimbusds.jose.crypto.MACVerifier and com.nimbusds.jose.crypto.impl.MACProvider
+ * (Copyright 2012-2023, Connect2id Ltd and contributors).
+ * First modified before 2026-04-19, the start of this repository's history; later changes are in the VCS log.
+ */
+
 package com.ujcms.common.security.jwt;
 
 import static com.ujcms.common.security.jwt.JwtUtils.HMAC_SM3;
@@ -21,6 +44,8 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.StandardCharset;
 
 /**
+ * 基于 Nimbus JOSE + JWT 的 MACVerifier 修改。
+ *
  * @author PONY
  */
 public class HmacSm3JwsVerifier implements JWSVerifier {

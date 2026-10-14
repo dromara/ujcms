@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.AttachmentFavoriteMapper">
+    <insert id="insert">
+        insert into ujcms_attachment_favorite (attachment_id_, user_id_, category_id_, created_)
+        values (#{attachmentId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{categoryId,jdbcType=BIGINT},
+          #{created,jdbcType=TIMESTAMP})
+    </insert>
+    <update id="updateCategory">
+        update ujcms_attachment_favorite
+        set category_id_ = #{categoryId,jdbcType=BIGINT}
+        where attachment_id_ = #{attachmentId,jdbcType=BIGINT}
+          and user_id_ = #{userId,jdbcType=BIGINT}
+    </update>
+    <select id="countByCategory" resultType="int">
+        select count(*)
+        from ujcms_attachment_favorite
+        where category_id_ = #{categoryId,jdbcType=BIGINT}
+    </select>
+    <delete id="delete">
+        delete from ujcms_attachment_favorite
+        where attachment_id_ = #{attachmentId,jdbcType=BIGINT}
+          and user_id_ = #{userId,jdbcType=BIGINT}
+    </delete>
+    <select id="exists" resultType="int">
+        select count(*)
+        from ujcms_attachment_favorite
+        where attachment_id_ = #{attachmentId,jdbcType=BIGINT}
+          and user_id_ = #{userId,jdbcType=BIGINT}
+    </select>
+    <select id="listAttachmentIdsByUser" resultType="java.lang.Long">
+        select attachment_id_
+        from ujcms_attachment_favorite
+        where user_id_ = #{userId,jdbcType=BIGINT}
+          and attachment_id_ in
+        <foreach close=")" collection="attachmentIds" item="aid" open="(" separator=",">#{aid}</foreach>
+    </select>
+    <select id="listAttachmentIdsByUserId" parameterType="long" resultType="java.lang.Long">
+        select attachment_id_
+        from ujcms_attachment_favorite
+        where user_id_ = #{userId,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByUserId" parameterType="long">
+        delete from ujcms_attachment_favorite
+        where user_id_ = #{userId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByAttachmentId" parameterType="long">
+        delete from ujcms_attachment_favorite
+        where attachment_id_ = #{attachmentId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="long">
+        delete from ujcms_attachment_favorite
+        where attachment_id_ in (select t.id_ from ujcms_attachment t where t.site_id_ = #{siteId,jdbcType=BIGINT})
+    </delete>
+</mapper>

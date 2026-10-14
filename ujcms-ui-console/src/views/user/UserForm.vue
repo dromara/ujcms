@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, toRefs, watch, PropType } from 'vue';
+import { computed, onMounted, ref, toRefs, watch, type PropType } from 'vue';
 import { useSysConfigStore } from '@/stores/sysConfigStore';
 import { currentUser } from '@/stores/useCurrentUser';
 import { queryUser, createUser, updateUser, deleteUser, usernameExist, emailExist, mobileExist, queryGroupList, queryOrgList } from '@/api/user';
+import { queryModelList } from '@/api/config';
+import { getModelData, mergeModelFields, arr2obj } from '@/data';
 import { toTree } from '@/utils/tree';
 import DialogForm from '@/components/DialogForm.vue';
+import FieldItem from '@/views/config/components/FieldItem.vue';
 import LabelTip from '@/components/LabelTip.vue';
 import { ImageUpload } from '@/components/Upload';
 
@@ -27,6 +30,11 @@ const values = ref<any>({});
 const groupList = ref<any[]>([]);
 const orgIds = ref<any[]>([]);
 const orgList = ref<any[]>([]);
+const userModelList = ref<any[]>([]);
+// 服务端按固定 ID 2 取用户模型（Model.USER_MODEL_ID）：表单也取它，历史库里多出的用户模型不渲染服务端会丢弃的字段
+const userModel = computed(() => userModelList.value.find((item) => String(item.id) === '2') ?? userModelList.value[0]);
+const mains = computed(() => arr2obj(mergeModelFields(getModelData().user.mains, userModel.value?.mains, 'user')));
+const fields = computed(() => JSON.parse(userModel.value?.customs || '[]'));
 
 const fetchGroupList = async () => {
   groupList.value = await queryGroupList();
@@ -36,9 +44,32 @@ const fetchOrgList = async () => {
   orgIds.value = flatOrgList.map((item: any) => item.id);
   orgList.value = toTree(flatOrgList);
 };
+const fetchUserModelList = async () => {
+  userModelList.value = await queryModelList({ type: 'user' });
+};
+
+const initCustoms = (customs: any) => {
+  fields.value.forEach((field: any) => {
+    if (customs[field.code] == null) {
+      customs[field.code] = field.defaultValue;
+      if (field.defaultValueKey != null) {
+        customs[field.code + 'Key'] = field.defaultValueKey;
+      }
+    }
+  });
+  return customs;
+};
+
+watch(fields, () => {
+  if (values.value.customs == null) {
+    values.value.customs = {};
+  }
+  initCustoms(values.value.customs);
+});
 
 onMounted(() => {
   fetchGroupList();
+  fetchUserModelList();
 });
 
 watch(visible, () => {
@@ -59,8 +90,8 @@ watch(visible, () => {
     :bean-id="beanId"
     :bean-ids="beanIds"
     :focus="focus"
-    :init-values="() => ({ orgId: org?.id, gender: 0, orgIds: [] })"
-    :to-values="(bean) => ({ ...bean, orgIds: bean.orgList.filter((item) => showGlobalData || orgIds.indexOf(item.id) !== -1).map((item) => item.id), global: showGlobalData })"
+    :init-values="() => ({ orgId: org?.id, gender: 0, orgIds: [], customs: {} })"
+    :to-values="(bean) => ({ ...bean, orgIds: bean.orgList.filter((item) => showGlobalData || orgIds.indexOf(item.id) !== -1).map((item) => item.id), global: showGlobalData, customs: bean.customs ?? {} })"
     :disable-delete="(bean) => bean.id <= 1"
     :disable-edit="(bean) => currentUser.rank > bean.rank"
     perms="user"
@@ -102,7 +133,7 @@ watch(visible, () => {
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col v-if="currentUser.epRank >= 3" :span="24">
+        <el-col v-if="currentUser.commercialTier >= 3" :span="24">
           <el-form-item prop="orgIds" :label="$t('user.orgs')">
             <template #label><label-tip message="user.orgs" help /></template>
             <el-tree-select
@@ -128,7 +159,7 @@ watch(visible, () => {
               { required: true, message: () => $t('v.required') },
               {
                 asyncValidator: async (rule: any, value: any, callback: any) => {
-                  if (value !== bean.username && (await usernameExist(value))) {
+                  if (value && value !== bean.username && (await usernameExist(value))) {
                     callback($t('user.error.usernameExist'));
                     return;
                   }
@@ -150,9 +181,10 @@ watch(visible, () => {
             prop="mobile"
             :label="$t('user.mobile')"
             :rules="[
+              { pattern: /^\+?[\d\s()\-./]{5,30}$/, message: () => $t('user.error.mobileFormat') },
               {
                 asyncValidator: async (rule: any, value: any, callback: any) => {
-                  if (value !== bean.mobile && (await mobileExist(value))) {
+                  if (value && value !== bean.mobile && (await mobileExist(value))) {
                     callback($t('user.error.mobileExist'));
                     return;
                   }
@@ -162,6 +194,8 @@ watch(visible, () => {
             ]"
           >
             <el-input v-model="values.mobile" maxlength="50"></el-input>
+            <!-- 双因子验证码发往此号码：未登记或登记有误的后台用户将无法登录 -->
+            <div v-if="sysConfig.security.twoFactor" class="text-xs leading-normal text-gray-secondary">{{ $t('user.mobile.twoFactorHint') }}</div>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -171,7 +205,7 @@ watch(visible, () => {
             :rules="[
               {
                 asyncValidator: async (rule: any, value: any, callback: any) => {
-                  if (value !== bean.email && (await emailExist(value))) {
+                  if (value && value !== bean.email && (await emailExist(value))) {
                     callback($t('user.error.emailExist'));
                     return;
                   }
@@ -198,16 +232,6 @@ watch(visible, () => {
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item prop="location" :label="$t('user.location')">
-            <el-input v-model="values.location" maxlength="255"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item prop="bio" :label="$t('user.bio')">
-            <el-input v-model="values.bio" type="textarea" :rows="3" maxlength="2000"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
           <el-form-item prop="avatar" :label="$t('user.avatar')">
             <image-upload
               v-model="values.avatar"
@@ -221,6 +245,31 @@ watch(visible, () => {
             <el-avatar v-if="values.mediumAvatar != null" :src="values.mediumAvatar" :size="100" class="ml-2" />
           </el-form-item>
         </el-col>
+        <el-col v-if="mains['location']?.show" :span="mains['location'].double ? 12 : 24">
+          <el-form-item
+            prop="location"
+            :label="mains['location'].name ?? $t('user.location')"
+            :rules="mains['location'].required ? { required: true, message: () => $t('v.required') } : undefined"
+          >
+            <el-input v-model="values.location" maxlength="255"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col v-if="mains['bio']?.show" :span="mains['bio'].double ? 12 : 24">
+          <el-form-item
+            prop="bio"
+            :label="mains['bio'].name ?? $t('user.bio')"
+            :rules="mains['bio'].required ? { required: true, message: () => $t('v.required') } : undefined"
+          >
+            <el-input v-model="values.bio" type="textarea" :rows="3" maxlength="2000"></el-input>
+          </el-form-item>
+        </el-col>
+        <template v-for="field in fields" :key="field.code">
+          <el-col :span="field.double ? 12 : 24">
+            <el-form-item :prop="`customs.${field.code}`" :label="field.name" :rules="field.required ? { required: true, message: () => $t('v.required') } : undefined">
+              <field-item v-model="values.customs[field.code]" v-model:model-key="values.customs[field.code + 'Key']" :field="field"></field-item>
+            </el-form-item>
+          </el-col>
+        </template>
         <el-col v-if="isEdit" :span="12">
           <el-form-item prop="created" :label="$t('user.created')">
             <template #label><label-tip message="user.created" /></template>

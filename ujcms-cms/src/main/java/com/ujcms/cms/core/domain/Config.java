@@ -16,9 +16,10 @@ import java.util.StringJoiner;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hibernate.validator.constraints.Length;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
+import com.ujcms.cms.core.security.HtmlSanitizeService;
+import org.jspecify.annotations.Nullable;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
@@ -26,19 +27,25 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ujcms.cms.core.domain.generated.GeneratedConfig;
+import com.ujcms.cms.core.support.Commercial;
 import com.ujcms.cms.core.support.Constants;
-import com.ujcms.cms.core.support.StaticProps;
 import com.ujcms.common.file.FileHandler;
 import com.ujcms.common.file.FtpClientProperties;
 import com.ujcms.common.file.FtpFileHandler;
 import com.ujcms.common.file.LocalFileHandler;
 import com.ujcms.common.file.MinIoFileHandler;
+import com.ujcms.common.security.oauth.QqOauthClient;
+import com.ujcms.common.security.oauth.WeiboOauthClient;
+import com.ujcms.common.security.oauth.WeixinOauthClient;
 import com.ujcms.common.web.PathResolver;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -52,7 +59,9 @@ import jakarta.validation.constraints.Size;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"uploadSettings", "greySettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
-        "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings", "customsSettings", "handler"})
+        "aiSettings", "oauthSettings", "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings",
+        "packageStorageSettings",
+        "customsSettings", "marketplaceSettings", "consoleSettings", "handler"})
 public class Config extends GeneratedConfig {
 
     /**
@@ -203,6 +212,78 @@ public class Config extends GeneratedConfig {
         }
     }
 
+    /**
+     * AI设置含服务商明文密钥，不可随 Config 序列化（如 /api/env/config）。
+     * 后台展示走 GlobalSettingsController.showAi 的“只写不回显”脱敏路径（密钥置空，留空提交表示不修改）
+     */
+    @JsonIgnore
+    public Ai getAi() {
+        if (ai != null) {
+            return ai;
+        }
+        String settings = getAiSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Ai();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Ai.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot read value of Ai: " + settings, e);
+        }
+    }
+
+    public void setAi(Ai ai) {
+        this.ai = ai;
+        try {
+            setAiSettings(Constants.MAPPER.writeValueAsString(ai));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Ai", e);
+        }
+    }
+
+    /**
+     * 第三方登录设置含各服务商的应用密钥，不可随 Config 序列化，模板亦不可达（TemplateMemberAccessPolicy）。
+     * 后台展示走 GlobalSettingsT2Controller.showOauth 的“只写不回显”脱敏路径；模板与公开接口只读
+     * {@link #getOauthProviders()}
+     */
+    @JsonIgnore
+    public Oauth getOauth() {
+        if (oauth != null) {
+            return oauth;
+        }
+        String settings = getOauthSettings();
+        if (StringUtils.isBlank(settings)) {
+            oauth = new Oauth();
+            return oauth;
+        }
+        try {
+            oauth = MAPPER.readValue(settings, Oauth.class);
+            return oauth;
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot read value of Oauth: " + settings, e);
+        }
+    }
+
+    public void setOauth(Oauth oauth) {
+        try {
+            setOauthSettings(MAPPER.writeValueAsString(oauth));
+            this.oauth = oauth;
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Oauth", e);
+        }
+    }
+
+    /**
+     * 可用的第三方登录服务商代码（已启用且凭据齐全，按 {@link Oauth#PROVIDERS} 的顺序），不含任何凭据。
+     * 登录/注册模板据此决定显示哪些第三方登录入口：{@code config.oauthProviders?seq_contains('weixin')}。
+     * 只读：不加 READ_ONLY 时 Jackson 会把无 setter 的集合 getter 当作写入口（USE_GETTERS_AS_SETTERS），
+     * 基础设置回传整个 Config JSON 即向这个不可变列表追加元素而报错
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public List<String> getOauthProviders() {
+        return getOauth().usableProviders();
+    }
+
     public Email getEmail() {
         if (email != null) {
             return email;
@@ -281,7 +362,7 @@ public class Config extends GeneratedConfig {
         }
         String settings = getTemplateStorageSettings();
         if (StringUtils.isBlank(settings)) {
-            return new Storage(TYPE_LOCAL, "/templates", "/templates");
+            return new Storage(TYPE_LOCAL, "/themes", "/themes");
         }
         try {
             return Constants.MAPPER.readValue(settings, Storage.class);
@@ -294,6 +375,34 @@ public class Config extends GeneratedConfig {
         this.templateStorage = templateStorage;
         try {
             setTemplateStorageSettings(Constants.MAPPER.writeValueAsString(templateStorage));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * 主题包存储点（install-flow §6 P3 / Q1）：独立存储点，LOCAL 默认自有根目录，
+     * 不复用模板存储的保留目录。ZIP 本体按 {@code <name>/<version>.zip} 存放。
+     */
+    public Storage getPackageStorage() {
+        if (packageStorage != null) {
+            return packageStorage;
+        }
+        String settings = getPackageStorageSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Storage(TYPE_LOCAL, "/theme-packages", "/theme-packages");
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Storage.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public void setPackageStorage(Storage packageStorage) {
+        this.packageStorage = packageStorage;
+        try {
+            setPackageStorageSettings(Constants.MAPPER.writeValueAsString(packageStorage));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
@@ -315,8 +424,8 @@ public class Config extends GeneratedConfig {
         this.customs = customs;
     }
 
-    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
-        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+    public void disassembleCustoms(Model model, HtmlSanitizeService sanitizeService) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), sanitizeService);
         setCustoms(map);
         try {
             setCustomsSettings(MAPPER.writeValueAsString(map));
@@ -338,6 +447,9 @@ public class Config extends GeneratedConfig {
     private Sms sms;
     @Nullable
     @JsonIgnore
+    private Ai ai;
+    @Nullable
+    @JsonIgnore
     private Email email;
     @Nullable
     @JsonIgnore
@@ -348,6 +460,107 @@ public class Config extends GeneratedConfig {
     @Nullable
     @JsonIgnore
     private Storage templateStorage;
+    @Nullable
+    @JsonIgnore
+    private Storage packageStorage;
+
+    /**
+     * AI设置原始 JSON 字段。映射 ujcms_config.ai_settings_，不放入 GeneratedConfig（generated 文件不手工编辑）
+     */
+    @Nullable
+    private String aiSettings;
+
+    @Nullable
+    public String getAiSettings() {
+        return aiSettings;
+    }
+
+    public void setAiSettings(@Nullable String aiSettings) {
+        this.aiSettings = aiSettings;
+    }
+
+    /**
+     * 第三方登录设置原始 JSON 字段。映射 ujcms_config.oauth_settings_（SM4 加密落库），不放入 GeneratedConfig（生成器 ignoreColumn）
+     */
+    @Nullable
+    private String oauthSettings;
+    @Nullable
+    @JsonIgnore
+    private Oauth oauth;
+
+    @Nullable
+    public String getOauthSettings() {
+        return oauthSettings;
+    }
+
+    public void setOauthSettings(@Nullable String oauthSettings) {
+        this.oauthSettings = oauthSettings;
+        this.oauth = null;
+    }
+
+    /**
+     * 主题包存储点设置原始 JSON 字段。映射 ujcms_config.package_storage_settings_，
+     * 不放入 GeneratedConfig（generated 文件不手工编辑）
+     */
+    @Nullable
+    private String packageStorageSettings;
+
+    @Nullable
+    public String getPackageStorageSettings() {
+        return packageStorageSettings;
+    }
+
+    public void setPackageStorageSettings(@Nullable String packageStorageSettings) {
+        this.packageStorageSettings = packageStorageSettings;
+    }
+
+    /**
+     * 控制台默认外观原始 JSON 字段。映射 ujcms_config.console_settings_，不放入 GeneratedConfig（生成器 ignoreColumn）。
+     * 随“基础设置”整行保存（Entities.copy 只拷简单类型，故拷的是本字段而非 {@link #getConsole()}）。
+     */
+    @Nullable
+    private String consoleSettings;
+    // 缓存字段不加 @JsonIgnore：Jackson 对某一访问器的忽略会连带整个 console 属性，getConsole() 就不再序列化（upload/grey 同例）
+    @Nullable
+    private Console console;
+
+    @Nullable
+    public String getConsoleSettings() {
+        return consoleSettings;
+    }
+
+    public void setConsoleSettings(@Nullable String consoleSettings) {
+        this.consoleSettings = consoleSettings;
+        this.console = null;
+    }
+
+    @Valid
+    public Console getConsole() {
+        if (console != null) {
+            return console;
+        }
+        String settings = getConsoleSettings();
+        if (StringUtils.isBlank(settings)) {
+            console = new Console();
+            return console;
+        }
+        try {
+            console = MAPPER.readValue(settings, Console.class);
+            return console;
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot read value of Console: " + settings, e);
+        }
+    }
+
+    public void setConsole(Console console) {
+        this.console = console;
+        try {
+            setConsoleSettings(MAPPER.writeValueAsString(console));
+            this.console = console;
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Console", e);
+        }
+    }
 
     private String uploadsExtensionBlacklist = "";
     private String filesExtensionBlacklist = "";
@@ -383,6 +596,14 @@ public class Config extends GeneratedConfig {
         return super.getArticleUrl();
     }
 
+    @Nullable
+    @Override
+    @Length(max = 50)
+    @Pattern(regexp = "^$|^/[\\w-]*$")
+    public String getTopicUrl() {
+        return super.getTopicUrl();
+    }
+
     public String getUploadsExtensionBlacklist() {
         return uploadsExtensionBlacklist;
     }
@@ -399,8 +620,12 @@ public class Config extends GeneratedConfig {
         this.filesExtensionBlacklist = filesExtensionBlacklist;
     }
 
-    public int getEpRank() {
-        return StaticProps.getEpRank();
+    /**
+     * 商业版级别（0=社区版，1=T1 基础版，2=T2 标准版，3=T3 高级版）。模板中以
+     * {@code config.commercialTier} 访问，用于按版本展示/隐藏商业功能区块。
+     */
+    public int getCommercialTier() {
+        return Commercial.getTier();
     }
 
     /**
@@ -434,9 +659,9 @@ public class Config extends GeneratedConfig {
          */
         private String libraryTypes = "doc,docx,xls,xlsx,ppt,pptx,pdf";
         /**
-         * 允许DOC导入的文库类型。格式如：doc,docx,xls,xlsx
+         * 允许DOC导入的文库类型。格式如：doc,docx,wps,xls,xlsx
          */
-        private String docTypes = "doc,docx,xls,xlsx";
+        private String docTypes = "doc,docx,wps,xls,xlsx";
         /**
          * 允许上传的文件类型。格式如：zip,7z,gz,bz2,iso,rar,doc,docx,xls,xlsx,ppt,pptx,pdf,mp3,ogg,wav,mp4,webm,ogg,jpg,jpeg,jfif,pjpeg,pjp,png,gif,webp
          */
@@ -960,6 +1185,11 @@ public class Config extends GeneratedConfig {
          */
         private boolean twoFactor = false;
         /**
+         * 首次登录强制改密。开启后，{@code pwd_must_change_} 为 true 的用户（后台新建用户 / 管理员重置口令后、
+         * 种子 admin）登录时需先修改密码。默认关闭，不影响开箱行为（等保 身份鉴别）。
+         */
+        private boolean forceChangePasswordOnFirstLogin = false;
+        /**
          * SSRF白名单
          */
         @Size(max = 1500)
@@ -1108,6 +1338,14 @@ public class Config extends GeneratedConfig {
             this.twoFactor = twoFactor;
         }
 
+        public boolean isForceChangePasswordOnFirstLogin() {
+            return forceChangePasswordOnFirstLogin;
+        }
+
+        public void setForceChangePasswordOnFirstLogin(boolean forceChangePasswordOnFirstLogin) {
+            this.forceChangePasswordOnFirstLogin = forceChangePasswordOnFirstLogin;
+        }
+
         public String getSsrfWhiteList() {
             return ssrfWhiteList;
         }
@@ -1152,11 +1390,11 @@ public class Config extends GeneratedConfig {
         @Max(6)
         private int codeLength = 6;
         /**
-         * 验证码过期时间。单位：分钟
+         * 验证码过期时间。单位：分钟。带外（短信）验证码的有效期不宜超过 10 分钟（NIST SP 800-63B）
          */
         @Min(3)
         @Max(30)
-        private int codeExpires = 20;
+        private int codeExpires = 10;
         /**
          * 测试号码
          */
@@ -1352,6 +1590,623 @@ public class Config extends GeneratedConfig {
 
         public void setTemplateId(@Nullable String templateId) {
             this.templateId = templateId;
+        }
+    }
+
+    @Schema(name = "Config.Ai", description = "AI配置")
+    public static class Ai implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * 机器翻译引擎保留代码：百度翻译。服务商代码正则不允许冒号，保留代码不会与用户配置冲突
+         */
+        public static final String MT_BAIDU = "mt:baidu";
+        /**
+         * 机器翻译引擎保留代码：有道翻译
+         */
+        public static final String MT_YOUDAO = "mt:youdao";
+        /**
+         * 机器翻译引擎保留代码：DeepL
+         */
+        public static final String MT_DEEPL = "mt:deepl";
+
+        /**
+         * 是否为机器翻译引擎代码（{@code mt:} 前缀保留给机器翻译，仅翻译服务商可选）
+         *
+         * @param code 服务商代码
+         * @return 是否机器翻译引擎
+         */
+        public static boolean isMtProvider(@Nullable String code) {
+            return code != null && code.startsWith("mt:");
+        }
+
+        /**
+         * 是否开启
+         */
+        private boolean enabled = false;
+        /**
+         * 服务商配置列表。均为 OpenAI 兼容协议（POST {baseUrl}/chat/completions）
+         */
+        @Valid
+        @Size(max = 10)
+        private List<Provider> providers = new java.util.ArrayList<>();
+        /**
+         * 默认服务商代码
+         */
+        @Nullable
+        @Length(max = 30)
+        private String defaultProvider;
+        /**
+         * 写作服务商代码。为空则使用默认服务商
+         */
+        @Nullable
+        @Length(max = 30)
+        private String writingProvider;
+        /**
+         * 审核服务商代码。为空则使用默认服务商
+         */
+        @Nullable
+        @Length(max = 30)
+        private String moderationProvider;
+        /**
+         * 翻译服务商代码（文章预翻译）。为空则使用默认服务商
+         */
+        @Nullable
+        @Length(max = 30)
+        private String translationProvider;
+        /**
+         * 机器翻译引擎配置。翻译服务商选择 {@code mt:*} 保留代码时使用对应引擎凭证
+         */
+        @Valid
+        private Mt mt = new Mt();
+        /**
+         * 日志保留天数。网络安全法第21条要求日志留存不少于六个月，故默认180天、最低30天
+         */
+        @Min(30)
+        private int logRetentionDays = 180;
+        /**
+         * 全局每日token上限（提示词+生成，全部站点合计）。0为不限制
+         */
+        @Min(0)
+        private long dailyTokenLimit = 0;
+
+        /**
+         * 按代码查找服务商。代码为空时回落到默认服务商
+         *
+         * @param code 服务商代码。可为 {@code null}
+         * @return 服务商配置。没有找到则返回 {@code null}
+         */
+        @Nullable
+        @JsonIgnore
+        public Provider resolveProvider(@Nullable String code) {
+            String actual = StringUtils.isBlank(code) ? defaultProvider : code;
+            if (StringUtils.isBlank(actual)) {
+                return null;
+            }
+            return providers.stream().filter(p -> actual.equals(p.getCode())).findFirst().orElse(null);
+        }
+
+        /**
+         * 服务商是否可解析（代码为空时按默认服务商判断）。站点设置页据此提示“开关不生效”
+         *
+         * @param code 服务商代码。可为 {@code null}
+         * @return 是否可解析
+         */
+        public boolean resolvesProvider(@Nullable String code) {
+            return resolveProvider(code) != null;
+        }
+
+        /**
+         * 翻译服务商默认路径（未按次指定服务商时）是否可用：机器翻译引擎看凭证是否完整，大模型服务商看是否可解析
+         *
+         * @return 是否可用
+         */
+        public boolean resolvesTranslationProvider() {
+            String code = translationProvider;
+            if (code != null && isMtProvider(code)) {
+                return getMt().isConfigured(code);
+            }
+            return resolvesProvider(code);
+        }
+
+        /**
+         * 密钥留空的服务商沿用本配置中同代码服务商的已存密钥（配合后台“只写不回显”脱敏）。
+         * 仅按代码精确匹配，不回退到默认服务商
+         *
+         * @param provider 表单提交的服务商配置
+         */
+        public void fillStoredApiKey(Provider provider) {
+            if (StringUtils.isNotBlank(provider.getApiKey()) || StringUtils.isBlank(provider.getCode())) {
+                return;
+            }
+            providers.stream().filter(p -> provider.getCode().equals(p.getCode())).findFirst()
+                    .ifPresent(stored -> provider.setApiKey(stored.getApiKey()));
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public List<Provider> getProviders() {
+            return providers;
+        }
+
+        public void setProviders(List<Provider> providers) {
+            this.providers = providers;
+        }
+
+        @Nullable
+        public String getDefaultProvider() {
+            return defaultProvider;
+        }
+
+        public void setDefaultProvider(@Nullable String defaultProvider) {
+            this.defaultProvider = defaultProvider;
+        }
+
+        @Nullable
+        public String getWritingProvider() {
+            return writingProvider;
+        }
+
+        public void setWritingProvider(@Nullable String writingProvider) {
+            this.writingProvider = writingProvider;
+        }
+
+        @Nullable
+        public String getModerationProvider() {
+            return moderationProvider;
+        }
+
+        public void setModerationProvider(@Nullable String moderationProvider) {
+            this.moderationProvider = moderationProvider;
+        }
+
+        @Nullable
+        public String getTranslationProvider() {
+            return translationProvider;
+        }
+
+        public void setTranslationProvider(@Nullable String translationProvider) {
+            this.translationProvider = translationProvider;
+        }
+
+        public Mt getMt() {
+            // 旧配置 JSON 无 mt 字段或显式为 null 时兜底，调用方无须判空
+            return mt != null ? mt : new Mt();
+        }
+
+        public void setMt(Mt mt) {
+            this.mt = mt;
+        }
+
+        public int getLogRetentionDays() {
+            return logRetentionDays;
+        }
+
+        public void setLogRetentionDays(int logRetentionDays) {
+            this.logRetentionDays = logRetentionDays;
+        }
+
+        public long getDailyTokenLimit() {
+            return dailyTokenLimit;
+        }
+
+        public void setDailyTokenLimit(long dailyTokenLimit) {
+            this.dailyTokenLimit = dailyTokenLimit;
+        }
+
+        @Schema(name = "Config.Ai.Provider", description = "AI服务商配置")
+        public static class Provider implements Serializable {
+            private static final long serialVersionUID = 1L;
+
+            /**
+             * 服务商内部标识。由后台自动生成、不向运营者展示；列表内唯一，
+             * 作为默认/写作/审核服务商的引用键及保存时密钥合并的匹配键
+             */
+            @NotNull
+            @Pattern(regexp = "[a-z0-9-]{1,30}")
+            private String code = "";
+            /**
+             * 服务商名称。运营者可见的标识，列表内唯一；日志按调用时的名称快照记录
+             */
+            @NotNull
+            @Length(max = 50)
+            private String name = "";
+            /**
+             * 接口地址。不含末尾斜杠，如 https://api.deepseek.com/v1
+             */
+            @NotNull
+            @Length(max = 255)
+            private String baseUrl = "";
+            /**
+             * API密钥。可为空（Ollama/vLLM 等内网部署无需密钥）
+             */
+            @Length(max = 256)
+            private String apiKey = "";
+            /**
+             * 模型
+             */
+            @NotNull
+            @Length(max = 100)
+            private String model = "";
+            /**
+             * 读取超时时间。单位：秒
+             */
+            @Min(5)
+            @Max(600)
+            private int timeoutSeconds = 60;
+            /**
+             * 温度(0-2)。为空使用服务商默认值
+             */
+            @Nullable
+            private Double temperature;
+            /**
+             * 请求附加参数。JSON 对象文本，原样合并进每次 chat/completions 请求体，协议字段（model、messages 等）随后覆盖，
+             * 因此只能补充服务商特有参数。最常见用途是关闭推理模型的深度思考：思考 token 计入 max_tokens，会耗尽元信息、
+             * 候选标题、审核等小预算 JSON 调用（2026-09-05 glm-5.3-flash 实测返回空内容）。各家字段不同：
+             * 智谱/火山方舟 {"thinking":{"type":"disabled"}}、阿里云百炼 {"enable_thinking":false}、Ollama {"think":false}、
+             * vLLM/SGLang {"chat_template_kwargs":{"enable_thinking":false}}，控制台提供预设
+             */
+            @Length(max = 1000)
+            private String extraParams = "";
+
+            public String getCode() {
+                return code;
+            }
+
+            public void setCode(String code) {
+                this.code = code;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public String getBaseUrl() {
+                return baseUrl;
+            }
+
+            public void setBaseUrl(String baseUrl) {
+                this.baseUrl = baseUrl;
+            }
+
+            public String getApiKey() {
+                return apiKey;
+            }
+
+            public void setApiKey(String apiKey) {
+                this.apiKey = apiKey;
+            }
+
+            public String getModel() {
+                return model;
+            }
+
+            public void setModel(String model) {
+                this.model = model;
+            }
+
+            public int getTimeoutSeconds() {
+                return timeoutSeconds;
+            }
+
+            public void setTimeoutSeconds(int timeoutSeconds) {
+                this.timeoutSeconds = timeoutSeconds;
+            }
+
+            @Nullable
+            public Double getTemperature() {
+                return temperature;
+            }
+
+            public void setTemperature(@Nullable Double temperature) {
+                this.temperature = temperature;
+            }
+
+            public String getExtraParams() {
+                return extraParams;
+            }
+
+            public void setExtraParams(String extraParams) {
+                this.extraParams = extraParams;
+            }
+
+            /**
+             * 解析附加参数为 JSON 对象。空白返回 null；不是合法 JSON 或不是对象抛出 IllegalArgumentException，
+             * 保存（GlobalSettingsController.updateAi）与调用（AiClient.buildBody）两处据此拒绝
+             *
+             * @return 附加参数对象，未配置时为 null
+             */
+            @Nullable
+            public ObjectNode extraParamsObject() {
+                if (StringUtils.isBlank(extraParams)) {
+                    return null;
+                }
+                try {
+                    JsonNode node = MAPPER.readTree(extraParams);
+                    if (node instanceof ObjectNode object) {
+                        return object;
+                    }
+                    throw new IllegalArgumentException("extraParams must be a JSON object: " + extraParams);
+                } catch (JsonProcessingException e) {
+                    throw new IllegalArgumentException("extraParams is not valid JSON: " + extraParams, e);
+                }
+            }
+
+            /**
+             * 规范化接口地址：去除首尾空白与末尾斜杠
+             */
+            public void normalizeBaseUrl() {
+                baseUrl = Strings.CS.removeEnd(StringUtils.trimToEmpty(baseUrl), "/");
+            }
+        }
+
+        /**
+         * 机器翻译引擎凭证（百度翻译/有道翻译/DeepL 固定三家，Sms 式固定厂商而非通用列表）。
+         * 随 {@code ai_settings_} 整体 SM4-GCM 加密存储；密钥字段后台“只写不回显”
+         */
+        @Schema(name = "Config.Ai.Mt", description = "机器翻译引擎配置")
+        public static class Mt implements Serializable {
+            private static final long serialVersionUID = 1L;
+
+            /**
+             * 百度翻译开放平台 APP ID
+             */
+            @Length(max = 50)
+            private String baiduAppId = "";
+            /**
+             * 百度翻译密钥
+             */
+            @Length(max = 100)
+            private String baiduSecret = "";
+            /**
+             * 有道智云应用ID
+             */
+            @Length(max = 50)
+            private String youdaoAppKey = "";
+            /**
+             * 有道智云应用密钥
+             */
+            @Length(max = 100)
+            private String youdaoSecret = "";
+            /**
+             * DeepL认证密钥。{@code :fx} 结尾自动使用免费版接口地址
+             */
+            @Length(max = 100)
+            private String deeplAuthKey = "";
+
+            /**
+             * 引擎凭证是否完整：百度需 APP ID 与密钥，有道需应用ID与应用密钥，DeepL 需认证密钥。
+             * 带参方法，不会被 Jackson 当作属性序列化
+             *
+             * @param code 引擎保留代码（{@code mt:*}）
+             * @return 是否已配置
+             */
+            public boolean isConfigured(String code) {
+                return switch (code) {
+                    case MT_BAIDU -> StringUtils.isNoneBlank(baiduAppId, baiduSecret);
+                    case MT_YOUDAO -> StringUtils.isNoneBlank(youdaoAppKey, youdaoSecret);
+                    case MT_DEEPL -> StringUtils.isNotBlank(deeplAuthKey);
+                    default -> false;
+                };
+            }
+
+            /**
+             * 密钥留空时沿用已存值（配合后台“只写不回显”脱敏；ID类字段回显，不参与合并）
+             *
+             * @param stored 库中已存配置
+             */
+            public void fillStoredSecrets(Mt stored) {
+                if (StringUtils.isBlank(baiduSecret)) {
+                    baiduSecret = stored.getBaiduSecret();
+                }
+                if (StringUtils.isBlank(youdaoSecret)) {
+                    youdaoSecret = stored.getYoudaoSecret();
+                }
+                if (StringUtils.isBlank(deeplAuthKey)) {
+                    deeplAuthKey = stored.getDeeplAuthKey();
+                }
+            }
+
+            public String getBaiduAppId() {
+                return baiduAppId;
+            }
+
+            public void setBaiduAppId(String baiduAppId) {
+                this.baiduAppId = baiduAppId;
+            }
+
+            public String getBaiduSecret() {
+                return baiduSecret;
+            }
+
+            public void setBaiduSecret(String baiduSecret) {
+                this.baiduSecret = baiduSecret;
+            }
+
+            public String getYoudaoAppKey() {
+                return youdaoAppKey;
+            }
+
+            public void setYoudaoAppKey(String youdaoAppKey) {
+                this.youdaoAppKey = youdaoAppKey;
+            }
+
+            public String getYoudaoSecret() {
+                return youdaoSecret;
+            }
+
+            public void setYoudaoSecret(String youdaoSecret) {
+                this.youdaoSecret = youdaoSecret;
+            }
+
+            public String getDeeplAuthKey() {
+                return deeplAuthKey;
+            }
+
+            public void setDeeplAuthKey(String deeplAuthKey) {
+                this.deeplAuthKey = deeplAuthKey;
+            }
+        }
+    }
+
+    /**
+     * 第三方登录（OAuth）设置（features.yaml oauthLogin，商业 T2 起）。各服务商的应用凭据随 {@code oauth_settings_}
+     * 整体 SM4-GCM 加密存储，应用密钥后台“只写不回显”。回调地址不入库：登录时按默认站点地址推导
+     * （{@code {默认站点地址}/oauth/code/{服务商代码}}），站点域名变更后无需另行维护。
+     */
+    @Schema(name = "Config.Oauth", description = "第三方登录配置")
+    public static class Oauth implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * 支持的服务商代码，按设置页的展示顺序。代码即登录地址 {@code /oauth/login/{代码}} 中的路径段
+         */
+        public static final List<String> PROVIDERS = List.of(
+                WeixinOauthClient.PROVIDER_WEIXIN, QqOauthClient.PROVIDER_QQ, WeiboOauthClient.PROVIDER_WEIBO);
+
+        /**
+         * 微信（微信开放平台“网站应用”，扫码登录）
+         */
+        @Valid
+        private Client weixin = new Client();
+        /**
+         * QQ（QQ 互联）
+         */
+        @Valid
+        private Client qq = new Client();
+        /**
+         * 微博（微博开放平台）
+         */
+        @Valid
+        private Client weibo = new Client();
+
+        /**
+         * 按代码取服务商设置
+         *
+         * @param provider 服务商代码
+         * @return 服务商设置。代码不在 {@link #PROVIDERS} 之列时返回 {@code null}
+         */
+        @Nullable
+        public Client client(String provider) {
+            return switch (provider) {
+                case WeixinOauthClient.PROVIDER_WEIXIN -> weixin;
+                case QqOauthClient.PROVIDER_QQ -> qq;
+                case WeiboOauthClient.PROVIDER_WEIBO -> weibo;
+                default -> null;
+            };
+        }
+
+        /**
+         * 可用的服务商代码：已启用且应用ID、应用密钥齐全，按 {@link #PROVIDERS} 的顺序
+         */
+        public List<String> usableProviders() {
+            return PROVIDERS.stream().filter(provider -> {
+                Client client = client(provider);
+                return client != null && client.isUsable();
+            }).toList();
+        }
+
+        /**
+         * 应用密钥留空的服务商沿用本设置中的已存密钥（配合后台“只写不回显”脱敏）
+         *
+         * @param bean 表单提交的设置
+         */
+        public void fillStoredSecrets(Oauth bean) {
+            for (String provider : PROVIDERS) {
+                Client submitted = bean.client(provider);
+                Client stored = client(provider);
+                if (submitted != null && stored != null && StringUtils.isBlank(submitted.getClientSecret())) {
+                    submitted.setClientSecret(stored.getClientSecret());
+                }
+            }
+        }
+
+        public Client getWeixin() {
+            return weixin;
+        }
+
+        public void setWeixin(@Nullable Client weixin) {
+            this.weixin = weixin != null ? weixin : new Client();
+        }
+
+        public Client getQq() {
+            return qq;
+        }
+
+        public void setQq(@Nullable Client qq) {
+            this.qq = qq != null ? qq : new Client();
+        }
+
+        public Client getWeibo() {
+            return weibo;
+        }
+
+        public void setWeibo(@Nullable Client weibo) {
+            this.weibo = weibo != null ? weibo : new Client();
+        }
+
+        @Schema(name = "Config.Oauth.Client", description = "第三方登录服务商设置")
+        public static class Client implements Serializable {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            /**
+             * 是否启用
+             */
+            private boolean enabled = false;
+            /**
+             * 应用ID（微信 AppID、QQ APP ID、微博 App Key）。标识类字段，后台可见
+             */
+            @Length(max = 100)
+            private String clientId = "";
+            /**
+             * 应用密钥（微信 AppSecret、QQ APP Key、微博 App Secret）。后台“只写不回显”
+             */
+            @Length(max = 200)
+            private String clientSecret = "";
+
+            /**
+             * 是否可用：已启用且应用ID、应用密钥齐全。登录入口只对可用的服务商显示
+             */
+            @JsonIgnore
+            public boolean isUsable() {
+                return enabled && StringUtils.isNoneBlank(clientId, clientSecret);
+            }
+
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public String getClientId() {
+                return clientId;
+            }
+
+            public void setClientId(@Nullable String clientId) {
+                this.clientId = StringUtils.trimToEmpty(clientId);
+            }
+
+            public String getClientSecret() {
+                return clientSecret;
+            }
+
+            public void setClientSecret(@Nullable String clientSecret) {
+                this.clientSecret = StringUtils.trimToEmpty(clientSecret);
+            }
         }
     }
 
@@ -1749,5 +2604,51 @@ public class Config extends GeneratedConfig {
          * 存储类型：七牛云
          */
         public static final int TYPE_QINIU = 13;
+    }
+
+    /**
+     * 控制台默认外观（docs/spec/console-shell/plan.md D7）：新用户及未在“外观设置”自选外观的用户所见的侧栏风格与主题色，
+     * 登录页也按此着色。用户自选值存于 {@link UserExt.Preferences}，其外观两项为空即跟随此处。
+     * 随 /api/env/config（匿名）与 backend-state 下发；预设色板由控制台维护，此处只校验格式。
+     */
+    @Schema(name = "Config.Console", description = "控制台默认外观")
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Console implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        public static final String SIDEBAR_LIGHT = "light";
+        public static final String SIDEBAR_DARK = "dark";
+        public static final String DEFAULT_THEME_COLOR = "#409eff";
+
+        /**
+         * 默认侧栏风格：light（浅色）| dark（深色）。代码默认深色（docs/spec/console-shell/plan.md D1）
+         */
+        @NotNull
+        @Pattern(regexp = "^(light|dark)$")
+        @Schema(description = "默认侧栏风格：light | dark")
+        private String sidebarTheme = SIDEBAR_DARK;
+        /**
+         * 默认主题色，#rrggbb
+         */
+        @NotNull
+        @Pattern(regexp = "^#[0-9a-fA-F]{6}$")
+        @Schema(description = "默认主题色 #rrggbb")
+        private String themeColor = DEFAULT_THEME_COLOR;
+
+        public String getSidebarTheme() {
+            return sidebarTheme;
+        }
+
+        public void setSidebarTheme(String sidebarTheme) {
+            this.sidebarTheme = sidebarTheme;
+        }
+
+        public String getThemeColor() {
+            return themeColor;
+        }
+
+        public void setThemeColor(String themeColor) {
+            this.themeColor = themeColor;
+        }
     }
 }

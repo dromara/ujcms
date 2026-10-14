@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRefs, PropType } from 'vue';
+import { computed, ref, toRefs, type PropType } from 'vue';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
 import { cropImage, cropAvatar } from '@/api/config';
@@ -13,12 +13,16 @@ const props = defineProps({
   src: { type: String, default: null },
   width: { type: Number, default: null },
   height: { type: Number, default: null },
+  /**
+   * 仅锁定裁剪宽高比（宽/高），不限制输出尺寸；与 width/height 同时给定时以本属性为准
+   */
+  aspectRatio: { type: Number, default: null },
   thumbnailWidth: { type: Number, default: null },
   thumbnailHeight: { type: Number, default: null },
 });
 const emit = defineEmits({ 'update:modelValue': null, success: null });
 
-const { modelValue, type, src, width, height, thumbnailWidth, thumbnailHeight } = toRefs(props);
+const { modelValue, type, src, width, height, aspectRatio, thumbnailWidth, thumbnailHeight } = toRefs(props);
 const visible = computed({
   get: () => modelValue.value,
   set: (val) => emit('update:modelValue', val),
@@ -31,8 +35,8 @@ const cropParam = ref<any>({});
 const initCropper = () => {
   if (imgRef.value) {
     cropper.value = new Cropper(imgRef.value, {
-      aspectRatio: width?.value && height?.value ? width.value / height.value : NaN,
-      autoCropArea: width?.value && height?.value ? 1 : 0.8,
+      aspectRatio: aspectRatio?.value ?? (width?.value && height?.value ? width.value / height.value : NaN),
+      autoCropArea: aspectRatio?.value || (width?.value && height?.value) ? 1 : 0.8,
       viewMode: 1,
       minCropBoxWidth: width?.value ?? 16,
       minCropBoxHeight: height?.value ?? 16,

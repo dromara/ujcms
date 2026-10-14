@@ -1,4 +1,5 @@
 @use './transition.scss';
+@use './element-plus.scss';
 
 html {
   height: 100%;
@@ -17,9 +18,9 @@ body {
 }
 
 // global css
+// 内容区块的唯一外观（docs/spec/console-shell S4）：白底、1px 边线、8px 圆角，不用阴影
 .app-block {
-  @apply shadow-sm;
-  @apply bg-white;
+  @apply bg-white border border-gray-200 rounded-lg;
 }
 
 .inline-form .el-form-item {
@@ -30,4 +31,23 @@ body {
   @apply py-1 px-2 text-xs rounded cursor-pointer text-primary;
   background-color: var(--el-color-primary-light-9);
   border: solid 1px var(--el-color-primary-light-8);
+}
+
+// 命令面板定位到的设置项（console-shell D8）：主色外圈停留片刻后淡出，随主题色变量
+.el-form-item.is-located {
+  border-radius: 4px;
+  animation: locate-field 2s ease-out;
+}
+@keyframes locate-field {
+  0%,
+  60% {
+    outline: 2px solid var(--el-color-primary-light-5);
+    outline-offset: 4px;
+    background-color: var(--el-color-primary-light-9);
+  }
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    background-color: transparent;
+  }
 }

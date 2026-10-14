@@ -22,10 +22,10 @@ import java.util.Map;
  */
 public class ChannelDirective implements TemplateDirectiveModel {
     private static final String SITE_ID = "siteId";
-    private static final String ALIAS = "alias";
+    private static final String SLUG = "slug";
     private static final String ID = "id";
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {
@@ -36,13 +36,13 @@ public class ChannelDirective implements TemplateDirectiveModel {
         if (id != null) {
             channel = channelService.select(id);
         } else {
-            String alias = Directives.getString(params, ALIAS);
-            if (StringUtils.isBlank(alias)) {
-                throw new IllegalArgumentException("Params id or alias is required.");
+            String slug = Directives.getString(params, SLUG);
+            if (StringUtils.isBlank(slug)) {
+                throw new IllegalArgumentException("Params id or slug is required.");
             }
             Long defaultSiteId = Frontends.getSiteId(env);
             Long siteId = Directives.getLong(params, SITE_ID, defaultSiteId);
-            channel = channelService.findBySiteIdAndAlias(siteId, alias);
+            channel = channelService.findBySiteIdAndSlug(siteId, slug);
         }
         loopVars[0] = env.getObjectWrapper().wrap(channel);
         body.render(env.getOut());

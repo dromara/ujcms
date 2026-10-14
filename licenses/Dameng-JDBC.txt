@@ -1,0 +1,24 @@
+Dameng JDBC Using License
+------------------------------------------------------------------------------------------------
+Ownership
+
+DAMENG(DM) or its licensors retain all ownership and intellectual property rights to the Programs.
+
+-------------------------------------------------------------------------------------------------
+Disclaimer of Warranties; Limitation of Liability
+
+Redistribution and use in binary forms, with or without modification, are permitted provided that following conditions are met:
+1. Redistribution in binary form must reproduce the above copyright notice, the list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+
+THE PROGRAMS ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. DAMENG(DM) FURTHER DISCLAIMS ALL WARRANTIES, 
+EXPRESS AND IMPLIED, INCLUDING WITHOUT LIMITATION, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR 
+A PARTICULAR PURPOSE, OR NONINFRINGEMENT.
+
+IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW WILL DAMENG(DM) BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, 
+SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING 
+BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES 
+OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN 
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+Last updated: 10 September 2025

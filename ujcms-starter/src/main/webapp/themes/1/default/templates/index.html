@@ -1,0 +1,60 @@
+[#include '../layout/theme.html'/]
+[#include '../snippets/jsonld.html'/]
+[#assign isHome = true/]
+[#escape x as (x)!?html]
+[#assign extraHead][@websiteJsonLd site/][/#assign]
+[@layout title=site.title keywords=site.seoKeywords!'' description=site.seoDescription!'' extraHead=extraHead]
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-8">
+
+    [#-- 主区域（component-settings §13 区域整并）：原 焦点图轮播（硬编码 BlockItemList）与
+       promos/body/secondary 三个区域收拢为单一 main 区域——轮播组件化为 HeroCarousel 面板
+       （区块内容模式取 focus 区块），由主题种子预置（seed/regions/home.regions.json），
+       可在构建器中编辑/重排；未配置时为无害空壳。 --]
+    [@region name='main'/]
+
+    [#-- 最新文章 --]
+    <section>
+      <h2 class="text-xl font-semibold mb-2">最新文章</h2>
+      [@ArticleList channel='news' isIncludeSubChannel='true' limit=pageSize!10 orderBy='publishDate_desc'; list]
+      <ul id="articleList" class="divide-y divide-slate-200">
+        [#include '../snippets/part_article_items.html'/]
+      </ul>
+      [/@ArticleList]
+      <div class="text-center mt-4">
+        <button
+          id="appendArticlesButton"
+          type="button"
+          class="px-4 py-1.5 rounded border border-primary text-primary text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+          onclick="appendArticles()"
+        >点击加载更多</button>
+      </div>
+      <script nonce="${csp_nonce!''}">
+        function appendArticles() {
+          const btn = document.getElementById('appendArticlesButton');
+          const original = btn.textContent;
+          btn.textContent = '加载中...';
+          fetch('${dy}/app/articles?lastArticleDate=' + encodeURIComponent(window.lastArticleDate || ''))
+            // 非 2xx 返回的是 JSON 错误体：走 catch 还原按钮，不把错误文本插进列表
+            .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.text(); })
+            .then(html => {
+              if (html && html.trim()) {
+                document.getElementById('articleList').insertAdjacentHTML('beforeend', html);
+                btn.textContent = original;
+              } else {
+                btn.textContent = '没有更多了';
+                btn.disabled = true;
+              }
+            })
+            .catch(() => { btn.textContent = original; });
+        }
+      </script>
+    </section>
+
+  </div>
+
+  [#include '../snippets/right.html'/]
+
+</div>
+[/@layout]
+[/#escape]

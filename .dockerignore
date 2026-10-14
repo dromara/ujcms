@@ -1,0 +1,26 @@
+# docker build 上下文：Dockerfile 只需 ujcms-starter/target/*.jar 与 SBOM（target/classes/META-INF/sbom/）、webapp/、docker/（含容器配置
+# docker/application.yaml）以及第三方声明 NOTICE、licenses/。
+# 主题构建时装到 webapp/ 下的 node_modules（~500 MB）不得进入镜像；CI 流水线在构建后也会删除它。
+.git
+_tmp_
+**/node_modules
+**/target
+!ujcms-starter/target/*.jar
+!ujcms-starter/target/classes/META-INF/sbom/application.cdx.json
+
+# 从源码运行（spring-boot:run）时写进 webapp/ 的运行期产物：本机构建镜像时不得带入，否则数据库备份、授权文件、
+# 安装令牌、上传文件等会随 COPY webapp/ 进入镜像，并在容器首次启动时被复制到 /ujcms/static。
+# CI 在干净的检出目录中构建，不受影响。uploads/ 下只有 avatar（默认头像）是源码。
+# 条目与 ujcms-starter/.gitignore 的运行期一节对应，增删时两边同步。
+ujcms-starter/src/main/webapp/WEB-INF/backup
+ujcms-starter/src/main/webapp/WEB-INF/lucene*
+ujcms-starter/src/main/webapp/WEB-INF/license
+ujcms-starter/src/main/webapp/WEB-INF/install-token.txt
+ujcms-starter/src/main/webapp/theme-packages
+ujcms-starter/src/main/webapp/uploads_test
+ujcms-starter/src/main/webapp/uploads/*
+!ujcms-starter/src/main/webapp/uploads/avatar
+ujcms-starter/src/main/webapp/themes/[0-9][0-9][0-9]*
+ujcms-starter/src/main/webapp/articles
+ujcms-starter/src/main/webapp/channels
+ujcms-starter/src/main/webapp/index.html

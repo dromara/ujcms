@@ -17,11 +17,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.SortField;
 import org.springframework.data.annotation.Transient;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.InnerField;
-import org.springframework.data.elasticsearch.annotations.MultiField;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ujcms.cms.core.domain.Site;
@@ -32,7 +28,8 @@ import com.ujcms.common.lucene.StringNormsField;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * WEB页面基类
+ * WEB页面基类。Lucene 与 Elasticsearch（商业版 T3）共用的检索实体，不带任何检索引擎的注解：
+ * Lucene 文档由 {@link #toDocument()} 组装，Elasticsearch 的索引映射由商业模块的文档类承载。
  *
  * @author PONY
  */
@@ -146,49 +143,37 @@ public class WebPage implements Anchor, HighlightDocument, Serializable {
     /**
      * URL地址
      */
-    @Field(type = FieldType.Keyword)
     private String url = "";
     /**
-     * 标题。ik_max_word 不完全包含 ik_smart，会导致某些内容无法搜索，统一使用 ik_max_word
+     * 标题
      */
-    @MultiField(mainField = @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_max_word"),
-            otherFields = {
-                    @InnerField(suffix = "pinyin", type = FieldType.Text, analyzer = "pinyinAnalyzer"),
-            }
-    )
     private String title = "";
     /**
-     * 描述。ik_max_word 不完全包含 ik_smart，会导致某些内容无法搜索，统一使用 ik_max_word
+     * 描述
      */
     @Nullable
-    @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_max_word")
     private String description;
     /**
-     * 正文。ik_max_word 不完全包含 ik_smart，会导致某些内容无法搜索，统一使用 ik_max_word
+     * 正文
      */
     @Nullable
-    @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_max_word")
     private String body;
     /**
      * 图片
      */
     @Nullable
-    @Field(type = FieldType.Keyword, index = false)
     private String image;
     /**
      * 类型
      */
-    @Field(type = FieldType.Keyword)
     private String discType = "";
     /**
      * 是否启用
      */
-    @Field(type = FieldType.Boolean)
     private Boolean enabled = true;
     /**
      * 站点
      */
-    @Field(type = FieldType.Object, index = false)
     private SiteInner site = new SiteInner();
     /**
      * 标题（含高亮标识）
@@ -325,17 +310,14 @@ public class WebPage implements Anchor, HighlightDocument, Serializable {
         /**
          * ID
          */
-        @Field(type = FieldType.Integer)
         private Long id = 0L;
         /**
          * 名称
          */
-        @Field(type = FieldType.Keyword, index = false)
         private String name = "";
         /**
          * URL地址
          */
-        @Field(type = FieldType.Keyword, index = false)
         private String url = "";
 
         public Long getId() {
@@ -384,7 +366,6 @@ public class WebPage implements Anchor, HighlightDocument, Serializable {
         /**
          * 站点层级。从一级站点到当前站点的列表
          */
-        @Field(type = FieldType.Object, index = false)
         private List<SiteBaseInner> paths = new ArrayList<>();
 
         public List<WebPage.SiteBaseInner> getPaths() {

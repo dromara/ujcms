@@ -4,7 +4,7 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;

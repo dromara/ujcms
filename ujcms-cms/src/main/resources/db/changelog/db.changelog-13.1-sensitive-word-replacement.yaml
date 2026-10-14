@@ -1,0 +1,15 @@
+databaseChangeLog:
+  # 敏感词替换词（docs/spec/word-dictionaries/plan.md D2）：9.6 加入后从未被任何代码读取——文章保存是拦截，评论/留言是转待审，
+  # 遮蔽（WordScreeningService.mask）用的是单个遮蔽字符。删除该列；columnExists 守卫令已删列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.1-sensitive-word-replacement-drop
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - columnExists:
+            tableName: ujcms_sensitive_word
+            columnName: replacement_
+      changes:
+        - dropColumn:
+            tableName: ujcms_sensitive_word
+            columnName: replacement_

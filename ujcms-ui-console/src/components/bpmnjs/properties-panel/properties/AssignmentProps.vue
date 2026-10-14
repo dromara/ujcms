@@ -93,7 +93,7 @@ const removeOrgs = () => {
           <el-option v-for="item in roleList" :key="item.id" :label="item.name" :value="item.id" />
         </el-select>
       </el-form-item>
-      <el-form-item v-if="currentUser.epRank >= 3">
+      <el-form-item v-if="currentUser.commercialTier >= 3">
         <template #label><label-tip message="flowable.assignment.candidateOrgs" /></template>
         <el-tree-select
           v-model="propertyOrgIds"
@@ -110,11 +110,11 @@ const removeOrgs = () => {
           @remove-tag="removeOrgs"
         />
       </el-form-item>
-      <el-form-item v-if="currentUser.epRank >= 3">
+      <el-form-item v-if="currentUser.commercialTier >= 3">
         <template #label><label-tip message="flowable.assignment.candidateUsers" /></template>
         <user-select-multi :user-ids="propertyUserIds" @finished="changeUsers" />
       </el-form-item>
-      <el-form-item v-if="currentUser.epRank >= 3">
+      <el-form-item v-if="currentUser.commercialTier >= 3">
         <template #label><label-tip message="flowable.assignment.assignee" help /></template>
         <el-input v-model="propertyAssignee" @change="changeAssignee" />
       </el-form-item>

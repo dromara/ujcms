@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service.args;
 
 import com.ujcms.cms.core.domain.support.EntityConstants;
 import com.ujcms.common.query.BaseQueryArgs;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +15,8 @@ import java.util.Map;
 public class RoleArgs extends BaseQueryArgs {
     public RoleArgs scopeSiteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_1_siteId_Long", siteId);
-            queryMap.put("EQ_1_scope_Short", String.valueOf(EntityConstants.SCOPE_GLOBAL));
+            queryMap.put("EQ_0scope_siteId_Long", siteId);
+            queryMap.put("EQ_0scope_scope_Short", String.valueOf(EntityConstants.SCOPE_GLOBAL));
         }
         return this;
     }

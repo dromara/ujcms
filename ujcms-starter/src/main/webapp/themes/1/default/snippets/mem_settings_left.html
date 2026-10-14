@@ -1,0 +1,128 @@
+[#--
+  mem_settings_* 各页共用的侧栏导航片段。
+  桌面端为分组纵向导航卡片，移动端为横向胶囊行（分组标题仅桌面端显示）。
+  活动项由父模板赋值的 settings 变量决定：[#assign settings = 'profile'/]
+  （'home' / 'profile' / 'avatar' / 'account' / 'favorite' / 'history' / 'comment'
+   / 'follow' / 'friend' / 'message' / 'notification'）。
+  私信/通知未读徽章由本片段独立轮询（60秒；两个 unread-count 端点均为匿名安全的
+  索引扫描，与头部 app/user 轮询并存的开销可忽略，换来片段自治）。
+--]
+[#escape x as (x)!?html]
+[#-- 用户迷你卡片 — 仅桌面端 --]
+<div class="hidden md:flex items-center gap-3 mb-3 p-3 rounded-md border border-slate-200 bg-white">
+  <img
+    src="[#if user.smallAvatar?has_content]${user.smallAvatar}[#else]${config.register.avatar}[/#if]"
+    alt="${user.username}"
+    class="size-12 rounded-full object-cover ring-2 ring-primary/10 shrink-0"
+  >
+  <div class="min-w-0 flex-1">
+    <p class="font-semibold truncate">[#if user.nickname?has_content]${user.nickname}[#else]${user.username}[/#if]</p>
+    [#if user.nickname?has_content]
+      <p class="text-xs text-slate-500 truncate">@${user.username}</p>
+    [/#if]
+  </div>
+</div>
+
+[#-- 导航：md+ 分组纵向卡片，移动端横向滚动胶囊行 --]
+<nav
+  x-data="{
+    msgUnread: 0, notifUnread: 0,
+    fmt(n) { return n > 99 ? '99+' : String(n); },
+    async poll() {
+      try {
+        const r = await fetch('${api}/conversation/unread-count', { credentials: 'include' });
+        if (r.ok) this.msgUnread = Number(await r.text()) || 0;
+      } catch (e) { /* 静默 */ }
+      try {
+        const r = await fetch('${api}/notification/unread-count', { credentials: 'include' });
+        if (r.ok) this.notifUnread = Number(await r.text()) || 0;
+      } catch (e) { /* 静默 */ }
+    }
+  }"
+  x-init="poll(); setInterval(() => poll(), 60000)"
+  class="md:rounded-md md:border md:border-slate-200 md:bg-white flex md:block gap-2 md:gap-0 overflow-x-auto md:overflow-hidden -mx-4 md:mx-0 px-4 md:px-0 pb-2 md:pb-0"
+  aria-label="设置导航"
+>
+  [#assign navClass = 'flex items-center gap-2 px-4 py-2.5 text-sm whitespace-nowrap shrink-0 md:shrink transition-colors'/]
+  [#assign activeClass = 'bg-primary text-primary-foreground font-semibold rounded-full md:rounded-none'/]
+  [#assign idleClass = 'rounded-full md:rounded-none border border-slate-200 md:border-0 hover:bg-slate-50 hover:text-primary'/]
+  [#assign groupClass = 'hidden md:block px-4 pt-3 pb-1 text-xs text-slate-400 border-t border-slate-100 first:border-t-0'/]
+
+  <a href="${def}/settings"
+     [#if settings == 'home']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'home']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'dashboard-outline'/]</span>
+    <span>概览</span>
+  </a>
+
+  <span class="${groupClass}">资料设置</span>
+  <a href="${def}/settings/profile"
+     [#if settings == 'profile']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'profile']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'manage-accounts-outline'/]</span>
+    <span>基本设置</span>
+  </a>
+  <a href="${def}/settings/avatar"
+     [#if settings == 'avatar']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'avatar']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'image-outline'/]</span>
+    <span>头像设置</span>
+  </a>
+  <a href="${def}/settings/account"
+     [#if settings == 'account']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'account']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'lock-outline'/]</span>
+    <span>账号设置</span>
+  </a>
+
+  <span class="${groupClass}">我的内容</span>
+  <a href="${def}/settings/favorite"
+     [#if settings == 'favorite']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'favorite']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'star-outline'/]</span>
+    <span>我的收藏</span>
+  </a>
+  <a href="${def}/settings/history"
+     [#if settings == 'history']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'history']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'history'/]</span>
+    <span>最近浏览</span>
+  </a>
+  <a href="${def}/settings/comment"
+     [#if settings == 'comment']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'comment']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'comment-outline'/]</span>
+    <span>我的评论</span>
+  </a>
+
+  <span class="${groupClass}">社交</span>
+  <a href="${def}/settings/follow"
+     [#if settings == 'follow']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'follow']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'rss-feed'/]</span>
+    <span>我的关注</span>
+  </a>
+  <a href="${def}/settings/friend"
+     [#if settings == 'friend']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'friend']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'group-outline'/]</span>
+    <span>我的好友</span>
+  </a>
+  <a href="${def}/settings/message"
+     [#if settings == 'message']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'message']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'forum-outline'/]</span>
+    <span>我的私信</span>
+    <span x-show="msgUnread > 0" x-cloak x-text="fmt(msgUnread)"
+          class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs leading-none"></span>
+  </a>
+  <a href="${def}/settings/notification"
+     [#if settings == 'notification']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'notification']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'notifications-outline'/]</span>
+    <span>通知</span>
+    <span x-show="notifUnread > 0" x-cloak x-text="fmt(notifUnread)"
+          class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs leading-none"></span>
+  </a>
+</nav>
+[/#escape]

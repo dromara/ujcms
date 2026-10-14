@@ -14,6 +14,7 @@ import com.ujcms.common.file.FileHandler;
 import com.ujcms.common.image.ImageHandler;
 import com.ujcms.common.image.Images;
 import com.ujcms.common.image.ResizeMode;
+import com.ujcms.common.ip.IpAddresses;
 import com.ujcms.common.web.PathResolver;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Uploads;
@@ -21,6 +22,7 @@ import com.ujcms.common.web.exception.Http400Exception;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.validator.routines.DomainValidator;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -210,6 +211,52 @@ public class UploadController extends AbstractUploadController {
         return doUpload(request, upload.getFileLimitByte(), upload.getFileTypes(), FILE_TYPE, null);
     }
 
+    /**
+     * 资源库/附件管理通用上传：按扩展名自动判定类型（图片/视频/音频/文档/其他文件），复用对应类型的限制、
+     * 白名单与处理逻辑；并按需加入共享/我的资源库（可同时加入两者）。
+     *
+     * @param scope       库范围（单选，资源库各标签页定向上传）：shared 加入共享，my 加入我的，其它/空仅登记为附件
+     * @param addToMy     是否加入我的资源库（与 scope 并存，支持同时加入两个库）
+     * @param addToShared 是否加入共享资源库（与 scope 并存，支持同时加入两个库）
+     * @param categoryId  资源库分类ID（共享分类/个人分类；空或 0 归入“未分类”；同时加入两库时两者共用）
+     */
+    @PostMapping("management-upload")
+    @PreAuthorize("hasAnyAuthority('attachment:create','*')")
+    public Map<String, Object> managementUpload(@RequestParam(required = false) String scope,
+                                                @RequestParam(required = false) Boolean addToMy,
+                                                @RequestParam(required = false) Boolean addToShared,
+                                                @RequestParam(required = false) Long categoryId,
+                                                HttpServletRequest request) throws IOException {
+        Config.Upload upload = configService.getUnique().getUpload();
+        String extension = FilenameUtils.getExtension(getMultipart(request).getOriginalFilename());
+        Map<String, Object> result;
+        if (Uploads.isValidType(upload.getImageTypes(), extension)) {
+            result = imageUpload(null, null, null, null, null, null, request);
+        } else if (Uploads.isValidType(upload.getVideoTypes(), extension)) {
+            result = videoUpload(null, null, request);
+        } else if (Uploads.isValidType(upload.getAudioTypes(), extension)) {
+            result = audioUpload(null, request);
+        } else if (Uploads.isValidType(upload.getDocTypes(), extension)) {
+            result = docUpload(request);
+        } else {
+            // 兜底为“其他文件”，仍受 fileTypes 白名单约束（不在白名单则 doUpload 抛 400）
+            result = fileUpload(request);
+        }
+        Attachment attachment = attachmentService.findByUrl((String) result.get("url"));
+        if (attachment != null) {
+            // scope 为旧的单选语义；addToMy/addToShared 支持同时加入两个库（互不排斥）
+            boolean toShared = "shared".equalsIgnoreCase(scope) || Boolean.TRUE.equals(addToShared);
+            boolean toMy = "my".equalsIgnoreCase(scope) || Boolean.TRUE.equals(addToMy);
+            if (toShared) {
+                attachmentService.share(attachment.getId(), categoryId);
+            }
+            if (toMy) {
+                attachmentService.categorizeFavorite(attachment.getId(), Contexts.getCurrentUser().getId(), categoryId);
+            }
+        }
+        return result;
+    }
+
     @PostMapping("avatar-upload")
     @PreAuthorize("hasAnyAuthority('backend','*')")
     public Map<String, Object> avatarUpload(HttpServletRequest request) throws IOException {
@@ -279,39 +326,15 @@ public class UploadController extends AbstractUploadController {
         List<String> whiteList = security.getSsrfList();
         try {
             URL src = new URL(source);
-            // 只支持 http 和 https 协议
+            String rejected = checkFetchUrl(src, whiteList);
+            if (rejected != null) {
+                return Responses.failure(rejected);
+            }
             String protocol = src.getProtocol();
-            String httpProtocol = "http";
-            String httpsProtocol = "https";
-            if (!httpProtocol.equals(protocol) && !httpsProtocol.equals(protocol)) {
-                return Responses.failure("Only supports http and https protocols: " + protocol);
-            }
-            // 只允许默认端口
-            int port = src.getPort();
-            if (port != -1) {
-                return Responses.failure("Only default port is allowed: " + port);
-            }
             String host = src.getHost();
-            // 域名是否合法
-            if (!DomainValidator.getInstance(true).isValid(host)) {
-                return Responses.failure("Host is not valid: " + host);
-            }
-            // 是否在白名单内
-            boolean inWhiteList = false;
-            for (String domain : whiteList) {
-                // 允许使用顶级域名
-                if (domain.equals(SSRF_WILDCARD) || host.equals(domain) || host.endsWith("." + domain)) {
-                    inWhiteList = true;
-                    break;
-                }
-            }
-            if (!inWhiteList) {
-                return Responses.failure("Host not in whitelist: " + host);
-            }
-            // 禁止访问本地网络
-            InetAddress inetAddress = InetAddress.getByName(host);
-            if (inetAddress.isSiteLocalAddress() || inetAddress.isAnyLocalAddress() ||
-                    inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
+            // 禁止访问内网：解析域名全部地址，任一命中即拒绝（IPv4 与 IPv6 内网段、唯一本地地址等均覆盖）；
+            // 无法解析时抛出，落入下方 catch 一并拒绝。此检查必须在白名单之后、且不受白名单豁免
+            if (IpAddresses.isInternalHost(host)) {
                 return Responses.failure("Block access to local network: " + host);
             }
             // 使用UriComponentsBuilder重新构建url，防止攻击
@@ -341,5 +364,40 @@ public class UploadController extends AbstractUploadController {
             logger.error("Image cache error!", e);
             return Responses.failure("Image cache error!");
         }
+    }
+
+    /**
+     * 远程图片地址校验（不做 DNS 解析）：仅 http/https、仅默认端口、域名合法（IP 字面量不合法）且在 SSRF 白名单内。
+     * 内网地址判定见 {@link IpAddresses#isInternalHost}，由调用处在本校验通过后执行。
+     *
+     * @return 拒绝原因；通过返回 {@code null}
+     */
+    @Nullable
+    static String checkFetchUrl(URL src, List<String> whiteList) {
+        // 只支持 http 和 https 协议
+        String protocol = src.getProtocol();
+        String httpProtocol = "http";
+        String httpsProtocol = "https";
+        if (!httpProtocol.equals(protocol) && !httpsProtocol.equals(protocol)) {
+            return "Only supports http and https protocols: " + protocol;
+        }
+        // 只允许默认端口
+        int port = src.getPort();
+        if (port != -1) {
+            return "Only default port is allowed: " + port;
+        }
+        String host = src.getHost();
+        // 域名是否合法
+        if (!DomainValidator.getInstance(true).isValid(host)) {
+            return "Host is not valid: " + host;
+        }
+        // 是否在白名单内
+        for (String domain : whiteList) {
+            // 允许使用顶级域名
+            if (domain.equals(SSRF_WILDCARD) || host.equals(domain) || host.endsWith("." + domain)) {
+                return null;
+            }
+        }
+        return "Host not in whitelist: " + host;
     }
 }

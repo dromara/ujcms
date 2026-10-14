@@ -1,0 +1,134 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'profile'/]
+[#escape x as (x)!?html]
+[@layout title='基本设置 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings/profile" class="cm-link text-slate-700">设置</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">基本设置</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6">
+      <header class="pb-4 mb-5 border-b border-slate-200">
+        <h1 class="flex items-center gap-2 text-lg sm:text-xl font-semibold">
+          <span class="size-5 inline-block text-primary">[@icon 'manage-accounts-outline'/]</span>
+          <span>基本设置</span>
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">完善个人信息，让其他用户更了解你</p>
+      </header>
+
+      <form
+        class="max-w-xl space-y-5"
+        x-data="{
+          nickname: '${((user.nickname)!'')?js_string}',
+          realName: '${((user.realName)!'')?js_string}',
+          gender: '${(user.gender!0)?c}',
+          birthday: '[#if user.birthday??]${format(user.birthday, 'yyyy-MM-dd')}[/#if]',
+          location: '${((user.location)!'')?js_string}',
+          bio: '${((user.bio)!'')?js_string}',
+          submitting: false,
+          async submit() {
+            if (this.submitting) return;
+            this.submitting = true;
+            try {
+              await window.fetchCsrf();
+              const body = {
+                nickname: this.nickname || null,
+                realName: this.realName || null,
+                gender: this.gender ? parseInt(this.gender, 10) : 0,
+                birthday: this.birthday ? this.birthday + 'T00:00:00Z' : null,
+                location: this.location || null,
+                bio: this.bio || null,
+              };
+              await window.request('PUT', '${api}/settings/profile', body);
+              window.displaySuccess('保存成功');
+            } catch (e) {
+              window.displayAlert(e.message || '保存失败');
+            } finally {
+              this.submitting = false;
+            }
+          }
+        }"
+        @submit.prevent="submit"
+      >
+        <div>
+          <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5">用户名</label>
+          <div class="relative">
+            <input id="username" type="text" value="${user.username}" disabled
+                   class="block w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 pr-10 text-base sm:text-sm text-slate-500 cursor-not-allowed">
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 size-4 inline-block text-slate-400" title="不可修改">[@icon 'lock-outline'/]</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-500">用户名一旦设定不可修改</p>
+        </div>
+
+        <div>
+          <label for="nickname" class="block text-sm font-medium text-slate-700 mb-1.5">昵称</label>
+          <input id="nickname" type="text" maxlength="50" placeholder="给自己取个昵称" x-model="nickname"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+        </div>
+
+        <div>
+          <label for="realName" class="block text-sm font-medium text-slate-700 mb-1.5">真实姓名</label>
+          <input id="realName" type="text" maxlength="50" x-model="realName"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="gender" class="block text-sm font-medium text-slate-700 mb-1.5">性别</label>
+            <select id="gender" x-model="gender"
+                    class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+              <option value="0">保密</option>
+              <option value="1">男</option>
+              <option value="2">女</option>
+            </select>
+          </div>
+          <div>
+            <label for="birthday" class="block text-sm font-medium text-slate-700 mb-1.5">出生日期</label>
+            <input id="birthday" type="date" x-model="birthday"
+                   class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label for="location" class="block text-sm font-medium text-slate-700 mb-1.5">居住地</label>
+          <input id="location" type="text" maxlength="150" placeholder="例如：北京 朝阳区" x-model="location"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+        </div>
+
+        <div>
+          <label for="bio" class="block text-sm font-medium text-slate-700 mb-1.5">个人简介</label>
+          <textarea id="bio" rows="3" maxlength="500" placeholder="一句话介绍下自己" x-model="bio"
+                    class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors resize-y"></textarea>
+          <p class="mt-1 text-xs text-slate-500"><span x-text="bio.length"></span>/500</p>
+        </div>
+
+        <div class="pt-2 flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3">
+          <button type="submit" :disabled="submitting"
+                  class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+            <span x-show="!submitting">保存修改</span>
+            <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+              <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+              <span>保存中…</span>
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+[/@layout]
+[/#escape]

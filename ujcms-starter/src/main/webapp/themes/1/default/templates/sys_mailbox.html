@@ -1,0 +1,163 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'mailbox'/]
+[#assign mbUrl = dy + '/mailbox'/]
+[#assign typeLabels = {'1':'咨询','2':'建议','3':'投诉','4':'求助','5':'表扬'}/]
+[#assign typeParam = Params.type!''/]
+[#assign mailboxTypeIdParam = Params.mailboxTypeId!''/]
+[@layout title='领导信箱 - ' + site.title keywords='领导信箱,' + (site.seoKeywords!'') description=site.seoDescription!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">领导信箱</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-5">
+  <div class="flex flex-wrap justify-between items-baseline gap-2 border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'mail-outline'/]</span>
+      <a href="${mbUrl}" class="cm-link">领导信箱</a>
+    </h1>
+    <div class="flex gap-2">
+      <a href="${mbUrl}/query"
+         class="px-3 py-1.5 rounded border border-primary text-primary text-sm hover:bg-primary/5">信件查询</a>
+      <a href="${mbUrl}/create"
+         class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">我要写信</a>
+    </div>
+  </div>
+
+  [#-- 写信须知 --]
+  <div class="rounded-lg border border-slate-200 bg-slate-50 p-5">
+    <h2 class="font-semibold mb-2">写信须知</h2>
+    <ol class="list-decimal pl-5 space-y-1 text-sm text-slate-600">
+      <li>本信箱受理对本机关工作的咨询、建议、投诉、求助和表扬。请如实填写姓名和联系电话，以便工作人员核实和反馈。</li>
+      <li>来信将在收到后及时登记受理，原则上自受理之日起${site.mailbox.handlingDays}个工作日内予以答复；情况复杂的，可延长至${site.mailbox.extendedDays}个工作日；无法办理的，将解释说明。</li>
+      <li>涉及诉讼、仲裁、纪检监察等法定途径事项，或内容不清、无法核实的来信，将退回并说明原因。</li>
+      <li>提交成功后，请务必保存好信件编号和查询码，以便查询办理进度、答复结果并进行满意度评价。</li>
+      <li>经您同意公开的来信，答复后可能选登于本页面，选登时将对您的姓名作脱敏处理，不显示联系方式。</li>
+    </ol>
+  </div>
+
+  [#-- 信件选登 --]
+  <div class="space-y-4">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">信件选登</h2>
+
+    [@MailboxTypeList; mailboxTypeList]
+    [#if mailboxTypeList?size gt 0]
+      <div class="flex flex-wrap gap-2 text-sm">
+        [#if mailboxTypeIdParam == '']
+          <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">全部信箱</span>
+        [#else]
+          <a href="${addParam(mbUrl, mbUrl, 'mailboxTypeId')}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">全部信箱</a>
+        [/#if]
+        [#list mailboxTypeList as mailboxType]
+          [#assign mtIdStr = mailboxType.id?c/]
+          [#if mailboxTypeIdParam == mtIdStr]
+            <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">${mailboxType.name}</span>
+          [#else]
+            <a href="${addParam(mbUrl, mbUrl, 'mailboxTypeId', mtIdStr)}"
+               class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">${mailboxType.name}</a>
+          [/#if]
+        [/#list]
+      </div>
+    [/#if]
+    [/@MailboxTypeList]
+
+    <div class="flex flex-wrap gap-2 text-sm">
+      [#if typeParam == '']
+        <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">全部类型</span>
+      [#else]
+        <a href="${addParam(mbUrl, mbUrl, 'type')}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">全部类型</a>
+      [/#if]
+      [#list typeLabels as key, label]
+        [#if typeParam == key]
+          <span class="px-2.5 py-1 rounded bg-primary text-primary-foreground">${label}</span>
+        [#else]
+          <a href="${addParam(mbUrl, mbUrl, 'type', key)}" class="px-2.5 py-1 rounded text-primary hover:bg-slate-100">${label}</a>
+        [/#if]
+      [/#list]
+    </div>
+
+    [@MailboxPage isPublished='true' type=typeParam mailboxTypeId=mailboxTypeIdParam limit='10'; pagedList]
+    [#if pagedList.totalElements == 0]
+      <p class="py-8 text-center text-slate-500">暂无选登信件</p>
+    [#else]
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+          <tr class="border-b border-slate-200 text-left text-slate-500">
+            <th scope="col" class="py-2 pr-3 font-medium">信件标题</th>
+            <th scope="col" class="py-2 px-3 font-medium whitespace-nowrap">类型</th>
+            <th scope="col" class="py-2 px-3 font-medium whitespace-nowrap">办理单位</th>
+            <th scope="col" class="py-2 px-3 font-medium whitespace-nowrap">来信时间</th>
+            <th scope="col" class="py-2 pl-3 font-medium whitespace-nowrap">答复时间</th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+          [#list pagedList.content as bean]
+          <tr class="hover:bg-slate-50">
+            <td class="py-2.5 pr-3 max-w-xs truncate">
+              <a href="${mbUrl}/${bean.id?c}" class="cm-link">${bean.title}</a>
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs">${typeLabels[bean.type?string]!}</span>
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${bean.site.name}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap text-slate-500">${format(bean.created, 'yyyy-MM-dd')}</td>
+            <td class="py-2.5 pl-3 whitespace-nowrap text-slate-500">[#if bean.replyDate??]${format(bean.replyDate, 'yyyy-MM-dd')}[#else]—[/#if]</td>
+          </tr>
+          [/#list]
+          </tbody>
+        </table>
+      </div>
+
+      [#include '../snippets/page.html'/]
+    [/#if]
+    [/@MailboxPage]
+  </div>
+
+  [#-- 我的信件（仅登录时显示，最近10封；查询答复详情请前往信件查询页） --]
+  [#if user??]
+  <div class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">我的信件</h2>
+    [@MailboxList userId=user.id limit='10'; myList]
+    [#if myList?size == 0]
+      <p class="py-4 text-sm text-slate-500">暂无来信记录</p>
+    [#else]
+      <ul class="divide-y divide-slate-100">
+        [#list myList as bean]
+        <li class="py-3 space-y-1.5">
+          <div class="flex items-center gap-2 text-sm">
+            <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs shrink-0">${typeLabels[bean.type?string]!}</span>
+            <span class="flex-1 truncate font-medium">${bean.title}</span>
+            [#switch bean.status]
+              [#case 0]<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs shrink-0">待受理</span>[#break]
+              [#case 1]<span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs shrink-0">已受理[#if bean.extended]·延期[/#if]</span>[#break]
+              [#case 2]<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-xs shrink-0">已退回</span>[#break]
+              [#case 3]<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs shrink-0">已答复</span>[#break]
+            [/#switch]
+          </div>
+          <div class="flex justify-between text-xs text-slate-500">
+            <span>信件编号：${bean.id?c}</span>
+            <span class="inline-flex items-center gap-1">
+              <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+              ${format(bean.created, 'yyyy-MM-dd')}
+            </span>
+          </div>
+        </li>
+        [/#list]
+      </ul>
+    [/#if]
+    [/@MailboxList]
+    <p class="text-sm text-slate-500">查看答复详情和满意度评价请前往
+      <a href="${mbUrl}/query" class="cm-link">信件查询</a> 页面，凭信件编号和查询码查询。</p>
+  </div>
+  [/#if]
+</div>
+[/@layout]
+[/#escape]

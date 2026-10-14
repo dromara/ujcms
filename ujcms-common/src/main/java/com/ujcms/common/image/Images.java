@@ -10,7 +10,7 @@ import javax.imageio.stream.ImageInputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 图片工具类
@@ -21,7 +21,7 @@ import org.springframework.lang.Nullable;
  * JDK支持的写入格式 ImageIO.getWriterFormatNames();
  * JDK8支持的格式有jpg, jpeg, png, gif, bmp, webp
  *
- * @author liufang
+ * @author PONY
  */
 public class Images {
     /**

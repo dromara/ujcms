@@ -1,0 +1,15 @@
+{
+  "name": "Vote",
+  "version": "1.0.0",
+  "description": "展示指定的投票。",
+  "label": { "zh-CN": "投票", "en": "Vote" },
+  "tags": ["region", "aside", "interaction"],
+  "presentation": { "icon": "list", "group": { "zh-CN": "互动组件", "en": "Interaction" }, "order": 10, "thumbnail": "thumbnails/vote.svg" },
+  "settings": {
+    "title": { "type": "text", "max": 150, "default": "投票", "label": { "zh-CN": "栏目标题", "en": "Section title" } },
+    "vote": { "type": "voteRef", "label": { "zh-CN": "投票", "en": "Vote" },
+              "help": { "zh-CN": "留空显示最新投票", "en": "Empty = latest vote" } },
+    "showResults": { "type": "boolean", "default": true,
+                     "label": { "zh-CN": "显示「查看结果」", "en": "Show results link" } }
+  }
+}

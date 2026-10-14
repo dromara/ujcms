@@ -1,0 +1,82 @@
+databaseChangeLog:
+  # 区块重设计（原 11.1 部分内容；docs/spec/block-design/plan.md）：
+  #   1. ujcms_block 由 with_*/…_required_/…_width_ 等逐字段开关改为区块项模型驱动
+  #      （block_item_model_id_ → ujcms_model），并增加公开标题/分类/“更多”链接。
+  #   2. ujcms_block_item 增加发布时间窗与自定义字段 JSON 列。
+  #   区块来源三元组（origin_ 等）见 db.changelog-13.0-seed-origin.yaml。
+
+  - changeSet:
+      id: 13.0-block-redesign
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_block
+            columns:
+              - column:
+                  name: block_item_model_id_
+                  remarks: 区块项模型ID
+                  type: BIGINT
+              - column:
+                  name: category_
+                  remarks: 区块分类
+                  type: VARCHAR(150)
+              - column:
+                  name: title_
+                  remarks: 公开显示的板块标题
+                  type: VARCHAR(450)
+              - column:
+                  name: more_url_
+                  remarks: '"更多"链接'
+                  type: VARCHAR(255)
+        - addForeignKeyConstraint:
+            baseColumnNames: block_item_model_id_
+            baseTableName: ujcms_block
+            constraintName: fk_block_model_block_item
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_model
+            validate: true
+        - dropColumn:
+            tableName: ujcms_block
+            columns:
+              - column: { name: with_link_url_ }
+              - column: { name: with_subtitle_ }
+              - column: { name: with_description_ }
+              - column: { name: with_image_ }
+              - column: { name: with_mobile_image_ }
+              - column: { name: with_video_ }
+              - column: { name: link_url_required_ }
+              - column: { name: subtitle_required_ }
+              - column: { name: description_required_ }
+              - column: { name: image_required_ }
+              - column: { name: mobile_image_required_ }
+              - column: { name: video_required_ }
+              - column: { name: image_width_ }
+              - column: { name: image_height_ }
+              - column: { name: mobile_image_width_ }
+              - column: { name: mobile_image_height_ }
+
+  - changeSet:
+      id: 13.0-block-item-additions
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_block_item
+            columns:
+              - column:
+                  name: start_date_
+                  remarks: 发布开始时间
+                  type: DATETIME
+              - column:
+                  name: end_date_
+                  remarks: 发布结束时间
+                  type: DATETIME
+              - column:
+                  name: mains_json_
+                  remarks: 自定义主字段JSON
+                  type: JSON
+              - column:
+                  name: clobs_json_
+                  remarks: 自定义大字段JSON
+                  type: JSON

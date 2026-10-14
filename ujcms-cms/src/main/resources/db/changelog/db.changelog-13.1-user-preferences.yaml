@@ -1,0 +1,21 @@
+databaseChangeLog:
+  # 控制台个人偏好（docs/spec/console-shell/plan.md）：侧栏风格、主题色、首页常用功能与隐藏区块，按用户存于
+  # ujcms_user_ext.preferences_（JSON 文本，MEDIUMTEXT，与各 *_settings_ 列同型，MyBatis jdbcType=LONGVARCHAR）。
+  # 13.0 已发布，故以升级变更集加列；columnExists 守卫令开发期已加列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.1-user-preferences
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_user_ext
+                columnName: preferences_
+      changes:
+        - addColumn:
+            tableName: ujcms_user_ext
+            columns:
+              - column:
+                  name: preferences_
+                  remarks: 控制台偏好JSON
+                  type: MEDIUMTEXT

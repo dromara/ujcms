@@ -15,7 +15,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
@@ -95,9 +95,9 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         Collection<Long> channelIds = Optional.ofNullable(getLongs(params, CHANNEL_ID))
                 .orElse(Collections.emptyList());
         if (CollectionUtils.isEmpty(channelIds)) {
-            Collection<String> channelAlias = getStrings(params, CHANNEL);
-            if (CollectionUtils.isNotEmpty(channelAlias)) {
-                channelIds = channelService.listBySiteIdAndAlias(siteId, channelAlias, isIncludeSubSite)
+            Collection<String> channelSlugs = getStrings(params, CHANNEL);
+            if (CollectionUtils.isNotEmpty(channelSlugs)) {
+                channelIds = channelService.listBySiteIdAndSlug(siteId, channelSlugs, isIncludeSubSite)
                         .stream().map(GeneratedChannel::getId).toList();
             }
         }
@@ -138,7 +138,9 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         }
 
         Collection<Short> status = getShorts(params, STATUS);
-        if (status == null) {
+        // 没有给状态、或给了空值（status=''）都是已发布。空集合以前被当成“不限状态”：模板里一个空变量，
+        // 草稿、已删除的文章就都列出来了
+        if (CollectionUtils.isEmpty(status)) {
             status = Collections.singletonList(Article.STATUS_PUBLISHED);
         }
         args.status(status);
@@ -178,7 +180,7 @@ public class ArticleListDirective implements TemplateDirectiveModel {
         body.render(env.getOut());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

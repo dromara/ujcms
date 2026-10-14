@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service.args;
 
 import com.ujcms.common.query.BaseQueryArgs;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,8 +35,8 @@ public class SiteArgs extends BaseQueryArgs {
 
     public SiteArgs parentIdAndSelf(@Nullable Long parentId) {
         if (parentId != null) {
-            queryMap.put("EQ_1_parentId_Long", parentId);
-            queryMap.put("EQ_1_id_Long", parentId);
+            queryMap.put("EQ_0tree_parentId_Long", parentId);
+            queryMap.put("EQ_0tree_id_Long", parentId);
         }
         return this;
     }

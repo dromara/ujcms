@@ -1,0 +1,28 @@
+[#--
+  面板片段：视频卡片（VideoCards）。设置驱动组件（component-settings §4.1）：视频栏目文章渲染为
+  缩略图卡片（播放图标 + 时长角标）。复刻原 inc_right 精彩视频模块的视觉。
+--]
+[#escape x as (x)!?html]
+[#if (settings.title)?has_content]
+<h5 class="flex items-center gap-2 text-base font-semibold mb-4">
+  <span class="size-5 text-primary inline-block">[@icon 'movie-outline'/]</span>
+  [#if (settings.moreUrl.url)?has_content]<a href="${settings.moreUrl.url}"[#if (settings.moreUrl.targetBlank)!false] target="_blank"[/#if] class="cm-link">${settings.title}</a>[#else]<span>${settings.title}</span>[/#if]
+</h5>
+[/#if]
+[#if items?size gt 0]
+<div class="space-y-4">
+  [#list items as item]
+    <div class="space-y-1">
+      <a href="${item.link.url}"[#if (item.link.targetBlank)!false] target="_blank"[/#if] class="block relative overflow-hidden rounded">
+        [#if (item.image.url)?has_content]<img src="${item.image.url}" alt="${item.headline}" class="w-full aspect-video object-cover" loading="lazy" decoding="async">[/#if]
+        <div class="absolute inset-x-0 bottom-0 px-2 py-1 bg-gradient-to-t from-black/70 to-transparent text-white text-xs flex justify-between">
+          <span class="size-4 inline-block">[@icon 'play-circle-outline'/]</span>
+          [#if (item.duration)?has_content]<span>${item.duration}</span>[/#if]
+        </div>
+      </a>
+      <a href="${item.link.url}"[#if (item.link.targetBlank)!false] target="_blank"[/#if] class="cm-link text-sm">${item.headline}</a>
+    </div>
+  [/#list]
+</div>
+[/#if]
+[/#escape]

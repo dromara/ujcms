@@ -3,7 +3,7 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [        
+    "configurations": [
         {
             "type": "java",
             "name": "Current File",
@@ -12,22 +12,10 @@
         },
         {
             "type": "java",
-            "name": "App_main",
+            "name": "Application",
             "request": "launch",
             "mainClass": "com.ujcms.cms.starter.Application",
-            "vmArgs": "-Dujcms.boot=false -Dspring.profiles.active=main",
-            "projectName": "ujcms-starter",
-            "cwd": "${workspaceFolder}/ujcms-starter"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "UI_Console",
-            "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["dev"],
-            "cwd": "${workspaceFolder}/ujcms-ui-console",
-            "console": "integratedTerminal",
-            "skipFiles": ["<node_internals>/**"]
+            "projectName": "ujcms-starter"
         }
     ]
 }

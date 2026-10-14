@@ -1,0 +1,42 @@
+[#--
+  分页片段：适用于所有以 Spring Page（pagedList）+ 1 基页码（page）+ paging() 方法
+  为契约的分页页面（[@ArticlePage] / [@TagPage] / [@EsArticlePage] 等）。
+  链接由 ${paging(p)} 生成（PagingMethod，按当前 URL 规则拼页码参数）。
+--]
+[#escape x as (x)!?html]
+[#if pagedList.totalPages gt 1]
+  <nav aria-label="分页" class="flex justify-center mt-6">
+    <ul class="inline-flex items-center gap-1 text-sm">
+      [#-- 首页 / 上一页 --]
+      [#if pagedList.hasPrevious()]
+        <li><a href="${paging(1)}" class="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-100">首页</a></li>
+        <li><a href="${paging(page-1)}" class="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-100">上一页</a></li>
+      [#else]
+        <li><span class="px-3 py-1.5 rounded border border-slate-300 text-slate-400" aria-disabled="true">首页</span></li>
+        <li><span class="px-3 py-1.5 rounded border border-slate-300 text-slate-400" aria-disabled="true">上一页</span></li>
+      [/#if]
+
+      [#-- 5 页滑动窗口 --]
+      [#assign start=page-2/][#if start lt 1][#assign start=1/][/#if]
+      [#assign end=start+4/][#if end gt pagedList.totalPages][#assign end=pagedList.totalPages/][/#if][#if end lt 1][#assign end=1/][/#if]
+      [#if end-start lt 4][#assign start=end-4/][/#if][#if start lt 1][#assign start=1/][/#if]
+      [#list start..end as p]
+        [#if p == page]
+          <li><span class="px-3 py-1.5 rounded bg-primary text-primary-foreground" aria-current="page">${p}</span></li>
+        [#else]
+          <li><a href="${paging(p)}" class="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-100">${p}</a></li>
+        [/#if]
+      [/#list]
+
+      [#-- 下一页 / 末页 --]
+      [#if pagedList.hasNext()]
+        <li><a href="${paging(page+1)}" class="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-100">下一页</a></li>
+        <li><a href="${paging(pagedList.totalPages)}" class="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-100">末页</a></li>
+      [#else]
+        <li><span class="px-3 py-1.5 rounded border border-slate-300 text-slate-400" aria-disabled="true">下一页</span></li>
+        <li><span class="px-3 py-1.5 rounded border border-slate-300 text-slate-400" aria-disabled="true">末页</span></li>
+      [/#if]
+    </ul>
+  </nav>
+[/#if]
+[/#escape]

@@ -1,0 +1,9 @@
+{
+  "name": "article",
+  "label": { "zh-CN": "文章页", "en": "Article" },
+  "order": 30,
+  "template": ["article", "article_product", "article_download", "article_wenku"],
+  "slots": {
+    "aside": { "kind": "region", "shared": "site" }
+  }
+}

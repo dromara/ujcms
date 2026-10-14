@@ -1,0 +1,229 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783235716256-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 信件ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 写信用户ID
+                  type: BIGINT
+              - column:
+                  name: reply_user_id_
+                  remarks: 答复用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 信件类型(1:咨询,2:建议,3:投诉,4:求助,5:表扬)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 信件标题
+                  type: VARCHAR(450)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 写信人姓名
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: phone_
+                  remarks: 联系电话
+                  type: VARCHAR(50)
+              - column:
+                  name: email_
+                  remarks: 电子邮箱
+                  type: VARCHAR(50)
+              - column:
+                  name: address_
+                  remarks: 联系地址
+                  type: VARCHAR(450)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: agree_published_
+                  remarks: 是否同意公开选登
+                  type: CHAR(1)
+              - column:
+                  name: text_
+                  remarks: 来信内容
+                  type: MEDIUMTEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: code_
+                  remarks: 查询码
+                  type: VARCHAR(32)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:待受理,1:已受理,2:已退回,3:已答复)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: extended_
+                  remarks: 是否延期
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: published_
+                  remarks: 是否选登
+                  type: CHAR(1)
+              - column:
+                  name: accept_date_
+                  remarks: 受理日期
+                  type: datetime
+              - column:
+                  name: reject_text_
+                  remarks: 退回原因
+                  type: VARCHAR(3000)
+              - column:
+                  name: reply_text_
+                  remarks: 答复内容
+                  type: MEDIUMTEXT
+              - column:
+                  name: reply_date_
+                  remarks: 答复日期
+                  type: datetime
+              - column:
+                  name: rate_
+                  remarks: 满意度评价(1:满意,2:基本满意,3:不满意)
+                  type: SMALLINT
+              - column:
+                  name: rate_text_
+                  remarks: 评价意见
+                  type: VARCHAR(1500)
+              - column:
+                  name: rate_date_
+                  remarks: 评价日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ip_
+                  remarks: IP地址
+                  type: VARCHAR(45)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 来信日期
+                  type: datetime
+            remarks: 领导信箱
+            tableName: ujcms_mailbox
+  - changeSet:
+      id: 1783235716256-2
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_mailbox_site
+            tableName: ujcms_mailbox
+  - changeSet:
+      id: 1783235716256-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_mailbox_user
+            tableName: ujcms_mailbox
+  - changeSet:
+      id: 1783235716256-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: reply_user_id_
+            indexName: idx_mailbox_user_reply
+            tableName: ujcms_mailbox
+  - changeSet:
+      id: 1783235716256-5
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_mailbox
+            constraintName: fk_mailbox_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783235716256-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_mailbox
+            constraintName: fk_mailbox_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783235716256-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: reply_user_id_
+            baseTableName: ujcms_mailbox
+            constraintName: fk_mailbox_user_reply
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783235716256-8
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: mailbox_settings_
+                  remarks: 领导信箱设置
+                  type: VARCHAR(1000)
+            tableName: ujcms_site

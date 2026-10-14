@@ -5,7 +5,7 @@ import com.ujcms.common.query.QueryInfo;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -21,6 +21,14 @@ public interface SensitiveWordMapper {
      * @return 插入条数
      */
     int insert(SensitiveWord bean);
+
+    /**
+     * 批量插入数据（导入词条）
+     *
+     * @param list 实体对象列表
+     * @return 插入条数
+     */
+    int insertBatch(@Param("list") List<SensitiveWord> list);
 
     /**
      * 更新数据

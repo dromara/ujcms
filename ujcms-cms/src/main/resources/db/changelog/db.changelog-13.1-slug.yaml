@@ -1,0 +1,162 @@
+databaseChangeLog:
+  # 别名（alias_）更名为 slug_ 并落定固定链接（docs/spec/permalinks/plan.md）。13.0 已发布，故以升级变更集完成：
+  #   1. 文章别名从 ujcms_article_ext.alias_（可空、无唯一约束、无 site_id_）迁至 ujcms_article.slug_
+  #      （非空、站内唯一 uk_article_site_slug）：先加列 → 从 ext 拷贝 → 站内重复者追加 -{id} → 空值回填为 ID 字符串
+  #      （“未设别名”的哨兵值，与栏目既有规则一致）→ 去默认值 → 建唯一索引 → 删 ext 旧列。
+  #   2. ujcms_channel / ujcms_topic 的 alias_ 直接更名，唯一约束随之更名。
+  #   3. 静态化路径占位符 {channel_alias}/{article_alias} 改为 {channel_slug}/{article_slug}，存量设置 JSON 与
+  #      栏目/文章/专题的静态路径列以 replace() 改写；模型主字段 JSON 中的 "code":"alias" 同样改写（控制台按紧凑 JSON 存储）。
+  #   4. ujcms_site 新增 permalink_settings_（Site.Permalink：文章固定链接形态 + 中文转拼音），与其余 *_settings_ 同型 MEDIUMTEXT。
+  # 全部 SQL 为 ANSI 可移植写法（trim(cast(… as char(20)))、replace()、两参 concat() 嵌套、派生表 EXISTS），MySQL/PostgreSQL/达梦/金仓
+  # 均可执行（达梦/金仓 Oracle 兼容模式的 concat 仅接受两个参数，故不可写三参 concat；MySQL 的 || 为逻辑或，故不可用 ||）；各步骤以 columnExists / indexExists 守卫，对开发期已迁移的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.1-article-slug-add
+      author: PONY
+      # 2026-09-14 三参 concat 改为两参嵌套（金仓 Oracle 兼容模式无三参 concat）改变了校验和；放行旧校验和，
+      # 免于已按旧写法执行成功的 MySQL 等库在启动校验时报 checksum 不匹配。两种写法结果相同，旧库无需重跑。
+      validCheckSum:
+        - 9:2dbd59409a0c3cc822c6a8e87b6bc61f
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_article
+                columnName: slug_
+      changes:
+        - addColumn:
+            tableName: ujcms_article
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: slug_
+                  remarks: 别名
+                  type: VARCHAR(160)
+                  defaultValue: ''
+        # 从 ext 拷贝旧别名（ext 与文章同主键；旧列可空）
+        - sql:
+            sql: update ujcms_article set slug_ = (select coalesce(e.alias_, '') from ujcms_article_ext e where e.id_ = ujcms_article.id_) where exists (select 1 from ujcms_article_ext e where e.id_ = ujcms_article.id_)
+        # 站内重复的非空别名：保留 ID 最小的一条，其余追加 -{id}（派生表避免 MySQL 同表自引用更新限制）
+        - sql:
+            sql: update ujcms_article set slug_ = concat(concat(slug_, '-'), trim(cast(id_ as char(20)))) where slug_ <> '' and exists (select 1 from (select site_id_ as s_, slug_ as g_, min(id_) as keep_ from ujcms_article where slug_ <> '' group by site_id_, slug_ having count(*) > 1) d where d.s_ = ujcms_article.site_id_ and d.g_ = ujcms_article.slug_ and d.keep_ <> ujcms_article.id_)
+        # 空别名回填为 ID 字符串（哨兵值：URL 生成时视为“未设别名”）
+        - sql:
+            sql: update ujcms_article set slug_ = trim(cast(id_ as char(20))) where slug_ = ''
+        - dropDefaultValue:
+            tableName: ujcms_article
+            columnName: slug_
+            columnDataType: VARCHAR(160)
+  - changeSet:
+      id: 13.1-article-slug-index
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - indexExists:
+                tableName: ujcms_article
+                indexName: uk_article_site_slug
+      changes:
+        - createIndex:
+            tableName: ujcms_article
+            indexName: uk_article_site_slug
+            unique: true
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: slug_
+  - changeSet:
+      id: 13.1-article-ext-alias-drop
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - columnExists:
+            tableName: ujcms_article_ext
+            columnName: alias_
+      changes:
+        - dropColumn:
+            tableName: ujcms_article_ext
+            columnName: alias_
+  - changeSet:
+      id: 13.1-channel-slug
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - columnExists:
+            tableName: ujcms_channel
+            columnName: alias_
+      changes:
+        - dropUniqueConstraint:
+            tableName: ujcms_channel
+            constraintName: uk_channel_alias_site
+        - renameColumn:
+            tableName: ujcms_channel
+            oldColumnName: alias_
+            newColumnName: slug_
+            columnDataType: VARCHAR(50)
+            remarks: 别名
+        - addUniqueConstraint:
+            tableName: ujcms_channel
+            constraintName: uk_channel_site_slug
+            columnNames: site_id_, slug_
+  - changeSet:
+      id: 13.1-topic-slug
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - columnExists:
+            tableName: ujcms_topic
+            columnName: alias_
+      changes:
+        - dropUniqueConstraint:
+            tableName: ujcms_topic
+            constraintName: uk_topic_site_alias
+        - renameColumn:
+            tableName: ujcms_topic
+            oldColumnName: alias_
+            newColumnName: slug_
+            columnDataType: VARCHAR(50)
+            remarks: 别名
+        - addUniqueConstraint:
+            tableName: ujcms_topic
+            constraintName: uk_topic_site_slug
+            columnNames: site_id_, slug_
+  # 占位符与模型字段编码改写。以 permalink_settings_ 是否存在为守卫：该列与本改写同批加入，
+  # 已含该列的库视为已改写（开发期幂等）
+  - changeSet:
+      id: 13.1-slug-placeholders
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_site
+                columnName: permalink_settings_
+      changes:
+        - sql:
+            sql: update ujcms_site set html_settings_ = replace(replace(html_settings_, '{channel_alias}', '{channel_slug}'), '{article_alias}', '{article_slug}') where html_settings_ is not null
+        - sql:
+            sql: update ujcms_channel set channel_static_path_ = replace(channel_static_path_, '{channel_alias}', '{channel_slug}') where channel_static_path_ is not null
+        - sql:
+            sql: update ujcms_article_ext set article_static_path_ = replace(replace(article_static_path_, '{channel_alias}', '{channel_slug}'), '{article_alias}', '{article_slug}') where article_static_path_ is not null
+        - sql:
+            sql: update ujcms_topic set topic_static_path_ = replace(topic_static_path_, '{channel_alias}', '{channel_slug}') where topic_static_path_ is not null
+        - sql:
+            sql: update ujcms_model set mains_ = replace(mains_, '"code":"alias"', '"code":"slug"') where type_ in ('channel', 'topic') and mains_ is not null
+  - changeSet:
+      id: 13.1-site-permalink
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_site
+                columnName: permalink_settings_
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: permalink_settings_
+                  remarks: 固定链接设置
+                  type: MEDIUMTEXT

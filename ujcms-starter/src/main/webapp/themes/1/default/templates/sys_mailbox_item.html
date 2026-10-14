@@ -1,0 +1,63 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'mailbox'/]
+[#assign mbUrl = dy + '/mailbox'/]
+[#assign typeLabels = {'1':'咨询','2':'建议','3':'投诉','4':'求助','5':'表扬'}/]
+[@layout title=mailbox.title + ' - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${mbUrl}" class="cm-link text-slate-700">领导信箱</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700 truncate max-w-48">${mailbox.title}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-5">
+  <div class="flex flex-wrap justify-between items-baseline gap-2 border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-xl font-bold font-display">
+      <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs font-normal shrink-0">${typeLabels[mailbox.type?string]!}</span>
+      <span>${mailbox.title}</span>
+    </h1>
+    <a href="${mbUrl}/create"
+       class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 shrink-0">我要写信</a>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 pb-2 border-b border-slate-100">
+    [#-- 公开选登页面，写信人姓名脱敏显示 --]
+    <span class="inline-flex items-center gap-1">
+      <span class="size-3.5 inline-block">[@icon 'person-outline'/]</span>
+      ${mailbox.maskedName}
+    </span>
+    <span>办理单位：${mailbox.site.name}</span>
+    <span class="inline-flex items-center gap-1">
+      <span class="size-3.5 inline-block">[@icon 'schedule-outline'/]</span>
+      来信时间：${format(mailbox.created, 'yyyy-MM-dd')}
+    </span>
+  </div>
+
+  <div class="text-slate-700 leading-relaxed">[#noescape]${bbcode(mailbox.text)}[/#noescape]</div>
+
+  [#if mailbox.replyText??]
+    <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-5 space-y-2">
+      <h2 class="flex items-center gap-2 font-semibold text-amber-800">
+        <span class="size-5 inline-block">[@icon 'comment-outline'/]</span>
+        <span>答复内容</span>
+      </h2>
+      <p class="text-sm text-slate-500">
+        答复单位：${mailbox.site.name}
+        <span class="ml-3 inline-flex items-center gap-1">
+          <span class="size-3.5 inline-block">[@icon 'schedule-outline'/]</span>
+          答复时间：${format(mailbox.replyDate, 'yyyy-MM-dd')}
+        </span>
+      </p>
+      <div class="prose prose-sm max-w-none">[#noescape]${mailbox.replyText!}[/#noescape]</div>
+    </div>
+  [/#if]
+</div>
+[/@layout]
+[/#escape]

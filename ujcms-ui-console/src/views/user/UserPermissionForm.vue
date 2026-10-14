@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { currentUser } from '@/stores/useCurrentUser';
 import { queryUser, updateUserPermission, queryRoleList } from '@/api/user';
 import LabelTip from '@/components/LabelTip.vue';
+import { loadOrClose } from '@/utils/common';
 
 defineOptions({
   name: 'UserPermissionForm',
@@ -22,7 +23,7 @@ const roleList = ref<any[]>([]);
 const disabled = computed(() => currentUser.rank > bean.value.rank);
 const fetchUser = async () => {
   if (beanId.value != null) {
-    bean.value = await queryUser(beanId.value);
+    bean.value = await loadOrClose(() => queryUser(beanId.value), () => emit('update:modelValue', false));
     values.value = { ...bean.value, roleIds: bean.value.roleList.map((item: any) => item.id) ?? [] };
   }
 };

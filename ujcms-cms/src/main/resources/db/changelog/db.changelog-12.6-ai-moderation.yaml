@@ -1,0 +1,114 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1784160000000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: AI审核ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: type_
+                  remarks: 内容类型(comment/messageBoard)
+                  type: VARCHAR(20)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ref_id_
+                  remarks: 内容ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: status_
+                  remarks: 状态(0:待检测,1:已完成,2:检测失败)
+                  type: SMALLINT
+              - column:
+                  name: category_
+                  remarks: 风险类别(1:正常,2:广告垃圾,3:辱骂攻击,4:涉政敏感,5:色情低俗,6:违法违禁,7:其他风险)
+                  type: SMALLINT
+              - column:
+                  name: confidence_
+                  remarks: 置信度(0-100)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: action_
+                  remarks: 处置动作(0:仅标记,1:自动通过,2:自动拦截)
+                  type: SMALLINT
+              - column:
+                  name: reason_
+                  remarks: 判定理由或错误信息
+                  type: VARCHAR(500)
+              - column:
+                  name: dict_hits_
+                  remarks: 词库命中(JSON数组)
+                  type: VARCHAR(500)
+              - column:
+                  name: provider_
+                  remarks: 服务商名称
+                  type: VARCHAR(150)
+              - column:
+                  name: model_
+                  remarks: 模型
+                  type: VARCHAR(100)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  name: finished_
+                  remarks: 完成日期
+                  type: datetime
+            remarks: AI内容审核
+            tableName: ujcms_ai_moderation
+  - changeSet:
+      id: 1784160000000-2
+      author: PONY
+      changes:
+        - addUniqueConstraint:
+            columnNames: type_, ref_id_
+            constraintName: uk_aimod_type_ref
+            tableName: ujcms_ai_moderation
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: status_
+              - column:
+                  name: created_
+            indexName: idx_aimod_site_status
+            tableName: ujcms_ai_moderation
+  - changeSet:
+      id: 1784160000000-3
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_ai_moderation
+            constraintName: fk_aimod_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true

@@ -1,6 +1,6 @@
 # UJCMS
 
-UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS），采用 Spring Boot、MyBatis、Spring Security、Vue 3、Vite、Element Plus 等技术开发，支持 `无头 CMS` 架构。系统提供 `模板 + 标签` 和 `Vue（React）+ API` 两种开发模式，分别适用于传统模板渲染与现代化前后端分离场景，为网站的建设、管理与维护提供高效、灵活、可靠的解决方案。
+UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS），采用 Spring Boot、MyBatis、Spring Security、Vue 3、Vite、Element Plus 等技术开发，支持 `无头 CMS` 架构。系统提供 `模板 + 标签` 和 `Vue + API` 两种开发模式，分别适用于传统模板渲染与现代化前后端分离场景，为网站的建设、管理与维护提供高效、灵活、可靠的解决方案。
 
 ## 资源地址
 
@@ -45,18 +45,26 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 
 打开 `ujcms-starter/src/main/resources/application.yaml`，修改：
 
-* `spring.datasource.url`：数据库连接地址
+* `spring.datasource.url`：数据库连接地址（MySQL 与 MariaDB 均写 `jdbc:mariadb://主机:3306/库名?allowPublicKeyRetrieval=true&allowLocalInfile=false&nullDatabaseMeansCurrent=true`，参数说明见文件内注释）
 * `spring.datasource.username`：数据库用户名
 * `spring.datasource.password`：数据库密码
 
 ### 构建前台模板静态资源
 
-安装并构建前台模板所需的第三方前端库（Bootstrap 等），用于生成前台模板的静态资源。在项目根目录执行：
+前台默认主题（`ujcms-starter/src/main/webapp/themes/1/default`）依赖的第三方前端库（cropperjs、sm-crypto、pdfjs 等）由主题自带的 npm 脚本复制到 `assets/vendor` 目录。该目录不纳入版本库，而会员头像裁剪、注册/找回密码（SM2 加密）、文库文章等页面在运行时需要这些文件，因此首次运行前必须先构建。执行：
 
 ```bash
-pnpm --dir ujcms-starter install
-pnpm --dir ujcms-starter build
+cd ujcms-starter/src/main/webapp/themes/1/default && npm install && npm run build
 ```
+
+`npm run build` 会依次生成图标、复制 vendor 库并编译 Tailwind 样式（`assets/css/style.css`）。其中样式和图标产物已纳入版本库，CI 打包时只需执行 `npm run build:vendor`：
+
+```bash
+npm --prefix ujcms-starter/src/main/webapp/themes/1/default ci
+npm --prefix ujcms-starter/src/main/webapp/themes/1/default run build:vendor
+```
+
+主题目录下的 `node_modules`（约 500 MB）只在构建时使用，运行时不需要，也不应随程序部署：war 打包会自动排除它；jar 部署复制 `webapp` 目录时不要带上。
 
 ### 编译后台前端（管理控制台）
 
@@ -90,7 +98,7 @@ pnpm --dir ujcms-ui-console build:starter
 
 > 如使用 IntelliJ IDEA 的 `Run` 方式启动，则需要在 `Edit configurations...` 中点击 `Modify options`，勾选 `Working directory`，选择 `ujcms-starter` 项目作为工作路径，否则访问前台会出现找不到模板的错误：`No static resource 1/default/index.`。
 
-> 如遇到前台页面没有样式的情况，请 `安装前台模板依赖`。如果依然没有样式，则是因为程序没有部署在 Tomcat 的根目录。如前台首页地址类似为 `http://localhost:8080/abc` ，即代表部署在 `/abc` 目录下，没有部署在根目录。解决办法请参考下面 `关于部署路径` 部分内容。
+> 如遇到前台页面没有样式的情况，请先按上面 `构建前台模板静态资源` 部分构建主题静态资源。如果依然没有样式，则是因为程序没有部署在 Tomcat 的根目录。如前台首页地址类似为 `http://localhost:8080/abc` ，即代表部署在 `/abc` 目录下，没有部署在根目录。解决办法请参考下面 `关于部署路径` 部分内容。
 
 > 如程序无法正常编译，通常是因为 maven 没有正确下载 jar 依赖包。可以尝试在 IntelliJ IDEA 的 `Maven` 窗口点击刷新按钮 `Reload All Maven Projects` 按钮，尝试重新下载 jar 依赖包，或者点击菜单 `Build` - `Rebuild Project` 重新编译项目。
 
@@ -102,15 +110,13 @@ pnpm --dir ujcms-ui-console build:starter
 
 程序启动时出现 `Specified key was too long; max key length is 767 bytes` 错误信息。解决办法：设置 MySQL 参数 `innodb_large_prefix=ON`。原因：从 MySQL 5.7.7 开始，`innodb_large_prefix` 参数默认已设置为 `ON`，但第三方面板或云服务商提供的 MySQL 可能修改默认配置。
 
-程序启动时出现 `java.io.IOException: Problem reading font data` 错误信息。解决办法：安装 FontConfig 组件，执行 `yum install -y fontconfig`（CentOS 系列） 或 `apt-get install -y fontconfig`（Ubuntu 系列）。原因：系统没有安装字体组件，导致验证码生成组件无法读取字体。
-
 ## 前台模板
 
 网站前台模板使用 `Freemarker` 作为模板引擎。通过修改模板文件，可以完全控制网站页面显示的内容。模板位置：
 
-* 源码位置：`ujcms-starter/src/main/webapp/templates`
-* war 部署位置：`templates`
-* jar 部署位置：`static/templates`
+* 源码位置：`ujcms-starter/src/main/webapp/themes`
+* war 部署位置：`themes`
+* jar 部署位置：`static/themes`
 
 ## war 部署
 
@@ -125,11 +131,13 @@ pnpm --dir ujcms-ui-console build:starter
 
 **Maven 打包**
 
-在项目根目录运行：
+打包前须先按上文 `构建前台模板静态资源` 部分生成主题的 `assets/vendor`。然后在项目根目录运行：
 
 ```bash
-./mvnw -P war clean package
+./mvnw -P war clean package -DskipTests
 ```
+
+`-DskipTests` 表示跳过单元测试，打包部署无需运行。二次开发后如需回归验证，可执行 `./mvnw test`：测试会有意触发并断言各种异常，控制台出现异常堆栈属正常现象，结果以末尾的 `Tests run: ..., Failures: 0, Errors: 0` 和 `BUILD SUCCESS` 为准。
 
 会生成以下文件及文件夹：
 
@@ -145,7 +153,7 @@ pnpm --dir ujcms-ui-console build:starter
 * `webapps/ROOT/cp/...`
 * `webapps/ROOT/cp/assets/...`
 * `webapps/ROOT/cp/index.html`
-* `webapps/ROOT/templates/...`
+* `webapps/ROOT/themes/...`
 * `webapps/ROOT/uploads/...`
 * `webapps/ROOT/WEB-INF/...`
 
@@ -168,15 +176,15 @@ pnpm --dir ujcms-ui-console build:starter
 
 **Maven 打包**
 
-在项目根目录运行：
+打包前须先按上文 `构建前台模板静态资源` 部分生成主题的 `assets/vendor`。然后在项目根目录运行（`-DskipTests` 表示跳过单元测试，打包部署无需运行）：
 
 ```bash
-./mvnw -P jar clean package
+./mvnw -P jar clean package -DskipTests
 ```
 
 将打包的 `ujcms-starter/target/ujcms-***.jar` 文件复制到部署目录，并新建文件夹 `static`。
 
-将 `ujcms-starter/src/main/webapp` 目录下所有文件复制到 `static` 目录下。
+将 `ujcms-starter/src/main/webapp` 目录下所有文件复制到 `static` 目录下（`themes/1/default/node_modules` 除外：它只在构建主题静态资源时使用，约 500 MB，运行时不需要）。
 
 还可将 `ujcms-starter/src/main/resources/application.yaml` 配置文件复制到 `config` 目录。该配置文件将覆盖 `ujcms-***.jar` 内的原始配置（位于`BOOT-INF\classes\application.yaml`）。更新配置时，可避免修改 jar 包内的配置文件。
 
@@ -189,7 +197,7 @@ pnpm --dir ujcms-ui-console build:starter
 * `static/cp/...`
 * `static/cp/assets/...`
 * `static/cp/index.html`
-* `static/templates/...`
+* `static/themes/...`
 * `static/uploads/...`
 * `static/WEB-INF/...`
 
@@ -230,10 +238,10 @@ Eclipse 默认的 Tomcat 启动方式会将应用程序部署到一个特定的�
 ```yaml
 # 关闭 liquibase 的表结构升级功能
 spring.liquibase.enabled: false
-# 关闭 flowable 的表结构升级功能
+# 关闭 flowable 的表结构升级功能（商业版审批工作流的引擎；社区版不含该组件，此项可省略）
 flowable.database-schema-update: none
-# 关闭执行初始化脚本
-ujcms.data-sql-enabled: false
+# 关闭系统核心引导
+ujcms.bootstrap-enabled: false
 ```
 
 程序升级时，需重新开启以上配置，否则数据库表结构无法自动升级。
@@ -269,6 +277,13 @@ lower_case_table_names=2
 * ujcms-cms: CMS 核心功能
 * ujcms-starter: Spring Boot 启动模块
 * ujcms-ui-console: 后台管理前端
+* ujcms-ui-ssr-vue: 前后端分离（Headless）示例站点，基于 Nuxt，仅调用公共 REST API
+
+源码注释中引用的 `docs/spec/...`、`docs/decisions/...` 是维护者的内部设计记录，用作稳定的追溯标识，不随仓库发布；阅读与构建均不依赖它们。
+
+## 第三方软件
+
+本项目包含并改编了部分第三方开源软件与素材。版权声明见源码根目录的 `NOTICE` 文件，各许可证全文及逐文件说明见源码根目录的 `licenses/` 目录；发行包另附 `META-INF/THIRD-PARTY.txt`（Java 依赖）、`cp/THIRD-PARTY-LICENSES.txt`（控制台前端依赖）与 `bom.json`（软件物料清单）。商业版仓库与发行包中的 `LICENSE-COMMERCIAL.md` 说明商业版按合同授权；社区版见下节「开源协议」。随附的演示主题（`default` 等）按 MIT 协议授权，许可证文件在主题目录内（`LICENSE`），其中的演示媒体仅作占位、不在授权范围内；主题市场销售的官方主题按「UJCMS 主题商业授权协议」授权，不随任何版本发行。
 
 ## 开源协议
 

@@ -5,23 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.net.HttpHeaders;
-import com.ujcms.common.security.Secures;
+import com.ujcms.common.ip.IpAddresses;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.UrlPathHelper;
-import org.springframework.web.util.WebUtils;
 
 import jakarta.servlet.ServletRequest;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -40,6 +39,10 @@ public class Servlets {
     private static final String REMOTE_IP_HEADER = "X-Forwarded-For";
     private static final String REAL_IP_HEADER = "X-Real-IP";
     private static final String CLIENT_IP_HEADER = "X-Client-IP";
+    /**
+     * IP 字段长度（VARCHAR(45)）；规范化后的地址最长 39 字符，仅无法解析的直连地址原样返回时需要截断
+     */
+    private static final int MAX_IP_LENGTH = 45;
 
     private static String[] commaDelimitedStringsToArray(@Nullable String commaDelimitedStrings) {
         return (commaDelimitedStrings == null || commaDelimitedStrings.isEmpty()) ? new String[0]
@@ -99,72 +102,13 @@ public class Servlets {
     }
 
     /**
-     * Validates if the given string is a valid IP address (IPv4 or IPv6)
-     */
-    private static boolean isValidIpAddress(String ip) {
-        String trimmedIp = ip.trim();
-
-        // Check for IPv4 format
-        if (isIpv4Format(trimmedIp)) {
-            return isValidIpv4Address(trimmedIp);
-        }
-
-        // Check for IPv6 format
-        if (isIpv6Format(trimmedIp)) {
-            return isValidIpv6Address(trimmedIp);
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if the string appears to be in IPv4 format (contains exactly 3 dots)
-     */
-    private static boolean isIpv4Format(String ip) {
-        return ip.chars().filter(ch -> ch == '.').count() == 3;
-    }
-
-    /**
-     * Validates IPv4 address by checking each octet is a valid number (0-255)
-     */
-    private static boolean isValidIpv4Address(String ip) {
-        String[] parts = ip.split("\\.");
-        if (parts.length != 4) {
-            return false;
-        }
-
-        for (String part : parts) {
-            try {
-                int num = Integer.parseInt(part);
-                if (num < 0 || num > 255) {
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Checks if the string appears to be in IPv6 format (contains colon)
-     */
-    private static boolean isIpv6Format(String ip) {
-        return ip.contains(":");
-    }
-
-    /**
-     * Validates IPv6 address by checking it has the right number of segments
-     */
-    private static boolean isValidIpv6Address(String ip) {
-        String[] parts = ip.split(":");
-        return parts.length >= 3 && parts.length <= 8;
-    }
-
-    /**
      * 获得真实 IP 地址。在使用了反向代理时，直接用
      * {@link HttpServletRequest#getRemoteAddr()}无法获取客户真实的IP地址。
      * 使用 depth 参数来防止恶意伪造 X-Forwarded-For 头部信息。
+     * <p>
+     * 返回值经 {@link IpAddresses#canonical} 规范化：IPv6 为 RFC 5952 小写压缩形式（{@code 0:0:0:0:0:0:0:1} 记为 {@code ::1}），
+     * 请求头中的方括号、端口、{@code %网卡标识} 会被去除，IPv4 映射地址（{@code ::ffff:203.0.113.9}）按 IPv4 返回。
+     * 请求头中无法解析为 IP 字面量的条目一律跳过。
      *
      * @param req   ServletRequest 对象
      * @param depth 信任的代理层数，用于防止 X-Forwarded-For 头部伪造攻击
@@ -174,7 +118,7 @@ public class Servlets {
     public static String getRemoteAddr(ServletRequest req, int depth) {
         String remoteAddress = req.getRemoteAddr();
         if (!(req instanceof HttpServletRequest) || depth < 1) {
-            return remoteAddress;
+            return canonicalOrRaw(remoteAddress);
         }
 
         HttpServletRequest request = (HttpServletRequest) req;
@@ -182,12 +126,12 @@ public class Servlets {
         String forwardedFor = getForwardedForHeader(request);
 
         if (StringUtils.isBlank(forwardedFor)) {
-            return remoteAddress;
+            return canonicalOrRaw(remoteAddress);
         }
 
         String[] proxyIps = commaDelimitedStringsToArray(forwardedFor);
         if (proxyIps.length == 0) {
-            return remoteAddress;
+            return canonicalOrRaw(remoteAddress);
         }
 
         // 使用深度参数来防止伪造攻击
@@ -195,14 +139,26 @@ public class Servlets {
         // 从右往左取 trustedCount 个IP，然后从左往右遍历，返回第一个有效的IP
         int startIndex = Math.max(0, proxyIps.length - trustedCount);
         for (int i = startIndex; i < proxyIps.length; i++) {
-            String ip = proxyIps[i].trim();
-            if (isValidIpAddress(ip)) {
-                return ip;
+            InetAddress address = IpAddresses.parseLiteral(proxyIps[i]);
+            if (address != null) {
+                return IpAddresses.canonical(address);
             }
         }
 
         // 如果所有代理IP都无效，返回直接连接的IP
-        return remoteAddress;
+        return canonicalOrRaw(remoteAddress);
+    }
+
+    /**
+     * 规范化直连地址；无法解析（如容器给出的非 IP 字符串）时原样返回，并截断到 IP 字段长度
+     */
+    @Nullable
+    private static String canonicalOrRaw(@Nullable String remoteAddress) {
+        if (remoteAddress == null) {
+            return null;
+        }
+        String canonical = IpAddresses.canonicalize(remoteAddress);
+        return canonical != null ? canonical : StringUtils.substring(remoteAddress, 0, MAX_IP_LENGTH);
     }
 
     public static void sendRedirect(HttpServletRequest request, HttpServletResponse response, String url)
@@ -241,13 +197,12 @@ public class Servlets {
     }
 
     /**
-     * 获取相对于 Context Path 的相对路径。参考
-     * {@link org.apache.catalina.servlets.DefaultServlet} 的实现方式。
+     * 获取相对于 Context Path 的相对路径。
      * <p>
-     * Return the relative path associated with this servlet.
+     * 改编自 Apache Tomcat 的 DefaultServlet#getRelativePath（Apache License 2.0，见 NOTICE）。
      *
-     * @param request The servlet request we are processing
-     * @return the relative path
+     * @param request 当前请求
+     * @return 相对路径
      */
     public static String getRelativePath(HttpServletRequest request) {
         return getRelativePath(request, false);
@@ -269,20 +224,20 @@ public class Servlets {
     }
 
     /**
-     * 设置禁止客户端缓存的Header。
+     * 让浏览器与代理都不缓存本次响应。
      */
     public static void setNoCacheHeader(HttpServletResponse response) {
-        // Http 1.0 header
+        // HTTP/1.0 客户端：Expires 与 Pragma
         response.setDateHeader("Expires", 1L);
         response.addHeader("Pragma", "no-cache");
-        // Http 1.1 header
+        // HTTP/1.1 客户端：Cache-Control
         response.setHeader("Cache-Control", "no-cache, no-store, max-age=0");
     }
 
     /**
-     * 设置让浏览器弹出下载对话框的Header.
+     * 以附件方式响应，浏览器按给定文件名保存。
      *
-     * @param filename 下载后的文件名.
+     * @param filename 保存时使用的文件名
      */
     public static void setAttachmentHeader(HttpServletRequest request, HttpServletResponse response, String filename) {
         String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).map(String::toLowerCase).orElse("");
@@ -363,6 +318,10 @@ public class Servlets {
 
     private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
 
+    /**
+     * 解析查询字符串。正则与解析方式改编自 Spring Framework 的 UriComponentsBuilder#query（Copyright 2002-present
+     * the original author or authors，Apache License 2.0，见 NOTICE）。
+     */
     public static MultiValueMap<String, String> parseQueryString(@Nullable String queryString) {
         // 使用 org.apache.http.client.utils.URLEncodedUtils 实现
         // 使用 split 实现，性能最差。
@@ -447,37 +406,6 @@ public class Servlets {
             }
         }
         return params;
-    }
-
-    /**
-     * 获取用于标识是否独立访客的长整型Cookie，如果不存在或不是长整型，则生成并返回一个随机长整型Cookie，并将该Cookie设置到客户端。
-     * <p>
-     * 使用长整型有利于数据库以更小的存储空间保存改值。
-     */
-    public static Long identityCookie(String cookieName, HttpServletRequest request, HttpServletResponse response) {
-        Long value = null;
-        Cookie cookie = WebUtils.getCookie(request, cookieName);
-        if (cookie != null && StringUtils.isNotBlank(cookie.getValue())) {
-            try {
-                value = Long.parseLong(cookie.getValue());
-            } catch (NumberFormatException e) {
-                // 不合法的cookie
-            }
-        }
-        if (value == null) {
-            value = Secures.nextLong();
-            cookie = new Cookie(cookieName, value.toString());
-            String ctx = request.getContextPath();
-            if (StringUtils.isBlank(ctx)) {
-                ctx = "/";
-            }
-            cookie.setPath(ctx);
-            cookie.setMaxAge(Integer.MAX_VALUE);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(request.isSecure());
-            response.addCookie(cookie);
-        }
-        return value;
     }
 
     private Servlets() {

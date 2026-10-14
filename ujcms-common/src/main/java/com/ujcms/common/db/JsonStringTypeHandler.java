@@ -6,9 +6,10 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 
 /**
@@ -76,8 +77,11 @@ public class JsonStringTypeHandler extends BaseTypeHandler<String> {
             // Oracle、DM(达梦) 返回 Clob 类型
             return clob.getSubString(1, (int) clob.length());
         } else if (result instanceof String string) {
-            // MySQL 返回 String 类型
+            // MySQL（MySQL Connector/J）、MariaDB 返回 String 类型
             return string;
+        } else if (result instanceof byte[] bytes) {
+            // MariaDB Connector/J 连接 MySQL 时，JSON 列按 binary 字符集以 byte[] 返回，内容是 UTF-8 的 JSON 文本
+            return new String(bytes, StandardCharsets.UTF_8);
         } else {
             // Postgresql 为 org.postgresql.util.PGobject。调用 toString() 方法即可
             return result.toString();

@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -160,22 +160,22 @@ public class ChannelController {
      * ## 标签使用示例
      * <pre>
      * ```
-     * [@Channel alias='news'; bean]
+     * [@Channel slug='news'; bean]
      *   <a href="${bean.url}">${bean.name}</a>
      * [/@Channel]
      * ```
      * </pre>
      */
-    @Operation(summary = "栏目对象ByAlias_Channel")
+    @Operation(summary = "栏目对象BySlug_Channel")
     @ApiResponses(value = {@ApiResponse(description = "栏目对象")})
-    @GetMapping("/alias/{alias}")
-    public Channel alias(@Parameter(description = "栏目别名") @PathVariable String alias,
+    @GetMapping("/slug/{slug}")
+    public Channel slug(@Parameter(description = "栏目别名") @PathVariable String slug,
                          @Parameter(description = "站点ID") Long siteId,
                          HttpServletRequest request) {
         if (siteId == null) {
             siteId = siteResolver.resolve(request).getId();
         }
-        return validateAccess(channelService.findBySiteIdAndAlias(siteId, alias));
+        return validateAccess(channelService.findBySiteIdAndSlug(siteId, slug));
     }
 
     /**

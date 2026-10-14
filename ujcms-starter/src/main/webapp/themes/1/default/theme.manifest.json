@@ -1,0 +1,233 @@
+{
+  "name": "Default",
+  "themeName": "default",
+  "version": "1.5.3",
+  "templateSpecVersion": "2.0",
+  "author": {
+    "name": "UJCMS",
+    "url": "https://www.ujcms.com"
+  },
+  "description": "Reference FreeMarker theme for UJCMS. Tailwind v4 + Alpine.js + inline SVG icons. Ships full demo seed data (channels/articles/topics + homepage composition).",
+  "license": "MIT",
+  "homepage": "https://www.ujcms.com",
+  "preview": "preview.svg",
+  "tags": [
+    "reference",
+    "freemarker",
+    "tailwind",
+    "alpine"
+  ],
+  "minUjcmsVersion": "13.1.4",
+  "seed": {
+    "policy": "non-destructive",
+    "content": {
+      "channels": true,
+      "articles": true,
+      "topics": true,
+      "blocks": true,
+      "votes": true,
+      "surveys": true,
+      "models": true,
+      "dicts": true,
+      "forms": true,
+      "assets": true,
+      "linkGroups": true
+    }
+  },
+  "linkSlots": [
+    {
+      "name": "footer-links",
+      "label": {
+        "zh-CN": "友情链接",
+        "en": "Friend Links"
+      }
+    }
+  ],
+  "settings": {
+    "groups": [
+      {
+        "name": "footer",
+        "label": {
+          "zh-CN": "页脚",
+          "en": "Footer"
+        },
+        "fields": {
+          "company": {
+            "type": "text",
+            "max": 100,
+            "default": "南昌蓝智科技有限公司",
+            "label": {
+              "zh-CN": "公司名称",
+              "en": "Company name"
+            }
+          },
+          "icp": {
+            "type": "text",
+            "max": 50,
+            "default": "赣ICP备12001124号",
+            "label": {
+              "zh-CN": "ICP备案号",
+              "en": "ICP filing number"
+            }
+          },
+          "gonganIcp": {
+            "type": "text",
+            "max": 50,
+            "default": "赣公网安备 36010402000389号",
+            "label": {
+              "zh-CN": "公安备案号",
+              "en": "Public security filing number"
+            }
+          },
+          "gonganCode": {
+            "type": "text",
+            "max": 50,
+            "default": "36010402000389",
+            "label": {
+              "zh-CN": "公安备案码（备案链接用数字）",
+              "en": "Public security filing code (digits, for the filing link)"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "layoutVariants": {
+    "channel": [
+      {
+        "value": "default",
+        "label": {
+          "zh-CN": "默认列表",
+          "en": "Default list"
+        },
+        "template": "channel"
+      },
+      {
+        "value": "channel_about",
+        "label": {
+          "zh-CN": "单页",
+          "en": "About page"
+        },
+        "template": "channel_about"
+      },
+      {
+        "value": "channel_video",
+        "label": {
+          "zh-CN": "视频网格",
+          "en": "Video grid"
+        },
+        "template": "channel_video",
+        "settings": {
+          "groups": [
+            {
+              "name": "video",
+              "label": {
+                "zh-CN": "视频展示",
+                "en": "Video display"
+              },
+              "fields": {
+                "columns": {
+                  "type": "enum",
+                  "values": [
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "default": "3",
+                  "label": {
+                    "zh-CN": "每行数量",
+                    "en": "Columns"
+                  }
+                },
+                "showDuration": {
+                  "type": "boolean",
+                  "default": true,
+                  "label": {
+                    "zh-CN": "显示时长",
+                    "en": "Show duration"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "value": "channel_product",
+        "label": {
+          "zh-CN": "产品网格",
+          "en": "Product grid"
+        },
+        "template": "channel_product"
+      },
+      {
+        "value": "channel_download",
+        "label": {
+          "zh-CN": "下载列表",
+          "en": "Download list"
+        },
+        "template": "channel_download"
+      },
+      {
+        "value": "channel_wenku",
+        "label": {
+          "zh-CN": "文库列表",
+          "en": "Library list"
+        },
+        "template": "channel_wenku"
+      },
+      {
+        "value": "channel_leader_board",
+        "label": {
+          "zh-CN": "排行榜",
+          "en": "Leader board"
+        },
+        "template": "channel_leader_board"
+      }
+    ],
+    "article": [
+      {
+        "value": "default",
+        "label": {
+          "zh-CN": "默认文章",
+          "en": "Default article"
+        },
+        "template": "article"
+      },
+      {
+        "value": "article_product",
+        "label": {
+          "zh-CN": "产品详情",
+          "en": "Product detail"
+        },
+        "template": "article_product"
+      },
+      {
+        "value": "article_download",
+        "label": {
+          "zh-CN": "下载详情",
+          "en": "Download detail"
+        },
+        "template": "article_download"
+      },
+      {
+        "value": "article_wenku",
+        "label": {
+          "zh-CN": "文库详情",
+          "en": "Library detail"
+        },
+        "template": "article_wenku"
+      }
+    ],
+    "topic": [
+      {
+        "value": "default",
+        "label": {
+          "zh-CN": "默认专题",
+          "en": "Default topic"
+        },
+        "template": "topic"
+      }
+    ]
+  }
+}

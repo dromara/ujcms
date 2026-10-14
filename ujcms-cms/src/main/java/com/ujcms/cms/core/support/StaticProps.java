@@ -1,74 +1,47 @@
 package com.ujcms.cms.core.support;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * 静态属性的配置文件
  *
  * @author PONY
  */
 public class StaticProps {
-    private static final List<String> EP_EXCLUDES = new ArrayList<>(
-            Arrays.asList(
-                    // r1
-                    "menu.log", "operationLog:page", "loginLog:page", "shortMessage:page",
-                    "menu.system", "processModel:page", "processInstance:page", "processHistory:page",
-                    "generator:fulltext:reindexSite",
-                    "articleReview:page",
-                    // r2
-                    "article:internalPush", "survey:page", "site:page", "config:grey:update",
-                    "sensitiveWord:page", "errorWord:page", "siteSettings:editor:update",
-                    "collection:page", "scheduleTask:page",
-                    "form:page", "formType:page", "formReview:page",
-                    "backupTemplates:page", "backupUploads:page", "incrementalUploads:page", "backupDatabase:page",
-                    "menu.stat.articleStat", "articleStatByUser:page", "articleStatByOrg:page", "articleStatByChannel:page",
-                    // r3
-                    "homepage:systemMonitor", "article:externalPush",
-                    "performanceType:page", "menu.stat.performanceStat",
-                    "menu.stat.performanceStat", "performanceStatByUser:page", "performanceStatByOrg:page",
-                    "formReview:back", "formReview:delegate", "formReview:transfer",
-                    "articleReview:back", "articleReview:delegate", "articleReview:transfer",
-                    "org:updatePermission",
-                    // end
-                    "machine:code", "machine:license", "importData:show"
-            ));
-    private static boolean epDisplay = false;
-    private static int epRank = 0;
-    private static boolean epActivated = false;
+    /**
+     * 敏感数据（短信/邮件/对象存储凭据等）入库加密所用 SM4 密钥的内置默认值（16 字符）。
+     * 默认值可直接使用，能满足一般需求；仅在安全要求较高时，于 {@code application.yaml}
+     * 配置自定义 {@code ujcms.data-secret-key} 覆盖。
+     */
+    public static final String DEFAULT_DATA_SECRET_KEY = "0123456789ABCDEF";
+    /** SM4-128 密钥长度（字符）。 */
+    public static final int DATA_SECRET_KEY_LENGTH = 16;
+    /**
+     * 密码胡椒（{@code ujcms.password-pepper}）的内置示例值。开启 {@code ujcms.security.reject-default-key}
+     * 后，若仍为此值（或为空）将启动失败（Phase 5）。
+     */
+    public static final String DEFAULT_PASSWORD_PEPPER = "0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.";
+    private static String dataSecretKey = DEFAULT_DATA_SECRET_KEY;
 
-    public static List<String> getEpExcludes() {
-        return Collections.unmodifiableList(EP_EXCLUDES);
+    public static String getDataSecretKey() {
+        return dataSecretKey;
     }
 
-    public static void epExcludesRemove(String include) {
-        EP_EXCLUDES.remove(include);
+    public static void setDataSecretKey(String dataSecretKey) {
+        StaticProps.dataSecretKey = dataSecretKey;
     }
 
-    public static boolean isEpDisplay() {
-        return epDisplay;
+    /**
+     * 三权分立（等保三级 访问控制）开关。开启后超级管理员（id=1）被中和：{@link com.ujcms.cms.core.domain.User#isRoot()}
+     * 返回 {@code false}（消除全局权限旁路），且 id=1 账号被强制停用且不可重新启用。由
+     * {@link SecurityProperties#setSeparationOfDuties(boolean)} 在配置绑定时下发到此处，供无法注入的领域层静态读取。
+     */
+    private static boolean separationOfDuties = false;
+
+    public static boolean isSeparationOfDuties() {
+        return separationOfDuties;
     }
 
-    public static void setEpDisplay(boolean epDisplay) {
-        StaticProps.epDisplay = epDisplay;
-    }
-
-    public static int getEpRank() {
-        return epRank;
-    }
-
-    public static void setEpRank(int epRank) {
-        StaticProps.epRank = epRank;
-    }
-
-    public static boolean isEpActivated() {
-        return epActivated;
-    }
-
-    public static void setEpActivated(boolean epActivated) {
-        StaticProps.epActivated = epActivated;
+    public static void setSeparationOfDuties(boolean separationOfDuties) {
+        StaticProps.separationOfDuties = separationOfDuties;
     }
 
     private StaticProps() {

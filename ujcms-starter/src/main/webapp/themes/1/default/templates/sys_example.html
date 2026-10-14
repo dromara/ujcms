@@ -1,0 +1,43 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#--
+  「示例」功能的参考脚手架。前台 ExampleController（ext/web/frontend）默认
+  注释关闭——/example 路由需运营方启用后才可访问；[@ExamplePage] 指令本身
+  已注册，启用控制器后本页即可直接工作。
+--]
+[@layout title='示例列表 - ' + site.title keywords=site.seoKeywords!'' description=site.seoDescription!'']
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">示例列表</span></li>
+    </ol>
+    <a href="${dy}/example/create" class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">提交示例</a>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <h1 class="flex items-center gap-2 text-2xl font-bold font-display border-b border-slate-200 pb-2">
+    <span class="size-6 text-primary inline-block">[@icon 'list-alt-outline'/]</span>
+    <span>示例列表</span>
+  </h1>
+
+  [@ExamplePage; pagedList]
+  [#if pagedList.totalElements == 0]
+    <p class="py-8 text-center text-slate-500">暂无示例</p>
+  [#else]
+    <ul class="divide-y divide-slate-200">
+      [#list pagedList.content as bean]
+        <li class="py-3">
+          <a href="${dy}/example/${bean.id?c}" class="cm-link font-medium">${bean.name}</a>
+        </li>
+      [/#list]
+    </ul>
+
+    [#include '../snippets/page.html'/]
+  [/#if]
+  [/@ExamplePage]
+</div>
+[/@layout]
+[/#escape]

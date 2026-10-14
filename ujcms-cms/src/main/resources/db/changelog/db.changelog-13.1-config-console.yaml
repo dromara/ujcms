@@ -1,0 +1,22 @@
+databaseChangeLog:
+  # 控制台默认外观（docs/spec/console-shell/plan.md D7）：管理员在“全局设置 › 基础设置”指定的侧栏风格与主题色，
+  # 存于 ujcms_config.console_settings_（JSON 文本，MEDIUMTEXT，与各 *_settings_ 列同型；不含机密，不加密）。
+  # 用户在“外观设置”未自选时按此取值，登录页也按此着色。
+  # 13.0 已发布，故以升级变更集加列；columnExists 守卫令开发期已加列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.1-config-console-settings
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_config
+                columnName: console_settings_
+      changes:
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: console_settings_
+                  remarks: 控制台默认外观JSON
+                  type: MEDIUMTEXT

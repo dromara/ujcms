@@ -1,0 +1,18 @@
+databaseChangeLog:
+  # 文章的“栏目 + 排序”联合索引（docs/spec/article-management/plan.md Phase 6）。上一篇、下一篇与栏目文章列表都是
+  # “某个栏目里按 order_ 排”：原有的 channel_id_、order_ 两个单列索引各管一半，数据库只能用其一再排序或再过滤。
+  # 状态、发布日期上的索引未加：要先在十万行量级的数据上看执行计划
+  - changeSet:
+      id: 13.1-article-channel-order-index
+      author: PONY
+      changes:
+        - createIndex:
+            tableName: ujcms_article
+            indexName: idx_article_channel_order
+            columns:
+              - column:
+                  name: channel_id_
+              - column:
+                  name: order_
+              - column:
+                  name: id_

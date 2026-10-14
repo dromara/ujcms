@@ -1,0 +1,257 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'interview'/]
+[#assign ivUrl = dy + '/interview'/]
+[#-- 服务端渲染实录并记录最大消息ID，直播中由前端凭 minId 增量轮询。ID为Long型，JS精度不足，始终作字符串处理 --]
+[#assign lastId = 0/]
+[@layout title=interview.title + ' - 在线访谈 - ' + site.title description=interview.description!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${ivUrl}" class="cm-link text-slate-700">在线访谈</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700 truncate max-w-48">${interview.title}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-6"
+  x-data="{
+    status: ${interview.status?c},
+    name: '', text: '',
+    captcha: '', captchaToken: '', captchaImage: '',
+    submitting: false, error: '',
+    async refreshCaptcha() {
+      try {
+        const data = await window.request('GET', '${api}/captcha');
+        if (data) { this.captchaImage = 'data:image/png;base64,' + data.image; this.captchaToken = data.token; }
+      } catch (e) { /* 静默，提交时后端仍校验 */ }
+    },
+    async submitQuestion() {
+      if (this.submitting) return;
+      this.error = '';
+      this.submitting = true;
+      try {
+        await window.fetchCsrf();
+        const data = await window.request('POST', '${api}/interview/question', {
+          interviewId: '${interview.id?c}',
+          name: this.name, text: this.text,
+          captcha: this.captcha, captchaToken: this.captchaToken,
+        });
+        if (data && data.status === 0) {
+          this.text = ''; this.captcha = ''; this.refreshCaptcha();
+          window.displaySuccess('您的提问已提交，审核通过后将在本页面展示。');
+        } else {
+          this.error = (data && data.message) || '提交失败，请稍后重试';
+          this.captcha = ''; this.refreshCaptcha();
+        }
+      } catch (e) {
+        this.error = e.message || '提交失败，请稍后重试';
+        this.captcha = ''; this.refreshCaptcha();
+      } finally {
+        this.submitting = false;
+      }
+    }
+  }"
+  x-init="[#if interview.questionEnabled && interview.status != 2]refreshCaptcha()[/#if]"
+  @interview-ended.window="status = 2"
+>
+  <div class="space-y-4">
+    <h1 class="flex items-start gap-2 text-xl font-bold font-display">
+      <span class="px-2 py-0.5 rounded text-xs font-normal shrink-0 mt-1"
+            :class="status === 1 ? 'bg-rose-100 text-rose-700' : status === 2 ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700'"
+            x-text="status === 1 ? '直播中' : status === 2 ? '已结束' : '预告'"></span>
+      <span>${interview.title}</span>
+    </h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      [#if interview.image?has_content]
+        <div><img src="${interview.image}" alt="${interview.title}" class="w-full rounded-lg"></div>
+      [/#if]
+      <div class="md:col-span-2 text-sm space-y-1 text-slate-600">
+        [#if interview.org?has_content]<p>访谈单位：${interview.org}</p>[/#if]
+        [#if interview.host?has_content]<p>主持人：${interview.host}</p>[/#if]
+        [#if interview.guests?has_content]<p>访谈嘉宾：${interview.guests}</p>[/#if]
+        <p>访谈时间：${format(interview.beginDate, 'yyyy-MM-dd HH:mm')}[#if interview.endDate??] 至 ${format(interview.endDate, 'yyyy-MM-dd HH:mm')}[/#if]</p>
+        [#if interview.description?has_content]
+          <p class="pt-2 text-slate-500 whitespace-pre-line">${interview.description}</p>
+        [/#if]
+      </div>
+    </div>
+
+    [#if interview.text?has_content]
+      <div class="border-t border-slate-200 pt-4 prose max-w-none">
+        [#noescape]${interview.text}[/#noescape]
+      </div>
+    [/#if]
+  </div>
+
+  [#-- 访谈实录 --]
+  <div class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">访谈实录</h2>
+    <ul id="transcript" class="divide-y divide-slate-100">
+      [@InterviewMessageList interviewId=interview.id limit='500'; list]
+      [#list list as bean]
+      <li class="py-3" data-id="${bean.id?c}">
+        <p class="text-sm text-slate-500"><strong class="text-slate-800">${bean.speaker}</strong>
+          <span class="ml-2">${format(bean.created, 'yyyy-MM-dd HH:mm:ss')}</span></p>
+        <p class="mt-1 whitespace-pre-line">${bean.text!}</p>
+      </li>
+      [#assign lastId = bean.id/]
+      [/#list]
+      [/@InterviewMessageList]
+    </ul>
+    <p id="transcriptEmpty" class="py-4 text-sm text-slate-500[#if lastId != 0] hidden[/#if]">暂无实录内容</p>
+  </div>
+
+  [#-- 网友提问 --]
+  <div class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">网友提问</h2>
+    <ul id="questionList" class="divide-y divide-slate-100">
+      [@InterviewQuestionList interviewId=interview.id status='1' limit='100'; list]
+      [#list list as bean]
+      <li class="py-3">
+        <p class="text-sm text-slate-500"><strong class="text-slate-800">${bean.maskedName}</strong>
+          <span class="ml-2">${format(bean.created, 'yyyy-MM-dd HH:mm')}</span></p>
+        <p class="mt-1 whitespace-pre-line">${bean.text}</p>
+        [#if bean.answer?has_content]
+          <p class="mt-1 text-sm text-primary whitespace-pre-line">答复：${bean.answer}</p>
+        [/#if]
+      </li>
+      [/#list]
+      [/@InterviewQuestionList]
+    </ul>
+
+    [#if interview.questionEnabled && interview.status != 2]
+    <form x-show="status !== 2" @submit.prevent="submitQuestion"
+          class="rounded-lg border border-slate-200 bg-white p-5 space-y-4">
+      <div>
+        <h3 class="font-semibold">我要提问</h3>
+        <p class="text-sm text-slate-500 mt-0.5">提问经审核后展示，提问人姓名将作脱敏处理。</p>
+      </div>
+
+      <p x-show="error" x-cloak x-text="error" class="px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+
+      <div class="max-w-md">
+        <label for="questionName" class="block text-sm font-medium text-slate-700 mb-1.5">姓名 <strong class="text-rose-600">*</strong></label>
+        <input id="questionName" type="text" required maxlength="50" x-model="name" autocomplete="name"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="questionText" class="block text-sm font-medium text-slate-700 mb-1.5">提问内容 <strong class="text-rose-600">*</strong></label>
+        <textarea id="questionText" required maxlength="1000" rows="4" x-model="text"
+                  class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"></textarea>
+      </div>
+      <div class="max-w-md">
+        <label for="questionCaptcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码 <strong class="text-rose-600">*</strong></label>
+        <div class="flex gap-2">
+          <input id="questionCaptcha" type="text" required autocomplete="off" x-model="captcha"
+                 class="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+          <button type="button" @click="refreshCaptcha()" title="点击重新获取验证码" class="shrink-0">
+            <img :src="captchaImage || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"
+                 alt="验证码" class="h-10 rounded border border-slate-300 cursor-pointer min-w-24 bg-slate-50">
+          </button>
+        </div>
+      </div>
+      <button type="submit" :disabled="submitting"
+              class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+        <span x-show="!submitting">提交提问</span>
+        <span x-show="submitting" x-cloak>提交中…</span>
+      </button>
+    </form>
+    [/#if]
+  </div>
+</div>
+
+[#if interview.status == 1]
+<script nonce="${csp_nonce!''}">
+  // 直播中每15秒轮询：凭 minId 增量获取实录、刷新已采用提问、检测访谈结束。
+  // 用户内容一律 textContent 写入，防XSS；消息ID为Long型，JS精度不足，始终作字符串处理
+  // （lastId 从最后一条服务端渲染的 li[data-id] 读取，而非模板插值）。
+  (function () {
+    var interviewApi = '${api}/interview/${interview.id?c}';
+    var lastLi = document.querySelector('#transcript li[data-id]:last-child');
+    var lastId = lastLi ? lastLi.getAttribute('data-id') : '0';
+
+    function buildItem(head, headTime, text, answer) {
+      var li = document.createElement('li');
+      li.className = 'py-3';
+      var meta = document.createElement('p');
+      meta.className = 'text-sm text-slate-500';
+      var name = document.createElement('strong');
+      name.className = 'text-slate-800';
+      name.textContent = head;
+      meta.appendChild(name);
+      var time = document.createElement('span');
+      time.className = 'ml-2';
+      time.textContent = headTime;
+      meta.appendChild(time);
+      li.appendChild(meta);
+      var body = document.createElement('p');
+      body.className = 'mt-1 whitespace-pre-line';
+      body.textContent = text;
+      li.appendChild(body);
+      if (answer) {
+        var reply = document.createElement('p');
+        reply.className = 'mt-1 text-sm text-primary whitespace-pre-line';
+        reply.textContent = '答复：' + answer;
+        li.appendChild(reply);
+      }
+      return li;
+    }
+
+    function fmtTime(value) {
+      var d = new Date(value);
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+          + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
+
+    function getJson(url) {
+      return fetch(url, { credentials: 'include' }).then(function (r) { return r.ok ? r.json() : null; });
+    }
+
+    function pollMessages() {
+      getJson(interviewApi + '/message?minId=' + encodeURIComponent(lastId) + '&limit=200').then(function (list) {
+        if (!list || list.length === 0) return;
+        var transcript = document.getElementById('transcript');
+        for (var i = 0; i < list.length; i++) {
+          var m = list[i];
+          transcript.appendChild(buildItem(m.speaker, fmtTime(m.created), m.text || ''));
+          lastId = String(m.id);
+        }
+        document.getElementById('transcriptEmpty').classList.add('hidden');
+      }).catch(function () {});
+    }
+
+    function pollQuestions() {
+      getJson(interviewApi + '/question?limit=100').then(function (list) {
+        if (list == null) return;
+        var box = document.getElementById('questionList');
+        box.innerHTML = '';
+        for (var i = 0; i < list.length; i++) {
+          var q = list[i];
+          box.appendChild(buildItem(q.name, fmtTime(q.created), q.text, q.answer));
+        }
+      }).catch(function () {});
+    }
+
+    var pollTimer = setInterval(function () {
+      pollMessages();
+      pollQuestions();
+      getJson(interviewApi).then(function (data) {
+        if (data != null && data.status === 2) {
+          // Alpine 组件读取的 status 无法从这里更新，派发事件由页面组件的 @interview-ended.window 接收
+          window.dispatchEvent(new CustomEvent('interview-ended'));
+          clearInterval(pollTimer);
+        }
+      }).catch(function () {});
+    }, 15000);
+  })();
+</script>
+[/#if]
+[/@layout]
+[/#escape]

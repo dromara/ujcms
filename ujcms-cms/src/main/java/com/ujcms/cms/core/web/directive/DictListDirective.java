@@ -3,6 +3,7 @@ package com.ujcms.cms.core.web.directive;
 import com.ujcms.cms.core.domain.Dict;
 import com.ujcms.cms.core.service.DictService;
 import com.ujcms.cms.core.service.args.DictArgs;
+import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.common.freemarker.Freemarkers;
 import freemarker.core.Environment;
@@ -37,8 +38,12 @@ public class DictListDirective implements TemplateDirectiveModel {
      */
     private static final String IS_ENABLED = "isEnabled";
 
-    public static List<Dict> query(Map<String, ?> params, DictService dictService) {
-        DictArgs args = DictArgs.of();
+    /**
+     * @param siteId 当前站点：可见范围 = 本站 ∪ 全局，typeId 与 type 两路同守
+     *               （另一站点的私有类型即便按 ID 也不可读）
+     */
+    public static List<Dict> query(Map<String, ?> params, Long siteId, DictService dictService) {
+        DictArgs args = DictArgs.of().scopeSiteId(siteId);
 
         Collection<Long> typeId = Directives.getLongs(params, TYPE_ID);
         Collection<String> typeAlias = Directives.getStrings(params, TYPE);
@@ -59,14 +64,14 @@ public class DictListDirective implements TemplateDirectiveModel {
         return dictService.selectList(args, offset, limit);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {
         Freemarkers.requireLoopVars(loopVars);
         Freemarkers.requireBody(body);
 
-        List<Dict> list = query(params, dictService);
+        List<Dict> list = query(params, Frontends.getSiteId(env), dictService);
 
         loopVars[0] = env.getObjectWrapper().wrap(list);
         body.render(env.getOut());

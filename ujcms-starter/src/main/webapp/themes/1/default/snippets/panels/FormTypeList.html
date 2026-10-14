@@ -1,0 +1,23 @@
+[#--
+  面板片段：自定义表单（FormTypeList）。纯设置组件（vote-micro-region §5 先例）：表单类型经
+  [@FormTypeList] 自取。商业版 T2+ 功能——低版不输出（与原 right.html 硬编码模块的门禁一致）。
+--]
+[#escape x as (x)!?html]
+[#if config.commercialTier gte 2]
+<section>
+  [#if (settings.title)?has_content]
+  <h5 class="flex items-center gap-2 text-base font-semibold mb-3">
+    <span class="size-5 text-primary inline-block">[@icon 'dynamic-form-outline'/]</span>
+    <a href="${dy}/form-type" class="cm-link">${settings.title}</a>
+  </h5>
+  [/#if]
+  [@FormTypeList limit=(settings.limit)!2; formTypeList]
+  <ul class="space-y-2">
+    [#list formTypeList as bean]
+      <li><a href="${dy}/form-list/${bean.id?c}" class="cm-link text-sm">${bean.name}</a></li>
+    [/#list]
+  </ul>
+  [/@FormTypeList]
+</section>
+[/#if]
+[/#escape]

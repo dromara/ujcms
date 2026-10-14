@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, toRefs, watch, PropType } from 'vue';
+import { ref, toRefs, watch, type PropType } from 'vue';
 import { queryOrg, createOrg, updateOrg, deleteOrg, queryOrgList } from '@/api/user';
 import { toTree, disableSubtree } from '@/utils/tree';
 import DialogForm from '@/components/DialogForm.vue';

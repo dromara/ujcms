@@ -22,9 +22,10 @@ import java.util.regex.Pattern;
  * addParam('http://www.abc.com/news','abc',123);addParam('abc',123,456);
  * <p>
  *
- * @author liufang
+ * @author PONY
  */
 public class AddParamMethod implements TemplateMethodModelEx {
+    @SuppressWarnings("rawtypes")
     @Override
     public Object exec(List args) throws TemplateModelException {
         int argsSize = args.size();

@@ -1,0 +1,56 @@
+{
+  "name": "HeroCarousel",
+  "version": "3.0.0",
+  "description": "幻灯可来自所选区块，也可在面板内手工编排。",
+  "label": { "zh-CN": "焦点轮播", "en": "Hero carousel" },
+  "tags": ["region", "homepage", "carousel"],
+  "presentation": { "icon": "carousel", "group": { "zh-CN": "首页组件", "en": "Homepage" }, "order": 10, "thumbnail": "thumbnails/hero-carousel.svg" },
+  "titleField": "headline",
+  "settings": {
+    "mode": {
+      "type": "enum", "default": "block", "values": ["block", "manual"],
+      "valueLabels": { "zh-CN": ["区块内容", "手工编排"], "en": ["From block", "Manual slides"] },
+      "label": { "zh-CN": "内容来源", "en": "Content mode" }
+    },
+    "block": { "type": "blockRef", "default": { "alias": "focus" }, "visibleWhen": { "mode": "block" }, "label": { "zh-CN": "区块", "en": "Block" }, "help": { "zh-CN": "区块内容模式下取该区块的条目", "en": "Slides come from this block in block mode" } },
+    "limit": { "type": "number", "default": 5, "min": 1, "max": 10, "integer": true, "visibleWhen": { "mode": "block" }, "label": { "zh-CN": "条数", "en": "Count" } },
+    "slides": {
+      "type": "list",
+      "visibleWhen": { "mode": "manual" },
+      "of": {
+        "type": "object",
+        "fields": {
+          "headline": { "type": "text", "max": 150, "required": true, "label": { "zh-CN": "标题", "en": "Headline" } },
+          "subhead": { "type": "text", "max": 250, "label": { "zh-CN": "副标题", "en": "Subhead" } },
+          "image": { "type": "media", "aspectRatio": "16/8", "required": true, "label": { "zh-CN": "图片", "en": "Image" } },
+          "link": { "type": "link", "required": true, "label": { "zh-CN": "链接", "en": "Link" } }
+        }
+      },
+      "label": { "zh-CN": "幻灯", "en": "Slides" },
+      "help": { "zh-CN": "手工编排模式下的页面本地幻灯", "en": "Page-local slides in manual mode" }
+    }
+  },
+  "data": {
+    "mode": "$settings.mode",
+    "items": "$settings.slides",
+    "from": "blockItem",
+    "where": { "blockId": "$settings.block" },
+    "limit": "$settings.limit"
+  },
+  "item": {
+    "headline": { "type": "text", "max": 150, "required": true, "label": { "zh-CN": "标题", "en": "Headline" } },
+    "subhead": { "type": "text", "max": 250, "label": { "zh-CN": "副标题", "en": "Subhead" } },
+    "image": { "type": "media", "aspectRatio": "16/8", "required": true, "label": { "zh-CN": "图片", "en": "Image" } },
+    "link": { "type": "link", "required": true, "label": { "zh-CN": "链接", "en": "Link" } }
+  },
+  "migrations": [
+    { "from": "2.x", "remove": ["mobileImage", "badge", "accent"] }
+  ],
+  "examples": [
+    {
+      "headline": "示例焦点",
+      "image": { "url": "/uploads/example/hero-1.jpg", "alt": "示例", "width": 1600, "height": 800 },
+      "link": { "url": "/", "targetBlank": false }
+    }
+  ]
+}

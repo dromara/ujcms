@@ -1,0 +1,30 @@
+[#escape x as (x)!?html]
+[#--
+  在 window 上暴露 API 基址，供 theme.js（fetchCsrf）与 auth.js
+  （sm2Encrypt → /env/client-public-key）使用。此内联脚本不带 defer，
+  先于 defer 的 theme.js / auth.js 执行。
+--]
+<script nonce="${csp_nonce!''}">window.visitApi = '${api}';</script>
+[#--
+  theme.js 必须先于 alpine.min.js 执行：Alpine 在其脚本执行调度的微任务中自启动
+  （defer 脚本共享微任务队列），而 form_submit / sys_message_board_form 等模板的
+  x-init 表达式引用 window.request / window.fetchCsrf / window.displayAlert。
+  若 alpine 先加载，x-init 执行时这些助手仍未定义，控制台报
+  "Alpine Expression Error: window.displayAlert is not a function"。
+--]
+<script src="${assets}/js/theme.js?v=${v}" defer></script>
+<script src="${assets}/js/alpine.min.js?v=${v}" defer></script>
+[#--
+  visit.js 是全部主题共用的访问统计脚本——由 Spring 从 /static/visit.js 提供
+  （见 template-storage.md "Shared runtime JS"）。端点与站点 ID 经 data-* 自配置。
+--]
+<script src="${ctx}/static/visit.js?v=${v}" data-api="${api}" data-site-id="${site.id?c}" data-consent="off" defer nonce="${csp_nonce!''}"></script>
+[#if config.commercialTier gte 4 && site.accessibility.enabled]
+[#--
+  EaseBar 无障碍·适老化辅助浏览工具条（商业版 T4，站点设置 → 无障碍）：由 WebT4Config 从 /static/easebar/ 提供，
+  低级别发行版无此资源，故以 commercialTier 守卫；参数经 data-* 自配置，存储键按站点隔离（同源多站点互不串扰）。
+  页头“无障碍”按钮见 header.html（window.EaseBar.toggle()）。
+--]
+<script src="${ctx}/static/easebar/easebar.min.js?v=${v}" data-open="${site.accessibility.defaultOpen?c}" data-entry="${site.accessibility.entryButton?c}" data-storage-key="easebar:${site.id?c}"[#if site.accessibility.helpUrl?has_content] data-help-url="${site.accessibility.helpUrl}"[/#if][#if site.accessibility.elderUrl?has_content] data-elder-url="${site.accessibility.elderUrl}"[/#if] defer nonce="${csp_nonce!''}"></script>
+[/#if]
+[/#escape]

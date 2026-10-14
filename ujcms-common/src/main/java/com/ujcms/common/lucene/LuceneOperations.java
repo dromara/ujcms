@@ -32,7 +32,7 @@ import org.apache.lucene.search.highlight.TokenSources;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.ujcms.common.query.OffsetLimitRequest;
 

@@ -3,10 +3,12 @@ package com.ujcms.cms.core.aop;
 import com.ujcms.cms.core.service.OperationLogService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Props;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.config.AopConfigUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -19,6 +21,15 @@ import static org.mockito.Mockito.mock;
  * @author PONY
  */
 class OperationLogAdvisorTest {
+
+    /**
+     * 清掉同一线程上残留的请求上下文。{@code MockMvc.perform} 在请求抛出异常时不会还原 {@code RequestContextHolder}，
+     * 先运行的控制器测试会把请求上下文留在线程上；而测试类的执行顺序随文件系统而变，不清理则本测试时过时不过。
+     */
+    @BeforeEach
+    void clearRequestContext() {
+        RequestContextHolder.resetRequestAttributes();
+    }
 
     @Test
     void advisorAppliedByInfrastructureAutoProxyCreator() {

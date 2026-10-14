@@ -3,7 +3,7 @@ package com.ujcms.common.web;
 /**
  * 分页url获取接口
  *
- * @author liufang
+ * @author PONY
  */
 public interface PageUrlResolver {
     /**

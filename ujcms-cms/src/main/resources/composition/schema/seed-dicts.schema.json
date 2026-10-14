@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-dicts.schema.json",
+  "title": "UJCMS Theme Seed Dicts",
+  "description": "主题内容种子字典文件（seed/content/dicts/*.dicts.json——model-seeding D8，D32 既档触发点随模型族落地）。字典类型定义按来源三元组 (site_id_, origin_, origin_id_) select-then-insert 幂等；别名为自然键——撞站点可见集（本站 ∪ 全局）→ linked 恒不收编。条目即定义的一部分（平铺，序即排列；刷新按 value 匹配保留 id）；scope/order/sys 恒不入种子（操作员/系统状态）。字典先于模型导入——模型字段集里的 dictTypeId 别名自此有种子定义可解析。",
+  "type": "object",
+  "required": ["dictTypes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "dictTypes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "name", "entries"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（来源三元组幂等键；缺省与 alias 同值）" },
+          "alias": { "type": "string", "minLength": 1, "maxLength": 50, "description": "别名（自然键；缺省取 originId）" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 50, "description": "名称" },
+          "remark": { "type": "string", "maxLength": 300, "description": "备注" },
+          "dataType": { "type": "integer", "enum": [0, 1], "default": 0, "description": "数据类型（0：字符串，1：整型）" },
+          "entries": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/entry" },
+            "description": "条目列表（序即排列；刷新按 value 匹配既有条目保留 id，未命中即新条目，缺席删除）"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["name", "value"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 100, "description": "显示名" },
+        "value": { "type": "string", "minLength": 1, "maxLength": 100, "description": "值（层内匹配键；customs 里内联存储的就是它）" },
+        "remark": { "type": "string", "maxLength": 300, "description": "备注" },
+        "enabled": { "type": "boolean", "default": true, "description": "是否启用" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

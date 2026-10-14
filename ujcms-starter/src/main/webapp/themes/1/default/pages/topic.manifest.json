@@ -1,0 +1,9 @@
+{
+  "name": "topic",
+  "label": { "zh-CN": "专题页", "en": "Topic" },
+  "order": 40,
+  "template": ["topic", "topics"],
+  "slots": {
+    "aside": { "kind": "region", "shared": "site" }
+  }
+}

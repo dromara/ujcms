@@ -40,16 +40,21 @@ export default {
       white: colors.white,
       gray: {
         ...colors.gray,
-        primary: '#303133',
-        regular: '#606266',
-        secondary: '#909399',
-        placeholder: '#A8ABB2',
-        disabled: '#C0C4CC',
+        // 五个文字色引用 Element Plus 的文字色变量（取值与原字面量一致：#303133 / #606266 / #909399 / #a8abb2 / #c0c4cc），
+        // 文字随 EP 的 :root 变量走，将来的深色样式表只需改变量。同 primary：变量值不支持 gray-primary/NN 透明度修饰符。
+        // 面色（bg-white、gray-50…900）仍是字面量（console-shell S6）。
+        primary: 'var(--el-text-color-primary)',
+        regular: 'var(--el-text-color-regular)',
+        secondary: 'var(--el-text-color-secondary)',
+        placeholder: 'var(--el-text-color-placeholder)',
+        disabled: 'var(--el-text-color-disabled)',
       },
+      // 主色引用 Element Plus 的主色变量链（src/utils/theme.ts 在 :root 上改写），text-primary 等随主题色变化。
+      // 取值与原字面量一致（#409eff / light-5 #a0cfff / light-9 #ecf5ff）。变量值不支持 primary/NN 透明度修饰符，勿用。
       primary: {
-        DEFAULT: '#409eff',
-        light: '#a0cfff',
-        lighter: '#ecf5ff',
+        DEFAULT: 'var(--el-color-primary)',
+        light: 'var(--el-color-primary-light-5)',
+        lighter: 'var(--el-color-primary-light-9)',
       },
       success: {
         DEFAULT: '#67c23a',

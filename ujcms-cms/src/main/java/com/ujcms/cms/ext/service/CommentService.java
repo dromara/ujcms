@@ -2,13 +2,18 @@ package com.ujcms.cms.ext.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
+import com.ujcms.cms.core.component.WordScreeningService;
+import com.ujcms.cms.core.component.WordScreeningService.WordHit;
+import com.ujcms.cms.core.component.WordScreeningService.WordType;
 import com.ujcms.cms.core.listener.ArticleDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
 import com.ujcms.cms.core.service.AttachmentService;
+import com.ujcms.cms.ext.component.UgcSubmitDispatcher;
 import com.ujcms.cms.ext.domain.Comment;
 import com.ujcms.cms.ext.domain.generated.GeneratedComment;
 import com.ujcms.cms.ext.listener.CommentAuditListener;
+import com.ujcms.cms.ext.listener.UgcSubmitListener.UgcSubmission;
 import com.ujcms.cms.ext.mapper.CommentMapper;
 import com.ujcms.cms.ext.service.args.CommentArgs;
 import com.ujcms.common.db.identifier.SnowflakeSequence;
@@ -34,12 +39,17 @@ public class CommentService implements ArticleDeleteListener, SiteDeleteListener
     private final AttachmentService attachmentService;
     private final CommentMapper mapper;
     private final SnowflakeSequence snowflakeSequence;
+    private final WordScreeningService wordScreeningService;
+    private final UgcSubmitDispatcher ugcSubmitDispatcher;
 
     public CommentService(AttachmentService attachmentService, CommentMapper mapper,
-                          SnowflakeSequence snowflakeSequence) {
+                          SnowflakeSequence snowflakeSequence, WordScreeningService wordScreeningService,
+                          UgcSubmitDispatcher ugcSubmitDispatcher) {
         this.attachmentService = attachmentService;
         this.mapper = mapper;
         this.snowflakeSequence = snowflakeSequence;
+        this.wordScreeningService = wordScreeningService;
+        this.ugcSubmitDispatcher = ugcSubmitDispatcher;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -47,6 +57,13 @@ public class CommentService implements ArticleDeleteListener, SiteDeleteListener
         bean.setId(snowflakeSequence.nextId());
         bean.setUserId(userId);
         bean.setIp(ip);
+        // 免费词库门禁（docs/spec/ai/screening.md §4.2）：命中敏感词强制待审核，不报错——
+        // 报错会向提交者泄露词库；易错词属编辑校对范畴，UGC不适用
+        List<WordHit> dictHits = wordScreeningService.screen(bean.getText()).stream()
+                .filter(hit -> hit.type() == WordType.SENSITIVE).toList();
+        if (!dictHits.isEmpty()) {
+            bean.setStatus(Comment.STATUS_UNREVIEWED);
+        }
         mapper.insert(bean);
         attachmentService.insertRefer(GeneratedComment.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
         // 仅已审核（可见）评论计入文章评论数，与前台只展示已审核评论的口径一致；待审核评论待审核通过时再计入
@@ -54,6 +71,8 @@ public class CommentService implements ArticleDeleteListener, SiteDeleteListener
             mapper.addArticleComments(bean.getArticleId(), 1);
             auditListeners.forEach(it -> it.afterCommentAudited(bean));
         }
+        ugcSubmitDispatcher.dispatch(new UgcSubmission(UgcSubmission.TYPE_COMMENT, bean.getId(), bean.getSiteId(),
+                userId, bean.getText(), dictHits, bean.getStatus()));
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>${status}</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="renderer" content="webkit">
+  [#-- 错误页在失败路径上渲染：样式全部内联，零外部请求。 --]
+  <style>
+    :root{--primary:oklch(48% 0.22 263)}
+    *{box-sizing:border-box}
+    body{margin:0;background:#fff;color:#0f172a;font-family:'Microsoft YaHei','PingFang SC',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+    main{max-width:36rem;width:100%;text-align:center}
+    h1{font-size:1.5rem;font-weight:600;margin:0}
+    .site{margin-top:1rem;font-size:.875rem;color:#64748b}
+    code{background:#f1f5f9;border-radius:.25rem;padding:.125rem .375rem;font-size:.8125rem}
+  </style>
+</head>
+<body>
+<main>
+  <h1>站点被禁用，暂时不可访问</h1>
+  <p class="site"><code>${site.name}(ID: ${site.id?c})</code></p>
+</main>
+</body>
+</html>
+[/#escape]

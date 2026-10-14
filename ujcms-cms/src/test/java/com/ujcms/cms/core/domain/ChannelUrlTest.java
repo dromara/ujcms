@@ -18,10 +18,10 @@ class ChannelUrlTest {
         // html disabled by default → uses getDynamicUrl
     }
 
-    private Channel createChannel(String alias) {
+    private Channel createChannel(String slug) {
         Channel channel = new Channel();
         channel.setSite(site);
-        channel.setAlias(alias);
+        channel.setSlug(slug);
         // type defaults to TYPE_NORMAL (1), no link
         return channel;
     }

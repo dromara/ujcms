@@ -10,6 +10,11 @@ import org.mybatis.generator.internal.ObjectFactory;
 
 import java.util.List;
 
+/**
+ * Portions of this class are derived from MyBatis Generator 1.4.2 (IntrospectedTableMyBatis3SimpleImpl and
+ * IntrospectedTableMyBatis3Impl), Copyright 2006-2022 the original author or authors, Apache License 2.0
+ * (licenses/Apache-2.0.txt), and were modified for UJCMS.
+ */
 public class IntrospectedTableSimpleImpl extends IntrospectedTableMyBatis3Impl {
     public IntrospectedTableSimpleImpl() {
         super();

@@ -8,7 +8,7 @@ import com.ujcms.cms.ext.mapper.FormMapper;
 import com.ujcms.cms.ext.service.args.FormArgs;
 import com.ujcms.common.query.QueryInfo;
 import com.ujcms.common.query.QueryParser;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;

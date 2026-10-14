@@ -1,0 +1,37 @@
+{
+  "name": "RankedList",
+  "version": "1.0.0",
+  "description": "按浏览量排序的文章标题榜。",
+  "label": { "zh-CN": "排行列表", "en": "Ranked list" },
+  "tags": ["region", "article", "aside"],
+  "presentation": { "icon": "list", "group": { "zh-CN": "内容组件", "en": "Content" }, "order": 12, "thumbnail": "thumbnails/ranked-list.svg" },
+  "titleField": "headline",
+  "settings": {
+    "title": { "type": "text", "max": 150, "default": "热点新闻", "label": { "zh-CN": "栏目标题", "en": "Section title" } },
+    "moreUrl": { "type": "link", "label": { "zh-CN": "更多链接", "en": "More link" } },
+    "channel": { "type": "channelRef", "label": { "zh-CN": "栏目", "en": "Channel" }, "help": { "zh-CN": "留空则统计全站", "en": "Empty = whole site" } },
+    "limit": { "type": "number", "default": 9, "min": 1, "max": 20, "integer": true, "label": { "zh-CN": "条数", "en": "Count" } },
+    "orderBy": {
+      "type": "enum", "default": "weekViews desc",
+      "values": ["weekViews desc", "monthViews desc", "views desc", "publishedAt desc"],
+      "valueLabels": { "zh-CN": ["周榜", "月榜", "总榜", "最新"], "en": ["Weekly", "Monthly", "All-time", "Latest"] },
+      "label": { "zh-CN": "排序", "en": "Order" }
+    }
+  },
+  "data": {
+    "from": "article",
+    "where": { "channel": "$settings.channel", "isIncludeSubChannel": true },
+    "orderBy": "$settings.orderBy",
+    "limit": "$settings.limit"
+  },
+  "item": {
+    "headline": { "type": "text", "max": 200, "required": true, "label": { "zh-CN": "标题", "en": "Headline" } },
+    "link": { "type": "link", "required": true, "label": { "zh-CN": "链接", "en": "Link" } }
+  },
+  "examples": [
+    {
+      "headline": "示例热点",
+      "link": { "url": "/article/1", "targetBlank": false }
+    }
+  ]
+}

@@ -15,7 +15,11 @@
     </resultMap>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
-    <sql id="selectAllWhere" />
+    <sql id="selectAllWhere">
+        <!-- 只列出仍然公开的文章（已发布、已归档）。下线、删除之后的文章不再出现在浏览历史里——否则它的标题、摘要
+             还能从这里读到（docs/spec/article-management/plan.md Phase 2.4） -->
+        and t.article_id_ in (select article_.id_ from ujcms_article article_ where article_.status_ in (0, 1))
+    </sql>
     <select id="selectAll" resultMap="ResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_view_history" />

@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.ujcms</groupId>
 		<artifactId>ujcms</artifactId>
-		<version>12.3.3</version>
+		<version>13.1.4</version>
 	</parent>
 
 	<artifactId>ujcms-common</artifactId>
@@ -34,6 +34,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- Null-safety annotations (JSpecify): @NullMarked/@Nullable. Version managed by Spring Boot BOM. -->
+		<dependency>
+			<groupId>org.jspecify</groupId>
+			<artifactId>jspecify</artifactId>
 		</dependency>
 
 		<!-- Spring -->
@@ -121,10 +127,6 @@
 			<artifactId>bcprov-jdk18on</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk18on</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
@@ -144,6 +146,12 @@
 			<artifactId>okhttp-jvm</artifactId>
 		</dependency>
 
+		<!-- Guava（IP 地址解析与规范化） -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+
 		<!-- IP -->
 		<dependency>
 			<groupId>org.lionsoul</groupId>
@@ -155,10 +163,6 @@
 		</dependency>
 
 		<!-- Image -->
-		<dependency>
-			<groupId>org.im4java</groupId>
-			<artifactId>im4java</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
@@ -182,16 +186,21 @@
 			<artifactId>freemarker-java8</artifactId>
 		</dependency>
 
-		<!-- Captcha -->
-		<dependency>
-			<groupId>io.leopard.thirdparty</groupId>
-			<artifactId>jcaptcha-core</artifactId>
-		</dependency>
-
 		<!-- Liquibase -->
 		<dependency>
 			<groupId>org.liquibase</groupId>
 			<artifactId>liquibase-core</artifactId>
+			<!-- 4.23.2 的 pom 仍声明 JAXB / JAF 旧坐标（CDDL-1.1），但 jar 内没有任何引用：排除后不再随发行包分发 -->
+			<exclusions>
+				<exclusion>
+					<groupId>javax.xml.bind</groupId>
+					<artifactId>jaxb-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.activation</groupId>
+					<artifactId>javax.activation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Caffeine -->

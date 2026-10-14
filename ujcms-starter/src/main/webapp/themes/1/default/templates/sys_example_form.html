@@ -1,0 +1,101 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#--
+  参考脚手架：向 ${api}/example 提交 JSON（name + description + captcha）。
+  Example API 默认关闭，运营方启用控制器前实际提交会 404。
+--]
+[@layout title='我要提交示例 - ' + site.title]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/example" class="cm-link">示例列表</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">提交示例</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <div class="flex justify-between items-baseline border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'edit-outline'/]</span>
+      <span>提交示例</span>
+    </h1>
+    <a href="${dy}/example" class="text-sm cm-link">返回列表</a>
+  </div>
+
+  <form
+    x-data="{
+      name: '', description: '',
+      captcha: '', captchaToken: '', captchaImg: '',
+      submitting: false,
+      async fetchCaptcha() {
+        try {
+          const data = await window.request('GET', '${api}/captcha');
+          this.captchaImg = 'data:image/png;base64,' + data.image;
+          this.captchaToken = data.token;
+        } catch (e) { window.displayAlert(e.message || '获取验证码失败'); }
+      },
+      async submit() {
+        if (this.submitting) return;
+        this.submitting = true;
+        try {
+          await window.fetchCsrf();
+          const payload = {
+            siteId: '${site.id?c}', // 雪花 ID 超过 JS 安全整数范围，须以字符串提交
+            name: this.name,
+            description: this.description,
+            captcha: this.captcha,
+            captchaToken: this.captchaToken,
+          };
+          const res = await window.request('POST', '${api}/example', payload);
+          if (res && res.status === 0) {
+            window.displaySuccess('提交成功');
+            window.location.href = '${dy}/example';
+          } else if (res && res.message) {
+            window.displayAlert(res.message);
+            this.captcha = ''; this.fetchCaptcha();
+          }
+        } catch (e) {
+          window.displayAlert(e.message || '提交失败');
+          this.captcha = ''; this.fetchCaptcha();
+        } finally { this.submitting = false; }
+      }
+    }"
+    x-init="fetchCaptcha()"
+    @submit.prevent="submit"
+    class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-5"
+  >
+    <div>
+      <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">名称<span class="ml-0.5 text-rose-500">*</span></label>
+      <input id="name" type="text" required maxlength="30" x-model="name" autofocus
+             class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+    </div>
+
+    <div>
+      <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">描述<span class="ml-0.5 text-rose-500">*</span></label>
+      <textarea id="description" required maxlength="150" rows="6" x-model="description"
+                class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"></textarea>
+    </div>
+
+    <div>
+      <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码<span class="ml-0.5 text-rose-500">*</span></label>
+      <div class="flex gap-2">
+        <input id="captcha" type="text" required maxlength="8" autocomplete="off" x-model="captcha"
+               class="flex-1 rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+        <img :src="captchaImg" alt="图形验证码" @click="fetchCaptcha" title="点击换一张"
+             class="h-10 w-32 rounded border border-slate-300 cursor-pointer object-contain bg-slate-50 hover:border-primary">
+      </div>
+    </div>
+
+    <button type="submit" :disabled="submitting"
+            class="w-full sm:w-auto px-5 py-2.5 rounded bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+      <span x-show="!submitting">确认提交</span>
+      <span x-show="submitting" x-cloak>提交中…</span>
+    </button>
+  </form>
+</div>
+[/@layout]
+[/#escape]

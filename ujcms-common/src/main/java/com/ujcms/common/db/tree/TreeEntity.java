@@ -1,6 +1,6 @@
 package com.ujcms.common.db.tree;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 树形实体接口

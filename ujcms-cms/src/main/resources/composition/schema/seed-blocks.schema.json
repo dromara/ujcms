@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-blocks.schema.json",
+  "title": "UJCMS Theme Seed Blocks",
+  "description": "主题内容种子区块文件（seed/content/blocks/*.blocks.json，v2——theme-seed-export E4a / D25）。两种组形：定义组（含 originId——按来源三元组 upsert 区块定义，别名冲突沿用既有可见区块；条目可内嵌）与条目组（A6 权宜形保留：向既有区块按别名填充条目）。条目恒为只填空：按 (blockId, articleId) 查存在则跳过；条目无来源标记，随文章的物理删除级联清理。",
+  "type": "object",
+  "required": ["blocks"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["originId", "name"],
+            "properties": {
+              "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（来源三元组幂等键，E4a / D23）" },
+              "alias": { "type": "string", "minLength": 1, "maxLength": 50, "description": "区块别名（缺省取 originId）；撞上既有可见区块（本站或全局）→ 沿用不收编" },
+              "name": { "type": "string", "minLength": 1, "maxLength": 50, "description": "名称" },
+              "category": { "type": "string", "maxLength": 50, "description": "区块分类" },
+              "title": { "type": "string", "maxLength": 150, "description": "公开显示的板块标题" },
+              "moreUrl": { "type": "string", "maxLength": 255, "description": "“更多”链接" },
+              "blockItemModel": { "type": "string", "maxLength": 50, "description": "区块项模型名称（模型不可随主题携带，D10；未命中回落站点默认并告警，站点无同类模型则留空）" },
+              "recommendable": { "type": "boolean", "default": true, "description": "是否可推荐" },
+              "enabled": { "type": "boolean", "default": true, "description": "是否启用" },
+              "items": { "$ref": "#/$defs/items" }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": ["block", "items"],
+            "properties": {
+              "block": { "type": "string", "minLength": 1, "maxLength": 50, "description": "目标区块别名（须已存在且对站点可见：本站或全局——操作员区块条目的可移植形，A6）" },
+              "items": { "$ref": "#/$defs/items" }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["article"],
+        "properties": {
+          "article": { "type": "string", "minLength": 1, "maxLength": 128, "description": "文章 originId（本主题种子文章；未解析则该条失败）" },
+          "title": { "type": "string", "maxLength": 150, "description": "条目标题（缺省用文章标题）" },
+          "subtitle": { "type": "string", "maxLength": 150 },
+          "description": { "type": "string", "maxLength": 1000 },
+          "image": { "type": "string", "maxLength": 255, "description": "条目图片URL，支持 {{asset:<relpath>}} 令牌" },
+          "targetBlank": { "type": "boolean", "default": false }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

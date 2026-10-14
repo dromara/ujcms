@@ -19,11 +19,21 @@
     <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
     <result column="static_file_" jdbcType="VARCHAR" property="staticFile" />
     <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile" />
-    <result column="editor_settings_" jdbcType="VARCHAR" property="editorSettings" />
-    <result column="watermark_settings_" jdbcType="VARCHAR" property="watermarkSettings" />
-    <result column="html_settings_" jdbcType="VARCHAR" property="htmlSettings" />
-    <result column="message_board_settings_" jdbcType="VARCHAR" property="messageBoardSettings" />
-    <result column="comment_settings_" jdbcType="VARCHAR" property="commentSettings" />
+    <result column="editor_settings_" jdbcType="LONGVARCHAR" property="editorSettings" />
+    <result column="watermark_settings_" jdbcType="LONGVARCHAR" property="watermarkSettings" />
+    <result column="html_settings_" jdbcType="LONGVARCHAR" property="htmlSettings" />
+    <result column="message_board_settings_" jdbcType="LONGVARCHAR" property="messageBoardSettings" />
+    <result column="comment_settings_" jdbcType="LONGVARCHAR" property="commentSettings" />
+    <result column="disclosure_settings_" jdbcType="LONGVARCHAR" property="disclosureSettings" />
+    <result column="mailbox_settings_" jdbcType="LONGVARCHAR" property="mailboxSettings" />
+    <result column="interview_settings_" jdbcType="LONGVARCHAR" property="interviewSettings" />
+    <result column="accessibility_settings_" jdbcType="LONGVARCHAR" property="accessibilitySettings" />
+    <result column="census_settings_" jdbcType="LONGVARCHAR" property="censusSettings" />
+    <result column="ai_settings_" jdbcType="LONGVARCHAR" property="aiSettings" />
+    <result column="geo_settings_" jdbcType="LONGVARCHAR" property="geoSettings" />
+    <result column="permalink_settings_" jdbcType="LONGVARCHAR" property="permalinkSettings" />
+    <result column="lang_" jdbcType="VARCHAR" property="lang" />
+    <result column="lang_parent_id_" jdbcType="BIGINT" property="langParentId" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
     <result column="depth_" jdbcType="SMALLINT" property="depth" />
     <result column="order_" jdbcType="INTEGER" property="order" />
@@ -84,11 +94,68 @@
         select count(*)
         from ujcms_site
     </select>
-    <select id="findBySubDir" resultMap="ResultMap">
+    <select id="existsByModelId" resultType="int">
+        select case
+                   when exists(select * from ujcms_site t where t.model_id_ = #{modelId}) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="findByDomainAndSubDir" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_site t
+        where t.domain_ = #{domain} and t.sub_dir_ = #{subDir}
+    </select>
+    <select id="listBySubDir" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_site t
         where t.sub_dir_ = #{subDir}
+        order by t.id_
+    </select>
+    <select id="listSubDirSites" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_site t
+        where t.sub_dir_ is not null
+          and t.status_ = 0
+        <if test="domain != null">and t.domain_ = #{domain}</if>
+        order by t.order_, t.id_
+    </select>
+    <select id="countByDomainAndSubDir" resultType="int">
+        select count(*)
+        from ujcms_site t
+        where t.domain_ = #{domain}
+        <choose>
+            <when test="subDir != null">and t.sub_dir_ = #{subDir}</when>
+            <otherwise>and t.sub_dir_ is null</otherwise>
+        </choose>
+        <if test="excludeId != null">and t.id_ != #{excludeId}</if>
+    </select>
+    <select id="countBySubDir" resultType="int">
+        select count(*)
+        from ujcms_site t
+        where t.sub_dir_ = #{subDir}
+        <if test="excludeId != null">and t.id_ != #{excludeId}</if>
+    </select>
+    <select id="countByLangParentId" resultType="int">
+        select count(*)
+        from ujcms_site t
+        where t.lang_parent_id_ = #{langParentId}
+    </select>
+    <select id="listByLangGroup" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_site t
+        where (t.lang_parent_id_ = #{masterId,jdbcType=BIGINT} or t.id_ = #{masterId,jdbcType=BIGINT})
+          and t.status_ = 0
+        order by t.order_, t.id_
+    </select>
+    <select id="countByLangGroupAndLang" resultType="int">
+        select count(*)
+        from ujcms_site t
+        where (t.lang_parent_id_ = #{masterId} or t.id_ = #{masterId}) and t.lang_ = #{lang}
+        <if test="excludeId != null">and t.id_ != #{excludeId}</if>
     </select>
     <select id="findByDomain" resultMap="ResultMap">
         select
@@ -189,6 +256,12 @@
         from ujcms_site t
         where t.id_ = #{id,jdbcType=BIGINT}
     </select>
+    <select id="lockById" parameterType="long" resultType="java.lang.Long" useCache="false">
+        select id_
+        from ujcms_site
+        where id_ = #{id,jdbcType=BIGINT}
+        for update
+    </select>
     <delete id="delete" parameterType="long">
         delete
         from ujcms_site
@@ -211,11 +284,21 @@
       seo_description_ = #{seoDescription,jdbcType=VARCHAR},
       static_file_ = #{staticFile,jdbcType=VARCHAR},
       mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
-      editor_settings_ = #{editorSettings,jdbcType=VARCHAR},
-      watermark_settings_ = #{watermarkSettings,jdbcType=VARCHAR},
-      html_settings_ = #{htmlSettings,jdbcType=VARCHAR},
-      message_board_settings_ = #{messageBoardSettings,jdbcType=VARCHAR},
-      comment_settings_ = #{commentSettings,jdbcType=VARCHAR},
+      editor_settings_ = #{editorSettings,jdbcType=LONGVARCHAR},
+      watermark_settings_ = #{watermarkSettings,jdbcType=LONGVARCHAR},
+      html_settings_ = #{htmlSettings,jdbcType=LONGVARCHAR},
+      message_board_settings_ = #{messageBoardSettings,jdbcType=LONGVARCHAR},
+      comment_settings_ = #{commentSettings,jdbcType=LONGVARCHAR},
+      disclosure_settings_ = #{disclosureSettings,jdbcType=LONGVARCHAR},
+      mailbox_settings_ = #{mailboxSettings,jdbcType=LONGVARCHAR},
+      interview_settings_ = #{interviewSettings,jdbcType=LONGVARCHAR},
+      accessibility_settings_ = #{accessibilitySettings,jdbcType=LONGVARCHAR},
+      census_settings_ = #{censusSettings,jdbcType=LONGVARCHAR},
+      ai_settings_ = #{aiSettings,jdbcType=LONGVARCHAR},
+      geo_settings_ = #{geoSettings,jdbcType=LONGVARCHAR},
+      permalink_settings_ = #{permalinkSettings,jdbcType=LONGVARCHAR},
+      lang_ = #{lang,jdbcType=VARCHAR},
+      lang_parent_id_ = #{langParentId,jdbcType=BIGINT},
       status_ = #{status,jdbcType=SMALLINT},
       mains_json_ = #{mainsJson,jdbcType=OTHER},
       clobs_json_ = #{clobsJson,jdbcType=OTHER}
@@ -238,16 +321,26 @@
       seo_description_ = #{seoDescription,jdbcType=VARCHAR},
       static_file_ = #{staticFile,jdbcType=VARCHAR},
       mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
-      editor_settings_ = #{editorSettings,jdbcType=VARCHAR},
-      watermark_settings_ = #{watermarkSettings,jdbcType=VARCHAR},
-      html_settings_ = #{htmlSettings,jdbcType=VARCHAR},
-      message_board_settings_ = #{messageBoardSettings,jdbcType=VARCHAR},
-      comment_settings_ = #{commentSettings,jdbcType=VARCHAR},
+      editor_settings_ = #{editorSettings,jdbcType=LONGVARCHAR},
+      watermark_settings_ = #{watermarkSettings,jdbcType=LONGVARCHAR},
+      html_settings_ = #{htmlSettings,jdbcType=LONGVARCHAR},
+      message_board_settings_ = #{messageBoardSettings,jdbcType=LONGVARCHAR},
+      comment_settings_ = #{commentSettings,jdbcType=LONGVARCHAR},
+      disclosure_settings_ = #{disclosureSettings,jdbcType=LONGVARCHAR},
+      mailbox_settings_ = #{mailboxSettings,jdbcType=LONGVARCHAR},
+      interview_settings_ = #{interviewSettings,jdbcType=LONGVARCHAR},
+      accessibility_settings_ = #{accessibilitySettings,jdbcType=LONGVARCHAR},
+      census_settings_ = #{censusSettings,jdbcType=LONGVARCHAR},
+      ai_settings_ = #{aiSettings,jdbcType=LONGVARCHAR},
+      geo_settings_ = #{geoSettings,jdbcType=LONGVARCHAR},
+      permalink_settings_ = #{permalinkSettings,jdbcType=LONGVARCHAR},
+      lang_ = #{lang,jdbcType=VARCHAR},
+      lang_parent_id_ = #{langParentId,jdbcType=BIGINT},
       status_ = #{status,jdbcType=SMALLINT}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Site">
-    insert into ujcms_site (id_, parent_id_, org_id_, model_id_, name_, description_, protocol_, domain_, sub_dir_, theme_, mobile_theme_, page_size_, logo_, seo_title_, seo_keywords_, seo_description_, static_file_, mobile_static_file_, editor_settings_, watermark_settings_, html_settings_, message_board_settings_, comment_settings_, status_, depth_, order_, views_, self_views_, today_views_, yesterday_views_, max_views_, max_date_, mains_json_, clobs_json_)
-    values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{modelId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{protocol,jdbcType=VARCHAR}, #{domain,jdbcType=VARCHAR}, #{subDir,jdbcType=VARCHAR}, #{theme,jdbcType=VARCHAR}, #{mobileTheme,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{logo,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{editorSettings,jdbcType=VARCHAR}, #{watermarkSettings,jdbcType=VARCHAR}, #{htmlSettings,jdbcType=VARCHAR}, #{messageBoardSettings,jdbcType=VARCHAR}, #{commentSettings,jdbcType=VARCHAR}, #{status,jdbcType=SMALLINT}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{todayViews,jdbcType=INTEGER}, #{yesterdayViews,jdbcType=INTEGER}, #{maxViews,jdbcType=INTEGER}, #{maxDate,jdbcType=TIMESTAMP}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
+    insert into ujcms_site (id_, parent_id_, org_id_, model_id_, name_, description_, protocol_, domain_, sub_dir_, theme_, mobile_theme_, page_size_, logo_, seo_title_, seo_keywords_, seo_description_, static_file_, mobile_static_file_, editor_settings_, watermark_settings_, html_settings_, message_board_settings_, comment_settings_, disclosure_settings_, mailbox_settings_, interview_settings_, accessibility_settings_, census_settings_, ai_settings_, geo_settings_, permalink_settings_, lang_, lang_parent_id_, status_, depth_, order_, views_, self_views_, today_views_, yesterday_views_, max_views_, max_date_, mains_json_, clobs_json_)
+    values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{modelId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{protocol,jdbcType=VARCHAR}, #{domain,jdbcType=VARCHAR}, #{subDir,jdbcType=VARCHAR}, #{theme,jdbcType=VARCHAR}, #{mobileTheme,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{logo,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{editorSettings,jdbcType=LONGVARCHAR}, #{watermarkSettings,jdbcType=LONGVARCHAR}, #{htmlSettings,jdbcType=LONGVARCHAR}, #{messageBoardSettings,jdbcType=LONGVARCHAR}, #{commentSettings,jdbcType=LONGVARCHAR}, #{disclosureSettings,jdbcType=LONGVARCHAR}, #{mailboxSettings,jdbcType=LONGVARCHAR}, #{interviewSettings,jdbcType=LONGVARCHAR}, #{accessibilitySettings,jdbcType=LONGVARCHAR}, #{censusSettings,jdbcType=LONGVARCHAR}, #{aiSettings,jdbcType=LONGVARCHAR}, #{geoSettings,jdbcType=LONGVARCHAR}, #{permalinkSettings,jdbcType=LONGVARCHAR}, #{lang,jdbcType=VARCHAR}, #{langParentId,jdbcType=BIGINT}, #{status,jdbcType=SMALLINT}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{todayViews,jdbcType=INTEGER}, #{yesterdayViews,jdbcType=INTEGER}, #{maxViews,jdbcType=INTEGER}, #{maxDate,jdbcType=TIMESTAMP}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
   </insert><sql id="Column_List">
-    t.id_, t.parent_id_, t.org_id_, t.model_id_, t.name_, t.description_, t.protocol_, t.domain_, t.sub_dir_, t.theme_, t.mobile_theme_, t.page_size_, t.logo_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.static_file_, t.mobile_static_file_, t.editor_settings_, t.watermark_settings_, t.html_settings_, t.message_board_settings_, t.comment_settings_, t.status_, t.depth_, t.order_, t.views_, t.self_views_, t.today_views_, t.yesterday_views_, t.max_views_, t.max_date_, t.mains_json_, t.clobs_json_
+    t.id_, t.parent_id_, t.org_id_, t.model_id_, t.name_, t.description_, t.protocol_, t.domain_, t.sub_dir_, t.theme_, t.mobile_theme_, t.page_size_, t.logo_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.static_file_, t.mobile_static_file_, t.editor_settings_, t.watermark_settings_, t.html_settings_, t.message_board_settings_, t.comment_settings_, t.disclosure_settings_, t.mailbox_settings_, t.interview_settings_, t.accessibility_settings_, t.census_settings_, t.ai_settings_, t.geo_settings_, t.permalink_settings_, t.lang_, t.lang_parent_id_, t.status_, t.depth_, t.order_, t.views_, t.self_views_, t.today_views_, t.yesterday_views_, t.max_views_, t.max_date_, t.mains_json_, t.clobs_json_
   </sql></mapper>

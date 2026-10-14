@@ -41,7 +41,7 @@ const fetchData = async () => {
 };
 onMounted(fetchData);
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -81,6 +81,7 @@ const handleDelete = async (ids: string[]) => {
         <query-item :label="$t('example.height')" name="Q_GE_height_Int,Q_LE_height_Int" type="number"></query-item>
         <query-item :label="$t('example.birthday')" name="Q_GE_birthday_DateTime,Q_LE_birthday_DateTime" type="datetime"></query-item>
         <query-item :label="$t('example.enabled')" name="Q_In_enabled" :options="['1', '0'].map((item) => ({ label: $t(item === '1' ? 'yes' : 'no'), value: item }))"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div>
@@ -96,7 +97,7 @@ const handleDelete = async (ids: string[]) => {
       <el-table ref="table" v-loading="loading" :data="data" @selection-change="(rows) => (selection = rows)" @row-dblclick="(row) => handleEdit(row.id)" @sort-change="handleSort">
         <column-list name="example">
           <el-table-column type="selection" width="38"></el-table-column>
-          <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
+          <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
           <el-table-column property="name" :label="$t('example.name')" sortable="custom" show-overflow-tooltip></el-table-column>
           <el-table-column property="description" :label="$t('example.description')" sortable="custom" show-overflow-tooltip></el-table-column>
           <el-table-column property="height" :label="$t('example.height')" sortable="custom" show-overflow-tooltip></el-table-column>

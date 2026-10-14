@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.ujcms.common.web.Strings;
 import org.apache.commons.io.IOUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;

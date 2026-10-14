@@ -6,8 +6,10 @@ import com.ujcms.cms.core.service.ModelService;
 import com.ujcms.cms.core.web.directive.ModelListDirective;
 import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.core.web.support.SiteResolver;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.common.query.QueryParser;
 import com.ujcms.common.query.QueryUtils;
+import com.ujcms.common.web.Views;
 import com.ujcms.common.web.exception.Http404Exception;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,6 +58,7 @@ public class ModelController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", description = "共获取多少条数据。最大不能超过1000",
             schema = @Schema(type = "integer", format = "int32"))
     @GetMapping
+    @JsonView(Views.List.class)
     public List<Model> list(HttpServletRequest request) {
         Site site = siteResolver.resolve(request);
         Map<String, String> params = QueryUtils.getParams(request.getQueryString());
@@ -66,6 +69,7 @@ public class ModelController {
     @Operation(summary = "模型对象_Model")
     @ApiResponses(value = {@ApiResponse(description = "模型对象")})
     @GetMapping("/{id:[\\d]+}")
+    @JsonView(Views.List.class)
     public Model show(@Parameter(description = "模型ID") @PathVariable Long id) {
         return Optional.ofNullable(modelService.select(id))
                 .orElseThrow(() -> new Http404Exception("Model not found. ID: " + id));

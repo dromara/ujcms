@@ -8,7 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ujcms.common.security.Secures;
 import io.minio.ListObjectsArgs;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.util.WebUtils;
 
 import jakarta.servlet.http.Cookie;
@@ -29,13 +29,13 @@ public final class Constants {
     //以下非final常量可以被配置文件覆盖
 
     /**
-     * 模板文件后缀
+     * 模板文件后缀。
      */
     public static final String TEMPLATE_SUFFIX = ".html";
     /**
-     * 模板资源路径（css、js、img等）
+     * 模板资源路径（css、js、img等），对应主题目录 {@code assets/} 与模板变量 {@code ${assets}}。
      */
-    public static final String TEMPLATE_FILES = "_files";
+    public static final String TEMPLATE_ASSETS = "assets";
     /**
      * 默认每页条数
      */
@@ -52,6 +52,13 @@ public final class Constants {
     public static final int DEMO_USER_ID = 10;
 
     public static final String IDENTITY_COOKIE_NAME = "ujcms-unique-visitor";
+
+    /**
+     * 访客识别 Cookie 有效期：1 年。原值 {@code Integer.MAX_VALUE}（约 68 年）对去重/识别而言过长，
+     * 既扩大跟踪足迹也易被漏洞扫描标记。注意：Cookie 去重为尽力而为（可清除/伪造），需要强完整性时
+     * 应使用投票/调查的 {@code MODE_USER}（登录）模式。
+     */
+    public static final int IDENTITY_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
     public static int validPageSize(@Nullable Integer pageSize) {
         return validPageSize(pageSize, DEFAULT_PAGE_SIZE);
@@ -116,9 +123,11 @@ public final class Constants {
             ctx = "/";
         }
         cookie.setPath(ctx);
-        cookie.setMaxAge(Integer.MAX_VALUE);
+        cookie.setMaxAge(IDENTITY_COOKIE_MAX_AGE);
         cookie.setSecure(request.isSecure());
         cookie.setHttpOnly(true);
+        // 显式声明 SameSite=Lax（Servlet 6 / Tomcat 10.1+ 支持），不再依赖浏览器默认或 https-enabled 全局开关
+        cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
     }
 

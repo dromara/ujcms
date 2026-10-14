@@ -8,7 +8,7 @@
     <result column="article_model_id_" jdbcType="BIGINT" property="articleModelId" />
     <result column="performance_type_id_" jdbcType="BIGINT" property="performanceTypeId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
-    <result column="alias_" jdbcType="VARCHAR" property="alias" />
+    <result column="slug_" jdbcType="VARCHAR" property="slug" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="article_template_" jdbcType="VARCHAR" property="articleTemplate" />
     <result column="channel_template_" jdbcType="VARCHAR" property="channelTemplate" />
@@ -34,6 +34,9 @@
     <result column="seo_title_" jdbcType="VARCHAR" property="seoTitle" />
     <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
     <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Channel">
     <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
     <result column="clobs_json_" jdbcType="OTHER" property="clobsJson" />
@@ -76,8 +79,8 @@
         where t.parent_id_ = #{parentId,jdbcType=BIGINT}
         <if test="_databaseId == 'oracle' or _databaseId == 'dm' or _databaseId == 'oscar'">and ROWNUM &lt;= 1</if>
         order by t.order_, t.id_
-        <if test="_databaseId == 'h2' or _databaseId == 'db2'">FETCH FIRST 1 ROWS ONLY</if>
-        <if test="_databaseId != 'oracle' or _databaseId != 'sqlserver' or _databaseId != 'db2' or _databaseId != 'informix' or _databaseId != 'h2' or _databaseId != 'dm' or _databaseId != 'oscar'">
+        <if test="_databaseId == 'db2'">FETCH FIRST 1 ROWS ONLY</if>
+        <if test="_databaseId != 'oracle' or _databaseId != 'sqlserver' or _databaseId != 'db2' or _databaseId != 'informix' or _databaseId != 'dm' or _databaseId != 'oscar'">
             LIMIT 1
         </if>
     </select>
@@ -113,11 +116,11 @@
             </if>
         </where>
     </select>
-    <select id="findBySiteIdAndAlias" resultMap="ResultMap">
+    <select id="findBySiteIdAndSlug" resultMap="ResultMap">
         select
         <include refid="Column_List" />
         from ujcms_channel t
-        where t.site_id_ = #{siteId} and t.alias_ = #{alias}
+        where t.site_id_ = #{siteId} and t.slug_ = #{slug}
     </select>
     <select id="listChildrenLink" resultMap="LinkResultMap">
         select
@@ -142,13 +145,30 @@
             and t.created_ &gt;= #{created}
         </if>
     </select>
-    <select id="selectForSitemap" resultMap="BaseResultMap">
-        select t.id_, t.alias_
+    <!-- 孤立模板选择计数（template-track-variants D7）：显式模板选择非空且不在目标主题对模板名集合内 -->
+    <select id="countChannelTemplateNotIn" resultType="int">
+        select count(*)
         from ujcms_channel t
-        where t.id_ = #{id,jdbcType=BIGINT}
+        where t.site_id_ = #{siteId}
+        and t.channel_template_ is not null and t.channel_template_ != ''
+        and t.channel_template_ not in
+        <foreach close=")" collection="values" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
     </select>
+    <select id="countArticleTemplateNotIn" resultType="int">
+        select count(*)
+        from ujcms_channel t
+        where t.site_id_ = #{siteId}
+        and t.article_template_ is not null and t.article_template_ != ''
+        and t.article_template_ not in
+        <foreach close=")" collection="values" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <!-- sitemap 栏目列表：只取组装 URL 与 lastmod 所需列（modified_ 为栏目自身修改时间，与子树最新文章取较晚者） -->
     <select id="listByChannelForSitemap" resultMap="BaseResultMap">
-        select t.id_, t.alias_, t.type_
+        select t.id_, t.slug_, t.type_, t.modified_
         from ujcms_channel t
         where t.site_id_ = #{siteId,jdbcType=BIGINT}
         order by t.order_, t.id_
@@ -157,6 +177,7 @@
         select t.id_, t.parent_id_
         from ujcms_channel t
         where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        order by t.order_, t.id_
     </select>
     <delete id="deleteBySiteId" parameterType="long">
         delete
@@ -173,6 +194,24 @@
         update ujcms_channel
         set real_ = #{real,jdbcType=CHAR}
         where id_ in
+        <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
+    </update>
+    <!-- 批量设置：只改写 fields 列出的列。值为空即清空（审核流程、模板） -->
+    <update id="updateSettings">
+        update ujcms_channel
+        <set>
+            <if test="fields.contains('articleModelId')">article_model_id_ = #{bean.articleModelId,jdbcType=BIGINT},</if>
+            <if test="fields.contains('channelTemplate')">channel_template_ = #{bean.channelTemplate,jdbcType=VARCHAR},</if>
+            <if test="fields.contains('articleTemplate')">article_template_ = #{bean.articleTemplate,jdbcType=VARCHAR},</if>
+            <if test="fields.contains('processKey')">process_key_ = #{bean.processKey,jdbcType=VARCHAR},</if>
+            <if test="fields.contains('nav')">nav_ = #{bean.nav,jdbcType=CHAR},</if>
+            <if test="fields.contains('real')">real_ = #{bean.real,jdbcType=CHAR},</if>
+            <if test="fields.contains('allowSearch')">allow_search_ = #{bean.allowSearch,jdbcType=CHAR},</if>
+            <if test="fields.contains('pageSize')">page_size_ = #{bean.pageSize,jdbcType=SMALLINT},</if>
+            modified_ = #{modified,jdbcType=TIMESTAMP},
+        </set>
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+        and id_ in
         <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
     </update>
     <update id="updatePerformanceTypeIdToNull">
@@ -293,16 +332,52 @@
                    end as non_zero_exists
     </select>
     <!-- 参数可能变化很大，没必要缓存 -->
-    <select id="existsByAlias" resultType="int" useCache="false">
+    <select id="existsBySlug" resultType="int" useCache="false">
         select case
                    when exists(
                            select *
                            from ujcms_channel t
-                           where t.alias_ = #{alias}
+                           where t.slug_ = #{slug}
                              and t.site_id_ = #{siteId}
                        ) then 1
                    else 0
                    end as non_zero_exists
+    </select>
+    <!-- 别名唯一性校验：只取 ID -->
+    <select id="selectIdBySlug" resultType="long" useCache="false">
+        select t.id_
+        from ujcms_channel t
+        where t.slug_ = #{slug}
+          and t.site_id_ = #{siteId}
+    </select>
+    <select id="selectIdBySlugForUpdate" resultType="long" useCache="false">
+        select t.id_
+        from ujcms_channel t
+        where t.slug_ = #{slug}
+          and t.site_id_ = #{siteId}
+        for update
+    </select>
+    <select id="listIdsByAncestorId" resultType="long" useCache="false">
+        select t.descendant_id_
+        from ujcms_channel_tree t
+        where t.ancestor_id_ = #{ancestorId,jdbcType=BIGINT}
+    </select>
+    <select id="listIdsInSite" resultType="long" useCache="false">
+        select t.id_
+        from ujcms_channel t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        and t.id_ in
+        <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
+    </select>
+    <!-- 读的是文章表，不能进栏目的二级缓存 -->
+    <select id="listIdsHoldingArticlesUnderOtherModel" resultType="long" useCache="false">
+        select t.id_
+        from ujcms_channel t
+        where t.article_model_id_ &lt;&gt; #{articleModelId,jdbcType=BIGINT}
+        and t.id_ in
+        <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
+        and exists(select 1 from ujcms_article a where a.channel_id_ = t.id_)
+        order by t.order_
     </select>
     <select id="existsByArticleRoleId" resultType="int" useCache="false">
         select case
@@ -326,7 +401,7 @@
       article_model_id_ = #{articleModelId,jdbcType=BIGINT},
       performance_type_id_ = #{performanceTypeId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
-      alias_ = #{alias,jdbcType=VARCHAR},
+      slug_ = #{slug,jdbcType=VARCHAR},
       type_ = #{type,jdbcType=SMALLINT},
       article_template_ = #{articleTemplate,jdbcType=VARCHAR},
       channel_template_ = #{channelTemplate,jdbcType=VARCHAR},
@@ -358,7 +433,7 @@
       article_model_id_ = #{articleModelId,jdbcType=BIGINT},
       performance_type_id_ = #{performanceTypeId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
-      alias_ = #{alias,jdbcType=VARCHAR},
+      slug_ = #{slug,jdbcType=VARCHAR},
       type_ = #{type,jdbcType=SMALLINT},
       article_template_ = #{articleTemplate,jdbcType=VARCHAR},
       channel_template_ = #{channelTemplate,jdbcType=VARCHAR},
@@ -382,8 +457,53 @@
       seo_description_ = #{seoDescription,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Channel">
-    insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, performance_type_id_, name_, alias_, type_, article_template_, channel_template_, image_, link_url_, process_key_, target_blank_, real_, nav_, page_size_, order_desc_, allow_comment_, allow_contribute_, allow_search_, created_, modified_, depth_, order_, views_, self_views_, book_, channel_static_path_, seo_title_, seo_keywords_, seo_description_, mains_json_, clobs_json_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{channelModelId,jdbcType=BIGINT}, #{articleModelId,jdbcType=BIGINT}, #{performanceTypeId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{articleTemplate,jdbcType=VARCHAR}, #{channelTemplate,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{processKey,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{real,jdbcType=CHAR}, #{nav,jdbcType=CHAR}, #{pageSize,jdbcType=SMALLINT}, #{orderDesc,jdbcType=CHAR}, #{allowComment,jdbcType=CHAR}, #{allowContribute,jdbcType=CHAR}, #{allowSearch,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{book,jdbcType=CHAR}, #{channelStaticPath,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
+    insert into ujcms_channel (id_, site_id_, parent_id_, channel_model_id_, article_model_id_, performance_type_id_, name_, slug_, type_, article_template_, channel_template_, image_, link_url_, process_key_, target_blank_, real_, nav_, page_size_, order_desc_, allow_comment_, allow_contribute_, allow_search_, created_, modified_, depth_, order_, views_, self_views_, book_, channel_static_path_, seo_title_, seo_keywords_, seo_description_, mains_json_, clobs_json_, origin_, origin_id_, origin_hash_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{channelModelId,jdbcType=BIGINT}, #{articleModelId,jdbcType=BIGINT}, #{performanceTypeId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{slug,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{articleTemplate,jdbcType=VARCHAR}, #{channelTemplate,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{processKey,jdbcType=VARCHAR}, #{targetBlank,jdbcType=CHAR}, #{real,jdbcType=CHAR}, #{nav,jdbcType=CHAR}, #{pageSize,jdbcType=SMALLINT}, #{orderDesc,jdbcType=CHAR}, #{allowComment,jdbcType=CHAR}, #{allowContribute,jdbcType=CHAR}, #{allowSearch,jdbcType=CHAR}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{book,jdbcType=CHAR}, #{channelStaticPath,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER}, #{origin,jdbcType=VARCHAR}, #{originId,jdbcType=VARCHAR}, #{originHash,jdbcType=CHAR})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.performance_type_id_, t.name_, t.alias_, t.type_, t.article_template_, t.channel_template_, t.image_, t.link_url_, t.process_key_, t.target_blank_, t.real_, t.nav_, t.page_size_, t.order_desc_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.created_, t.modified_, t.depth_, t.order_, t.views_, t.self_views_, t.book_, t.channel_static_path_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.mains_json_, t.clobs_json_
-  </sql></mapper>
+    t.id_, t.site_id_, t.parent_id_, t.channel_model_id_, t.article_model_id_, t.performance_type_id_, t.name_, t.slug_, t.type_, t.article_template_, t.channel_template_, t.image_, t.link_url_, t.process_key_, t.target_blank_, t.real_, t.nav_, t.page_size_, t.order_desc_, t.allow_comment_, t.allow_contribute_, t.allow_search_, t.created_, t.modified_, t.depth_, t.order_, t.views_, t.self_views_, t.book_, t.channel_static_path_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.mains_json_, t.clobs_json_, t.origin_, t.origin_id_, t.origin_hash_
+  </sql>
+  <!-- 来源标记（theme-marketplace §5.3：内容种子幂等 select-then-insert / 卸载数据策略。
+       站点限定：origin_ 不含站点，同名主题可装于多个站点） -->
+  <select id="selectByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_channel t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+      and t.origin_id_ = #{originId,jdbcType=VARCHAR}
+  </select>
+  <select id="listByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_channel t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+    order by t.order_, t.id_
+  </select>
+  <select id="countByOrigin" resultType="int">
+    select count(*)
+    from ujcms_channel t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+  </select>
+  <update id="clearOrigin">
+    update ujcms_channel
+    set origin_ = null, origin_id_ = null, origin_hash_ = null
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+      and origin_ = #{origin,jdbcType=VARCHAR}
+  </update>
+  <!-- 来源散列写入（R4）：种子导入落库后按最终行状态计算 -->
+  <update id="updateOriginHash">
+    update ujcms_channel
+    set origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 认领操作员行（theme-seed-export §4.2 adopt）：仅无来源标记的行——他源行绝不认领（D3） -->
+  <update id="adoptOrigin">
+    update ujcms_channel
+    set origin_ = #{origin,jdbcType=VARCHAR},
+        origin_id_ = #{originId,jdbcType=VARCHAR},
+        origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+      and (origin_ is null or origin_ = '')
+  </update></mapper>

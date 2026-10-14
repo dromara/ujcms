@@ -4,6 +4,7 @@ import static com.ujcms.cms.core.support.Constants.MAPPER;
 import static com.ujcms.common.web.Strings.formatDuration;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,9 +16,8 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
-import org.jsoup.Jsoup;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
+import com.ujcms.cms.core.security.HtmlSanitizeService;
+import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -56,6 +56,14 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     // region Normal
 
+    @Schema(description = "别名")
+    @Override
+    @NotNull
+    @Pattern(regexp = "^[\\w-]*$")
+    public String getSlug() {
+        return super.getSlug();
+    }
+
     @JsonIgnore
     @Override
     public String getName() {
@@ -71,13 +79,20 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
     @Schema(description = "纯文本格式的正文")
     @JsonView(Views.Whole.class)
     public String getPlainText() {
-        return Optional.ofNullable(getText())
-                .map(html -> Jsoup.parse(html).body().text())
-                // 多个空格替换为一个空格，中文空格unicode为 \u3000
-                .map(text -> text.replaceAll("[\\s\u3000]+", " "))
-                .map(String::trim)
-                .orElse("");
+        // 解析整篇 HTML 不便宜，而一次请求里会取好几回（摘要、模板里的截取……）：记下结果。
+        // 以正文对象本身为凭——正文换了（setText），下次就重新解析
+        String text = getText();
+        if (cachedPlainText == null || !Objects.equals(cachedPlainTextSource, text)) {
+            cachedPlainText = HtmlParserUtils.getText(text);
+            cachedPlainTextSource = text;
+        }
+        return cachedPlainText;
     }
+
+    @Nullable
+    private transient String cachedPlainText;
+    @Nullable
+    private transient String cachedPlainTextSource;
 
     @Schema(description = "文件尺寸。自动使用合适的单位，如 KB、MB 等")
     public String getFileSize() {
@@ -86,6 +101,14 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     @Schema(description = "文章模板")
     public String getTemplate() {
+        return getSite().assembleTemplate(getTemplateName());
+    }
+
+    /**
+     * 文章页的未组装模板名（渲染上下文钩子用，页面构成 §10.2）
+     */
+    @JsonIgnore
+    public String getTemplateName() {
         String template = getArticleTemplate();
         if (StringUtils.isBlank(template)) {
             template = getChannel().getArticleTemplate();
@@ -94,7 +117,7 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
                 template = TEMPLATE_PREFIX;
             }
         }
-        return getSite().assembleTemplate(template);
+        return template;
     }
 
     /**
@@ -223,16 +246,40 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     @Override
     public String getDynamicUrl(int page) {
+        return buildDynamicUrl(getSite().getDynamicUrl(), page);
+    }
+
+    /**
+     * 动态 URL 中标识文章的路径段（固定链接 D6/D7，docs/spec/permalinks/plan.md）：
+     * 数字型 {@code {id}}；混合型 {@code {id}-{slug}}（无自定义别名时退化为 {@code {id}}）；别名型 {@code {slug}}
+     * （无自定义别名时同样为 {@code {id}}）。前台控制器以此判定请求路径是否规范形，非规范形 301。
+     */
+    public String urlKey() {
+        String id = String.valueOf(getId());
+        String slug = getSlug();
+        boolean custom = !slug.isEmpty() && !slug.equals(id);
+        return switch (getSite().getPermalink().getArticle()) {
+            case Site.Permalink.ARTICLE_SLUG -> custom ? slug : id;
+            case Site.Permalink.ARTICLE_ID -> id;
+            default -> custom ? id + "-" + slug : id;
+        };
+    }
+
+    /**
+     * 是否设有自定义别名（别名非空且不等于 ID 字符串。ID 字符串是“未设别名”的哨兵值——服务端生成回退）
+     */
+    public boolean hasCustomSlug() {
+        String slug = getSlug();
+        return !slug.isEmpty() && !slug.equals(String.valueOf(getId()));
+    }
+
+    private String buildDynamicUrl(String baseUrl, int page) {
         String linkUrl = getLinkUrl();
         if (StringUtils.isNotBlank(linkUrl)) {
             return getSite().assembleLinkUrl(linkUrl);
         }
         String prefix = Optional.ofNullable(getSite().getConfig().getArticleUrl()).orElse(UrlConstants.ARTICLE);
-        UrlBuilder buff = UrlBuilder.of(getSite().getDynamicUrl()).appendPath(prefix).appendPath(String.valueOf(getId()));
-        String alias = getExt().getAlias();
-        if (alias != null) {
-            buff.appendPath(alias);
-        }
+        UrlBuilder buff = UrlBuilder.of(baseUrl).appendPath(prefix).appendPath(urlKey());
         if (page > 1) {
             buff.appendPath(String.valueOf(page));
         }
@@ -243,6 +290,10 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
         String linkUrl = getLinkUrl();
         if (StringUtils.isNotBlank(linkUrl)) {
             return getSite().assembleLinkUrl(linkUrl);
+        }
+        // 文章的静态页只生成第 1 页：其后的页码（模板分页上下文，permalinks D7）回到动态地址，栏目页同此做法
+        if (page > 1) {
+            return getDynamicUrl(page);
         }
         return Contexts.isMobile() ? getMobileStaticUrl(page) : getNormalStaticUrl(page);
     }
@@ -257,7 +308,7 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     private String getArticleUrl(int page) {
         return getSite().getHtml().getArticleUrl(getArticleStaticPath(),
-                getChannelId(), getChannel().getAlias(), getId(), getAlias(), getCreated(), page);
+                getChannelId(), getChannel().getSlug(), getId(), getSlug(), getCreated(), page);
     }
 
     public String getNormalStaticPath(int page) {
@@ -270,7 +321,7 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     private String getArticlePath(int page) {
         return getSite().getHtml().getArticlePath(getArticleStaticPath(),
-                getChannelId(), getChannel().getAlias(), getId(), getAlias(), getCreated(), page);
+                getChannelId(), getChannel().getSlug(), getId(), getSlug(), getCreated(), page);
     }
 
     /**
@@ -292,26 +343,16 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
     }
 
     public String getDynamicFullUrl(int page) {
-        String linkUrl = getLinkUrl();
-        if (StringUtils.isNotBlank(linkUrl)) {
-            return getSite().assembleLinkUrl(linkUrl);
-        }
-        String prefix = Optional.ofNullable(getSite().getConfig().getArticleUrl()).orElse(UrlConstants.ARTICLE);
-        UrlBuilder buff = UrlBuilder.of(getSite().getDynamicFullUrl()).appendPath(prefix).appendPath(String.valueOf(getId()));
-        String alias = getExt().getAlias();
-        if (alias != null) {
-            buff.appendPath(alias);
-        }
-        if (page > 1) {
-            buff.appendPath(String.valueOf(page));
-        }
-        return buff.toString();
+        return buildDynamicUrl(getSite().getDynamicFullUrl(), page);
     }
 
     public String getStaticFullUrl(int page) {
         String linkUrl = getLinkUrl();
         if (StringUtils.isNotBlank(linkUrl)) {
             return getSite().assembleLinkUrl(linkUrl);
+        }
+        if (page > 1) {
+            return getDynamicFullUrl(page);
         }
         return Contexts.isMobile()
                 ? getSite().getMobileStaticFullUrl(getArticleUrl(page))
@@ -422,8 +463,8 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
         this.customs = customs;
     }
 
-    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
-        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+    public void disassembleCustoms(Model model, HtmlSanitizeService sanitizeService) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), sanitizeService);
         setCustoms(map);
         model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
     }
@@ -431,9 +472,11 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     // region Associations
     /**
-     * 源文章
+     * 源文章。只输出标识它的几个属性：子行（扩展栏目、推送、译文）是公开的，源文章却可以是草稿、待审核、已下线，
+     * 整个对象输出就把源文章的正文、状态、退回原因带到了前台接口上
      */
     @Nullable
+    @JsonIncludeProperties({"id", "siteId", "title", "url", "site", "channel"})
     private Article src;
     /**
      * 文章扩展对象
@@ -481,6 +524,53 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
     @JsonView(Views.Whole.class)
     @JsonIncludeProperties({"id", "title", "channel", "site", "type"})
     private List<Article> destList = Collections.emptyList();
+    /**
+     * 扩展栏目列表（通过 REFER / COPY 子行聚合得到的不同栏目）
+     */
+    @JsonView(Views.Whole.class)
+    @JsonIncludeProperties({"id", "name", "slug"})
+    private List<Channel> channelList = Collections.emptyList();
+    /**
+     * 专题列表（通过 ujcms_article_topic 关联）
+     */
+    @JsonView(Views.Whole.class)
+    @JsonIncludeProperties({"id", "name", "slug"})
+    private List<Topic> topicList = Collections.emptyList();
+    /**
+     * 相关文章列表（手选，按 ujcms_article_related.order_ 排序；控制台详情用，不限状态）
+     */
+    @JsonView(Views.Whole.class)
+    @JsonIncludeProperties({"id", "title", "url", "image", "publishDate", "status", "channel"})
+    private List<Article> relatedList = Collections.emptyList();
+    /**
+     * 被关联列表：把本文列为相关文章的文章（反向，控制台详情用）
+     */
+    @JsonView(Views.Whole.class)
+    @JsonIncludeProperties({"id", "title", "url", "image", "publishDate", "status", "channel"})
+    private List<Article> incomingList = Collections.emptyList();
+    /**
+     * 管理表单负载：相关文章 {@code [{id, mutual}]}。Transient，不持久化；WRITE_ONLY
+     */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private transient List<RelatedItem> related = null;
+    /**
+     * 管理表单负载：扩展栏目（REFER）ID 列表。Transient，不持久化。
+     * WRITE_ONLY：可由请求体反序列化进来，但不出现在响应体里。
+     */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private transient List<Long> refersChannelIds = null;
+    /**
+     * 管理表单负载：复制到栏目（COPY）ID 列表。Transient，不持久化。
+     * WRITE_ONLY：可由请求体反序列化进来，但不出现在响应体里。
+     */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private transient List<Long> copiesChannelIds = null;
+    /**
+     * 管理表单负载：专题 ID 列表。Transient，不持久化。
+     * WRITE_ONLY：可由请求体反序列化进来，但不出现在响应体里。
+     */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private transient List<Long> topicIds = null;
 
     @Nullable
     public Article getSrc() {
@@ -562,6 +652,100 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
     public void setDestList(List<Article> destList) {
         this.destList = destList;
     }
+
+    public List<Channel> getChannelList() {
+        return channelList;
+    }
+
+    public void setChannelList(List<Channel> channelList) {
+        this.channelList = channelList;
+    }
+
+    public List<Topic> getTopicList() {
+        return topicList;
+    }
+
+    public void setTopicList(List<Topic> topicList) {
+        this.topicList = topicList;
+    }
+
+    public List<Article> getRelatedList() {
+        return relatedList;
+    }
+
+    public void setRelatedList(List<Article> relatedList) {
+        this.relatedList = relatedList;
+    }
+
+    public List<Article> getIncomingList() {
+        return incomingList;
+    }
+
+    public void setIncomingList(List<Article> incomingList) {
+        this.incomingList = incomingList;
+    }
+
+    @Nullable
+    public List<RelatedItem> getRelated() {
+        return related;
+    }
+
+    public void setRelated(@Nullable List<RelatedItem> related) {
+        this.related = related;
+    }
+
+    /**
+     * 相关文章表单项：目标文章ID与是否互相关联（互相关联 = 目标文章的列表里也有本文）
+     */
+    public static class RelatedItem implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+        private Long id = 0L;
+        private boolean mutual = false;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public boolean isMutual() {
+            return mutual;
+        }
+
+        public void setMutual(boolean mutual) {
+            this.mutual = mutual;
+        }
+    }
+
+    @Nullable
+    public List<Long> getRefersChannelIds() {
+        return refersChannelIds;
+    }
+
+    public void setRefersChannelIds(@Nullable List<Long> refersChannelIds) {
+        this.refersChannelIds = refersChannelIds;
+    }
+
+    @Nullable
+    public List<Long> getCopiesChannelIds() {
+        return copiesChannelIds;
+    }
+
+    public void setCopiesChannelIds(@Nullable List<Long> copiesChannelIds) {
+        this.copiesChannelIds = copiesChannelIds;
+    }
+
+    @Nullable
+    public List<Long> getTopicIds() {
+        return topicIds;
+    }
+
+    public void setTopicIds(@Nullable List<Long> topicIds) {
+        this.topicIds = topicIds;
+    }
     // endregion
 
     // region ArticleExt
@@ -593,17 +777,6 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     public void setFullTitle(@Nullable String fullTitle) {
         getExt().setFullTitle(fullTitle);
-    }
-
-    @Schema(description = "别名")
-    @Nullable
-    @Pattern(regexp = "^[\\w-]*$")
-    public String getAlias() {
-        return getExt().getAlias();
-    }
-
-    public void setAlias(@Nullable String alias) {
-        getExt().setAlias(alias);
     }
 
     @Schema(description = "跳转链接")
@@ -649,6 +822,15 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     public void setSeoDescription(@Nullable String seoDescription) {
         getExt().setSeoDescription(seoDescription);
+    }
+
+    @Schema(description = "是否含AI生成内容")
+    public Boolean getAiGenerated() {
+        return getExt().getAiGenerated();
+    }
+
+    public void setAiGenerated(Boolean aiGenerated) {
+        getExt().setAiGenerated(aiGenerated);
     }
 
     @Schema(description = "作者")
@@ -931,25 +1113,20 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
         getExt().setProcessInstanceId(processInstanceId);
     }
 
-    @Schema(description = "审核拒绝原因")
+    /**
+     * 退回原因。只在“已退回”状态下给出：文章离开这个状态之后，它是审核人留给作者的一句内部意见，不属于文章——
+     * 重新提交时已清除（{@code ArticleService#submit}），这里再挡住历史数据：以前不清除，
+     * 文章发布之后这句话还跟着它出现在前台公共接口的返回里（docs/spec/article-management/plan.md Phase 2.3）
+     */
+    @Schema(description = "审核退回原因。仅已退回状态有值")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Nullable
     public String getRejectReason() {
-        return getExt().getRejectReason();
+        return getStatus() == STATUS_REJECTED ? getExt().getRejectReason() : null;
     }
 
     public void setRejectReason(String rejectReason) {
         getExt().setRejectReason(rejectReason);
-    }
-
-    @Schema(description = "是否推送到百度")
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    public Boolean getBaiduPush() {
-        return getExt().getBaiduPush();
-    }
-
-    public void setBaiduPush(Boolean baiduPush) {
-        getExt().setBaiduPush(baiduPush);
     }
 
     @Schema(description = "正文（HTML格式）")
@@ -1001,6 +1178,40 @@ public class Article extends GeneratedArticle implements PageUrlResolver, Anchor
 
     public void setClobsJson(String clobsJson) {
         getExt().setClobsJson(clobsJson);
+    }
+
+    /**
+     * 内容是否与另一版本一致（翻译过期锚点用，translation-workflow.md §2.2）。比对可能需要对端译文跟进的字段：
+     * 标题类、SEO、作者/来源、图片/视频/音频、编辑器类型、正文（text 与 markdown）、图片集/附件集、
+     * 定制字段（拆解后的 mains/clobs JSON）。须在净化正文、拆解定制字段之后调用，两侧才是同一口径；
+     * null 与空串视为相同。栏目、发布日期、状态、置顶等元数据不属于内容。
+     * 用途：内容未变的编辑保存（如新增译文后顺手点击保存）不应把全部译文标为“可能过期”
+     *
+     * @param other 另一版本（通常为库中现值）
+     * @return 内容一致返回 true
+     */
+    public boolean isSameContent(Article other) {
+        return sameText(getTitle(), other.getTitle())
+                && sameText(getSubtitle(), other.getSubtitle())
+                && sameText(getFullTitle(), other.getFullTitle())
+                && sameText(getSeoKeywords(), other.getSeoKeywords())
+                && sameText(getSeoDescription(), other.getSeoDescription())
+                && sameText(getAuthor(), other.getAuthor())
+                && sameText(getSource(), other.getSource())
+                && sameText(getImage(), other.getImage())
+                && sameText(getVideo(), other.getVideo())
+                && sameText(getAudio(), other.getAudio())
+                && Objects.equals(getEditorType(), other.getEditorType())
+                && sameText(getText(), other.getText())
+                && sameText(getMarkdown(), other.getMarkdown())
+                && sameText(getImageListJson(), other.getImageListJson())
+                && sameText(getFileListJson(), other.getFileListJson())
+                && sameText(getMainsJson(), other.getMainsJson())
+                && sameText(getClobsJson(), other.getClobsJson());
+    }
+
+    private static boolean sameText(@Nullable String a, @Nullable String b) {
+        return StringUtils.defaultString(a).equals(StringUtils.defaultString(b));
     }
     // endregion
 

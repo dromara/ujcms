@@ -1,0 +1,52 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title="Tags - ${site.title}" keywords="Tag,${site.seoKeywords!''}" description="${site.title} 标签云"]
+[#-- Breadcrumb --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">Tags</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display border-b border-slate-200 pb-2">
+      <span class="size-6 text-primary inline-block">[@icon 'tag'/]</span>
+      <a href="${dy}/tag" class="cm-link">Tags</a>
+    </h1>
+
+    [@TagPage pageSize='50'; pagedList]
+    [#if pagedList.content?size == 0]
+      <p class="py-8 text-center text-slate-500">暂无标签</p>
+    [#else]
+      [#-- Tag-cloud chips. Font-size scales with refers count so popular
+         tags read larger — 4 buckets matching the "card with badge" intent
+         without the badge clutter. --]
+      <div class="flex flex-wrap items-baseline gap-2 py-4">
+        [#list pagedList.content as bean]
+          [#if bean.refers gte 50][#assign sizeClass = 'text-lg font-semibold'/]
+          [#elseif bean.refers gte 10][#assign sizeClass = 'text-base font-medium'/]
+          [#elseif bean.refers gte 3][#assign sizeClass = 'text-sm'/]
+          [#else][#assign sizeClass = 'text-xs'/]
+          [/#if]
+          <a href="${dy}/tag/${bean.id?c}"
+             class="px-2.5 py-1 rounded bg-slate-200 text-slate-700 hover:bg-slate-300 inline-flex items-center gap-1 ${sizeClass}">
+            <span>${bean.name}</span>
+            <span class="px-1 rounded bg-white text-slate-500 text-xs">${bean.refers}</span>
+          </a>
+        [/#list]
+      </div>
+
+      [#include '../snippets/page.html'/]
+    [/#if]
+    [/@TagPage]
+  </div>
+
+  [#include '../snippets/right.html'/]
+</div>
+[/@layout]
+[/#escape]

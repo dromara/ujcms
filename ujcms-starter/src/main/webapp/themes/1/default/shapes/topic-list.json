@@ -1,0 +1,12 @@
+{
+  "name": "TopicList",
+  "version": "1.0.0",
+  "description": "自动获取最新的专题列表（商业版功能）。",
+  "label": { "zh-CN": "专题列表", "en": "Topic list" },
+  "tags": ["region", "aside", "topic"],
+  "presentation": { "icon": "card", "group": { "zh-CN": "内容组件", "en": "Content" }, "order": 16, "thumbnail": "thumbnails/topic-list.svg" },
+  "settings": {
+    "title": { "type": "text", "max": 150, "default": "精选专题", "label": { "zh-CN": "栏目标题", "en": "Section title" } },
+    "limit": { "type": "number", "default": 4, "min": 1, "max": 8, "integer": true, "label": { "zh-CN": "条数", "en": "Count" } }
+  }
+}

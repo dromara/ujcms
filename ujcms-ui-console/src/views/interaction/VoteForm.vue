@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, PropType } from 'vue';
+import { ref, type PropType } from 'vue';
 import { Plus, Minus, Grid } from '@element-plus/icons-vue';
 import draggable from 'vuedraggable';
 import { queryVote, createVote, updateVote, deleteVote } from '@/api/interaction';
@@ -55,9 +55,9 @@ const addNewLine = (index: number) => {
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item prop="beginDate">
-            <template #label><label-tip message="vote.beginDate" help /></template>
-            <el-date-picker v-model="values.beginDate" type="datetime" class="w-full"></el-date-picker>
+          <el-form-item prop="startDate">
+            <template #label><label-tip message="vote.startDate" help /></template>
+            <el-date-picker v-model="values.startDate" type="datetime" class="w-full"></el-date-picker>
           </el-form-item>
         </el-col>
         <el-col :span="12">

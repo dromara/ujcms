@@ -15,6 +15,7 @@ import freemarker.template.TemplateModel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,11 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
      * 是否获取所有站点文章。布尔型(Boolean)。默认：false。
      */
     public static final String IS_ALL_SITE = "isAllSite";
+    /**
+     * 是否仅返回处于发布期内的条目（start_date_ ≤ now &lt; end_date_，NULL 视为不限）。
+     * 布尔型(Boolean)。默认：true（前台 API / 模板渲染场景下应保持默认）。
+     */
+    public static final String IS_ACTIVE = "isActive";
 
     public static List<BlockItem> query(Map<String, ?> params, Long defaultSiteId, BlockItemService service) {
         BlockItemArgs args = BlockItemArgs.of();
@@ -70,6 +76,10 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
 
         Optional.ofNullable(Directives.getBooleanDefault(params, IS_ENABLED, true)).ifPresent(args::enabled);
 
+        if (getBoolean(params, IS_ACTIVE, true)) {
+            args.activeAt(OffsetDateTime.now());
+        }
+
         Directives.handleOrderBy(args.getQueryMap(), params, "order");
         int offset = Directives.getOffset(params);
         int limit = Directives.getLimit(params);
@@ -77,7 +87,7 @@ public class BlockItemListDirective implements TemplateDirectiveModel {
         return service.selectList(args, offset, limit);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

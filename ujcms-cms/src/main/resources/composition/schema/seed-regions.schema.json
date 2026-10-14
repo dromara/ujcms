@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-regions.schema.json",
+  "title": "UJCMS Theme Seed Regions",
+  "description": "主题种子区域文件（seed/regions/*.regions.json）。为页面声明初始的区域结构树（rows → columns → panels）。面板内容是投放（Panel = Placement），形态为设置驱动面板 {component, settings}（component-settings §4.3——一个设置值块，内容规则见 §5；v1 来源面板与卡片/经典投放种子已随其子系统于 Phase D 退役）。区域按 (site, page, region, scope) 唯一键幂等——已存在则跳过，不覆盖操作员改动；面板投放带来源标记 theme:<themeName>。",
+  "type": "object",
+  "required": [
+    "page",
+    "regions"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "page": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "regions": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/region"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "region": {
+      "type": "object",
+      "required": [
+        "rows"
+      ],
+      "properties": {
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/row"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "row": {
+      "type": "object",
+      "required": [
+        "id",
+        "layout",
+        "columns"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "layout": {
+          "enum": [
+            "full",
+            "halves",
+            "thirds",
+            "twoThirdsLeft",
+            "twoThirdsRight"
+          ]
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/column"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "column": {
+      "type": "object",
+      "required": [
+        "panels"
+      ],
+      "properties": {
+        "panels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/panel"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "panel": {
+      "type": "object",
+      "required": [
+        "component",
+        "settings"
+      ],
+      "properties": {
+        "component": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]+$"
+        },
+        "settings": {
+          "type": "object"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["all", "desktop", "mobile"],
+          "description": "显示设备（design-review P2-5：在……显示；缺省 all）"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

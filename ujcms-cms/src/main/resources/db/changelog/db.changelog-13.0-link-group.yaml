@@ -1,0 +1,290 @@
+# 链接组（link-groups plan）：友情链接升级为通用链接组。12.3-friend-link 已随 12.3
+# 发布、不可改动，故本文件为升级迁移：按最终结构新建 ujcms_link_group / ujcms_link
+#（含来源三元组，原 13.0-friend-link-type-origin 并入直建）→ 迁移存量数据 → 删除旧表
+# 及其约束。ujcms_link 的 url_/channel_id_/article_id_ 三选一（channel/article 引用
+# 迟绑渲染），由服务层与种子 schema 校验；channel/article 外键 RESTRICT 仅作删除监听
+# 器兜底。
+databaseChangeLog:
+  - changeSet:
+      id: 13.0-link-group-table
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 链接组ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: alias_
+                  remarks: 别名
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 类型(1:文字链接,2:图片链接)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 200
+                  name: image_width_
+                  remarks: 图片宽度
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 60
+                  name: image_height_
+                  remarks: 图片高度
+                  type: INT
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(900)
+              - column:
+                  name: slot_
+                  remarks: 展示位(主题清单 linkSlots 声明;空为不自动展示)
+                  type: VARCHAR(150)
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 链接组表
+            tableName: ujcms_link_group
+  - changeSet:
+      id: 13.0-link-table
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 链接ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: group_id_
+                  remarks: 链接组ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(150)
+              - column:
+                  name: url_
+                  remarks: 链接地址(与栏目/文章引用三选一)
+                  type: VARCHAR(255)
+              - column:
+                  name: channel_id_
+                  remarks: 栏目引用ID(三选一)
+                  type: BIGINT
+              - column:
+                  name: article_id_
+                  remarks: 文章引用ID(三选一)
+                  type: BIGINT
+              - column:
+                  name: logo_
+                  remarks: Logo图片
+                  type: VARCHAR(255)
+              - column:
+                  name: description_
+                  remarks: 描述
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: target_blank_
+                  remarks: 是否新窗口打开
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 链接表
+            tableName: ujcms_link
+  - changeSet:
+      id: 13.0-link-group-indexes
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_linkgroup_site
+            tableName: ujcms_link_group
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_linkgroup_origin
+            tableName: ujcms_link_group
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_link_site
+            tableName: ujcms_link
+        - createIndex:
+            columns:
+              - column:
+                  name: group_id_
+            indexName: idx_link_group
+            tableName: ujcms_link
+        - createIndex:
+            columns:
+              - column:
+                  name: channel_id_
+            indexName: idx_link_channel
+            tableName: ujcms_link
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_link_article
+            tableName: ujcms_link
+  - changeSet:
+      id: 13.0-link-group-fk
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_link_group
+            constraintName: fk_linkgroup_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_link
+            constraintName: fk_link_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: group_id_
+            baseTableName: ujcms_link
+            constraintName: fk_link_group
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_link_group
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: channel_id_
+            baseTableName: ujcms_link
+            constraintName: fk_link_channel
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_channel
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: article_id_
+            baseTableName: ujcms_link
+            constraintName: fk_link_article
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+  # 数据迁移：友情链接 → 链接组。12.3 无 slot_/channel_id_/article_id_/来源三元组，
+  # 迁移行保持 NULL（存量数据均为纯 URL 链接，语义不变）。
+  - changeSet:
+      id: 13.0-link-group-migrate
+      author: PONY
+      changes:
+        - sql:
+            sql: insert into ujcms_link_group (id_, site_id_, name_, alias_, type_, image_width_, image_height_, description_, order_) select id_, site_id_, name_, alias_, type_, image_width_, image_height_, description_, order_ from ujcms_friend_link_type
+        - sql:
+            sql: insert into ujcms_link (id_, site_id_, group_id_, name_, url_, logo_, description_, target_blank_, enabled_, order_) select id_, site_id_, type_id_, name_, url_, logo_, description_, target_blank_, enabled_, order_ from ujcms_friend_link
+  - changeSet:
+      id: 13.0-friend-link-drop
+      author: PONY
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_friend_link
+            constraintName: fk_friendlink_site
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_friend_link
+            constraintName: fk_friendlink_type
+        - dropForeignKeyConstraint:
+            baseTableName: ujcms_friend_link_type
+            constraintName: fk_friendlinktype_site
+        - dropTable:
+            tableName: ujcms_friend_link
+        - dropTable:
+            tableName: ujcms_friend_link_type

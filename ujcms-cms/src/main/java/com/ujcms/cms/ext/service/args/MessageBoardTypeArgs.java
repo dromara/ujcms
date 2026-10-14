@@ -1,7 +1,7 @@
 package com.ujcms.cms.ext.service.args;
 
 import com.ujcms.common.query.BaseQueryArgs;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;

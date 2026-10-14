@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
-import _ from 'lodash';
-import { queryConfig } from '@/api/login';
+import { omit, pick } from 'lodash-es';
+import { queryConfig as queryEnvConfig } from '@/api/login';
+import { queryConfig as queryAdminConfig } from '@/api/config';
+import { usePreferencesStore } from '@/stores/preferencesStore';
 
 export const useSysConfigStore = defineStore('ujcmsSysConfigStore', {
   state: () => ({
@@ -32,18 +34,40 @@ export const useSysConfigStore = defineStore('ujcmsSysConfigStore', {
       passwordStrength: 0,
       passwordPattern: '.*',
       ssrfList: [],
-    },
+    } as any,
     register: {
       largeAvatarSize: 960,
     },
   }),
   actions: {
     async initConfig() {
-      const config = await queryConfig();
-      this.base = _.omit(config, ['upload', 'register', 'security']);
+      const config = await queryEnvConfig();
+      // Merge rather than replace: /env/config is an anonymous whitelist projection that
+      // strips the upload blacklists and the admin-only security fields. Replacing would
+      // drop the defaults above and anything enrichForAdmin() already pulled in (this also
+      // runs again after every 全局设置 save).
+      this.base = { ...this.base, ...omit(config, ['upload', 'register', 'security']) };
       this.upload = config.upload;
       this.register = config.register;
-      this.security = config.security;
+      this.security = { ...this.security, ...config.security };
+      // 控制台默认外观（console-shell D7）：登录前即按安装默认着色；全局设置保存后本方法重跑，跟随默认的用户即时换色
+      usePreferencesStore().seedDefaults(config.console);
+    },
+    // Pull the admin-only fields hidden from /env/config (upload/file extension
+    // blacklists, ssrfList, password aging policy, login-attempt thresholds).
+    // Called from fetchCurrentUser once the session is authenticated; failures
+    // are swallowed because the public defaults already populate the store.
+    async enrichForAdmin() {
+      try {
+        const full = await queryAdminConfig();
+        if (!full) return;
+        this.base = { ...this.base, ...pick(full, ['uploadsExtensionBlacklist', 'filesExtensionBlacklist']) };
+        if (full.security) {
+          this.security = { ...this.security, ...full.security };
+        }
+      } catch {
+        // ignore — the public bits in this.base / this.security are still valid
+      }
     },
   },
 });

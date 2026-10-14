@@ -1,0 +1,505 @@
+databaseChangeLog:
+  # 页面构成系统数据模型（13.0 重整，按最终结构直建）。
+  # 原 11.x-composition / 11.x-page-region / 11.x-region-scope / 11.x-component-settings /
+  # 11.x-panel-visibility / 11.x-region-history / 11.9（origin_hash_）/ 11.x-track-rename 合并：
+  #   - 投放（Placement）= 页面区域内的一个面板实例：组件（panel_shape_）+ 设置值
+  #     （settings_json_，component-settings §3），树位置在 ujcms_page_region.layout_json_。
+  #     经典插槽（source_kind_/source_json_/section_data_json_）与卡片目录六表已随
+  #     component-settings Phase D 退役，不再建立。
+  #     两条轨道各存一套独立布局，无跨轨道回退。
+  #   - 区域范围 scope_：default（页面默认）| channel:<id> | variant:<surface>:<value>。
+  #     NOT NULL 哨兵值 'default' 而非 NULL：MySQL 唯一键把 NULL 视为彼此不同（默认行会重复
+  #     插入），而空串哨兵在 Dameng/Oracle 兼容模式下等价 NULL——'default' 哨兵跨库语义一致。
+  #   - 约定：布尔列 CHAR(1)；JSON 列 JSON 类型；日期 datetime；外键 RESTRICT（或不建），
+  #     由服务层负责清理；origin 幂等由导入器保证（不建唯一键）。
+  #   - 索引/唯一键先于外键创建：最左列即外键列时，MySQL 复用其作支撑索引，避免自动生成
+  #     冗余的单列外键索引（uk_page_region_scope 支撑 fk_page_region_site 等同理；
+  #     errno 1553 教训——支撑索引存在期间不可先删）。
+
+  # 投放表：无唯一约束——区域面板以 slot_name_ = region_name_ 共享同一插槽名、由 id_ 区分
+  # （多对一），"每插槽至多一个投放"级别的约束由 PlacementService 在服务层强制。
+  - changeSet:
+      id: 13.0-composition-placement
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 投放ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: page_ref_
+                  remarks: 页面清单名称(home/channel/...)
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: slot_name_
+                  remarks: 插槽名称(区域面板与区域同名)
+                  type: VARCHAR(64)
+              - column:
+                  name: panel_shape_
+                  remarks: 面板组件Shape
+                  type: VARCHAR(64)
+              - column:
+                  name: settings_json_
+                  remarks: 面板设置值JSON(组件实例设置)
+                  type: JSON
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: all
+                  name: visibility_
+                  remarks: 显示设备(all|desktop|mobile)
+                  type: VARCHAR(16)
+              - column:
+                  name: origin_
+                  remarks: 来源
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+              - column:
+                  name: archived_at_
+                  remarks: 归档时间(主题切换孤立后软归档)
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: modified_
+                  remarks: 修改日期
+                  type: datetime
+            remarks: 投放表(页面构成)
+            tableName: ujcms_placement
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: page_ref_
+              - column:
+                  name: slot_name_
+            indexName: idx_placement_lookup
+            tableName: ujcms_placement
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_placement
+            constraintName: fk_placement_site
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+
+  - changeSet:
+      id: 13.0-composition-registry-reload
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 重载记录ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: source_
+                  remarks: 触发来源(boot|watcher|rescan|install|...)
+                  type: VARCHAR(64)
+              - column:
+                  name: triggered_by_
+                  remarks: 触发人
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: result_
+                  remarks: 结果(success|failure)
+                  type: VARCHAR(16)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: shapes_count_
+                  remarks: 卡片类型数量
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: manifests_count_
+                  remarks: 页面清单数量
+                  type: INT
+              - column:
+                  name: diff_summary_json_
+                  remarks: 差异摘要JSON
+                  type: JSON
+              - column:
+                  name: error_detail_
+                  remarks: 错误详情
+                  type: MEDIUMTEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: loaded_at_
+                  remarks: 加载时间
+                  type: datetime
+            remarks: 注册表重载审计表(页面构成)
+            tableName: ujcms_registry_reload
+
+  # 主题状态 settings_json_ 为结构化 {global, pages, variants}（theme-marketplace A0 R3）
+  - changeSet:
+      id: 13.0-composition-theme-state
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 主题状态ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: theme_name_
+                  remarks: 主题名称
+                  type: VARCHAR(128)
+              - column:
+                  name: version_
+                  remarks: 主题版本(来自theme.manifest.json)
+                  type: VARCHAR(32)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: seed_imported_
+                  remarks: 种子数据是否已导入
+                  type: CHAR(1)
+              - column:
+                  name: settings_json_
+                  remarks: 主题设置值JSON(设置结构在主题包内)
+                  type: JSON
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: modified_
+                  remarks: 修改日期
+                  type: datetime
+            remarks: 主题构成状态表(每站点每主题)
+            tableName: ujcms_theme_state
+        - addUniqueConstraint:
+            columnNames: site_id_, theme_name_
+            constraintName: uk_theme_state
+            tableName: ujcms_theme_state
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_theme_state
+            constraintName: fk_theme_state_site
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+
+  - changeSet:
+      id: 13.0-composition-cache-stamp
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: name_
+                  remarks: 缓存名(composition=投放解析缓存)
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: value_
+                  remarks: 单调递增计数(写路径事务内递增;节点轮询比对,变则本地全量作废)
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at_
+                  remarks: 最后递增时间
+                  type: datetime
+            remarks: 跨节点缓存作废戳记表(页面构成;单行计数器,集群各节点轮询同一行)
+            tableName: ujcms_cache_stamp
+        - insert:
+            tableName: ujcms_cache_stamp
+            columns:
+              - column:
+                  name: name_
+                  value: composition
+              - column:
+                  name: value_
+                  valueNumeric: 0
+              - column:
+                  name: updated_at_
+                  valueDate: 2026-07-02T00:00:00
+
+  # 页面区域表：结构树（rows/columns/panel-ids）存 layout_json_（已发布）/ draft_layout_json_
+  # （草稿）；内容是投放（Panel = Placement）。唯一键含 scope_（每范围一棵树）。
+  - changeSet:
+      id: 13.0-page-region
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 区域ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: page_ref_
+                  remarks: 页面清单名称(home/channel/...)
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: region_name_
+                  remarks: 区域插槽名称
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: default
+                  name: scope_
+                  remarks: 区域范围(default=页面默认|channel:<id>|variant:<surface>:<value>)
+                  type: VARCHAR(160)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: layout_json_
+                  remarks: 已发布结构树JSON(rows/columns/panel-ids)
+                  type: JSON
+              - column:
+                  name: draft_layout_json_
+                  remarks: 草稿结构树JSON(无未发布变更时为空)
+                  type: JSON
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default，主题种子区域的来源标记)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: version_
+                  remarks: 版本号(乐观锁)
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: modified_
+                  remarks: 修改日期
+                  type: datetime
+            remarks: 页面区域表(页面构成-结构树)
+            tableName: ujcms_page_region
+        - addUniqueConstraint:
+            columnNames: site_id_, page_ref_, region_name_, scope_
+            constraintName: uk_page_region_scope
+            tableName: ujcms_page_region
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_page_region
+            constraintName: fk_page_region_site
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+
+  # 区域发布快照历史（region-history / design-review P1-1）：
+  #   - 只追加：每次发布/恢复/回填/删除覆盖时物化整棵已发布树（布局 + 逐面板
+  #     shape/settings/enabled，不含面板ID——面板池会被孤立清理改写，快照必须自包含）；
+  #     行从不更新，无乐观锁列。
+  #   - 按行坐标（site, page_ref, region_name, track, scope）为键（每范围行独立历史，
+  #     docs/decisions/visual-builder/03）；不建 ujcms_page_region 外键——覆盖行可删除后
+  #     凭快照重建。恢复 = 走标准 saveDraft→publish 管线的新发布（历史只增不减）；
+  #     保留上限每坐标 50 条，追加后事务内裁剪。
+  - changeSet:
+      id: 13.0-region-history
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 快照ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: page_ref_
+                  remarks: 页面清单名称(home/channel/...)
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: region_name_
+                  remarks: 区域插槽名称
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: scope_
+                  remarks: 区域范围(default=页面默认|channel:<id>|variant:<surface>:<value>)
+                  type: VARCHAR(160)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: content_json_
+                  remarks: 物化发布树JSON(布局+逐面板shape/settings/enabled,自包含不含面板ID)
+                  type: JSON
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: rows_count_
+                  remarks: 行数(写入时冗余,列表展示免解析)
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: panels_count_
+                  remarks: 面板数(写入时冗余,列表展示免解析)
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: source_
+                  remarks: 来源(publish:发布|restore:恢复|backfill:回填|delete:删除覆盖)
+                  type: VARCHAR(16)
+              - column:
+                  name: restored_from_
+                  remarks: 恢复来源快照ID(仅source_=restore)
+                  type: BIGINT
+              - column:
+                  name: actor_
+                  remarks: 操作人用户名(写入时冗余,不建外键)
+                  type: VARCHAR(64)
+              - column:
+                  name: label_
+                  remarks: 操作员备注(发布时可选)
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 页面区域发布快照表(区域历史,只追加)
+            tableName: ujcms_page_region_snapshot
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: page_ref_
+              - column:
+                  name: region_name_
+              - column:
+                  name: scope_
+            indexName: idx_region_snapshot_lookup
+            tableName: ujcms_page_region_snapshot
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_page_region_snapshot
+            constraintName: fk_region_snapshot_site
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true

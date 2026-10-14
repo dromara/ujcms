@@ -1,6 +1,6 @@
 # 首次运行，需要执行以下命令：
-# pnpm --dir ujcms-starter install
-# pnpm --dir ujcms-starter build
+# npm --prefix ujcms-starter/src/main/webapp/themes/1/default ci
+# npm --prefix ujcms-starter/src/main/webapp/themes/1/default run build:vendor
 # pnpm --dir ujcms-ui-console install
 # pnpm --dir ujcms-ui-console build:starter
 # ./mvnw clean package -DskipTests
@@ -25,7 +25,17 @@ services:
       UJCMS_DB_PORT: 3306
       UJCMS_DB_NAME: ujcms
       UJCMS_DB_USER: ujcms
-      UJCMS_DB_PASSWORD: my-secret-pw
+      # 数据库密码与下方 mysql 服务共用同一个变量，可在同目录 .env 文件中覆盖（勿只改其中一处）
+      UJCMS_DB_PASSWORD: ${UJCMS_DB_PASSWORD:-my-secret-pw}
+      # 安装清单（install-flow §7）：空库首次启动无人值守完成安装，得到可浏览的演示站。
+      # 更多变量（站点域名、主题来源、多站点、包库目录摄取等）见 docker/application.yaml 注释；
+      # 生产环境建议将管理员密码改经 docker secret 注入（挂载 /run/secrets，见同文件注释），
+      # 或安装完成后修改密码。删除 UJCMS_INSTALL_AUTO 则改为访问 /cp/ 走安装向导
+      # （安装令牌见容器启动日志）。
+      UJCMS_INSTALL_AUTO: "true"
+      UJCMS_INSTALL_ADMIN_USERNAME: admin
+      UJCMS_INSTALL_ADMIN_PASSWORD: ${UJCMS_INSTALL_ADMIN_PASSWORD:-Ujcms@2026}
+      UJCMS_INSTALL_SITES_0_NAME: UJCMS演示站
     depends_on:
       mysql:
         condition: service_healthy
@@ -34,20 +44,23 @@ services:
       - ujcms:/ujcms/static
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
     restart: always
-    # Health check definition
+    # 健康检查必须走 TCP（127.0.0.1）：首次初始化时 MySQL 先启动一个只监听 socket 的临时实例，
+    # -h localhost 走 socket，会在建库、建用户完成之前就报告健康，ujcms 随即启动而连不上数据库。
+    # ping 只判断服务是否应答（拒绝登录也算应答），无需账号密码。
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
     environment:
       MYSQL_DATABASE: ujcms
       MYSQL_USER: ujcms
-      MYSQL_PASSWORD: my-secret-pw
-      MYSQL_ROOT_PASSWORD: my-root-pw
+      # 密码只在首次初始化数据卷时生效；已有数据卷后修改这里不会改变数据库中的密码
+      MYSQL_PASSWORD: ${UJCMS_DB_PASSWORD:-my-secret-pw}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-my-root-pw}
     volumes:
       - mysql:/var/lib/mysql
 

@@ -38,14 +38,6 @@ public class GeneratedSensitiveWord implements Serializable {
     private String name = "";
 
     /**
-     * 替换词
-     */
-    @Length(max = 30)
-    @NotNull
-    @Schema(description="替换词")
-    private String replacement = "***";
-
-    /**
      * 是否启用
      */
     @NotNull

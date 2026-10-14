@@ -1,0 +1,67 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title='投票 - ' + site.title keywords='投票,' + (site.seoKeywords!'') description=site.seoDescription!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">投票</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display border-b border-slate-200 pb-2">
+      <span class="size-6 text-primary inline-block">[@icon 'bar-chart'/]</span>
+      <span>投票</span>
+    </h1>
+
+    [@VotePage; pagedList]
+    [#if pagedList.totalElements == 0]
+      <p class="py-8 text-center text-slate-500">暂无投票</p>
+    [#else]
+      <ul class="divide-y divide-slate-200">
+        [#list pagedList.content as bean]
+          <li class="py-3">
+            <p class="mb-2">
+              <a href="${dy}/vote/${bean.id?c}" class="cm-link font-medium">${bean.title}</a>
+            </p>
+            <div class="flex justify-between items-center text-xs text-slate-500">
+              <span class="inline-flex items-center gap-2">
+                [#if bean.status == 0]
+                  <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">进行中</span>
+                [#elseif bean.status == 1]
+                  <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600">未启用</span>
+                [#elseif bean.status == 2]
+                  <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700">未开始</span>
+                [#elseif bean.status == 3]
+                  <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700">已结束</span>
+                [#else]
+                  <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700">未知状态</span>
+                [/#if]
+                <span class="inline-flex items-center gap-1">
+                  <span class="size-3 inline-block">[@icon 'bar-chart'/]</span>
+                  ${bean.times} 票
+                </span>
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+                ${format(bean.created, 'yyyy-MM-dd')}
+              </span>
+            </div>
+          </li>
+        [/#list]
+      </ul>
+
+      [#include '../snippets/page.html'/]
+    [/#if]
+    [/@VotePage]
+  </div>
+
+  [#include '../snippets/right.html'/]
+</div>
+[/@layout]
+[/#escape]

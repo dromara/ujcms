@@ -20,43 +20,32 @@ public class ContextConfig implements InitializingBean {
     private final CommentService commentService;
     private final MessageBoardService messageBoardService;
     private final MessageBoardTypeService messageBoardTypeService;
-    private final SurveyService surveyService;
     private final LeaderBoardService leaderBoardService;
-    private final FormService formService;
-    private final FormTypeService formTypeService;
-    private final FriendLinkService friendLinkService;
-    private final FriendLinkTypeService friendLinkTypeService;
+    private final LinkService linkService;
+    private final LinkGroupService linkGroupService;
     private final ExampleService exampleService;
     private final freemarker.template.Configuration configuration;
 
     public ContextConfig(SiteService siteService, VoteService voteService, CommentService commentService,
                          MessageBoardService messageBoardService,
-                         MessageBoardTypeService messageBoardTypeService, SurveyService surveyService,
-                         LeaderBoardService leaderBoardService, FormService formService,
-                         FormTypeService formTypeService, FriendLinkService friendLinkService,
-                         FriendLinkTypeService friendLinkTypeService,
+                         MessageBoardTypeService messageBoardTypeService,
+                         LeaderBoardService leaderBoardService, LinkService linkService,
+                         LinkGroupService linkGroupService,
                          ExampleService exampleService, freemarker.template.Configuration configuration) {
         this.siteService = siteService;
         this.voteService = voteService;
         this.commentService = commentService;
         this.messageBoardService = messageBoardService;
         this.messageBoardTypeService = messageBoardTypeService;
-        this.surveyService = surveyService;
         this.leaderBoardService = leaderBoardService;
-        this.formService = formService;
-        this.formTypeService = formTypeService;
-        this.friendLinkService = friendLinkService;
-        this.friendLinkTypeService = friendLinkTypeService;
+        this.linkService = linkService;
+        this.linkGroupService = linkGroupService;
         this.exampleService = exampleService;
         this.configuration = configuration;
     }
 
     @Override
     public void afterPropertiesSet() {
-        configuration.setSharedVariable("Form", new FormDirective(formService));
-        configuration.setSharedVariable("FormList", new FormListDirective(formService, formTypeService));
-        configuration.setSharedVariable("FormPage", new FormPageDirective(formService, formTypeService));
-        configuration.setSharedVariable("FormTypeList", new FormTypeListDirective(formTypeService));
         configuration.setSharedVariable("Vote", new VoteDirective(voteService));
         configuration.setSharedVariable("VoteList", new VoteListDirective(voteService));
         configuration.setSharedVariable("VotePage", new VotePageDirective(voteService));
@@ -66,13 +55,10 @@ public class ContextConfig implements InitializingBean {
         configuration.setSharedVariable("MessageBoardPage", new MessageBoardPageDirective(messageBoardService));
         configuration.setSharedVariable("MessageBoardTypeList",
                 new MessageBoardTypeListDirective(messageBoardTypeService));
-        configuration.setSharedVariable("FriendLinkList",
-                new FriendLinkListDirective(friendLinkService, friendLinkTypeService));
-        configuration.setSharedVariable("FriendLinkTypeList",
-                new FriendLinkTypeListDirective(friendLinkTypeService));
-        configuration.setSharedVariable("Survey", new SurveyDirective(surveyService));
-        configuration.setSharedVariable("SurveyList", new SurveyListDirective(surveyService));
-        configuration.setSharedVariable("SurveyPage", new SurveyPageDirective(surveyService));
+        configuration.setSharedVariable("LinkList",
+                new LinkListDirective(linkService, linkGroupService));
+        configuration.setSharedVariable("LinkGroupList",
+                new LinkGroupListDirective(linkGroupService));
         configuration.setSharedVariable("LeaderBoardList",
                 new LeaderBoardListDirective(leaderBoardService, siteService));
         configuration.setSharedVariable("LeaderBoardPage",

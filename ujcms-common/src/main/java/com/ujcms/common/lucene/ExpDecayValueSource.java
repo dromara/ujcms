@@ -43,6 +43,7 @@ public class ExpDecayValueSource extends ValueSource {
         this.decay = decay;
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public FunctionValues getValues(Map context, LeafReaderContext readerContext) throws IOException {
         final FunctionValues vals =  source.getValues(context, readerContext);

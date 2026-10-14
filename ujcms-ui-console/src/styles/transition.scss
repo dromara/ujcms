@@ -1,4 +1,6 @@
+/* Adapted from vue-element-admin (https://github.com/PanJiaChen/vue-element-admin), Copyright (c) 2017-present PanJiaChen, MIT License (licenses/MIT.txt). Rewritten for Vue 3 by UJCMS. */
 // global transition css
+// 注意：Vue 3 的入场起始类是 *-enter-from（Vue 2 为 *-enter）
 
 /* fade */
 .fade-enter-active,
@@ -6,43 +8,39 @@
   transition: opacity 0.25s;
 }
 
-.fade-enter,
+.fade-enter-from,
 .fade-leave-active {
   opacity: 0;
 }
 
-/* fade-transform */
-.fade-transform-leave-active,
+/* fade-transform（AppMain 路由切换，mode="out-in"）：
+   离场即时——out-in 下新视图要等旧视图离场完毕才挂载，离场动画的时长就是页面切换的空白死区
+   （挂载/请求都被推迟），故只保留入场淡入平移 */
+.fade-transform-leave-active {
+  transition: none;
+}
+
 .fade-transform-enter-active {
   transition: all 0.25s;
 }
 
-.fade-transform-enter {
+.fade-transform-enter-from {
   opacity: 0;
   transform: translateX(-30px);
 }
 
-.fade-transform-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
+/* breadcrumb transition：
+   离场即时——离场项与入场项占同一位置，两段文字反向平移着交叉淡化就是重影（离场项不再是末项，
+   还会多出一个分隔符并滑到 ☆ 上），故只保留入场淡入平移。保留项总是前缀、不会位移，无需 move 类 */
+.breadcrumb-leave-active {
+  display: none;
 }
 
-/* breadcrumb transition */
-.breadcrumb-enter-active,
-.breadcrumb-leave-active {
+.breadcrumb-enter-active {
   transition: all 0.25s;
 }
 
-.breadcrumb-enter,
-.breadcrumb-leave-active {
+.breadcrumb-enter-from {
   opacity: 0;
   transform: translateX(20px);
-}
-
-.breadcrumb-move {
-  transition: all 0.25s;
-}
-
-.breadcrumb-leave-active {
-  position: absolute;
 }

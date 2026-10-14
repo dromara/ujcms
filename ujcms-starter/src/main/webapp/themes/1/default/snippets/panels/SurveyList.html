@@ -1,0 +1,23 @@
+[#--
+  面板片段：调查问卷（SurveyList）。纯设置组件（vote-micro-region §5 先例）：问卷经
+  [@SurveyList] 自取。商业版 T2 功能（/survey 由 T2 前台控制器渲染）——社区版不输出（与原 right.html 硬编码模块的门禁一致）。
+--]
+[#escape x as (x)!?html]
+[#if config.commercialTier gte 2]
+<section>
+  [#if (settings.title)?has_content]
+  <h5 class="flex items-center gap-2 text-base font-semibold mb-3">
+    <span class="size-5 text-primary inline-block">[@icon 'list-alt-outline'/]</span>
+    <a href="${dy}/survey" class="cm-link">${settings.title}</a>
+  </h5>
+  [/#if]
+  [@SurveyList limit=(settings.limit)!9; surveyList]
+  <ul class="space-y-2">
+    [#list surveyList as bean]
+      <li><a href="${dy}/survey/${bean.id?c}" class="cm-link text-sm">${bean.title}</a></li>
+    [/#list]
+  </ul>
+  [/@SurveyList]
+</section>
+[/#if]
+[/#escape]

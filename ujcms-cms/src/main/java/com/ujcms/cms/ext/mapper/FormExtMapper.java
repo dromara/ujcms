@@ -5,7 +5,7 @@ import com.ujcms.common.query.QueryInfo;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -37,6 +37,14 @@ public interface FormExtMapper {
      * @return 删除条数
      */
     int delete(Long id);
+
+    /**
+     * 根据站点ID删除数据（站点删除级联，先于 {@code ujcms_form} 主表删除）
+     *
+     * @param siteId 站点ID
+     * @return 删除条数
+     */
+    int deleteBySiteId(Long siteId);
 
     /**
      * 根据主键获取数据

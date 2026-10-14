@@ -21,8 +21,9 @@ import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGe
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -34,16 +35,21 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.nimbusds.jose.KeyLengthException;
 import com.ujcms.cms.core.service.ConfigService;
+import com.ujcms.cms.core.service.InstallService;
 import com.ujcms.cms.core.service.OrgService;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.service.UserService;
+import com.ujcms.cms.core.composition.ManifestService;
+import com.ujcms.cms.core.composition.SandboxSiteRegistry;
+import com.ujcms.cms.core.composition.ThemeSettingsService;
 import com.ujcms.cms.core.support.HardenedFreeMarkerView;
 import com.ujcms.cms.core.support.Props;
-import com.ujcms.cms.core.support.Utils;
+import com.ujcms.cms.core.support.SecurityProperties;
 import com.ujcms.cms.core.web.support.BackendInterceptor;
 import com.ujcms.cms.core.web.support.ExceptionResolver;
 import com.ujcms.cms.core.web.support.FrontendApiInterceptor;
 import com.ujcms.cms.core.web.support.FrontendInterceptor;
+import com.ujcms.cms.core.web.support.InstallGuardInterceptor;
 import com.ujcms.cms.core.web.support.UrlRedirectInterceptor;
 import com.ujcms.common.freemarker.OsTemplateLoader;
 import com.ujcms.common.image.ImageHandler;
@@ -77,6 +83,14 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     public Props props() {
         return new Props();
+    }
+
+    /**
+     * 等保三级 / 密评三级 合规基础设施层开关（{@code ujcms.security.*}，默认全部关闭）
+     */
+    @Bean
+    public SecurityProperties securityProperties() {
+        return new SecurityProperties();
     }
 
     /**
@@ -121,18 +135,31 @@ public class Application extends SpringBootServletInitializer {
         private final SiteService siteService;
         private final OrgService orgService;
         private final ConfigService configService;
+        private final InstallService installService;
+        private final ThemeSettingsService themeSettingsService;
+        private final ManifestService manifestService;
+        private final SandboxSiteRegistry sandboxSiteRegistry;
         private final Props props;
         private final Parser uaParser;
         private final ResourceLoader resourceLoader;
         private final ServletContext servletContext;
 
         public WebConfigurer(UserService userService, SiteService siteService, OrgService orgService,
-                             ConfigService configService, Props props, Parser uaParser,
+                             ConfigService configService, InstallService installService,
+                             ThemeSettingsService themeSettingsService,
+                             ManifestService manifestService,
+                             ObjectProvider<SandboxSiteRegistry> sandboxSiteRegistry,
+                             Props props, Parser uaParser,
                              ResourceLoader resourceLoader, ServletContext servletContext) {
             this.userService = userService;
             this.siteService = siteService;
             this.orgService = orgService;
             this.configService = configService;
+            this.installService = installService;
+            this.themeSettingsService = themeSettingsService;
+            this.manifestService = manifestService;
+            // 沙箱成员 seam（sandbox-preview-site S3）：商业 T2 装配注册实现；社区/基础版回落 NONE
+            this.sandboxSiteRegistry = sandboxSiteRegistry.getIfAvailable(() -> SandboxSiteRegistry.NONE);
             this.props = props;
             this.uaParser = uaParser;
             this.resourceLoader = resourceLoader;
@@ -192,7 +219,8 @@ public class Application extends SpringBootServletInitializer {
          */
         @Bean
         public FrontendInterceptor frontendInterceptor() {
-            return new FrontendInterceptor(userService, siteService, configService, uaParser);
+            return new FrontendInterceptor(userService, siteService, configService, themeSettingsService,
+                    manifestService, sandboxSiteRegistry, uaParser);
         }
 
         /**
@@ -212,6 +240,15 @@ public class Application extends SpringBootServletInitializer {
         }
 
         /**
+         * 前台未安装守卫（install-flow §3）：未安装时前台短路到自包含"系统尚未安装"页，
+         * 引导去控制台 {@code /cp/} 完成安装
+         */
+        @Bean
+        public InstallGuardInterceptor installGuardInterceptor() {
+            return new InstallGuardInterceptor(installService);
+        }
+
+        /**
          * 目录重定向拦截器。支持访问
          */
         @Bean
@@ -225,6 +262,11 @@ public class Application extends SpringBootServletInitializer {
             registry.addInterceptor(timerInterceptor()).excludePathPatterns(ERROR_PATH_PATTERN, EXTENSION_PATH_PATTERN);
             // 后台拦截器
             registry.addInterceptor(backendInterceptor()).addPathPatterns(BACKEND_API + "/**");
+            // 前台未安装守卫：挡在 UrlRedirectInterceptor（前台首个 getUnique() 调用点）之前；
+            // 控制台 /cp/ 与 API 不经过（安装向导即在其中）
+            registry.addInterceptor(installGuardInterceptor())
+                    .excludePathPatterns(API + "/**", FRONTEND_API + "/**", "/cp", "/cp/**",
+                            ERROR_PATH_PATTERN, EXTENSION_PATH_PATTERN);
             // 目录重定向拦截器
             if (props.isFileToDir() || props.isDirToFile()) {
                 registry.addInterceptor(directoryRedirectInterceptor())
@@ -250,16 +292,21 @@ public class Application extends SpringBootServletInitializer {
 
         @Override
         public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
-            // 在开发环境下，上传的图片无法立即访问，需要等待1至5秒不等。
-            // 可能是因为上传后，开发工具需要同步到实际tomcat的运行路径下。
-            // 需要将上传文件定位到真实路径。可以通过设置 spring.web.resources.static-locations 实现。
-            // 也可考虑判断 profile 进行处理。
-            // List<String> profiles = Arrays.asList(applicationContext.getEnvironment().getActiveProfiles())
+            // 上传目录以 file: 路径直接提供静态资源服务，绕过 ServletContext 资源查找及 Tomcat 的资源缓存
+            // （StandardRoot，默认 cacheTtl 5 秒）。“刚上传的文件要等 1 至 5 秒才能访问”的根因是写入前对目标路径
+            // 调用 getRealPath 让 Tomcat 缓存了“不存在”，已在 LocalFileHandler#resolveNewFile 消除；
+            // 此处保留为静态资源服务的优化项，并可把上传目录放到程序目录之外（见 ujcms.uploads-location）。
             String uploadsLocation = props.getUploadsLocation();
             if (StringUtils.isNotBlank(uploadsLocation)) {
                 registry.addResourceHandler(uploadsLocation + "/**")
                         .addResourceLocations("file:" + servletContext.getRealPath(uploadsLocation + "/"));
             }
+            // 构建器桥资产（/_ujcms/**）：URL 固定、默认静态映射无 Cache-Control → 浏览器启发式
+            // 缓存让旧桥脚本在升级/热替换后继续服役（画布装饰与后端版本静默漂移）。no-cache =
+            // 每次条件请求重新验证（未变则 304，代价极低）；注入 URL 另带内容指纹参数双保险。
+            registry.addResourceHandler("/_ujcms/**")
+                    .addResourceLocations("classpath:/static/_ujcms/")
+                    .setCacheControl(CacheControl.noCache());
         }
 
         @Override
@@ -311,7 +358,6 @@ public class Application extends SpringBootServletInitializer {
     }
 
     private static SpringApplicationBuilder customizerBuilder(SpringApplicationBuilder builder) {
-        Utils.boot();
         return builder.sources(Application.class);
     }
 

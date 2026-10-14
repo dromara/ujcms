@@ -19,9 +19,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.SortField;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 自定义字段
@@ -163,105 +161,73 @@ public class WebPageWithCustoms extends WebPage {
         }
     }
 
-    @Field(type = FieldType.Long)
     @Nullable
     private Long i1;
-    @Field(type = FieldType.Long)
     @Nullable
     private Long i2;
-    @Field(type = FieldType.Long)
     @Nullable
     private Long i3;
-    @Field(type = FieldType.Long)
     @Nullable
     private Long i4;
-    @Field(type = FieldType.Long)
     @Nullable
     private Long i5;
-    @Field(type = FieldType.Long)
     @Nullable
     private Long i6;
 
-    @Field(type = FieldType.Scaled_Float, scalingFactor = SCALING_FACTOR)
     @Nullable
     private BigDecimal n1;
-    @Field(type = FieldType.Scaled_Float, scalingFactor = SCALING_FACTOR)
     @Nullable
     private BigDecimal n2;
-    @Field(type = FieldType.Scaled_Float, scalingFactor = SCALING_FACTOR)
     @Nullable
     private BigDecimal n3;
-    @Field(type = FieldType.Scaled_Float, scalingFactor = SCALING_FACTOR)
     @Nullable
     private BigDecimal n4;
 
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k1;
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k2;
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k3;
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k4;
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k5;
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k6;
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k7;
-    @Field(type = FieldType.Keyword, ignoreAbove = 256)
     @Nullable
     private String k8;
 
-    @Field(type = FieldType.Text, analyzer = "ik_max_word")
     @Nullable
     private String s1;
-    @Field(type = FieldType.Text, analyzer = "ik_max_word")
     @Nullable
     private String s2;
-    @Field(type = FieldType.Text, analyzer = "ik_max_word")
     @Nullable
     private String s3;
-    @Field(type = FieldType.Text, analyzer = "ik_max_word")
     @Nullable
     private String s4;
-    @Field(type = FieldType.Text, analyzer = "ik_max_word")
     @Nullable
     private String s5;
-    @Field(type = FieldType.Text, analyzer = "ik_max_word")
     @Nullable
     private String s6;
 
-    @Field(type = FieldType.Boolean)
     @Nullable
     private Boolean b1;
-    @Field(type = FieldType.Boolean)
     @Nullable
     private Boolean b2;
-    @Field(type = FieldType.Boolean)
     @Nullable
     private Boolean b3;
-    @Field(type = FieldType.Boolean)
     @Nullable
     private Boolean b4;
 
-    @Field(type = FieldType.Date)
     @Nullable
     private OffsetDateTime d1;
-    @Field(type = FieldType.Date)
     @Nullable
     private OffsetDateTime d2;
-    @Field(type = FieldType.Date)
     @Nullable
     private OffsetDateTime d3;
-    @Field(type = FieldType.Date)
     @Nullable
     private OffsetDateTime d4;
 

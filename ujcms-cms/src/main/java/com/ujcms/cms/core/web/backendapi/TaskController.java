@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Set;
 
 import static com.ujcms.cms.core.support.Constants.validPage;
 import static com.ujcms.cms.core.support.Constants.validPageSize;
@@ -39,10 +40,15 @@ public class TaskController {
         this.service = service;
     }
 
+    /**
+     * 列表的查询条件、排序可以关联的字段（docs/spec/article-data-permission/plan.md D24）：任务列表按发起人的用户名排序
+     */
+    private static final Set<String> QUERY_JOINS = Set.of("user-username");
+
     @GetMapping
     @PreAuthorize("hasAnyAuthority('task:list','*')")
     public Page<Task> list(Integer page, Integer pageSize, HttpServletRequest request) {
-        TaskArgs args = TaskArgs.of(getQueryMap(request.getQueryString())).siteId(Contexts.getCurrentSiteId());
+        TaskArgs args = TaskArgs.of(getQueryMap(request.getQueryString(), QUERY_JOINS)).siteId(Contexts.getCurrentSiteId());
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }
 

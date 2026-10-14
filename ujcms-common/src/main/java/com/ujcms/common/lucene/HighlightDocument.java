@@ -1,6 +1,6 @@
 package com.ujcms.common.lucene;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Lucene 高亮文档接口

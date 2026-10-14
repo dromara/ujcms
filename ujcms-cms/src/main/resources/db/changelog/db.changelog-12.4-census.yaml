@@ -1,0 +1,550 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783420800000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 普查ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 创建用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 普查名称
+                  type: VARCHAR(450)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:待运行,1:运行中,2:出错,3:已停止,4:已完成)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: current_
+                  remarks: 当前进度
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: total_
+                  remarks: 总进度
+                  type: INT
+              - column:
+                  name: begin_date_
+                  remarks: 开始时间
+                  type: datetime
+              - column:
+                  name: end_date_
+                  remarks: 结束时间
+                  type: datetime
+              - column:
+                  name: settings_
+                  remarks: 普查设置快照(JSON)
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: channel_count_
+                  remarks: 检查栏目数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: blank_channel_count_
+                  remarks: 空白栏目数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: stale_channel_count_
+                  remarks: 未及时更新栏目数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: article_count_
+                  remarks: 检查文章数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: error_word_count_
+                  remarks: 错别字数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: sensitive_word_count_
+                  remarks: 敏感词数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: link_count_
+                  remarks: 检查链接数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: dead_link_count_
+                  remarks: 死链数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: home_ok_
+                  remarks: 首页是否可访问
+                  type: CHAR(1)
+              - column:
+                  name: home_status_
+                  remarks: 首页HTTP状态码
+                  type: INT
+              - column:
+                  name: latest_publish_date_
+                  remarks: 最新发布时间
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: veto_
+                  remarks: 是否触发单项否决
+                  type: CHAR(1)
+              - column:
+                  name: deduct_score_
+                  remarks: 扣分指标得分
+                  type: DECIMAL(4,1)
+              - column:
+                  name: bonus_score_
+                  remarks: 加分指标得分
+                  type: DECIMAL(4,1)
+              - column:
+                  name: final_score_
+                  remarks: 最终得分
+                  type: DECIMAL(4,1)
+              - column:
+                  name: conclusion_
+                  remarks: 评定结论(1:合格,2:不合格)
+                  type: SMALLINT
+              - column:
+                  name: remark_
+                  remarks: 备注
+                  type: VARCHAR(3000)
+              - column:
+                  name: error_info_
+                  remarks: 错误信息
+                  type: MEDIUMTEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 网站普查
+            tableName: ujcms_census
+  - changeSet:
+      id: 1783420800000-2
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 评分项ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: census_id_
+                  remarks: 普查ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: code_
+                  remarks: 指标代码
+                  type: VARCHAR(20)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: type_
+                  remarks: 指标类型(1:单项否决,2:扣分,3:加分)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: category_
+                  remarks: 指标分类(0:单项否决,1:发布解读,2:办事服务,3:互动交流,4:功能设计,5:信息发布,6:加分办事服务,7:加分互动交流,8:加分功能设计,9:创新发展)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 指标名称
+                  type: VARCHAR(300)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: max_score_
+                  remarks: 指标分值
+                  type: DECIMAL(4,1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: auto_
+                  remarks: 是否自动检查项
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: triggered_
+                  remarks: 是否触发(单项否决项)
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: score_
+                  remarks: 扣分/得分
+                  type: DECIMAL(4,1)
+              - column:
+                  name: remark_
+                  remarks: 评分说明
+                  type: VARCHAR(1500)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: order_
+                  remarks: 排序
+                  type: INT
+            remarks: 普查评分项
+            tableName: ujcms_census_item
+  - changeSet:
+      id: 1783420800000-3
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 问题ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: census_id_
+                  remarks: 普查ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: type_
+                  remarks: 问题类型(1:空白栏目,2:要闻栏目未更新,3:政策栏目未更新,4:栏目长期未更新,5:首页未更新,6:错别字,7:敏感词,8:死链,9:站点无法访问)
+                  type: SMALLINT
+              - column:
+                  name: channel_id_
+                  remarks: 栏目ID
+                  type: BIGINT
+              - column:
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  name: title_
+                  remarks: 标题(栏目名或文章标题快照)
+                  type: VARCHAR(450)
+              - column:
+                  name: url_
+                  remarks: 链接地址
+                  type: VARCHAR(2000)
+              - column:
+                  name: word_
+                  remarks: 命中词语
+                  type: VARCHAR(150)
+              - column:
+                  name: context_
+                  remarks: 上下文摘要
+                  type: VARCHAR(1500)
+              - column:
+                  name: http_status_
+                  remarks: HTTP状态码
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:待处理,1:已处理,2:已忽略)
+                  type: SMALLINT
+              - column:
+                  name: process_user_id_
+                  remarks: 处理用户ID
+                  type: BIGINT
+              - column:
+                  name: process_date_
+                  remarks: 处理时间
+                  type: datetime
+              - column:
+                  name: process_text_
+                  remarks: 处理说明
+                  type: VARCHAR(1500)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 普查问题
+            tableName: ujcms_census_issue
+  - changeSet:
+      id: 1783420800000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_census_site
+            tableName: ujcms_census
+  - changeSet:
+      id: 1783420800000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_census_user
+            tableName: ujcms_census
+  - changeSet:
+      id: 1783420800000-6
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: census_id_
+            indexName: idx_census_item_census
+            tableName: ujcms_census_item
+  - changeSet:
+      id: 1783420800000-7
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_census_item_site
+            tableName: ujcms_census_item
+  - changeSet:
+      id: 1783420800000-8
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: census_id_
+            indexName: idx_census_issue_census
+            tableName: ujcms_census_issue
+  - changeSet:
+      id: 1783420800000-9
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_census_issue_site
+            tableName: ujcms_census_issue
+  - changeSet:
+      id: 1783420800000-10
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: channel_id_
+            indexName: idx_census_issue_channel
+            tableName: ujcms_census_issue
+  - changeSet:
+      id: 1783420800000-11
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_census_issue_article
+            tableName: ujcms_census_issue
+  - changeSet:
+      id: 1783420800000-12
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_census
+            constraintName: fk_census_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783420800000-13
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_census
+            constraintName: fk_census_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783420800000-14
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: census_id_
+            baseTableName: ujcms_census_item
+            constraintName: fk_census_item_census
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_census
+            validate: true
+  - changeSet:
+      id: 1783420800000-15
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_census_item
+            constraintName: fk_census_item_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783420800000-16
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: census_id_
+            baseTableName: ujcms_census_issue
+            constraintName: fk_census_issue_census
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_census
+            validate: true
+  - changeSet:
+      id: 1783420800000-17
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_census_issue
+            constraintName: fk_census_issue_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783420800000-18
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: process_user_id_
+            baseTableName: ujcms_census_issue
+            constraintName: fk_census_issue_process_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783420800000-19
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: census_settings_
+                  remarks: 网站普查设置
+                  type: TEXT
+            tableName: ujcms_site

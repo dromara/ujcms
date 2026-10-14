@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.Dict;
 import com.ujcms.common.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -65,6 +65,23 @@ public interface DictMapper {
      * @return 数据是否存在。0: 不存在, 1: 存在。
      */
     int existsByTypeId(Long typeId);
+
+    /**
+     * 同一类型内是否已有该 value
+     *
+     * @param typeId 字典类型ID
+     * @param value  值
+     * @return 存在返回 1，否则 0
+     */
+    int existsByValue(@Param("typeId") Long typeId, @Param("value") String value);
+
+    /**
+     * 根据 字典类型ID 删除数据（删除类型时级联其条目）
+     *
+     * @param typeId 字典类型ID
+     * @return 被删除的数据条数
+     */
+    int deleteByTypeId(Long typeId);
 
     /**
      * 根据站点ID删除数据

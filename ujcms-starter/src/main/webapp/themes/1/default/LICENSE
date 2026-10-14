@@ -1,0 +1,40 @@
+适用范围 / Scope
+----------------
+
+本许可证适用于主题自身的文件：模板、布局、片段、组件定义、页面清单、主题设置、脚本、样式，以及演示数据中的文字。
+以下两类文件不在本许可证范围内，各按其自身条款使用：
+
+- `THIRD-PARTY-NOTICES.md` 所列的第三方组件，按各自的许可证授权。
+- `SEED-MEDIA.md` 所列的图片、视频与文档，是 UJCMS 项目制作的演示占位素材，仅限在本主题及基于本主题建设的站点内使用，
+  站点上线前应替换为自有素材；不授予在主题之外单独使用的权利。
+
+This licence covers the theme's own files: templates, layout, snippets, shape definitions, page manifests, theme
+settings, scripts, styles and the text of the demo seed. Two kinds of files are outside it and stay under their own terms:
+
+- Third-party components listed in `THIRD-PARTY-NOTICES.md` keep their own licences.
+- Pictures, video and documents listed in `SEED-MEDIA.md` are demonstration placeholders made by the UJCMS project.
+  They may be used only inside this theme and sites built from it and are meant to be replaced before a site goes
+  live; no right to use them separately is granted.
+
+
+MIT License
+
+Copyright (c) 2026 南昌蓝智科技有限公司 (UJCMS)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

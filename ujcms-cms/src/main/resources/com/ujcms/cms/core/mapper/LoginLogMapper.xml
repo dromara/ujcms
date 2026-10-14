@@ -8,6 +8,7 @@
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
+    <result column="sign_" jdbcType="VARCHAR" property="sign" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.LoginLog" />
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.LoginLog">
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
@@ -42,7 +43,8 @@
       ip_ = #{ip,jdbcType=VARCHAR},
       created_ = #{created,jdbcType=TIMESTAMP},
       type_ = #{type,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=SMALLINT}
+      status_ = #{status,jdbcType=SMALLINT},
+      sign_ = #{sign,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.LoginLog">
     update ujcms_login_log
@@ -51,11 +53,12 @@
       ip_ = #{ip,jdbcType=VARCHAR},
       created_ = #{created,jdbcType=TIMESTAMP},
       type_ = #{type,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=SMALLINT}
+      status_ = #{status,jdbcType=SMALLINT},
+      sign_ = #{sign,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.LoginLog">
-    insert into ujcms_login_log (id_, user_id_, login_name_, ip_, created_, type_, status_)
-    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{loginName,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+    insert into ujcms_login_log (id_, user_id_, login_name_, ip_, created_, type_, status_, sign_)
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{loginName,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{sign,jdbcType=VARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.user_id_, t.login_name_, t.ip_, t.created_, t.type_, t.status_
+    t.id_, t.user_id_, t.login_name_, t.ip_, t.created_, t.type_, t.status_, t.sign_
   </sql></mapper>

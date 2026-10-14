@@ -3,8 +3,10 @@ import { ref, watch, computed } from 'vue';
 import { RefreshRight, Close, DCaret, Download } from '@element-plus/icons-vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { viewTabs, addViewTab, removeViewTab, removeLeftViewTab, removeRightViewTab } from './useViewTabs';
+import { viewTabs, addViewTab, updateViewTabPath, removeViewTab, removeLeftViewTab, removeRightViewTab } from './useViewTabs';
 import { isExternalPath } from '@/utils/common';
+import { fetchCurrentUser } from '@/stores/useCurrentUser';
+import { recordRecentView } from './recentViews';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -21,8 +23,16 @@ const closeDisabled = computed(() => viewTabs.length <= 1);
 const closeLeftDisabled = computed(() => viewTabs.findIndex((it) => it.name === contextTabName.value) <= 0);
 const closeRightDisabled = computed(() => viewTabs.findIndex((it) => it.name === contextTabName.value) >= viewTabs.length - 1);
 
-const refresh = (name: string | number | undefined): void => {
+// 权限快照每次 SPA 加载只取一次（permission.ts 守卫）。页签刷新是用户显式的"重新加载"意图：先重取
+// backend-state，再经 /refresh 重建视图，使 onMounted 里的 perm() 判定、侧栏 isShowMenu 与路由守卫都看到最新权限
+const refresh = async (name: string | number | undefined): Promise<void> => {
   if (!name) {
+    return;
+  }
+  try {
+    await fetchCurrentUser();
+  } catch {
+    // 401 已由请求拦截器移除令牌并弹出重新登录框；不再跳转，避免与登录重定向叠加
     return;
   }
   router.replace('/refresh');
@@ -33,7 +43,9 @@ const select = (name: string | number | undefined): void => {
   }
   const tab = viewTabs.find((it) => it.name === name);
   if (tab) {
-    router.push({ path: tab.path });
+    // 以字符串形式跳转：tab.path 为 fullPath，含 query；对象形式 { path } 会丢弃其中的 query
+    // （以 query 定身份的视图如主题详情 site/theme 会因此退化为空地址而请求出错）
+    router.push(tab.path);
   }
 };
 const remove = (name: string | number | undefined): void => {
@@ -101,8 +113,10 @@ const handleCloseOtherClick = (e: any) => {
 };
 
 const openContextMenu = (e: any) => {
-  if (e.srcElement.id) {
-    contextTabName.value = e.srcElement.id.split('-')[1];
+  // 页签 DOM id 为 tab-<name>；按祖先取，内部若有子元素或标题含 - 也不受影响
+  const item = (e.target as HTMLElement | null)?.closest<HTMLElement>('.el-tabs__item');
+  if (item?.id) {
+    contextTabName.value = item.id.slice('tab-'.length);
     const menuWidth = contextMenu.value.offsetWidth;
     const clientWidth = document.documentElement.clientWidth;
     // 减 4 像素，避免紧靠边缘
@@ -143,8 +157,14 @@ watch(
     if (title && component && !isExternalPath(route.path)) {
       if (viewTabs.findIndex((tab) => tab.name === title) === -1) {
         addViewTab({ name: title, label: t(title), path: route.fullPath, component: String(component), noCache: route.meta.noCache });
+      } else {
+        updateViewTabPath(title, route.fullPath);
       }
       tabName.value = title;
+      // 最近访问（命令面板空态）：只记侧栏叶子——隐藏路由与首页（backend）不记
+      if (!route.meta.hidden && route.meta.requiresPermission && route.meta.requiresPermission !== 'backend') {
+        recordRecentView(String(component));
+      }
     }
   },
   { immediate: true },
@@ -160,16 +180,16 @@ const handleTabRemove = (paneName: string | number) => {
 </script>
 
 <template>
-  <div class="overflow-hidden shadow bg-white flex items-stretch">
-    <div class="text-secondary flex items-stretch">
-      <div class="flex items-center px-2 border-l border-r border-t rounded-t" @click="() => refresh(tabName)">
-        <el-icon class="cursor-pointer" :title="$t('contextMenu.refresh')"><RefreshRight /></el-icon>
+  <div class="overflow-hidden bg-white border-b border-gray-200 flex items-stretch">
+    <div class="flex items-stretch">
+      <div class="flex items-center px-2 cursor-pointer text-gray-secondary hover:text-primary" @click="() => refresh(tabName)">
+        <el-icon :title="$t('contextMenu.refresh')"><RefreshRight /></el-icon>
       </div>
     </div>
     <div class="flex-grow overflow-hidden">
+      <!-- 平铺文字页签（console-shell D6）：不用 card 边框，活动项以 EP 自带的 2px 指示条标示 -->
       <el-tabs
         v-model="tabName"
-        type="card"
         :closable="!closeDisabled"
         @tab-click="handleTabClick"
         @tab-remove="handleTabRemove"
@@ -202,16 +222,29 @@ const handleTabRemove = (paneName: string | number) => {
 :deep(.el-tabs__header) {
   height: auto !important;
   margin-bottom: 0;
-  border-bottom: 0 !important;
 }
+// EP 的 2px 底线由容器的 border-b 承担
+:deep(.el-tabs__nav-wrap::after) {
+  display: none;
+}
+// 非 card 页签会把首尾项的内边距清零，故此处必须 !important
 :deep(.el-tabs__item) {
-  height: 30px;
-  line-height: 30px;
+  height: 34px;
+  line-height: 34px;
   padding: 0 10px !important;
   font-size: 12px;
+  font-weight: 400;
+  color: theme('colors.gray.regular');
+}
+:deep(.el-tabs__item:hover) {
+  color: theme('colors.gray.primary');
+  background-color: theme('colors.gray.50');
+}
+:deep(.el-tabs__item.is-active) {
+  color: var(--el-color-primary);
 }
 :deep(.el-tabs__item .is-icon-close) {
-  margin-left: 0;
+  margin-left: 2px;
 }
 :deep(.el-tabs__nav-prev),
 :deep(.el-tabs__nav-next) {

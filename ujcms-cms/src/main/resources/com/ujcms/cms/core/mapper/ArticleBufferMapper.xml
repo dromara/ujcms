@@ -15,25 +15,31 @@
         <result column="quarter_views_" jdbcType="INTEGER" property="quarterViews"/>
         <result column="year_views_" jdbcType="BIGINT" property="yearViews"/>
     </resultMap>
+    <!-- 周期浏览量清零：只动非零的行，不重写整张表 -->
     <update id="resetDayViews">
         update ujcms_article_ext
         set day_views_ = 0
+        where day_views_ &lt;&gt; 0
     </update>
     <update id="resetWeekViews">
         update ujcms_article_ext
         set week_views_ = 0
+        where week_views_ &lt;&gt; 0
     </update>
     <update id="resetMonthViews">
         update ujcms_article_ext
         set month_views_ = 0
+        where month_views_ &lt;&gt; 0
     </update>
     <update id="resetQuarterViews">
         update ujcms_article_ext
         set quarter_views_ = 0
+        where quarter_views_ &lt;&gt; 0
     </update>
     <update id="resetYearViews">
         update ujcms_article_ext
         set year_views_ = 0
+        where year_views_ &lt;&gt; 0
     </update>
 
     <update id="updateBatch">
@@ -82,19 +88,20 @@
         from ujcms_article_ext t
         where t.id_ = #{id,jdbcType=BIGINT}
     </select>
-    <update id="update" parameterType="com.ujcms.cms.core.domain.ArticleBuffer">
+    <!-- 顶、踩、下载次数：在数据库里原子自增。读出、加一、整行写回的做法会用读出时的旧值盖掉期间刷入的浏览量 -->
+    <update id="incrementUps">
         update ujcms_article_ext
-        set comments_      = #{comments,jdbcType=INTEGER},
-            downloads_     = #{downloads,jdbcType=INTEGER},
-            favorites_     = #{favorites,jdbcType=INTEGER},
-            ups_           = #{ups,jdbcType=INTEGER},
-            downs_         = #{downs,jdbcType=INTEGER},
-            views_         = #{views,jdbcType=BIGINT},
-            day_views_     = #{dayViews,jdbcType=INTEGER},
-            week_views_    = #{weekViews,jdbcType=INTEGER},
-            month_views_   = #{monthViews,jdbcType=INTEGER},
-            quarter_views_ = #{quarterViews,jdbcType=INTEGER},
-            year_views_    = #{yearViews,jdbcType=BIGINT}
+        set ups_ = ups_ + 1
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="incrementDowns">
+        update ujcms_article_ext
+        set downs_ = downs_ + 1
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="incrementDownloads">
+        update ujcms_article_ext
+        set downloads_ = downloads_ + 1
         where id_ = #{id,jdbcType=BIGINT}
     </update>
     <sql id="Column_List">

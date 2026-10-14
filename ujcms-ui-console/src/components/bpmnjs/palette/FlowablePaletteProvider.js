@@ -1,3 +1,11 @@
+/*
+ * Derived from bpmn-js (https://github.com/bpmn-io/bpmn-js), lib/features/palette/PaletteProvider.js.
+ * Copyright (c) 2014-present Camunda Services GmbH. Distributed under the bpmn.io license (licenses/bpmn-io.txt):
+ * the bpmn.io watermark must not be removed, changed or covered.
+ *
+ * Modified for UJCMS by 南昌蓝智科技有限公司 (https://www.ujcms.com): creates user tasks instead of tasks; the data
+ * object and data store entries were removed. First modified before 2026-04-19.
+ */
 import { assign } from 'min-dash';
 
 /**

@@ -6,8 +6,10 @@
     <result column="org_id_" jdbcType="BIGINT" property="orgId" />
     <result column="username_" jdbcType="VARCHAR" property="username" />
     <result column="password_" jdbcType="VARCHAR" property="password" />
-    <result column="email_" jdbcType="VARCHAR" property="email" />
-    <result column="mobile_" jdbcType="VARCHAR" property="mobile" />
+    <result column="email_" property="email" typeHandler="com.ujcms.cms.core.security.Sm4StringTypeHandler" />
+    <result column="mobile_" property="mobile" typeHandler="com.ujcms.cms.core.security.Sm4StringTypeHandler" />
+    <result column="email_index_" jdbcType="VARCHAR" property="emailIndex" />
+    <result column="mobile_index_" jdbcType="VARCHAR" property="mobileIndex" />
     <result column="alias_" jdbcType="VARCHAR" property="alias" />
     <result column="nickname_" jdbcType="VARCHAR" property="nickname" />
     <result column="real_name_" jdbcType="VARCHAR" property="realName" />
@@ -17,7 +19,11 @@
     <result column="rank_" jdbcType="SMALLINT" property="rank" />
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
-  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.User" />
+    <result column="pwd_must_change_" jdbcType="CHAR" property="pwdMustChange" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.User">
+    <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
+    <result column="clobs_json_" jdbcType="OTHER" property="clobsJson" />
+  </resultMap>
     <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.User">
     </resultMap>
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.User">
@@ -27,6 +33,28 @@
         <collection column="id_" fetchType="lazy" javaType="ArrayList" property="roleList" select="com.ujcms.cms.core.mapper.RoleMapper.listByUserId" />
         <collection column="id_" fetchType="lazy" javaType="ArrayList" property="orgList" select="com.ujcms.cms.core.mapper.OrgMapper.listByUserId" />
     </resultMap>
+    <!-- 盲索引回填专用：仅取 id 与（解密后的）手机号/邮箱及两个索引列，不加载任何关联对象。 -->
+    <resultMap id="PiiBackfillResultMap" type="com.ujcms.cms.core.domain.User">
+        <id column="id_" jdbcType="BIGINT" property="id" />
+        <result column="email_" property="email" typeHandler="com.ujcms.cms.core.security.Sm4StringTypeHandler" />
+        <result column="mobile_" property="mobile" typeHandler="com.ujcms.cms.core.security.Sm4StringTypeHandler" />
+        <result column="email_index_" jdbcType="VARCHAR" property="emailIndex" />
+        <result column="mobile_index_" jdbcType="VARCHAR" property="mobileIndex" />
+    </resultMap>
+
+    <!-- 判断 mobile_ 而非 mobile_index_：尚未回填盲索引的历史数据有手机号码但无索引 -->
+    <select id="countBackendUsersWithoutMobile" resultType="long">
+        select count(*)
+        from ujcms_user t
+        where t.status_ = 0
+          and (t.mobile_ is null or t.mobile_ = '')
+          and (
+            exists (select 1 from ujcms_user_role ur where ur.user_id_ = t.id_)
+            <if test="includeRoot">
+                or t.id_ = 1
+            </if>
+          )
+    </select>
 
     <select id="countByCreated" resultType="int">
         select count(*)
@@ -66,14 +94,52 @@
         SELECT
         <include refid="Column_List" />
         FROM ujcms_user t
-        WHERE t.email_ = #{email}
+        WHERE t.email_index_ = #{emailIndex}
     </select>
     <select id="selectByMobile" resultMap="ResultMap">
         SELECT
         <include refid="Column_List" />
         FROM ujcms_user t
-        WHERE t.mobile_ = #{mobile}
+        WHERE t.mobile_index_ = #{mobileIndex}
     </select>
+    <select id="existsByEmailIndex" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_user
+                           WHERE email_index_ = #{emailIndex} and id_ &lt;&gt; #{excludeId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="existsByMobileIndex" resultType="int">
+        select case
+                   when exists(
+                           SELECT *
+                           FROM ujcms_user
+                           WHERE mobile_index_ = #{mobileIndex} and id_ &lt;&gt; #{excludeId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="listForPiiBackfill" resultMap="PiiBackfillResultMap">
+        SELECT t.id_, t.email_, t.mobile_, t.email_index_, t.mobile_index_
+        FROM ujcms_user t
+        WHERE t.id_ &gt; #{lastId}
+          AND (
+              (t.mobile_ IS NOT NULL AND t.mobile_ &lt;&gt; '' AND t.mobile_index_ IS NULL)
+              OR (t.email_ IS NOT NULL AND t.email_ &lt;&gt; '' AND t.email_index_ IS NULL)
+          )
+        ORDER BY t.id_ ASC
+    </select>
+    <update id="updatePiiIndex">
+        update ujcms_user
+        set email_ = #{email,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler},
+            email_index_ = #{emailIndex,jdbcType=VARCHAR},
+            mobile_ = #{mobile,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler},
+            mobile_index_ = #{mobileIndex,jdbcType=VARCHAR}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
     <select id="selectByOpenid" resultMap="ResultMap">
         SELECT
         <include refid="Column_List" />
@@ -135,8 +201,10 @@
       org_id_ = #{orgId,jdbcType=BIGINT},
       username_ = #{username,jdbcType=VARCHAR},
       password_ = #{password,jdbcType=VARCHAR},
-      email_ = #{email,jdbcType=VARCHAR},
-      mobile_ = #{mobile,jdbcType=VARCHAR},
+      email_ = #{email,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler},
+      email_index_ = #{emailIndex,jdbcType=VARCHAR},
+      mobile_ = #{mobile,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler},
+      mobile_index_ = #{mobileIndex,jdbcType=VARCHAR},
       alias_ = #{alias,jdbcType=VARCHAR},
       nickname_ = #{nickname,jdbcType=VARCHAR},
       real_name_ = #{realName,jdbcType=VARCHAR},
@@ -145,7 +213,10 @@
       password_modified_ = #{passwordModified,jdbcType=TIMESTAMP},
       rank_ = #{rank,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=SMALLINT}
+      status_ = #{status,jdbcType=SMALLINT},
+      mains_json_ = #{mainsJson,jdbcType=OTHER},
+      clobs_json_ = #{clobsJson,jdbcType=OTHER},
+      pwd_must_change_ = #{pwdMustChange,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.User">
     update ujcms_user
@@ -153,8 +224,10 @@
       org_id_ = #{orgId,jdbcType=BIGINT},
       username_ = #{username,jdbcType=VARCHAR},
       password_ = #{password,jdbcType=VARCHAR},
-      email_ = #{email,jdbcType=VARCHAR},
-      mobile_ = #{mobile,jdbcType=VARCHAR},
+      email_ = #{email,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler},
+      email_index_ = #{emailIndex,jdbcType=VARCHAR},
+      mobile_ = #{mobile,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler},
+      mobile_index_ = #{mobileIndex,jdbcType=VARCHAR},
       alias_ = #{alias,jdbcType=VARCHAR},
       nickname_ = #{nickname,jdbcType=VARCHAR},
       real_name_ = #{realName,jdbcType=VARCHAR},
@@ -163,11 +236,12 @@
       password_modified_ = #{passwordModified,jdbcType=TIMESTAMP},
       rank_ = #{rank,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=SMALLINT}
+      status_ = #{status,jdbcType=SMALLINT},
+      pwd_must_change_ = #{pwdMustChange,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.User">
-    insert into ujcms_user (id_, group_id_, org_id_, username_, password_, email_, mobile_, alias_, nickname_, real_name_, gender_, avatar_, password_modified_, rank_, type_, status_)
-    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT})
+    insert into ujcms_user (id_, group_id_, org_id_, username_, password_, email_, email_index_, mobile_, mobile_index_, alias_, nickname_, real_name_, gender_, avatar_, password_modified_, rank_, type_, status_, pwd_must_change_, mains_json_, clobs_json_)
+    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler}, #{emailIndex,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR,typeHandler=com.ujcms.cms.core.security.Sm4StringTypeHandler}, #{mobileIndex,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, #{gender,jdbcType=SMALLINT}, #{avatar,jdbcType=VARCHAR}, #{passwordModified,jdbcType=TIMESTAMP}, #{rank,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{pwdMustChange,jdbcType=CHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER})
   </insert><sql id="Column_List">
-    t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.email_, t.mobile_, t.alias_, t.nickname_, t.real_name_, t.gender_, t.avatar_, t.password_modified_, t.rank_, t.type_, t.status_
+    t.id_, t.group_id_, t.org_id_, t.username_, t.password_, t.email_, t.email_index_, t.mobile_, t.mobile_index_, t.alias_, t.nickname_, t.real_name_, t.gender_, t.avatar_, t.password_modified_, t.rank_, t.type_, t.status_, t.pwd_must_change_, t.mains_json_, t.clobs_json_
   </sql></mapper>

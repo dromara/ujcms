@@ -1,3 +1,4 @@
+/* Adapted from vue-element-admin (https://github.com/PanJiaChen/vue-element-admin), Copyright (c) 2017-present PanJiaChen, MIT License (licenses/MIT.txt). Rewritten for Vue 3 by UJCMS. */
 import { watch, onBeforeMount, onBeforeUnmount, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppStateStore } from '@/stores/appStateStore';

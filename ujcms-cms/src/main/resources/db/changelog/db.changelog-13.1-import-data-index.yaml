@@ -1,0 +1,15 @@
+databaseChangeLog:
+  # 数据迁移的对应关系表（docs/spec/article-management/plan.md Phase 5b）：迁移每一行都要按“表 + 原主键”查一次
+  # “以前迁入过没有”。文章也记对应关系之后，这张表的行数与迁入的文章数同量级，没有索引就是逐行全表扫描
+  - changeSet:
+      id: 13.1-import-data-orig-index
+      author: PONY
+      changes:
+        - createIndex:
+            tableName: ujcms_import_data
+            indexName: idx_import_data_table_orig
+            columns:
+              - column:
+                  name: table_name_
+              - column:
+                  name: orig_id_

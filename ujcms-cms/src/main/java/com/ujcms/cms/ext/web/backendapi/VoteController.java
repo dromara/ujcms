@@ -86,7 +86,8 @@ public class VoteController {
             throw new Http404Exception("Vote not found. ID = " + bean.getId());
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
-        Entities.copy(bean, vote, "siteId", "total");
+        // 来源三元组由种子导入器专管：编辑不得改写或清除
+        Entities.copy(bean, vote, "siteId", "total", "origin", "originId", "originHash");
         service.update(vote, bean.getOptions());
         return Responses.ok();
     }

@@ -69,7 +69,7 @@ onBeforeUnmount(() => {
   }
 });
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -105,9 +105,10 @@ const handleDelete = async (ids: string[]) => {
     <div class="mb-3">
       <query-form :params="params" @search="handleSearch" @reset="() => handleReset()">
         <query-item :label="$t('vote.title')" name="Q_Contains_title"></query-item>
-        <query-item :label="$t('vote.beginDate')" name="Q_GE_beginDate_DateTime,Q_LE_beginDate_DateTime" type="datetime"></query-item>
+        <query-item :label="$t('vote.startDate')" name="Q_GE_startDate_DateTime,Q_LE_startDate_DateTime" type="datetime"></query-item>
         <query-item :label="$t('vote.endDate')" name="Q_GE_endDate_DateTime,Q_LE_endDate_DateTime" type="datetime"></query-item>
         <query-item :label="$t('vote.mode')" name="Q_In_mode_Short" :options="[1, 2, 3].map((item) => ({ label: $t(`vote.mode.${item}`), value: item }))"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div>
@@ -141,10 +142,10 @@ const handleDelete = async (ids: string[]) => {
               <Grid />
             </el-icon>
           </el-table-column>
-          <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
+          <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
           <el-table-column property="title" :label="$t('vote.title')" min-width="280" sortable="custom" show-overflow-tooltip></el-table-column>
-          <el-table-column property="beginDate" :label="$t('vote.beginDate')" min-width="120" sortable="custom" display="none" show-overflow-tooltip>
-            <template #default="{ row }">{{ row.beginDate != null ? dayjs(row.beginDate).format('YYYY-MM-DD HH:mm') : '' }}</template>
+          <el-table-column property="startDate" :label="$t('vote.startDate')" min-width="120" sortable="custom" display="none" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.startDate != null ? dayjs(row.startDate).format('YYYY-MM-DD HH:mm') : '' }}</template>
           </el-table-column>
           <el-table-column property="endDate" :label="$t('vote.endDate')" min-width="120" sortable="custom" display="none" show-overflow-tooltip>
             <template #default="{ row }">{{ row.endDate != null ? dayjs(row.endDate).format('YYYY-MM-DD HH:mm') : '' }}</template>

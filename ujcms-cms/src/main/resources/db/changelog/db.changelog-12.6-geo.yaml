@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1784073600000-1
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: geo_settings_
+                  remarks: GEO设置
+                  type: MEDIUMTEXT
+            tableName: ujcms_site
+  - changeSet:
+      id: 1784073600000-2
+      author: PONY
+      comment: 文章级“是否百度推送”标记自 4.0 起无任何读写方，站点级搜索引擎推送（Site.Geo）取而代之
+      changes:
+        - dropColumn:
+            columnName: baidu_push_
+            tableName: ujcms_article_ext

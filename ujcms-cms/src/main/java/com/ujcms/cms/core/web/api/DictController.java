@@ -1,9 +1,11 @@
 package com.ujcms.cms.core.web.api;
 
 import com.ujcms.cms.core.domain.Dict;
+import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.DictService;
 import com.ujcms.cms.core.web.directive.DictListDirective;
 import com.ujcms.cms.core.web.support.Directives;
+import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.common.query.QueryParser;
 import com.ujcms.common.query.QueryUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,9 +34,11 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 @RestController
 @RequestMapping({API + "/dict", FRONTEND_API + "/dict"})
 public class DictController {
+    private final SiteResolver siteResolver;
     private final DictService dictService;
 
-    public DictController(DictService dictService) {
+    public DictController(SiteResolver siteResolver, DictService dictService) {
+        this.siteResolver = siteResolver;
         this.dictService = dictService;
     }
 
@@ -49,11 +53,13 @@ public class DictController {
             schema = @Schema(type = "integer", format = "int32"))
     @GetMapping
     public List<Dict> list(HttpServletRequest request) {
+        // 公开接口无站点拦截器：按 Host 解析当前站点，可见范围 = 本站 ∪ 全局
+        Site site = siteResolver.resolve(request);
         Map<String, String> params = new HashMap<>(QueryUtils.getParams(request.getQueryString()));
         QueryParser.validatePublicOrderBy(params.get(Directives.ORDER_BY));
         // 前台接口只允许获取启用的数据
         params.put("isEnabled", "true");
-        return DictListDirective.query(params, dictService);
+        return DictListDirective.query(params, site.getId(), dictService);
     }
 
 }

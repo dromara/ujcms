@@ -1,0 +1,37 @@
+databaseChangeLog:
+  # 文章翻译等价集（原 11.x-article-i18n；multilingual P5，translation-links.md §2）：
+  #   article_id_ 主键 = 一篇文章至多属于一个翻译组（数据库层面保证）；
+  #   group_id_   雪花ID虚拟组（无父表）；语言/站点信息不冗余，由成员文章推导。
+  - changeSet:
+      id: 13.0-article-i18n
+      author: PONY
+      changes:
+        - createTable:
+            tableName: ujcms_article_i18n
+            remarks: 文章翻译等价集
+            columns:
+              - column:
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: group_id_
+                  remarks: 翻译组ID
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: ujcms_article_i18n
+            baseColumnNames: article_id_
+            referencedTableName: ujcms_article
+            referencedColumnNames: id_
+            constraintName: fk_article_i18n_article
+        - createIndex:
+            tableName: ujcms_article_i18n
+            indexName: idx_article_i18n_group
+            columns:
+              - column:
+                  name: group_id_

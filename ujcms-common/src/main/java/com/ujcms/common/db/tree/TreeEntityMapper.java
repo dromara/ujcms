@@ -1,7 +1,7 @@
 package com.ujcms.common.db.tree;
 
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 

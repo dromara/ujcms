@@ -1,0 +1,36 @@
+[#--
+  第三方登录按钮。只显示“全局设置 › 第三方登录”中已启用且凭据齐全的服务商：`config.oauthProviders`
+  是可用服务商的代码列表（weixin / qq / weibo，不含任何凭据），为空时整块不输出。
+  每个按钮为品牌色圆形胶囊 + 中文供应商名（material-symbols 不含
+  微博/QQ/微信品牌图标——品牌色胶囊内的文字是最简洁清晰的替代）。
+
+  输入（可选）：
+    targetUrl — 透传为 ?targetUrl=，OAuth 回调后跳回来源页面。
+--]
+[#escape x as (x)!?html]
+[#assign oauthProviders = (config.oauthProviders)![]]
+[#if config.commercialTier gte 2 && oauthProviders?has_content]
+  <div class="pt-2">
+    <p class="text-center text-xs text-slate-500 mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-slate-200 after:flex-1 after:h-px after:bg-slate-200">
+      <span>第三方登录</span>
+    </p>
+    <div class="flex justify-center gap-4">
+      [#if oauthProviders?seq_contains('weibo')]
+        <a href="${def}/oauth/login/weibo[#if targetUrl?has_content]?targetUrl=${targetUrl}[/#if]"
+           aria-label="微博登录"
+           class="size-11 rounded-full bg-rose-500 text-white text-xs font-semibold flex items-center justify-center hover:bg-rose-600 hover:shadow-md transition-all">微博</a>
+      [/#if]
+      [#if oauthProviders?seq_contains('qq')]
+        <a href="${def}/oauth/login/qq[#if targetUrl?has_content]?targetUrl=${targetUrl}[/#if]"
+           aria-label="QQ登录"
+           class="size-11 rounded-full bg-blue-500 text-white text-base font-bold flex items-center justify-center hover:bg-blue-600 hover:shadow-md transition-all">QQ</a>
+      [/#if]
+      [#if oauthProviders?seq_contains('weixin')]
+        <a href="${def}/oauth/login/weixin[#if targetUrl?has_content]?targetUrl=${targetUrl}[/#if]"
+           aria-label="微信登录"
+           class="size-11 rounded-full bg-green-500 text-white text-xs font-semibold flex items-center justify-center hover:bg-green-600 hover:shadow-md transition-all">微信</a>
+      [/#if]
+    </div>
+  </div>
+[/#if]
+[/#escape]

@@ -1,11 +1,11 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "mock/**/*.ts", "auto-imports.d.ts"],
+  "include": ["src/**/*", "src/**/*.vue", "auto-imports.d.ts"],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
 
     "noImplicitAny": false,
-    "types": ["vite/client", "element-plus/global", "@intlify/unplugin-vue-i18n/messages"],
+    "types": ["vite/client", "element-plus/global"],
     "paths": {
       "@/*": ["./src/*"]
     }

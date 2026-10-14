@@ -4,6 +4,8 @@ import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/zh-cn';
+import { useI18n } from 'vue-i18n';
+import { dayjsLocale } from '@/i18n';
 import BpmnViewer from 'bpmn-js/lib/Viewer';
 import { queryProcessTaskList } from '@/api/system';
 import defaultBpmnXml from '@/components/bpmnjs/custom-translate/defaultBpmnXml';
@@ -14,6 +16,7 @@ const props = defineProps({
   instanceId: { type: String, default: null },
 });
 const { instanceId } = toRefs(props);
+const { locale } = useI18n();
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -93,7 +96,7 @@ watch(visible, () => {
             </td>
              -->
             <td class="p-2 border-b" :rowspan="task.commentList.length > 0 ? task.commentList.length : 1">
-              {{ task.duration ? dayjs.duration(Number(task.duration)).locale('zh-cn').humanize() : undefined }}
+              {{ task.duration ? dayjs.duration(Number(task.duration)).locale(dayjsLocale(locale)).humanize() : undefined }}
             </td>
             <td class="p-2 border-b">{{ task.commentList[0] ? dayjs(task.commentList[0].time).format('YYYY-MM-DD HH:mm') : undefined }}</td>
             <td class="p-2 border-b">{{ task.commentList[0]?.userName }}</td>
@@ -105,7 +108,7 @@ watch(visible, () => {
             <td class="p-2 border-b">{{ task.commentList[0]?.fullMessage }}</td>
           </tr>
           <template v-for="(comment, index) in task.commentList" :key="comment.id">
-            <tr v-if="index > 0" class="hover:bg-gray-50">
+            <tr v-if="Number(index) > 0" class="hover:bg-gray-50">
               <td class="p-2 border-b">{{ dayjs(comment.time).format('YYYY-MM-DD HH:mm') }}</td>
               <td class="p-2 border-b">{{ comment.userName }}</td>
               <td class="p-2 border-b">
@@ -143,11 +146,12 @@ watch(visible, () => {
 </template>
 
 <style lang="scss" scoped>
+// 流程图节点高亮：已完成 = 成功色淡、当前 = 主色 light-5 变量（随主题色，console-shell S3）、驳回 = 危险色淡
 :deep(.highlight:not(.djs-connection) .djs-visual > :nth-child(1)) {
   fill: #b3e19d !important;
 }
 :deep(.highlight-curr:not(.djs-connection) .djs-visual > :nth-child(1)) {
-  fill: #a0cfff !important;
+  fill: var(--el-color-primary-light-5) !important;
 }
 :deep(.highlight-reject:not(.djs-connection) .djs-visual > :nth-child(1)) {
   fill: #fab6b6 !important;

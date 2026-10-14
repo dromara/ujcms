@@ -8,7 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.net.ftp.FTPFile;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Instant;
@@ -24,7 +24,7 @@ import static com.ujcms.common.file.FilesEx.SLASH;
 /**
  * WebFile
  *
- * @author liufang
+ * @author PONY
  */
 public class WebFile {
     private final String id;
@@ -196,7 +196,8 @@ public class WebFile {
             return FileType.DIRECTORY;
         }
         String extension = getExtension();
-        if (Images.isImageExtension(extension)) {
+        // svg 仅在文件管理器按图片对待（类型列、预览）；Images.IMAGE_EXTENSIONS 是 ImageIO 可处理清单，不能纳入 svg
+        if (Images.isImageExtension(extension) || Strings.CI.equals(extension, SVG_EXTENSION)) {
             return FileType.IMAGE;
         } else if (Strings.CI.equalsAny(extension, TEXT_EXTENSIONS.toArray(new String[0]))) {
             return FileType.TEXT;
@@ -385,6 +386,7 @@ public class WebFile {
 
     public static final List<String> TEXT_EXTENSIONS = Collections.unmodifiableList(
             Arrays.asList("html", "htm", "js", "css", "txt", "xml", "ftl", "vm", "jsp", "jspx",
-                    "asp", "aspx", "php", "sql", "tag", "tld", "properties", "yaml", "yml"));
+                    "asp", "aspx", "php", "sql", "tag", "tld", "properties", "yaml", "yml", "json"));
     public static final String ZIP_EXTENSION = "zip";
+    public static final String SVG_EXTENSION = "svg";
 }

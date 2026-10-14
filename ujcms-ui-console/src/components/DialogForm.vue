@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, PropType, ref, toRefs, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, type PropType, reactive, ref, toRaw, toRefs, watch } from 'vue';
 import { Plus, Delete } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
-import _ from 'lodash';
+import { cloneDeep, isEqual } from 'lodash-es';
 import { perm } from '@/stores/useCurrentUser';
 
 const CONTINUOUS_SETTINGS = 'ujcms_continuous_settings';
@@ -45,6 +45,11 @@ const props = defineProps({
   perms: { type: String, default: null },
   focus: { type: Object, default: null },
   large: { type: Boolean, default: false },
+  // 默认随页面就地渲染（保持既有行为）。开启后对话框 teleport 到 body：
+  // 内嵌 Markdown(ByteMD) 编辑器的表单需开启，否则其工具栏下拉（标题级别等）
+  // 会被带左侧菜单偏移的 .el-main（overflow:auto）当作 Popper 裁剪边界，
+  // 导致下拉被 preventOverflow 横向挤偏约一个图标宽度。
+  appendToBody: { type: Boolean, default: false },
   labelPosition: { type: String as PropType<'top' | 'right' | 'left'>, default: 'right' },
   labelWidth: { type: String, default: '150px' },
 });
@@ -54,6 +59,7 @@ const emit = defineEmits({
   finished: null,
   beanChange: null,
   beforeSubmit: null,
+  discard: null,
 });
 
 const { name, beanId, beanIds, focus, values, action, modelValue: visible } = toRefs(props);
@@ -63,36 +69,52 @@ const buttonLoading = ref<boolean>(false);
 const continuous = ref<boolean>(getContinuous(name.value));
 const form = ref<any>();
 const bean = ref<any>(props.initValues());
+// 基线：表单最近一次与服务端一致时的样子。永远是一份独立的副本——表单上的改动动不到它，“未保存”才可信
 const origValues = ref<any>();
 const id = ref<any>();
 const ids = ref<Array<any>>([]);
-const isEdit = computed(() => id.value != null && action.value === 'edit');
+// 新增（或复制）保存后留在对话框里继续编辑（adopt）：此后这条就是已有数据，按编辑处理。下次打开对话框时复位
+const stayed = ref<boolean>(false);
+const isEdit = computed(() => id.value != null && (action.value === 'edit' || stayed.value));
 const unsaved = computed(() => {
   // 调试 未保存
-  // if (!_.isEqual(origValues.value, values.value)) {
+  // if (!isEqual(origValues.value, values.value)) {
   //   console.log(JSON.stringify(origValues.value));
   //   console.log(JSON.stringify(values.value));
   // }
-  return !loading.value && !_.isEqual(origValues.value, values.value);
+  return !loading.value && !isEqual(origValues.value, values.value);
 });
 const disabled = computed(() => props.disableEdit?.(bean.value) ?? false);
 const title = computed(() => `${name.value} - ${isEdit.value ? `${t(disabled.value ? 'detail' : 'edit')} (ID: ${id.value})` : `${t('add')}`}`);
+// 最近一次交给父组件的表单对象。父组件的 ref 立刻换成了它，本组件的 props.values 却要等父组件重新渲染后才跟上
+let emitted: any;
+const emitValues = (next: any) => {
+  emitted = next;
+  emit('update:values', next);
+};
 const loadBean = async () => {
   loading.value = true;
   try {
     bean.value = id.value != null ? await props.queryBean(id.value) : props.initValues(values.value, isEdit.value);
-    origValues.value = id.value != null ? props.toValues(bean.value) : bean.value;
-    emit('update:values', _.cloneDeep(origValues.value));
-    emit('beanChange', bean.value);
+    const initial = id.value != null ? props.toValues(bean.value) : bean.value;
+    origValues.value = cloneDeep(initial);
+    emitValues(cloneDeep(initial));
+    emit('beanChange', bean.value, false);
     form.value?.resetFields();
+  } catch (e) {
+    // 读取失败（数据已删除、不在数据权限之内等）：拦截器已提示错误。关闭对话框——表单里留着的还是上一条数据，不能让人接着保存
+    emit('update:modelValue', false);
+    throw e;
   } finally {
     loading.value = false;
   }
 };
-onMounted(() => emit('update:values', props.initValues()));
+onMounted(() => emitValues(props.initValues()));
 watch(visible, () => {
   if (visible.value) {
-    ids.value = beanIds.value;
+    // 自己的一份：删除后要从中摘掉已删的 ID，不去改父组件的数组
+    ids.value = [...beanIds.value];
+    stayed.value = false;
     if (id.value !== beanId.value) {
       id.value = beanId.value;
     } else {
@@ -100,7 +122,13 @@ watch(visible, () => {
     }
   }
 });
+// adopt 把 ID 换成刚创建的那条时不重新读取：表单就是用户正在编辑的那一份
+let skipNextLoad = false;
 watch(id, () => {
+  if (skipNextLoad) {
+    skipNextLoad = false;
+    return;
+  }
   loadBean();
 });
 watch(continuous, () => setContinuous(name.value, continuous.value));
@@ -124,88 +152,223 @@ const handleAdd = () => {
 const handleCancel = () => {
   emit('update:modelValue', false);
 };
+
+// 有未保存的修改时，离开当前这条（关闭、返回、上一条、下一条、新增）先问一句。删除、审核等操作之后的自动切换
+// 不经过这里：那时表单本来就要丢弃
+const confirmDiscard = async (): Promise<boolean> => {
+  if (!unsaved.value) {
+    return true;
+  }
+  try {
+    await ElMessageBox.confirm(t('form.unsaved.confirm'), t('form.unsaved'), {
+      type: 'warning',
+      confirmButtonText: t('form.unsaved.discard'),
+      cancelButtonText: t('form.unsaved.keep'),
+    });
+    emit('discard');
+    return true;
+  } catch {
+    return false;
+  }
+};
+const leave = async (proceed: () => void) => {
+  if (await confirmDiscard()) {
+    proceed();
+  }
+};
+const beforeClose = (done: () => void) => leave(done);
+// 刷新、关闭页签：浏览器自己的确认框
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  if (visible.value && unsaved.value) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+};
+onMounted(() => window.addEventListener('beforeunload', handleBeforeUnload));
+onBeforeUnmount(() => window.removeEventListener('beforeunload', handleBeforeUnload));
+
+// 删除、审核通过等操作之后：连续模式下切到相邻的一条，否则关闭——关闭了就不必再读下一条
+const afterRemoved = () => {
+  const removedIndex = index.value;
+  if (continuous.value && (hasNext.value || hasPrev.value)) {
+    if (hasNext.value) {
+      handleNext();
+    } else {
+      handlePrev();
+    }
+    ids.value.splice(removedIndex, 1);
+  } else {
+    emit('update:modelValue', false);
+  }
+};
 const handleDelete = async () => {
   buttonLoading.value = true;
   try {
     await props.deleteBean([id.value]);
-    if (!continuous.value) emit('update:modelValue', false);
-    if (hasNext.value) {
-      handleNext();
-      ids.value.splice(index.value - 1, 1);
-    } else if (hasPrev.value) {
-      handlePrev();
-      ids.value.splice(index.value + 1, 1);
-    } else {
-      emit('update:modelValue', false);
-    }
+    afterRemoved();
     ElMessage.success(t('success'));
     emit('finished');
   } finally {
     buttonLoading.value = false;
   }
 };
-const resetOrigValues = () => {
-  origValues.value = props.toValues(values.value);
+
+const validateForm = async (): Promise<boolean> => {
+  try {
+    await form.value.validate();
+    return true;
+  } catch {
+    return false;
+  }
 };
-const handleSubmit = async (stay = false) => {
-  await props.beforeValidate?.(values.value);
-  form.value.validate(async (valid: boolean) => {
-    if (!valid) return;
-    buttonLoading.value = true;
-    try {
-      if ((await props.preventSubmit?.(values.value)) ?? false) {
-        return;
-      }
-      emit('beforeSubmit', values.value);
-      if (isEdit.value) {
-        await props.updateBean(values.value);
-        resetOrigValues();
-      } else {
-        await props.createBean(values.value);
-        focus.value?.focus?.();
-        emit('update:values', props.initValues(values.value, isEdit.value));
-        form.value.resetFields();
-      }
-      ElMessage.success(t('success'));
-      if (!continuous.value && !stay) emit('update:modelValue', false);
-      emit('finished', bean.value);
-    } finally {
-      buttonLoading.value = false;
+// 保存成功：基线换成提交那一刻的表单快照。不能取“现在”的表单——请求往返期间用户可能又改了（在富文本里接着打字）
+const markSaved = (snapshot?: any) => {
+  origValues.value = snapshot ?? cloneDeep(values.value);
+};
+// 新增成功后换一张空白表单接着录：表单与基线一起换，否则带着上一条留下的默认值就成了“未保存”
+const resetForm = () => {
+  const blank = props.initValues(values.value, false);
+  bean.value = blank;
+  origValues.value = cloneDeep(blank);
+  emitValues(cloneDeep(blank));
+  form.value?.resetFields();
+  focus.value?.focus?.();
+};
+// 新增（或复制）保存后留下来接着编辑：表单原样不动，只补上新 ID；基线取提交时的快照；数据按服务端现值在后台刷新
+// （状态、是否可编辑等只读信息），不替换表单
+const adopt = async (newId: any, snapshot: any) => {
+  stayed.value = true;
+  values.value.id = newId;
+  snapshot.id = newId;
+  origValues.value = snapshot;
+  // 列表按新旧排，新建的排在最前
+  if (!ids.value.includes(newId)) {
+    ids.value.unshift(newId);
+  }
+  if (id.value !== newId) {
+    skipNextLoad = true;
+    id.value = newId;
+  }
+  try {
+    bean.value = await props.queryBean(newId);
+    emit('beanChange', bean.value, true);
+  } catch {
+    // 拦截器已提示；表单与基线不受影响
+  }
+};
+// 不算用户改动的表单变更（补默认值等）：表单与基线一起改，不出“未保存”
+const patch = (mutate: (target: any) => void) => {
+  mutate(values.value);
+  // 父组件在换表单的同一轮里（它重新渲染之前，例如它的 watch 回调）调用时，props.values 还是换下来的旧对象：
+  // 新对象也要改，否则只改了基线，表单反倒成了“未保存”
+  if (emitted != null && emitted !== toRaw(values.value)) {
+    mutate(reactive(emitted));
+  }
+  if (origValues.value != null) {
+    mutate(origValues.value);
+  }
+};
+
+// 一次只处理一个保存请求：连按快捷键、请求未返回时再点按钮，都不发第二次
+let saving = false;
+// stay：保存后留在对话框里。新增时要留下，创建接口须返回新数据的 ID（Body.result.id）；否则换成空白表单
+const handleSubmit = async (stay = false, options: { create?: (data: any) => Promise<any>; message?: string } = {}) => {
+  if (saving) {
+    return;
+  }
+  saving = true;
+  try {
+    await props.beforeValidate?.(values.value);
+    if (!(await validateForm())) {
+      return;
     }
-  });
+    buttonLoading.value = true;
+    if ((await props.preventSubmit?.(values.value)) ?? false) {
+      return;
+    }
+    // 提交的是副本：before-submit 对它的加工（只为请求服务）不落到打开着的表单上
+    const snapshot = cloneDeep(values.value);
+    const payload = cloneDeep(snapshot);
+    emit('beforeSubmit', payload);
+    if (isEdit.value) {
+      await props.updateBean(payload);
+      markSaved(snapshot);
+    } else {
+      const created = await (options.create ?? props.createBean)(payload);
+      const newId = stay ? created?.result?.id : undefined;
+      if (newId != null) {
+        await adopt(newId, snapshot);
+      } else {
+        resetForm();
+      }
+    }
+    ElMessage.success(options.message ?? t('success'));
+    if (!continuous.value && !stay) emit('update:modelValue', false);
+    emit('finished', bean.value);
+  } finally {
+    buttonLoading.value = false;
+    saving = false;
+  }
 };
-const submit = (
+const submit = async (
+  // 执行器收到的是表单的副本（已经过 before-submit）。保存了表单内容的执行器成功后调用 markSaved()（编辑）、
+  // resetForm()（新增后换空白表单）或 adopt(id)（新增后留下接着编辑）；返回 true 表示留在对话框里
   executor: (
     values: any,
-    payload: { isEdit: boolean; continuous: boolean; form: any; props: any; focus: any; loadBean: () => Promise<any>; resetOrigValues: () => void; emit: any },
-  ) => Promise<boolean | undefined>,
+    payload: {
+      isEdit: boolean;
+      continuous: boolean;
+      form: any;
+      props: any;
+      focus: any;
+      loadBean: () => Promise<any>;
+      markSaved: () => void;
+      resetOrigValues: () => void;
+      resetForm: () => void;
+      adopt: (newId: any) => Promise<void>;
+      emit: any;
+    },
+  ) => Promise<boolean | undefined | void>,
+  // skipPreventSubmit、skipValidate：执行器不保存表单内容时（删除、归档等状态操作）跳过保存前检查与表单校验——
+  // 表单里填了一半、校验不过，不该连删除都点不了
+  options: { skipPreventSubmit?: boolean; skipValidate?: boolean } = {},
 ) => {
-  form.value.validate(async (valid: boolean) => {
-    if (!valid) return;
-    buttonLoading.value = true;
-    try {
-      if ((await props.preventSubmit?.(values.value)) ?? false) {
-        return;
-      }
-      emit('beforeSubmit', values.value);
-
-      const stay = await executor(values.value, {
-        isEdit: isEdit.value,
-        continuous: continuous.value,
-        form: form.value,
-        props,
-        focus: focus.value,
-        loadBean,
-        resetOrigValues,
-        emit,
-      });
-
-      if (!continuous.value && !stay) emit('update:modelValue', false);
-      emit('finished', bean.value);
-    } finally {
-      buttonLoading.value = false;
+  if (saving) {
+    return;
+  }
+  saving = true;
+  try {
+    if (!options.skipValidate && !(await validateForm())) {
+      return;
     }
-  });
+    buttonLoading.value = true;
+    if (!options.skipPreventSubmit && ((await props.preventSubmit?.(values.value)) ?? false)) {
+      return;
+    }
+    const snapshot = cloneDeep(values.value);
+    const payload = cloneDeep(snapshot);
+    emit('beforeSubmit', payload);
+
+    const stay = await executor(payload, {
+      isEdit: isEdit.value,
+      continuous: continuous.value,
+      form: form.value,
+      props,
+      focus: focus.value,
+      loadBean,
+      markSaved: () => markSaved(snapshot),
+      resetOrigValues: () => markSaved(snapshot),
+      resetForm,
+      adopt: (newId: any) => adopt(newId, snapshot),
+      emit,
+    });
+
+    if (!continuous.value && !stay) emit('update:modelValue', false);
+    emit('finished', bean.value);
+  } finally {
+    buttonLoading.value = false;
+    saving = false;
+  }
 };
 const remove = async (
   executor: (values: any, payload: { isEdit: boolean; continuous: boolean; form: any; props: any; focus: any; loadBean: () => Promise<any>; emit: any }) => Promise<any>,
@@ -213,25 +376,14 @@ const remove = async (
   buttonLoading.value = true;
   try {
     await executor(values.value, { isEdit: isEdit.value, continuous: continuous.value, form: form.value, props, focus: focus.value, loadBean, emit });
-    if (!continuous.value) {
-      emit('update:modelValue', false);
-    }
-    if (hasNext.value) {
-      handleNext();
-      ids.value.splice(index.value - 1, 1);
-    } else if (hasPrev.value) {
-      handlePrev();
-      ids.value.splice(index.value + 1, 1);
-    } else {
-      emit('update:modelValue', false);
-    }
+    afterRemoved();
     ElMessage.success(t('success'));
     emit('finished');
   } finally {
     buttonLoading.value = false;
   }
 };
-defineExpose({ form, submit, remove, defaultSubmit: handleSubmit });
+defineExpose({ form, submit, remove, defaultSubmit: handleSubmit, patch, isEdit, unsaved, disabled });
 </script>
 
 <template>
@@ -242,6 +394,8 @@ defineExpose({ form, submit, remove, defaultSubmit: handleSubmit });
     :close-on-press-escape="!unsaved"
     :width="large ? '98%' : '768px'"
     :top="large ? '16px' : '8vh'"
+    :append-to-body="appendToBody"
+    :before-close="beforeClose"
     @update:model-value="(event) => $emit('update:modelValue', event)"
     @opened="() => !isEdit && focus?.focus()"
   >
@@ -254,7 +408,7 @@ defineExpose({ form, submit, remove, defaultSubmit: handleSubmit });
       <span v-else>{{ $t('add') }}</span>
     </template>
     <div v-loading="loading || buttonLoading" class="space-x-2">
-      <el-button v-if="isEdit && addable" :disabled="perm(`${perms}:create`)" type="primary" :icon="Plus" @click="handleAdd">{{ $t('add') }}</el-button>
+      <el-button v-if="isEdit && addable" :disabled="perm(`${perms}:create`)" type="primary" :icon="Plus" @click="() => leave(handleAdd)">{{ $t('add') }}</el-button>
       <slot name="header-action" :bean="bean" :is-edit="isEdit" :disabled="disabled" :unsaved="unsaved" :disable-delete="disableDelete" :handle-delete="handleDelete">
         <el-popconfirm v-if="isEdit" :title="$t('confirmDelete')" @confirm="() => handleDelete()">
           <template #reference>
@@ -263,10 +417,10 @@ defineExpose({ form, submit, remove, defaultSubmit: handleSubmit });
         </el-popconfirm>
       </slot>
       <el-button-group v-if="isEdit">
-        <el-button :disabled="!hasPrev" @click="handlePrev">{{ $t('form.prev') }}</el-button>
-        <el-button :disabled="!hasNext" @click="handleNext">{{ $t('form.next') }}</el-button>
+        <el-button :disabled="!hasPrev" @click="() => leave(handlePrev)">{{ $t('form.prev') }}</el-button>
+        <el-button :disabled="!hasNext" @click="() => leave(handleNext)">{{ $t('form.next') }}</el-button>
       </el-button-group>
-      <el-button type="primary" @click="handleCancel">{{ $t('back') }}</el-button>
+      <el-button type="primary" @click="() => leave(handleCancel)">{{ $t('back') }}</el-button>
       <el-tooltip :content="$t('form.continuous')" placement="top">
         <el-switch v-model="continuous" size="small"></el-switch>
       </el-tooltip>
@@ -276,7 +430,7 @@ defineExpose({ form, submit, remove, defaultSubmit: handleSubmit });
     <el-form ref="form" :class="['mt-5', 'pr-5']" :model="values" :disabled="disabled" :label-width="labelWidth" :label-position="labelPosition" scroll-to-error>
       <slot :bean="bean" :is-edit="isEdit" :disabled="disabled"></slot>
       <div v-if="!disabled" v-loading="buttonLoading">
-        <slot name="footer-action" :bean="bean" :is-edit="isEdit" :disabled="disabled" :handle-submit="handleSubmit">
+        <slot name="footer-action" :bean="bean" :is-edit="isEdit" :disabled="disabled" :unsaved="unsaved" :handle-submit="handleSubmit">
           <el-button :disabled="perm(isEdit ? `${perms}:update` : `${perms}:create`)" type="primary" native-type="submit" @click.prevent="() => handleSubmit()">
             {{ $t('save') }}
           </el-button>

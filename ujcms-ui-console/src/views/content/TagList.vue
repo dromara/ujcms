@@ -41,7 +41,7 @@ const fetchData = async () => {
 };
 onMounted(fetchData);
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -77,6 +77,7 @@ const handleDelete = async (ids: string[]) => {
     <div class="mb-3">
       <query-form :params="params" @search="handleSearch" @reset="handleReset">
         <query-item :label="$t('tag.name')" name="Q_Contains_name"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div>
@@ -92,7 +93,7 @@ const handleDelete = async (ids: string[]) => {
       <el-table ref="table" v-loading="loading" :data="data" @selection-change="(rows) => (selection = rows)" @row-dblclick="(row) => handleEdit(row.id)" @sort-change="handleSort">
         <column-list name="tag">
           <el-table-column type="selection" width="38"></el-table-column>
-          <el-table-column property="id" label="ID" width="170" sortable="custom" show-overflow-tooltip></el-table-column>
+          <el-table-column property="id" label="ID" width="200" sortable="custom" show-overflow-tooltip display="none"></el-table-column>
           <el-table-column property="name" :label="$t('tag.name')" sortable="custom" show-overflow-tooltip></el-table-column>
           <el-table-column property="description" :label="$t('tag.description')" sortable="custom" show-overflow-tooltip></el-table-column>
           <el-table-column property="created" :label="$t('tag.created')" sortable="custom" show-overflow-tooltip>

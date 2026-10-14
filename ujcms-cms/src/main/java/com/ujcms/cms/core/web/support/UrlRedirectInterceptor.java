@@ -4,7 +4,7 @@ import com.ujcms.cms.core.support.UrlConstants;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.service.ConfigService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.ServletException;
@@ -19,6 +19,11 @@ import java.util.regex.Pattern;
  * @author PONY
  */
 public class UrlRedirectInterceptor implements HandlerInterceptor {
+    /**
+     * 站点子目录前缀的正则
+     */
+    private static final String SUB_DIR_URI = "/" + UrlConstants.SUB_DIR_SEGMENT_REGEX;
+
     private final ConfigService configService;
 
     public UrlRedirectInterceptor(ConfigService configService) {
@@ -34,13 +39,14 @@ public class UrlRedirectInterceptor implements HandlerInterceptor {
         String servletPath = request.getServletPath();
 
         String channelUri = channel + "/[\\w-]+";
-        String channelSubUri = "/[\\w-]+" + channel + "/[\\w-]+";
+        String channelSubUri = SUB_DIR_URI + channel + "/[\\w-]+";
         if (rewrite(request, response, servletPath, channelUri, channelSubUri, UrlConstants.CHANNEL, channel)) {
             return false;
         }
 
-        String articleUri = article + "/[\\d]+(/[\\w-]+)?";
-        String articleSubUri = "/[\\w-]+" + article + "/[\\d]+(/[\\w-]+)?";
+        // 文章路径段：{id} | {id}-{slug} | {slug}（固定链接三形态，docs/spec/permalinks/plan.md D7），可带 /{page}
+        String articleUri = article + "/[\\w-]+(/[\\d]+)?";
+        String articleSubUri = SUB_DIR_URI + article + "/[\\w-]+(/[\\d]+)?";
         return !rewrite(request, response, servletPath, articleUri, articleSubUri, UrlConstants.ARTICLE, article);
     }
 

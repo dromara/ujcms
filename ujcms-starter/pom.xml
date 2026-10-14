@@ -6,13 +6,19 @@
 	<parent>
 		<groupId>com.ujcms</groupId>
 		<artifactId>ujcms</artifactId>
-		<version>12.3.3</version>
+		<version>13.1.4</version>
 	</parent>
 
 	<artifactId>ujcms-starter</artifactId>
 	<packaging>${project.packaging}</packaging>
 	<name>UJCMS Starter</name>
 	<description>UJCMS 启动模块</description>
+
+	<properties>
+		<!-- 默认打包方式。不能用 activeByDefault 的 profile 提供默认值：同一 POM 中任一 profile
+		     被激活（如 commercial 的 !community 属性激活）都会使 activeByDefault 失效，导致 packaging 为空 -->
+		<project.packaging>jar</project.packaging>
+	</properties>
 
 	<dependencies>
 		<!-- UJCMS CMS -->
@@ -21,13 +27,9 @@
 			<artifactId>ujcms-cms</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<!-- JDBC 驱动 -->
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+		<!-- JDBC 驱动。MySQL 与 MariaDB 都用 MariaDB Connector/J（LGPL-2.1，URL 写 jdbc:mariadb://），不再带 MySQL Connector/J
+		     （GPL-2.0 + Universal FOSS Exception，不能随专有的商业版二进制分发）。决策记录：
+		     docs/decisions/open-source-compliance/02-mariadb-connector-j-default.md -->
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
@@ -74,11 +76,9 @@
 	</dependencies>
 
 	<profiles>
+		<!-- jar 为默认打包方式（见 properties）；保留空 profile 以兼容 `-P jar` 的既有命令行用法 -->
 		<profile>
 			<id>jar</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
 			<properties>
 				<project.packaging>jar</project.packaging>
 			</properties>
@@ -108,6 +108,111 @@
 				<configuration>
 					<skip>false</skip>
 				</configuration>
+			</plugin>
+			<!-- 主题的 npm 依赖装在 webapp/ 下（themes/1/default/node_modules，约 500 MB），只用于生成 assets/vendor。
+			     war 插件默认把 webapp/ 整个目录复制进 target/ujcms-*/ 和 war 包，在此排除；镜像构建由 .dockerignore 排除，
+			     jar 部署手工复制 webapp/ 时同样不要带上（见 README「jar 部署」）。 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<warSourceExcludes>**/node_modules/**</warSourceExcludes>
+				</configuration>
+			</plugin>
+			<!-- 第三方 Java 依赖清单：把全部传递依赖的名称、版本、许可证写入 META-INF/THIRD-PARTY.txt 随 jar / war 分发（Apache / MIT / BSD
+			     等许可证要求随二进制保留声明），并在出现 includedLicenses 之外的许可证（GPL、AGPL、SSPL 及任何未归并的新写法）时使构建失败。
+			     新依赖带来新写法时，先确认它可随商业版分发（licenses/ 下须有其文本），再加入 licenseMerges 或 includedLicenses；pom 未声明许可证的
+			     依赖记在 src/license/THIRD-PARTY.properties，声明有误的记在 src/license/override-THIRD-PARTY.properties。取舍见 docs/spec/open-source-compliance/plan.md -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.7.1</version>
+				<executions>
+					<execution>
+						<id>third-party-notices</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>add-third-party</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+							<thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
+							<!-- 文件已直接写在 classes/META-INF 下，不再把输出目录追加为资源目录（否则 jar 里多一份 BOOT-INF/classes/THIRD-PARTY.txt） -->
+							<addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
+							<excludedScopes>test,provided,system</excludedScopes>
+							<sortArtifactByName>true</sortArtifactByName>
+							<useMissingFile>true</useMissingFile>
+							<missingFile>${project.basedir}/src/license/THIRD-PARTY.properties</missingFile>
+							<failOnMissing>true</failOnMissing>
+							<failOnBlacklist>true</failOnBlacklist>
+							<!-- 许可证名称归并：每条第一个是归并后的 SPDX 名称，其余是依赖 pom 里出现过的写法 -->
+							<licenseMerges>
+								<licenseMerge>Apache-2.0|Apache License, Version 2.0|Apache License, version 2.0|Apache License Version 2.0|Apache License 2.0|Apache License v2.0|Apache 2.0|Apache 2|Apache v2|The Apache Software License, Version 2.0|The Apache License, Version 2.0|The Apache Software License, version 2.0|Apache Software License - Version 2.0|Apache Software License, Version 2.0|ASL 2.0|Apache-2.0 License|The Apache License, Version 2.0 (ASL 2.0)</licenseMerge>
+								<licenseMerge>MIT|MIT License|The MIT License|The MIT License (MIT)|MIT license|MIT Licence</licenseMerge>
+								<licenseMerge>BSD-2-Clause|The BSD 2-Clause License|BSD 2-Clause License|BSD 2-Clause "Simplified" License</licenseMerge>
+								<licenseMerge>BSD-3-Clause|BSD License|BSD 3-clause New License|The BSD 3-Clause License|BSD 3-Clause License|New BSD License|BSD-3-Clause License</licenseMerge>
+								<licenseMerge>EPL-2.0|EPL 2.0|Eclipse Public License 2.0|Eclipse Public License - v 2.0|Eclipse Public License v2.0|Eclipse Public License v. 2.0</licenseMerge>
+								<licenseMerge>EDL-1.0|EDL 1.0|Eclipse Distribution License - v 1.0|Eclipse Distribution License v. 1.0</licenseMerge>
+								<licenseMerge>GPL-2.0 WITH Classpath-exception-2.0|GPL2 w/ CPE|GNU General Public License, version 2 with the GNU Classpath Exception</licenseMerge>
+								<licenseMerge>LGPL-2.1|LGPL-2.1-only|LGPL-2.1-or-later|GNU Library or Lesser General Public License (LGPL) V2.1|GNU Lesser General Public License, version 2.1|GNU Lesser General Public License</licenseMerge>
+								<licenseMerge>MPL-2.0|Mozilla Public License, Version 2.0|Mozilla Public License Version 2.0|MPL 2.0</licenseMerge>
+								<licenseMerge>CC0-1.0|Public Domain, per Creative Commons CC0|CC0</licenseMerge>
+							</licenseMerges>
+							<!-- 允许随商业版分发的许可证（归并后的名称）。LGPL 只对 override-THIRD-PARTY.properties 里逐个认可的构件放行；
+							     GPL-2.0 + Classpath Exception 只因 jakarta.* 等双许可构件的 pom 这样声明（实际按 EPL / EDL 分发，见 NOTICE）；其余 GPL 变体一律不放行 -->
+							<includedLicenses>
+								<includedLicense>Apache-2.0</includedLicense>
+								<includedLicense>MIT</includedLicense>
+								<includedLicense>MIT-0</includedLicense>
+								<includedLicense>BSD-2-Clause</includedLicense>
+								<includedLicense>BSD-3-Clause</includedLicense>
+								<includedLicense>EPL-2.0</includedLicense>
+								<includedLicense>EDL-1.0</includedLicense>
+								<includedLicense>MPL-2.0</includedLicense>
+								<includedLicense>CC0-1.0</includedLicense>
+								<includedLicense>Public Domain</includedLicense>
+								<includedLicense>GPL-2.0 WITH Classpath-exception-2.0</includedLicense>
+								<includedLicense>LGPL-2.1 (accepted: unmodified, separately replaceable jar)</includedLicense>
+								<includedLicense>Bouncy Castle Licence</includedLicense>
+								<includedLicense>Indiana University Extreme! Lab Software License</includedLicense>
+								<includedLicense>Dameng JDBC Using License</includedLicense>
+							</includedLicenses>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- CycloneDX 软件物料清单（SBOM）：声明即启用 spring-boot-starter-parent 的配置，generate-resources 阶段生成
+			     META-INF/sbom/application.cdx.json 打进 jar / war（actuator 的 /actuator/sbom 读它）。发行包与镜像随附的 bom.json 就是这份文件，
+			     由 .cnb/ent/.cnb.yml 与 Dockerfile 从 target/classes/META-INF/sbom/ 复制，不再单独生成 -->
+			<plugin>
+				<groupId>org.cyclonedx</groupId>
+				<artifactId>cyclonedx-maven-plugin</artifactId>
+			</plugin>
+			<!-- 内置默认主题包：构建期由 BundledThemePackager（纯 Java，无 Node 依赖）把 themes/1/default 按 SeedPackageWriter 的确定性规则
+			     打成类路径资源 bundled-themes/default.zip，首装时 SystemCoreBootstrap 据此注册主题包库（裸 jar 部署没有 webapp 目录可用）。
+			     设计：docs/spec/install-flow/plan.md D25 -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<!-- m2e（VS Code / Eclipse）：导入与 Update Project 时也在 IDE 内执行，使 IDE 输出目录同样含该 zip -->
+						<?m2e execute onConfiguration?>
+						<id>pack-bundled-theme</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>com.ujcms.cms.core.composition.BundledThemePackager</mainClass>
+							<arguments>
+								<argument>${project.basedir}/src/main/webapp/themes/1/default</argument>
+								<argument>${project.build.outputDirectory}/bundled-themes/default.zip</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

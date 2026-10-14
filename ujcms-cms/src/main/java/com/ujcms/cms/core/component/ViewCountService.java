@@ -8,19 +8,21 @@ import com.ujcms.cms.core.listener.ArticleViewListener;
 import com.ujcms.cms.core.mapper.ArticleBufferMapper;
 import com.ujcms.cms.core.mapper.ChannelBufferMapper;
 import com.ujcms.cms.core.mapper.SiteBufferMapper;
+import com.ujcms.cms.core.mapper.TopicMapper;
 import com.ujcms.cms.core.service.*;
 import com.ujcms.common.web.Dates;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
+import java.util.function.Predicate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -37,16 +39,18 @@ import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
 public class ViewCountService {
     private final ArticleService articleService;
     private final ChannelService channelService;
+    private final TopicService topicService;
     private final GlobalService globalService;
     private final ArticleBufferService articleBufferService;
     private final SiteBufferService siteBufferService;
     private final SqlSessionTemplate sqlSessionTemplate;
 
-    public ViewCountService(ArticleService articleService, ChannelService channelService, GlobalService globalService,
-                            ArticleBufferService articleBufferService, SiteBufferService siteBufferService,
-                            SqlSessionTemplate sqlSessionTemplate) {
+    public ViewCountService(ArticleService articleService, ChannelService channelService, TopicService topicService,
+                            GlobalService globalService, ArticleBufferService articleBufferService,
+                            SiteBufferService siteBufferService, SqlSessionTemplate sqlSessionTemplate) {
         this.articleService = articleService;
         this.channelService = channelService;
+        this.topicService = topicService;
         this.globalService = globalService;
         this.articleBufferService = articleBufferService;
         this.siteBufferService = siteBufferService;
@@ -54,8 +58,19 @@ public class ViewCountService {
     }
 
     public long viewArticle(Long id, @Nullable Long userId) {
+        return viewArticle(id, userId, article -> true);
+    }
+
+    /**
+     * 记一次文章浏览。
+     *
+     * @param readable 访问者能否读到这篇文章。读不到的（未公开、没有浏览权限）不计数、不回调、不返回浏览次数：
+     *                 否则拿任意ID调用，草稿、已删除、别的站点的文章都会记进调用者的浏览历史，标题随之可读
+     * @return 文章的浏览次数。文章不存在或读不到时为 0
+     */
+    public long viewArticle(Long id, @Nullable Long userId, Predicate<Article> readable) {
         Article article = articleService.select(id);
-        if (article == null) {
+        if (article == null || !readable.test(article)) {
             return 0;
         }
         incrementChannelViews(article.getChannel());
@@ -78,6 +93,30 @@ public class ViewCountService {
         // 增加栏目自身浏览次数
         getCurrentChannelSelfViewsMap().computeIfAbsent(id, key -> new AtomicInteger()).incrementAndGet();
         return channel.getSelfViews();
+    }
+
+    /**
+     * 专题浏览计数。语义与 {@link #viewChannel} 对齐：{@code views_} 沿父链向上聚合
+     * （"本分支内的总访问"），{@code self_views_} 仅记录直接访问该专题页面的次数。
+     */
+    public long viewTopic(Long id) {
+        Topic topic = topicService.select(id);
+        if (topic == null) {
+            return 0;
+        }
+        incrementTopicViews(topic);
+        // 增加专题自身浏览次数
+        getCurrentTopicSelfViewsMap().computeIfAbsent(id, key -> new AtomicInteger()).incrementAndGet();
+        return topic.getSelfViews();
+    }
+
+    private static void incrementTopicViews(Topic topic) {
+        // 增加所属站点浏览次数
+        getCurrentSiteViewsMap().computeIfAbsent(topic.getSiteId(), key -> new AtomicInteger()).incrementAndGet();
+        // 增加专题及上级专题浏览次数
+        for (Topic bean : topic.getPaths()) {
+            getCurrentTopicViewsMap().computeIfAbsent(bean.getId(), key -> new AtomicInteger()).incrementAndGet();
+        }
     }
 
     private static void incrementChannelViews(Channel channel) {
@@ -125,6 +164,28 @@ public class ViewCountService {
             ChannelBufferMapper mapper = session.getMapper(ChannelBufferMapper.class);
             batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateBatch, key -> {
                 ChannelBuffer bean = new ChannelBuffer();
+                bean.setId(key);
+                bean.setViews((long) map.get(key).get());
+                bean.setSelfViews((long) selfMap.computeIfAbsent(key, it -> new AtomicInteger()).get());
+                return bean;
+            });
+        } finally {
+            map.clear();
+            selfMap.clear();
+        }
+    }
+
+    /**
+     * 写回专题浏览次数。专题无独立 Buffer 表，直接 UPDATE {@code ujcms_topic}
+     * 的 {@code views_} / {@code self_views_}（量级远低于栏目，无需缓冲层）。
+     */
+    public void flushTopicViews() {
+        Map<Long, AtomicInteger> map = getPreviousTopicViewsMap();
+        Map<Long, AtomicInteger> selfMap = getPreviousTopicSelfViewsMap();
+        try (SqlSession session = sqlSessionTemplate.getSqlSessionFactory().openSession(ExecutorType.BATCH, false)) {
+            TopicMapper mapper = session.getMapper(TopicMapper.class);
+            batchOperator(session, map.keySet(), FOREACH_SIZE, mapper::updateViewsBatch, key -> {
+                Topic bean = new Topic();
                 bean.setId(key);
                 bean.setViews((long) map.get(key).get());
                 bean.setSelfViews((long) selfMap.computeIfAbsent(key, it -> new AtomicInteger()).get());
@@ -235,6 +296,22 @@ public class ViewCountService {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? CHANNEL_SELF_ODD_VIEWS_MAP : CHANNEL_SELF_EVEN_VIEWS_MAP;
     }
 
+    private static Map<Long, AtomicInteger> getCurrentTopicViewsMap() {
+        return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? TOPIC_ODD_VIEWS_MAP : TOPIC_EVEN_VIEWS_MAP;
+    }
+
+    private static Map<Long, AtomicInteger> getPreviousTopicViewsMap() {
+        return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? TOPIC_ODD_VIEWS_MAP : TOPIC_EVEN_VIEWS_MAP;
+    }
+
+    private static Map<Long, AtomicInteger> getCurrentTopicSelfViewsMap() {
+        return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? TOPIC_SELF_ODD_VIEWS_MAP : TOPIC_SELF_EVEN_VIEWS_MAP;
+    }
+
+    private static Map<Long, AtomicInteger> getPreviousTopicSelfViewsMap() {
+        return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 == 0 ? TOPIC_SELF_ODD_VIEWS_MAP : TOPIC_SELF_EVEN_VIEWS_MAP;
+    }
+
     private static Cache<Long, AtomicInteger> getCurrentArticleViewsCache() {
         return LocalDateTime.now().get(MINUTE_OF_HOUR) % 2 != 0 ? ARTICLE_ODD_VIEWS_CACHE : ARTICLE_EVEN_VIEWS_CACHE;
     }
@@ -275,6 +352,22 @@ public class ViewCountService {
      * 栏目自身浏览次数（分钟数为偶数时）
      */
     private static final Map<Long, AtomicInteger> CHANNEL_SELF_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    /**
+     * 专题浏览次数（分钟数为奇数时）
+     */
+    private static final Map<Long, AtomicInteger> TOPIC_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    /**
+     * 专题浏览次数（分钟数为偶数时）
+     */
+    private static final Map<Long, AtomicInteger> TOPIC_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    /**
+     * 专题自身浏览次数（分钟数为奇数时）
+     */
+    private static final Map<Long, AtomicInteger> TOPIC_SELF_ODD_VIEWS_MAP = new ConcurrentHashMap<>(16);
+    /**
+     * 专题自身浏览次数（分钟数为偶数时）
+     */
+    private static final Map<Long, AtomicInteger> TOPIC_SELF_EVEN_VIEWS_MAP = new ConcurrentHashMap<>(16);
     /**
      * 文章浏览次数（分钟数为奇数时）。缓存2分钟（2分钟内一定会被使用），缓存条数2000万，更多的就丢弃。
      */

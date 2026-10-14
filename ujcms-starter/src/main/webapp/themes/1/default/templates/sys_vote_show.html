@@ -1,0 +1,111 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title=vote.title + ' - ' + site.title keywords=vote.title + ',投票,' + (site.seoKeywords!'') description=vote.description?has_content?then(vote.description, vote.title)]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/vote" class="cm-link">投票</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700 truncate max-w-[16rem]">${vote.title}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <div class="border-b border-slate-200 pb-3">
+    <h1 class="text-2xl font-bold font-display mb-2">${vote.title}</h1>
+    <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+      <span>${format(vote.created, 'yyyy-MM-dd HH:mm')}</span>
+      [#if vote.status == 0]
+        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs">进行中</span>
+      [#elseif vote.status == 1]
+        <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-xs">未启用</span>
+      [#elseif vote.status == 2]
+        <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs">未开始</span>
+      [#elseif vote.status == 3]
+        <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs">已结束</span>
+      [#else]
+        <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-xs">未知状态</span>
+      [/#if]
+      <span class="inline-flex items-center gap-1">
+        <span class="size-4 inline-block">[@icon 'bar-chart'/]</span>
+        ${vote.times} 票
+      </span>
+    </div>
+    [#if vote.description?has_content]
+      <p class="mt-3 text-sm text-slate-600">${vote.description}</p>
+    [/#if]
+  </div>
+
+  <form
+    x-data="{
+      submitting: false,
+      async submit(ev) {
+        if (this.submitting) return;
+        this.submitting = true;
+        try {
+          const fd = new FormData(ev.target);
+          const opts = fd.getAll('options');
+          if (opts.length === 0) {
+            window.displayAlert('请选择至少一项');
+            return;
+          }
+          await window.fetchCsrf();
+          [#--
+            VoteController.VoteParams.getOptionIds 期望 `options` 是单个 String
+            （Jackson 将 JSON 数组反序列化为 ArrayList，控制器会拒绝）。这与
+            FreeMarker 旧版 jquery.serializeJSON 的行为一致：多个同名 checkbox
+            经 deepSet 后仅保留最后一个，服务端每次只收到一个字符串。此处完全
+            照搬——取 DOM 顺序中最后一个被选中的选项。
+          --]
+          const lastOption = opts[opts.length - 1];
+          const res = await window.request('POST', '${api}/vote/cast', { id: '${vote.id?c}', options: lastOption });
+          if (res && res.status === 0) {
+            window.displaySuccess('投票成功');
+            ev.target.reset();
+            window.location.href = '${dy}/vote/${vote.id?c}/result';
+          } else if (res && res.message) {
+            window.displayAlert(res.message);
+          }
+        } catch (e) {
+          window.displayAlert(e.message || '投票失败');
+        } finally {
+          this.submitting = false;
+        }
+      }
+    }"
+    @submit.prevent="submit($event)"
+    class="rounded-lg border border-slate-200 bg-white p-5 space-y-4"
+  >
+    <div class="space-y-3">
+      [#list vote.options as option]
+        <label class="flex items-start gap-3 p-3 rounded border border-slate-200 hover:border-primary transition-colors cursor-pointer">
+          <input
+            class="mt-0.5 shrink-0"
+            type="[#if vote.multiple]checkbox[#else]radio[/#if]"
+            name="options"
+            id="vote-${vote.id?c}-${option_index?c}"
+            value="${option.id?c}"
+            [#if !vote.multiple]required[/#if]
+          >
+          <span class="text-sm text-slate-700">${option.title}</span>
+        </label>
+      [/#list]
+    </div>
+
+    <div class="flex justify-center gap-3 pt-2">
+      <button type="submit" :disabled="submitting"
+              class="px-5 py-2 rounded bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+        <span x-show="!submitting">提交</span>
+        <span x-show="submitting" x-cloak>提交中…</span>
+      </button>
+      <a href="${dy}/vote/${vote.id?c}/result"
+         class="px-5 py-2 rounded border border-rose-500 text-rose-500 text-sm hover:bg-rose-50">查看结果</a>
+    </div>
+  </form>
+</div>
+[/@layout]
+[/#escape]

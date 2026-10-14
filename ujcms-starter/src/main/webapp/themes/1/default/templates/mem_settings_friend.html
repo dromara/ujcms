@@ -1,0 +1,153 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'friend'/]
+[#escape x as (x)!?html]
+[@layout title='我的好友 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings" class="cm-link text-slate-700">个人中心</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">我的好友</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3"
+    x-data="{
+      items: [], page: 1, totalPages: 1, total: null, loading: false,
+      // friends：好友；pending：新的朋友；sent：我发出的
+      tab: 'friends',
+      pendingCount: 0,
+      tabDefs: {
+        friends: { name: '好友', url: '${api}/friend/page', empty: '暂无好友' },
+        pending: { name: '新的朋友', url: '${api}/friend/pending', empty: '暂无好友申请' },
+        sent: { name: '我发出的', url: '${api}/friend/sent', empty: '暂无发出的申请' },
+      },
+      peer(bean) { return (this.tab === 'pending' ? bean.user : bean.friend) || {}; },
+      userName(refer) { return (refer && (refer.nickname || refer.username)) || ''; },
+      async refreshPendingCount() {
+        try {
+          this.pendingCount = Number(await window.request('GET', '${api}/friend/pending-count')) || 0;
+        } catch (e) { /* 静默 */ }
+      },
+      async load(page) {
+        if (this.loading) return;
+        this.loading = true;
+        try {
+          const d = await window.request('GET', this.tabDefs[this.tab].url + '?page=' + page + '&pageSize=10');
+          if (page === 1) this.items = [];
+          this.items.push(...((d && d.content) || []));
+          this.total = d.page ? String(d.page.totalElements) : null;
+          this.page = page;
+          this.totalPages = Number((d.page || {}).totalPages || 1);
+        } catch (e) {
+          window.displayAlert(e.message || '加载失败');
+        } finally {
+          this.loading = false;
+        }
+      },
+      selectTab(t) { this.tab = t; this.load(1); },
+      async accept(userId) {
+        try {
+          await window.fetchCsrf();
+          await window.request('PUT', '${api}/friend/accept', { userId: userId });
+          window.displaySuccess('已通过好友申请！');
+          this.refreshPendingCount();
+          this.load(1);
+        } catch (e) { window.displayAlert(e.message || '操作失败'); }
+      },
+      async removeRelation(userId, message, confirmText) {
+        if (confirmText && !confirm(confirmText)) return;
+        try {
+          await window.fetchCsrf();
+          await window.request('DELETE', '${api}/friend?userId=' + encodeURIComponent(userId));
+          window.displaySuccess(message);
+          this.refreshPendingCount();
+          this.load(1);
+        } catch (e) { window.displayAlert(e.message || '操作失败'); }
+      }
+    }"
+    x-init="refreshPendingCount(); load(1)"
+  >
+    <div class="flex items-baseline gap-2 pb-2 border-b border-slate-200">
+      <h1 class="flex items-center gap-2 text-xl font-bold font-display">
+        <span class="size-5 text-primary inline-block">[@icon 'group-outline'/]</span>
+        <span>我的好友</span>
+      </h1>
+      <span class="text-sm text-slate-500" x-show="total !== null" x-text="'(' + total + ')'"></span>
+    </div>
+
+    <div class="mt-3 flex flex-wrap gap-1.5 text-sm" role="tablist" aria-label="好友分类">
+      <template x-for="key in ['friends','pending','sent']" :key="key">
+        <button type="button" @click="selectTab(key)"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded"
+                :class="tab === key ? 'bg-primary text-primary-foreground' : 'text-primary hover:bg-slate-100'">
+          <span x-text="tabDefs[key].name"></span>
+          <span x-show="key === 'pending' && pendingCount > 0" x-cloak
+                x-text="pendingCount > 99 ? '99+' : pendingCount"
+                class="px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs leading-none"></span>
+        </button>
+      </template>
+    </div>
+
+    <ul class="divide-y divide-slate-100">
+      <template x-for="bean in items" :key="bean.id">
+        <li class="py-3 flex items-center gap-3">
+          <img :src="peer(bean).avatar || '${config.register.avatar}'" alt=""
+               class="size-10 rounded-full object-cover shrink-0">
+          <div class="flex-1 min-w-0">
+            <p class="truncate">
+              <a class="cm-link" :href="'${def}/users/' + peer(bean).id" x-text="userName(peer(bean))"></a>
+            </p>
+            <p class="mt-1 text-xs text-slate-400"
+               x-text="(tab === 'friends' ? '好友于 ' : '申请于 ') + window.formatDateTime(bean.created)"></p>
+          </div>
+          <span class="flex gap-1.5 shrink-0 text-xs">
+            <template x-if="tab === 'friends'">
+              <span class="flex gap-1.5">
+                <a :href="'${def}/settings/message?peerId=' + peer(bean).id"
+                   class="px-2 py-1 rounded border border-primary text-primary hover:bg-primary/5">发私信</a>
+                <button type="button" @click="removeRelation(peer(bean).id, '已删除好友！', '确定删除该好友？')"
+                        class="px-2 py-1 rounded border border-rose-200 text-rose-600 hover:bg-rose-50">删除好友</button>
+              </span>
+            </template>
+            <template x-if="tab === 'pending'">
+              <span class="flex gap-1.5">
+                <button type="button" @click="accept(peer(bean).id)"
+                        class="px-2 py-1 rounded bg-primary text-primary-foreground hover:opacity-90">接受</button>
+                <button type="button" @click="removeRelation(peer(bean).id, '已拒绝申请！')"
+                        class="px-2 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-50">拒绝</button>
+              </span>
+            </template>
+            <template x-if="tab === 'sent'">
+              <button type="button" @click="removeRelation(peer(bean).id, '已取消申请！')"
+                      class="px-2 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-50">取消申请</button>
+            </template>
+          </span>
+        </li>
+      </template>
+    </ul>
+
+    <div x-show="total === '0'" x-cloak class="py-12 text-center">
+      <div class="size-12 mx-auto mb-3 inline-flex items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <span class="size-6 inline-block">[@icon 'group-outline'/]</span>
+      </div>
+      <p class="text-slate-500 text-sm" x-text="tabDefs[tab].empty"></p>
+    </div>
+
+    <div x-show="totalPages > page" x-cloak class="text-center my-4">
+      <button type="button" @click="load(page + 1)" :disabled="loading"
+              class="px-4 py-2 rounded border border-slate-300 text-sm hover:bg-slate-50 disabled:opacity-60">加载更多</button>
+    </div>
+  </section>
+</div>
+[/@layout]
+[/#escape]

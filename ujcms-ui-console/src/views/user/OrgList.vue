@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { computed, watch, onBeforeUnmount, onMounted, ref, nextTick } from 'vue';
-import { currentUser, perm, hasPermission } from '@/stores/useCurrentUser';
+import { currentUser, perm, hasPermission, isShowTier } from '@/stores/useCurrentUser';
 import type Node from 'element-plus/es/components/tree/src/model/node';
 import type { NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
-import { Plus, Delete, Search, Edit, Grid, FirstAidKit, QuestionFilled } from '@element-plus/icons-vue';
+import { Plus, Delete, Edit, Grid, FirstAidKit, QuestionFilled } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import Sortable from 'sortablejs';
 import { toParams, resetParams } from '@/utils/common';
-import { toTree, flatTree } from '@/utils/tree';
+import { lockedTip } from '@/utils/commercial';
+import { toTree, flatTree, findTreeItem, filterTreeNodeByName } from '@/utils/tree';
+import { useRouteState, stringParam, flagParam } from '@/composables/useRouteState';
 import { deleteOrg, queryOrgList, moveOrg, tidyTreeOrg } from '@/api/user';
 import { ColumnList, ColumnSetting } from '@/components/TableList';
 import { QueryForm, QueryItem } from '@/components/QueryForm';
+import CollapsibleAside from '@/components/CollapsibleAside.vue';
 import OrgForm from './OrgForm.vue';
 import OrgPermissionForm from './OrgPermissionForm.vue';
 
@@ -29,7 +32,11 @@ const permissionFormVisible = ref<boolean>(false);
 const beanId = ref<string>();
 const beanIds = computed(() => flatTree(data.value).map((row: any) => row.id));
 const parentId = ref<string>('1');
-const showGlobalData = ref<boolean>(false);
+// 导航上下文（列表所属的上级组织、全局数据）存于路由 query：刷新、页签往返后恢复
+const { orgId, global: showGlobalData } = useRouteState({
+  orgId: stringParam(),
+  global: flagParam(() => currentUser.globalPermission),
+});
 const defaultExpandedKeys = ref<string[]>();
 const isSorted = ref<boolean>(false);
 
@@ -38,7 +45,9 @@ const orgTree = ref<any>();
 const orgTreeData = ref<any[]>([]);
 const orgTreeLoading = ref<boolean>(false);
 const orgTreeFilter = ref<string>();
-const org = ref<any>();
+const asideCollapsed = ref<boolean>(false);
+// 以 ID 为准、节点由组织树派生；树加载前为 undefined
+const org = computed<any>(() => (orgId.value != null ? findTreeItem(orgTreeData.value, (item: any) => item.id === orgId.value) : undefined));
 
 watch(orgTreeFilter, (val) => {
   orgTree.value.filter(val);
@@ -47,11 +56,17 @@ const fetchOrgTreeData = async () => {
   orgTreeLoading.value = true;
   try {
     orgTreeData.value = toTree(await queryOrgList({ current: !showGlobalData.value }));
+    // 选中的组织可能已删除或不在当前范围（其它站点、已取消全局数据）：回落到根组织并重新加载列表
+    if (orgId.value != null && org.value == null) {
+      orgId.value = undefined;
+      fetchListData();
+    }
     nextTick(() => {
       if (orgTreeFilter.value != null) {
-        orgTree.value.filter(orgTreeFilter.value);
+        orgTree.value?.filter(orgTreeFilter.value);
       }
-      orgTree.value.setCurrentKey(org.value?.id);
+      // setCurrentKey 会展开选中节点的各级父节点
+      orgTree.value?.setCurrentKey(orgId.value ?? null);
     });
   } finally {
     orgTreeLoading.value = false;
@@ -64,7 +79,7 @@ const fetchListData = async () => {
     const isQueryed = Object.values(params.value).filter((v) => v !== undefined && v !== '').length > 0;
     data.value = await queryOrgList({
       ...toParams(params.value),
-      parentId: org.value?.id,
+      parentId: orgId.value,
       current: !showGlobalData.value,
       isIncludeSelf: true,
       isIncludeChildren: isQueryed,
@@ -115,9 +130,23 @@ const initDragTable = () => {
   });
 };
 
-onMounted(() => {
-  fetchData();
+onMounted(async () => {
+  // 拖拽初始化须在任何 await 之前：它查询本视图的 DOM
   initDragTable();
+  if (orgId.value == null) {
+    fetchData();
+    return;
+  }
+  // 有恢复出的上级组织：先加载组织树完成校验，再查列表，避免带着失效的组织 ID 发请求
+  try {
+    await fetchOrgTreeData();
+  } catch {
+    // 请求拦截器已提示错误；列表照常加载
+  }
+  // 校验不通过时 fetchOrgTreeData 已回落到根组织并加载了列表
+  if (orgId.value != null) {
+    fetchListData();
+  }
 });
 onBeforeUnmount(() => {
   if (sortable !== undefined) {
@@ -125,7 +154,7 @@ onBeforeUnmount(() => {
   }
 });
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -163,8 +192,8 @@ const handlePermissionEdit = (id: string) => {
 };
 const deletable = (bean: any) => bean.id > 1;
 
-const handleDragEnd = async (draggingNode: Node, dropNode: Node, dropType: NodeDropType) => {
-  if (dropType !== 'none') {
+const handleDragEnd = async (draggingNode: Node, dropNode: Node | null, dropType: NodeDropType) => {
+  if (dropType !== 'none' && dropNode) {
     await moveOrg(draggingNode.data.id, dropNode.data.id, dropType);
     fetchListData();
   }
@@ -176,26 +205,20 @@ const handleTidyTree = async () => {
 };
 const treeNodeClick = async (node: any) => {
   if (isEdit.value) {
-    if (org.value != node.parent) {
-      org.value = node.parent;
+    if (orgId.value !== node.parent?.id) {
+      orgId.value = node.parent?.id;
       // 必须先获取列表数据，再打开编辑页面，否则编辑页面的上一条、下一条数据不正确
       await fetchListData();
     }
     handleEdit(node.id);
   } else {
-    org.value = node;
+    orgId.value = node.id;
     handleSearch();
   }
 };
-const treeFilterNode = (value: string, data: any) => {
-  if (!value) {
-    return true;
-  }
-  return data.name.includes(value);
-};
 const treeRootClick = () => {
   orgTree.value.setCurrentKey(null);
-  org.value = undefined;
+  orgId.value = undefined;
   handleSearch();
 };
 const treeAllowDrag = (node: any) => {
@@ -208,33 +231,36 @@ const treeAllowDrop = (draggingNode: any, dropNode: any) => {
 
 <template>
   <el-container>
-    <el-aside width="220px" class="pr-3">
-      <el-scrollbar class="p-2 bg-white rounded-sm">
-        <el-input v-model="orgTreeFilter" :suffix-icon="Search" size="small" />
-        <div class="flex justify-between mx-2 mt-1">
-          <el-button :type="org == null ? 'primary' : undefined" link @click="treeRootClick">{{ $t('org.root') }}</el-button>
-          <el-tooltip :content="$t('editMode')" placement="top">
-            <el-switch v-model="isEdit" :active-action-icon="Edit" :inactive-action-icon="Edit" />
-          </el-tooltip>
-        </div>
-        <el-tree
-          ref="orgTree"
-          v-loading="orgTreeLoading"
-          :data="orgTreeData"
-          :props="{ label: 'name' }"
-          :default-expanded-keys="defaultExpandedKeys"
-          :expand-on-click-node="false"
-          node-key="id"
-          highlight-current
-          :draggable="hasPermission('org:update')"
-          :allow-drag="treeAllowDrag"
-          :allow-drop="treeAllowDrop"
-          :filter-node-method="treeFilterNode"
-          @node-click="treeNodeClick"
-          @node-drag-end="handleDragEnd"
-        ></el-tree>
-      </el-scrollbar>
-    </el-aside>
+    <collapsible-aside
+      v-model:collapsed="asideCollapsed"
+      v-model:keyword="orgTreeFilter"
+      :search-placeholder="$t('org.filter')"
+      :root-label="$t('org.root')"
+      :root-active="orgId == null"
+      @root="treeRootClick"
+    >
+      <template #root-extra>
+        <el-tooltip :content="$t('editMode')" placement="top">
+          <el-switch v-model="isEdit" :active-action-icon="Edit" :inactive-action-icon="Edit" />
+        </el-tooltip>
+      </template>
+      <el-tree
+        ref="orgTree"
+        v-loading="orgTreeLoading"
+        :data="orgTreeData"
+        :props="{ label: 'name' }"
+        :default-expanded-keys="defaultExpandedKeys"
+        :expand-on-click-node="false"
+        node-key="id"
+        highlight-current
+        :draggable="hasPermission('org:update')"
+        :allow-drag="treeAllowDrag"
+        :allow-drop="treeAllowDrop"
+        :filter-node-method="filterTreeNodeByName"
+        @node-click="treeNodeClick"
+        @node-drag-end="handleDragEnd"
+      ></el-tree>
+    </collapsible-aside>
     <el-main class="p-0">
       <div class="mb-3">
         <query-form :params="params" @search="handleSearch" @reset="handleReset">
@@ -242,6 +268,7 @@ const treeAllowDrop = (draggingNode: any, dropNode: any) => {
           <query-item :label="$t('org.address')" name="Q_Contains_address"></query-item>
           <query-item :label="$t('org.phone')" name="Q_Contains_phone"></query-item>
           <query-item :label="$t('org.contacts')" name="Q_Contains_contacts"></query-item>
+          <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
         </query-form>
       </div>
       <div>
@@ -266,7 +293,7 @@ const treeAllowDrop = (draggingNode: any, dropNode: any) => {
           row-key="id"
           default-expand-all
           :data="data"
-          :row-class-name="({ row }) => (row.children?.length > 0 || row.id === '0' || row.id === '1' ? undefined : 'drag-draggable')"
+          :row-class-name="({ row }) => (row.children?.length > 0 || row.id === '0' || row.id === '1' ? '' : 'drag-draggable')"
           @selection-change="(rows) => (selection = rows)"
           @row-dblclick="(row) => handleEdit(row.id)"
           @sort-change="handleSort"
@@ -277,7 +304,7 @@ const treeAllowDrop = (draggingNode: any, dropNode: any) => {
             <el-table-column property="address" :label="$t('org.address')" sortable="custom" display="none" min-width="100"></el-table-column>
             <el-table-column property="phone" :label="$t('org.phone')" sortable="custom" min-width="100"></el-table-column>
             <el-table-column property="contacts" :label="$t('org.contacts')" sortable="custom"></el-table-column>
-            <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
+            <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
             <el-table-column width="42">
               <template #default="{ row }">
                 <el-icon
@@ -294,12 +321,12 @@ const treeAllowDrop = (draggingNode: any, dropNode: any) => {
             </el-table-column>
             <el-table-column :label="$t('table.action')" width="240">
               <template #default="{ row }">
-                <el-button type="primary" :disabled="perm('org:create')" size="small" link @click="() => handleAdd(row.id)">{{ $t('addChild') }}</el-button>
+                <el-button type="primary" :disabled="perm('org:create')" size="small" link @click="() => handleAdd(row.id)">{{ $t('org.addChild') }}</el-button>
                 <el-button type="primary" :disabled="perm('org:update')" size="small" link @click="() => handleEdit(row.id)">{{ $t('edit') }}</el-button>
                 <el-button
-                  v-if="currentUser.epRank >= 3 || currentUser.epDisplay"
-                  :title="currentUser.epRank < 3 ? $t('error.enterprise.short') : undefined"
-                  :disabled="perm('org:updatePermission') || currentUser.epRank < 3"
+                  v-if="isShowTier(3)"
+                  :title="lockedTip(3)"
+                  :disabled="perm('org:updatePermission') || currentUser.commercialTier < 3"
                   type="primary"
                   size="small"
                   link

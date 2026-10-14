@@ -1,0 +1,1026 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1784246400000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 公众号ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: app_id_
+                  remarks: 开发者ID(AppID)
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: app_secret_
+                  remarks: 开发者密码(AppSecret)
+                  type: VARCHAR(128)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: type_
+                  remarks: 类型(0:订阅号,1:服务号)
+                  type: SMALLINT
+              - column:
+                  name: token_
+                  remarks: 服务器配置令牌(Token)
+                  type: VARCHAR(96)
+              - column:
+                  name: aes_key_
+                  remarks: 服务器配置消息加解密密钥(EncodingAESKey)
+                  type: VARCHAR(150)
+              - column:
+                  name: remark_
+                  remarks: 备注
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 微信公众号表
+            tableName: ujcms_wechat_account
+  - changeSet:
+      id: 1784246400000-2
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 推送记录ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: account_id_
+                  remarks: 公众号ID
+                  type: BIGINT
+              - column:
+                  name: article_id_
+                  remarks: 文章ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 推送用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(450)
+              - column:
+                  name: media_id_
+                  remarks: 草稿MediaID
+                  type: VARCHAR(192)
+              - column:
+                  name: publish_id_
+                  remarks: 发布任务ID
+                  type: VARCHAR(128)
+              - column:
+                  name: article_url_
+                  remarks: 发布后文章URL
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:草稿,1:发布中,2:已发布,3:失败)
+                  type: SMALLINT
+              - column:
+                  name: error_
+                  remarks: 错误信息
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 微信公众号推送记录表
+            tableName: ujcms_wechat_article
+  - changeSet:
+      id: 1784246400000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_wechataccount_site
+            tableName: ujcms_wechat_account
+  - changeSet:
+      id: 1784246400000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_wechatarticle_site
+            tableName: ujcms_wechat_article
+  - changeSet:
+      id: 1784246400000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: account_id_
+            indexName: idx_wechatarticle_account
+            tableName: ujcms_wechat_article
+  - changeSet:
+      id: 1784246400000-6
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: article_id_
+            indexName: idx_wechatarticle_article
+            tableName: ujcms_wechat_article
+  - changeSet:
+      id: 1784246400000-7
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_wechatarticle_user
+            tableName: ujcms_wechat_article
+  - changeSet:
+      id: 1784246400000-8
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_wechat_account
+            constraintName: fk_wechataccount_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1784246400000-9
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_wechat_article
+            constraintName: fk_wechatarticle_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1784246400000-10
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: account_id_
+            baseTableName: ujcms_wechat_article
+            constraintName: fk_wechatarticle_account
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_wechat_account
+            validate: true
+  - changeSet:
+      id: 1784246400000-11
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_wechat_article
+            constraintName: fk_wechatarticle_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1784332800000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 自动回复ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: account_id_
+                  remarks: 公众号ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: type_
+                  remarks: 类型(0:关注回复,1:关键词回复,2:默认回复)
+                  type: SMALLINT
+              - column:
+                  name: keyword_
+                  remarks: 关键词
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: match_type_
+                  remarks: 匹配方式(0:全匹配,1:半匹配)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: reply_type_
+                  remarks: 回复类型(0:文本,1:图片,2:图文)
+                  type: SMALLINT
+              - column:
+                  name: content_
+                  remarks: 回复内容
+                  type: MEDIUMTEXT
+              - column:
+                  name: media_id_
+                  remarks: 素材MediaID
+                  type: VARCHAR(128)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '1'
+                  name: enabled_
+                  remarks: 是否启用
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: order_
+                  remarks: 排列顺序
+                  type: BIGINT
+            remarks: 微信公众号自动回复表
+            tableName: ujcms_wechat_reply
+  - changeSet:
+      id: 1784332800000-2
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 消息ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: account_id_
+                  remarks: 公众号ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: openid_
+                  remarks: 粉丝OpenID
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: direction_
+                  remarks: 方向(0:接收,1:发送)
+                  type: SMALLINT
+              - column:
+                  name: msg_type_
+                  remarks: 消息类型
+                  type: VARCHAR(20)
+              - column:
+                  name: content_
+                  remarks: 消息内容
+                  type: MEDIUMTEXT
+              - column:
+                  name: reply_id_
+                  remarks: 自动回复规则ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 微信公众号消息记录表
+            tableName: ujcms_wechat_message
+  - changeSet:
+      id: 1784332800000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_wechatreply_site
+            tableName: ujcms_wechat_reply
+  - changeSet:
+      id: 1784332800000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: account_id_
+            indexName: idx_wechatreply_account
+            tableName: ujcms_wechat_reply
+  - changeSet:
+      id: 1784332800000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_wechatmessage_site
+            tableName: ujcms_wechat_message
+  - changeSet:
+      id: 1784332800000-6
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: account_id_
+            indexName: idx_wechatmessage_account
+            tableName: ujcms_wechat_message
+  - changeSet:
+      id: 1784332800000-7
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: openid_
+            indexName: idx_wechatmessage_openid
+            tableName: ujcms_wechat_message
+  - changeSet:
+      id: 1784332800000-8
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: reply_id_
+            indexName: idx_wechatmessage_reply
+            tableName: ujcms_wechat_message
+  - changeSet:
+      id: 1784332800000-9
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_wechat_reply
+            constraintName: fk_wechatreply_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1784332800000-10
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: account_id_
+            baseTableName: ujcms_wechat_reply
+            constraintName: fk_wechatreply_account
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_wechat_account
+            validate: true
+  - changeSet:
+      id: 1784332800000-11
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_wechat_message
+            constraintName: fk_wechatmessage_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1784332800000-12
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: account_id_
+            baseTableName: ujcms_wechat_message
+            constraintName: fk_wechatmessage_account
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_wechat_account
+            validate: true
+  - changeSet:
+      id: 1784419200000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 二维码ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: account_id_
+                  remarks: 公众号ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 创建用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 名称
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: type_
+                  remarks: 类型(0:临时,1:永久)
+                  type: SMALLINT
+              - column:
+                  name: scene_id_
+                  remarks: 场景值ID
+                  type: BIGINT
+              - column:
+                  name: scene_str_
+                  remarks: 场景值字符串
+                  type: VARCHAR(192)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ticket_
+                  remarks: 二维码Ticket
+                  type: VARCHAR(384)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: url_
+                  remarks: 二维码解析后的地址
+                  type: VARCHAR(300)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: scan_count_
+                  remarks: 扫码次数
+                  type: BIGINT
+              - column:
+                  name: expires_at_
+                  remarks: 过期时间
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 微信公众号带参数二维码表
+            tableName: ujcms_wechat_qrcode
+  - changeSet:
+      id: 1784419200000-2
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_wechatqrcode_site
+            tableName: ujcms_wechat_qrcode
+  - changeSet:
+      id: 1784419200000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: account_id_
+            indexName: idx_wechatqrcode_account
+            tableName: ujcms_wechat_qrcode
+  - changeSet:
+      id: 1784419200000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_wechatqrcode_user
+            tableName: ujcms_wechat_qrcode
+  - changeSet:
+      id: 1784419200000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: ticket_
+            indexName: idx_wechatqrcode_ticket
+            tableName: ujcms_wechat_qrcode
+  - changeSet:
+      id: 1784419200000-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_wechat_qrcode
+            constraintName: fk_wechatqrcode_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1784419200000-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: account_id_
+            baseTableName: ujcms_wechat_qrcode
+            constraintName: fk_wechatqrcode_account
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_wechat_account
+            validate: true
+  - changeSet:
+      id: 1784419200000-8
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_wechat_qrcode
+            constraintName: fk_wechatqrcode_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1784419200000-9
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 发送记录ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: account_id_
+                  remarks: 公众号ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 操作用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: openid_
+                  remarks: 接收人OpenID
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: template_id_
+                  remarks: 模板ID
+                  type: VARCHAR(192)
+              - column:
+                  name: title_
+                  remarks: 模板标题
+                  type: VARCHAR(90)
+              - column:
+                  name: data_
+                  remarks: 发送内容
+                  type: MEDIUMTEXT
+              - column:
+                  name: msg_id_
+                  remarks: 微信消息ID
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:已提交,1:送达,2:失败)
+                  type: SMALLINT
+              - column:
+                  name: error_
+                  remarks: 错误信息
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 微信公众号模板消息发送记录表
+            tableName: ujcms_wechat_template_log
+  - changeSet:
+      id: 1784419200000-10
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_wechattemplatelog_site
+            tableName: ujcms_wechat_template_log
+  - changeSet:
+      id: 1784419200000-11
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: account_id_
+            indexName: idx_wechattemplatelog_account
+            tableName: ujcms_wechat_template_log
+  - changeSet:
+      id: 1784419200000-12
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_wechattemplatelog_user
+            tableName: ujcms_wechat_template_log
+  - changeSet:
+      id: 1784419200000-13
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: msg_id_
+            indexName: idx_wechattemplatelog_msgid
+            tableName: ujcms_wechat_template_log
+  - changeSet:
+      id: 1784419200000-14
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_wechat_template_log
+            constraintName: fk_wechattemplatelog_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1784419200000-15
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: account_id_
+            baseTableName: ujcms_wechat_template_log
+            constraintName: fk_wechattemplatelog_account
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_wechat_account
+            validate: true
+  - changeSet:
+      id: 1784419200000-16
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_wechat_template_log
+            constraintName: fk_wechattemplatelog_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1784505600000-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 群发记录ID
+                  type: BIGINT
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: account_id_
+                  remarks: 公众号ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 操作用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: target_
+                  remarks: 群发目标(0:全部粉丝,1:按标签)
+                  type: SMALLINT
+              - column:
+                  name: tag_id_
+                  remarks: 标签ID
+                  type: BIGINT
+              - column:
+                  name: tag_name_
+                  remarks: 标签名称
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: msg_type_
+                  remarks: 消息类型(mpnews:图文,text:文本)
+                  type: VARCHAR(20)
+              - column:
+                  name: media_id_
+                  remarks: 草稿MediaID
+                  type: VARCHAR(192)
+              - column:
+                  name: title_
+                  remarks: 标题
+                  type: VARCHAR(450)
+              - column:
+                  name: content_
+                  remarks: 文本内容
+                  type: MEDIUMTEXT
+              - column:
+                  name: client_msg_id_
+                  remarks: 开发者侧群发消息ID(去重用)
+                  type: VARCHAR(96)
+              - column:
+                  name: msg_id_
+                  remarks: 微信群发消息ID
+                  type: VARCHAR(64)
+              - column:
+                  name: msg_data_id_
+                  remarks: 微信图文消息数据ID
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:已提交,1:发送成功,2:失败,3:已撤回)
+                  type: SMALLINT
+              - column:
+                  name: total_count_
+                  remarks: 群发粉丝总数(TotalCount)
+                  type: INT
+              - column:
+                  name: filter_count_
+                  remarks: 过滤后粉丝数(FilterCount)
+                  type: INT
+              - column:
+                  name: sent_count_
+                  remarks: 发送成功数(SentCount)
+                  type: INT
+              - column:
+                  name: error_count_
+                  remarks: 发送失败数(ErrorCount)
+                  type: INT
+              - column:
+                  name: error_
+                  remarks: 错误信息
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 微信公众号群发记录表
+            tableName: ujcms_wechat_mass
+  - changeSet:
+      id: 1784505600000-2
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_wechatmass_site
+            tableName: ujcms_wechat_mass
+  - changeSet:
+      id: 1784505600000-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: account_id_
+            indexName: idx_wechatmass_account
+            tableName: ujcms_wechat_mass
+  - changeSet:
+      id: 1784505600000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_wechatmass_user
+            tableName: ujcms_wechat_mass
+  - changeSet:
+      id: 1784505600000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: msg_id_
+            indexName: idx_wechatmass_msgid
+            tableName: ujcms_wechat_mass
+  - changeSet:
+      id: 1784505600000-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_wechat_mass
+            constraintName: fk_wechatmass_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1784505600000-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: account_id_
+            baseTableName: ujcms_wechat_mass
+            constraintName: fk_wechatmass_account
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_wechat_account
+            validate: true
+  - changeSet:
+      id: 1784505600000-8
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_wechat_mass
+            constraintName: fk_wechatmass_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1784505600000-9
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: log_retention_days_
+                  remarks: 日志保留天数(0:永久保留)
+                  type: INT
+            tableName: ujcms_wechat_account

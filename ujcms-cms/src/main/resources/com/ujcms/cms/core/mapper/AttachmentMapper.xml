@@ -10,7 +10,14 @@
     <result column="length_" jdbcType="BIGINT" property="length" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
     <result column="used_" jdbcType="CHAR" property="used" />
+    <result column="shared_category_id_" jdbcType="BIGINT" property="sharedCategoryId" />
+    <result column="shared_category_name_" jdbcType="VARCHAR" property="sharedCategoryName" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Attachment" />
+    <!-- 列表用：不挂 referList（懒加载集合在 JSON 序列化时会被逐行触发，形成 N+1），站点/用户仅取引用字段 -->
+    <resultMap extends="ResultMapWithBLOBs" id="ListResultMap" type="com.ujcms.cms.core.domain.Attachment">
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.selectRefer" />
+    </resultMap>
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Attachment">
         <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.select" />
         <association column="user_id_" javaType="com.ujcms.cms.core.domain.User" property="user" select="com.ujcms.cms.core.mapper.UserMapper.select" />
@@ -24,6 +31,12 @@
         <if test="created != null">
             and t.created_ &gt;= #{created}
         </if>
+    </select>
+    <select id="selectExistingUrls" resultType="java.lang.String">
+        select t.url_
+        from ujcms_attachment t
+        where t.url_ in
+        <foreach close=")" collection="urls" item="url" open="(" separator=",">#{url}</foreach>
     </select>
     <select id="findByUrl" resultMap="ResultMap">
         select
@@ -39,15 +52,23 @@
 
     <update id="updateUsed">
         update ujcms_attachment
-        set used_ = CASE WHEN exists(select * from ujcms_attachment_refer refer where refer.attachment_id_ = ujcms_attachment.id_) THEN 1 ELSE 0 END
+        set used_ = CASE WHEN exists(select * from ujcms_attachment_refer refer where refer.attachment_id_ = ujcms_attachment.id_)
+            or ujcms_attachment.shared_category_id_ is not null
+            or exists(select * from ujcms_attachment_favorite fav where fav.attachment_id_ = ujcms_attachment.id_)
+            THEN 1 ELSE 0 END
         where id_ in
         <foreach close=")" collection="ids" item="id" open="(" separator=",">#{id}</foreach>
+    </update>
+    <update id="updateSharedCategory">
+        update ujcms_attachment
+        set shared_category_id_ = #{categoryId,jdbcType=BIGINT}
+        where id_ = #{id,jdbcType=BIGINT}
     </update>
 
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
-    <select id="selectAll" resultMap="ResultMap">
+    <select id="selectAll" resultMap="ListResultMap">
         <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
             <property name="tableName" value="ujcms_attachment" />
         </include>
@@ -57,6 +78,50 @@
         <include refid="Column_List" />
         from ujcms_attachment t
         where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="selectShared" resultMap="ListResultMap">
+        select
+        <include refid="Column_List" />
+        , c.name_ as shared_category_name_
+        from ujcms_attachment t
+        left join ujcms_resource_category c on c.id_ = t.shared_category_id_
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.shared_category_id_ is not null
+        <if test="categoryId != null">
+            and t.shared_category_id_ = #{categoryId,jdbcType=BIGINT}
+        </if>
+        <if test="keyword != null">
+            and t.name_ like #{keyword,jdbcType=VARCHAR}
+        </if>
+        <if test="extensions != null and extensions.size() > 0">
+            and (
+            <foreach collection="extensions" item="ext" separator=" or ">t.name_ like #{ext}</foreach>
+            )
+        </if>
+        order by t.id_ desc
+    </select>
+    <select id="selectByFavorite" resultMap="ListResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_attachment t
+        inner join ujcms_attachment_favorite fav on fav.attachment_id_ = t.id_
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and fav.user_id_ = #{userId,jdbcType=BIGINT}
+        <if test="categoryId != null">
+            <choose>
+                <when test="categoryId == 0">and fav.category_id_ is null</when>
+                <otherwise>and fav.category_id_ = #{categoryId,jdbcType=BIGINT}</otherwise>
+            </choose>
+        </if>
+        <if test="keyword != null">
+            and t.name_ like #{keyword,jdbcType=VARCHAR}
+        </if>
+        <if test="extensions != null and extensions.size() > 0">
+            and (
+            <foreach collection="extensions" item="ext" separator=" or ">t.name_ like #{ext}</foreach>
+            )
+        </if>
+        order by fav.created_ desc
     </select>
     <delete id="delete" parameterType="long">
         delete
@@ -71,7 +136,8 @@
       url_ = #{url,jdbcType=VARCHAR},
       length_ = #{length,jdbcType=BIGINT},
       created_ = #{created,jdbcType=TIMESTAMP},
-      used_ = #{used,jdbcType=CHAR}
+      used_ = #{used,jdbcType=CHAR},
+      shared_category_id_ = #{sharedCategoryId,jdbcType=BIGINT}
     where id_ = #{id,jdbcType=BIGINT}
   </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Attachment">
     update ujcms_attachment
@@ -82,11 +148,12 @@
       url_ = #{url,jdbcType=VARCHAR},
       length_ = #{length,jdbcType=BIGINT},
       created_ = #{created,jdbcType=TIMESTAMP},
-      used_ = #{used,jdbcType=CHAR}
+      used_ = #{used,jdbcType=CHAR},
+      shared_category_id_ = #{sharedCategoryId,jdbcType=BIGINT}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Attachment">
-    insert into ujcms_attachment (id_, site_id_, user_id_, name_, path_, url_, length_, created_, used_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{length,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{used,jdbcType=CHAR})
+    insert into ujcms_attachment (id_, site_id_, user_id_, name_, path_, url_, length_, created_, used_, shared_category_id_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{length,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{used,jdbcType=CHAR}, #{sharedCategoryId,jdbcType=BIGINT})
   </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.user_id_, t.name_, t.path_, t.url_, t.length_, t.created_, t.used_
+    t.id_, t.site_id_, t.user_id_, t.name_, t.path_, t.url_, t.length_, t.created_, t.used_, t.shared_category_id_
   </sql></mapper>

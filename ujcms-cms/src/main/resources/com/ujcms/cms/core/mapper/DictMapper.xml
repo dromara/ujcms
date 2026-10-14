@@ -3,7 +3,6 @@
 <mapper namespace="com.ujcms.cms.core.mapper.DictMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Dict">
     <id column="id_" jdbcType="BIGINT" property="id" />
     <result column="type_id_" jdbcType="BIGINT" property="typeId" />
-    <result column="parent_id_" jdbcType="BIGINT" property="parentId" />
     <result column="name_" jdbcType="VARCHAR" property="name" />
     <result column="value_" jdbcType="VARCHAR" property="value" />
     <result column="remark_" jdbcType="VARCHAR" property="remark" />
@@ -23,6 +22,22 @@
                    else 0
                    end as non_zero_exists
     </select>
+    <select id="existsByValue" resultType="int">
+        select case
+                   when exists(
+                           select *
+                           from ujcms_dict
+                           where type_id_ = #{typeId}
+                             and value_ = #{value}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <delete id="deleteByTypeId" parameterType="long">
+        delete
+        from ujcms_dict
+        where type_id_ = #{typeId,jdbcType=BIGINT}
+    </delete>
     <delete id="deleteBySiteId" parameterType="long">
         delete
         from ujcms_dict
@@ -49,7 +64,6 @@
     </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Dict">
     update ujcms_dict
     set type_id_ = #{typeId,jdbcType=BIGINT},
-      parent_id_ = #{parentId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
       value_ = #{value,jdbcType=VARCHAR},
       remark_ = #{remark,jdbcType=VARCHAR},
@@ -60,7 +74,6 @@
   </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Dict">
     update ujcms_dict
     set type_id_ = #{typeId,jdbcType=BIGINT},
-      parent_id_ = #{parentId,jdbcType=BIGINT},
       name_ = #{name,jdbcType=VARCHAR},
       value_ = #{value,jdbcType=VARCHAR},
       remark_ = #{remark,jdbcType=VARCHAR},
@@ -69,8 +82,8 @@
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Dict">
-    insert into ujcms_dict (id_, type_id_, parent_id_, name_, value_, remark_, order_, sys_, enabled_)
-    values (#{id,jdbcType=BIGINT}, #{typeId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{order,jdbcType=INTEGER}, #{sys,jdbcType=CHAR}, #{enabled,jdbcType=CHAR})
+    insert into ujcms_dict (id_, type_id_, name_, value_, remark_, order_, sys_, enabled_)
+    values (#{id,jdbcType=BIGINT}, #{typeId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{order,jdbcType=INTEGER}, #{sys,jdbcType=CHAR}, #{enabled,jdbcType=CHAR})
   </insert><sql id="Column_List">
-    t.id_, t.type_id_, t.parent_id_, t.name_, t.value_, t.remark_, t.order_, t.sys_, t.enabled_
+    t.id_, t.type_id_, t.name_, t.value_, t.remark_, t.order_, t.sys_, t.enabled_
   </sql></mapper>

@@ -16,6 +16,12 @@
         from ujcms_channel_ext
         where id_ in (select t.id_ from ujcms_channel t where t.site_id_ = #{siteId,jdbcType=BIGINT})
     </delete>
+    <select id="listBySiteId" parameterType="long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_channel_ext t
+        where t.id_ in (select c.id_ from ujcms_channel c where c.site_id_ = #{siteId,jdbcType=BIGINT})
+    </select>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
@@ -34,7 +40,14 @@
         delete
         from ujcms_channel_ext
         where id_ = #{id,jdbcType=BIGINT}
-    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.ChannelExt">
+    </delete>
+    <!-- 静态化专用：只写静态页路径。整行 update 会把栏目正文按读出时的旧值写回去 -->
+    <update id="updateStaticFile">
+        update ujcms_channel_ext
+        set static_file_        = #{staticFile,jdbcType=VARCHAR},
+            mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update><update id="update" parameterType="com.ujcms.cms.core.domain.ChannelExt">
     update ujcms_channel_ext
     set static_file_ = #{staticFile,jdbcType=VARCHAR},
       mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},

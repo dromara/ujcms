@@ -1,0 +1,171 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title="搜索 - ${site.title}" keywords=site.seoKeywords!'' description=site.seoDescription!'']
+[#-- 规范化请求参数——Params.* 可能缺失或为空串；统一取 '' 兜底，后续比较保持简单可预期。 --]
+[#assign queryText = Params.q!''/]
+[#assign selectedChannelId = Params.channelId!''/]
+[#assign beginDate = Params.beginPublishDate!''/]
+[#assign endDate = Params.endPublishDate!''/]
+
+[#-- Breadcrumb --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">搜索</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+
+    <form id="searchForm" action="${dy}/search" method="get" role="search" class="space-y-3">
+      [#-- 1. Query input --]
+      <div class="flex">
+        <input type="text" id="q" name="q" value="${queryText}" placeholder="搜索"
+               aria-label="搜索"
+               class="flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded-l focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+        <button type="submit"
+                class="px-4 rounded-r bg-primary text-primary-foreground hover:opacity-90 inline-flex items-center gap-1">
+          <span class="size-4 inline-block">[@icon 'search'/]</span>
+          <span>搜索</span>
+        </button>
+      </div>
+
+      [#-- 2. Channel + date range filters --]
+      <div class="bg-slate-50 border border-slate-200 rounded p-3 space-y-3 text-sm">
+        [#-- Channel select --]
+        <div class="flex items-center gap-3">
+          <label for="channelId" class="shrink-0 w-20 text-slate-600">所属栏目</label>
+          <select id="channelId" name="channelId" onchange="this.form.submit();"
+                  class="flex-1 px-2 py-1 border border-slate-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value=""[#if selectedChannelId == ''] selected[/#if]>全部</option>
+            [@ChannelList isNav='true' isAllowSearch='true' offset='0'; channelList]
+            [#list channelList as item]
+              <option value="${item.id?c}"[#if selectedChannelId == item.id?c] selected[/#if]>${item.name}</option>
+            [/#list]
+            [/@ChannelList]
+          </select>
+        </div>
+
+        [#-- Date range — native date inputs (no flatpickr; the vendor weight
+           isn't worth it for one form). Quick-preset buttons compute the range
+           client-side and re-submit. --]
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-20 pt-1 text-slate-600">时间范围</span>
+          <div class="flex-1 space-y-2">
+            <div class="flex flex-wrap gap-2">
+              [#if beginDate == '' && endDate == '']
+                <button type="button"
+                        class="px-2 py-1 rounded bg-primary text-primary-foreground" disabled>全部</button>
+              [#else]
+                <button type="button" onclick="clearSearchDateRange()"
+                        class="px-2 py-1 rounded text-primary hover:bg-slate-200">全部</button>
+              [/#if]
+              <button type="button" onclick="setSearchDateRange('year', 1)"
+                      class="px-2 py-1 rounded text-primary hover:bg-slate-200">一年内</button>
+              <button type="button" onclick="setSearchDateRange('month', 1)"
+                      class="px-2 py-1 rounded text-primary hover:bg-slate-200">一月内</button>
+              <button type="button" onclick="setSearchDateRange('day', 7)"
+                      class="px-2 py-1 rounded text-primary hover:bg-slate-200">一周内</button>
+              <button type="button" onclick="setSearchDateRange('day', 0)"
+                      class="px-2 py-1 rounded text-primary hover:bg-slate-200">当天</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <input type="date" id="beginPublishDate" name="beginPublishDate" value="${beginDate}"
+                     class="px-2 py-1 border border-slate-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+              <span class="text-slate-500">至</span>
+              <input type="date" id="endPublishDate" name="endPublishDate" value="${endDate}"
+                     class="px-2 py-1 border border-slate-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+              <button type="submit"
+                      class="px-3 py-1 rounded bg-primary text-primary-foreground hover:opacity-90">确定</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    [#-- Results — only render when q is non-empty --]
+    [#if queryText != '']
+      [@EsArticlePage q=queryText channelId=selectedChannelId beginPublishDate=beginDate endPublishDate=endDate isOperatorAnd='true' fragmentSize='200' dateExpScale='365'; pagedList]
+        <h3 class="mt-3 text-lg font-semibold border-b border-slate-200 pb-2">搜索结果</h3>
+        <p class="text-xs text-slate-500">为您找到相关结果 ${pagedList.totalElements} 篇</p>
+
+        [#if pagedList.totalElements == 0]
+          <p class="py-8 text-center text-slate-500">暂无搜索结果</p>
+        [#else]
+          <ul class="divide-y divide-slate-200">
+            [#list pagedList.content as bean]
+              <li class="flex gap-4 py-3">
+                [#if bean.image?has_content]
+                  <a href="${bean.url}" class="shrink-0">
+                    <img src="${bean.image}" alt="${bean.title}" class="[#if ((bean.channel.articleTemplate)!'') == 'article_wenku']cm-doc-thumb[#else]cm-list-thumb[/#if]">
+                  </a>
+                [/#if]
+                <div class="flex-1 min-w-0 es-highlight">
+                  <p class="mb-1">
+                    <a href="${bean.url}" class="cm-link font-medium">
+                      [#noescape]${bean.highlightTitle!bean.title!}[/#noescape]
+                    </a>
+                  </p>
+                  <p class="hidden sm:block text-sm text-slate-500 line-clamp-2 mb-2">
+                    <a href="${bean.url}" class="text-inherit no-underline">
+                      [#noescape]${bean.highlightBody!substring(bean.body,200,'...')!}[/#noescape]
+                    </a>
+                  </p>
+                  <div class="flex justify-between items-center text-xs text-slate-500">
+                    <span>
+                      [#list bean.channel.paths as c]<a href="${c.url}" class="cm-link">${c.name}</a>[#if c_has_next] &gt; [/#if][/#list]
+                    </span>
+                    <span class="inline-flex items-center gap-1">
+                      <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+                      ${format(bean.publishDate,'yyyy-MM-dd')}
+                    </span>
+                  </div>
+                </div>
+              </li>
+            [/#list]
+          </ul>
+
+          [#include '../snippets/page.html'/]
+        [/#if]
+      [/@EsArticlePage]
+    [/#if]
+  </div>
+
+  [#include '../snippets/right.html'/]
+</div>
+
+<script nonce="${csp_nonce!''}">
+  (function () {
+    const fmt = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    window.setSearchDateRange = function (unit, n) {
+      const today = new Date();
+      const begin = new Date(today);
+      if (unit === 'year') {
+        begin.setFullYear(begin.getFullYear() - n);
+        begin.setDate(begin.getDate() + 1);
+      } else if (unit === 'month') {
+        begin.setMonth(begin.getMonth() - n);
+        begin.setDate(begin.getDate() + 1);
+      } else if (unit === 'day') {
+        begin.setDate(begin.getDate() - n);
+        if (n > 0) { begin.setDate(begin.getDate() + 1); }
+      }
+      const end = new Date(today);
+      end.setDate(end.getDate() + 1);
+      document.getElementById('beginPublishDate').value = fmt(begin);
+      document.getElementById('endPublishDate').value = fmt(end);
+      document.getElementById('searchForm').submit();
+    };
+    window.clearSearchDateRange = function () {
+      document.getElementById('beginPublishDate').value = '';
+      document.getElementById('endPublishDate').value = '';
+      document.getElementById('searchForm').submit();
+    };
+  })();
+</script>
+[/@layout]
+[/#escape]

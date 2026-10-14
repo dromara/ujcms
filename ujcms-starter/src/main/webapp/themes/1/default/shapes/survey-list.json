@@ -1,0 +1,12 @@
+{
+  "name": "SurveyList",
+  "version": "1.0.0",
+  "description": "自动列出最新的问卷（商业版功能）。",
+  "label": { "zh-CN": "调查问卷", "en": "Survey list" },
+  "tags": ["region", "aside", "interaction"],
+  "presentation": { "icon": "list", "group": { "zh-CN": "互动组件", "en": "Interaction" }, "order": 12, "thumbnail": "thumbnails/survey-list.svg" },
+  "settings": {
+    "title": { "type": "text", "max": 150, "default": "调查问卷", "label": { "zh-CN": "栏目标题", "en": "Section title" } },
+    "limit": { "type": "number", "default": 9, "min": 1, "max": 20, "integer": true, "label": { "zh-CN": "条数", "en": "Count" } }
+  }
+}

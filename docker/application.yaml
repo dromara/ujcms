@@ -1,0 +1,98 @@
+# Docker 镜像的容器环境契约。Dockerfile 把本文件复制为 /ujcms/config/application.yaml，Spring Boot 从工作目录的
+# config/ 载入它，叠加在 jar 内的 application.yaml 之上（同名键以本文件为准）。它不是 Spring Profile，也不在类路径里：
+# war / jar 发行包不携带本文件。
+# 本文件只放各部署通用的内容：数据库连接等环境变量占位符与 /run/secrets 载入。某个部署特有的配置（演示站开关、
+# 站点域名、第三方登录凭据等）不要写进来——环境变量按 Spring 宽松绑定直接映射配置键（见下方安装清单注释），
+# 写在 compose 的 environment 或 docker secret 里即可。
+# 不要把自己的配置文件挂载到 /ujcms/config/application.yaml：那会整个替换本文件，UJCMS_DB_* 与 /run/secrets 随之失效。
+# 追加配置文件请挂载到别处，再以 SPRING_CONFIG_ADDITIONALLOCATION 指入。
+# https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.files.property-placeholders
+
+# 数据库连接 URL。缺省按 MySQL / MariaDB（镜像内置的 MariaDB Connector/J 驱动，jdbc:mariadb://）由 UJCMS_DB_HOST / UJCMS_DB_PORT /
+# UJCMS_DB_NAME 拼出，参数说明见 application.yaml；其它数据库（PostgreSQL、人大金仓等）以 UJCMS_DB_URL 给出完整 JDBC URL
+#（此时不再需要 HOST / PORT / NAME），并把 UJCMS_DB_TYPE 设为对应类型。各数据库的 URL 写法见 application.yaml 中的示例。
+spring.datasource.url: ${UJCMS_DB_URL:jdbc:mariadb://${UJCMS_DB_HOST}:${UJCMS_DB_PORT:3306}/${UJCMS_DB_NAME}?allowPublicKeyRetrieval=true&allowLocalInfile=false&nullDatabaseMeansCurrent=true}
+# 数据库用户名
+spring.datasource.username: ${UJCMS_DB_USER}
+# 数据库密码
+spring.datasource.password: ${UJCMS_DB_PASSWORD}
+# 数据库驱动。留空则按 JDBC URL 自动判断（MySQL、MariaDB、PostgreSQL 等常用数据库）；无法自动判断时（如国产数据库）需指定
+spring.datasource.driver-class-name: ${UJCMS_DB_DRIVER:}
+# 数据库类型（用于数据库备份）。支持 mysql、postgresql、kingbase、opengauss
+ujcms.database-type: ${UJCMS_DB_TYPE:mysql}
+
+# Docker Secret 支持：挂载到 /run/secrets 的 secret 以文件名作为配置键载入
+# （如 secret 文件名 ujcms.install.admin.password，其内容即成为该配置值），
+# 敏感信息无需进入环境变量或镜像。目录不存在则忽略。
+spring.config.import: optional:configtree:/run/secrets/
+
+# 安装清单（install-flow §7，ujcms.install.*）：环境变量按 Spring 宽松绑定直接映射，
+# 无需在此逐项声明占位符。常用变量：
+#   UJCMS_INSTALL_AUTO=true                     无人值守自动安装（空库首启自动完成安装）
+#   UJCMS_INSTALL_TOKEN=...                     预设安装令牌（交互安装向导用，可选）
+#   UJCMS_INSTALL_ADMIN_USERNAME=admin          管理员用户名
+#   UJCMS_INSTALL_ADMIN_PASSWORD=...            管理员密码（建议经 docker secret 注入）
+#   UJCMS_INSTALL_ADMIN_MUSTCHANGEPASSWORD=false
+#   UJCMS_INSTALL_SITES_0_NAME=UJCMS演示站      站点 1 名称
+#   UJCMS_INSTALL_SITES_0_PROTOCOL=http         站点 1 协议
+#   UJCMS_INSTALL_SITES_0_DOMAIN=demo.ujcms.com 站点 1 域名
+#   UJCMS_INSTALL_SITES_0_PORT=8080             站点 1 端口（提供域名时缺省即清除 80/443）
+#   UJCMS_INSTALL_SITES_0_THEME_SOURCE=bundled  主题来源 bundled|library|marketplace
+#   UJCMS_INSTALL_SITES_0_THEME_REF=...         来源引用（library 名称[@版本] / marketplace slug[@版本]）
+#   UJCMS_INSTALL_SITES_0_THEME_SEED=all        种子范围 all|none（none 得到空站）
+#   UJCMS_INSTALL_LIBRARYDIR=/ujcms/theme-packages  挂载 ZIP 目录，启动时摄取入主题包库
+# 多站点（第 2 条起走 T2 建站复制路径，商业版 T2 起）：UJCMS_INSTALL_SITES_1_NAME 等依次类推，例如
+#   UJCMS_INSTALL_SITES_1_THEME_SOURCE=library  第 2 站主题来源（library 取包库存量，含 LIBRARYDIR 摄取件）
+#   UJCMS_INSTALL_SITES_1_THEME_REF=journal     包内 theme.manifest.json 的 themeName[@版本]
+# 语言变体 / 子目录（install-flow D44，多语言站点组）：
+#   UJCMS_INSTALL_SITES_1_LANG=en               语言标签（BCP-47），与 _LANGOF 必须成对出现
+#   UJCMS_INSTALL_SITES_1_LANGOF=UJCMS演示站    按站点名挂入其语言组（站点 1 或更早条目，前向引用报错）
+#   UJCMS_INSTALL_SITES_1_SUBDIR=en             子目录寻址（demo.ujcms.com/en/；域名留空即继承主站点；
+#                                               任意条目可用，保留字 uploads|themes|WEB-INF|cp|api|frontend|m）
+#   语言变体的演示文章自动关联译文（install-flow D50，无需变量）：语言组内来源键相同的种子文章在安装时
+#   链入同一翻译组，报告行 langLinks[站点名]: linked=… already=…
+# 追加用户（install-flow §8，users:）：
+#   UJCMS_INSTALL_USERS_0_USERNAME=demo         用户名（幂等键，同名已在即跳过）
+#   UJCMS_INSTALL_USERS_0_PASSWORD=...          密码（必填；建议经 docker secret 注入）
+#   UJCMS_INSTALL_USERS_0_READONLYDEMO=true     演示站只读账号：固定 ID 10，配合顶层 UJCMS_DEMO=true
+#                                               （ujcms.demo，非清单键）由后台拦截器强制仅 GET
+#   注意：列表项（users[n] / sites[n]）整条只从一个配置源绑定——USERNAME 走环境变量时 PASSWORD 也须走环境变量，
+#   /run/secrets 里的 ujcms.install.users[0].password 不会与之合并（要用 secret 文件就整条都放 secret 文件）。
+#   UJCMS_INSTALL_USERS_0_ROLES_0=管理角色       角色名（站点 1 作用域解析，可多条 _ROLES_1 等）
+#   UJCMS_INSTALL_USERS_0_RANK / _ORGID / _GROUPID  等级/组织/用户组，缺省 0 / 1（总部）/ 8（管理组）
+# 演示层（install-flow §8，demo:，需商业 T1，社区版跳过并落报告行）：
+#   UJCMS_INSTALL_DEMO_WORKFLOW=true            部署预制两级审核流程（sys_article/sys_form）
+#                                               并绑定演示栏目「新闻 › 国内」与表单类型的 processKey
+#   UJCMS_INSTALL_DEMO_REVIEWSTATES=true        制造待审核/已退回/审核中演示文章（真实 Flowable 任务），
+#                                               并把种子在该栏目下的两篇真实草稿送入流程（一篇待审核、一篇已退回）
+# 注册开关与第三方登录（写入“全局设置”，安装后在控制台维护，清单不再覆盖）：
+#   UJCMS_INSTALL_REGISTER_ENABLED=true         开启会员注册（缺省保持关闭）；第三方登录的新用户需注册用户名，应一并开启
+#   UJCMS_INSTALL_OAUTH_WEIXIN_CLIENTID=...     微信 AppID（商业 T2 起；社区版、基础版跳过并落报告行）
+#   UJCMS_INSTALL_OAUTH_WEIXIN_CLIENTSECRET=... 微信 AppSecret（建议经 docker secret 注入；二者须同时给出）
+#   UJCMS_INSTALL_OAUTH_QQ_* / UJCMS_INSTALL_OAUTH_WEIBO_*  QQ、微博同理。回调地址无需配置：按默认站点的协议和域名
+#                                               推导为 {站点地址}/oauth/code/{weixin|qq|weibo}，在各开放平台登记同一地址
+# AI 服务商（写入“全局设置 › AI服务商”并设为默认服务商、打开全局开关；商业 T2 起，社区版、基础版跳过并落报告行。
+# 安装后在控制台维护，清单不再覆盖）：
+#   UJCMS_INSTALL_AI_PROVIDER_BASEURL=https://api.deepseek.com/v1  接口地址（OpenAI 兼容协议，不含 /chat/completions）
+#   UJCMS_INSTALL_AI_PROVIDER_MODEL=deepseek-chat                  模型（与 BASEURL 须同时给出）
+#   UJCMS_INSTALL_AI_PROVIDER_APIKEY=...                           API密钥（建议经 docker secret 注入；内网部署可留空）
+#   UJCMS_INSTALL_AI_PROVIDER_NAME=DeepSeek                        名称（可选，缺省取模型名）
+#   UJCMS_INSTALL_AI_PROVIDER_EXTRAPARAMS={"enable_thinking":false}  请求附加参数（可选，JSON 对象；推理模型用它关闭深度思考）
+# 机器翻译引擎（百度翻译；写入同一设置页并设为翻译服务商、打开全局开关，级别与跳过规则同上）：
+#   UJCMS_INSTALL_AI_MT_BAIDU_APPID=...                            百度翻译开放平台 APP ID（与 SECRET 须同时给出）
+#   UJCMS_INSTALL_AI_MT_BAIDU_SECRET=...                           百度翻译密钥（建议经 docker secret 注入）
+# 复杂清单亦可挂载 YAML 文件后以 SPRING_CONFIG_ADDITIONALLOCATION 指入。
+
+# IP 反向代理深度。如果使用反向代理，需设置为 1；使用 CDN 再加上反向代理，则需设置为 2；否则无法获取真实 IP。默认：0
+# 反向代理需要将客户端真实 IP 保存在 HTTP 请求头中，如 X-Forwarded-For
+# 请求头中的 IP 按 RFC 5952 规范化后记录（方括号、端口、%网卡标识 去除；IPv4 映射地址按 IPv4 记录）
+ujcms.ip-proxy-depth: ${UJCMS_IP_PROXY_DEPTH:0}
+
+# LibreOffice（可选，商业版 T1）：素材库 Office 转 PDF、DOC 导入的 .rtf/.odt 需要；.docx/.doc/.wps 导入由内置引擎处理，不需要它
+# 是否启用镜像内的 LibreOffice
+jodconverter.local.enabled: ${UJCMS_OFFICE_ENABLED:false}
+# Office 安装路径
+jodconverter.local.office-home: ${UJCMS_OFFICE_HOME:/usr/lib/libreoffice}
+# 远程 LibreOffice：改用一个 jodconverter-rest 容器（集群部署时各节点共用）
+jodconverter.remote.enabled: ${UJCMS_OFFICE_REMOTE_ENABLED:false}
+jodconverter.remote.url: ${UJCMS_OFFICE_REMOTE_URL:http://office:8080}

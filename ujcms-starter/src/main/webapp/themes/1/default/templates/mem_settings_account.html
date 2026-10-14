@@ -1,0 +1,319 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'account'/]
+[#escape x as (x)!?html]
+[#assign extraHead]
+<script src="${assets}/vendor/sm-crypto/dist/sm2.js?v=${v}" defer></script>
+<script src="${assets}/js/auth.js?v=${v}" defer></script>
+[/#assign]
+[@layout title='账号设置 - ' + site.title extraHead=extraHead]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings/profile" class="cm-link text-slate-700">设置</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">账号设置</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3 space-y-5 sm:space-y-6">
+    [#-- 修改密码 --]
+    <div class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6"
+      x-data="{
+        oldPassword: '', newPassword: '', confirm: '',
+        showOld: false, showNew: false,
+        submitting: false, error: '',
+        async submit() {
+          if (this.submitting) return;
+          this.error = '';
+          if (this.newPassword !== this.confirm) { this.error = '两次输入不相同'; return; }
+          this.submitting = true;
+          try {
+            await window.fetchCsrf();
+            const body = { newPassword: await window.sm2Encrypt(this.newPassword) };
+            [#if user.hasPassword]
+              body.password = await window.sm2Encrypt(this.oldPassword);
+            [/#if]
+            await window.request('PUT', '${api}/update-password', body);
+            window.displaySuccess('密码已更新');
+            setTimeout(() => location.reload(), 600);
+          } catch (e) {
+            this.error = e.message || '更新失败';
+          } finally {
+            this.submitting = false;
+          }
+        }
+      }">
+      <header class="pb-4 mb-5 border-b border-slate-200">
+        <h2 class="flex items-center gap-2 text-base sm:text-lg font-semibold">
+          <span class="size-5 inline-block text-primary">[@icon 'lock-outline'/]</span>
+          <span>修改密码</span>
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">建议定期更换密码以保证账号安全</p>
+      </header>
+
+      <p x-show="error" x-cloak x-text="error" class="mb-4 px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+
+      <form @submit.prevent="submit" class="space-y-4 max-w-md">
+        [#if user.hasPassword]
+          <div>
+            <label for="oldPassword" class="block text-sm font-medium text-slate-700 mb-1.5">原密码</label>
+            <div class="relative">
+              <input id="oldPassword" required autocomplete="current-password"
+                     :type="showOld ? 'text' : 'password'"
+                     x-model="oldPassword"
+                     class="block w-full rounded-md border border-slate-300 px-3 py-2.5 pr-10 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+              <button type="button" @click="showOld = !showOld" :aria-label="showOld ? '隐藏密码' : '显示密码'"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 size-7 inline-flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+                <span class="size-4 inline-block">[@icon 'visibility-outline'/]</span>
+              </button>
+            </div>
+          </div>
+        [/#if]
+        <div>
+          <label for="newPassword" class="block text-sm font-medium text-slate-700 mb-1.5">新密码</label>
+          <div class="relative">
+            <input id="newPassword" required autocomplete="new-password"
+                   :type="showNew ? 'text' : 'password'"
+                   minlength="${config.security.passwordMinLength?c}"
+                   maxlength="${config.security.passwordMaxLength?c}"
+                   x-model="newPassword"
+                   class="block w-full rounded-md border border-slate-300 px-3 py-2.5 pr-10 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            <button type="button" @click="showNew = !showNew" :aria-label="showNew ? '隐藏密码' : '显示密码'"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 size-7 inline-flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+              <span class="size-4 inline-block">[@icon 'visibility-outline'/]</span>
+            </button>
+          </div>
+        </div>
+        <div>
+          <label for="confirmNewPassword" class="block text-sm font-medium text-slate-700 mb-1.5">确认新密码</label>
+          <input id="confirmNewPassword" type="password" required autocomplete="new-password"
+                 x-model="confirm"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+        </div>
+        <div class="pt-1 flex flex-col sm:flex-row sm:justify-end">
+          <button type="submit" :disabled="submitting"
+                  class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+            <span x-show="!submitting">保存修改</span>
+            <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+              <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+              <span>保存中…</span>
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    [#-- 修改邮箱 --]
+    <div class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6"
+      x-data="{
+        email: '', emailMessageValue: '', emailMessageId: '',
+        password: '', emailCountdown: 0, emailTimer: null,
+        submitting: false, error: '',
+        requestSms() {
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.email)) { this.error = '请填写有效的邮箱地址'; return; }
+          this.error = '';
+          $dispatch('request-email-sms', { receiver: this.email, usage: 6, onSuccess: id => {
+            this.emailMessageId = id; this.emailCountdown = 90;
+            clearInterval(this.emailTimer);
+            this.emailTimer = setInterval(() => { if (--this.emailCountdown <= 0) clearInterval(this.emailTimer); }, 1000);
+          }});
+        },
+        async submit() {
+          if (this.submitting) return;
+          this.error = '';
+          this.submitting = true;
+          try {
+            await window.fetchCsrf();
+            const body = {
+              email: this.email,
+              emailMessageId: this.emailMessageId || null,
+              emailMessageValue: this.emailMessageValue,
+            };
+            [#if user.hasPassword]
+              body.password = await window.sm2Encrypt(this.password);
+            [/#if]
+            await window.request('PUT', '${api}/settings/email', body);
+            window.displaySuccess('邮箱已更新');
+            setTimeout(() => location.reload(), 600);
+          } catch (e) {
+            this.error = e.message || '更新失败';
+          } finally {
+            this.submitting = false;
+          }
+        }
+      }">
+      <header class="pb-4 mb-5 border-b border-slate-200">
+        <h2 class="flex items-center gap-2 text-base sm:text-lg font-semibold">
+          <span class="size-5 inline-block text-primary">[@icon 'mail-outline'/]</span>
+          <span>修改邮箱</span>
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">用于接收账户通知</p>
+      </header>
+
+      <p x-show="error" x-cloak x-text="error" class="mb-4 px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+
+      <form @submit.prevent="submit" class="space-y-4 max-w-md">
+        [#if user.email?has_content]
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">原邮箱</label>
+            <input type="text" value="${user.email}" readonly disabled
+                   class="block w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-base sm:text-sm text-slate-500 cursor-not-allowed">
+          </div>
+        [/#if]
+        <div>
+          <label for="newEmail" class="block text-sm font-medium text-slate-700 mb-1.5">新邮箱</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 size-4 inline-block text-slate-400 pointer-events-none">[@icon 'mail-outline'/]</span>
+            <input id="newEmail" type="email" required autocomplete="email"
+                   x-model="email"
+                   class="block w-full rounded-md border border-slate-300 pl-9 pr-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+          </div>
+        </div>
+        <div>
+          <label for="newEmailCode" class="block text-sm font-medium text-slate-700 mb-1.5">邮件验证码</label>
+          <div class="flex gap-2">
+            <input id="newEmailCode" type="text" required maxlength="8" autocomplete="one-time-code"
+                   x-model="emailMessageValue"
+                   class="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            <button type="button" @click="requestSms" :disabled="emailCountdown > 0"
+                    class="px-3 rounded-md border border-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 hover:border-primary hover:text-primary disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:text-slate-700 transition-colors">
+              <span x-show="emailCountdown <= 0">获取验证码</span>
+              <span x-show="emailCountdown > 0" x-cloak><span x-text="emailCountdown"></span> 秒</span>
+            </button>
+          </div>
+        </div>
+        [#if user.hasPassword]
+          <div>
+            <label for="emailFormPassword" class="block text-sm font-medium text-slate-700 mb-1.5">登录密码</label>
+            <input id="emailFormPassword" type="password" required autocomplete="current-password"
+                   x-model="password"
+                   class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+          </div>
+        [/#if]
+        <div class="pt-1 flex flex-col sm:flex-row sm:justify-end">
+          <button type="submit" :disabled="submitting"
+                  class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+            <span x-show="!submitting">保存修改</span>
+            <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+              <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+              <span>保存中…</span>
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    [#-- 修改手机号 --]
+    <div class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6"
+      x-data="{
+        mobile: '', mobileMessageValue: '', mobileMessageId: '',
+        password: '', mobileCountdown: 0, mobileTimer: null,
+        submitting: false, error: '',
+        requestSms() {
+          if (!/^1\d{10}$/.test(this.mobile)) { this.error = '请填写有效的手机号码'; return; }
+          this.error = '';
+          $dispatch('request-mobile-sms', { receiver: this.mobile, usage: 5, onSuccess: id => {
+            this.mobileMessageId = id; this.mobileCountdown = 90;
+            clearInterval(this.mobileTimer);
+            this.mobileTimer = setInterval(() => { if (--this.mobileCountdown <= 0) clearInterval(this.mobileTimer); }, 1000);
+          }});
+        },
+        async submit() {
+          if (this.submitting) return;
+          this.error = '';
+          this.submitting = true;
+          try {
+            await window.fetchCsrf();
+            const body = {
+              mobile: this.mobile,
+              mobileMessageId: this.mobileMessageId || null,
+              mobileMessageValue: this.mobileMessageValue,
+            };
+            [#if user.hasPassword]
+              body.password = await window.sm2Encrypt(this.password);
+            [/#if]
+            await window.request('PUT', '${api}/settings/mobile', body);
+            window.displaySuccess('手机号码已更新');
+            setTimeout(() => location.reload(), 600);
+          } catch (e) {
+            this.error = e.message || '更新失败';
+          } finally {
+            this.submitting = false;
+          }
+        }
+      }">
+      <header class="pb-4 mb-5 border-b border-slate-200">
+        <h2 class="flex items-center gap-2 text-base sm:text-lg font-semibold">
+          <span class="size-5 inline-block text-primary">[@icon 'phone-android-outline'/]</span>
+          <span>修改手机号</span>
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">用于接收登录验证短信</p>
+      </header>
+
+      <p x-show="error" x-cloak x-text="error" class="mb-4 px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+
+      <form @submit.prevent="submit" class="space-y-4 max-w-md">
+        [#if user.mobile?has_content]
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">原手机号</label>
+            <input type="text" value="${user.mobile}" readonly disabled
+                   class="block w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-base sm:text-sm text-slate-500 cursor-not-allowed">
+          </div>
+        [/#if]
+        <div>
+          <label for="newMobile" class="block text-sm font-medium text-slate-700 mb-1.5">新手机号</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 size-4 inline-block text-slate-400 pointer-events-none">[@icon 'phone-android-outline'/]</span>
+            <input id="newMobile" type="tel" required pattern="^1\d{10}$" autocomplete="tel"
+                   x-model="mobile"
+                   class="block w-full rounded-md border border-slate-300 pl-9 pr-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+          </div>
+        </div>
+        <div>
+          <label for="newMobileCode" class="block text-sm font-medium text-slate-700 mb-1.5">短信验证码</label>
+          <div class="flex gap-2">
+            <input id="newMobileCode" type="text" required maxlength="8" autocomplete="one-time-code"
+                   x-model="mobileMessageValue"
+                   class="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            <button type="button" @click="requestSms" :disabled="mobileCountdown > 0"
+                    class="px-3 rounded-md border border-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 hover:border-primary hover:text-primary disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:text-slate-700 transition-colors">
+              <span x-show="mobileCountdown <= 0">获取验证码</span>
+              <span x-show="mobileCountdown > 0" x-cloak><span x-text="mobileCountdown"></span> 秒</span>
+            </button>
+          </div>
+        </div>
+        [#if user.hasPassword]
+          <div>
+            <label for="mobileFormPassword" class="block text-sm font-medium text-slate-700 mb-1.5">登录密码</label>
+            <input id="mobileFormPassword" type="password" required autocomplete="current-password"
+                   x-model="password"
+                   class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+          </div>
+        [/#if]
+        <div class="pt-1 flex flex-col sm:flex-row sm:justify-end">
+          <button type="submit" :disabled="submitting"
+                  class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+            <span x-show="!submitting">保存修改</span>
+            <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+              <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+              <span>保存中…</span>
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+
+[#include '../snippets/short_message.html'/]
+[/@layout]
+[/#escape]

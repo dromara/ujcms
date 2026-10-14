@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRefs, watch, PropType } from 'vue';
+import { ref, computed, defineAsyncComponent, toRefs, watch, type PropType } from 'vue';
 import { toTree, disableSubtree, disableTreeWithPermission } from '@/utils/tree';
 import {
   queryChannel,
@@ -10,7 +10,8 @@ import {
   queryChannelPermissions,
   queryChannelTemplates,
   queryArticleTemplates,
-  channelAliasExist,
+  channelSlugExist,
+  channelSlugSuggest,
 } from '@/api/content';
 import { queryProcessModelList } from '@/api/system';
 import { queryModelList, queryPerformanceTypeList } from '@/api/config';
@@ -19,9 +20,12 @@ import { currentUser } from '@/stores/useCurrentUser';
 import FieldItem from '@/views/config/components/FieldItem.vue';
 import DialogForm from '@/components/DialogForm.vue';
 import LabelTip from '@/components/LabelTip.vue';
+import TemplateSelect from './TemplateSelect.vue';
 import Tinymce from '@/components/Tinymce';
-import { TuiEditor } from '@/components/TuiEditor';
 import { ImageUpload } from '@/components/Upload';
+
+// Markdown 编辑器（bytemd 及其 remark/rehype 管线，约 650 kB）仅在正文选用 Markdown 编辑器类型时才需要，异步加载以免随表单一并下载。
+const MarkdownEditor = defineAsyncComponent(() => import('@/components/MarkdownEditor/MarkdownEditor.vue'));
 
 defineOptions({
   name: 'ChannelForm',
@@ -37,6 +41,7 @@ const emit = defineEmits({ 'update:modelValue': null, finished: null });
 const { modelValue: visible, parent } = toRefs(props);
 const focus = ref<any>();
 const values = ref<any>({});
+const dialog = ref<any>();
 const processModelList = ref<any[]>([]);
 const performanceTypeList = ref<any[]>([]);
 const channelList = ref<any[]>([]);
@@ -48,6 +53,22 @@ const articleTemplates = ref<any[]>([]);
 const channelModelId = ref<string>();
 const channelModel = computed(() => channelModelList.value.find((item) => item.id === channelModelId.value));
 const mains = computed(() => arr2obj(mergeModelFields(getModelData().channel.mains, channelModel.value?.mains, 'channel')));
+// 名称失焦且别名为空时按名称请求建议；用户手动改过别名（slugTouched）后不再自动覆盖，切换栏目时重置
+const slugTouched = ref<boolean>(false);
+const suggestSlug = async () => {
+  const name = values.value.name?.trim();
+  if (slugTouched.value || values.value.slug || !name) {
+    return;
+  }
+  try {
+    const slug = await channelSlugSuggest(name, values.value.id);
+    if (!slugTouched.value && !values.value.slug) {
+      values.value.slug = slug;
+    }
+  } catch {
+    // 建议失败不阻断编辑，保存时由后端生成
+  }
+};
 const asides = computed(() => arr2obj(mergeModelFields(getModelData().channel.asides, channelModel.value?.asides, 'channel')));
 const fields = computed(() => JSON.parse(channelModel.value?.customs || '[]'));
 const parentChannelList = computed(() => {
@@ -62,12 +83,12 @@ const fetchChannelList = async () => {
   channelList.value = toTree(await queryChannelList());
 };
 const fetchProcessModelList = async () => {
-  if (currentUser.epRank > 0) {
+  if (currentUser.commercialTier > 0) {
     processModelList.value = await queryProcessModelList({ category: 'sys_article', deployed: true });
   }
 };
 const fetchPerformanceTypeList = async () => {
-  if (currentUser.epRank >= 3) {
+  if (currentUser.commercialTier >= 2) {
     performanceTypeList.value = await queryPerformanceTypeList();
   }
 };
@@ -94,20 +115,60 @@ const fetchArticleTemplates = async () => {
 const fetchChannelPermissions = async () => {
   channelPermissions.value = await queryChannelPermissions();
 };
-watch(visible, () => {
-  if (visible.value) {
-    channelModelId.value = parent.value?.articleModelId ?? channelModelList.value[0]?.id;
-    fetchChannelPermissions();
-    fetchChannelModelList();
-    fetchArticleModelList();
-    fetchChannelTemplates();
-    fetchArticleTemplates();
-    fetchProcessModelList();
-    fetchPerformanceTypeList();
+// 新建时模型的默认值取自下面的模型列表，模板下拉的标签取自模板列表：等四份列表到齐才打开对话框。
+// 否则页面加载后第一次点“新增”时列表还是空的，栏目模型、文章模型两个必填项会是空白
+const ready = ref<boolean>(false);
+// 对话框刚打开：新建的默认值不沿用上一次对话框留下的表单值。values 里还是上回编辑或新增的那个栏目，
+// 不排除的话，在根栏目点“新增”会把新栏目建到上回那个栏目的上级之下、套用它的模型。
+// 打开之后（对话框内的“新增”、连续新增）仍以当前表单为蓝本
+const opening = ref<boolean>(false);
+const initChannelValues = (bean?: any, isEdit?: boolean): any => {
+  const base = opening.value ? undefined : bean;
+  return {
+    parentId: isEdit ? base?.parentId : (parent.value?.id ?? base?.parentId),
+    type: 1,
+    channelModelId: base?.channelModelId ?? parent.value?.channelModelId ?? channelModelList.value[0]?.id,
+    articleModelId: base?.articleModelId ?? parent.value?.articleModelId ?? articleModelList.value[0]?.id,
+    nav: base?.nav ?? parent.value?.nav ?? true,
+    book: false,
+    real: base?.real ?? parent.value?.real ?? true,
+    // 模板沿用蓝本（当前表单，否则上级栏目）已存的值；都没有就留空，即“主题默认”，不替操作员挑一个文件写进去
+    channelTemplate: (base ?? parent.value)?.channelTemplate ?? null,
+    articleTemplate: (base ?? parent.value)?.articleTemplate ?? null,
+    pageSize: 10,
+    allowComment: base?.allowComment ?? parent.value?.allowComment ?? true,
+    allowContribute: base?.allowContribute ?? parent.value?.allowContribute ?? true,
+    allowSearch: base?.allowSearch ?? parent.value?.allowSearch ?? true,
+    orderDesc: base?.orderDesc ?? parent.value?.orderDesc ?? true,
+    customs: {},
+  };
+};
+watch(visible, async () => {
+  if (!visible.value) {
+    ready.value = false;
+    return;
+  }
+  // 上级栏目选择器的数据每次打开取一次；上一条、下一条之间不必重取
+  fetchChannelList();
+  fetchChannelPermissions();
+  fetchProcessModelList();
+  fetchPerformanceTypeList();
+  try {
+    await Promise.all([fetchChannelModelList(), fetchArticleModelList(), fetchChannelTemplates(), fetchArticleTemplates()]);
+  } finally {
+    // 列表请求失败时拦截器已提示错误：对话框照常打开
+    channelModelId.value = parent.value?.channelModelId ?? channelModelList.value[0]?.id;
+    opening.value = true;
+    ready.value = visible.value;
   }
 });
+// 自定义字段的默认值不是用户的改动：表单与基线一起补（dialog.patch），刚打开的对话框不因此成了“未保存”
 watch(fields, () => {
-  initCustoms(values.value.customs);
+  dialog.value?.patch((target: any) => {
+    if (target?.customs != null) {
+      initCustoms(target.customs);
+    }
+  });
 });
 const initCustoms = (customs: any) => {
   fields.value.forEach((field: any) => {
@@ -124,8 +185,10 @@ const initCustoms = (customs: any) => {
 
 <template>
   <dialog-form
+    ref="dialog"
     v-model:values="values"
     :name="$t('menu.content.channel')"
+    append-to-body
     :query-bean="queryChannel"
     :create-bean="createChannel"
     :update-bean="updateChannel"
@@ -133,37 +196,20 @@ const initCustoms = (customs: any) => {
     :bean-id="beanId"
     :bean-ids="beanIds"
     :focus="focus"
-    :init-values="
-      (bean: any, isEdit?: boolean): any => ({
-        parentId: isEdit ? bean?.parentId : (parent?.id ?? bean?.parentId),
-        type: 1,
-        channelModelId: bean?.channelModelId ?? parent?.channelModelId ?? channelModelList[0]?.id,
-        articleModelId: bean?.articleModelId ?? parent?.articleModelId ?? articleModelList[0]?.id,
-        nav: bean?.nav ?? parent?.nav ?? true,
-        book: false,
-        real: bean?.real ?? parent?.real ?? true,
-        channelTemplate: bean?.channelTemplate ?? parent?.channelTemplate ?? channelTemplates[0],
-        articleTemplate: bean?.articleTemplate ?? parent?.articleTemplate ?? articleTemplates[0],
-        pageSize: 10,
-        allowComment: bean?.allowComment ?? parent?.allowComment ?? true,
-        allowContribute: bean?.allowContribute ?? parent?.allowContribute ?? true,
-        allowSearch: bean?.allowSearch ?? parent?.allowSearch ?? true,
-        orderDesc: bean?.orderDesc ?? parent?.orderDesc ?? true,
-        customs: {},
-      })
-    "
+    :init-values="initChannelValues"
     :to-values="(bean) => ({ ...bean })"
     perms="channel"
-    :model-value="modelValue"
+    :model-value="modelValue && ready"
     :disable-edit="(bean) => !currentUser.allChannelPermission && bean.id != null && !channelPermissions.includes(bean.id)"
     label-width="120px"
     large
     @update:model-value="(event) => $emit('update:modelValue', event)"
     @finished="finished"
     @bean-change="
-      async (bean) => {
-        channelModelId = bean?.channelModelId ?? parent?.channelModelId ?? articleModelList[0]?.id;
-        await fetchChannelList();
+      (bean) => {
+        opening = false;
+        slugTouched = false;
+        channelModelId = bean?.channelModelId ?? parent?.channelModelId ?? channelModelList[0]?.id;
       }
     "
   >
@@ -173,19 +219,18 @@ const initCustoms = (customs: any) => {
           <el-row>
             <el-col :span="mains['name'].double ? 12 : 24">
               <el-form-item prop="name" :label="mains['name'].name ?? $t('channel.name')" :rules="{ required: true, message: () => $t('v.required') }">
-                <el-input ref="focus" v-model="values.name" maxlength="50"></el-input>
+                <el-input ref="focus" v-model="values.name" maxlength="50" @blur="() => suggestSlug()"></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="mains['alias'].double ? 12 : 24">
+            <el-col :span="mains['slug'].double ? 12 : 24">
               <el-form-item
-                prop="alias"
+                prop="slug"
                 :rules="[
-                  { required: true, message: () => $t('v.required') },
-                  { pattern: /^[\w-]*$/, message: () => $t('channel.error.aliasPattern') },
+                  { pattern: /^[\w-]*$/, message: () => $t('channel.error.slugPattern') },
                   {
                     asyncValidator: async (rule, value, callback) => {
-                      if (value !== bean.alias && (await channelAliasExist(value))) {
-                        callback($t('channel.error.aliasExist'));
+                      if (value !== bean.slug && (await channelSlugExist(value))) {
+                        callback($t('channel.error.slugExist'));
                         return;
                       }
                       callback();
@@ -193,8 +238,8 @@ const initCustoms = (customs: any) => {
                   },
                 ]"
               >
-                <template #label><label-tip :label="mains['alias'].name ?? $t('channel.alias')" message="channel.alias" help /></template>
-                <el-input v-model="values.alias" maxlength="50"></el-input>
+                <template #label><label-tip :label="mains['slug'].name ?? $t('channel.slug')" message="channel.slug" help /></template>
+                <el-input v-model="values.slug" maxlength="50" :placeholder="$t('channel.slug.placeholder')" @input="() => (slugTouched = true)"></el-input>
               </el-form-item>
             </el-col>
             <el-col v-if="values.type === 3" :span="mains['linkUrl'].double ? 12 : 24">
@@ -263,25 +308,13 @@ const initCustoms = (customs: any) => {
               </el-form-item>
             </el-col>
             <el-col v-if="mains['channelTemplate'].show" :span="mains['channelTemplate'].double ? 12 : 24">
-              <el-form-item
-                prop="channelTemplate"
-                :label="mains['channelTemplate'].name ?? $t('channel.channelTemplate')"
-                :rules="mains['channelTemplate'].required ? { required: true, message: () => $t('v.required') } : undefined"
-              >
-                <el-select v-model="values.channelTemplate" class="w-full">
-                  <el-option v-for="item in channelTemplates" :key="item" :label="item + '.html'" :value="item"></el-option>
-                </el-select>
+              <el-form-item prop="channelTemplate" :label="mains['channelTemplate'].name ?? $t('channel.channelTemplate')">
+                <template-select v-model="values.channelTemplate" surface="channel" :templates="channelTemplates" default-option />
               </el-form-item>
             </el-col>
             <el-col v-if="mains['articleTemplate'].show" :span="mains['articleTemplate'].double ? 12 : 24">
-              <el-form-item
-                prop="articleTemplate"
-                :label="mains['articleTemplate'].name ?? $t('channel.articleTemplate')"
-                :rules="mains['articleTemplate'].required ? { required: true, message: () => $t('v.required') } : undefined"
-              >
-                <el-select v-model="values.articleTemplate" class="w-full">
-                  <el-option v-for="item in articleTemplates" :key="item" :label="item + '.html'" :value="item"></el-option>
-                </el-select>
+              <el-form-item prop="articleTemplate" :label="mains['articleTemplate'].name ?? $t('channel.articleTemplate')">
+                <template-select v-model="values.articleTemplate" surface="article" :templates="articleTemplates" default-option />
               </el-form-item>
             </el-col>
             <!--
@@ -346,8 +379,8 @@ const initCustoms = (customs: any) => {
                   <el-radio-group v-if="mains['text'].editorSwitch" v-model="values.editorType" class="mr-6" @change="() => (values.markdown = '')">
                     <el-radio v-for="n in [1, 2]" :key="n" :value="n">{{ $t(`model.field.editorType.${n}`) }}</el-radio>
                   </el-radio-group>
-                  <tui-editor v-if="values.editorType === 2" v-model="values.markdown" v-model:html="values.text" class="leading-6" />
-                  <tinymce v-else ref="tinyText" v-model="values.text" />
+                  <markdown-editor v-if="values.editorType === 2" v-model="values.markdown" v-model:html="values.text" class="leading-6" />
+                  <tinymce v-else v-model="values.text" />
                 </div>
               </el-form-item>
             </el-col>
@@ -376,6 +409,7 @@ const initCustoms = (customs: any) => {
                 </el-select>
               </el-form-item>
               <el-form-item
+                v-if="asides['processKey'].show"
                 prop="processKey"
                 :label="asides['processKey'].name ?? $t('channel.processKey')"
                 :rules="asides['processKey'].required ? { required: true, message: () => $t('v.required') } : undefined"
@@ -386,8 +420,8 @@ const initCustoms = (customs: any) => {
                 </el-select>
               </el-form-item>
               <el-form-item
-                v-if="currentUser.epRank >= 3 && asides['performanceType'].show"
-                prop="performanceType"
+                v-if="currentUser.commercialTier >= 2 && asides['performanceType'].show"
+                prop="performanceTypeId"
                 :label="asides['performanceType'].name ?? $t('channel.performanceType')"
                 :rules="asides['performanceType'].required ? { required: true, message: () => $t('v.required') } : undefined"
                 label-position="top"

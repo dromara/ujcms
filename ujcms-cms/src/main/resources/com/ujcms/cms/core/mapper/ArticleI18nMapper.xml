@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ArticleI18nMapper">
+    <!-- 共享 SiteCache 二级缓存（与 SiteMapper/ChannelMapper 同一底层存储）：
+         读路径随文章页渲染执行，链接写入为低频后台操作，整体刷新成本与站点/栏目写一致。
+         过期锚点写入仅发生在“已入组文章”的编辑保存（钩子先经缓存读判定有无成员行，
+         未入组文章的保存不产生写、不刷新缓存）——已入组文章保存刷新共享缓存为既定成本 -->
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ArticleI18n">
+        <id column="article_id_" jdbcType="BIGINT" property="articleId" />
+        <result column="group_id_" jdbcType="BIGINT" property="groupId" />
+        <result column="content_date_" jdbcType="TIMESTAMP" property="contentDate" />
+        <result column="synced_date_" jdbcType="TIMESTAMP" property="syncedDate" />
+    </resultMap>
+    <!-- 瘦身文章结果集：仅 URL 组装（id/slug/ext.linkUrl/channel.slug/created）、
+         后台展示（ext.title/status）与“未翻译草稿”判定（modified/ext.aiGenerated，批量翻译补译用）所需字段。
+         ext 与文章同主键，t.id_ 同时映射两者；
+         channel 经 join ujcms_channel 取 id/slug 内联映射（不做逐行嵌套查询，与 ArticleMapper.SitemapResultMap 同形） -->
+    <resultMap id="ArticleRefResultMap" type="com.ujcms.cms.core.domain.Article">
+        <id column="id_" jdbcType="BIGINT" property="id" />
+        <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+        <result column="channel_id_" jdbcType="BIGINT" property="channelId" />
+        <result column="status_" jdbcType="SMALLINT" property="status" />
+        <result column="created_" jdbcType="TIMESTAMP" property="created" />
+        <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+        <result column="slug_" jdbcType="VARCHAR" property="slug" />
+        <association javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext" resultMap="com.ujcms.cms.core.mapper.ArticleExtMapper.BaseResultMap" />
+        <association javaType="com.ujcms.cms.core.domain.Channel" property="channel">
+            <id column="channel_id_" jdbcType="BIGINT" property="id" />
+            <result column="channel_slug_" jdbcType="VARCHAR" property="slug" />
+        </association>
+    </resultMap>
+    <!-- 种子文章结果集（安装引擎按来源键配对译文用）：仅建链所需字段，无关联对象 -->
+    <resultMap id="ArticleSeedResultMap" type="com.ujcms.cms.core.domain.Article">
+        <id column="id_" jdbcType="BIGINT" property="id" />
+        <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+        <result column="status_" jdbcType="SMALLINT" property="status" />
+        <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+        <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    </resultMap>
+    <sql id="Article_Ref_Columns">
+        t.id_, t.site_id_, t.channel_id_, t.status_, t.created_, t.modified_,
+        t.slug_, uae.title_, uae.link_url_, uae.ai_generated_, c.slug_ as channel_slug_
+    </sql>
+    <!-- isNormal（可访问）= 已发布(0) / 已归档(1)：hreflang 指向草稿/待审是有害的 -->
+    <sql id="Article_Normal_Where">
+        and t.status_ in (0, 1)
+    </sql>
+    <sql id="Base_Columns">
+        t.article_id_, t.group_id_, t.content_date_, t.synced_date_
+    </sql>
+    <select id="select" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Columns" />
+        from ujcms_article_i18n t
+        where t.article_id_ = #{articleId,jdbcType=BIGINT}
+    </select>
+    <insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleI18n">
+        insert into ujcms_article_i18n (article_id_, group_id_, content_date_, synced_date_)
+        values (#{articleId,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT},
+                #{contentDate,jdbcType=TIMESTAMP}, #{syncedDate,jdbcType=TIMESTAMP})
+    </insert>
+    <update id="updateSyncedDate">
+        update ujcms_article_i18n
+        set synced_date_ = #{syncedDate,jdbcType=TIMESTAMP}
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </update>
+    <update id="updateAnchors">
+        update ujcms_article_i18n
+        set content_date_ = #{contentDate,jdbcType=TIMESTAMP},
+            synced_date_  = #{syncedDate,jdbcType=TIMESTAMP}
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </update>
+    <delete id="deleteByArticleId">
+        delete
+        from ujcms_article_i18n
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="long">
+        delete
+        from ujcms_article_i18n
+        where article_id_ in (select t.id_ from ujcms_article t where t.site_id_ = #{siteId,jdbcType=BIGINT})
+    </delete>
+    <select id="listByArticleIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Columns" />
+        from ujcms_article_i18n t
+        where t.article_id_ in
+        <foreach close=")" collection="articleIds" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="listByGroupIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Columns" />
+        from ujcms_article_i18n t
+        where t.group_id_ in
+        <foreach close=")" collection="groupIds" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <!-- 站点内批量成员行（文章列表过期徽标用）：按站点过滤，避免探测他站文章的入组状态 -->
+    <select id="listBySiteArticleIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Columns" />
+        from ujcms_article_i18n t
+                 join ujcms_article a on t.article_id_ = a.id_
+        where a.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.article_id_ in
+        <foreach close=")" collection="articleIds" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="listArticleByGroupId" resultMap="ArticleRefResultMap">
+        select
+        <include refid="Article_Ref_Columns" />
+        from ujcms_article_i18n m
+                 join ujcms_article t on m.article_id_ = t.id_
+                 join ujcms_article_ext uae on t.id_ = uae.id_
+                 join ujcms_channel c on t.channel_id_ = c.id_
+        where m.group_id_ = #{groupId,jdbcType=BIGINT}
+        <include refid="Article_Normal_Where" />
+        order by t.id_
+    </select>
+    <select id="listArticleByGroupIds" resultMap="ArticleRefResultMap">
+        select
+        <include refid="Article_Ref_Columns" />
+        from ujcms_article_i18n m
+                 join ujcms_article t on m.article_id_ = t.id_
+                 join ujcms_article_ext uae on t.id_ = uae.id_
+                 join ujcms_channel c on t.channel_id_ = c.id_
+        where m.group_id_ in
+        <foreach close=")" collection="groupIds" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+        <include refid="Article_Normal_Where" />
+        order by t.id_
+    </select>
+    <select id="findArticleByGroupAndSiteId" resultMap="ArticleRefResultMap">
+        select
+        <include refid="Article_Ref_Columns" />
+        from ujcms_article_i18n m1
+                 join ujcms_article_i18n m2 on m1.group_id_ = m2.group_id_
+                 join ujcms_article t on m2.article_id_ = t.id_
+                 join ujcms_article_ext uae on t.id_ = uae.id_
+                 join ujcms_channel c on t.channel_id_ = c.id_
+        where m1.article_id_ = #{articleId,jdbcType=BIGINT}
+          and t.site_id_ = #{siteId,jdbcType=BIGINT}
+        <include refid="Article_Normal_Where" />
+    </select>
+    <!-- 状态无关版：不变量检查（一站一员）与控制台读专用——草稿译文必须可见，
+         否则占位检查失效、面板误报未链接。公开读路径（hreflang/sitemap）仍用上方过滤版 -->
+    <select id="findMemberArticleByGroupAndSiteId" resultMap="ArticleRefResultMap">
+        select
+        <include refid="Article_Ref_Columns" />
+        from ujcms_article_i18n m1
+                 join ujcms_article_i18n m2 on m1.group_id_ = m2.group_id_
+                 join ujcms_article t on m2.article_id_ = t.id_
+                 join ujcms_article_ext uae on t.id_ = uae.id_
+                 join ujcms_channel c on t.channel_id_ = c.id_
+        where m1.article_id_ = #{articleId,jdbcType=BIGINT}
+          and t.site_id_ = #{siteId,jdbcType=BIGINT}
+    </select>
+    <select id="listCandidateArticles" resultMap="ArticleRefResultMap">
+        select
+        <include refid="Article_Ref_Columns" />
+        from ujcms_article t
+                 join ujcms_article_ext uae on t.id_ = uae.id_
+                 join ujcms_channel c on t.channel_id_ = c.id_
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        <if test="channelId != null">
+            and t.channel_id_ = #{channelId,jdbcType=BIGINT}
+        </if>
+        <if test="title != null and title != ''">
+            <bind name="titlePattern" value="'%' + title + '%'" />
+            and uae.title_ like #{titlePattern}
+        </if>
+        <include refid="Article_Normal_Where" />
+        order by t.id_ desc
+    </select>
+    <!-- 未入组匹配（批量翻译“先关联已有译文、后新建草稿”）：目标栏目内、未加入任何翻译组、
+         别名或标题精确相等的文章。状态无关（目标站点已有的草稿译文同样占位——不关联就会再建一份
+         重复草稿），仅排除回收站（status_ 20）；同一依据命中多篇的歧义由 Service 判定 -->
+    <select id="listUnlinkedMatchArticles" resultMap="ArticleRefResultMap">
+        select
+        <include refid="Article_Ref_Columns" />
+        from ujcms_article t
+                 join ujcms_article_ext uae on t.id_ = uae.id_
+                 join ujcms_channel c on t.channel_id_ = c.id_
+                 left join ujcms_article_i18n uai on uai.article_id_ = t.id_
+        where t.channel_id_ = #{channelId,jdbcType=BIGINT}
+          and uai.article_id_ is null
+          and t.status_ &lt;&gt; 20
+          and (uae.title_ = #{title,jdbcType=VARCHAR}
+        <if test="slug != null and slug != ''">
+            or t.slug_ = #{slug,jdbcType=VARCHAR}
+        </if>
+          )
+        order by t.id_
+    </select>
+    <!-- 站点内来自主题种子的文章（origin_ 为 theme:<主题名>，origin_id_ 为种子内来源键）。
+         状态无关（种子草稿同样可建链），仅排除回收站（status_ 20）。
+         不进二级缓存：只读 ujcms_article，而文章写入不刷新本命名空间的 SiteCache——
+         缓存结果会在种子导入后过期（Redis 缓存还会跨重启存活，续装读到旧列表） -->
+    <select id="listSeedArticles" resultMap="ArticleSeedResultMap" useCache="false">
+        select t.id_, t.site_id_, t.status_, t.modified_, t.origin_id_
+        from ujcms_article t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.origin_ like 'theme:%'
+          and t.origin_id_ is not null
+          and t.status_ &lt;&gt; 20
+        order by t.id_
+    </select>
+</mapper>

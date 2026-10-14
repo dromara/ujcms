@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.domain.support;
 
 import com.ujcms.cms.core.domain.Model;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Custom 类的抽象接口。方便统一处理Custom，如 ArticleCustom、ChannelCustom

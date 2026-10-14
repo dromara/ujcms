@@ -1,7 +1,7 @@
 <script lang="ts">
 import { computed, watch, defineComponent, toRefs } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useColumnSettingsStore, ColumnState } from '@/stores/columnSettingsStore';
+import { useColumnSettingsStore, type ColumnState } from '@/stores/columnSettingsStore';
 
 export default defineComponent({
   name: 'ColumnList',

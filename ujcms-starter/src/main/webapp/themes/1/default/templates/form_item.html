@@ -1,0 +1,49 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title='表单详情 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/form-type" class="cm-link">自定义表单</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/form-list/${formType.id?c}" class="cm-link">${formType.name}</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">#${form.id}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <h1 class="flex items-center gap-2 text-2xl font-bold font-display border-b border-slate-200 pb-2">
+    <span class="size-6 text-primary inline-block">[@icon 'dynamic-form-outline'/]</span>
+    <span>${formType.name} #${form.id}</span>
+  </h1>
+
+  <dl class="grid grid-cols-1 sm:grid-cols-[8rem_1fr] gap-y-2 text-sm rounded border border-slate-200 bg-white p-4">
+    <dt class="font-semibold text-slate-600">创建人</dt>
+    <dd class="text-slate-800">${(form.user.username)!'匿名'}</dd>
+
+    <dt class="font-semibold text-slate-600">创建日期</dt>
+    <dd class="text-slate-800">${format(form.created, 'yyyy-MM-dd HH:mm')}</dd>
+
+    <dt class="font-semibold text-slate-600">IP</dt>
+    <dd class="text-slate-800">${form.ip}</dd>
+
+    [#--
+      自定义字段 —— formType.model 仅含 id+name 轻量投影，运营方通常按表单
+      类型克隆本模板并内联所需的数据字段。此处将 customs 以通用键值表呈现，
+      便于查看全部字段。
+    --]
+    [#if (form.customs)?has_content]
+      [#list form.customs as key, value]
+        <dt class="font-semibold text-slate-600">${key}</dt>
+        <dd class="text-slate-800 wrap-break-word">[#if value?is_boolean]${value?c}[#elseif value?is_sequence]${value?join('，')}[#else]${value!''}[/#if]</dd>
+      [/#list]
+    [/#if]
+  </dl>
+</div>
+[/@layout]
+[/#escape]

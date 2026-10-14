@@ -79,7 +79,7 @@ public class TagListDirective implements TemplateDirectiveModel {
         body.render(env.getOut());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

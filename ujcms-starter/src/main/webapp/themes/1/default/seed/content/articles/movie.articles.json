@@ -1,0 +1,100 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "movie",
+      "customs": {
+        "area": "华语",
+        "areaKey": "1",
+        "type": "灾难",
+        "typeKey": "19"
+      },
+      "ext": {
+        "seoDescription": "暴雨夜的隧道口，三个人的七小时接力救援",
+        "video": "{{asset:media/video_demo.mp4}}",
+        "videoDuration": 21
+      },
+      "image": "{{asset:img/movie/mountain-road-rescue.jpg}}",
+      "originId": "a-mountain-rescue-film",
+      "publishOffsetDays": -35,
+      "text": "<p>县救援队的一名新队员，入队半年还没出过一次夜勤。这天夜里，山里的雨下成了一堵墙，进山公路在隧道口塌下半面山坡，洞里困着一辆晚班客车和十四名乘客。大部队被洪水拦在三十千米之外，赶得到的只有三个人：这名新队员，带了他半年的老队长，还有搭车回卫生院的一位医生。</p>\n<p>三个人穿着橙色救援服站在塌方体前，头顶直升机的探照灯最多再亮二十分钟。队长认路，医生管药箱，新队员背绳。影片把七个小时拍成一场接力：每过一关，就得有一个人留下守住退路，走到最后的，偏偏是经验最少的那一个。</p>\n<h3>看点</h3>\n<ul>\n<li>全片只有一个夜晚、一处隧口，实拍了四十多个雨夜，探照灯穿过雨幕的光柱是标志画面；</li>\n<li>三位主角各管一摊：认路、救护、打绳结，谁也替不了谁；</li>\n<li>不拍庆功，结尾是天亮后三个人坐在路边分一壶热水。</li>\n</ul>\n<p>片长一百一十六分钟。</p>",
+      "title": "隧口雨夜"
+    },
+    {
+      "channel": "movie",
+      "customs": {
+        "area": "华语",
+        "areaKey": "1",
+        "type": "喜剧",
+        "typeKey": "1"
+      },
+      "ext": {
+        "seoDescription": "最难带的班，为一架纸飞机较起了真",
+        "video": "{{asset:media/video_demo.mp4}}",
+        "videoDuration": 21
+      },
+      "image": "{{asset:img/movie/classroom-paper-planes.jpg}}",
+      "originId": "a-classroom-comedy-film",
+      "publishOffsetDays": -26,
+      "text": "<p>初二七班有个女生练就一手绝活：任何一张卷子到了她手里，都能折成飞过整间教室的纸飞机。这个班靠这门“手艺”闻名全校，也因此成了没人愿意接的班。新来的代课老师推门那天，四十多架纸飞机迎面而来，他接住一架，问的第一句话是：这架为什么会拐弯？</p>\n<p>没人答得上来。这位老师于是同全班打了个赌：一个月后的校园科技节，七班要是能让一架纸飞机在空中停留十五秒，后排的座位就永远归他们。量翼展，算重心，记留空时间，一群不肯翻课本的孩子，头一回为了一个数字争得面红耳赤。</p>\n<h3>看点</h3>\n<ul>\n<li>笑点出自孩子们一本正经的“歪理”，和代课老师见招拆招的板书；</li>\n<li>四十多架纸飞机同时起飞的长镜头一气呵成，阳光和粉笔灰都入了戏；</li>\n<li>片尾字幕附上片中六种纸飞机的折法，看完就能动手。</li>\n</ul>\n<p>片长九十六分钟，适合全家一起看。</p>",
+      "title": "满教室纸飞机"
+    },
+    {
+      "channel": "movie",
+      "customs": {
+        "area": "欧洲",
+        "areaKey": "3",
+        "type": "动画",
+        "typeKey": "10"
+      },
+      "ext": {
+        "seoDescription": "水粉手绘动画：女孩、小湾和一条木船的夏天",
+        "video": "{{asset:media/video_demo.mp4}}",
+        "videoDuration": 21
+      },
+      "image": "{{asset:img/movie/summer-cove-rowing-boat.jpg}}",
+      "originId": "a-summer-cove-animation",
+      "publishOffsetDays": -27,
+      "text": "<p>十岁的小女孩被送到海边的外婆家过暑假。礁石背后藏着一处晒得发烫的小湾，湾里泊着一条许久没人用的小木船。船的主人是一位守了半辈子灯塔的大胡子老人，他答应女孩：只要她自己学会划桨、打绳结、看潮水，这条船就借给她一整个夏天。外婆的规矩只有一条：涨潮之前必须回到岸上。</p>\n<p>于是门后多了一张清单：补漆，换桨架，背下潮汐表。她最想去的，是湾口那块常有海豹晒太阳的礁石。整部片子不设对手，也不赶路，只看一个孩子一点点学会同大海打交道，以及一老一小之间不必多说的默契。</p>\n<h3>看点</h3>\n<ul>\n<li>一万两千多张水粉画稿逐张上色，海水的通透和岩石的暖色里看得见笔触；</li>\n<li>故事按晴、雾、雨三种天气分段，每一段各有一套色调；</li>\n<li>全片对白不足两百句，潮声、桨声和手风琴撑起了大半声音。</li>\n</ul>\n<p>片长八十四分钟，学龄前的孩子也看得懂。</p>",
+      "title": "小湾与木船"
+    },
+    {
+      "channel": "movie",
+      "customs": {
+        "area": "日本",
+        "areaKey": "5",
+        "type": "青春",
+        "typeKey": "17"
+      },
+      "ext": {
+        "seoDescription": "港口小城的夏夜，两个人拼一张银河长卷",
+        "video": "{{asset:media/video_demo.mp4}}",
+        "videoDuration": 21
+      },
+      "image": "{{asset:img/movie/rooftop-harbour-stars.jpg}}",
+      "originId": "a-harbour-stars-film",
+      "publishOffsetDays": -25,
+      "text": "<p>女主角在港口小城的旧公寓顶层租了一间带露台的阁楼，白天在渡轮码头售票，夜里守着一台二手望远镜。她想替一本停了刊的天文爱好者会刊补完最后一期：拍齐夏季银河的十二个分幅，拼成一张长卷。她的儿时玩伴辞了大城市的工作回来，暂时借住在楼下，被她抓来当记录员。</p>\n<p>港湾的灯太亮，一个月只有新月前后几夜可用，台风季又一天天近了。披着浅黄色开衫的她按快门，他在一旁报时，两个人聊的是星图，绕开的是各自的去留：他收到了回城的邀约，她的长卷还差最后一格。</p>\n<h3>看点</h3>\n<ul>\n<li>星空段落实地拍摄，没有合成，银河从港口上方升起的长镜头长达三分钟；</li>\n<li>两个人始终没有一句表白，心事都落在对焦、递热茶这些小动作里；</li>\n<li>十二张分幅拼成长卷的那场戏，是全片最安静也最动人的一刻。</li>\n</ul>\n<p>片长一百零八分钟。</p>",
+      "title": "露台上的银河"
+    },
+    {
+      "channel": "movie",
+      "customs": {
+        "area": "韩国",
+        "areaKey": "4",
+        "type": "爱情",
+        "typeKey": "3"
+      },
+      "ext": {
+        "seoDescription": "只在雨天见面的两个人，和同一个路口",
+        "video": "{{asset:media/video_demo.mp4}}",
+        "videoDuration": 21
+      },
+      "image": "{{asset:img/movie/rainy-street-crossing.jpg}}",
+      "originId": "a-rainy-crossing-film",
+      "publishOffsetDays": -28,
+      "text": "<p>气象台的一位女预报员，能把一场雨算到几点几分，却算不准自己的事。入秋第一场雨的傍晚，她撑着一把红伞走上斑马线，身后有人喊出她中学时的绰号。回头一看，是十年没见的同桌。当年他借走她半本笔记，没来得及还就转了学；如今他在路口对面的钟表行修表，说修表和报天气差不多，都是同时间讲道理。</p>\n<p>两个人都不会说客套话，于是定下一个笨办法：只在下雨的傍晚、在这个路口碰面，雨一停就各回各家。那个秋天一共下了十一场雨。她头一回盼着自己的预报再准一些，他则悄悄把那半本笔记一页页补全。</p>\n<h3>看点</h3>\n<ul>\n<li>故事几乎只发生在一个路口，湿亮的斑马线、水洼和各色雨伞就是全部布景；</li>\n<li>没有狗血桥段，两个慢热的人靠天气预报推进关系；</li>\n<li>雨声、脚步声和过街提示音被编进了配乐。</li>\n</ul>\n<p>片长一百零三分钟。</p>",
+      "title": "雨幕路口"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+databaseChangeLog:
+  # 定时任务保留份数（docs/spec/schedule-task/plan.md）：备份类任务执行成功后只保留最新 N 份（上传增量为合并最早几份），空或 0 不限。
+  # ujcms_schedule_task 建于 12.3（已发布），故以升级变更集加列；columnExists 守卫令开发期已加列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.1-schedule-task-keep-count
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_schedule_task
+                columnName: keep_count_
+      changes:
+        - addColumn:
+            tableName: ujcms_schedule_task
+            columns:
+              - column:
+                  name: keep_count_
+                  remarks: 保留份数(备份类任务，空或0为不限)
+                  type: INT

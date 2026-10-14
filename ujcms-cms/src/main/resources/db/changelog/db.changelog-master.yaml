@@ -1,35 +1,5 @@
 # databaseChangeLog: []
 databaseChangeLog:
-#  - include:
-#      file: db.changelog-4.0-whole.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-6.0.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-7.0.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-8.0.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-9.0.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: liquibase.quartz.init.xml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-9.5.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-9.6.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-9.8.yaml
-#      relativeToChangelogFile: true
-#  - include:
-#      file: db.changelog-9.10.yaml
-#      relativeToChangelogFile: true
   - include:
       file: db.changelog-10.0-whole.yaml
       relativeToChangelogFile: true
@@ -38,6 +8,7 @@ databaseChangeLog:
   - include:
       file: liquibase.quartz.init.xml
       relativeToChangelogFile: true
+  # ===== 12.x（origin/feat 合入：社交/评论、友链、计划任务、政务、微信公众号、AI）=====
   - include:
       file: db.changelog-12.1-comment.yaml
       relativeToChangelogFile: true
@@ -70,4 +41,130 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: db.changelog-12.3-schedule-task.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.4-disclosure.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.4-mailbox.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.4-interview.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.4-census.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.4-mailbox-type.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.5-wechat.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.6-ai-foundation.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.6-ai-labeling.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.6-geo.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-12.6-ai-moderation.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-misc.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-block.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-topic.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-resource-library.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-config.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-pii-encryption.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-compliance.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-composition.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-seed-origin.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-link-group.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-template-history.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-multilingual.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-article-i18n.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-theme-sandbox.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-install.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-theme-package.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.0-dict.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-article-i18n-anchors.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-wechat-article-items.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-wechat-account-style.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-site-accessibility.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-site-settings-mediumtext.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-slug.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-user-preferences.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-config-console.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-schedule-task-keep-count.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-article-related.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-config-oauth.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-sensitive-word-replacement.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-import-data-index.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-import-data-site.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.1-article-index.yaml
       relativeToChangelogFile: true

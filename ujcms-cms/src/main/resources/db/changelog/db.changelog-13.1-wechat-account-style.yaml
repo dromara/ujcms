@@ -1,0 +1,34 @@
+databaseChangeLog:
+  # 公众号排版样式（wechat design.md §3.1）。13.0 已发布，12.5-wechat 原变更集不可再改，故以升级变更集补列：
+  #   style_preset_ 排版预设代码（none/simple/elegant，见 WechatStyler.PRESETS）；
+  #   style_rules_  自定义排版规则（“选择器 { 样式 }”列表），在预设之后应用。
+  # 存量公众号回填 none（升级不改变既有推送效果；新建公众号由实体默认为 simple），随后去除默认值。
+  # columnExists 守卫使其对开发期已含该列的库幂等（MARK_RAN）；全新建库与既有 13.0 库同走此处。
+  - changeSet:
+      id: 13.1-wechat-account-style
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_wechat_account
+                columnName: style_preset_
+      changes:
+        - addColumn:
+            tableName: ujcms_wechat_account
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: style_preset_
+                  remarks: 排版预设
+                  type: VARCHAR(20)
+                  defaultValue: none
+              - column:
+                  name: style_rules_
+                  remarks: 自定义排版规则
+                  type: MEDIUMTEXT
+        - dropDefaultValue:
+            tableName: ujcms_wechat_account
+            columnName: style_preset_
+            columnDataType: VARCHAR(20)

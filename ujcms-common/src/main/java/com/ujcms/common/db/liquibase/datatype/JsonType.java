@@ -21,6 +21,9 @@ import java.util.Locale;
 public class JsonType extends LiquibaseDataType {
     private static final String NULL = "null";
 
+    /**
+     * 改编自 Liquibase 4.23.2 的 CharType#objectToSql（Copyright 2023 Liquibase Inc.，Apache License 2.0，见 NOTICE）。
+     */
     @Override
     public String objectToSql(Object value, Database database) {
         if ((value == null) || NULL.equals(value.toString().toLowerCase(Locale.US))) {

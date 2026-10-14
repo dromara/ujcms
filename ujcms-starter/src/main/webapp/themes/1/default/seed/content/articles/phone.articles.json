@@ -1,0 +1,56 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "phone",
+      "customs": {
+        "guidePrice": 4599,
+        "price": 4299,
+        "screen": "6.5英寸以上",
+        "screenKey": "4",
+        "specifications": "<div>\n<h3>主体</h3>\n<dl>\n<dt>产品类型</dt>\n<dd>平板电脑</dd>\n</dl>\n<dl>\n<dt>机身颜色</dt>\n<dd>石墨灰</dd>\n</dl>\n<dl>\n<dt>机身材质</dt>\n<dd>铝合金一体机身</dd>\n</dl>\n</div>\n<div>\n<h3>尺寸与重量</h3>\n<dl>\n<dt>机身尺寸</dt>\n<dd>约 286×195×6.8mm</dd>\n</dl>\n<dl>\n<dt>重量</dt>\n<dd>约 640g</dd>\n</dl>\n</div>\n<div>\n<h3>显示</h3>\n<dl>\n<dt>屏幕</dt>\n<dd>13 英寸 LCD，全贴合，抗反射涂层</dd>\n</dl>\n<dl>\n<dt>分辨率</dt>\n<dd>2880×1920</dd>\n</dl>\n<dl>\n<dt>刷新率</dt>\n<dd>30Hz 至 120Hz 自适应</dd>\n</dl>\n<dl>\n<dt>亮度</dt>\n<dd>最高 600 尼特</dd>\n</dl>\n</div>\n<div>\n<h3>性能</h3>\n<dl>\n<dt>处理器</dt>\n<dd>八核</dd>\n</dl>\n<dl>\n<dt>运行内存</dt>\n<dd>8GB</dd>\n</dl>\n<dl>\n<dt>机身存储</dt>\n<dd>128GB</dd>\n</dl>\n</div>\n<div>\n<h3>摄像头</h3>\n<dl>\n<dt>前置</dt>\n<dd>1200 万像素超广角</dd>\n</dl>\n<dl>\n<dt>后置</dt>\n<dd>1300 万像素单摄</dd>\n</dl>\n</div>\n<div>\n<h3>连接</h3>\n<dl>\n<dt>无线</dt>\n<dd>Wi-Fi 6、蓝牙</dd>\n</dl>\n<dl>\n<dt>接口</dt>\n<dd>USB-C，支持视频输出</dd>\n</dl>\n</div>\n<div>\n<h3>音频</h3>\n<dl>\n<dt>扬声器</dt>\n<dd>4 只</dd>\n</dl>\n<dl>\n<dt>麦克风</dt>\n<dd>2 只</dd>\n</dl>\n</div>\n<div>\n<h3>电池</h3>\n<dl>\n<dt>容量</dt>\n<dd>10000 毫安时</dd>\n</dl>\n<dl>\n<dt>续航</dt>\n<dd>连续播放视频约 12 小时</dd>\n</dl>\n<dl>\n<dt>充电</dt>\n<dd>45 瓦有线快充</dd>\n</dl>\n</div>\n<div>\n<h3>包装清单</h3>\n<p>平板电脑 ×1、USB-C 充电线 ×1、45 瓦充电器 ×1、入门指南 ×1</p>\n</div>",
+        "storage": "128GB",
+        "storageKey": "2"
+      },
+      "image": "{{asset:img/phone/large-tablet.jpg}}",
+      "originId": "a-large-tablet",
+      "publishOffsetDays": -16,
+      "text": "<p>这台平板是一块可以拿在手里的 13 英寸画板。配上手写笔，它是随身的笔记本和速写本；接上键盘保护套，又能处理邮件、文档和一场临时的视频会议。石墨灰色的金属机身只有 6.8mm 厚，放进公文包几乎不占地方。</p>\n<h3>屏幕</h3>\n<p>13 英寸全贴合 LCD 屏，分辨率 2880×1920，三比二的比例竖着拿时接近一页稿纸，横过来分屏，左右两个窗口都不局促。刷新率在 30Hz 到 120Hz 之间自动调节，笔尖跟手，写字不拖影。屏幕最高亮度 600 尼特，表面有抗反射涂层，坐在窗边也看得清。</p>\n<h3>性能与续航</h3>\n<p>八核处理器配 8GB 运行内存，文献、笔记和浏览器来回切换，不会重新加载。机身存储 128GB。10000 毫安时电池连续播放视频约 12 小时，随附的 45 瓦充电器一个半小时可以充满。机身没有风扇，全程安静。</p>\n<h3>影音与连接</h3>\n<ul>\n<li>四只扬声器分布在两条短边，横竖握持都是立体声；</li>\n<li>前置 1200 万像素超广角摄像头，视频通话时自动把人留在画面中央；</li>\n<li>后置 1300 万像素单摄，扫描文件和白板足够清楚；</li>\n<li>Wi-Fi 6 与蓝牙，USB-C 接口可外接显示器和存储设备。</li>\n</ul>\n<h3>适合谁</h3>\n<p>需要大量批注文献的学生和研究者、常画草图的设计师，以及想用一块大屏幕看剧、读谱的家庭用户。它重约 640g，更适合放在桌面或膝上，而不是长时间单手举着。</p>\n<h3>包装清单</h3>\n<p>平板电脑、USB-C 充电线、45 瓦充电器和入门指南各一件。手写笔与键盘保护套需要另购。</p>",
+      "title": "13 英寸大屏平板电脑"
+    },
+    {
+      "channel": "phone",
+      "customs": {
+        "guidePrice": 4299,
+        "price": 3999,
+        "screen": "6.0-6.49英寸",
+        "screenKey": "3",
+        "specifications": "<div>\n<h3>主体</h3>\n<dl>\n<dt>产品类型</dt>\n<dd>智能手机</dd>\n</dl>\n<dl>\n<dt>机身颜色</dt>\n<dd>石墨灰</dd>\n</dl>\n<dl>\n<dt>存储配置</dt>\n<dd>8GB 运行内存，256GB 机身存储</dd>\n</dl>\n</div>\n<div>\n<h3>机身</h3>\n<dl>\n<dt>机身尺寸</dt>\n<dd>147.6×71.5×7.9mm（不含镜头凸起）</dd>\n</dl>\n<dl>\n<dt>重量</dt>\n<dd>约 176g</dd>\n</dl>\n<dl>\n<dt>材质</dt>\n<dd>磨砂玻璃后盖，铝合金中框</dd>\n</dl>\n<dl>\n<dt>防护等级</dt>\n<dd>IP68（IEC 60529 标准）</dd>\n</dl>\n</div>\n<div>\n<h3>屏幕</h3>\n<dl>\n<dt>类型</dt>\n<dd>OLED 全面屏，无刘海、无开孔</dd>\n</dl>\n<dl>\n<dt>尺寸</dt>\n<dd>6.1 英寸</dd>\n</dl>\n<dl>\n<dt>分辨率</dt>\n<dd>2400×1080</dd>\n</dl>\n<dl>\n<dt>刷新率</dt>\n<dd>1Hz 至 120Hz 自适应</dd>\n</dl>\n<dl>\n<dt>亮度</dt>\n<dd>最高 1600 尼特，支持 HDR</dd>\n</dl>\n</div>\n<div>\n<h3>后置摄像头</h3>\n<dl>\n<dt>数量</dt>\n<dd>1 枚</dd>\n</dl>\n<dl>\n<dt>像素</dt>\n<dd>5000 万</dd>\n</dl>\n<dl>\n<dt>光圈</dt>\n<dd>F1.8</dd>\n</dl>\n<dl>\n<dt>等效焦距</dt>\n<dd>24mm</dd>\n</dl>\n<dl>\n<dt>防抖</dt>\n<dd>光学防抖</dd>\n</dl>\n</div>\n<div>\n<h3>前置摄像头</h3>\n<dl>\n<dt>类型</dt>\n<dd>屏下摄像头</dd>\n</dl>\n<dl>\n<dt>像素</dt>\n<dd>1600 万</dd>\n</dl>\n<dl>\n<dt>光圈</dt>\n<dd>F2.4</dd>\n</dl>\n</div>\n<div>\n<h3>性能</h3>\n<dl>\n<dt>处理器</dt>\n<dd>八核，1 个超大核、3 个大核、4 个小核</dd>\n</dl>\n</div>\n<div>\n<h3>电池与充电</h3>\n<dl>\n<dt>电池容量</dt>\n<dd>4600 毫安时</dd>\n</dl>\n<dl>\n<dt>有线充电</dt>\n<dd>最高 45 瓦</dd>\n</dl>\n<dl>\n<dt>无线充电</dt>\n<dd>最高 15 瓦</dd>\n</dl>\n</div>\n<div>\n<h3>网络与连接</h3>\n<dl>\n<dt>移动网络</dt>\n<dd>第五代移动通信，向下兼容</dd>\n</dl>\n<dl>\n<dt>手机卡</dt>\n<dd>双卡双待</dd>\n</dl>\n<dl>\n<dt>无线</dt>\n<dd>Wi-Fi 6、蓝牙、NFC</dd>\n</dl>\n<dl>\n<dt>定位</dt>\n<dd>多系统卫星定位</dd>\n</dl>\n<dl>\n<dt>接口</dt>\n<dd>USB-C，无独立耳机孔</dd>\n</dl>\n</div>\n<div>\n<h3>其他</h3>\n<dl>\n<dt>解锁方式</dt>\n<dd>屏下指纹、面部识别</dd>\n</dl>\n</div>\n<div>\n<h3>包装清单</h3>\n<p>手机 ×1、USB-C 数据线 ×1、透明保护壳 ×1、取卡针 ×1、入门指南 ×1</p>\n</div>",
+        "storage": "256GB",
+        "storageKey": "3"
+      },
+      "image": "{{asset:img/phone/smartphone-front-back.png}}",
+      "originId": "a-fullscreen-smartphone",
+      "publishOffsetDays": -17,
+      "text": "<p>这是一部单手握得住的全面屏手机。6.1 英寸的屏幕、约 176g 的重量和圆润的中框，让它在大屏当道的今天显得很克制；屏幕、影像、续航三项都做得均衡，没有哪一项拖后腿。</p>\n<h3>正面只有屏幕</h3>\n<p>6.1 英寸 OLED 屏幕四边等宽，看不到刘海和挖孔，自拍镜头收在屏幕底下，看视频和读长文时画面完整。分辨率 2400×1080，刷新率 1Hz 至 120Hz 自适应，最高亮度 1600 尼特，正午在户外看导航不费劲，支持 HDR 视频播放。</p>\n<h3>一枚镜头，认真调校</h3>\n<p>背面上方正中是一枚圆形摄像头，里面是 5000 万像素的主摄，F1.8 光圈，带光学防抖，等效焦距 24mm。它没有靠镜头数量凑参数：两倍变焦由传感器中央裁切完成，画质接近光学变焦；夜景模式下手持两秒，就能拍出干净的街景。</p>\n<h3>性能与续航</h3>\n<p>处理器为八核，配 8GB 运行内存和 256GB 存储空间。电池容量 4600 毫安时，日常使用可以撑到睡前；45 瓦有线快充三十分钟充到七成，另支持 15 瓦无线充电。</p>\n<h3>机身</h3>\n<p>石墨灰色的磨砂玻璃后盖不留指纹，中框为铝合金。按 IEC 60529 标准，整机防尘防水达到 IP68 等级，淋雨和溅水不必担心。</p>\n<h3>谁会喜欢它</h3>\n<ul>\n<li>手小，或者习惯单手打字的人；</li>\n<li>不想研究多镜头切换、举起就拍的人；</li>\n<li>需要一部轻巧备用机的商务用户。</li>\n</ul>\n<p>包装内有手机、USB-C 数据线、透明保护壳、取卡针和入门指南，充电器需要另购。</p>",
+      "title": "6.1 英寸全面屏智能手机"
+    },
+    {
+      "channel": "phone",
+      "customs": {
+        "guidePrice": 7499,
+        "price": 6999,
+        "screen": "6.5英寸以上",
+        "screenKey": "4",
+        "specifications": "<div>\n<h3>主体</h3>\n<dl>\n<dt>产品类型</dt>\n<dd>笔记本电脑</dd>\n</dl>\n<dl>\n<dt>机身颜色</dt>\n<dd>哑光黑</dd>\n</dl>\n<dl>\n<dt>机身材质</dt>\n<dd>工程塑料，哑光防滑涂层</dd>\n</dl>\n</div>\n<div>\n<h3>尺寸与重量</h3>\n<dl>\n<dt>机身尺寸</dt>\n<dd>约 380×252×21.5mm</dd>\n</dl>\n<dl>\n<dt>重量</dt>\n<dd>约 1.9kg</dd>\n</dl>\n</div>\n<div>\n<h3>显示</h3>\n<dl>\n<dt>屏幕</dt>\n<dd>16 英寸 LCD，防眩光</dd>\n</dl>\n<dl>\n<dt>分辨率</dt>\n<dd>1920×1080</dd>\n</dl>\n<dl>\n<dt>比例</dt>\n<dd>16:9</dd>\n</dl>\n<dl>\n<dt>刷新率</dt>\n<dd>60Hz</dd>\n</dl>\n<dl>\n<dt>开合角度</dt>\n<dd>最大 180 度</dd>\n</dl>\n</div>\n<div>\n<h3>性能</h3>\n<dl>\n<dt>处理器</dt>\n<dd>八核十六线程</dd>\n</dl>\n<dl>\n<dt>显卡</dt>\n<dd>集成显卡</dd>\n</dl>\n<dl>\n<dt>内存</dt>\n<dd>16GB，2 个插槽，最高支持 64GB</dd>\n</dl>\n<dl>\n<dt>硬盘</dt>\n<dd>512GB 固态硬盘，另有 1 个扩展位</dd>\n</dl>\n</div>\n<div>\n<h3>键盘与触控</h3>\n<dl>\n<dt>键盘</dt>\n<dd>全尺寸，带数字小键盘，键程 1.5mm</dd>\n</dl>\n<dl>\n<dt>触控板</dt>\n<dd>带左右两个实体按键</dd>\n</dl>\n</div>\n<div>\n<h3>接口</h3>\n<dl>\n<dt>数据接口</dt>\n<dd>USB-C 接口 2 个，支持充电和视频输出</dd>\n</dl>\n<dl>\n<dt>显示接口</dt>\n<dd>HDMI 接口 1 个</dd>\n</dl>\n<dl>\n<dt>有线网络</dt>\n<dd>千兆网口</dd>\n</dl>\n<dl>\n<dt>读卡器</dt>\n<dd>存储卡读卡器</dd>\n</dl>\n<dl>\n<dt>音频接口</dt>\n<dd>耳机麦克风二合一</dd>\n</dl>\n</div>\n<div>\n<h3>无线</h3>\n<dl>\n<dt>无线局域网</dt>\n<dd>Wi-Fi 6</dd>\n</dl>\n<dl>\n<dt>蓝牙</dt>\n<dd>5.3</dd>\n</dl>\n</div>\n<div>\n<h3>电池</h3>\n<dl>\n<dt>容量</dt>\n<dd>72 瓦时</dd>\n</dl>\n<dl>\n<dt>续航</dt>\n<dd>处理文档约 11 小时</dd>\n</dl>\n<dl>\n<dt>适配器</dt>\n<dd>65 瓦，USB-C 接口</dd>\n</dl>\n</div>\n<div>\n<h3>包装清单</h3>\n<p>笔记本电脑 ×1、65 瓦 USB-C 充电器 ×1、充电线 ×1、入门指南 ×1、保修卡 ×1</p>\n</div>",
+        "storage": "512GB",
+        "storageKey": "4"
+      },
+      "image": "{{asset:img/phone/business-laptop.jpg}}",
+      "originId": "a-business-laptop",
+      "publishOffsetDays": -15,
+      "text": "<p>这台笔记本是为办公桌设计、也经得起出差的商务电脑。16 英寸的屏幕可以并排摆开两份文档，带数字小键盘的全尺寸键盘方便财务和数据岗位录入，哑光黑的机身朴素耐用，放在会议桌上不抢眼。</p>\n<h3>屏幕与键盘</h3>\n<p>16 英寸防眩光 LCD 屏，分辨率 1920×1080，画面比例十六比九。屏幕表面做了雾面处理，压住了顶灯和窗外的反光，屏幕可以展开到 180 度平放，方便隔着桌子给同事看方案。键盘键程 1.5mm，回弹干脆；触控板底部留着左右两枚实体键，拖拽单元格更准。</p>\n<h3>性能与扩展</h3>\n<p>处理器是八核十六线程，显卡为集成显卡，出厂装有 16GB 内存和一块 512GB 的固态硬盘，同时开着几十个网页标签、大型表格和视频会议也不迟滞。拧下底盖的螺丝，里面有两个内存插槽（最高支持 64GB）和一个空闲的硬盘位，几年后升级不必更换整机。</p>\n<h3>接口与续航</h3>\n<ul>\n<li>两个 USB-C 接口，都支持充电和视频输出；</li>\n<li>一个 HDMI 接口，接投影仪不用转接头；</li>\n<li>千兆有线网口、存储卡读卡器和耳机麦克风二合一接口；</li>\n<li>72 瓦时电池，处理文档约可用 11 小时，65 瓦充电器一小时充到八成。</li>\n</ul>\n<h3>适合谁</h3>\n<p>需要大屏和数字键盘的财务、行政与工程人员，为团队统一采购设备的中小企业，以及想要一台能自行升级、可以用很多年的家用主力机的用户。它重约 1.9kg，每天背着通勤略沉，更适合在办公室和家之间偶尔移动。</p>\n<h3>包装清单</h3>\n<p>主机、65 瓦 USB-C 充电器、充电线、入门指南和保修卡各一件。</p>",
+      "title": "16 英寸商务笔记本电脑"
+    }
+  ]
+}

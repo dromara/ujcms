@@ -1,0 +1,259 @@
+databaseChangeLog:
+  # 种子来源三元组（13.0 重整：原 11.9 内容三表 + 11.x-{block,vote,survey,model,dict-type,
+  # form-type}-origin 合并；docs/spec/theme-seed-export/plan.md、docs/spec/model-seeding/plan.md）：
+  #   可种子化实体统一增加 origin_ / origin_id_ / origin_hash_
+  #   （VARCHAR(128) / VARCHAR(128) / CHAR(64)，均可空）。种子导入按
+  #   (site_id_, origin_, origin_id_) select-then-insert 幂等，索引按此三列。
+  #   - 内容三表（channel/article/topic）：topic 建表在 db.changelog-13.0-topic.yaml，
+  #     三元组已并入其建表变更集。
+  #   - 定义类（block/vote/survey/model/dict_type/form_type/friend_link_type）：种子定义恒为
+  #     本站私有（scope=0），全局行永不携带来源标记；有别名者（block、dict_type、
+  #     friend_link_type、model 的 (type_, name_)）撞可见集 → linked 恒不收编；
+  #     无别名者（vote/survey/form_type，文章式）恒不 linked。
+  #     条目/选项/计票/提交等行为数据恒不入种子。
+  #   - 构成表（placement/page_region）的来源列已并入 db.changelog-13.0-composition.yaml。
+  #   origin 列不进通用 update/Entities.copy（由导入器专用语句写入）。
+
+  - changeSet:
+      id: 13.0-channel-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_channel
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_channel_origin
+            tableName: ujcms_channel
+
+  - changeSet:
+      id: 13.0-article-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_article
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_article_origin
+            tableName: ujcms_article
+
+  - changeSet:
+      id: 13.0-block-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_block
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_block_origin
+            tableName: ujcms_block
+
+  - changeSet:
+      id: 13.0-vote-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_vote
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_vote_origin
+            tableName: ujcms_vote
+
+  - changeSet:
+      id: 13.0-survey-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_survey
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_survey_origin
+            tableName: ujcms_survey
+
+  - changeSet:
+      id: 13.0-model-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_model
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_model_origin
+            tableName: ujcms_model
+
+  - changeSet:
+      id: 13.0-dict-type-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_dict_type
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_dict_type_origin
+            tableName: ujcms_dict_type
+
+  - changeSet:
+      id: 13.0-form-type-origin
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_form_type
+            columns:
+              - column:
+                  name: origin_
+                  remarks: 来源(如 theme:default)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_id_
+                  remarks: 来源ID(种子文件内稳定ID)
+                  type: VARCHAR(128)
+              - column:
+                  name: origin_hash_
+                  remarks: 来源散列(导入时刻种子形投影SHA-256)
+                  type: CHAR(64)
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: origin_
+              - column:
+                  name: origin_id_
+            indexName: idx_form_type_origin
+            tableName: ujcms_form_type
+
+  # 链接组（原 友情链接，E4f，theme-seed-export §9.6 / D42）：区块式（别名撞可见集 →
+  # linked 恒不收编）；链接行随定义（选项式，无独立三元组）。来源三元组随表直建，
+  # 见 db.changelog-13.0-link-group.yaml。

@@ -1,0 +1,150 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'notification'/]
+[#escape x as (x)!?html]
+[@layout title='通知 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings" class="cm-link text-slate-700">个人中心</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">通知</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3"
+    x-data="{
+      items: [], page: 1, totalPages: 1, total: null, loading: false,
+      // null：全部；false：未读
+      isRead: null,
+      typeLabels: {1:'系统公告',2:'评论回复',3:'@提及',4:'关注文章新评论',5:'关注栏目新文章',6:'好友申请',7:'好友通过',8:'新粉丝',9:'关注用户新文章'},
+      link(bean) {
+        if (bean.article && bean.article.url) return bean.article.url;
+        if (bean.channel && bean.channel.url) return bean.channel.url;
+        return bean.url || null;
+      },
+      senderName(bean) {
+        if (!bean.sender) return '系统';
+        if (String(bean.sender.id) === '0') return '匿名网友';
+        return bean.sender.nickname || bean.sender.username;
+      },
+      async load(page) {
+        if (this.loading) return;
+        this.loading = true;
+        try {
+          let url = '${api}/notification/page?page=' + page + '&pageSize=10';
+          if (this.isRead !== null) url += '&isRead=' + this.isRead;
+          const d = await window.request('GET', url);
+          if (page === 1) this.items = [];
+          this.items.push(...((d && d.content) || []));
+          this.total = d.page ? String(d.page.totalElements) : null;
+          this.page = page;
+          this.totalPages = Number((d.page || {}).totalPages || 1);
+        } catch (e) {
+          window.displayAlert(e.message || '加载失败');
+        } finally {
+          this.loading = false;
+        }
+      },
+      selectTab(v) { this.isRead = v; this.load(1); },
+      async open(bean) {
+        const link = this.link(bean);
+        const navigate = () => { if (link) window.location.href = link; };
+        if (bean.read) { navigate(); return; }
+        try {
+          await window.fetchCsrf();
+          await window.request('PUT', '${api}/notification/read', { ids: [bean.id] });
+          window.dispatchEvent(new CustomEvent('unread-changed'));
+          if (link) navigate();
+          else this.load(1);
+        } catch (e) { window.displayAlert(e.message || '操作失败'); }
+      },
+      async readAll() {
+        try {
+          await window.fetchCsrf();
+          await window.request('PUT', '${api}/notification/read-all');
+          window.displaySuccess('已全部标记为已读！');
+          window.dispatchEvent(new CustomEvent('unread-changed'));
+          this.load(1);
+        } catch (e) { window.displayAlert(e.message || '操作失败'); }
+      },
+      async clearRead() {
+        if (!confirm('确定清空已读通知？')) return;
+        try {
+          await window.fetchCsrf();
+          await window.request('DELETE', '${api}/notification/read');
+          window.displaySuccess('已清空已读通知！');
+          this.load(1);
+        } catch (e) { window.displayAlert(e.message || '操作失败'); }
+      }
+    }"
+    x-init="load(1)"
+  >
+    <div class="flex items-baseline gap-2 pb-2 border-b border-slate-200">
+      <h1 class="flex items-center gap-2 text-xl font-bold font-display">
+        <span class="size-5 text-primary inline-block">[@icon 'notifications-outline'/]</span>
+        <span>通知</span>
+      </h1>
+      <span class="text-sm text-slate-500" x-show="total !== null" x-text="'(' + total + ')'"></span>
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+      <div class="flex gap-1.5 text-sm" role="tablist" aria-label="通知筛选">
+        <button type="button" @click="selectTab(null)"
+                class="px-2.5 py-1 rounded" :class="isRead === null ? 'bg-primary text-primary-foreground' : 'text-primary hover:bg-slate-100'">全部</button>
+        <button type="button" @click="selectTab(false)"
+                class="px-2.5 py-1 rounded" :class="isRead === false ? 'bg-primary text-primary-foreground' : 'text-primary hover:bg-slate-100'">未读</button>
+      </div>
+      <div class="ml-auto flex gap-1.5 text-sm">
+        <button type="button" @click="readAll()"
+                class="px-2.5 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-50">全部已读</button>
+        <button type="button" @click="clearRead()"
+                class="px-2.5 py-1 rounded border border-rose-200 text-rose-600 hover:bg-rose-50">清空已读</button>
+      </div>
+    </div>
+
+    <ul class="divide-y divide-slate-100">
+      <template x-for="bean in items" :key="bean.id">
+        <li>
+          <button type="button" @click="open(bean)" class="w-full py-3 text-left space-y-1 hover:bg-slate-50 rounded px-1">
+            <span class="flex items-center gap-2 text-sm">
+              <span x-show="!bean.read" class="px-1.5 py-0.5 rounded bg-rose-600 text-white text-xs shrink-0">未读</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 text-xs shrink-0"
+                    x-text="typeLabels[bean.type] || '通知'"></span>
+              <span class="truncate" :class="bean.read ? 'text-slate-500' : 'font-semibold'"
+                    x-text="bean.title || ''"></span>
+            </span>
+            <span x-show="bean.text" class="block text-sm truncate" :class="bean.read ? 'text-slate-400' : 'text-slate-600'"
+                  x-text="bean.text || ''"></span>
+            <span class="block text-xs text-slate-400">
+              <span x-text="senderName(bean)"></span>
+              <span x-text="' · ' + window.formatDateTime(bean.created)"></span>
+            </span>
+          </button>
+        </li>
+      </template>
+    </ul>
+
+    <div x-show="total === '0'" x-cloak class="py-12 text-center">
+      <div class="size-12 mx-auto mb-3 inline-flex items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <span class="size-6 inline-block">[@icon 'notifications-outline'/]</span>
+      </div>
+      <p class="text-slate-500 text-sm">暂无通知</p>
+    </div>
+
+    <div x-show="totalPages > page" x-cloak class="text-center my-4">
+      <button type="button" @click="load(page + 1)" :disabled="loading"
+              class="px-4 py-2 rounded border border-slate-300 text-sm hover:bg-slate-50 disabled:opacity-60">加载更多</button>
+    </div>
+  </section>
+</div>
+[/@layout]
+[/#escape]

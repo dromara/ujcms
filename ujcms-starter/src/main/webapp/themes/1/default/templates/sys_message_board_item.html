@@ -1,0 +1,76 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign mbUrl = dy + '/message-board'/]
+[@layout title=messageBoard.title + ' - ' + site.title keywords=messageBoard.title + ',留言,' + (site.seoKeywords!'') description=substring(messageBoard.text, 150, '...')]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${mbUrl}" class="cm-link">留言板</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700 truncate max-w-[16rem]">${messageBoard.title}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <div class="flex justify-between items-baseline border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'comment-outline'/]</span>
+      <a href="${mbUrl}" class="cm-link">留言板</a>
+    </h1>
+    <a href="${mbUrl}/create"
+       class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">我要留言</a>
+  </div>
+
+  <article class="space-y-3">
+    <h2 class="text-xl font-semibold flex items-center flex-wrap gap-2">
+      [#if messageBoard.replied]
+        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs">已回复</span>
+      [#else]
+        <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-xs">未回复</span>
+      [/#if]
+      <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs">${messageBoard.type.name}</span>
+      <span>${messageBoard.title}</span>
+    </h2>
+    <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 pb-2 border-b border-slate-200">
+      <span class="inline-flex items-center gap-1">
+        <span class="size-3 inline-block">[@icon 'person-outline'/]</span>
+        ${messageBoard.user.username!messageBoard.nickname!'匿名网友'}
+      </span>
+      <span class="inline-flex items-center gap-1">
+        <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+        ${format(messageBoard.created, 'yyyy-MM-dd')}
+      </span>
+    </div>
+    <div class="prose max-w-none text-slate-800">
+      [#noescape]${bbcode(messageBoard.text)}[/#noescape]
+    </div>
+  </article>
+
+  [#if messageBoard.replyText?has_content]
+    <div class="rounded-lg border border-amber-300 bg-amber-50/40 p-4 space-y-2">
+      <h3 class="flex items-center gap-2 font-semibold text-rose-600">
+        <span class="size-5 inline-block">[@icon 'comment-outline'/]</span>
+        <span>官方回复</span>
+      </h3>
+      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+        <span class="inline-flex items-center gap-1">
+          <span class="size-3 inline-block">[@icon 'person-outline'/]</span>
+          ${(messageBoard.replyUser.username)!'管理员'}
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+          ${format(messageBoard.replyDate, 'yyyy-MM-dd')}
+        </span>
+      </div>
+      <div class="prose max-w-none text-slate-800">
+        [#noescape]${messageBoard.replyText!}[/#noescape]
+      </div>
+    </div>
+  [/#if]
+</div>
+[/@layout]
+[/#escape]

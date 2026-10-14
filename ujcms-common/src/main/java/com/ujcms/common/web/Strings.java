@@ -4,7 +4,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.Strings.CS;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.util.HtmlUtils;
 
 import java.nio.charset.StandardCharsets;

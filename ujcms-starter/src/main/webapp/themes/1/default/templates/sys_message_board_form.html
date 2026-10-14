@@ -1,0 +1,145 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign mbUrl = dy + '/message-board'/]
+[@layout title='我要留言 - ' + site.title keywords='留言,' + (site.seoKeywords!'') description=site.seoDescription!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${mbUrl}" class="cm-link">留言板</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">我要留言</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <div class="flex justify-between items-baseline border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'edit-outline'/]</span>
+      <span>我要留言</span>
+    </h1>
+    <a href="${mbUrl}" class="text-sm cm-link">返回列表</a>
+  </div>
+
+  [@MessageBoardTypeList; typeList]
+
+  <form
+    x-data="{
+      typeId: [#if typeList?size gt 0]'${typeList[0].id?c}'[#else]''[/#if],
+      title: '', text: '', contact: '', phone: '', email: '',
+      captcha: '', captchaToken: '', captchaImg: '',
+      submitting: false,
+      async fetchCaptcha() {
+        try {
+          const data = await window.request('GET', '${api}/captcha');
+          this.captchaImg = 'data:image/png;base64,' + data.image;
+          this.captchaToken = data.token;
+        } catch (e) { window.displayAlert(e.message || '获取验证码失败'); }
+      },
+      async submit() {
+        if (this.submitting) return;
+        this.submitting = true;
+        try {
+          await window.fetchCsrf();
+          const payload = {
+            // 雪花 ID 超过 JS 安全整数范围（2^53），须以字符串提交，不能转为 Number
+            siteId: '${site.id?c}',
+            typeId: this.typeId,
+            title: this.title,
+            text: this.text,
+            contact: this.contact || null,
+            phone: this.phone || null,
+            email: this.email || null,
+            captcha: this.captcha,
+            captchaToken: this.captchaToken,
+          };
+          const res = await window.request('POST', '${api}/message-board', payload);
+          if (res && res.status === 0) {
+            window.displaySuccess('留言成功，等待管理员审核');
+            window.location.href = '${mbUrl}';
+          } else if (res && res.message) {
+            window.displayAlert(res.message);
+            this.captcha = ''; this.fetchCaptcha();
+          }
+        } catch (e) {
+          window.displayAlert(e.message || '提交失败');
+          this.captcha = ''; this.fetchCaptcha();
+        } finally { this.submitting = false; }
+      }
+    }"
+    x-init="fetchCaptcha()"
+    @submit.prevent="submit"
+    class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-5"
+  >
+    [#if typeList?size gt 0]
+      <fieldset class="space-y-2">
+        <legend class="text-sm font-semibold text-slate-700">留言类别<span class="ml-0.5 text-rose-500">*</span></legend>
+        <div class="flex flex-wrap gap-2">
+          [#list typeList as type]
+            <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-200 hover:border-primary cursor-pointer text-sm">
+              <input type="radio" name="typeId" x-model="typeId" value="${type.id?c}" required>
+              <span>${type.name}</span>
+            </label>
+          [/#list]
+        </div>
+      </fieldset>
+    [/#if]
+
+    <div>
+      <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">留言标题<span class="ml-0.5 text-rose-500">*</span></label>
+      <input id="title" type="text" required maxlength="150" x-model="title" autofocus
+             class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+    </div>
+
+    <div>
+      <label for="text" class="block text-sm font-medium text-slate-700 mb-1.5">留言内容<span class="ml-0.5 text-rose-500">*</span></label>
+      <textarea id="text" required maxlength="2000" rows="6" x-model="text"
+                class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"></textarea>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="contact" class="block text-sm font-medium text-slate-700 mb-1.5">联系人</label>
+        <input id="contact" type="text" maxlength="50" x-model="contact"
+               class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+      </div>
+      <div>
+        <label for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">联系电话</label>
+        <input id="phone" type="tel" maxlength="50" x-model="phone"
+               class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+      </div>
+    </div>
+
+    <div>
+      <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">电子邮箱</label>
+      <input id="email" type="email" maxlength="50" x-model="email"
+             class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+    </div>
+
+    <div>
+      <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码<span class="ml-0.5 text-rose-500">*</span></label>
+      <div class="flex gap-2">
+        <input id="captcha" type="text" required maxlength="8" autocomplete="off" x-model="captcha"
+               class="flex-1 rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+        <img :src="captchaImg" alt="图形验证码" @click="fetchCaptcha" title="点击换一张"
+             class="h-10 w-32 rounded border border-slate-300 cursor-pointer object-contain bg-slate-50 hover:border-primary">
+      </div>
+    </div>
+
+    <button type="submit" :disabled="submitting"
+            class="w-full sm:w-auto px-5 py-2.5 rounded bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+      <span x-show="!submitting">确认提交</span>
+      <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+        <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+        <span>提交中…</span>
+      </span>
+    </button>
+  </form>
+
+  [/@MessageBoardTypeList]
+</div>
+[/@layout]
+[/#escape]

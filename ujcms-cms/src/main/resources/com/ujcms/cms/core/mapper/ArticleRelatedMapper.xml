@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ArticleRelatedMapper">
+    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ArticleRelated">
+        <id column="article_id_" jdbcType="BIGINT" property="articleId"/>
+        <id column="related_id_" jdbcType="BIGINT" property="relatedId"/>
+        <result column="order_" jdbcType="INTEGER" property="order"/>
+    </resultMap>
+
+    <sql id="Column_List">
+        t.article_id_, t.related_id_, t.order_
+    </sql>
+
+    <sql id="Status_Filter">
+        <if test="status != null and !status.isEmpty()">
+            and t.status_ in
+            <foreach item="item" collection="status" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="exists" resultType="int">
+        select count(*)
+        from ujcms_article_related
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+          and related_id_ = #{relatedId,jdbcType=BIGINT}
+    </select>
+
+    <select id="maxOrderByArticleId" resultType="java.lang.Integer">
+        select max(order_)
+        from ujcms_article_related
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </select>
+
+    <select id="listByArticleId" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_article_related t
+        where t.article_id_ = #{articleId,jdbcType=BIGINT}
+        order by t.order_ asc, t.related_id_ asc
+    </select>
+
+    <select id="listRelatedArticles" resultMap="com.ujcms.cms.core.mapper.ArticleMapper.ResultMap">
+        select
+        <include refid="com.ujcms.cms.core.mapper.ArticleMapper.Column_List"/>
+        from ujcms_article t
+        join ujcms_article_related ar on ar.related_id_ = t.id_
+        where ar.article_id_ = #{articleId,jdbcType=BIGINT}
+        <include refid="Status_Filter"/>
+        order by ar.order_ asc, t.id_ desc
+    </select>
+
+    <select id="listIncomingArticles" resultMap="com.ujcms.cms.core.mapper.ArticleMapper.ResultMap">
+        select
+        <include refid="com.ujcms.cms.core.mapper.ArticleMapper.Column_List"/>
+        from ujcms_article t
+        join ujcms_article_related ar on ar.article_id_ = t.id_
+        where ar.related_id_ = #{articleId,jdbcType=BIGINT}
+        <include refid="Status_Filter"/>
+        order by t.publish_date_ desc, t.id_ desc
+    </select>
+
+    <insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleRelated">
+        insert into ujcms_article_related (article_id_, related_id_, order_)
+        values (#{articleId,jdbcType=BIGINT}, #{relatedId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="insertAll">
+        insert into ujcms_article_related (article_id_, related_id_, order_)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.articleId,jdbcType=BIGINT}, #{item.relatedId,jdbcType=BIGINT}, #{item.order,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <delete id="delete" parameterType="map">
+        delete from ujcms_article_related
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+          and related_id_ = #{relatedId,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteOutgoing" parameterType="long">
+        delete from ujcms_article_related
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByArticleId" parameterType="long">
+        delete from ujcms_article_related
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+           or related_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteBySiteId" parameterType="long">
+        delete from ujcms_article_related
+        where article_id_ in (select id_ from ujcms_article where site_id_ = #{siteId,jdbcType=BIGINT})
+           or related_id_ in (select id_ from ujcms_article where site_id_ = #{siteId,jdbcType=BIGINT})
+    </delete>
+</mapper>

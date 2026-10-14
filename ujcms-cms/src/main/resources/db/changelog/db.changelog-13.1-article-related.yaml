@@ -1,0 +1,56 @@
+databaseChangeLog:
+  # 相关文章（docs/spec/article-related/plan.md）：有向关联表，A→B 一行，A↔B 两行；order_ 为 A 列表内的位置。
+  # 外键 CASCADE 仅作硬删兜底，ArticleService.completelyDelete / preSiteDelete 显式清理双向行
+  - changeSet:
+      id: 13.1-create-article-related
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: article_id_
+                  remarks: 文章ID（关联列表的所有者）
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: related_id_
+                  remarks: 相关文章ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 999999
+                  name: order_
+                  remarks: 在所有者列表内的排序
+                  type: INT
+            remarks: 相关文章关联表
+            tableName: ujcms_article_related
+        - createIndex:
+            columns:
+              - column:
+                  name: related_id_
+            indexName: idx_article_related_related
+            tableName: ujcms_article_related
+        - addForeignKeyConstraint:
+            baseColumnNames: article_id_
+            baseTableName: ujcms_article_related
+            constraintName: fk_article_related_article
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: related_id_
+            baseTableName: ujcms_article_related
+            constraintName: fk_article_related_related
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_article
+            validate: true

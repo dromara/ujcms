@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.ujcms.cms.core.lucene.domain.EsArticle;
 

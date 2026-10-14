@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.generated.GeneratedUser;
+import com.ujcms.cms.core.component.IpInteractionCounterService;
 import com.ujcms.cms.core.service.ActionService;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
@@ -65,12 +66,15 @@ public class VoteController {
     private final ActionService actionService;
     private final VoteService service;
     private final Props props;
+    private final IpInteractionCounterService interactionCounter;
 
-    public VoteController(SiteResolver siteResolver, ActionService actionService, VoteService service, Props props) {
+    public VoteController(SiteResolver siteResolver, ActionService actionService, VoteService service, Props props,
+                          IpInteractionCounterService interactionCounter) {
         this.siteResolver = siteResolver;
         this.actionService = actionService;
         this.service = service;
         this.props = props;
+        this.interactionCounter = interactionCounter;
     }
 
     private <T> T query(HttpServletRequest request, BiFunction<VoteArgs, Map<String, String>, T> handle) {
@@ -171,6 +175,10 @@ public class VoteController {
         Site site = siteResolver.resolve(request);
         long cookie = Constants.retrieveIdentityCookie(request, response);
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
+        // 匿名互动 IP 限流（默认关闭，防脚本刷量）
+        if (interactionCounter.isExcessive(ip, props.getInteractionMaxPerMinute())) {
+            return Responses.failure(request, "error.interactionExcessive");
+        }
         Long userId = Optional.ofNullable(Contexts.findCurrentUser()).map(GeneratedUser::getId).orElse(null);
         OffsetDateTime date = vote.getInterval() > 0 ? OffsetDateTime.now().minusDays(vote.getInterval()) : null;
         // 已经投过票
@@ -198,6 +206,7 @@ public class VoteController {
             return Responses.status(1004, request, "error.vote.alreadyVoted");
         }
         service.cast(params.id, optionIds, site.getId(), userId, ip, cookie);
+        interactionCounter.updateCount(ip);
         return Responses.ok();
     }
 

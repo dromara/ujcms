@@ -1,0 +1,48 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title='自定义表单 - ' + site.title keywords=site.seoKeywords!'' description=site.seoDescription!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">自定义表单</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display border-b border-slate-200 pb-2">
+      <span class="size-6 text-primary inline-block">[@icon 'dynamic-form-outline'/]</span>
+      <span>自定义表单</span>
+    </h1>
+
+    [@FormTypeList; formTypeList]
+    [#if formTypeList?size == 0]
+      <p class="py-8 text-center text-slate-500">暂无可用表单</p>
+    [#else]
+      <ul class="divide-y divide-slate-200">
+        [#list formTypeList as bean]
+          <li class="py-3 flex items-center justify-between gap-3">
+            [#-- viewable=false 的表单进不了 form-list（控制器返回 400），
+               此时主链接直接指向 form-create。 --]
+            [#if bean.viewable!false]
+              <a href="${dy}/form-list/${bean.id?c}" class="cm-link font-medium">${bean.name}</a>
+              <a href="${dy}/form-create/${bean.id?c}" class="px-3 py-1 rounded bg-primary text-primary-foreground text-xs hover:opacity-90">提交</a>
+            [#else]
+              <a href="${dy}/form-create/${bean.id?c}" class="cm-link font-medium">${bean.name}</a>
+              <a href="${dy}/form-create/${bean.id?c}" class="px-3 py-1 rounded bg-primary text-primary-foreground text-xs hover:opacity-90">提交</a>
+            [/#if]
+          </li>
+        [/#list]
+      </ul>
+    [/#if]
+    [/@FormTypeList]
+  </div>
+
+  [#include '../snippets/right.html'/]
+</div>
+[/@layout]
+[/#escape]

@@ -3,7 +3,7 @@ package com.ujcms.cms.core.support;
 import com.ujcms.common.security.Secures;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 工具类
@@ -37,17 +37,6 @@ public class Utils {
             return false;
         }
         return Strings.CS.equals(key, getDownloadKey(id, time, secret));
-    }
-
-    public static void boot() {
-        String epBoot = System.getProperty("ujcms.boot");
-        if (!Boolean.FALSE.toString().equals(epBoot)) {
-            try {
-                Class.forName("com.ujcms.cms.commercial.r1.a.Aa").getMethod("a").invoke(null);
-            } catch (Exception e) {
-                // ignore
-            }
-        }
     }
 
     private Utils() {

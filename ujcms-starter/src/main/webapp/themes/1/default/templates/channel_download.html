@@ -1,0 +1,90 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title="${channel.title} - ${site.title}" keywords=channel.seoKeywords!'' description=channel.seoDescription!'']
+[#-- Breadcrumb sub-nav（不带 isNav：显示全部兄弟栏目，而非仅导航栏目）。 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    [#assign parent = channel.parent!channel/]
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      [#if parent.id == channel.id]
+        <li><a href="${parent.url}" class="px-2 py-1 rounded bg-primary text-primary-foreground">全部</a></li>
+      [#else]
+        <li><a href="${parent.url}" class="px-2 py-1 rounded text-primary hover:bg-slate-200">全部</a></li>
+      [/#if]
+      [@ChannelList parentId=parent.id; siblingList]
+      [#list siblingList as bean]
+        <li>
+          [#if channel.id == bean.id]
+            <a href="${bean.url}" class="px-2 py-1 rounded bg-primary text-primary-foreground">${bean.name}</a>
+          [#else]
+            <a href="${bean.url}" class="px-2 py-1 rounded text-primary hover:bg-slate-200">${bean.name}</a>
+          [/#if]
+        </li>
+      [/#list]
+      [/@ChannelList]
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+
+    [#-- Facet filter chips. Wrapped in a single div so the parent's
+         space-y-4 doesn't add margin between facet rows. --]
+    <div>
+      [#assign customsQueryMap={}/]
+      [#list channel.articleModel.fieldList?filter(field->['radio','checkbox','select','multipleSelect']?seq_contains(field.type)) as field]
+        [#assign param=field.code+'Key'/]
+        <div class="py-1 border-b border-slate-200 flex flex-wrap items-center gap-2 text-sm">
+          [#if Params[param]??]
+            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="px-2 py-1 rounded text-primary hover:bg-slate-100">全部${field.name}</a>
+          [#else]
+            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="px-2 py-1 rounded bg-slate-200 text-slate-700">全部${field.name}</a>
+          [/#if]
+          [@DictList typeId=field.dictTypeId; dictList]
+          [#list dictList as dict]
+            [#if Params[param]! == dict.value]
+              <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}" class="px-2 py-1 rounded bg-slate-200 text-slate-700">${dict.name}</a>
+            [#else]
+              <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}" class="px-2 py-1 rounded text-primary hover:bg-slate-100">${dict.name}</a>
+            [/#if]
+          [/#list]
+          [/@DictList]
+        </div>
+        [#assign customsQueryMap=customsQueryMap + {'ArrayEQ_@articleExt-mainsJson$'+param+(field.dataType != 'string')?string('_Int',''): Params[param]!}/]
+      [/#list]
+    </div>
+
+    [@ArticlePage channelId=channel.id isIncludeSubChannel='true' Q_=customsQueryMap orderBy=channel.orderDesc?string('sticky_desc,order_desc','sticky_desc,order_asc'); pagedList]
+      [#if pagedList.content?size == 0]
+        <p class="py-8 text-center text-slate-500">暂无文章</p>
+      [#else]
+        <ul class="divide-y divide-slate-200">
+          [#assign list = pagedList.content/]
+          [#assign metric = 'downloads'/]
+          [#include '../snippets/part_article_items.html'/]
+        </ul>
+      [/#if]
+      [#include '../snippets/page.html'/]
+    [/@ArticlePage]
+  </div>
+
+  <aside class="space-y-3 hidden lg:block">
+    <h2 class="text-lg font-semibold border-b border-primary pb-2">下载排行榜</h2>
+    [@ArticleList channelId=channel.id isIncludeSubChannel='true' orderBy='@articleExt-downloads_desc' limit='10'; topDownloads]
+    <ul class="space-y-2">
+      [#list topDownloads as bean]
+        <li class="flex items-center gap-2 text-sm">
+          <span class="inline-flex items-center justify-center size-6 rounded text-xs font-semibold [#if bean_index lt 3]bg-primary text-primary-foreground[#else]bg-slate-200 text-slate-600[/#if]">${bean_index+1}</span>
+          <a href="${bean.url}" class="cm-link flex-1 truncate">${bean.title}</a>
+          <span class="text-slate-500 shrink-0">${bean.downloads}</span>
+        </li>
+      [/#list]
+    </ul>
+    [/@ArticleList]
+  </aside>
+</div>
+
+<script nonce="${csp_nonce!''}">fetch('${api}/channel/view/${channel.id?c}').catch(()=>{});</script>
+[/@layout]
+[/#escape]

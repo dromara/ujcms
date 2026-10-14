@@ -1,6 +1,6 @@
 package com.ujcms.common.web.exception;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * SC_GONE 已经不存在 异常。请求的文档已经不存在并且没有更新的地址。

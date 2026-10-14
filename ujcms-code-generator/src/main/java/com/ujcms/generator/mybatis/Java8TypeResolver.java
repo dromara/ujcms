@@ -6,6 +6,11 @@ import org.mybatis.generator.internal.types.JavaTypeResolverDefaultImpl;
 
 import java.sql.Types;
 
+/**
+ * Portions of this class are derived from MyBatis Generator 1.4.2 (JavaTypeResolverDefaultImpl),
+ * Copyright 2006-2022 the original author or authors, Apache License 2.0 (licenses/Apache-2.0.txt),
+ * and were modified for UJCMS.
+ */
 public class Java8TypeResolver extends JavaTypeResolverDefaultImpl {
     public Java8TypeResolver() {
         super();

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-regions.schema.json",
+  "page": "home",
+  "regions": {
+    "main": {
+      "rows": [
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "HeroCarousel",
+                  "settings": {
+                    "block": "{{block:focus}}",
+                    "limit": 5,
+                    "mode": "block"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-main-hero",
+          "layout": "full"
+        }
+      ]
+    }
+  }
+}

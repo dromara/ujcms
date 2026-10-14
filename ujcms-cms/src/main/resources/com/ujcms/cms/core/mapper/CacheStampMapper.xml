@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.CacheStampMapper">
+  <select id="selectValue" resultType="long">
+    select value_
+    from ujcms_cache_stamp
+    where name_ = #{name,jdbcType=VARCHAR}
+  </select>
+  <update id="increment">
+    update ujcms_cache_stamp
+    set value_ = value_ + 1,
+      updated_at_ = #{updatedAt,jdbcType=TIMESTAMP}
+    where name_ = #{name,jdbcType=VARCHAR}
+  </update>
+  <insert id="insert">
+    insert into ujcms_cache_stamp (name_, value_, updated_at_)
+    values (#{name,jdbcType=VARCHAR}, #{value,jdbcType=BIGINT}, #{updatedAt,jdbcType=TIMESTAMP})
+  </insert>
+</mapper>

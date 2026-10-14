@@ -3,7 +3,9 @@ package com.ujcms.cms.core.web.api;
 import com.ujcms.cms.core.component.PasswordService;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.LoginLog;
+import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.domain.User;
+import com.ujcms.cms.core.security.TwoFactorGuard;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.LoginLogService;
 import com.ujcms.cms.core.service.ShortMessageService;
@@ -47,11 +49,14 @@ public class PasswordController {
     private final LoginLogService loginLogService;
     private final ShortMessageService shortMessageService;
     private final IpLoginAttemptService ipLoginAttemptService;
+    private final TwoFactorGuard twoFactorGuard;
     private final Props props;
 
     public PasswordController(UserService userService, ConfigService configService, PasswordService passwordService,
                               LoginLogService loginLogService, ShortMessageService shortMessageService,
-                              IpLoginAttemptService ipLoginAttemptService, Props props) {
+                              IpLoginAttemptService ipLoginAttemptService, TwoFactorGuard twoFactorGuard,
+                              Props props) {
+        this.twoFactorGuard = twoFactorGuard;
         this.userService = userService;
         this.configService = configService;
         this.passwordService = passwordService;
@@ -108,18 +113,23 @@ public class PasswordController {
         User user;
         if (StringUtils.isNotBlank(params.email)) {
             if (!shortMessageService.validateCode(params.emailMessageId, params.email,
-                    params.emailMessageValue, config.getEmail().getCodeExpires())) {
+                    params.emailMessageValue, config.getEmail().getCodeExpires(), ShortMessage.USAGE_RESET_PASSWORD)) {
                 throw new Http400Exception("error.emailMessageIncorrect");
             }
             user = Optional.ofNullable(userService.selectByEmail(params.email)).orElseThrow(() ->
                     new IllegalStateException("User not found by email: " + params.email));
         } else if (StringUtils.isNotBlank(params.mobile)) {
             if (!shortMessageService.validateCode(params.mobileMessageId, params.mobile,
-                    params.mobileMessageValue, config.getSms().getCodeExpires())) {
+                    params.mobileMessageValue, config.getSms().getCodeExpires(), ShortMessage.USAGE_RESET_PASSWORD)) {
                 throw new Http400Exception("error.mobileMessageIncorrect");
             }
             user = Optional.ofNullable(userService.selectByMobile(params.mobile)).orElseThrow(() ->
                     new IllegalStateException("User not found by mobile: " + params.mobile));
+            // 开启双因子认证后，后台账号不能经短信自助找回密码：否则只要控制了手机，就能先重置口令、再通过短信验证码，
+            // 两个因子退化为一个。这类账号由管理员重置密码；邮件找回与第二因子不是同一通道，不受影响。
+            if (twoFactorGuard.isEnabled(config.getSecurity()) && user.hasBackendAccess()) {
+                throw new Http400Exception("error.resetPasswordRequiresAdmin");
+            }
         } else {
             throw new Http400Exception("Email and mobile cannot be empty at the same time");
         }

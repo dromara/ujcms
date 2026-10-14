@@ -1,0 +1,43 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "nature",
+      "ext": {
+        "author": "图片部",
+        "source": "本站原创"
+      },
+      "image": "{{asset:img/nature/sunrise-sunset-scenery.jpg}}",
+      "imageList": [
+        {
+          "description": "橙粉色的晚霞铺满天空，四棵棕榈树立在海边。",
+          "url": "{{asset:img/nature/sunrise-sunset-scenery-1.jpg}}"
+        },
+        {
+          "description": "日出时分，阳光从云层的缝隙里呈扇形洒向海面。",
+          "url": "{{asset:img/nature/sunrise-sunset-scenery-2.jpg}}"
+        },
+        {
+          "description": "夕阳贴着海面，沙滩上的白色小木屋染上了暖光。",
+          "url": "{{asset:img/nature/sunrise-sunset-scenery-3.jpg}}"
+        },
+        {
+          "description": "太阳沉向远山，层层叠叠的山影之间浮着薄雾。",
+          "url": "{{asset:img/nature/sunrise-sunset-scenery-4.jpg}}"
+        },
+        {
+          "description": "乌云镶着一道金边，沙滩上的草编遮阳伞成了剪影。",
+          "url": "{{asset:img/nature/sunrise-sunset-scenery-5.jpg}}"
+        }
+      ],
+      "originId": "a-sunrise-sunset-scenery",
+      "publishOffsetDays": -23,
+      "tags": [
+        "摄影",
+        "自然"
+      ],
+      "text": "<p>日出后的一小时和日落前的一小时，摄影师管它叫“黄金时刻”。这时的太阳贴近地平线，光线要穿过更厚的大气，颜色偏暖，影子拉得很长，照在什么东西上都比正午好看。</p>\n<p>图片部把过去一年在五个地方拍到的晨昏放在了一起，其中四处是海岸，一处是山地。天空的颜色没有一张重复：有时是橙与粉，有时是紫与金，云层厚的时候，只在边缘镶着一圈亮光。</p>\n<p>拍日出日落并不需要昂贵的器材，一部手机加一个小三脚架就够用。真正要紧的是时间：提前半小时到达，先找好前景，然后等光线自己变化。最浓的颜色通常只停留十几分钟，错过了，就只能再等一个晴天。</p>",
+      "title": "追光五景：从海岸到山脊的日出与日落"
+    }
+  ]
+}

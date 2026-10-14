@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -25,6 +25,14 @@ public interface ErrorWordMapper {
      * @return 插入条数
      */
     int insert(ErrorWord bean);
+
+    /**
+     * 批量插入数据（导入词条）
+     *
+     * @param list 实体对象列表
+     * @return 插入条数
+     */
+    int insertBatch(@Param("list") List<ErrorWord> list);
 
     /**
      * 更新数据

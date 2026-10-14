@@ -6,7 +6,9 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.common.web.exception.*;
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.PessimisticLockingFailureException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver;
@@ -54,6 +56,14 @@ public class ExceptionResolver extends AbstractHandlerExceptionResolver {
             } else if (ex instanceof Http503Exception) {
                 response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, getMessage(ex, request));
                 return new ModelAndView();
+            } else if (ex instanceof PessimisticLockingFailureException) {
+                // 死锁、等锁超时：两个操作撞在一起，重试即可（docs/spec/article-data-permission/plan.md D25）
+                response.sendError(HttpServletResponse.SC_CONFLICT, getMessage(CONFLICT_LOCK, request));
+                return new ModelAndView();
+            } else if (ex instanceof DuplicateKeyException) {
+                // 唯一键冲突：数据已存在，不把 SQL 错误交给调用方（D25）
+                response.sendError(HttpServletResponse.SC_CONFLICT, getMessage(CONFLICT_DUPLICATE, request));
+                return new ModelAndView();
             }
         } catch (Exception handlerEx) {
             if (logger.isWarnEnabled()) {
@@ -61,6 +71,14 @@ public class ExceptionResolver extends AbstractHandlerExceptionResolver {
             }
         }
         return null;
+    }
+
+    private static final String CONFLICT_LOCK = "error.conflict.lock";
+    private static final String CONFLICT_DUPLICATE = "error.conflict.duplicate";
+
+    private static String getMessage(String code, HttpServletRequest request) {
+        WebApplicationContext context = RequestContextUtils.findWebApplicationContext(request);
+        return context != null ? context.getMessage(code, null, code, RequestContextUtils.getLocale(request)) : code;
     }
 
     @Nullable

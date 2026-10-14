@@ -1,0 +1,105 @@
+[#include '../layout/theme.html'/]
+[#include '../snippets/jsonld.html'/]
+[#escape x as (x)!?html]
+[#-- description 回退站点级：多数栏目不单独维护 SEO 描述，缺失时空 meta 会挂 Lighthouse SEO 审计 --]
+[#assign extraHead][@breadcrumbJsonLd channel/][/#assign]
+[@layout title="${channel.title} - ${site.title}" keywords=channel.seoKeywords!site.seoKeywords!'' description=channel.seoDescription!site.seoDescription!'' extraHead=extraHead]
+[#-- Breadcrumb sub-nav + 关注栏目（匿名点击提示登录；exists 探针对匿名恒 false） --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2"
+    x-data="{
+      loggedIn: [#if user??]true[#else]false[/#if],
+      followed: false,
+      async init() {
+        try { this.followed = (await window.request('GET', '${api}/follow/exists?channelId=${channel.id?c}')) === true; } catch (e) { /* 静默 */ }
+      },
+      async toggleFollow() {
+        if (!this.loggedIn) { window.displayAlert('请登录后关注！'); return; }
+        try {
+          await window.fetchCsrf();
+          if (this.followed) await window.request('DELETE', '${api}/follow?channelId=${channel.id?c}');
+          else await window.request('POST', '${api}/follow', { channelId: '${channel.id?c}' });
+          this.followed = !this.followed;
+          window.displaySuccess(this.followed ? '关注成功！' : '已取消关注！');
+        } catch (e) { window.displayAlert(e.message || '操作失败'); }
+      }
+    }"
+  >
+    [#assign parent = channel.parent!channel/]
+    <ol class="flex flex-wrap items-center gap-1 text-sm flex-1">
+      [#if parent.id == channel.id]
+        <li><a href="${parent.url}" class="px-2 py-1 rounded bg-primary text-primary-foreground">全部</a></li>
+      [#else]
+        <li><a href="${parent.url}" class="px-2 py-1 rounded text-primary hover:bg-slate-200">全部</a></li>
+      [/#if]
+      [@ChannelList parentId=parent.id isNav='true'; siblingList]
+      [#list siblingList as bean]
+        <li>
+          [#if channel.id == bean.id]
+            <a href="${bean.url}" class="px-2 py-1 rounded bg-primary text-primary-foreground">${bean.name}</a>
+          [#else]
+            <a href="${bean.url}" class="px-2 py-1 rounded text-primary hover:bg-slate-200">${bean.name}</a>
+          [/#if]
+        </li>
+      [/#list]
+      [/@ChannelList]
+    </ol>
+    <button type="button" @click="toggleFollow()"
+            class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded border text-sm transition-colors"
+            :class="followed ? 'border-primary bg-primary text-primary-foreground' : 'border-primary text-primary hover:bg-primary/5'">
+      <span class="size-3.5 inline-block">[@icon 'notifications-outline'/]</span>
+      <span x-text="followed ? '已关注' : '关注栏目'"></span>
+    </button>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+
+    [#-- Facet filters: one row per radio/checkbox/select/multipleSelect field.
+         Wrapped in a single div so the parent's space-y-4 doesn't add margin between
+         facet rows — they stack tightly with their per-row border + py-1. --]
+    <div>
+      [#assign customsQueryMap={}/]
+      [#list channel.articleModel.fieldList?filter(field->['radio','checkbox','select','multipleSelect']?seq_contains(field.type)) as field]
+        [#assign param=field.code+'Key'/]
+        <div class="py-1 border-b border-slate-200 flex flex-wrap items-center gap-2 text-sm">
+          [#if Params[param]??]
+            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="px-2 py-1 rounded text-primary hover:bg-slate-100">全部${field.name}</a>
+          [#else]
+            <a href="${addParam(channel.url, channel.dynamicUrl, param)}" class="px-2 py-1 rounded bg-slate-200 text-slate-700">全部${field.name}</a>
+          [/#if]
+          [@DictList typeId=field.dictTypeId; dictList]
+          [#list dictList as dict]
+            [#if Params[param]! == dict.value]
+              <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}" class="px-2 py-1 rounded bg-slate-200 text-slate-700">${dict.name}</a>
+            [#else]
+              <a href="${addParam(channel.url, channel.dynamicUrl, param, dict.value)}" class="px-2 py-1 rounded text-primary hover:bg-slate-100">${dict.name}</a>
+            [/#if]
+          [/#list]
+          [/@DictList]
+        </div>
+        [#assign customsQueryMap=customsQueryMap + {'ArrayEQ_@articleExt-mainsJson$'+param+(field.dataType != 'string')?string('_Int',''): Params[param]!}/]
+      [/#list]
+    </div>
+
+    [#-- 分页文章列表：facet 查询经 customsQueryMap（Q_= 映射）下推至 SQL。 --]
+    [@ArticlePage channelId=channel.id isIncludeSubChannel='true' Q_=customsQueryMap orderBy=channel.orderDesc?string('sticky_desc,order_desc','sticky_desc,order_asc'); pagedList]
+      [#if pagedList.content?size == 0]
+        <p class="py-8 text-center text-slate-500">暂无文章</p>
+      [#else]
+        <ul class="divide-y divide-slate-200">
+          [#assign list = pagedList.content/]
+          [#include '../snippets/part_article_items.html'/]
+        </ul>
+      [/#if]
+      [#include '../snippets/page.html'/]
+    [/@ArticlePage]
+  </div>
+
+  [#include '../snippets/right.html'/]
+
+</div>
+<script nonce="${csp_nonce!''}">fetch('${api}/channel/view/${channel.id?c}').catch(()=>{});</script>
+[/@layout]
+[/#escape]

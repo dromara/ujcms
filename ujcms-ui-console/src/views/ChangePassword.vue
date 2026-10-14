@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { sm2Encrypt } from '@/utils/sm';
 import { useSysConfigStore } from '@/stores/sysConfigStore';
 import { queryClientPublicKey, updatePassword } from '@/api/login';
@@ -8,13 +7,18 @@ import { queryClientPublicKey, updatePassword } from '@/api/login';
 defineOptions({
   name: 'ChangePassword',
 });
-defineProps({ modelValue: { type: Boolean, required: true } });
-const emit = defineEmits({ 'update:modelValue': null });
-const { t } = useI18n();
+const props = defineProps({
+  modelValue: { type: Boolean, required: true },
+  username: { type: String, default: '' },
+  forced: { type: Boolean, default: false },
+  reason: { type: String, default: '' },
+});
+const emit = defineEmits({ 'update:modelValue': null, success: null });
 const sysConfig = useSysConfigStore();
 const values = ref<any>({});
 const form = ref<any>();
 const focus = ref<any>();
+const passwordFocus = ref<any>();
 const loading = ref<boolean>(false);
 const buttonLoading = ref<boolean>(false);
 const publicKey = ref<string>('');
@@ -43,9 +47,13 @@ const handleSubmit = () => {
         return;
       }
       error.value = undefined;
+      // resetFields 会清空 values，需先保留用户名与新口令，供父组件改密后自动登录
+      const username = values.value.username;
+      const newPasswordRaw = values.value.newPassword;
       form.value.resetFields();
-      ElMessage.success(t('success'));
       emit('update:modelValue', false);
+      // 改密成功后交由父组件处理后续（首次登录/密码过期场景下自动登录或提示重新登录）
+      emit('success', { username, password: newPasswordRaw });
     } finally {
       buttonLoading.value = false;
     }
@@ -60,18 +68,20 @@ const handleSubmit = () => {
     @update:model-value="(event) => $emit('update:modelValue', event)"
     @opened="
       () => {
-        focus?.focus();
         form.resetFields();
+        values.username = props.username ?? '';
+        (props.forced ? passwordFocus : focus)?.focus();
       }
     "
   >
     <el-form ref="form" v-loading="loading" :model="values" label-width="150px" label-position="right">
+      <el-alert v-if="forced && reason" :title="reason" type="warning" class="mb-3" :closable="false" show-icon />
       <el-alert v-if="error" :title="error" type="error" class="mb-3" :closable="false" show-icon />
       <el-form-item prop="username" :label="$t('user.username')" :rules="[{ required: true, message: () => $t('v.required') }]">
-        <el-input ref="focus" v-model="values.username" maxlength="30"></el-input>
+        <el-input ref="focus" v-model="values.username" maxlength="30" :disabled="forced"></el-input>
       </el-form-item>
       <el-form-item prop="password" :label="$t('user.origPassword')" :rules="[{ required: true, message: () => $t('v.required') }]">
-        <el-input v-model="values.password" maxlength="50" show-password></el-input>
+        <el-input ref="passwordFocus" v-model="values.password" maxlength="50" show-password></el-input>
       </el-form-item>
       <el-form-item
         prop="newPassword"

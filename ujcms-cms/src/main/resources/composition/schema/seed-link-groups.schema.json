@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-link-groups.schema.json",
+  "title": "UJCMS Theme Seed Link Groups",
+  "description": "主题内容种子链接组文件（seed/content/link-groups/*.link-groups.json——theme-seed-export E4f / D42，link-groups 演进）。分组定义按来源三元组 (site_id_, origin_, origin_id_) select-then-insert 幂等；分组有别名（区块式）——别名撞本站既有分组 → linked 恒不收编（链接仍按三选一目标幂等挂靠）。链接即定义的一部分（选项式，序即排列；刷新仅动散列未改的分组，按种子序整组重建）；两级 order 恒不入种子（操作员排列）。链接目标三选一（link-groups D4）：url（直链）/ channel（站内栏目别名，渲染期迟绑）/ article（本主题来源文章 originId，渲染期迟绑）；解析失败的链接跳过不失败整组。logo 可携 {{asset:}} 令牌（导入展开、导出令牌化，D9 口径）。分组 slot 为主题清单 linkSlots 声明的展示位名（缺省不自动展示，模板按别名引用）。",
+  "type": "object",
+  "required": ["linkGroups"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "linkGroups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "name", "links"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（来源三元组幂等键，缺省与别名同值）" },
+          "alias": { "type": "string", "minLength": 1, "maxLength": 50, "description": "别名（缺省取 originId；撞本站既有分组 → linked 恒不收编）" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 50, "description": "名称" },
+          "type": { "type": "integer", "enum": [1, 2], "default": 1, "description": "类型（1：文字链接，2：图片链接）" },
+          "imageWidth": { "type": "integer", "minimum": 1, "default": 200, "description": "图片宽度（图片链接用）" },
+          "imageHeight": { "type": "integer", "minimum": 1, "default": 60, "description": "图片高度（图片链接用）" },
+          "description": { "type": "string", "maxLength": 300, "description": "描述" },
+          "slot": { "type": "string", "minLength": 1, "maxLength": 50, "pattern": "^[a-z][a-z0-9-]*$", "description": "展示位（主题清单 linkSlots 声明的名称；缺省不自动展示）" },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "oneOf": [
+                { "required": ["url"] },
+                { "required": ["channel"] },
+                { "required": ["article"] }
+              ],
+              "properties": {
+                "name": { "type": "string", "minLength": 1, "maxLength": 50, "description": "名称" },
+                "url": { "type": "string", "minLength": 1, "maxLength": 255, "pattern": "^(http|/).*$", "description": "链接地址（与 channel/article 三选一）" },
+                "channel": { "type": "string", "minLength": 1, "maxLength": 50, "description": "栏目别名（站内迟绑，与 url/article 三选一）" },
+                "article": { "type": "string", "minLength": 1, "maxLength": 128, "description": "文章 originId（本主题来源迟绑，与 url/channel 三选一）" },
+                "logo": { "type": "string", "maxLength": 255, "description": "Logo图片（可携 {{asset:}} 令牌，图片链接分组用）" },
+                "description": { "type": "string", "maxLength": 300, "description": "描述" },
+                "targetBlank": { "type": "boolean", "default": true, "description": "是否新窗口打开" },
+                "enabled": { "type": "boolean", "default": true, "description": "是否启用" }
+              },
+              "additionalProperties": false
+            },
+            "description": "分组下链接（序即排列）"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

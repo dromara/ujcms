@@ -52,10 +52,6 @@ public class JwtProperties {
      */
     private String secret = Secures.randomAlphanumeric(64);
     /**
-     * JWT token 密钥。应设置一个16位的随机密钥，且不能泄露。用于 token 的 SM4 加密。如没有设置，系统启动时会自动生成一个随机秘钥，但在集群时会因为不同服务器秘钥不同而出现认证问题。
-     */
-    private String tokenSecret = Secures.randomAlphanumeric(16);
-    /**
      * URL 参数名称
      */
     private String parameterName = JWT_PARAMETER_NAME;
@@ -146,14 +142,6 @@ public class JwtProperties {
 
     public void setSecret(String secret) {
         this.secret = secret;
-    }
-
-    public String getTokenSecret() {
-        return tokenSecret;
-    }
-
-    public void setTokenSecret(String tokenSecret) {
-        this.tokenSecret = tokenSecret;
     }
 
     public static String getAccessToken() {

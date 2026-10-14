@@ -10,8 +10,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
+import com.ujcms.cms.core.security.HtmlSanitizeService;
+import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -64,15 +64,23 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
 
     @JsonIgnore
     public String getTemplate() {
+        return getSite().assembleTemplate(getTemplateName());
+    }
+
+    /**
+     * 栏目页的未组装模板名（渲染上下文钩子用，页面构成 §10.2）
+     */
+    @JsonIgnore
+    public String getTemplateName() {
         String template = getChannelTemplate();
         if (StringUtils.isBlank(template)) {
             template = TEMPLATE_PREFIX;
         }
-        return getSite().assembleTemplate(template);
+        return template;
     }
 
     @Schema(description = "栏目层级。从一级栏目到当前栏目的列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性只包含当前栏目")
-    @JsonIncludeProperties({"id", "name", "alias", "url", "nav"})
+    @JsonIncludeProperties({"id", "name", "slug", "url", "nav"})
     public List<Channel> getPaths() {
         LinkedList<Channel> parents = new LinkedList<>();
         Channel bean = this;
@@ -160,7 +168,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     @Schema(description = "URL地址")
     @Override
     public String getUrl() {
-        return getUrl(1);
+        return resolvedUrls != null ? resolvedUrls.url() : getUrl(1);
     }
 
     @Override
@@ -170,7 +178,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
 
     @Schema(description = "动态URL地址")
     public String getDynamicUrl() {
-        return getDynamicUrl(1);
+        return resolvedUrls != null ? resolvedUrls.dynamicUrl() : getDynamicUrl(1);
     }
 
     @Override
@@ -183,7 +191,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
             return getFirstChannel(getId()).map(channel -> channel.getDynamicUrl(page)).orElse("");
         }
         String prefix = Optional.ofNullable(getSite().getConfig().getChannelUrl()).orElse(UrlConstants.CHANNEL);
-        String url = UrlBuilder.of(getSite().getDynamicUrl()).appendPath(prefix).appendPath(getAlias()).toString();
+        String url = UrlBuilder.of(getSite().getDynamicUrl()).appendPath(prefix).appendPath(getSlug()).toString();
         if (page <= 1) {
             return url;
         }
@@ -191,7 +199,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     }
 
     public String getStaticUrl() {
-        return getStaticUrl(1);
+        return resolvedUrls != null ? resolvedUrls.staticUrl() : getStaticUrl(1);
     }
 
     public String getStaticUrl(int page) {
@@ -224,7 +232,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     }
 
     private String getChannelUrl(int page) {
-        return getSite().getHtml().getChannelUrl(getChannelStaticPath(), getId(), getAlias(), page);
+        return getSite().getHtml().getChannelUrl(getChannelStaticPath(), getId(), getSlug(), page);
     }
 
     public String getNormalStaticPath(int page) {
@@ -236,7 +244,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     }
 
     private String getChannelPath(int page) {
-        return getSite().getHtml().getChannelPath(getChannelStaticPath(), getId(), getAlias(), page);
+        return getSite().getHtml().getChannelPath(getChannelStaticPath(), getId(), getSlug(), page);
     }
 
     /**
@@ -248,7 +256,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     @Schema(description = "完整URL地址")
     @Override
     public String getFullUrl() {
-        return getFullUrl(1);
+        return resolvedUrls != null ? resolvedUrls.fullUrl() : getFullUrl(1);
     }
 
     public String getFullUrl(int page) {
@@ -257,7 +265,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
 
     @Schema(description = "完整动态URL地址")
     public String getDynamicFullUrl() {
-        return getDynamicFullUrl(1);
+        return resolvedUrls != null ? resolvedUrls.dynamicFullUrl() : getDynamicFullUrl(1);
     }
 
     public String getDynamicFullUrl(int page) {
@@ -269,7 +277,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
             return getFirstChannel(getId()).map(channel -> channel.getDynamicFullUrl(page)).orElse("");
         }
         String prefix = Optional.ofNullable(getSite().getConfig().getChannelUrl()).orElse(UrlConstants.CHANNEL);
-        String url = UrlBuilder.of(getSite().getDynamicFullUrl()).appendPath(prefix).appendPath(getAlias()).toString();
+        String url = UrlBuilder.of(getSite().getDynamicFullUrl()).appendPath(prefix).appendPath(getSlug()).toString();
         if (page <= 1) {
             return url;
         }
@@ -296,6 +304,43 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     public boolean isLink() {
         return getType() == TYPE_LINK || getType() == TYPE_LINK_CHILD;
     }
+
+    /**
+     * For TYPE_LINK_CHILD channels, the five zero-arg URL getters chase the
+     * first child via ApplicationContext + ChannelService.findFirstChild during
+     * JSON serialization. ChannelService can pre-walk the chain once after a
+     * list load and store the resolved URLs here so serialization is a pure
+     * field read. Null on non-LINK_CHILD channels and on any channel loaded
+     * outside the list-precompute path; the zero-arg getters fall back to the
+     * original lookup in that case.
+     * <p>
+     * Marked {@code transient} so it isn't persisted by Java serialization
+     * (e.g. when a Channel goes through the MyBatis second-level cache or
+     * Redis); the precompute runs at the service layer above the cache, so
+     * cached entities re-acquire it on the next list load that touches them.
+     */
+    @JsonIgnore
+    @Nullable
+    private transient ResolvedUrls resolvedUrls;
+
+    @JsonIgnore
+    @Nullable
+    public ResolvedUrls getResolvedUrls() {
+        return resolvedUrls;
+    }
+
+    public void setResolvedUrls(@Nullable ResolvedUrls resolvedUrls) {
+        this.resolvedUrls = resolvedUrls;
+    }
+
+    /**
+     * Holder for the five zero-arg URL strings precomputed by
+     * {@code ChannelService} for TYPE_LINK_CHILD channels. See
+     * {@link #resolvedUrls} for lifecycle.
+     */
+    public record ResolvedUrls(String url, String dynamicUrl, String staticUrl,
+                               String fullUrl, String dynamicFullUrl) {
+    }
     // endregion
 
     // region JsonFields
@@ -321,8 +366,8 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
         this.customs = customs;
     }
 
-    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
-        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+    public void disassembleCustoms(Model model, HtmlSanitizeService sanitizeService) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), sanitizeService);
         setCustoms(map);
         model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
     }
@@ -348,7 +393,7 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     /**
      * 上级栏目。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性为`null`
      */
-    @JsonIncludeProperties({"id", "name", "alias", "url", "nav"})
+    @JsonIncludeProperties({"id", "name", "slug", "url", "nav"})
     @Nullable
     private Channel parent;
     /**
@@ -359,12 +404,12 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     /**
      * 栏目模型
      */
-    @JsonIncludeProperties({"id", "name"})
+    @JsonIncludeProperties({"id", "name", "fieldList"})
     private Model channelModel = new Model();
     /**
      * 文章模型
      */
-    @JsonIncludeProperties({"id", "name"})
+    @JsonIncludeProperties({"id", "name", "fieldList"})
     private Model articleModel = new Model();
     /**
      * 绩效类型
@@ -449,8 +494,8 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     @Override
     @NotNull
     @Pattern(regexp = "^[\\w-]*$")
-    public String getAlias() {
-        return super.getAlias();
+    public String getSlug() {
+        return super.getSlug();
     }
     // endregion
 

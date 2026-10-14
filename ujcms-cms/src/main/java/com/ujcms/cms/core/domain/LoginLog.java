@@ -1,7 +1,8 @@
 package com.ujcms.cms.core.domain;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
@@ -57,6 +58,12 @@ public class LoginLog extends GeneratedLoginLog {
     @JsonIncludeProperties({"id", "username", "nickname"})
     @Nullable
     private User user;
+    /**
+     * 审计签名（HMAC-SM3，64 个十六进制字符）。开启 {@code ujcms.security.audit-integrity} 后，
+     * 由 {@code LoginLogService} 写入时统一计算；历史行 / 未开启时为 {@code null}（合法的未签名行）。
+     */
+    @Nullable
+    private String sign;
 
     @Nullable
     public User getUser() {
@@ -65,6 +72,16 @@ public class LoginLog extends GeneratedLoginLog {
 
     public void setUser(@Nullable User user) {
         this.user = user;
+    }
+
+    @JsonIgnore
+    @Nullable
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(@Nullable String sign) {
+        this.sign = sign;
     }
 
     /**
@@ -100,6 +117,10 @@ public class LoginLog extends GeneratedLoginLog {
      * 状态：短信错误
      */
     public static final short STATUS_SHORT_MESSAGE_WRONG = 4;
+    /**
+     * 状态：未登记手机号码。已开启双因子认证，但账号没有可接收验证码的手机号码
+     */
+    public static final short STATUS_MOBILE_MISSING = 5;
     /**
      * 状态：IP超过尝试次数
      */

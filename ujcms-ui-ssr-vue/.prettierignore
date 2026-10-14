@@ -1,0 +1,8 @@
+node_modules/
+.nuxt/
+.output/
+public/vendor/
+pnpm-lock.yaml
+test-results/
+playwright-report/
+app/generated/

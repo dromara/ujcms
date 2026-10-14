@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Vector;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 /**
@@ -172,6 +173,60 @@ class ServletsTest {
 
         result = Servlets.getRemoteAddr(httpRequest, 2);
         assertEquals("203.0.113.1", result); // Should get the real public IP
+    }
+
+    @Test
+    void testGetRemoteAddr_CanonicalizesDirectIpv6() {
+        // Tomcat 给出未压缩形式，直连（depth=0）也要规范化
+        when(servletRequest.getRemoteAddr()).thenReturn("0:0:0:0:0:0:0:1");
+        assertEquals("::1", Servlets.getRemoteAddr(servletRequest, 0));
+        when(httpRequest.getRemoteAddr()).thenReturn("2001:DB8:0:0:0:0:0:1");
+        assertEquals("2001:db8::1", Servlets.getRemoteAddr(httpRequest, 0));
+    }
+
+    @Test
+    void testGetRemoteAddr_UnparseableDirectAddressReturnedVerbatimAndTruncated() {
+        when(servletRequest.getRemoteAddr()).thenReturn("unix:/var/run/x.sock");
+        assertEquals("unix:/var/run/x.sock", Servlets.getRemoteAddr(servletRequest, 2));
+        String longValue = "x".repeat(60);
+        when(servletRequest.getRemoteAddr()).thenReturn(longValue);
+        assertEquals(longValue.substring(0, 45), Servlets.getRemoteAddr(servletRequest, 2));
+        when(servletRequest.getRemoteAddr()).thenReturn(null);
+        assertNull(Servlets.getRemoteAddr(servletRequest, 2));
+    }
+
+    @Test
+    void testGetRemoteAddr_Ipv6TextualForms() {
+        when(httpRequest.getRemoteAddr()).thenReturn("10.0.0.1");
+        // 方括号 + 端口
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("[2001:db8::1]:443, 10.0.0.2");
+        assertEquals("2001:db8::1", Servlets.getRemoteAddr(httpRequest, 2));
+        // 大写、未压缩
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("2001:DB8:0:0:0:0:0:1");
+        assertEquals("2001:db8::1", Servlets.getRemoteAddr(httpRequest, 1));
+        // IPv4 映射地址按 IPv4
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("::ffff:203.0.113.9");
+        assertEquals("203.0.113.9", Servlets.getRemoteAddr(httpRequest, 1));
+        // IPv4 带端口（IIS ARR 等代理的写法）
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("203.0.113.9:5678");
+        assertEquals("203.0.113.9", Servlets.getRemoteAddr(httpRequest, 1));
+        // 以 :: 结尾
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("2001:db8::");
+        assertEquals("2001:db8::", Servlets.getRemoteAddr(httpRequest, 1));
+        // 网卡标识去除，且不抛异常
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("fe80::1%eth0");
+        assertEquals("fe80::1", Servlets.getRemoteAddr(httpRequest, 1));
+    }
+
+    @Test
+    void testGetRemoteAddr_RejectsIpv6LookingGarbage() {
+        when(httpRequest.getRemoteAddr()).thenReturn("10.0.0.1");
+        // 仅按段数校验时会被误认为合法
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("gggg::1");
+        assertEquals("10.0.0.1", Servlets.getRemoteAddr(httpRequest, 1));
+        // 跳过非法条目继续扫描
+        when(httpRequest.getHeader("X-Forwarded-For")).thenReturn("gggg::1, 2001:db8::1");
+        assertEquals("2001:db8::1", Servlets.getRemoteAddr(httpRequest, 2));
     }
 
     @Test

@@ -1,0 +1,15 @@
+{
+  "name": "site",
+  "label": { "zh-CN": "全站", "en": "Site" },
+  "slots": {
+    "aside": {
+      "kind": "region",
+      "label": { "zh-CN": "侧栏区域", "en": "Aside" },
+      "description": "全站共用的整条右侧栏（page-regions §15：各页面以 shared 引用，可『仅此页面定制』分叉）；种子预置 热点新闻/精彩视频/精选专题/自定义表单/调查问卷/投票/标签云。",
+      "allowedShapes": ["RankedList", "VideoCards", "TopicList", "FormTypeList", "SurveyList",
+                        "TagList", "Vote"],
+      "allowedRowLayouts": ["full"],
+      "constraints": { "maxRows": 12, "maxPanelsPerColumn": 2 }
+    }
+  }
+}

@@ -2,7 +2,7 @@ package com.ujcms.common.web;
 
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.Strings.CS;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * URL 辅助类

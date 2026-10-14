@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, PropType } from 'vue';
+import { ref, type PropType } from 'vue';
 import { queryRole, createRole, updateRole, deleteRole, roleScopeNotAllowed } from '@/api/user';
 import { currentUser } from '@/stores/useCurrentUser';
 import DialogForm from '@/components/DialogForm.vue';
@@ -46,7 +46,7 @@ const values = ref<any>({});
         <template #label><label-tip message="role.rank" help /></template>
         <el-input-number v-model.number="values.rank" :min="disabled ? 0 : currentUser.rank" :max="32767" />
       </el-form-item>
-      <el-form-item v-if="currentUser.epRank >= 3" prop="type" :rules="[{ required: true, message: () => $t('v.required') }]">
+      <el-form-item v-if="currentUser.commercialTier >= 3" prop="type" :rules="[{ required: true, message: () => $t('v.required') }]">
         <template #label><label-tip message="role.type" help /></template>
         <el-select v-model="values.type">
           <el-option v-for="item in [1, 2, 3, 4]" :key="item" :label="$t(`role.type.${item}`)" :value="item" />

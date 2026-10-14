@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, PropType } from 'vue';
+import { ref, type PropType } from 'vue';
 import { queryTask, createTask, updateTask, deleteTask } from '@/api/system';
 import DialogForm from '@/components/DialogForm.vue';
 
@@ -48,8 +48,8 @@ const values = ref<any>({});
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item prop="beginDate" :label="$t('task.beginDate')">
-            <el-date-picker v-model="values.beginDate" type="datetime"></el-date-picker>
+          <el-form-item prop="startDate" :label="$t('task.startDate')">
+            <el-date-picker v-model="values.startDate" type="datetime"></el-date-picker>
           </el-form-item>
         </el-col>
         <el-col :span="12">

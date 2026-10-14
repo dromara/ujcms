@@ -1,14 +1,17 @@
 package com.ujcms.cms.core.web.backendapi;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ujcms.cms.core.component.ThemeMetadata;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.service.SiteService;
 import com.ujcms.cms.core.service.args.SiteArgs;
-import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.common.web.Views;
 import com.ujcms.common.web.exception.Http404Exception;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,14 +35,17 @@ import static com.ujcms.common.query.QueryUtils.getQueryMap;
 public class SiteController {
     private final SiteService service;
     private final ResourceLoader resourceLoader;
+    private final ObjectMapper objectMapper;
 
-    public SiteController(SiteService service, ResourceLoader resourceLoader) {
+    public SiteController(SiteService service, ResourceLoader resourceLoader, ObjectMapper objectMapper) {
         this.service = service;
         this.resourceLoader = resourceLoader;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('site:list','*')")
+    @JsonView(Views.List.class)
     public List<Site> list(@RequestParam(defaultValue = "false") boolean current,
                            @RequestParam(defaultValue = "false") boolean currentOrg,
                            @RequestParam(defaultValue = "true") boolean isIncludeChildren,
@@ -89,27 +95,43 @@ public class SiteController {
         return getThemeList(site);
     }
 
+    /**
+     * 站点可选主题（裸主题名，R2）：列出 {@code templates/{siteId}/} 下的主题目录名。
+     * 主题是每站点实例（D3），全局 share 目录只承载模板包含片段，不再作为可激活主题列出；
+     * 纯数据包（{@code kind: data-only}，§8）不可激活，同样不列——站点表单是激活写入面，
+     * 与 {@code ThemeController} 的激活 400 口径一致（A5）。
+     */
     private List<String> getThemeList(Site site) throws IOException {
         List<String> themeList = new ArrayList<>();
-        String globalShare = "/" + Constants.TEMPLATE_SHARE;
         String storagePath = site.getConfig().getTemplateStorage().getPath();
-        appendTheme(themeList, storagePath, globalShare);
-        String templateBase = site.getBasePath("");
-        appendTheme(themeList, storagePath, templateBase);
-        return themeList;
-    }
-
-    private void appendTheme(List<String> themeList, String path, String base) throws IOException {
-        File file = resourceLoader.getResource(path + base).getFile();
+        File file = resourceLoader.getResource(storagePath + site.getBasePath("")).getFile();
         if (!file.exists()) {
-            return;
+            return themeList;
         }
         File[] themeFiles = file.listFiles(File::isDirectory);
         if (themeFiles == null) {
-            return;
+            return themeList;
         }
         for (File themeFile : themeFiles) {
-            themeList.add(base + "/" + themeFile.getName());
+            if (isDataOnlyTheme(themeFile)) {
+                continue;
+            }
+            themeList.add(themeFile.getName());
+        }
+        return themeList;
+    }
+
+    private boolean isDataOnlyTheme(File themeDir) {
+        File manifest = new File(themeDir, "theme.manifest.json");
+        if (!manifest.isFile()) {
+            return false;
+        }
+        try {
+            return ThemeMetadata.KIND_DATA_ONLY.equals(
+                    objectMapper.readTree(manifest).path("kind").asText(null));
+        } catch (IOException e) {
+            // 清单不可读按普通主题对待（宽容读取；安装门槛才从严）
+            return false;
         }
     }
 }

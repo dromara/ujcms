@@ -37,7 +37,7 @@ const fetchData = async () => {
 };
 onMounted(fetchData);
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -87,6 +87,7 @@ const move = async (selected: any[], type: 'top' | 'up' | 'down' | 'bottom') => 
       <query-form :params="params" @search="handleSearch" @reset="handleReset">
         <query-item :label="$t('group.name')" name="Q_Contains_name"></query-item>
         <query-item :label="$t('group.description')" name="Q_Contains_description"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div>
@@ -96,14 +97,14 @@ const move = async (selected: any[], type: 'top' | 'up' | 'down' | 'bottom') => 
           <el-button :disabled="selection.filter((row) => deletable(row.id)).length <= 0 || perm('group:delete')" :icon="Delete">{{ $t('delete') }}</el-button>
         </template>
       </el-popconfirm>
-      <list-move class="ml-2" :disabled="selection.length <= 0 || filtered || perm('org:update')" @move="(type) => move(selection, type)" />
+      <list-move class="ml-2" :disabled="selection.length <= 0 || filtered || perm('group:update')" @move="(type) => move(selection, type)" />
       <column-setting name="group" class="ml-2" />
     </div>
     <div class="mt-3 app-block">
       <el-table ref="table" v-loading="loading" :data="data" @selection-change="(rows) => (selection = rows)" @row-dblclick="(row) => handleEdit(row.id)" @sort-change="handleSort">
         <column-list name="group">
           <el-table-column type="selection" width="50"></el-table-column>
-          <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
+          <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
           <el-table-column property="name" :label="$t('group.name')" sortable="custom" show-overflow-tooltip></el-table-column>
           <el-table-column property="description" :label="$t('group.description')" min-width="150" sortable="custom" show-overflow-tooltip></el-table-column>
           <el-table-column property="allAccessPermission" :label="$t('group.allAccessPermission')" sortable="custom">

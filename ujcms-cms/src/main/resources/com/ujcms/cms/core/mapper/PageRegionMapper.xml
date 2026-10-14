@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.PageRegionMapper">
+  <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.PageRegion">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="page_ref_" jdbcType="VARCHAR" property="pageRef" />
+    <result column="region_name_" jdbcType="VARCHAR" property="regionName" />
+    <result column="scope_" jdbcType="VARCHAR" property="scope" />
+    <result column="layout_json_" jdbcType="OTHER" property="layoutJson" />
+    <result column="draft_layout_json_" jdbcType="OTHER" property="draftLayoutJson" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
+    <result column="version_" jdbcType="INTEGER" property="version" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.PageRegion" />
+  <sql id="Column_List">
+    t.id_, t.site_id_, t.page_ref_, t.region_name_, t.scope_, t.layout_json_,
+    t.draft_layout_json_, t.origin_, t.origin_hash_, t.version_, t.created_, t.modified_
+  </sql>
+  <insert id="insert" parameterType="com.ujcms.cms.core.domain.PageRegion">
+    insert into ujcms_page_region (id_, site_id_, page_ref_, region_name_, scope_,
+      layout_json_, draft_layout_json_, origin_, origin_hash_, version_, created_, modified_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{pageRef,jdbcType=VARCHAR},
+      #{regionName,jdbcType=VARCHAR}, #{scope,jdbcType=VARCHAR},
+      #{layoutJson,jdbcType=OTHER}, #{draftLayoutJson,jdbcType=OTHER}, #{origin,jdbcType=VARCHAR},
+      #{originHash,jdbcType=CHAR}, #{version,jdbcType=INTEGER}, #{created,jdbcType=TIMESTAMP},
+      #{modified,jdbcType=TIMESTAMP})
+  </insert>
+  <update id="update" parameterType="com.ujcms.cms.core.domain.PageRegion">
+    update ujcms_page_region
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      page_ref_ = #{pageRef,jdbcType=VARCHAR},
+      region_name_ = #{regionName,jdbcType=VARCHAR},
+      scope_ = #{scope,jdbcType=VARCHAR},
+      layout_json_ = #{layoutJson,jdbcType=OTHER},
+      draft_layout_json_ = #{draftLayoutJson,jdbcType=OTHER},
+      origin_ = #{origin,jdbcType=VARCHAR},
+      origin_hash_ = #{originHash,jdbcType=CHAR},
+      version_ = #{version,jdbcType=INTEGER},
+      modified_ = #{modified,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 乐观锁更新：仅结构树与修改时间；WHERE 带客户端版本号，命中后版本号自增（与 CardMapper.update 同型） -->
+  <update id="updateWithLock">
+    update ujcms_page_region
+    set layout_json_ = #{bean.layoutJson,jdbcType=OTHER},
+      draft_layout_json_ = #{bean.draftLayoutJson,jdbcType=OTHER},
+      version_ = version_ + 1,
+      modified_ = #{bean.modified,jdbcType=TIMESTAMP}
+    where id_ = #{bean.id,jdbcType=BIGINT} and version_ = #{version,jdbcType=INTEGER}
+  </update>
+  <delete id="delete" parameterType="long">
+    delete
+    from ujcms_page_region
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_page_region
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <select id="select" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_page_region t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectByUnique" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_page_region t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.page_ref_ = #{pageRef,jdbcType=VARCHAR}
+      and t.region_name_ = #{regionName,jdbcType=VARCHAR}
+      and t.scope_ = #{scope,jdbcType=VARCHAR}
+  </select>
+  <!-- 本区域的全部范围行（默认行优先）：孤立面板清理的全范围引用并集、范围目录用 -->
+  <select id="listByRegion" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_page_region t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.page_ref_ = #{pageRef,jdbcType=VARCHAR}
+      and t.region_name_ = #{regionName,jdbcType=VARCHAR}
+    order by case when t.scope_ = 'default' then 0 else 1 end, t.scope_
+  </select>
+  <!-- 页面下已存在的覆盖范围值（去重、不含 default） -->
+  <select id="listScopes" resultType="string">
+    select distinct t.scope_
+    from ujcms_page_region t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.page_ref_ = #{pageRef,jdbcType=VARCHAR}
+      and t.scope_ != 'default'
+    order by t.scope_
+  </select>
+  <select id="listBySiteId" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_page_region t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+    order by t.page_ref_, t.region_name_
+  </select>
+  <select id="listByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_page_region t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+    order by t.id_
+  </select>
+  <select id="countByOrigin" resultType="int">
+    select count(*)
+    from ujcms_page_region t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+  </select>
+  <update id="clearOrigin">
+    update ujcms_page_region
+    set origin_ = null, origin_hash_ = null
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+      and origin_ = #{origin,jdbcType=VARCHAR}
+  </update>
+  <!-- 来源散列写入（R4 / D22）：种子重置重建结构树后按新树投影刷新（updateWithLock 不含来源列） -->
+  <update id="updateOriginHash">
+    update ujcms_page_region
+    set origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 来源改记（D23）：resetAllOrigin 重建他主题本源区域行后改记为本主题（updateWithLock 不含来源列） -->
+  <update id="updateOrigin">
+    update ujcms_page_region
+    set origin_ = #{origin,jdbcType=VARCHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 认领操作员行（theme-seed-export §4.2 adopt）：区域无 origin_id_ 列；仅无来源标记的行（D3） -->
+  <update id="adoptOrigin">
+    update ujcms_page_region
+    set origin_ = #{origin,jdbcType=VARCHAR},
+        origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+      and (origin_ is null or origin_ = '')
+  </update>
+</mapper>

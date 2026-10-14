@@ -1,0 +1,43 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "tv",
+      "customs": {
+        "area": "华语",
+        "areaKey": "1",
+        "type": "家庭",
+        "typeKey": "11"
+      },
+      "ext": {
+        "seoDescription": "母女重走三百千米老邮路，把话慢慢说开",
+        "video": "{{asset:media/video_demo.mp4}}",
+        "videoDuration": 21
+      },
+      "image": "{{asset:img/tv/mother-daughter-beach-walk.jpg}}",
+      "originId": "a-mother-daughter-series",
+      "publishOffsetDays": -29,
+      "text": "<p>剧中的母亲年轻时是海岸线上的乡邮员，一条邮路走了十一年。退休那天，她翻出当年手绘的邮路图，决定把沿海十九个村子重新走一遍。刚辞了职、还没敢告诉家里的女儿，被她一个电话叫来当“挑夫”。</p>\n<p>母亲认得路上每一块礁石，却说不清女儿这些年过得怎样；女儿查得到每一家民宿的评分，却没见过母亲二十岁时的样子。每到一个村子，这位老乡邮员都要找一位当年收过信的人。三百多千米走下来，两个人在悬崖下的沙滩上挽着手笑出了声，那些多年没出口的话，也一封一封“投递”到了。</p>\n<h3>看点</h3>\n<ul>\n<li>全剧共八集，一集走一段邮路，片头是那张手绘地图上新添的一笔；</li>\n<li>沿海实景顺拍，渔港、悬崖、滩涂依次入画，母女俩一路晒黑也如实留在镜头里；</li>\n<li>和解不靠一场大吵，而是落在一顿饭、一次让路、一张合影里。</li>\n</ul>\n<p>每集约四十五分钟。</p>",
+      "title": "并肩走过的海岸"
+    },
+    {
+      "channel": "tv",
+      "customs": {
+        "area": "华语",
+        "areaKey": "1",
+        "type": "爱情",
+        "typeKey": "3"
+      },
+      "ext": {
+        "seoDescription": "百年前的春夜，巡线工与图画教员同撑一把伞",
+        "video": "{{asset:media/video_demo.mp4}}",
+        "videoDuration": 21
+      },
+      "image": "{{asset:img/tv/lamplight-shared-umbrella.jpg}}",
+      "originId": "a-lamplight-romance-series",
+      "publishOffsetDays": -24,
+      "text": "<p>故事发生在约一百年前的一座临河老城，街上的煤气灯正一盏盏换成电灯。男主角是电灯公司的巡线工，每天黄昏背着工具包沿街查灯；女主角是女子学堂新来的图画教员，放学后总站在同一盏灯下写生。春雨将停未停的一个午后，花瓣落了一地，他把伞举过她的画板，两个人从此同路。</p>\n<p>她画下他修过的每一盏灯，他绕远路送她到学堂门口。公司要调他去外埠架线，学堂的图画课也可能停开，两个普通人做得了主的事不多，握得住的只有伞柄上并排的两只手。</p>\n<h3>看点</h3>\n<ul>\n<li>全剧共十二集，以十二盏路灯分章，每集收在一段雨后同行；</li>\n<li>多在春雨天取景，石板路的水光、新绿的柳枝和枝头的花都拍得很静；</li>\n<li>两位主角几乎不说“喜欢”，心意写在让伞的角度和放慢的脚步里；</li>\n<li>长衫、旗袍、画夹和旧式灯具等道具考究。</li>\n</ul>\n<p>每集约四十分钟。</p>",
+      "title": "灯下同伞"
+    }
+  ]
+}

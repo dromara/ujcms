@@ -2,14 +2,16 @@
 import { computed, onMounted, ref } from 'vue';
 import { Delete, ArrowDown } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
 import dayjs from 'dayjs';
-import { perm } from '@/stores/useCurrentUser';
+import { currentUser, perm } from '@/stores/useCurrentUser';
 import { pageSizes, pageLayout, toParams, resetParams } from '@/utils/common';
+import { useRouteState, stringParam, numberParam } from '@/composables/useRouteState';
 import { deleteComment, queryCommentPage, updateCommentStatus } from '@/api/interaction';
+import { queryAiModerationBatch, retryAiModeration } from '@/api/ai';
 import { ColumnList, ColumnSetting } from '@/components/TableList';
 import { QueryForm, QueryItem } from '@/components/QueryForm';
 import CommentForm from './CommentForm.vue';
+import AiModerationTag from './AiModerationTag.vue';
 
 defineOptions({
   name: 'CommentList',
@@ -28,8 +30,33 @@ const formVisible = ref<boolean>(false);
 const beanId = ref<string>();
 const beanIds = computed(() => data.value.map((row) => row.id));
 
-const route = useRoute();
-const status = ref<number>(Number(route.query.status ?? '-1'));
+// 导航上下文（状态行）存于路由 query：刷新、页签往返后恢复；status 亦供首页待办深链（?status=1）。
+// id 为一次性入口（AI 审核队列的行链接），挂载时取用后即移除
+const { status, id: linkId } = useRouteState({
+  status: numberParam(-1, [0, 1, 2]),
+  id: stringParam(),
+});
+
+// AI审核角标（docs/spec/ai/ugc-moderation.md §6）：商业版T2且有权限时，每页加载后一次批量取回判定。
+// 仅装饰列，不参与本列表的查询与排序（专用队列见 AI审核 页面）
+const aiModerationVisible = computed(() => currentUser.commercialTier >= 2 && !perm('aiModeration:list'));
+const aiVerdicts = ref<Record<string, any>>({});
+const fetchVerdicts = async () => {
+  if (!aiModerationVisible.value || data.value.length <= 0) {
+    aiVerdicts.value = {};
+    return;
+  }
+  const list = await queryAiModerationBatch(
+    'comment',
+    data.value.map((row) => String(row.id)),
+  );
+  aiVerdicts.value = Object.fromEntries(list.map((item: any) => [String(item.refId), item]));
+};
+const handleVerdictRetry = async (id: string) => {
+  await retryAiModeration(id);
+  fetchVerdicts();
+  ElMessage.success(t('success'));
+};
 
 const fetchData = async () => {
   loading.value = true;
@@ -46,13 +73,22 @@ const fetchData = async () => {
     });
     data.value = content;
     total.value = Number(totalElements);
+    fetchVerdicts();
   } finally {
     loading.value = false;
   }
 };
-onMounted(fetchData);
+onMounted(() => {
+  fetchData();
+  // AI审核队列的行链接经 ?id= 直达目标编辑视图。用后即从地址移除：页签记录的是完整地址，
+  // 留着它，刷新或切回本页签都会再次弹出编辑框
+  if (linkId.value != null) {
+    handleEdit(linkId.value);
+    linkId.value = undefined;
+  }
+});
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -61,6 +97,11 @@ const handleSort = ({ column, prop, order }: { column: any; prop: string; order:
   fetchData();
 };
 const handleSearch = () => fetchData();
+// 切换状态行：回到第一页
+const handleStatusChange = () => {
+  currentPage.value = 1;
+  fetchData();
+};
 const handleReset = () => {
   table.value.clearSort();
   resetParams(params.value);
@@ -89,6 +130,7 @@ const handleStatus = async (ids: string[], status: number) => {
     <div class="mb-3">
       <query-form :params="params" @search="handleSearch" @reset="handleReset">
         <query-item :label="$t('comment.text')" name="Q_Contains_text"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div class="space-x-2">
@@ -121,17 +163,15 @@ const handleStatus = async (ids: string[], status: number) => {
       </el-popconfirm>
       <column-setting name="comment" />
     </div>
-    <el-radio-group v-model="status" class="mt-3" @change="() => fetchData()">
-      <el-radio-button :value="-1">{{ $t('all') }}</el-radio-button>
-      <el-radio-button :value="0">{{ $t('comment.status.0') }}</el-radio-button>
-      <el-radio-button :value="1">{{ $t('comment.status.1') }}</el-radio-button>
-      <el-radio-button :value="2">{{ $t('comment.status.2') }}</el-radio-button>
-    </el-radio-group>
-    <div class="app-block">
+    <div class="mt-3 app-block">
+      <el-tabs v-model="status" class="block-tabs" @tab-change="handleStatusChange">
+        <el-tab-pane :name="-1" :label="$t('all')"></el-tab-pane>
+        <el-tab-pane v-for="s in [0, 1, 2]" :key="s" :name="s" :label="$t(`comment.status.${s}`)"></el-tab-pane>
+      </el-tabs>
       <el-table ref="table" v-loading="loading" :data="data" @selection-change="(rows) => (selection = rows)" @row-dblclick="(row) => handleEdit(row.id)" @sort-change="handleSort">
         <column-list name="comment">
           <el-table-column type="selection" width="38"></el-table-column>
-          <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
+          <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
           <el-table-column property="text" :label="$t('comment.text')" min-width="260" show-overflow-tooltip></el-table-column>
           <el-table-column property="images" :label="$t('comment.images')" min-width="120">
             <template #default="{ row }">
@@ -140,7 +180,7 @@ const handleStatus = async (ids: string[], status: number) => {
                 :key="url"
                 :src="url"
                 :preview-src-list="row.images"
-                :initial-index="index"
+                :initial-index="Number(index)"
                 preview-teleported
                 fit="cover"
                 class="mr-1 align-middle"
@@ -166,6 +206,15 @@ const handleStatus = async (ids: string[], status: number) => {
               <el-tag v-else-if="row.status === 1" type="info" size="small" disable-transitions>{{ $t(`comment.status.${row.status}`) }}</el-tag>
               <el-tag v-else-if="row.status === 2" type="danger" size="small" disable-transitions>{{ $t(`comment.status.${row.status}`) }}</el-tag>
               <el-tag v-else type="info" size="small" disable-transitions>unknown</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="aiModerationVisible" :label="$t('aiModeration')" min-width="130">
+            <template #default="{ row }">
+              <ai-moderation-tag
+                :verdict="aiVerdicts[row.id]"
+                :retryable="!perm('aiModeration:review')"
+                @retry="() => handleVerdictRetry(aiVerdicts[row.id].id)"
+              />
             </template>
           </el-table-column>
           <el-table-column :label="$t('table.action')">

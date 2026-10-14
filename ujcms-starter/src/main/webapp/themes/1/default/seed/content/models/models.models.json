@@ -1,0 +1,2013 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-models.schema.json",
+  "models": [
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "source",
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "allowComment",
+          "label": "article.allowComment",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "customs": [
+        {
+          "code": "price",
+          "double": true,
+          "name": "价格",
+          "precision": 2,
+          "type": "number"
+        },
+        {
+          "code": "guidePrice",
+          "double": true,
+          "name": "厂商指导价",
+          "precision": 2,
+          "type": "number"
+        },
+        {
+          "checkStyle": "default",
+          "code": "type",
+          "dataType": "string",
+          "dictTypeId": "product_bike_type",
+          "double": false,
+          "name": "类型",
+          "type": "radio"
+        },
+        {
+          "code": "specifications",
+          "double": false,
+          "maxHeight": 500,
+          "minHeight": 300,
+          "name": "规格与包装",
+          "type": "richEditor"
+        }
+      ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 800,
+          "imageMode": "resize",
+          "imageWidth": 800,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": false,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "text",
+          "double": false,
+          "label": "article.text",
+          "must": false,
+          "name": "产品介绍",
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "related",
+          "double": false,
+          "label": "article.related",
+          "must": false,
+          "required": false,
+          "show": true
+        }
+      ],
+      "name": "产品（自行车）",
+      "originId": "m-article-24bb9de0",
+      "type": "article"
+    },
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "source",
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "allowComment",
+          "label": "article.allowComment",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 200,
+          "imageMode": "manual",
+          "imageWidth": 300,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "text",
+          "double": false,
+          "label": "article.text",
+          "must": false,
+          "required": true,
+          "show": false
+        }
+      ],
+      "name": "图片",
+      "originId": "m-article-77885419",
+      "type": "article"
+    },
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "source",
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "allowComment",
+          "label": "article.allowComment",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 300,
+          "imageMode": "resize",
+          "imageWidth": 300,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": false,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "text",
+          "double": false,
+          "label": "article.text",
+          "must": false,
+          "required": true,
+          "show": false
+        }
+      ],
+      "name": "文库",
+      "originId": "m-article-7ec4ad78",
+      "type": "article"
+    },
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "source",
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "allowComment",
+          "label": "article.allowComment",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "customs": [
+        {
+          "code": "price",
+          "double": true,
+          "name": "价格",
+          "precision": 2,
+          "type": "number"
+        },
+        {
+          "code": "guidePrice",
+          "double": true,
+          "name": "厂商指导价",
+          "precision": 2,
+          "type": "number"
+        },
+        {
+          "checkStyle": "default",
+          "code": "storage",
+          "dataType": "string",
+          "dictTypeId": "product_phone_storage",
+          "double": false,
+          "name": "机身存储",
+          "type": "radio"
+        },
+        {
+          "checkStyle": "default",
+          "code": "screen",
+          "dataType": "string",
+          "dictTypeId": "product_phone_screen",
+          "double": false,
+          "name": "屏幕尺寸",
+          "type": "radio"
+        },
+        {
+          "code": "specifications",
+          "double": false,
+          "maxHeight": 500,
+          "minHeight": 300,
+          "name": "规格与包装",
+          "type": "richEditor"
+        }
+      ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 800,
+          "imageMode": "resize",
+          "imageWidth": 800,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": false,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "text",
+          "double": false,
+          "label": "article.text",
+          "must": false,
+          "name": "产品介绍",
+          "required": true,
+          "show": true
+        }
+      ],
+      "name": "产品（手机）",
+      "originId": "m-article-8e4d3b47",
+      "type": "article"
+    },
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "channels",
+          "label": "article.channels",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "onlineDate",
+          "label": "article.onlineDate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "offlineDate",
+          "label": "article.offlineDate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleLayout",
+          "label": "article.articleLayout",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleStaticPath",
+          "label": "article.articleStaticPath",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "customs": [ ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "tags",
+          "double": true,
+          "label": "article.tags",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "source",
+          "double": true,
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "topics",
+          "double": false,
+          "label": "article.topics",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 200,
+          "imageMode": "manual",
+          "imageWidth": 300,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "audio",
+          "double": false,
+          "label": "article.audio",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageListType": "pictureCard",
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": false,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "text",
+          "double": false,
+          "editorSwitch": true,
+          "editorType": 1,
+          "label": "article.text",
+          "must": false,
+          "required": true,
+          "show": true,
+          "type": "editor"
+        }
+      ],
+      "name": "新闻",
+      "originId": "m-article-973b347a",
+      "type": "article"
+    },
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "source",
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "allowComment",
+          "label": "article.allowComment",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "customs": [
+        {
+          "code": "price",
+          "double": true,
+          "name": "价格",
+          "precision": 2,
+          "type": "number"
+        },
+        {
+          "code": "guidePrice",
+          "double": true,
+          "name": "厂商指导价",
+          "precision": 2,
+          "type": "number"
+        },
+        {
+          "checkStyle": "default",
+          "code": "type",
+          "dataType": "string",
+          "dictTypeId": "product_camera_type",
+          "double": false,
+          "name": "类型",
+          "type": "radio"
+        },
+        {
+          "checkStyle": "default",
+          "code": "mount",
+          "dataType": "string",
+          "dictTypeId": "product_camera_mount",
+          "double": false,
+          "name": "卡口",
+          "type": "radio"
+        },
+        {
+          "code": "specifications",
+          "double": false,
+          "maxHeight": 500,
+          "minHeight": 300,
+          "name": "规格与包装",
+          "type": "richEditor"
+        }
+      ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 800,
+          "imageMode": "resize",
+          "imageWidth": 800,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": false,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "text",
+          "double": false,
+          "label": "article.text",
+          "must": false,
+          "name": "产品介绍",
+          "required": true,
+          "show": true
+        }
+      ],
+      "name": "产品（相机）",
+      "originId": "m-article-9bf4dbf3",
+      "type": "article"
+    },
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "source",
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "allowComment",
+          "label": "article.allowComment",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "customs": [
+        {
+          "code": "area",
+          "dataType": "string",
+          "dictTypeId": "video_area",
+          "double": true,
+          "name": "地区",
+          "type": "select"
+        },
+        {
+          "code": "type",
+          "dataType": "string",
+          "dictTypeId": "video_type",
+          "double": true,
+          "name": "类型",
+          "type": "select"
+        }
+      ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 200,
+          "imageMode": "manual",
+          "imageWidth": 300,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": false,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "text",
+          "double": false,
+          "label": "article.text",
+          "must": false,
+          "required": true,
+          "show": false
+        }
+      ],
+      "name": "视频",
+      "originId": "m-article-ea39048a",
+      "type": "article"
+    },
+    {
+      "asides": [
+        {
+          "code": "channel",
+          "label": "article.channel",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "org",
+          "label": "article.org",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "publishDate",
+          "label": "article.publishDate",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "source",
+          "label": "article.source",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "articleTemplate",
+          "label": "article.articleTemplate",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "allowComment",
+          "label": "article.allowComment",
+          "must": false,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "user",
+          "label": "article.user",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "created",
+          "label": "article.created",
+          "must": false,
+          "required": true,
+          "show": false
+        },
+        {
+          "code": "modifiedUser",
+          "label": "article.modifiedUser",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "modified",
+          "label": "article.modified",
+          "must": false,
+          "required": false,
+          "show": false
+        }
+      ],
+      "customs": [
+        {
+          "checkStyle": "default",
+          "code": "type",
+          "dataType": "string",
+          "dictTypeId": "download_type",
+          "double": true,
+          "name": "软件类型",
+          "type": "radio"
+        },
+        {
+          "checkStyle": "default",
+          "code": "license",
+          "dataType": "string",
+          "dictTypeId": "download_license",
+          "double": true,
+          "name": "授权方式",
+          "type": "radio"
+        },
+        {
+          "code": "language",
+          "dataType": "string",
+          "dictTypeId": "download_language",
+          "double": true,
+          "name": "界面语言",
+          "type": "select"
+        },
+        {
+          "code": "star",
+          "dataType": "string",
+          "dictTypeId": "download_star",
+          "double": true,
+          "name": "推荐星级",
+          "type": "select"
+        },
+        {
+          "checkStyle": "default",
+          "code": "system",
+          "dataType": "string",
+          "defaultValue": [ ],
+          "defaultValueKey": [ ],
+          "dictTypeId": "download_system",
+          "double": false,
+          "multiple": true,
+          "name": "运行环境",
+          "type": "checkbox"
+        }
+      ],
+      "mains": [
+        {
+          "code": "title",
+          "double": false,
+          "label": "article.title",
+          "must": true,
+          "required": true,
+          "show": true
+        },
+        {
+          "code": "subtitle",
+          "double": false,
+          "label": "article.subtitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "fullTitle",
+          "double": false,
+          "label": "article.fullTitle",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "linkUrl",
+          "double": false,
+          "label": "article.linkUrl",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "seoKeywords",
+          "double": false,
+          "label": "article.seoKeywords",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "seoDescription",
+          "double": false,
+          "label": "article.seoDescription",
+          "must": false,
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "author",
+          "double": true,
+          "label": "article.author",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "editor",
+          "double": true,
+          "label": "article.editor",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "image",
+          "double": false,
+          "imageHeight": 340,
+          "imageMode": "manual",
+          "imageWidth": 340,
+          "label": "article.image",
+          "must": false,
+          "required": false,
+          "show": true,
+          "type": "image"
+        },
+        {
+          "code": "file",
+          "double": false,
+          "label": "article.file",
+          "must": false,
+          "name": "文件",
+          "required": false,
+          "show": true
+        },
+        {
+          "code": "video",
+          "double": false,
+          "label": "article.video",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "doc",
+          "double": false,
+          "label": "article.doc",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "imageList",
+          "double": false,
+          "imageMaxHeight": 1920,
+          "imageMaxWidth": 1920,
+          "label": "article.imageList",
+          "must": false,
+          "required": false,
+          "show": false,
+          "type": "imageList"
+        },
+        {
+          "code": "fileList",
+          "double": false,
+          "label": "article.fileList",
+          "must": false,
+          "required": false,
+          "show": false
+        },
+        {
+          "code": "text",
+          "double": false,
+          "label": "article.text",
+          "must": false,
+          "required": true,
+          "show": true
+        }
+      ],
+      "name": "下载",
+      "originId": "m-article-f330156c",
+      "type": "article"
+    },
+    {
+      "customs": [ ],
+      "name": "常规",
+      "originId": "m-channel-a5fa71f0",
+      "type": "channel"
+    },
+    {
+      "customs": [
+        {
+          "code": "name",
+          "double": false,
+          "name": "姓名",
+          "showInList": true,
+          "type": "text"
+        },
+        {
+          "checkStyle": "default",
+          "clob": false,
+          "code": "gender",
+          "dataType": "string",
+          "dictTypeId": "form_gender",
+          "double": false,
+          "name": "性别",
+          "showInList": true,
+          "type": "radio"
+        },
+        {
+          "clob": false,
+          "code": "birthday",
+          "dataType": "string",
+          "dateType": "date",
+          "double": false,
+          "name": "出生年月",
+          "showInList": true,
+          "type": "date"
+        },
+        {
+          "code": "address",
+          "double": false,
+          "name": "地址",
+          "showInList": true,
+          "type": "text"
+        },
+        {
+          "clob": false,
+          "code": "phone",
+          "dataType": "string",
+          "double": false,
+          "name": "联系电话",
+          "showInList": true,
+          "type": "text"
+        },
+        {
+          "clob": false,
+          "code": "email",
+          "dataType": "string",
+          "double": false,
+          "name": "电子邮箱",
+          "showInList": true,
+          "type": "text"
+        }
+      ],
+      "name": "在线报名",
+      "originId": "m-form-95870bd4",
+      "type": "form"
+    },
+    {
+      "customs": [
+        {
+          "code": "contactPerson",
+          "double": true,
+          "name": "联系人",
+          "showInList": true,
+          "type": "text"
+        },
+        {
+          "code": "phone",
+          "double": true,
+          "name": "联系电话",
+          "showInList": true,
+          "type": "text"
+        },
+        {
+          "code": "address",
+          "double": false,
+          "name": "加盟地址",
+          "showInList": true,
+          "type": "text"
+        },
+        {
+          "code": "experience",
+          "double": false,
+          "name": "从业经历",
+          "rows": 5,
+          "showInList": false,
+          "type": "textarea"
+        }
+      ],
+      "name": "加盟意向",
+      "originId": "m-form-e7adaad8",
+      "type": "form"
+    },
+    {
+      "name": "常规专题",
+      "originId": "m-topic-56797c03",
+      "type": "topic"
+    }
+  ]
+}

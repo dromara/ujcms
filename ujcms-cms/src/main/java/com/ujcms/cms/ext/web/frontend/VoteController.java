@@ -1,14 +1,12 @@
 package com.ujcms.cms.ext.web.frontend;
 
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.cms.core.web.support.FrontendController;
 import com.ujcms.cms.ext.domain.Vote;
 import com.ujcms.cms.ext.service.VoteService;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -16,13 +14,11 @@ import java.util.Map;
  *
  * @author PONY
  */
-@Controller("frontendVoteController")
+@FrontendController("frontendVoteController")
 public class VoteController {
-    private final SiteResolver siteResolver;
     private final VoteService service;
 
-    public VoteController(SiteResolver siteResolver, VoteService service) {
-        this.siteResolver = siteResolver;
+    public VoteController(VoteService service) {
         this.service = service;
     }
 
@@ -30,24 +26,19 @@ public class VoteController {
     private static final String TEMPLATE_SHOW = "sys_vote_show";
     private static final String TEMPLATE_RESULT = "sys_vote_result";
 
-    @GetMapping({"/vote", "/{subDir:[\\w-]+}/vote"})
-    public String list(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/vote")
+    public String list(Site site) {
         return site.assembleTemplate(TEMPLATE);
     }
 
-    @GetMapping({"/vote/{id}", "/{subDir:[\\w-]+}/vote/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
-                       HttpServletRequest request, Map<String, Object> modelMap) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/vote/{id}")
+    public String show(Site site, @PathVariable Long id, Map<String, Object> modelMap) {
         handleVote(id, modelMap);
         return site.assembleTemplate(TEMPLATE_SHOW);
     }
 
-    @GetMapping({"/vote/{id}/result", "/{subDir:[\\w-]+}/vote/{id}/result"})
-    public String result(@PathVariable(required = false) String subDir, @PathVariable Long id,
-                         HttpServletRequest request, Map<String, Object> modelMap) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/vote/{id}/result")
+    public String result(Site site, @PathVariable Long id, Map<String, Object> modelMap) {
         handleVote(id, modelMap);
         return site.assembleTemplate(TEMPLATE_RESULT);
     }

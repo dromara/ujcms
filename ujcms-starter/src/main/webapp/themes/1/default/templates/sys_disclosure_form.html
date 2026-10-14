@@ -1,0 +1,269 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'disclosure'/]
+[#assign dcUrl = dy + '/disclosure'/]
+[@layout title='政务信息公开申请 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dcUrl}" class="cm-link text-slate-700">依申请公开</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">我要申请</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4"
+  x-data="{
+    type: '1',
+    name: '', org: '', certType: '居民身份证', certNumber: '',
+    creditCode: '', legalPerson: '', contactName: '',
+    phone: '', email: '', address: '', zipCode: '', fax: '',
+    title: '', text: '', purpose: '',
+    provideMethod: '1', obtainMethod: '1',
+    captcha: '', captchaToken: '', captchaImage: '',
+    submitting: false, error: '',
+    done: false, resultId: '', resultCode: '',
+    async refreshCaptcha() {
+      try {
+        const data = await window.request('GET', '${api}/captcha');
+        if (data) { this.captchaImage = 'data:image/png;base64,' + data.image; this.captchaToken = data.token; }
+      } catch (e) { /* 静默，提交时后端仍校验 */ }
+    },
+    async submit() {
+      if (this.submitting) return;
+      this.error = '';
+      this.submitting = true;
+      try {
+        await window.fetchCsrf();
+        const isCitizen = this.type === '1';
+        const body = {
+          siteId: '${site.id?c}',
+          type: parseInt(this.type, 10),
+          name: this.name, phone: this.phone, email: this.email,
+          address: this.address, zipCode: this.zipCode, fax: this.fax,
+          title: this.title, text: this.text, purpose: this.purpose,
+          provideMethod: parseInt(this.provideMethod, 10),
+          obtainMethod: parseInt(this.obtainMethod, 10),
+          captcha: this.captcha, captchaToken: this.captchaToken,
+        };
+        if (isCitizen) {
+          body.org = this.org; body.certType = this.certType; body.certNumber = this.certNumber;
+        } else {
+          body.creditCode = this.creditCode; body.legalPerson = this.legalPerson; body.contactName = this.contactName;
+        }
+        const data = await window.request('POST', '${api}/disclosure', body);
+        if (data && data.status === 0 && data.result) {
+          this.resultId = String(data.result.id);
+          this.resultCode = String(data.result.code);
+          this.done = true;
+          window.scrollTo({ top: 0 });
+        } else {
+          this.error = (data && data.message) || '提交失败，请稍后重试';
+          this.captcha = ''; this.refreshCaptcha();
+        }
+      } catch (e) {
+        this.error = e.message || '提交失败，请稍后重试';
+        this.captcha = ''; this.refreshCaptcha();
+      } finally {
+        this.submitting = false;
+      }
+    }
+  }"
+  x-init="refreshCaptcha()"
+>
+  <div class="flex flex-wrap justify-between items-baseline gap-2 border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'edit-outline'/]</span>
+      <span>政务信息公开申请表</span>
+    </h1>
+    <div class="flex gap-2 text-sm">
+      <a href="${dcUrl}/query" class="cm-link">结果查询</a>
+      <a href="${dcUrl}" class="cm-link">依申请公开</a>
+    </div>
+  </div>
+
+  [#-- 提交成功面板 --]
+  <div x-show="done" x-cloak class="rounded-lg border border-emerald-200 bg-emerald-50 p-6 space-y-3">
+    <h2 class="flex items-center gap-2 text-lg font-semibold text-emerald-700">
+      <span class="size-5 inline-block">[@icon 'check-circle-outline'/]</span>
+      <span>申请提交成功</span>
+    </h2>
+    <p class="text-sm text-slate-600">您的申请已提交，请务必保存好申请编号和查询码，以便查询办理进度和答复结果。</p>
+    <p class="text-sm">申请编号：<code class="px-1.5 py-0.5 rounded bg-white border border-emerald-200 font-mono" x-text="resultId"></code></p>
+    <p class="text-sm">查询码：<code class="px-1.5 py-0.5 rounded bg-white border border-emerald-200 font-mono" x-text="resultCode"></code></p>
+    <div class="flex gap-2 pt-1">
+      <a :href="'${dcUrl}/query?id=' + encodeURIComponent(resultId)"
+         class="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">前往结果查询</a>
+      <a href="${dcUrl}" class="px-4 py-2 rounded border border-slate-300 text-sm hover:bg-slate-50">返回依申请公开</a>
+    </div>
+  </div>
+
+  <form x-show="!done" @submit.prevent="submit" class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-4">
+    <p x-show="error" x-cloak x-text="error" class="px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+
+    <fieldset>
+      <legend class="block text-sm font-medium text-slate-700 mb-1.5">申请人类型 <strong class="text-rose-600">*</strong></legend>
+      <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <label class="inline-flex items-center gap-1.5">
+          <input type="radio" name="type" value="1" x-model="type" class="accent-primary" required>
+          <span>公民</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5">
+          <input type="radio" name="type" value="2" x-model="type" class="accent-primary" required>
+          <span>法人或其他组织</span>
+        </label>
+      </div>
+    </fieldset>
+
+    [#-- 公民申请人字段 --]
+    <fieldset x-show="type === '1'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="citizenName" class="block text-sm font-medium text-slate-700 mb-1.5">姓名 <strong class="text-rose-600">*</strong></label>
+        <input id="citizenName" type="text" maxlength="50" x-model="name" :required="type === '1'" autocomplete="name"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="org" class="block text-sm font-medium text-slate-700 mb-1.5">工作单位</label>
+        <input id="org" type="text" maxlength="150" x-model="org"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="certType" class="block text-sm font-medium text-slate-700 mb-1.5">证件名称 <strong class="text-rose-600">*</strong></label>
+        <select id="certType" x-model="certType" :required="type === '1'"
+                class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+          <option value="居民身份证">居民身份证</option>
+          <option value="护照">护照</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div>
+        <label for="certNumber" class="block text-sm font-medium text-slate-700 mb-1.5">证件号码 <strong class="text-rose-600">*</strong></label>
+        <input id="certNumber" type="text" maxlength="50" x-model="certNumber" :required="type === '1'" autocomplete="off"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+    </fieldset>
+
+    [#-- 法人/组织申请人字段 --]
+    <fieldset x-show="type === '2'" x-cloak class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="sm:col-span-2">
+        <label for="organizationName" class="block text-sm font-medium text-slate-700 mb-1.5">机构名称 <strong class="text-rose-600">*</strong></label>
+        <input id="organizationName" type="text" maxlength="50" x-model="name" :required="type === '2'"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div class="sm:col-span-2">
+        <label for="creditCode" class="block text-sm font-medium text-slate-700 mb-1.5">统一社会信用代码 <strong class="text-rose-600">*</strong></label>
+        <input id="creditCode" type="text" maxlength="50" x-model="creditCode" :required="type === '2'"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="legalPerson" class="block text-sm font-medium text-slate-700 mb-1.5">法定代表人</label>
+        <input id="legalPerson" type="text" maxlength="30" x-model="legalPerson"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="contactName" class="block text-sm font-medium text-slate-700 mb-1.5">联系人 <strong class="text-rose-600">*</strong></label>
+        <input id="contactName" type="text" maxlength="30" x-model="contactName" :required="type === '2'"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+    </fieldset>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">联系电话 <strong class="text-rose-600">*</strong></label>
+        <input id="phone" type="tel" required maxlength="50" x-model="phone" autocomplete="tel"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">电子邮箱</label>
+        <input id="email" type="email" maxlength="50" x-model="email" autocomplete="email"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="address" class="block text-sm font-medium text-slate-700 mb-1.5">通讯地址</label>
+        <input id="address" type="text" maxlength="150" x-model="address" autocomplete="street-address"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="zipCode" class="block text-sm font-medium text-slate-700 mb-1.5">邮政编码</label>
+          <input id="zipCode" type="text" maxlength="20" x-model="zipCode" autocomplete="postal-code"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+        </div>
+        <div>
+          <label for="fax" class="block text-sm font-medium text-slate-700 mb-1.5">传真</label>
+          <input id="fax" type="text" maxlength="50" x-model="fax"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">所需信息名称 <strong class="text-rose-600">*</strong></label>
+      <input id="title" type="text" required maxlength="150" x-model="title"
+             class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+    </div>
+
+    <div>
+      <label for="text" class="block text-sm font-medium text-slate-700 mb-1.5">内容描述 <strong class="text-rose-600">*</strong></label>
+      <textarea id="text" required maxlength="4000" rows="6" x-model="text"
+                class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"></textarea>
+      <p class="mt-1 text-xs text-slate-500">请尽量填写所需信息的文号或者便于查询的其他特征性描述。</p>
+    </div>
+
+    <div>
+      <label for="purpose" class="block text-sm font-medium text-slate-700 mb-1.5">信息用途</label>
+      <input id="purpose" type="text" maxlength="300" x-model="purpose"
+             class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+    </div>
+
+    <fieldset>
+      <legend class="block text-sm font-medium text-slate-700 mb-1.5">信息提供方式 <strong class="text-rose-600">*</strong></legend>
+      <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        [#list {'1':'纸质','2':'电子邮件','3':'光盘','4':'其他'} as key, label]
+          <label class="inline-flex items-center gap-1.5">
+            <input type="radio" name="provideMethod" value="${key}" x-model="provideMethod" class="accent-primary" required>
+            <span>${label}</span>
+          </label>
+        [/#list]
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="block text-sm font-medium text-slate-700 mb-1.5">获取信息方式 <strong class="text-rose-600">*</strong></legend>
+      <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        [#list {'1':'邮寄','2':'电子邮件','3':'自行领取','4':'传真'} as key, label]
+          <label class="inline-flex items-center gap-1.5">
+            <input type="radio" name="obtainMethod" value="${key}" x-model="obtainMethod" class="accent-primary" required>
+            <span>${label}</span>
+          </label>
+        [/#list]
+      </div>
+    </fieldset>
+
+    <div class="max-w-md">
+      <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码 <strong class="text-rose-600">*</strong></label>
+      <div class="flex gap-2">
+        <input id="captcha" type="text" required autocomplete="off" x-model="captcha"
+               class="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+        <button type="button" @click="refreshCaptcha()" title="点击重新获取验证码" class="shrink-0">
+          <img :src="captchaImage || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"
+               alt="验证码" class="h-10 rounded border border-slate-300 cursor-pointer min-w-24 bg-slate-50">
+        </button>
+      </div>
+    </div>
+
+    <div class="pt-1">
+      <button type="submit" :disabled="submitting"
+              class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity shadow-sm">
+        <span x-show="!submitting">确认提交</span>
+        <span x-show="submitting" x-cloak>提交中…</span>
+      </button>
+    </div>
+  </form>
+</div>
+[/@layout]
+[/#escape]

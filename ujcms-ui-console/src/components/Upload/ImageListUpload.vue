@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref, toRefs, computed, watch, PropType } from 'vue';
+import { ref, toRefs, computed, watch, type PropType } from 'vue';
 import { useFormItem } from 'element-plus';
-import { Plus, Crop, View, Delete } from '@element-plus/icons-vue';
+import { UploadFilled, Crop, View, Delete, FolderOpened } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
 import { handleError } from '@/utils/request';
 import { getAuthHeaders } from '@/utils/auth';
 import { getSiteHeaders } from '@/utils/common';
+import { getLocaleHeaders } from '@/i18n';
+import { isAcceptedExtension, acceptToText } from '@/utils/upload';
 import { useSysConfigStore } from '@/stores/sysConfigStore';
 import { imageUploadUrl } from '@/api/config';
 import ImageCropper from './ImageCropper.vue';
+import FilePicker from '@/components/FilePicker/FilePicker.vue';
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -67,6 +70,11 @@ const getData = () => {
 const accept = computed(() => fileAccept?.value ?? sysConfig.upload.imageInputAccept);
 const maxSize = computed(() => fileMaxSize?.value ?? sysConfig.upload.imageLimitByte);
 const beforeUpload = (file: any) => {
+  // accept 属性不限制拖拽，需在此手动校验扩展名，拦截拖入的不支持文件
+  if (!isAcceptedExtension(file.name, accept.value)) {
+    ElMessage.error(t('error.fileType', { types: acceptToText(accept.value) }));
+    return false;
+  }
   if (maxSize.value > 0 && file.size > maxSize.value) {
     ElMessage.error(t('error.fileMaxSize', { size: `${maxSize.value / 1024 / 1024} MB` }));
     return false;
@@ -75,6 +83,39 @@ const beforeUpload = (file: any) => {
 };
 const onError = (error: Error) => {
   handleError(JSON.parse(error.message));
+};
+const pickerVisible = ref<boolean>(false);
+// 资源库选择目标：指向某个图集项时表示“替换该项”，为 null 时表示“追加新图”
+const replaceTarget = ref<any>(null);
+const handlePick = (items: any) => {
+  const list = Array.isArray(items) ? items : [items];
+  if (replaceTarget.value != null) {
+    const picked = list.find((it: any) => it?.url);
+    if (picked) {
+      replaceTarget.value.url = picked.url;
+      replaceTarget.value.name = picked.name;
+    }
+    replaceTarget.value = null;
+    return;
+  }
+  list.forEach((item) => {
+    if (item?.url) {
+      fileList.value.push({ name: item.name, url: item.url });
+    }
+  });
+};
+// 通过一个隐藏的 el-upload 实现“替换某张图集图片”，避免在图集项内嵌 el-upload 影响图标排版
+const replaceUploadRef = ref<HTMLElement>();
+const triggerReplaceUpload = (file: any) => {
+  replaceTarget.value = file;
+  replaceUploadRef.value?.querySelector<HTMLInputElement>('input[type="file"]')?.click();
+};
+const onReplaceUploadSuccess = (res: any) => {
+  if (replaceTarget.value != null) {
+    replaceTarget.value.url = res.url;
+    replaceTarget.value.name = res.name;
+    replaceTarget.value = null;
+  }
 };
 </script>
 
@@ -95,14 +136,21 @@ const onError = (error: Error) => {
         <li class="el-upload-list__item is-success">
           <div :class="listType === 'picture' ? ['w-32', 'h-32'] : ['w-full', 'h-full']" class="relative flex items-center justify-center bg-gray-50">
             <img class="block max-w-full max-h-full" :src="file.url" alt="" />
+            <!-- 两行操作：上传/资源库（替换当前项的图片来源）在上，裁剪/预览/删除在下 -->
             <div
-              class="absolute space-x-4 bg-black bg-opacity-50 rounded-md opacity-0 cursor-move full-flex-center"
+              class="absolute bg-black bg-opacity-60 rounded-md opacity-0 cursor-move full-flex-center flex-col gap-2"
               :class="dragging ? undefined : 'hover:opacity-100'"
               @click.stop
             >
-              <el-icon class="image-action" :title="$t('cropImage')" @click="() => ((cropperVisible = true), (currentFile = file))"><Crop /></el-icon>
-              <el-icon class="image-action" :title="$t('previewImage')" @click="() => handlePreview(file)"><View /></el-icon>
-              <el-icon class="image-action" :title="$t('deleteImage')" @click="() => fileList.splice(fileList.indexOf(file), 1)"><Delete /></el-icon>
+              <div v-if="!disabled" class="flex items-center space-x-4">
+                <el-icon class="image-action" :title="$t('upload')" @click="() => triggerReplaceUpload(file)"><UploadFilled /></el-icon>
+                <el-icon class="image-action" :title="$t('resource.library')" @click="() => ((replaceTarget = file), (pickerVisible = true))"><FolderOpened /></el-icon>
+              </div>
+              <div class="flex items-center space-x-4">
+                <el-icon class="image-action" :title="$t('cropImage')" @click="() => ((cropperVisible = true), (currentFile = file))"><Crop /></el-icon>
+                <el-icon class="image-action" :title="$t('previewImage')" @click="() => handlePreview(file)"><View /></el-icon>
+                <el-icon class="image-action" :title="$t('deleteImage')" @click="() => fileList.splice(fileList.indexOf(file), 1)"><Delete /></el-icon>
+              </div>
             </div>
           </div>
           <div v-if="listType === 'picture'" class="ml-2">
@@ -119,7 +167,7 @@ const onError = (error: Error) => {
       <template #footer>
         <el-upload
           :action="imageUploadUrl"
-          :headers="{ ...getAuthHeaders(), ...getSiteHeaders() }"
+          :headers="{ ...getAuthHeaders(), ...getSiteHeaders(), ...getLocaleHeaders() }"
           :data="getData()"
           :accept="accept"
           :before-upload="beforeUpload"
@@ -132,13 +180,31 @@ const onError = (error: Error) => {
           drag
         >
           <el-progress v-if="progressFile.status === 'uploading'" type="circle" :percentage="parseInt(progressFile.percentage, 10)" />
-          <div v-else class="el-upload--picture-card">
-            <el-icon><Plus /></el-icon>
+          <!-- 添加卡片内放两个图标操作：加号（点击/拖拽上传，冒泡触发）、资源库（.stop 阻止冒泡，改为打开选择器） -->
+          <div v-else class="el-upload--picture-card add-card">
+            <el-icon class="add-card__action" :title="$t('upload')"><UploadFilled /></el-icon>
+            <el-icon v-if="!disabled" class="add-card__action" :title="$t('resource.library')" @click.stop="() => ((replaceTarget = null), (pickerVisible = true))"><FolderOpened /></el-icon>
           </div>
         </el-upload>
       </template>
     </draggable>
     <!-- </transition-group> -->
+    <file-picker v-model="pickerVisible" accept="image" multiple @pick="handlePick" />
+    <!-- 隐藏上传器：点击图集项的“上传”图标时触发其文件选择，上传成功后替换该项图片 -->
+    <div ref="replaceUploadRef" class="hidden">
+      <el-upload
+        :action="imageUploadUrl"
+        :headers="{ ...getAuthHeaders(), ...getSiteHeaders(), ...getLocaleHeaders() }"
+        :data="getData()"
+        :accept="accept"
+        :before-upload="beforeUpload"
+        :on-success="onReplaceUploadSuccess"
+        :on-error="onError"
+        :show-file-list="false"
+      >
+        <span></span>
+      </el-upload>
+    </div>
     <div>
       <el-dialog v-model="previewVisible" top="5vh" :width="768">
         <el-input v-model="previewFile.url" maxlength="255">
@@ -192,5 +258,20 @@ const onError = (error: Error) => {
 // 修复拖动图集无动画效果
 :deep(.el-upload-list__item) {
   transition: none;
+}
+.add-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.add-card__action {
+  font-size: 24px;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.add-card__action:hover {
+  color: var(--el-color-primary);
 }
 </style>

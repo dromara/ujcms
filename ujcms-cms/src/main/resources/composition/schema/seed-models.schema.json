@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-models.schema.json",
+  "title": "UJCMS Theme Seed Models",
+  "description": "主题内容种子模型文件（seed/content/models/*.models.json——model-seeding D1–D5）。模型定义按来源三元组 (site_id_, origin_, origin_id_) select-then-insert 幂等；模型无别名，自然键为 (type, name)——撞站点可见集（本站 ∪ 全局）→ linked 恒不收编（每个站点都有同名出厂模型，linked 是常态路径）。种子行恒本站私有（scope=0）；type 即身份，刷新恒不改写（三元组命中而 type 不符 → modelTypeMismatch 失败）。字段集树内的 dictTypeId 取值为字典类型别名（导入解析为站内ID，字典先于模型导入——D8）；数组序即编辑器布局，有语义。模型先于栏目导入——channelModel/articleModel/blockItemModel 的按名解析自此有种子定义可命中。",
+  "type": "object",
+  "required": ["models"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "type", "name"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（来源三元组幂等键，D1）" },
+          "type": { "type": "string", "enum": ["article", "channel", "topic", "blockItem", "form"], "description": "模型类型（D2：主题内容绑定的四类可种子化；form 型自 theme-seed-export E4e / D37 起随表单类型可种子化；site/user/global 系统模型不入种子）" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 50, "description": "模型名称（自然键的另一半；(type, name) 撞可见集 → linked）" },
+          "mains": { "type": ["array", "null"], "items": { "type": "object" }, "description": "主字段集（mains_ 列的解析树；null 即列空）" },
+          "asides": { "type": ["array", "null"], "items": { "type": "object" }, "description": "右侧字段集（asides_ 列的解析树）" },
+          "customs": { "type": ["array", "null"], "items": { "type": "object" }, "description": "自定义字段集（customs_ 列的解析树；dictTypeId 取值为字典类型别名，导入写回站内ID——解析不到的绑定丢键 + 告警，行照常导入）" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

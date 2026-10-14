@@ -7,7 +7,7 @@ import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
@@ -19,13 +19,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.UserService;
+import com.ujcms.cms.core.web.support.FrontendController;
 import com.ujcms.common.security.jwt.JwtProperties;
 import com.ujcms.common.web.Servlets;
 import com.ujcms.common.web.exception.Http400Exception;
@@ -40,7 +39,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * @see org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter#successfulAuthentication
  *      (HttpServletRequest, HttpServletResponse, Authentication)
  */
-@Controller("frontendJwtAuthController")
+@FrontendController("frontendJwtAuthController")
 @RequestMapping
 public class JwtAuthController {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthController.class);
@@ -53,8 +52,8 @@ public class JwtAuthController {
         this.tokenDecoder = decoder;
     }
 
-    @GetMapping({ "/auth/jwt/login", "/{subDir:[\\w-]+}/auth/jwt/login" })
-    public void authorize(String code, String redirectUri, @PathVariable(required = false) String subDir,
+    @GetMapping("/auth/jwt/login")
+    public void authorize(String code, String redirectUri,
             HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             Jwt jwt = tokenDecoder.decode(code);

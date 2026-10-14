@@ -1,0 +1,35 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "bike",
+      "customs": {
+        "guidePrice": 13800,
+        "price": 12800,
+        "specifications": "<table><thead><tr><th colspan=\"2\">车架</th></tr></thead><tbody><tr><td>车架</td><td>高模量碳纤维一体成型，截尾水滴形管型，线管全内走，后轴 12×142mm 桶轴</td></tr><tr><td>前叉</td><td>全碳纤维，锥形舵管，前轴 12×100mm 桶轴，最大容胎宽度 32mm</td></tr><tr><td>涂装</td><td>哑光炭灰</td></tr><tr><td>尺寸</td><td>小号、中号、大号，适合身高 162 至 190 厘米</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">组件</th></tr></thead><tbody><tr><td>车把</td><td>碳纤维一体式弯把，宽 420mm，等效把立长 100mm</td></tr><tr><td>座杆</td><td>碳纤维翼型座杆，后飘 15mm，隐藏式夹紧结构</td></tr><tr><td>坐垫</td><td>短鼻公路坐垫，宽 145mm</td></tr><tr><td>把带</td><td>黑色防滑把带</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">传动与制动</th></tr></thead><tbody><tr><td>变速</td><td>2×12 速电子变速，手变与油压刹把一体</td></tr><tr><td>牙盘</td><td>52/36 齿，曲柄长 172.5mm</td></tr><tr><td>飞轮</td><td>12 速，11-30 齿</td></tr><tr><td>链条</td><td>12 速，带快拆扣</td></tr><tr><td>制动</td><td>前后油压碟刹，碟片前 160mm、后 140mm</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">轮组</th></tr></thead><tbody><tr><td>轮圈</td><td>碳纤维碟刹轮组，框高 45mm，内宽 21mm</td></tr><tr><td>花鼓</td><td>密封轴承，中锁式碟片接口</td></tr><tr><td>轮胎</td><td>700×28mm 真空胎，前后同规格</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">整车</th></tr></thead><tbody><tr><td>重量</td><td>中号约 7.6kg（不含脚踏）</td></tr><tr><td>随车物品</td><td>码表支架、变速充电线、扭力扳手、水壶架螺丝、用户手册</td></tr><tr><td>质保</td><td>车架五年，其余部件一年</td></tr></tbody></table>",
+        "type": "公路车",
+        "typeKey": "1"
+      },
+      "image": "{{asset:img/bike/carbon-road-bike.jpg}}",
+      "originId": "a-carbon-road-bike",
+      "publishOffsetDays": -14,
+      "text": "<p>这款公路车走的是全能竞赛路线：车架够轻，爬坡不吃亏；管型做过空气动力学优化，平路巡航省力；前后油压碟刹让它在雨天和长下坡同样可靠。整车是哑光炭灰色，没有多余的图案，停在哪里都不张扬。</p>\n<h3>车架与外观</h3>\n<p>车架和前叉用高模量碳纤维一体成型，中号车架约重 860g。下管、立管和后上叉采用截尾水滴形截面，变速线与刹车油管从一体式弯把直接进入头管，正面看不到外露的线。后上叉下移并做得纤细，配合 28mm 宽的外胎，压过碎石和路面接缝时，传到手上的震动明显收敛。</p>\n<h3>传动与轮组</h3>\n<p>整车配 2×12 速电子变速，换挡由按键触发，力度轻，冬天戴厚手套也不容易误拨。52/36 齿盘配 11-30 齿飞轮，平路输出和七八度的坡都照顾得到。轮组是框高 45mm 的碳纤维碟刹轮，内宽 21mm，出厂即装真空胎；在同级框高里，它遇到侧风时属于好驾驭的一类。前后碟片分别为 160mm 和 140mm，长下坡连续制动之后，刹把的手感依然线性。</p>\n<h3>适合谁</h3>\n<ul>\n<li>每周骑行一两次、单次八十到一百五十千米的进阶爱好者；</li>\n<li>准备参加业余公路赛或爬坡赛，想用一辆车兼顾训练和比赛的车手；</li>\n<li>常走环湖路和山区公路，对湿滑路面的制动有要求的人。</li>\n</ul>\n<h3>尺寸与随车物品</h3>\n<p>提供小、中、大三个车架尺寸，对应身高 162 至 190 厘米；中号整车约 7.6kg（不含脚踏）。随车附码表支架、变速充电线、扭力扳手、水壶架螺丝和用户手册，脚踏需按自己的锁鞋另配。车架质保五年，首次保养建议在骑满三百千米后进行。</p>",
+      "title": "碳纤维碟刹公路车"
+    },
+    {
+      "channel": "bike",
+      "customs": {
+        "guidePrice": 8680,
+        "price": 7980,
+        "specifications": "<table><thead><tr><th colspan=\"2\">车架</th></tr></thead><tbody><tr><td>车架</td><td>碳纤维硬尾车架，29 英寸轮径，线管内走，后轴 12×148mm 桶轴</td></tr><tr><td>前叉</td><td>气压避震，行程 120mm，回弹可调，可锁死，前轴 15×110mm 桶轴</td></tr><tr><td>几何</td><td>头管角 67 度，立管角 75 度（中号）</td></tr><tr><td>涂装</td><td>深青绿渐变黑色，亮面清漆</td></tr><tr><td>尺寸</td><td>小号、中号、大号，适合身高 160 至 188 厘米</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">组件</th></tr></thead><tbody><tr><td>车把</td><td>铝合金平把，宽 760mm</td></tr><tr><td>把立</td><td>铝合金，长 60mm</td></tr><tr><td>座杆</td><td>铝合金，直径 31.6mm</td></tr><tr><td>坐垫</td><td>越野坐垫，合金座弓</td></tr><tr><td>脚踏</td><td>平脚踏，带防滑钉</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">传动与制动</th></tr></thead><tbody><tr><td>变速</td><td>1×12 速，右手指拨</td></tr><tr><td>牙盘</td><td>32 齿单盘，正负齿，曲柄长 175mm</td></tr><tr><td>飞轮</td><td>12 速，10-51 齿</td></tr><tr><td>后拨</td><td>带链条稳定阻尼</td></tr><tr><td>制动</td><td>前后油压碟刹，碟片前 180mm、后 160mm</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">轮组</th></tr></thead><tbody><tr><td>轮圈</td><td>铝合金双层圈，内宽 30mm，可改真空胎</td></tr><tr><td>花鼓</td><td>密封轴承，桶轴结构</td></tr><tr><td>轮胎</td><td>29×2.4 英寸粗齿外胎</td></tr></tbody></table>\n<table><thead><tr><th colspan=\"2\">整车</th></tr></thead><tbody><tr><td>重量</td><td>中号约 11.4kg（含脚踏）</td></tr><tr><td>随车物品</td><td>平脚踏、真空气嘴两只、随车工具、用户手册</td></tr><tr><td>质保</td><td>车架五年，前叉两年</td></tr></tbody></table>",
+        "type": "山地车",
+        "typeKey": "2"
+      },
+      "image": "{{asset:img/bike/hardtail-mountain-bike.jpg}}",
+      "originId": "a-hardtail-mountain-bike",
+      "publishOffsetDays": -13,
+      "text": "<p>这款山地车是为林道和越野小径准备的碳纤维硬尾车型。没有后避震，车架更轻、踩踏更直接，保养也省心；120mm 行程的气压前叉和 29 英寸轮径，又让它在碎石坡和树根路上留有足够的余量。车架从车头的深青绿过渡到五通附近的黑色，溅上泥点也耐看。</p>\n<h3>车架与几何</h3>\n<p>碳纤维车架，中号约重 1150g，线管全部内走。头管角 67 度，比传统越野车放得更缓；上管加长，把立缩短到 60mm，下坡时重心更靠后，高速路段车头不发飘。立管角 75 度，坐着爬陡坡，前轮不容易抬起。</p>\n<h3>避震、传动与制动</h3>\n<ul>\n<li>前叉：气压避震，行程 120mm，回弹可调，可一键锁死；</li>\n<li>传动：1×12 速，32 齿单盘配 10-51 齿飞轮，长坡和平路冲刺都有合适的齿比；</li>\n<li>制动：前后油压碟刹，碟片前 180mm、后 160mm；</li>\n<li>轮胎：29×2.4 英寸粗齿外胎，轮圈内宽 30mm，可改真空胎。</li>\n</ul>\n<h3>骑起来怎么样</h3>\n<p>它的强项是起伏路段：上坡跟得上节奏快的同伴，下坡只要选线干净，速度并不比短行程的软尾车慢多少。轮胎改成真空胎以后，胎压可以再放低一些，树根和湿石头上的抓地力会好一截。连续的石阶和大落差不是它的主场，常走这类线路的人，建议改选全避震车型。</p>\n<h3>适合谁、随车有什么</h3>\n<p>适合想认真练越野技术的新手、参加业余越野赛的车手，以及需要一辆轻便长途车的林道爱好者。提供小、中、大三个尺寸，中号整车约 11.4kg。箱内配有一副平脚踏、两只真空气嘴、一套随车工具和用户手册。</p>",
+      "title": "碳纤维硬尾山地车"
+    }
+  ]
+}

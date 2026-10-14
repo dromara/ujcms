@@ -1,42 +1,35 @@
 # 注意，所有配置名冒号后必须保留一个英文空格，否则启动项目会报错。
 # 例如：`spring.datasource.username:root`是非法配置，`spring.datasource.username: root`才是合法配置。
 
-# 数据库连接 URL
+# 数据库连接 URL（MySQL 与 MariaDB 都用 MariaDB Connector/J 驱动连接，URL 一律写 `jdbc:mariadb://`）
 # `127.0.0.1` 是数据库的IP地址，数据库安装在本机可直接用 `127.0.0.1`，如安装在其它服务器，则填写相应 IP，如 `192.168.0.1`。
 # `3306` 是数据库端口号，MySQL默认端口号就是 `3306`，如安装数据库时，没有手动修改过端口号，则无需修改。
 # `ujcms` 是数据库名，即创建数据库时，所填的数据库名。
-# `serverTimezone=Asia/Shanghai` 是时区，中国使用上海时区也就是北京时间，不用改动。
-# `characterEncoding=UTF-8` 是连接数据库的编码。不要改动。即使数据使用的是`utf8mb4`编码，此处依然使用`UTF-8`。
-spring.datasource.url: jdbc:mysql://127.0.0.1:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
+# `allowPublicKeyRetrieval=true`：MySQL 8 默认的 caching_sha2_password 认证在未加密的连接上要向服务器索取 RSA 公钥，
+#   不加会在服务器重启后的首次连接报 "RSA public key is not available client side"。改用 TLS 加密连接时可去掉。
+# `allowLocalInfile=false`：禁止服务器要求客户端上传本机文件（LOAD DATA LOCAL INFILE）。不要改动。
+# `nullDatabaseMeansCurrent=true`：JDBC 元数据查询不带库名时只看当前库。工作流引擎建表前这样检查表是否存在，不加它时同一服务器上
+#   其它库里的同名表会被当成已存在，空库首次启动即失败。不要改动。
+# 可选参数：加密连接 `sslMode=trust`（只加密，不校验证书）或 `sslMode=verify-full`；排序规则 `connectionCollation=utf8mb4_unicode_ci`。
+# 时区：驱动按 JVM 时区读写时间，模板也按 JVM 时区格式化时间，请保证 JVM 时区正确（容器镜像已设 TZ=Asia/Shanghai；
+#   裸机用系统时区或 -Duser.timezone=Asia/Shanghai）。MySQL Connector/J 的 serverTimezone、characterEncoding 等参数不再需要，写了也会被忽略。
+spring.datasource.url: jdbc:mariadb://127.0.0.1:3306/ujcms?allowPublicKeyRetrieval=true&allowLocalInfile=false&nullDatabaseMeansCurrent=true
 # 数据库用户名（注意：所有配置名的冒号后必须保留一个英文空格）
 spring.datasource.username: root
 # 数据库密码（注意：所有配置名的冒号后必须保留一个英文空格）
 spring.datasource.password: password
-# 数据库驱动。常用数据库（如MySQL、PostegreSQL、Oracle）可通过jdbc url自动判断，不用指定。无法自动判断时（如国产数据库），需要手动指定。
-#spring.datasource.driver-class-name: com.mysql.cj.jdbc.Driver
-# 执行初始化脚本的数据库类型。
-ujcms.data-sql-platform: mysql
-# 数据库类型（用于数据库备份）。支持 mysql、postgresql、kingbase、opengauss
+# 数据库驱动。常用数据库（如 MySQL / MariaDB、PostgreSQL）可通过 jdbc url 自动判断，不用指定。无法自动判断时（如国产数据库），需要手动指定。
+#spring.datasource.driver-class-name: org.mariadb.jdbc.Driver
+# 数据库类型（用于数据库备份）。支持 mysql（MariaDB 也填 mysql）、postgresql、kingbase、opengauss
 ujcms.database-type: mysql
 # 数据库命令所在目录（用于数据库备份）。如果已加入环境变量则留空即可。
 ujcms.database-bin-path:
-
-
-# MariaDB 数据库
-#spring.datasource.url: jdbc:mariadb://127.0.0.1:3306/ujcms?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&nullCatalogMeansCurrent=true
-#spring.datasource.username: root
-#spring.datasource.password: password
-#spring.datasource.driver-class-name: org.mariadb.jdbc.Driver
-#ujcms.data-sql-platform: mysql
-#ujcms.database-type: mysql
-#ujcms.database-bin-path:
 
 # PostgreSQL数据库
 #spring.datasource.url: jdbc:postgresql://127.0.0.1:5432/ujcms
 #spring.datasource.username: postgres
 #spring.datasource.password: password
 #spring.datasource.driver-class-name: org.postgresql.Driver
-#ujcms.data-sql-platform: postgresql
 #ujcms.database-type: postgresql
 #ujcms.database-bin-path:
 
@@ -46,7 +39,6 @@ ujcms.database-bin-path:
 #spring.datasource.username: postgres
 #spring.datasource.password: password
 #spring.datasource.driver-class-name: org.postgresql.Driver
-#ujcms.data-sql-platform: postgresql
 #ujcms.database-type: kingbase
 #ujcms.database-bin-path:
 
@@ -57,7 +49,6 @@ ujcms.database-bin-path:
 #spring.datasource.username: gaussdb
 #spring.datasource.password: openGauss@123
 #spring.datasource.driver-class-name: org.postgresql.Driver
-#ujcms.data-sql-platform: postgresql
 #ujcms.database-type: opengauss
 #ujcms.database-bin-path:
 
@@ -68,7 +59,6 @@ ujcms.database-bin-path:
 #spring.datasource.username: gaussdb
 #spring.datasource.password: openGauss@123
 #spring.datasource.driver-class-name: org.postgresql.Driver
-#ujcms.data-sql-platform: postgresql
 #ujcms.database-type: opengauss
 #ujcms.database-bin-path:
 
@@ -77,7 +67,6 @@ ujcms.database-bin-path:
 #spring.datasource.username: highgo
 #spring.datasource.password: Highgo@123
 #spring.datasource.driver-class-name: com.highgo.jdbc.Driver
-#ujcms.data-sql-platform: postgresql
 #ujcms.database-type: postgresql
 #ujcms.database-bin-path:
 
@@ -87,13 +76,14 @@ ujcms.database-bin-path:
 #spring.datasource.username: UJCMS
 #spring.datasource.password: Pass@0000
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
-#ujcms.data-sql-platform: dm
 ## 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
 #flowable.database-schema: UJCMS
 ## 达梦必须指定 liquibase 的 schema 名称，需与 spring.datasource.url 中的数据库名一致
 #spring.liquibase.liquibase-schema: UJCMS
 
-# 集群环境下，可以设置雪花算法主键的数据中心ID和工作机器ID。不设置时，会自动根据网卡mac地址和pid(进程ID)计算出一个相对随机的数值，一般情况下不会冲突。
+# 集群环境下，应显式设置雪花算法主键的数据中心ID和工作机器ID（两者需同时设置，各节点取值不同）。
+# 不设置时，会根据网卡 MAC 地址、主机名和进程ID 自动推算。容器/K8s 环境中 MAC（如 Calico 固定为 ee:ee:ee:ee:ee:ee）
+# 和进程ID（恒为 1）可能完全相同，仅靠主机名区分，存在重复风险；启动日志会打印实际使用的数值。
 # 雪花算法主键：数据中心ID。范围 0-31
 #ujcms.datacenterId:
 # 雪花算法主键：工作机器ID。范围 0-31
@@ -125,8 +115,8 @@ spring.liquibase.enabled: true
 # https://www.flowable.com/open-source/docs/form/ch02-Configuration
 # https://www.flowable.com/open-source/docs/bpmn/ch05a-Spring-Boot#flowable-application-properties
 #flowable.database-schema-update: none
-# 是否执行初始化脚本。默认：true
-#ujcms.data-sql-enabled: false
+# 是否执行系统核心引导（空库首次启动写入系统骨架行）。默认：true
+#ujcms.bootstrap-enabled: false
 
 # 数据库连接生命时长（毫秒）。默认值：1800000 (30 分钟)。
 # 官方强烈建议设置该值，该值必须比数据库连接过期时间小 30 秒以上。
@@ -160,18 +150,28 @@ spring.servlet.multipart.max-file-size: -1
 spring.servlet.multipart.max-request-size: -1
 # 是否注册 JSP Servlet。Whether the JSP servlet is registered. Default: true
 server.servlet.jsp.registered: false
+# HTTP 响应压缩（gzip）。文本类响应体积约降至十分之一：sitemap 单页约 300KB → 30KB。
+# 注意 Tomcat 10 不压缩带强 ETag 的响应，前台基础设施文件（sitemap / robots.txt / llms.txt）因此输出弱 ETag（W/"..."）。
+# 反向代理已开启 gzip 时不会二次压缩（Content-Encoding 已存在）。
+server.compression.enabled: true
+server.compression.mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,application/xml,image/svg+xml
+server.compression.min-response-size: 2KB
 # 使用参数指定 HTTP Method
 spring.mvc.hiddenmethod.filter.enabled: true
+# 国际化消息（messages*.properties）只按请求语言解析：找不到对应语言包时直接用基础包 messages.properties（中文），
+# 不回退到 JVM 系统语言——否则 en_US 主机上的中文请求会命中 messages_en.properties。控制台随请求携带 Accept-Language
+spring.messages.fallback-to-system-locale: false
 # 错误处理类 org.springframework.boot.autoconfigure.web.servlet.error
 # 错误处理是否包含 "exception" 属性。Include the "exception" attribute
-# 默认为 false
+# 后台前端依赖该属性分派错误处理（ujcms-ui-console/src/utils/request.ts 根据异常类名识别
+# SiteForbiddenException 以自动重置当前站点），生产环境也需保持 true。仅泄露异常类名，不含堆栈
 server.error.include-exception: true
 # 错误处理是否包含 "message" 属性。Include the "message" attribute
-# 开发环境默认为 always，生产环境默认为 never。如不需要包含 message，可注释该行，或设置为 never
+# 后台前端的错误弹窗依赖该属性显示业务错误信息（LogicException 等），生产环境也需保持 always
 server.error.include-message: always
 # 错误处理是否包含 "stacktrace" (trace?) 属性。When to include a "stacktrace" attribute
-# 开发环境默认为 always，生产环境默认为 never。如不需要包含 stacktrace，可注释该行，或设置为 never
-server.error.include-stacktrace: always
+# 生产环境不应泄露堆栈信息，默认为 never。开发/测试 profile（main/next/feat/test）覆盖为 always
+server.error.include-stacktrace: never
 # 日志级别为 ERROR
 logging.level.root: ERROR
 # 显示 MyBatis SQL 日志
@@ -180,6 +180,11 @@ logging.level.root: ERROR
 # 显示 tomcat 启动信息
 logging.level.org.springframework.boot.web.embedded.tomcat.TomcatWebServer: INFO
 logging.level.com.ujcms.cms.starter.Application: INFO
+# 安装流程必须可观测（install-flow D12/Q4/D49）：安装令牌打印在启动日志里（docker logs）并写入 WEB-INF/install-token.txt，
+# InstallReport 报告行是无人值守安装的唯一诊断面——静默 root 级别下需显式放行
+logging.level.com.ujcms.cms.core.support.SystemCoreBootstrap: INFO
+logging.level.com.ujcms.cms.core.service.InstallService: INFO
+logging.level.com.ujcms.cms.core.support.InstallAutoRunner: INFO
 # 关闭 springboot 日志图标
 spring.main.banner-mode: off
 # 默认关闭 SpringDoc
@@ -234,12 +239,16 @@ spring.task.execution.pool.max-size: 16
 # 线程等待队列，等待队列满后，则会根据 "max-size" 创建新线程。默认值是 Integer.MAX_VALUE。为避免内存溢出，应该设置一个值。
 spring.task.execution.pool.queue-capacity: 2048
 
-# 模板保存路径。一般模板保存在项目根目录的/templates目录下，也可以将模板保存在其他地方。
-# 模板目录下通常包含img、css、js等文件，需确保能够被浏览器访问到。
+# 主题（模板）保存路径。一般主题保存在项目根目录的/themes目录下，也可以将主题保存在其他地方。
+# 主题目录下通常包含img、css、js等文件，需确保能够被浏览器访问到。
 # 结尾必须带'/'，否则 error 页面找不到模板。
-spring.freemarker.template-loader-path: /templates/
-#spring.freemarker.template-loader-path: file:d:/ujcms/templates/
-#spring.freemarker.template-loader-path: file:/my/dir/templates/
+spring.freemarker.template-loader-path: /themes/
+#spring.freemarker.template-loader-path: file:d:/ujcms/themes/
+#spring.freemarker.template-loader-path: file:/my/dir/themes/
+# 优先以文件系统方式加载模板（Spring Boot 3 默认 false，即经 ServletContext 读取）。
+# 经 ServletContext 读取会命中 Tomcat 的资源缓存（默认 5 秒）：模板保存后若在此期间被渲染，
+# FreeMarker 会以新的修改时间缓存旧内容，导致修改一直不生效，直到再次保存或重启。
+spring.freemarker.prefer-file-system-access: true
 
 # 必须指定后缀，否则 error 页面找不到模板。后缀使用html，方便其它编辑器识别文件格式。
 spring.freemarker.suffix: .html
@@ -250,9 +259,10 @@ spring.freemarker.settings.tag_syntax: square_bracket
 # 数值默认不加千分号
 spring.freemarker.settings.number_format: "0.######"
 # Freemarker 错误信息处理方式
-# 模板异常处理方式。`html_debug`会将错误信息直接显示在页面里，方便调试。
-# 生产环境可以设置为`rethrow`，将异常重新抛出，由 spring 处理异常。
-spring.freemarker.settings.template_exception_handler: com.ujcms.common.freemarker.SimpleTemplateExceptionHandler
+# 模板异常处理方式。`rethrow`将异常重新抛出，由 spring 处理异常并渲染 error 页面，不向页面泄露错误细节，
+# 适用于生产环境（默认）。开发/演示 profile（main/next/feat/test/demo）覆盖为
+# com.ujcms.common.freemarker.SimpleTemplateExceptionHandler，将错误信息直接显示在页面里，方便调试
+spring.freemarker.settings.template_exception_handler: rethrow
 # 生产环境下，模板异常写入日志可能导致日志文件过于庞大，可设置模板异常不写入日志。
 spring.freemarker.settings.log_template_exceptions: false
 # Freemarker 默认允许在模板里创建类的实例，这会导致远程执行漏洞
@@ -291,7 +301,23 @@ ujcms.sequence-cache-size: 50
 ujcms.jsp-allowed: false
 # IP 反向代理深度。如果使用反向代理，需设置为 1；使用 CDN 再加上反向代理，则需设置为 2；否则无法获取真实 IP。默认：0
 # 反向代理需要将客户端真实 IP 保存在 HTTP 请求头中，如 X-Forwarded-For
+# 请求头中的 IP 按 RFC 5952 规范化后记录：方括号、端口、%网卡标识 会被去除（[2001:db8::1]:443 → 2001:db8::1），
+# IPv4 映射地址按 IPv4 记录（::ffff:203.0.113.9 → 203.0.113.9）；无法识别为 IP 的条目一律跳过
 ujcms.ip-proxy-depth: 0
+# IPv6 限流分组前缀长度（位）：登录失败次数、短信/邮件发送次数、匿名互动限流按此前缀对 IPv6 客户端分组计数。
+# 默认 64（隐私扩展地址只在后 64 位轮换，按单个地址计数会被绕过）；128 表示按单个地址；IPv4 不受影响。日志中记录的仍是完整地址。
+#ujcms.ipv6-throttle-prefix-length: 64
+
+# 匿名互动（投票/调查/文章顶踩）IP 限流：单个 IP 每分钟最多互动次数。0 表示关闭（默认）。
+# 仅限制请求速率以防脚本刷量，与一人一票去重（Cookie/IP/会员）是不同职责。
+# 注意：CGNAT / 共享出口（运营商、校园网等）环境下 IP 限流可能误伤正常用户，建议值 30，需酌情调大或保持关闭。
+#ujcms.interaction-max-per-minute: 30
+
+# IPv4 地址库文件（访问统计的地域分布）。默认使用内置的 ip-region-data 依赖包
+#ujcms.ip2region-path: classpath:ip2region.xdb
+# IPv6 地址库文件。默认不提供，文件不存在时 IPv6 访客的地域显示为 UNKNOWN，不影响其他功能。
+# 可指向本机文件，如 file:/opt/ujcms/ip2region_v6.xdb（ip2region 项目发布的 ip2region_v6.xdb，约 37 MB，启动时全部载入内存）
+#ujcms.ip2region-v6-path: classpath:ip2region_v6.xdb
 
 # ElasticSearch 前缀。默认：ujcms
 #ujcms.es-prefix: ujcms
@@ -299,18 +325,39 @@ ujcms.ip-proxy-depth: 0
 #ujcms.lucene-path: file:d:\\ujcms\\lucene
 #ujcms.lucene-path: file:/my/dir/lucene
 ujcms.lucene-path: /WEB-INF/lucene
-# 开发环境上传的图片无法立即访问，需要等待1至5秒不等。可能是因为上传后，开发工具需要将图片同步到实际 tomcat 的运行路径下。
-# 正确此配置可使开发环境上传的图片能立即访问
+# 上传目录以 file: 路径直接提供静态资源服务，绕过 ServletContext 资源查找及 Tomcat 的资源缓存（默认 5 秒）。
+# 需与站点存储点的保存路径一致（默认 /uploads），否则该目录仍由默认静态资源处理器经 ServletContext 提供服务。
 ujcms.uploads-location: /uploads
 # 储存点文件前缀。配置该项可以允许储存点使用`file:`前缀访问程序的其它目录及其子目录。多项使用逗号分割。如 file:/data/ujcms,file:d:/my/dir
 #ujcms.storageFilePrefix: file:/data/ujcms,file:d:/my/dir
-# lucene 分词器。支持`jcscg` `ik`。默认使用`jcseg`。`jcseg`支持最小粒度分词（单字），避免出现搜索某个字时无法搜索到结果
-#ujcms.lucene-analyzer: jcseg
+
+# ========== 页面构成（Slot / Card / Placement，slot-card-redesign） ==========
+# 卡片修订保留条数（每卡片，超出按版本号从旧到新裁剪）。默认 20。
+#ujcms.composition.revision-limit: 20
+# 主题构成文件监听（pages/、shapes/、theme.manifest.json）。默认开启；生产可关。
+#ujcms.composition.watch-enabled: true
+# 投放解析缓存写后过期秒数。默认 60（原 5 分钟）。显式作废已覆盖本地 + 集群，TTL 仅兜底
+# publish/expire 窗口跨越（非保存事件，无写侧信号）与查询来源的文章/栏目内容漂移（刻意不挂作废钩子）。
+#ujcms.composition.resolve-cache-ttl-seconds: 60
+# 跨节点缓存作废同步（composition-invalidation 计划）。构成内容保存时在事务内递增 ujcms_cache_stamp，
+# 各节点轮询感知后本地全量作废。默认开启（单节点开销为每轮询一次单行查询，可关）。
+#ujcms.composition.cache-sync-enabled: true
+# 集群戳记轮询间隔（毫秒）。默认 3000，即后台编辑在其它节点最迟 ~3 秒可见。
+#ujcms.composition.cache-sync-poll-millis: 3000
+
+# ========== 应用市场（remote-marketplace，官方主题商店客户端） ==========
+# 是否启用应用市场。默认启用；内网/离线部署设为 false 时控制台隐藏「应用市场」页签，其余功能不受影响。
+#ujcms.marketplace.enabled: true
+# 应用市场地址。默认官方市场；本地联调可指向 http://localhost:8090（ujcms-marketplace dev profile）。
+#ujcms.marketplace.base-url: https://marketplace.ujcms.com
+# 目录读取缓存写后过期秒数（列表/详情/版本）。默认 60。
+#ujcms.marketplace.cache-ttl-seconds: 60
+# 店面站点地址（购买深链与设备授权批准页所在的网站）。默认随 base-url（生产环境店面与 API 同域）；
+# 本地联调指向店面 dev server（http://localhost:3000）。
+#ujcms.marketplace.storefront-url: https://marketplace.ujcms.com
 
 # JWT密钥。单机环境可以不设置，会默认生成一个64位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个长度不少于64位的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
 #jwt.secret:
-# JWT token 密钥。单机环境可以不设置，会默认生成一个16位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个固定长度为16位（不可多也不可少）的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
-#jwt.token-secret:
 # 验证码密钥。单机环境可以不设置，会默认生成一个32位的随机密钥。
 #captcha.secret:
 # 下载认证密钥。单机环境可以不设置，会默认生成一个32位的随机密钥。
@@ -319,11 +366,18 @@ ujcms.uploads-location: /uploads
 #ujcms.client-sm2-public-key:
 # 客户端SM2私钥。使用QD值，HEX编码。单机环境可以不设置，会默认生成随机私钥。
 #ujcms.client-sm2-private-key:
+# 敏感数据加密密钥。短信、邮件、对象存储等凭据（及其它登记加密的字段）入库前，使用国密 SM4-GCM 加密，密钥保存在此（与数据库分离）。
+# 必须为 16 个字符（可用大写字母、小写字母、数字、特殊字符），安全要求较高时改为自定义值（集群环境下各机器必须一致）。
+# 注意：修改本密钥后，已加密的历史数据将无法解密，需要在后台“短信/邮件/存储点设置”中重新录入相关密钥。
+#ujcms.data-secret-key: 0123456789ABCDEF
+ujcms.data-secret-key: 0123456789ABCDEF
 # 密码胡椒。除非对加密密码安全要求特别高，否则不要修改此项。改动后用户密码将全部失效，需手动重置所有密码。一般不少于32个字符。密码胡椒将加在用户实际密码中，防止黑客在获取数据库数据后，对密码进行破解。
 #ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 ujcms.password-pepper: 0.1.2.3.4.5.6.7.8.9.a.b.c.d.e.f.
 
-# 是否启用 Office 功能（商业版功能）
+# DOC 导入（商业版 T1）：.docx/.doc 由内置的纯 Java 引擎读取，不需要安装任何软件。
+# 以下 LibreOffice 设置是可选项：装了 LibreOffice 后，素材库的 Office 转 PDF 可用，DOC 导入还能读 .wps/.rtf/.odt。
+# 是否启用本机 LibreOffice（需要服务器上装有 LibreOffice）
 jodconverter.local.enabled: false
 # Office 安装路径
 # OpenOffice Windows 通常为 C:/Program Files (x86)/OpenOffice 4
@@ -336,8 +390,13 @@ jodconverter.local.office-home: C:/Program Files/LibreOffice
 jodconverter.local.port-numbers: 8100
 # This property sets the maximum number of tasks an office process can execute before restarting. Default: 200
 jodconverter.local.max-tasks-per-process: 50
+# 远程 LibreOffice：集群部署时可以只运行一个 jodconverter-rest 容器（docker.io/jodconverter/jodconverter-rest），各节点连它，不必每台都装
+#jodconverter.remote.enabled: true
+#jodconverter.remote.url: http://office:8080
+# 装了 LibreOffice 时 Word 二进制（.doc、WPS 文字的 .wps）交给 LibreOffice（POI 读二进制的能力有限）；false 则一律用内置引擎。默认：true
+#ujcms.word-import.prefer-office-for-doc: true
+# 导入时把字号、字体写进正文（默认不写：正文的字号字体由主题决定）。默认：false
+#ujcms.word-import.preserve-fonts: false
 
-# 是否开启数据迁移功能。一般情况应关闭该功能，只在迁移数据时开启。默认：false
+# 是否开启数据迁移功能（商业版 T1）。一般情况应关闭该功能，只在迁移数据时开启。默认：false
 #ujcms.data-migration-enabled: false
-# 是否显示商业版功能。默认：false
-#ujcms.ep-display: true

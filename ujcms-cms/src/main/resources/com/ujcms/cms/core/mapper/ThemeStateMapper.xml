@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ThemeStateMapper">
+  <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ThemeState">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="theme_name_" jdbcType="VARCHAR" property="themeName" />
+    <result column="version_" jdbcType="VARCHAR" property="version" />
+    <result column="seed_imported_" jdbcType="CHAR" property="seedImported" />
+    <result column="settings_json_" jdbcType="OTHER" property="settingsJson" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ThemeState" />
+  <sql id="Column_List">
+    t.id_, t.site_id_, t.theme_name_, t.version_, t.seed_imported_, t.settings_json_, t.created_, t.modified_
+  </sql>
+  <insert id="insert" parameterType="com.ujcms.cms.core.domain.ThemeState">
+    insert into ujcms_theme_state (id_, site_id_, theme_name_, version_, seed_imported_, settings_json_,
+      created_, modified_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{themeName,jdbcType=VARCHAR},
+      #{version,jdbcType=VARCHAR}, #{seedImported,jdbcType=CHAR}, #{settingsJson,jdbcType=OTHER},
+      #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP})
+  </insert>
+  <update id="update" parameterType="com.ujcms.cms.core.domain.ThemeState">
+    update ujcms_theme_state
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      theme_name_ = #{themeName,jdbcType=VARCHAR},
+      version_ = #{version,jdbcType=VARCHAR},
+      seed_imported_ = #{seedImported,jdbcType=CHAR},
+      settings_json_ = #{settingsJson,jdbcType=OTHER},
+      modified_ = #{modified,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <delete id="delete" parameterType="long">
+    delete
+    from ujcms_theme_state
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_theme_state
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <select id="select" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_theme_state t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectByUnique" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_theme_state t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.theme_name_ = #{themeName,jdbcType=VARCHAR}
+  </select>
+  <select id="listBySiteId" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_theme_state t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+    order by t.theme_name_
+  </select>
+</mapper>

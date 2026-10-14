@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, PropType, ref, toRefs } from 'vue';
+import { inject, type PropType, ref, toRefs } from 'vue';
 
 defineOptions({
   name: 'QueryItem',
@@ -7,7 +7,7 @@ defineOptions({
 const props = defineProps({
   label: { type: String, required: true },
   name: { type: String, required: true },
-  // 'string' | 'date' | 'datetime' | 'number'
+  // 'string' | 'date' | 'datetime' | 'number' | 'id'（仅数字，雪花 ID 超出 JS 安全整数，须以字符串传递）
   type: { type: String, default: null },
   options: { type: Object as PropType<Array<{ label: string; value: string | number }>>, default: null },
   multiple: { type: Boolean, default: true },
@@ -15,8 +15,8 @@ const props = defineProps({
 const params = inject<any>('params');
 const { name } = toRefs(props);
 const [firstName, secondName] = name.value.split(',');
-const first = ref<string>(firstName);
-const second = ref<string>(secondName);
+const first = ref<string>(firstName ?? '');
+const second = ref<string>(secondName ?? '');
 </script>
 
 <template>
@@ -54,6 +54,7 @@ const second = ref<string>(secondName);
       <el-date-picker v-model="params[second]" type="datetime" class="w-48"></el-date-picker>
     </div>
     -->
+    <el-input v-else-if="type === 'id'" :model-value="params[name]" class="w-96" @update:model-value="(value) => (params[name] = String(value).replace(/\D/g, ''))"></el-input>
     <el-select v-else-if="options" v-model="params[name]" :multiple="multiple" class="w-96">
       <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"></el-option>
     </el-select>

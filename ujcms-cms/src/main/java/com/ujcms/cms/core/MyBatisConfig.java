@@ -1,29 +1,24 @@
 package com.ujcms.cms.core;
 
-import com.ujcms.cms.core.generator.LuceneGenerator;
-import com.ujcms.cms.core.service.ConfigService;
-import com.ujcms.cms.core.service.SiteService;
-import com.ujcms.cms.core.service.UserService;
+import com.ujcms.cms.core.service.InstallDemoPort;
+import com.ujcms.cms.core.service.InstallService;
+import com.ujcms.cms.core.service.ThemePackageService;
+import com.ujcms.cms.core.support.InstallAutoRunner;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.common.db.CharBooleanTypeHandler;
-import com.ujcms.cms.core.support.DataScriptInitializer;
 import com.ujcms.common.db.JsonStringTypeHandler;
 import com.ujcms.common.db.identifier.SnowflakeSequence;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.io.ResourceLoader;
 
-import javax.sql.DataSource;
 import java.util.Properties;
 
-import static com.ujcms.common.db.identifier.SnowflakeSequence.MAX_DATACENTER_ID;
-import static com.ujcms.common.db.identifier.SnowflakeSequence.MAX_WORKER_ID;
 
 /**
  * MyBatis 配置
@@ -39,10 +34,14 @@ public class MyBatisConfig {
     public SnowflakeSequence snowflakeSequence(Props props) {
         int datacenterId = props.getDatacenterId();
         int workerId = props.getWorkerId();
-        if (datacenterId >= 0 && datacenterId <= MAX_DATACENTER_ID && workerId >= 0 && workerId <= MAX_WORKER_ID) {
-            return new SnowflakeSequence(datacenterId, workerId);
+        if (datacenterId < 0 && workerId < 0) {
+            return new SnowflakeSequence();
         }
-        return new SnowflakeSequence(null);
+        // 配置了就必须配置完整且合法，启动即报错，避免集群中静默退回自动推算而产生重复 ID
+        if (datacenterId < 0 || workerId < 0) {
+            throw new IllegalStateException("ujcms.datacenterId and ujcms.workerId must be set together");
+        }
+        return new SnowflakeSequence(datacenterId, workerId);
     }
 
     /**
@@ -72,7 +71,6 @@ public class MyBatisConfig {
         properties.put("MySQL", "mysql");
         properties.put("MariaDB", "mariadb");
         properties.put("PostgreSQL", "postgresql");
-        properties.put("H2", "h2");
         properties.put("Oracle", "oracle");
         properties.put("SQL Server", "sqlserver");
         properties.put("DB2", "db2");
@@ -91,16 +89,14 @@ public class MyBatisConfig {
     }
 
     /**
-     * 数据初始化
+     * 无人值守自动安装引擎（install-flow §7 完整清单）。仅 {@code ujcms.install.auto=true}
+     * 时注册；末位 ApplicationRunner，晚于构成注册表首个快照。
      */
     @Bean
-    @DependsOn("liquibase")
-    @ConditionalOnProperty(prefix = "ujcms", name = "data-sql-enabled", matchIfMissing = true)
-    public DataScriptInitializer databaseInitializer(
-            Props props, DataSource dataSource, ResourceLoader resourceLoader, LuceneGenerator luceneGenerator,
-            ConfigService configService, SiteService siteService, UserService userService) {
-        String checkTable = "ujcms_config";
-        return new DataScriptInitializer(dataSource, resourceLoader, luceneGenerator, configService, siteService,
-                userService, props, checkTable);
+    @ConditionalOnProperty(prefix = "ujcms.install", name = "auto", havingValue = "true")
+    public InstallAutoRunner installAutoRunner(InstallService installService,
+                                               ThemePackageService themePackageService,
+                                               ObjectProvider<InstallDemoPort> demoPort, Props props) {
+        return new InstallAutoRunner(installService, themePackageService, demoPort, props);
     }
 }

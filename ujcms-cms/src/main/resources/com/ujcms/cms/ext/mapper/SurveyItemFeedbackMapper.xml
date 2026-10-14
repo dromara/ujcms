@@ -32,12 +32,12 @@
   <delete id="deleteByUserId" parameterType="long">
     delete
     from ujcms_survey_item_feedback
-    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.user_id_ = #{userId,jdbcType=BIGINT})
+    where survey_feedback_id_ in (select t.id_ from ujcms_survey_feedback t where t.user_id_ = #{userId,jdbcType=BIGINT})
   </delete>
   <delete id="deleteBySiteId" parameterType="long">
     delete
     from ujcms_survey_item_feedback
-    where survey_id_ in (select t.id_ from ujcms_survey_feedback t where t.site_id_ = #{siteId,jdbcType=BIGINT})
+    where survey_feedback_id_ in (select t.id_ from ujcms_survey_feedback t where t.site_id_ = #{siteId,jdbcType=BIGINT})
   </delete>
   <sql id="selectAllSelect" />
   <sql id="selectAllJoin" />

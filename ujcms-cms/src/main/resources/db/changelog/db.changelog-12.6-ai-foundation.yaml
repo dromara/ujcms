@@ -1,0 +1,163 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783900800000-1
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: ai_settings_
+                  remarks: AI设置
+                  type: MEDIUMTEXT
+            tableName: ujcms_config
+  - changeSet:
+      id: 1783900800000-2
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: ai_settings_
+                  remarks: AI设置
+                  type: MEDIUMTEXT
+            tableName: ujcms_site
+  - changeSet:
+      id: 1783900800000-3
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: AI调用日志ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  name: user_id_
+                  remarks: 用户ID。为空代表系统/异步流水线
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: feature_
+                  remarks: 功能(1:文章元信息,2:改写,3:筛查,4:审核,5:回复拟稿)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: provider_
+                  remarks: 服务商名称
+                  type: VARCHAR(150)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: model_
+                  remarks: 模型
+                  type: VARCHAR(100)
+              - column:
+                  name: ref_type_
+                  remarks: 引用类型(article/comment/messageBoard)
+                  type: VARCHAR(20)
+              - column:
+                  name: ref_id_
+                  remarks: 引用ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: prompt_tokens_
+                  remarks: 提示词token数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: completion_tokens_
+                  remarks: 生成token数
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: latency_ms_
+                  remarks: 耗时毫秒
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: status_
+                  remarks: 状态(0:成功,1:错误,2:超时)
+                  type: SMALLINT
+              - column:
+                  name: error_
+                  remarks: 错误信息
+                  type: VARCHAR(500)
+              - column:
+                  name: accepted_
+                  remarks: 是否采纳。为空代表不适用
+                  type: CHAR(1)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: AI调用日志
+            tableName: ujcms_ai_log
+  - changeSet:
+      id: 1783900800000-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: created_
+            indexName: idx_ailog_site_created
+            tableName: ujcms_ai_log
+  - changeSet:
+      id: 1783900800000-5
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: created_
+            indexName: idx_ailog_created
+            tableName: ujcms_ai_log
+  - changeSet:
+      id: 1783900800000-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_ai_log
+            constraintName: fk_ailog_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_ai_log
+            constraintName: fk_ailog_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.ujcms.common.query.BaseQueryArgs;
 
@@ -15,6 +15,20 @@ import com.ujcms.common.query.BaseQueryArgs;
  * @author Generator
  */
 public class FormTypeArgs extends BaseQueryArgs {
+    private boolean queryFormCount = false;
+
+    /**
+     * 同时查询各表单类型的表单数（{@code FormType.formCount}）。仅后台表单类型列表需要，其余调用方不付子查询的代价
+     */
+    public FormTypeArgs queryFormCount() {
+        queryFormCount = true;
+        return this;
+    }
+
+    public boolean isQueryFormCount() {
+        return queryFormCount;
+    }
+
     private FormTypeArgs(Map<String, Object> queryMap) {
         super(queryMap);
     }

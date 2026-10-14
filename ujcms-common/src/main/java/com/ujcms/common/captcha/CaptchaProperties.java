@@ -37,7 +37,7 @@ public class CaptchaProperties {
      */
     private int height = 36;
     /**
-     * 字体大小
+     * 字高（逻辑像素）。整词放不进画布时按比例缩小
      */
     private int fontSize = 30;
     /**
@@ -49,9 +49,9 @@ public class CaptchaProperties {
      */
     private float radius = 20;
     /**
-     * 字体路径
+     * 像素密度倍数。实际图片尺寸为 width、height 乘以该倍数，高分屏显示更清晰；页面以 CSS 固定显示尺寸。默认 2
      */
-    private String fontPath = "classpath:fonts/RobotoSerif-Bold.ttf";
+    private int scale = 2;
 
     public String getSecret() {
         return secret;
@@ -141,11 +141,11 @@ public class CaptchaProperties {
         this.radius = radius;
     }
 
-    public String getFontPath() {
-        return fontPath;
+    public int getScale() {
+        return scale;
     }
 
-    public void setFontPath(String fontPath) {
-        this.fontPath = fontPath;
+    public void setScale(int scale) {
+        this.scale = scale;
     }
 }

@@ -1,0 +1,50 @@
+databaseChangeLog:
+  # 多语言站点寻址（原 11.x-multilingual；multilingual addressing）：
+  #   lang_            站点语言（BCP-47，如 zh-CN、en）。语言变体建模为独立站点行。
+  #   lang_parent_id_  语言组指针：NULL=主站点/独立站点；非空=指向语言组主站点（不允许链）。
+  #   (domain_, sub_dir_) 组合寻址的唯一性由服务层校验承担（方言 NULL 语义分歧 + 存量数据风险），
+  #   此处仅加非唯一索引供查询使用。
+  #   idx_site_lang_parent 先于自引用外键创建，MySQL 复用其作支撑索引。
+  #   文章翻译等价集见 db.changelog-13.0-article-i18n.yaml。
+  - changeSet:
+      id: 13.0-site-lang
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: zh-CN
+                  name: lang_
+                  remarks: 语言(BCP-47)
+                  type: VARCHAR(30)
+              - column:
+                  name: lang_parent_id_
+                  remarks: 语言组主站点ID(NULL为主站点)
+                  type: BIGINT
+        - createIndex:
+            tableName: ujcms_site
+            indexName: idx_site_lang_parent
+            columns:
+              - column:
+                  name: lang_parent_id_
+        - addForeignKeyConstraint:
+            baseTableName: ujcms_site
+            baseColumnNames: lang_parent_id_
+            referencedTableName: ujcms_site
+            referencedColumnNames: id_
+            constraintName: fk_site_lang_parent
+  - changeSet:
+      id: 13.0-site-domain-subdir-idx
+      author: PONY
+      changes:
+        - createIndex:
+            tableName: ujcms_site
+            indexName: idx_site_domain_subdir
+            columns:
+              - column:
+                  name: domain_
+              - column:
+                  name: sub_dir_

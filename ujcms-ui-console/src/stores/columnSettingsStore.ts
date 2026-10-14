@@ -8,7 +8,7 @@ export interface ColumnState {
 export const mergeColumns = (settings: ColumnState[], origins: ColumnState[]) => {
   // 去除不存在的列
   for (let i = 0, len = settings.length; i < len; ) {
-    if (origins.findIndex((column) => column.title === settings[i].title) === -1) {
+    if (origins.findIndex((column) => column.title === settings[i]!.title) === -1) {
       settings.splice(i, 1);
       len -= 1;
     } else {
@@ -46,6 +46,6 @@ export const useColumnSettingsStore = defineStore('ujcmsColumnSettings', {
     },
   },
   persist: {
-    paths: ['crrrentSettings'],
+    pick: ['crrrentSettings'],
   },
 });

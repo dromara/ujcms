@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/page-manifest.schema.json",
+  "title": "UJCMS Page Manifest",
+  "description": "页面清单。声明页面的稳定标识（name）、绑定的模板名、区域与页面作用域设置（manifest 2.0 §4.2）。位于主题 pages/ 目录或与 SSR 页面同目录。slots 自 2.0 起可省略——仅声明 settings 的页面清单是合法的；每个条目都是区域（kind: region 必填，经典插槽已于 component-settings Phase D 退役）。",
+  "type": "object",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "页面稳定标识（home、channel、article…），即 placement.page_ref_"
+    },
+    "label": {
+      "$ref": "#/$defs/localizedLabel"
+    },
+    "template": {
+      "description": "模板轨道绑定：未组装模板名（字符串或数组），精确匹配，无隐式回退；每个模板名每主题最多被一个清单绑定",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      ]
+    },
+    "route": {
+      "type": "string",
+      "description": "仅文档/SSR 校验元数据，不用于匹配"
+    },
+    "order": {
+      "type": "integer",
+      "description": "页面目录排序权重（升序）：控制台「设计 → 页面」、构建器页面切换与主题详情按此排列；未声明的页面排在已声明者之后，同权重按 name 排序"
+    },
+    "slots": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/slot"
+      }
+    },
+    "settings": {
+      "$ref": "#/$defs/settingsBlock"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "localizedLabel": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "settingsBlock": {
+      "type": "object",
+      "description": "页面作用域设置结构（manifest 2.0 §4.2）：与主题清单全局 settings 同语法（分组 → 字段，复用构成字段类型词汇）；值按 R3 结构存于 pages.<pageName> 作用域",
+      "required": [
+        "groups"
+      ],
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "fields"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][A-Za-z0-9]*$"
+              },
+              "label": {
+                "$ref": "#/$defs/localizedLabel"
+              },
+              "fields": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": {
+                  "pattern": "^[a-z][A-Za-z0-9]*$"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/field"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "label": {
+          "$ref": "#/$defs/localizedLabel"
+        },
+        "description": {
+          "type": "string"
+        },
+        "default": {},
+        "deprecated": {
+          "type": "boolean"
+        },
+        "of": {
+          "$ref": "#/$defs/field"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        }
+      }
+    },
+    "rowLayout": {
+      "enum": [
+        "full",
+        "halves",
+        "thirds",
+        "twoThirdsLeft",
+        "twoThirdsRight",
+        "quarters",
+        "sidebarLeft",
+        "sidebarRight"
+      ]
+    },
+    "slot": {
+      "description": "区域条目：本页完整声明（regionSlot），或引用同主题另一页面同名区域的完整声明（sharedRegionSlot，page-regions §15——一行结构服务全站，各页可『仅此页面定制』分叉）",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/regionSlot"
+        },
+        {
+          "$ref": "#/$defs/sharedRegionSlot"
+        }
+      ]
+    },
+    "sharedRegionSlot": {
+      "type": "object",
+      "required": [
+        "kind",
+        "shared"
+      ],
+      "properties": {
+        "kind": {
+          "const": "region"
+        },
+        "shared": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "宿主页面名（同主题 pages/*.manifest.json 的 name；宿主须以 regionSlot 完整声明同名区域，不可链式引用或自引用）。约束、允许组件与标签均取宿主定义；本页无自有行时解析回退到宿主行"
+        }
+      },
+      "additionalProperties": false
+    },
+    "regionSlot": {
+      "type": "object",
+      "required": [
+        "kind",
+        "allowedShapes"
+      ],
+      "properties": {
+        "kind": {
+          "const": "region",
+          "description": "区域（操作员拖拽编排的行/列/面板结构）——唯一合法值；经典插槽已随插槽子系统于 component-settings Phase D 退役"
+        },
+        "allowedShapes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]+$"
+          },
+          "minItems": 1,
+          "description": "区域面板可选的组件（Shape）列表（每个须能在 Shape 注册表中解析）"
+        },
+        "allowedRowLayouts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rowLayout"
+          },
+          "minItems": 1,
+          "description": "区域可用的行布局键（缺省为全部目录）"
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "maxRows": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxPanelsPerColumn": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "required": {
+          "type": "boolean",
+          "description": "含义为“至少一个布局变体需要”，空区域健康检查为提示性而非错误"
+        },
+        "label": {
+          "$ref": "#/$defs/localizedLabel"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

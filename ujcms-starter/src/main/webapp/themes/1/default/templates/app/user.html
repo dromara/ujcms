@@ -1,0 +1,92 @@
+[#include '../../snippets/icon.html'/]
+[#escape x as (x)!?html]
+[#if user??]
+  [#--
+    本片段经 fetch + innerHTML 注入头部（scripts 不执行），未读计数轮询因此用 Alpine
+    x-init 驱动（Alpine 经 MutationObserver 接管注入的 DOM）。设置页操作（已读、删除会话）
+    派发 unread-changed 事件即时刷新红点。
+  --]
+  <div
+    x-data="{
+      open: false, msgUnread: 0, notifUnread: 0,
+      get totalUnread() { return this.msgUnread + this.notifUnread; },
+      fmt(n) { return n > 99 ? '99+' : String(n); },
+      async poll() {
+        try {
+          const r = await fetch('${api}/conversation/unread-count', { credentials: 'include' });
+          if (r.ok) this.msgUnread = Number(await r.text()) || 0;
+        } catch (e) { /* 静默 */ }
+        try {
+          const r = await fetch('${api}/notification/unread-count', { credentials: 'include' });
+          if (r.ok) this.notifUnread = Number(await r.text()) || 0;
+        } catch (e) { /* 静默 */ }
+      }
+    }"
+    x-init="poll(); setInterval(() => poll(), 60000)"
+    @unread-changed.window="poll()"
+    @click.outside="open = false"
+    class="relative"
+  >
+    <button
+      @click="open = !open"
+      class="relative flex items-center gap-2 p-1 rounded hover:bg-slate-100"
+      :aria-expanded="open"
+      aria-label="用户菜单"
+    >
+      <img
+        src="[#if user.smallAvatar?has_content]${user.smallAvatar}[#else]${config.register.avatar}[/#if]"
+        alt="${user.username}"
+        class="size-9 rounded-full object-cover"
+      >
+      <span x-show="totalUnread > 0" x-cloak
+            class="absolute top-0.5 right-0.5 size-2.5 rounded-full bg-rose-600 ring-2 ring-white"
+            role="status" aria-label="有未读消息"></span>
+    </button>
+    <div
+      x-show="open"
+      x-transition.opacity
+      x-cloak
+      class="absolute right-0 mt-2 w-52 rounded-md bg-white shadow-lg ring-1 ring-slate-200 py-1 z-40"
+    >
+      <a href="${def}${user.homepage}" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50">
+        <span class="size-4 inline-block">[@icon 'person-outline'/]</span>
+        <span>个人主页</span>
+      </a>
+      <a href="${def}/settings" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50">
+        <span class="size-4 inline-block">[@icon 'dashboard-outline'/]</span>
+        <span>个人中心</span>
+      </a>
+      <a href="${def}/settings/favorite" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50">
+        <span class="size-4 inline-block">[@icon 'star-outline'/]</span>
+        <span>我的收藏</span>
+      </a>
+      <a href="${def}/settings/message" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50">
+        <span class="size-4 inline-block">[@icon 'forum-outline'/]</span>
+        <span>我的私信</span>
+        <span x-show="msgUnread > 0" x-cloak x-text="fmt(msgUnread)"
+              class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs leading-none"></span>
+      </a>
+      <a href="${def}/settings/notification" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50">
+        <span class="size-4 inline-block">[@icon 'notifications-outline'/]</span>
+        <span>通知</span>
+        <span x-show="notifUnread > 0" x-cloak x-text="fmt(notifUnread)"
+              class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs leading-none"></span>
+      </a>
+      <a href="${def}/settings/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50">
+        <span class="size-4 inline-block">[@icon 'settings-outline'/]</span>
+        <span>设置</span>
+      </a>
+      <form action="${ctx}/logout" method="post" class="border-t mt-1 pt-1">
+        <button type="submit" class="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-slate-50">
+          <span class="size-4 inline-block">[@icon 'logout'/]</span>
+          <span>退出</span>
+        </button>
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+      </form>
+    </div>
+  </div>
+[#else]
+  <a href="${def}/login" class="px-3 py-1.5 rounded whitespace-nowrap hover:bg-slate-100">登录</a>
+  <a href="${def}/register" class="px-3 py-1.5 rounded whitespace-nowrap bg-primary text-primary-foreground hover:opacity-90">注册</a>
+[/#if]
+[/#escape]

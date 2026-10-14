@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, PropType } from 'vue';
+import { onMounted, ref, watch, type PropType } from 'vue';
 import { queryScheduleTask, createScheduleTask, updateScheduleTask, deleteScheduleTask, queryScheduleTaskTypes, scheduleTaskCronValid } from '@/api/system';
 import { queryCollectionPage } from '@/api/interaction';
 import DialogForm from '@/components/DialogForm.vue';
@@ -14,6 +14,9 @@ const focus = ref<any>();
 const values = ref<any>({});
 const types = ref<string[]>([]);
 const collections = ref<any[]>([]);
+// 备份类任务：阻塞式执行，表单多一个“保留份数”（与后端 ScheduleTask.TYPE_BACKUP_* 对应）
+const BACKUP_TYPES = ['backupTemplates', 'backupUploads', 'incrementalUploads', 'backupDatabase'];
+const isBackupType = (type?: string) => BACKUP_TYPES.includes(type ?? '');
 const DEFAULT_CRON = '0 0 2 * * ?';
 const weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 const numericWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -64,7 +67,8 @@ const parseCron = (cron?: string) => {
   if (matches != null) {
     cronType.value = 'week';
     cronTime.value = `${pad(Number(matches[2]))}:${pad(Number(matches[1]))}`;
-    cronWeekday.value = /^[1-7]$/.test(matches[3]) ? numericWeekdays[Number(matches[3]) - 1] : matches[3].toUpperCase();
+    const weekday = matches[3] ?? '';
+    cronWeekday.value = /^[1-7]$/.test(weekday) ? (numericWeekdays[Number(weekday) - 1] ?? weekday) : weekday.toUpperCase();
     return;
   }
   matches = /^0\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+\*\s+\?$/.exec(cron);
@@ -97,6 +101,7 @@ onMounted(() => {
 });
 const handleTypeChange = () => {
   values.value.refId = undefined;
+  values.value.keepCount = undefined;
   if (values.value.type === 'collection' && collections.value.length <= 0) {
     fetchCollections();
   }
@@ -134,15 +139,22 @@ const handleTypeChange = () => {
       </el-form-item>
       <el-form-item prop="type" :rules="{ required: true, message: () => $t('v.required') }">
         <template #label><label-tip message="scheduleTask.type" /></template>
-        <el-select v-model="values.type" class="w-full" @change="() => handleTypeChange()">
-          <el-option v-for="item in types" :key="item" :label="$t(`scheduleTask.type.${item}`)" :value="item"></el-option>
-        </el-select>
+        <div class="w-full">
+          <el-select v-model="values.type" class="w-full" @change="() => handleTypeChange()">
+            <el-option v-for="item in types" :key="item" :label="$t(`scheduleTask.type.${item}`)" :value="item"></el-option>
+          </el-select>
+          <div v-if="isBackupType(values.type)" class="mt-1 text-xs leading-4 text-gray-secondary">{{ $t('scheduleTask.backupHint') }}</div>
+        </div>
       </el-form-item>
       <el-form-item v-if="values.type === 'collection'" prop="refId" :rules="{ required: true, message: () => $t('v.required') }">
         <template #label><label-tip message="scheduleTask.collection" /></template>
         <el-select v-model="values.refId" class="w-full">
           <el-option v-for="item in collections" :key="item.id" :label="item.name" :value="item.id"></el-option>
         </el-select>
+      </el-form-item>
+      <el-form-item v-if="isBackupType(values.type)" prop="keepCount">
+        <template #label><label-tip message="scheduleTask.keepCount" help /></template>
+        <el-input-number v-model="values.keepCount" :min="0" :max="999"></el-input-number>
       </el-form-item>
       <el-form-item
         prop="cron"

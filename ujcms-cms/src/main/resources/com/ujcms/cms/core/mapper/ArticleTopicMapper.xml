@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ArticleTopicMapper">
+    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ArticleTopic">
+        <id column="article_id_" jdbcType="BIGINT" property="articleId"/>
+        <id column="topic_id_" jdbcType="BIGINT" property="topicId"/>
+        <result column="order_" jdbcType="INTEGER" property="order"/>
+    </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.ArticleTopic">
+        <association column="article_id_" javaType="com.ujcms.cms.core.domain.Article"
+                     property="article" select="com.ujcms.cms.core.mapper.ArticleMapper.select"/>
+        <association column="topic_id_" javaType="com.ujcms.cms.core.domain.Topic"
+                     property="topic" select="com.ujcms.cms.core.mapper.TopicMapper.select"/>
+    </resultMap>
+
+    <sql id="Column_List">
+        t.article_id_, t.topic_id_, t.order_
+    </sql>
+
+    <select id="select" parameterType="map" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_article_topic t
+        where t.article_id_ = #{articleId,jdbcType=BIGINT}
+          and t.topic_id_ = #{topicId,jdbcType=BIGINT}
+    </select>
+
+    <select id="listByArticleId" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_article_topic t
+        where t.article_id_ = #{articleId,jdbcType=BIGINT}
+    </select>
+
+    <select id="listByTopicId" resultMap="ResultMap">
+        select
+        <include refid="Column_List"/>
+        from ujcms_article_topic t
+        where t.topic_id_ = #{topicId,jdbcType=BIGINT}
+        order by t.order_ asc
+    </select>
+
+    <select id="listTopicsByArticleId" resultMap="com.ujcms.cms.core.mapper.TopicMapper.BaseResultMap">
+        select tp.id_, tp.site_id_, tp.parent_id_, tp.topic_model_id_, tp.title_, tp.slug_,
+               tp.image_, tp.page_size_, tp.order_desc_, tp.topic_static_path_,
+               tp.seo_title_, tp.seo_keywords_, tp.seo_description_, tp.topic_template_,
+               tp.static_file_, tp.mobile_static_file_, tp.editor_type_,
+               tp.created_, tp.modified_, tp.depth_, tp.order_, tp.views_, tp.self_views_
+        from ujcms_article_topic at
+        join ujcms_topic tp on tp.id_ = at.topic_id_
+        where at.article_id_ = #{articleId,jdbcType=BIGINT}
+        order by tp.order_, tp.id_
+    </select>
+
+    <insert id="insert" parameterType="com.ujcms.cms.core.domain.ArticleTopic">
+        insert into ujcms_article_topic (article_id_, topic_id_, order_)
+        values (#{articleId,jdbcType=BIGINT}, #{topicId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="insertAll">
+        insert into ujcms_article_topic (article_id_, topic_id_, order_)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.articleId,jdbcType=BIGINT}, #{item.topicId,jdbcType=BIGINT}, #{item.order,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <delete id="delete" parameterType="map">
+        delete from ujcms_article_topic
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+          and topic_id_ = #{topicId,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByArticleId" parameterType="long">
+        delete from ujcms_article_topic
+        where article_id_ = #{articleId,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByTopicId" parameterType="long">
+        delete from ujcms_article_topic
+        where topic_id_ = #{topicId,jdbcType=BIGINT}
+    </delete>
+</mapper>

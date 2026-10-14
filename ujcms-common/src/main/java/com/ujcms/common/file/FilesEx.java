@@ -1,5 +1,7 @@
 package com.ujcms.common.file;
 
+import com.ujcms.common.ip.IpAddresses;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,8 +10,8 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.Optional;
@@ -20,14 +22,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 文件工具类
  *
- * @author liufang
+ * @author PONY
  */
 public class FilesEx {
     public static final String SLASH = "/";
@@ -131,28 +133,28 @@ public class FilesEx {
     }
 
     /**
-     * Iterates over a base name and returns the first non-existent file.<br />
-     * This method extracts a file's base name, iterates over it until the first non-existent appearance with
-     * <code>basename(n).ext</code>. Where n is a positive integer starting from one.
+     * 为避免覆盖已有文件，返回一个尚不存在的文件：{@code file} 不存在时原样返回，否则在主文件名后依次追加
+     * {@code (1)}、{@code (2)}……（扩展名不变），直到找到未被占用的名称。
      *
-     * @param file base file
-     * @return first non-existent file
+     * @param file 期望使用的文件
+     * @return 当前不存在的文件
      */
     public static File getUniqueFile(final File file) {
         if (!file.exists()) {
             return file;
         }
-        File tmpFile = new File(file.getAbsolutePath());
-        File parentDir = tmpFile.getParentFile();
-        int count = 1;
-        String extension = FilenameUtils.getExtension(tmpFile.getName());
-        String baseName = FilenameUtils.getBaseName(tmpFile.getName());
-        String suffix = StringUtils.isNotBlank(extension) ? "." + extension : "";
-        do {
-            tmpFile = new File(parentDir, baseName + "(" + count + ")" + suffix);
-            count += 1;
-        } while (tmpFile.exists());
-        return tmpFile;
+        File dir = file.getAbsoluteFile().getParentFile();
+        String name = file.getName();
+        String ext = FilenameUtils.getExtension(name);
+        String stem = FilenameUtils.getBaseName(name);
+        // 空白扩展名（如 "a. "）视同没有扩展名，不追加
+        String tail = StringUtils.isBlank(ext) ? "" : "." + ext;
+        for (int index = 1; ; index += 1) {
+            File candidate = new File(dir, stem + "(" + index + ")" + tail);
+            if (!candidate.exists()) {
+                return candidate;
+            }
+        }
     }
 
     /**
@@ -166,11 +168,32 @@ public class FilesEx {
     @Nullable
     public static File getFileFromUrl(URL url, String contentType) throws IOException {
         File temp = Files.createTempFile(null, null).toFile();
-        getFileFromUrl(url, temp, contentType);
-        if (temp.exists()) {
+        if (getFileFromUrl(url, temp, contentType)) {
             return temp;
         }
+        // 未下载（地址不允许、响应非 200 或类型不符）：删除空临时文件，返回 null 而不是 0 字节文件
+        FileUtils.deleteQuietly(temp);
         return null;
+    }
+
+    /**
+     * 远程地址是否允许抓取：仅 http/https；仅默认、80、443 端口；主机不得指向内网/保留地址（防止服务端请求伪造，
+     * 解析域名全部地址、任一命中即拒绝，IPv4 与 IPv6 内网段均覆盖）。无法解析的主机名视为不允许。
+     */
+    static boolean isAllowedUrl(URL url) {
+        String protocol = url.getProtocol();
+        if (!HTTP.equals(protocol) && !HTTPS.equals(protocol)) {
+            return false;
+        }
+        int port = url.getPort();
+        if (port != -1 && port != HTTP_PORT && port != HTTPS_PORT) {
+            return false;
+        }
+        try {
+            return !IpAddresses.isInternalHost(url.getHost());
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
 
     /**
@@ -179,38 +202,29 @@ public class FilesEx {
      * @param url         要获取的URL地址
      * @param file        要保存的文件
      * @param contentType url 响应的 Content Type 需包含该字符串。为 null 则不限制。
+     * @return 是否已下载并写入文件；地址不允许（见 {@link #isAllowedUrl}）、响应非 200 或 Content Type 不符时返回 {@code false}
      * @throws IOException IO 异常
      */
-    public static void getFileFromUrl(URL url, File file, String contentType) throws IOException {
-        // 只支持 http 和 https 协议
-        String protocol = url.getProtocol();
-        if (!HTTP.equals(protocol) && !HTTPS.equals(protocol)) {
-            return;
+    public static boolean getFileFromUrl(URL url, File file, @Nullable String contentType) throws IOException {
+        if (!isAllowedUrl(url)) {
+            return false;
         }
-        // 只允许 默认、80、443 端口
-        int port = url.getPort();
-        if (port != -1 && port != HTTP_PORT && port != HTTPS_PORT) {
-            return;
-        }
-        // 不访问本机
-        String host = url.getHost();
-        if (InetAddress.getByName(host).isSiteLocalAddress()) {
-            return;
-        }
-
-        HttpURLConnection.setFollowRedirects(false);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        // 不跟随重定向，防止跳转到内网地址；按连接设置，不改动 JVM 全局默认值
+        conn.setInstanceFollowRedirects(false);
         if (conn.getResponseCode() != HttpServletResponse.SC_OK) {
-            return;
+            return false;
         }
         // ContentType 需包含自定字符串
-        if (StringUtils.isNotBlank(contentType) && !conn.getContentType().contains(contentType)) {
-            return;
+        String responseType = conn.getContentType();
+        if (StringUtils.isNotBlank(contentType) && (responseType == null || !responseType.contains(contentType))) {
+            return false;
         }
         try (InputStream input = conn.getInputStream();
              OutputStream output = new FileOutputStream(file)) {
             IOUtils.copyLarge(input, output);
         }
+        return true;
     }
 
     /**

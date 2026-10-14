@@ -1,0 +1,29 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title="${channel.title} - ${site.title}" keywords=channel.seoKeywords!'' description=channel.seoDescription!'']
+[#-- Breadcrumb. channel.paths walks ancestors → self, matching the
+   article detail template (which is already the established pattern). --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      [#list channel.paths as c]
+        <li class="text-slate-400">/</li>
+        <li><a href="${c.url}" class="cm-link">${c.name}</a></li>
+      [/#list]
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6">
+  <article class="space-y-4">
+    <h1 class="text-2xl font-bold font-display">${channel.name}</h1>
+    <div class="article-body prose max-w-none">
+      [#noescape]${channel.text!}[/#noescape]
+    </div>
+  </article>
+</div>
+
+<script nonce="${csp_nonce!''}">fetch('${api}/channel/view/${channel.id?c}').catch(()=>{});</script>
+[/@layout]
+[/#escape]

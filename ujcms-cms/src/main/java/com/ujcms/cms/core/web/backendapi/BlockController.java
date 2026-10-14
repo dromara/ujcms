@@ -12,8 +12,9 @@ import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.exception.Http400Exception;
+import com.ujcms.common.web.exception.LogicException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,8 +60,9 @@ public class BlockController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('block:list','*')")
     public Object list(HttpServletRequest request) {
+        Long siteId = getCurrentSiteId();
         BlockArgs args = BlockArgs.of(getQueryMap(request.getQueryString()))
-                .scopeSiteId(getCurrentSiteId());
+                .scopeSiteId(siteId).queryItemCount(siteId);
         return service.selectList(args);
     }
 
@@ -82,7 +84,7 @@ public class BlockController {
         User currentUser = Contexts.getCurrentUser();
         Block block = new Block();
         Entities.copy(bean, block, "siteId");
-        validateBean(block, false, null, null, currentUser);
+        validateBean(block, false, null, null, null, currentUser);
         service.insert(block, getCurrentSiteId());
         return Responses.ok();
     }
@@ -99,8 +101,10 @@ public class BlockController {
         boolean origGlobal = block.isGlobal();
         String origAlias = block.getAlias();
         Short origScope = block.getScope();
-        Entities.copy(bean, block, "siteId");
-        validateBean(block, origGlobal, origAlias, origScope, user);
+        Long origModelId = block.getBlockItemModelId();
+        // 来源三元组由种子导入器专管：编辑不得改写或清除
+        Entities.copy(bean, block, "siteId", "origin", "originId", "originHash");
+        validateBean(block, origGlobal, origAlias, origScope, origModelId, user);
         service.update(block, Contexts.getCurrentSiteId());
         return Responses.ok();
     }
@@ -128,8 +132,15 @@ public class BlockController {
     @OperationLog(module = "block", operation = "delete", type = OperationType.DELETE)
     public ResponseEntity<Body> delete(@RequestBody List<Long> ids) {
         User currentUser = Contexts.getCurrentUser();
-        ids.forEach(id -> Optional.ofNullable(id).map(service::select).ifPresent(
-                bean -> validatePermission(bean.getSiteId(), bean.isGlobal(), currentUser)));
+        Long siteId = getCurrentSiteId();
+        ids.forEach(id -> Optional.ofNullable(id).map(service::select).ifPresent(bean -> {
+            validatePermission(bean.getSiteId(), bean.isGlobal(), currentUser);
+            // 删除区块会级联其区块项，而全局区块的区块项分属各站：其它站点仍有区块项时不可删除（与“全局改本站私有”同规），
+            // 否则在本站点一下删除，别的站点的内容跟着消失
+            if (bean.isGlobal() && itemService.existsByBlockId(bean.getId(), siteId)) {
+                throw new LogicException("error.block.usedByOtherSites", bean.getName());
+            }
+        }));
         service.delete(ids);
         return Responses.ok();
     }
@@ -151,20 +162,34 @@ public class BlockController {
         return service.existsByAlias(alias, siteId);
     }
 
+    @GetMapping("categories")
+    @PreAuthorize("hasAnyAuthority('block:list','*')")
+    public List<String> categories() {
+        return service.listCategories(getCurrentSiteId());
+    }
+
     private void validatePermission(Long siteId, boolean isGlobal, User currentUser) {
         dataInSite(siteId, getCurrentSiteId());
         globalPermission(isGlobal, currentUser.hasGlobalPermission());
     }
 
     private void validateBean(Block block, boolean origGlobal, @Nullable String origAlias, @Nullable Short origScope,
-                              User currentUser) {
+                              @Nullable Long origModelId, User currentUser) {
         validatePermission(block.getSiteId(), block.isGlobal() || origGlobal, currentUser);
         // 共享范围未修改时不校验，避免存量数据不符合规则（如私有区块已被其它站点使用）导致无法保存
         if (!Objects.equals(block.getScope(), origScope) && scopeNotAllowed(block.getScope(), block.getId())) {
             throw new Http400Exception("scope not allowed " + block.getScope());
         }
-        if (!block.getAlias().equals(origAlias) && aliasExist(block.getAlias(), block.getScope())) {
+        // 别名的唯一性以“别名 × 共享范围”为命名空间（全局一组、每站一组）：别名未变而共享范围变了，同样要重新校验
+        boolean changed = !block.getAlias().equals(origAlias) || !Objects.equals(block.getScope(), origScope);
+        if (changed && aliasExist(block.getAlias(), block.getScope())) {
             throw new Http400Exception("alias exist: " + block.getAlias());
+        }
+        // 区块项模型须对区块可见（本站区块：本站或全局；全局区块：全局）。绑定或共享范围未变时不校验，存量数据照常保存
+        Long modelId = block.getBlockItemModelId();
+        boolean bindingChanged = !Objects.equals(modelId, origModelId) || !Objects.equals(block.getScope(), origScope);
+        if (modelId != null && bindingChanged) {
+            service.validateModel(block.isGlobal() ? null : getCurrentSiteId(), modelId);
         }
     }
 

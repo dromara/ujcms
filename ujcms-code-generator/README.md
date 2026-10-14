@@ -2,18 +2,20 @@
 
 代码生成器可以很大程度提高开发效率。特别是实体类（Domain）与Mapper.xml中实体类属性与数据库字段的对应关系，以及常用的insert、update语句，这些都是重复性工作，手动编写非常枯燥且容易出错。
 
-代码生成器基于MyBatis官方的代码生成插件`mybatis-generator`，在官方插件的基础上进行了增强，可以生成更多的类和代码，并且对生成的内容进行了优化。
+代码生成器基于MyBatis官方的代码生成插件`mybatis-generator`（Apache License 2.0），在官方插件的基础上进行了增强，可以生成更多的类和代码，并且对生成的内容进行了优化。改编自上游的类保留了原版权声明，详见仓库根目录的 NOTICE。
 
 ## 数据库连接
 
-修改以下两个文件，填写正确的数据库URL地址、数据库用户名、数据库密码：
+修改以下配置文件，填写正确的数据库URL地址、数据库用户名、数据库密码：
 
 - `src/main/resources/generatorCoreConfig.xml`
 - `src/main/resources/generatorExtConfig.xml`
+- `src/main/resources/generatorCommercialT2Config.xml`、`src/main/resources/generatorCommercialT3Config.xml`：商业版独占的表（如定时任务、微信公众号），生成到 `../ujcms-commercial`。
+  这两个配置文件仅随商业版发行，社区版（开源版）不包含；文件不存在时代码生成器会在控制台提示并跳过。
 
 ```xml
-<jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
-                connectionURL="jdbc:mysql://127.0.0.1:3306/ujcms?serverTimezone=UTC"
+<jdbcConnection driverClass="org.mariadb.jdbc.Driver"
+                connectionURL="jdbc:mariadb://127.0.0.1:3306/ujcms?allowPublicKeyRetrieval=true&amp;nullDatabaseMeansCurrent=true"
                 userId="ujcms" password="password"/>
 ```
 
@@ -41,7 +43,7 @@
 
 代码生成器会生成以下类文件：
 
-* `../ujcms-cms/src/main/java/com/ujcms/cms/ext/domain/base/ExampleBase.java`：每次运行生成器都会生成，**不要手动修改**，否则会被覆盖
+* `../ujcms-cms/src/main/java/com/ujcms/cms/ext/domain/generated/GeneratedExample.java`：每次运行生成器都会生成，**不要手动修改**，否则会被覆盖
 * `../ujcms-cms/src/main/java/com/ujcms/cms/ext/domain/Example.java`：只在第一次运行时生成，可以修改
 * `../ujcms-cms/src/main/java/com/ujcms/cms/ext/mapper/ExampleMapper.java`：只在第一次运行时生成，可以修改
 * `../ujcms-cms/src/main/resources/com/ujcms/cms/ext/mapper/ExampleMapper.xml`：修改表结构后再次运行生成器会自动维护部分代码，可以修改
@@ -49,7 +51,7 @@
 * `../ujcms-cms/src/main/java/com/ujcms/cms/ext/service/args/ExampleArgs.java`：只在第一次运行时生成，可以修改
 * `../ujcms-cms/src/main/java/com/ujcms/cms/ext/web/backendapi/ExampleController.java`：只在第一次运行时生成，可以修改
 
-`ExampleBase`由代码生成器根据数据库字段维护，修改数据库表结构后，再次运行代码生成器即可。如需要增加额外的代码，可修改它的子类`Example`。
+`GeneratedExample`由代码生成器根据数据库字段维护，修改数据库表结构后，再次运行代码生成器即可。如需要增加额外的代码，可修改它的子类`Example`。
 
 `ExampleMapper.xml`最为特殊，也是灵魂所在。修改表结构后，再次运行生成器，会自动维护`BaseResultMap`、`Column_List`、`insert`、`update`标签内容。但其余部分代码不会被修改或覆盖，所以可以增加额外代码。
 

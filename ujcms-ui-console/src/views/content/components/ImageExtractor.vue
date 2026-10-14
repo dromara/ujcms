@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, toRefs, watch, PropType } from 'vue';
-import _ from 'lodash';
+import { ref, toRefs, watch, type PropType } from 'vue';
+import { uniq } from 'lodash-es';
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
@@ -19,7 +19,7 @@ const images = ref<any>();
 
 watch(visible, () => {
   if (visible.value) {
-    images.value = _.uniq(urls.value).map((url: string) => ({ url, checked: false }));
+    images.value = uniq(urls.value).map((url: string) => ({ url, checked: false }));
   }
 });
 const checkImg = (img: any) => {

@@ -5,7 +5,7 @@ import com.ujcms.common.db.tree.TreeEntityMapper;
 import com.ujcms.common.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,6 +18,15 @@ import java.util.List;
 @Mapper
 @Repository
 public interface SiteMapper extends TreeEntityMapper<Site> {
+    /**
+     * 对站点行加行锁（{@code select … for update}）：本站生成别名的写入由此依次进行
+     * （docs/spec/article-data-permission/plan.md D22）。须在一个已开启的事务里调用
+     *
+     * @return 行存在时返回其ID，否则 {@code null}
+     */
+    @Nullable
+    Long lockById(@Param("id") Long id);
+
     /**
      * 根据主键获取引用对象（不包括关联对象属性）
      *
@@ -106,6 +115,14 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
     int count();
 
     /**
+     * 是否有站点绑定该站点设置模型（模型删除守卫）
+     *
+     * @param modelId 模型ID
+     * @return 1：存在；0：不存在
+     */
+    int existsByModelId(Long modelId);
+
+    /**
      * 根据域名查找站点
      *
      * @param domain 域名
@@ -115,11 +132,77 @@ public interface SiteMapper extends TreeEntityMapper<Site> {
     Site findByDomain(String domain);
 
     /**
-     * 根据子目录查找站点
+     * 根据 (域名, 子目录) 组合查找站点。组合寻址（multilingual P2）的权威匹配，
+     * 使 a.example.com/en 与 b.example.com/en 可共存
      *
-     * @param subDir 别名
-     * @return 站点
+     * @param domain 域名
+     * @param subDir 子目录
+     * @return 站点。没有找到数据，则返回 {@code null}
      */
     @Nullable
-    Site findBySubDir(String subDir);
+    Site findByDomainAndSubDir(@Param("domain") String domain, @Param("subDir") String subDir);
+
+    /**
+     * 根据子目录查找站点列表（不区分域名，按ID排序）。
+     * 取代原单行 findBySubDir：跨域名重复子目录出现后，全局查找可能多条，由服务层裁决歧义
+     *
+     * @param subDir 子目录
+     * @return 站点列表
+     */
+    List<Site> listBySubDir(String subDir);
+
+    /**
+     * 子目录站点列表（正常状态，按 order_, id_ 排序）：根站点 robots.txt 为同一主机下的子目录站点补 Sitemap 行
+     *
+     * @param domain 域名。多域名模式下限定同域名；单域名模式传 {@code null}（所有站点共享一个主机）
+     * @return 子目录站点列表
+     */
+    List<Site> listSubDirSites(@Param("domain") @Nullable String domain);
+
+    /**
+     * 统计 (域名, 子目录) 组合地址相同的站点数量。用于多域名模式下的地址唯一性校验
+     *
+     * @param domain    域名
+     * @param subDir    子目录。为 {@code null} 时匹配 {@code sub_dir_ is null} 的行
+     * @param excludeId 排除的站点ID（通常为待保存站点自身）。可为 {@code null}
+     * @return 站点数量
+     */
+    int countByDomainAndSubDir(@Param("domain") String domain, @Param("subDir") @Nullable String subDir,
+                               @Param("excludeId") @Nullable Long excludeId);
+
+    /**
+     * 统计子目录相同的站点数量（不区分域名）。用于单域名模式下的子目录全局唯一性校验
+     *
+     * @param subDir    子目录
+     * @param excludeId 排除的站点ID（通常为待保存站点自身）。可为 {@code null}
+     * @return 站点数量
+     */
+    int countBySubDir(@Param("subDir") String subDir, @Param("excludeId") @Nullable Long excludeId);
+
+    /**
+     * 统计语言组主站点下的语言变体站点数量。用于删除主站点前的完整性校验
+     *
+     * @param langParentId 语言组主站点ID
+     * @return 变体站点数量
+     */
+    int countByLangParentId(@Param("langParentId") Long langParentId);
+
+    /**
+     * 统计语言组内（含主站点自身）指定语言的站点数量。用于同组语言唯一性校验
+     *
+     * @param masterId  语言组主站点ID
+     * @param lang      语言(BCP-47)
+     * @param excludeId 排除的站点ID（通常为待保存站点自身）。可为 {@code null}
+     * @return 站点数量
+     */
+    int countByLangGroupAndLang(@Param("masterId") Long masterId, @Param("lang") String lang,
+                                @Param("excludeId") @Nullable Long excludeId);
+
+    /**
+     * 获取语言组成员列表（含主站点自身；仅正常状态；按 order_, id_ 排序）
+     *
+     * @param masterId 语言组主站点ID
+     * @return 语言组成员站点列表
+     */
+    List<Site> listByLangGroup(@Param("masterId") Long masterId);
 }

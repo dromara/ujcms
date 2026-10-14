@@ -1,0 +1,73 @@
+[#--
+  面板片段：投票（Vote）。纯设置组件（vote-micro-region §3）：指定投票（settings.vote 为契约摘要
+  {id,title}；已删/越站为 {id,deleted:true}）经 [@Vote id=…] 自取实体，留空/失联回退最新投票
+  （[@VoteList limit='1']，与原 right.html 硬编码块行为一致）。视觉与交互（Alpine 提交 →
+  POST ${api}/vote/cast）复刻原 right.html 投票模块。
+--]
+[#escape x as (x)!?html]
+[#macro voteSection bean]
+<section
+  x-data="{
+    voteId: '${bean.id?c}', // 雪花 ID 超过 JS 安全整数范围，须以字符串提交
+    multiple: ${bean.multiple?string('true','false')},
+    submit() {
+      const form = this.$refs.form;
+      const fd = new FormData(form);
+      const opts = fd.getAll('options');
+      if (opts.length === 0) { window.displayAlert('请选择至少一项'); return; }
+      // VoteController.VoteParams.getOptionIds expects a single String
+      // (a JSON array deserialises to ArrayList and is rejected). Match
+      // jquery.serializeJSON's last-wins behaviour from the FreeMarker
+      // baseline: take the last checked option in DOM order.
+      const payload = { id: this.voteId, options: opts[opts.length - 1] };
+      window.fetchCsrf().then(() => window.request('POST', '${api}/vote/cast', payload))
+        .then(data => {
+          if (data.status === 0) { window.displaySuccess('投票成功'); form.reset(); }
+          else if (data.message) { window.displayAlert(data.message); form.reset(); }
+        }).catch(e => window.displayAlert(e.message || '投票失败'));
+    }
+  }"
+>
+  [#if (settings.title)?has_content]
+  <h5 class="flex items-center gap-2 text-base font-semibold mb-3">
+    <span class="size-5 text-primary inline-block">[@icon 'bar-chart'/]</span>
+    <a href="${dy}/vote" class="cm-link">${settings.title}</a>
+  </h5>
+  [/#if]
+  <div class="text-center mb-2">
+    <a href="${dy}/vote/${bean.id?c}" class="cm-link font-medium text-sm">${bean.title}</a>
+  </div>
+  <form x-ref="form" @submit.prevent="submit()">
+    <div class="space-y-2 text-sm">
+      [#list bean.options as option]
+        <label class="flex items-start gap-2">
+          <input
+            class="mt-1"
+            type="[#if bean.multiple]checkbox[#else]radio[/#if]"
+            name="options"
+            value="${option.id?c}"
+            required
+          >
+          <span>${option.title}</span>
+        </label>
+      [/#list]
+    </div>
+    <div class="mt-3 flex justify-center gap-2">
+      <button type="submit" class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">提交</button>
+      [#if (settings.showResults)!true]
+      <a href="${dy}/vote/${bean.id?c}/result" class="px-3 py-1.5 rounded border border-rose-500 text-rose-500 text-sm hover:bg-rose-50">查看结果</a>
+      [/#if]
+    </div>
+  </form>
+</section>
+[/#macro]
+[#if (settings.vote.id)?has_content && !((settings.vote.deleted)!false)]
+  [@Vote id=settings.vote.id; bean]
+    [#if bean??][@voteSection bean/][/#if]
+  [/@Vote]
+[#else]
+  [@VoteList limit='1'; voteList]
+    [#list voteList as bean][@voteSection bean/][/#list]
+  [/@VoteList]
+[/#if]
+[/#escape]

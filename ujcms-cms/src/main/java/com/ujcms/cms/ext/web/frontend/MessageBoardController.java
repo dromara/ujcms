@@ -3,17 +3,15 @@ package com.ujcms.cms.ext.web.frontend;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.support.Contexts;
-import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.cms.core.web.support.FrontendController;
 import com.ujcms.cms.ext.domain.MessageBoard;
 import com.ujcms.cms.ext.service.MessageBoardService;
 import com.ujcms.common.web.exception.Http401Exception;
 import com.ujcms.common.web.exception.Http403Exception;
 import com.ujcms.common.web.exception.Http404Exception;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -21,13 +19,11 @@ import java.util.Map;
  *
  * @author PONY
  */
-@Controller("frontendMessageBoardController")
+@FrontendController("frontendMessageBoardController")
 public class MessageBoardController {
-    private final SiteResolver siteResolver;
     private final MessageBoardService service;
 
-    public MessageBoardController(SiteResolver siteResolver, MessageBoardService service) {
-        this.siteResolver = siteResolver;
+    public MessageBoardController(MessageBoardService service) {
         this.service = service;
     }
 
@@ -35,26 +31,22 @@ public class MessageBoardController {
     private static final String TEMPLATE_FORM = "sys_message_board_form";
     private static final String TEMPLATE_ITEM = "sys_message_board_item";
 
-    @GetMapping({"/message-board", "/{subDir:[\\w-]+}/message-board"})
-    public String index(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/message-board")
+    public String index(Site site) {
         validateEnabled(site);
         return site.assembleTemplate(TEMPLATE);
     }
 
-    @GetMapping({"/message-board/create", "/{subDir:[\\w-]+}/message-board/create"})
-    public String create(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/message-board/create")
+    public String create(Site site) {
         User user = Contexts.findCurrentUser();
         validateEnabled(site);
         validateLoginRequired(site, user);
         return site.assembleTemplate(TEMPLATE_FORM);
     }
 
-    @GetMapping({"/message-board/{id}", "/{subDir:[\\w-]+}/message-board/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
-                       HttpServletRequest request, Map<String, Object> modelMap) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/message-board/{id}")
+    public String show(Site site, @PathVariable Long id, Map<String, Object> modelMap) {
         validateEnabled(site);
         MessageBoard messageBoard = service.select(id);
         // 前台只允许查看已审核且公开的留言

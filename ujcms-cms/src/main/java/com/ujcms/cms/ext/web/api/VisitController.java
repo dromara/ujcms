@@ -131,7 +131,7 @@ public class VisitController {
         }
         
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
-        Region region = ipSeeker.find(Servlets.getRemoteAddr(request, props.getIpProxyDepth()));
+        Region region = ipSeeker.find(ip);
 
         VisitLog bean = new VisitLog();
         bean.setSiteId(siteId);

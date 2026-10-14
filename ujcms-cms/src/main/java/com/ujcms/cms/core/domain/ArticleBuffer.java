@@ -20,22 +20,6 @@ public class ArticleBuffer implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public static ArticleBuffer of(Article article) {
-        ArticleBuffer bean = new ArticleBuffer();
-        bean.setId(article.getId());
-        bean.setComments(article.getComments());
-        bean.setDownloads(article.getDownloads());
-        bean.setDowns(article.getDowns());
-        bean.setDayViews(article.getDayViews());
-        bean.setFavorites(article.getFavorites());
-        bean.setMonthViews(article.getMonthViews());
-        bean.setQuarterViews(article.getQuarterViews());
-        bean.setUps(article.getUps());
-        bean.setViews(article.getViews());
-        bean.setWeekViews(article.getWeekViews());
-        bean.setYearViews(article.getYearViews());
-        return bean;
-    }
     /**
      * 文章ID
      */

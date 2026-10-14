@@ -1,12 +1,11 @@
 import { reactive, readonly } from 'vue';
 import type { RouteRecordRaw } from 'vue-router';
-import type { Action, MessageBoxState } from 'element-plus/es/components/message-box/src/message-box.type';
-import i18n from '@/i18n';
-import { sm2Encrypt } from '@/utils/sm';
-import { queryClientPublicKey } from '@/api/login';
 import { useAppStateStore } from '@/stores/appStateStore';
-import { accountLogin, accountLogout, accountRefreshToken, queryCurrentUser } from '@/api/login';
-import type { LoginParam } from '@/api/login';
+import { accountLogin, accountLogout, accountRefreshToken, queryBackendState, verifySecondFactorCode } from '@/api/login';
+import { useSysConfigStore } from '@/stores/sysConfigStore';
+import { usePreferencesStore } from '@/stores/preferencesStore';
+import { removeAllEditorDrafts } from '@/components/Tinymce/draft';
+import type { LoginParam, SecondFactorVerifyParam } from '@/api/login';
 import {
   setAccessToken,
   removeAccessToken,
@@ -39,10 +38,8 @@ export interface CurrentUser {
   loginDate?: Date;
   loginIp?: string;
   dataMigrationEnabled: boolean;
-  epExcludes: string[];
-  epDisplay: boolean;
-  epRank: number;
-  epActivated: boolean;
+  lockedPermissions: string[];
+  commercialTier: number;
 }
 
 const defaultUser: CurrentUser = {
@@ -53,10 +50,8 @@ const defaultUser: CurrentUser = {
   allStatusPermission: false,
   dataScope: 4,
   dataMigrationEnabled: false,
-  epExcludes: [],
-  epDisplay: false,
-  epRank: 0,
-  epActivated: false,
+  lockedPermissions: [],
+  commercialTier: 0,
 };
 
 const state = reactive<CurrentUser>(defaultUser);
@@ -67,16 +62,29 @@ const setCurrentUser = (user: CurrentUser): void => {
 
 export const currentUser = readonly(state);
 
+const storeTokens = (result: any): void => {
+  const now = Date.now();
+  setAccessToken(result.accessToken);
+  setRefreshToken(result.refreshToken);
+  setSessionTimeout(result.sessionTimeout);
+  setAccessAt(now);
+  setRefreshAt(now);
+};
+
+// 开启双因子认证时，口令通过后返回 status 1020（result 含 mfaToken、maskedMobile），此时尚未登录，
+// 需再经 verifySecondFactor 提交短信验证码才会下发令牌。
 export const login = async (params: LoginParam): Promise<any> => {
   const data = await accountLogin(params);
   if (data.status === 0) {
-    const { result } = data;
-    const now = Date.now();
-    setAccessToken(result.accessToken);
-    setRefreshToken(result.refreshToken);
-    setSessionTimeout(result.sessionTimeout);
-    setAccessAt(now);
-    setRefreshAt(now);
+    storeTokens(data.result);
+  }
+  return data;
+};
+
+export const verifySecondFactor = async (params: SecondFactorVerifyParam): Promise<any> => {
+  const data = await verifySecondFactorCode(params);
+  if (data.status === 0) {
+    storeTokens(data.result);
   }
   return data;
 };
@@ -91,56 +99,21 @@ export const logout = (): void => {
   removeAccessToken();
   removeRefreshToken();
   removeSessionTimeout();
+  // 富文本的本地草稿是正文内容：不留给下一个用这台电脑的人
+  removeAllEditorDrafts();
   setCurrentUser(defaultUser);
+  // 个人偏好随账号：登出即复位（清除写在 :root 上的主题色变量）
+  usePreferencesStore().seed();
 };
 
-const {
-  global: { t },
-} = i18n;
-
+// 会话超时后就地重新登录。登录框是挂在 App.vue 下的 ReLoginDialog，由 loginBoxDisplay 驱动：
+// 开启双因子认证时重新登录同样要过两步，ElMessageBox.prompt 承载不了第二步。
 const showLoginBox = () => {
   const appState = useAppStateStore();
   if (appState.messageBoxDisplay) {
     ElMessageBox.close();
   }
-  if (!appState.loginBoxDisplay) {
-    appState.setLoginBoxDisplay(true);
-    ElMessageBox.prompt(state.username, t('enterPassword'), {
-      cancelButtonText: t('backToLogin'),
-      confirmButtonText: t('login'),
-      showClose: false,
-      closeOnClickModal: false,
-      closeOnPressEscape: false,
-      closeOnHashChange: false,
-      inputType: 'password',
-      inputValue: import.meta.env.MODE === 'development' ? 'password' : undefined,
-      beforeClose: async (action: Action, instance: MessageBoxState, done: () => void) => {
-        if (action === 'cancel') {
-          done();
-          window.location.reload();
-        }
-        if (action === 'confirm') {
-          const inputValue = instance.inputValue;
-          if (inputValue == null || inputValue === '') {
-            instance.editorErrorMessage = t('v.required');
-            instance.validateError = true;
-            return;
-          }
-          const publicKey = await queryClientPublicKey();
-          const password = sm2Encrypt(instance.inputValue, publicKey);
-          const data = await login({ username: state.username ?? '', password });
-          // 登录失败，显示错误信息
-          if (data.status !== 0) {
-            instance.editorErrorMessage = data.message;
-            instance.validateError = true;
-            return;
-          }
-          appState.setLoginBoxDisplay(false);
-          done();
-        }
-      },
-    }).catch();
-  }
+  appState.setLoginBoxDisplay(true);
 };
 
 // 刷新间隔时间。默认 5 分钟。
@@ -194,7 +167,7 @@ export const initRefreshInterval = (): void => {
 };
 
 export const fetchCurrentUser = async (): Promise<any> => {
-  const user = await queryCurrentUser();
+  const user = await queryBackendState();
   if (user) {
     setCurrentUser({
       databaseType: user.databaseType,
@@ -211,11 +184,16 @@ export const fetchCurrentUser = async (): Promise<any> => {
       loginDate: user.loginDate,
       loginIp: user.loginIp,
       dataMigrationEnabled: user.dataMigrationEnabled,
-      epExcludes: user.epExcludes,
-      epDisplay: user.epDisplay,
-      epRank: user.epRank,
-      epActivated: user.epActivated,
+      lockedPermissions: user.lockedPermissions,
+      commercialTier: user.commercialTier,
     });
+    // 控制台偏好随 backend-state 下发（侧栏风格、主题色、首页设置）及安装默认外观（console-shell D7），外壳首屏即按偏好绘制
+    usePreferencesStore().seed(user.preferences, user.console);
+    // /env/config strips admin-only security fields (ssrfList, password
+    // aging policy, login-attempt thresholds). Now that the session is
+    // authenticated, pull them from /backend/core/config so TinyMCE's
+    // image-fetch SSRF check and password forms see the real values.
+    useSysConfigStore().enrichForAdmin();
   } else {
     removeAccessToken();
     removeRefreshToken();
@@ -231,9 +209,31 @@ function includes(arr: string[] | undefined, str: string): boolean {
 }
 
 export const hasCurrentUser = (): boolean => state.username !== undefined;
-export const isInclude = (permission?: string): boolean => !permission || !includes(state.epExcludes, permission);
+export const isUnlocked = (permission?: string): boolean => !permission || !includes(state.lockedPermissions, permission);
 export const hasPermission = (permission?: string): boolean => !permission || includes(state.permissions, permission);
+/** 是否缺少权限（true = 无权；语义反转以便直接绑定 :disabled）。 */
 export const perm = (permission?: string): boolean => !hasPermission(permission);
+// 社区版（commercialTier===0）预览模式下被锁定的商业功能：入口展示徽标，点击进入功能介绍页。
+// 商业版（commercialTier>=1）对更高级别功能保持隐藏，本函数恒为 false。
+export const isCommercialLocked = (permission?: string): boolean =>
+  state.commercialTier === 0 && permission != null && !isUnlocked(permission);
+// importData:*（数据迁移，T1）在商业级别之上再受 ujcms.data-migration-enabled 开关控制：社区版照常出锁定徽标进介绍页，
+// 商业版只在已解锁且开关开启时显示
 export const isShowPerm = (permission?: string): boolean =>
-  (state.epDisplay && !permission?.startsWith('machine:')) || (state.dataMigrationEnabled && permission?.startsWith('importData:')) || isInclude(permission);
-export const isShowMenu = (route: RouteRecordRaw): boolean => !route.meta?.hidden && hasPermission(route.meta?.requiresPermission) && isShowPerm(route.meta?.requiresPermission);
+  permission?.startsWith('importData:')
+    ? isCommercialLocked(permission) || (isUnlocked(permission) && state.dataMigrationEnabled)
+    : isUnlocked(permission) || isCommercialLocked(permission);
+// 分组（含 /stat 的二级分组）的可见性由子项推导：任一子项可见则分组可见，子项全不可见则分组隐藏。
+// menu.* 分组码只用于社区版分组行的商业徽标，不参与可见性——角色 CSV 里的分组码是保存时的快照，
+// 菜单项跨组移动后旧角色缺目标组的码，若以码判断会让该项从侧栏消失（console-menu 规约）。
+export const isShowMenu = (route: RouteRecordRaw): boolean => {
+  if (route.meta?.hidden) {
+    return false;
+  }
+  if (route.children?.length) {
+    return route.children.some((child) => isShowMenu(child));
+  }
+  return hasPermission(route.meta?.requiresPermission) && isShowPerm(route.meta?.requiresPermission);
+};
+// 级别区块展示判断：社区版全部展示用于推广，商业版只展示已购级别
+export const isShowTier = (tier: number): boolean => state.commercialTier === 0 || state.commercialTier >= tier;

@@ -37,7 +37,7 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.ujcms.cms.core.lucene.domain.EsArticle;
 import com.ujcms.cms.core.lucene.domain.WebPage;

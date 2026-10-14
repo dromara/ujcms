@@ -14,10 +14,6 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.SortField;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -31,12 +27,10 @@ import java.util.Optional;
 import static org.apache.lucene.document.Field.Store;
 
 /**
- * 全文检索文章实体类
+ * 全文检索文章实体类。Lucene 与 Elasticsearch 共用；Elasticsearch 的索引名、设置与映射由商业模块 T3 的文档类承载
  *
  * @author PONY
  */
-@Document(indexName = "#{@props.esArticle}")
-@Setting(settingPath = "/elasticsearch/article-setting.json")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsArticle extends WebPageWithCustoms {
     @Serial
@@ -49,6 +43,7 @@ public class EsArticle extends WebPageWithCustoms {
     public static final String FIELD_ID = "id";
     public static final String FIELD_STATUS = "status";
     public static final String FIELD_PUBLISH_DATE = "publishDate";
+    public static final String FIELD_AI_GENERATED = "aiGenerated";
     public static final String FIELD_CHANNEL_ID = "channel.id";
     public static final String FIELD_CHANNEL_NAME = "channel.name";
     public static final String FIELD_CHANNEL_URL = "channel.url";
@@ -77,6 +72,9 @@ public class EsArticle extends WebPageWithCustoms {
         setStatus(doc.getField(FIELD_STATUS).numericValue().shortValue());
         long publishMilli = doc.getField(FIELD_PUBLISH_DATE).numericValue().longValue();
         setPublishDate(OffsetDateTime.ofInstant(Instant.ofEpochMilli(publishMilli), ZoneId.systemDefault()));
+
+        // 旧索引文档没有该字段，保持默认值 false
+        Optional.ofNullable(doc.get(FIELD_AI_GENERATED)).map(Boolean::valueOf).ifPresent(this::setAiGenerated);
 
         getChannel().setId(doc.getField(FIELD_CHANNEL_ID).numericValue().longValue());
         getChannel().setName(doc.get(FIELD_CHANNEL_NAME));
@@ -107,6 +105,8 @@ public class EsArticle extends WebPageWithCustoms {
         doc.add(new LongPoint(FIELD_PUBLISH_DATE, publishMilli));
         doc.add(new StoredField(FIELD_PUBLISH_DATE, publishMilli));
         doc.add(new NumericDocValuesField(FIELD_PUBLISH_DATE, publishMilli));
+
+        doc.add(new StoredField(FIELD_AI_GENERATED, getAiGenerated().toString()));
 
         doc.add(new LongPoint(FIELD_CHANNEL_ID, getChannel().getId()));
         doc.add(new StoredField(FIELD_CHANNEL_ID, getChannel().getId()));
@@ -142,6 +142,7 @@ public class EsArticle extends WebPageWithCustoms {
 
         bean.setUrl(article.getUrl());
         bean.setPublishDate(article.getPublishDate());
+        bean.setAiGenerated(article.getAiGenerated());
         bean.setImage(article.getImage());
         bean.setChannel(ChannelInner.of(article.getChannel()));
         bean.setSite(SiteInner.of(article.getSite()));
@@ -152,22 +153,22 @@ public class EsArticle extends WebPageWithCustoms {
      * ID
      */
     @Id
-    @Field
     private Long id = 0L;
     /**
      * 状态
      */
-    @Field(type = FieldType.Short)
     private Short status = 0;
     /**
      * 发布日期
      */
-    @Field(type = FieldType.Date)
     private OffsetDateTime publishDate = OffsetDateTime.now();
+    /**
+     * 是否含AI生成内容
+     */
+    private Boolean aiGenerated = false;
     /**
      * 栏目
      */
-    @Field(type = FieldType.Object, index = false)
     private ChannelInner channel = new ChannelInner();
 
     public Long getId() {
@@ -192,6 +193,14 @@ public class EsArticle extends WebPageWithCustoms {
 
     public void setPublishDate(OffsetDateTime publishDate) {
         this.publishDate = publishDate;
+    }
+
+    public Boolean getAiGenerated() {
+        return aiGenerated;
+    }
+
+    public void setAiGenerated(Boolean aiGenerated) {
+        this.aiGenerated = aiGenerated;
     }
 
     public ChannelInner getChannel() {
@@ -221,17 +230,14 @@ public class EsArticle extends WebPageWithCustoms {
         /**
          * ID
          */
-        @Field(type = FieldType.Integer)
         private Long id = 0L;
         /**
          * 名称
          */
-        @Field(type = FieldType.Keyword, index = false)
         private String name = "";
         /**
          * URL地址
          */
-        @Field(type = FieldType.Keyword, index = false)
         private String url = "";
 
         public Long getId() {
@@ -281,7 +287,6 @@ public class EsArticle extends WebPageWithCustoms {
         /**
          * 栏目层级。从一级栏目到当前栏目的列表
          */
-        @Field(type = FieldType.Object, index = false)
         private List<ChannelBaseInner> paths = new ArrayList<>();
 
         public List<ChannelBaseInner> getPaths() {

@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref, toRefs, computed, PropType } from 'vue';
-import { UploadFile, UploadFiles } from 'element-plus';
+import { ref, toRefs, computed, type PropType } from 'vue';
+import { type UploadFile, type UploadFiles } from 'element-plus';
+import { UploadFilled, FolderOpened } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { handleError } from '@/utils/request';
 import { getAuthHeaders } from '@/utils/auth';
 import { getSiteHeaders } from '@/utils/common';
+import { getLocaleHeaders } from '@/i18n';
+import { isAcceptedExtension, acceptToText } from '@/utils/upload';
 import { extractMediaMeta } from '@/utils/media';
 import { useSysConfigStore } from '@/stores/sysConfigStore';
 import { imageUploadUrl, videoUploadUrl, audioUploadUrl, docUploadUrl, fileUploadUrl } from '@/api/config';
+import FilePicker from '@/components/FilePicker/FilePicker.vue';
 
 const props = defineProps({
   type: {
@@ -22,6 +26,8 @@ const props = defineProps({
   fileMaxSize: { type: Number, default: null },
   multiple: { type: Boolean },
   disabled: { type: Boolean, default: false },
+  // 是否显示“从资源库选择”入口
+  pickable: { type: Boolean, default: false },
   onSuccess: { type: Function as PropType<((response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => void) | undefined>, default: null },
 });
 
@@ -103,6 +109,11 @@ const uploadData = computed(() => {
   return async (rawFile: File) => ({ ...props.data, ...(await extractMediaMeta(rawFile, mediaType)) });
 });
 const beforeUpload = (file: any) => {
+  // accept 属性不限制拖拽，需在此手动校验扩展名，拦截拖入的不支持文件
+  if (!isAcceptedExtension(file.name, accept.value)) {
+    ElMessage.error(t('error.fileType', { types: acceptToText(accept.value) }));
+    return false;
+  }
   if (maxSize.value > 0 && file.size > maxSize.value) {
     ElMessage.error(t('error.fileMaxSize', { size: `${maxSize.value / 1024 / 1024} MB` }));
     return false;
@@ -112,13 +123,37 @@ const beforeUpload = (file: any) => {
 const onError = (error: Error) => {
   handleError(JSON.parse(error.message));
 };
+
+const pickerVisible = ref(false);
+const pickAccept = computed<'image' | 'video' | 'audio' | 'doc' | 'file' | 'any'>(() => {
+  switch (type.value) {
+    case 'image':
+      return 'image';
+    case 'video':
+      return 'video';
+    case 'audio':
+      return 'audio';
+    case 'doc':
+      return 'doc';
+    case 'file':
+      return 'file';
+    default:
+      return 'any';
+  }
+});
+const handlePick = (items: any) => {
+  const list = Array.isArray(items) ? items : [items];
+  list.forEach((item) => {
+    props.onSuccess?.(item, { name: item.name, url: item.url } as any, [] as any);
+  });
+};
 </script>
 
 <template>
-  <div>
+  <div :class="{ 'w-full': pickable }">
     <el-upload
       :action="action"
-      :headers="{ ...getAuthHeaders(), ...getSiteHeaders() }"
+      :headers="{ ...getAuthHeaders(), ...getSiteHeaders(), ...getLocaleHeaders() }"
       :data="uploadData"
       :accept="accept"
       :before-upload="beforeUpload"
@@ -130,22 +165,44 @@ const onError = (error: Error) => {
       :multiple="multiple"
       drag
     >
-      <!--
-      // 用于测试上传进度条
-      action="https://jsonplaceholder.typicode.com/posts/"
-      -->
       <slot>
-        <span>{{ button ?? $t('clickOrDragToUpload') }}</span>
-        <!-- <el-button type="primary" :disabled="disabled">{{ button ?? $t('clickOrDragToUpload') }}</el-button> -->
+        <!-- 拖拽区内放两个明确按钮：上传（点击冒泡触发文件选择）、从资源库选择（.stop 阻止冒泡，改为打开选择器）；整框仍可拖拽 -->
+        <div class="dropzone">
+          <el-button type="primary" :icon="UploadFilled" :disabled="disabled">{{ button ?? $t('upload') }}</el-button>
+          <el-button v-if="pickable" :icon="FolderOpened" :disabled="disabled" @click.stop="pickerVisible = true">
+            {{ $t('resource.library') }}
+          </el-button>
+        </div>
       </slot>
     </el-upload>
     <el-progress v-if="progressFile.status === 'uploading'" :percentage="parseInt(progressFile.percentage, 10)"></el-progress>
+    <file-picker v-if="pickable" v-model="pickerVisible" :accept="pickAccept" :multiple="multiple" @pick="handlePick" />
   </div>
 </template>
 
 <style lang="scss" scoped>
+/* 非 pickable（如文件管理“上传/ZIP上传”按钮）：紧凑的内联按钮样式 */
 :deep(.el-upload-dragger) {
   padding: 0 20px;
   @apply bg-primary-lighter text-primary;
+}
+/* pickable：拖拽上传区作为主操作铺满整行，并加高内边距形成投放区 */
+.w-full :deep(.el-upload),
+.w-full :deep(.el-upload-dragger) {
+  width: 100%;
+}
+.w-full :deep(.el-upload-dragger) {
+  padding: 12px 20px;
+}
+.dropzone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+}
+/* 由 flex gap 统一控制间距，去掉 EP 相邻按钮自带的 margin 以免双倍间隔 */
+.dropzone :deep(.el-button + .el-button) {
+  margin-left: 0;
 }
 </style>

@@ -1,0 +1,48 @@
+{
+  "visit.now": "Now",
+  "visit.today": "Today",
+  "visit.yesterday": "Yesterday",
+  "visit.last7day": "Last 7 days",
+  "visit.last30day": "Last 30 days",
+  "visit.last3month": "Last 3 months",
+  "visit.last6month": "Last 6 months",
+  "visit.lastYear": "Last year",
+  "visit.all": "All",
+  "visit.pv": "Page views (PV)",
+  "visit.uv": "Visitors (UV)",
+  "visit.ip": "IPs",
+  "visit.bounceRate": "Bounce rate",
+  "visit.averageDuration": "Avg. visit duration",
+  "visit.averagePv": "Avg. pages per visit",
+  "visit.url": "Visited page",
+  "visit.entryUrl": "Entry page",
+
+  "visitVisitor.newVisitor": "New visitors",
+  "visitVisitor.oldVisitor": "Returning visitors",
+  "visitVisitor.pv": "Page views",
+  "visitVisitor.uv": "Visitors",
+
+  "visitSource.name": "Source",
+  "visitSource.type.DIRECT": "Direct",
+  "visitSource.type.INNER": "Internal link",
+  "visitSource.type.OUTER": "External link",
+  "visitSource.type.SEARCH": "Search engine",
+  "visitDevice.name": "Device",
+  "visitOs.name": "Operating system",
+  "visitBrowser.name": "Browser",
+
+  "articleStat.user": "User",
+  "articleStat.org": "Organization",
+  "articleStat.channel": "Channel",
+  "articleStat.total": "Total entered",
+  "articleStat.published": "Published",
+  "articleStat.unpublished": "Unpublished",
+
+  "performanceStat.user": "User",
+  "performanceStat.org": "Organization",
+  "performanceStat.score": " pts",
+  "performanceStat.totalCount": "Total published",
+  "performanceStat.totalScore": "Total score",
+
+  "": ""
+}

@@ -5,9 +5,10 @@ import com.ujcms.common.db.order.OrderEntityMapper;
 import com.ujcms.common.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -70,12 +71,27 @@ public interface BlockItemMapper extends OrderEntityMapper {
     int countByBlockIdAndArticleId(@Param("blockId") Long blockId, @Param("articleId") Long articleId);
 
     /**
+     * 根据 区块ID 统计条目数（移除演示数据的区块定义守卫，theme-seed-export E4a / D26）
+     *
+     * @param blockId 区块ID
+     * @return 数据条数
+     */
+    int countByBlockId(Long blockId);
+
+    /**
      * 根据 文章ID 获取列表
      *
      * @param articleId 文章ID
      * @return 数据列表
      */
     List<BlockItem> listByArticleId(Long articleId);
+
+    /**
+     * 一批文章的区块项，带上所属区块的 ID 与名称（文章列表用）。只含列表要显示的列，不加载关联的文章与站点
+     *
+     * @param articleIds 文章ID，不可为空
+     */
+    List<BlockItem> listByArticleIds(@Param("articleIds") Collection<Long> articleIds);
 
     /**
      * 根据 文章ID 删除数据

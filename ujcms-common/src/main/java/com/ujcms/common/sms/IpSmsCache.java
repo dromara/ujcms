@@ -17,9 +17,10 @@ public class IpSmsCache {
      */
     public static final String CACHE_NAME = "ipSms";
     /**
-     * 缓存过期时间。默认120分钟。
+     * 缓存过期时间（分钟）。默认 24 小时。只用于清理：缓存键包含日期（见 {@link IpSmsCounterService}），
+     * 每日计数由键决定，前一天的键不再被访问，到期后自动清除。
      */
-    public static final int EXPIRES = 120;
+    public static final int EXPIRES = 1440;
     /**
      * 最大缓存数量。默认 100,000
      */

@@ -9,7 +9,7 @@ import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.common.web.exception.Http401Exception;
 import com.ujcms.common.web.exception.Http403Exception;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;

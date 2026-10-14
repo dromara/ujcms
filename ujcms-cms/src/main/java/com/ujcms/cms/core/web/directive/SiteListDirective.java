@@ -60,7 +60,7 @@ public class SiteListDirective implements TemplateDirectiveModel {
         Directives.handleOrderBy(args.getQueryMap(), params);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

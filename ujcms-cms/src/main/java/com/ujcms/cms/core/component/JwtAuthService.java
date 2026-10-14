@@ -6,11 +6,13 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.LoginLogService;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Props;
+import com.ujcms.cms.core.web.api.JwtAuthController.JwtTokenResult;
 import com.ujcms.common.captcha.IpLoginAttemptService;
 import com.ujcms.common.security.jwt.JwtProperties;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Servlets;
 import org.springframework.http.ResponseEntity;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Component;
@@ -18,11 +20,8 @@ import org.springframework.stereotype.Component;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-import static com.ujcms.common.security.jwt.JwtProperties.*;
 import static com.ujcms.common.security.jwt.JwtUtils.*;
 
 /**
@@ -62,6 +61,30 @@ public class JwtAuthService {
         return Responses.failure(request, "error.passwordIncorrect");
     }
 
+    /**
+     * 第二因子（短信验证码）错误。与口令错误一样计入 IP 与用户的登录失败次数：否则攻击者拿到口令后，
+     * 可以不受锁定约束地反复猜测验证码。
+     */
+    public void secondFactorFailure(User user, String username, String ip, Config.Security security) {
+        ipLoginAttemptService.failure(ip);
+        userService.loginFailure(user.getExt(), security.getUserLockMinutes());
+        loginLogService.loginFailure(user.getId(), username, ip, LoginLog.STATUS_SHORT_MESSAGE_WRONG);
+    }
+
+    /**
+     * 完成登录：签发令牌、清零登录失败计数、记录登录成功。必须在<b>全部</b>认证因子通过之后调用。
+     * <p>
+     * 双因子登录的第一步（口令已通过、等待第二因子）不得调用：清零失败计数会让持有口令者在两次验证码猜测之间重置锁定计数。
+     */
+    public ResponseEntity<Responses.Body> completeLogin(User user, String username, String ip, boolean isBrowser,
+                                                        Config.Security security) {
+        JwtTokenResult result = createTokenResult(user, isBrowser, security);
+        ipLoginAttemptService.success(ip);
+        userService.loginSuccess(user.getExt(), ip);
+        loginLogService.loginSuccess(user.getId(), username, ip);
+        return Responses.ok(result);
+    }
+
     public ResponseEntity<Responses.Body> disabledUser(
             User user, String username, String ip, HttpServletRequest request) {
         // 用户未激活
@@ -83,33 +106,36 @@ public class JwtAuthService {
         return Responses.failure(request, "error.userDisabled");
     }
 
-    public Map<String, Object> createResultMap(User user, boolean isBrowser) {
+    public JwtTokenResult createTokenResult(User user, boolean isBrowser) {
+        return createTokenResult(user, isBrowser, null);
+    }
+
+    public JwtTokenResult createTokenResult(User user, boolean isBrowser, Config.@Nullable Security security) {
         Instant now = Instant.now();
         String loginId = UUID.randomUUID().toString().replace("-", "");
         String accessToken = createAccessToken(loginId, user.getUsername(), now, false);
         String refreshToken = createRefreshToken(loginId, now, user.getUsername(), now, isBrowser);
-        Map<String, Object> result = new HashMap<>(6);
-        result.put(ACCESS_TOKEN, accessToken);
-        result.put(EXPIRES_IN, properties.getExpiresSeconds());
-        result.put(REMEMBERED, false);
-        result.put(REFRESH_TOKEN, refreshToken);
-        result.put(REFRESH_EXPIRES_IN, properties.getRefreshExpires());
-        result.put(REFRESH_AUTH_EXPIRES_IN, isBrowser ?
-                properties.getExpiresSeconds() : properties.getRefreshAuthExpiresSeconds());
-        result.put(SESSION_TIMEOUT, properties.getSessionTimeout());
-        return result;
-    }
-
-    public Map<String, Object> createResultMap(User user, boolean isBrowser, Config.Security security) {
-        // 生成 Access Token
-        Map<String, Object> result = createResultMap(user, isBrowser);
-        int warnDays = security.getPasswordWarnDays();
-        int maxDays = security.getPasswordMaxDays();
-        int remainingDays = user.getPasswordRemainingDays(maxDays);
-        if (maxDays > 0 && warnDays > 0 && remainingDays <= warnDays) {
-            result.put(REMAINING_DAYS, remainingDays);
+        long refreshAuthExpiresIn = isBrowser
+                ? properties.getExpiresSeconds()
+                : properties.getRefreshAuthExpiresSeconds();
+        Integer remainingDays = null;
+        if (security != null) {
+            int warnDays = security.getPasswordWarnDays();
+            int maxDays = security.getPasswordMaxDays();
+            int remaining = user.getPasswordRemainingDays(maxDays);
+            if (maxDays > 0 && warnDays > 0 && remaining <= warnDays) {
+                remainingDays = remaining;
+            }
         }
-        return result;
+        return new JwtTokenResult(
+                accessToken,
+                properties.getExpiresSeconds(),
+                false,
+                refreshToken,
+                (long) properties.getRefreshExpires(),
+                refreshAuthExpiresIn,
+                (long) properties.getSessionTimeout(),
+                remainingDays);
     }
 
     public String createAccessToken(String loginId, String username, Instant now, boolean remembered) {

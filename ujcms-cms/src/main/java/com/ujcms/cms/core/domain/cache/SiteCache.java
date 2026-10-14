@@ -2,7 +2,7 @@ package com.ujcms.cms.core.domain.cache;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.ibatis.cache.Cache;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 

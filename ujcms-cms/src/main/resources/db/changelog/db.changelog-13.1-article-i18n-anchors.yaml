@@ -1,0 +1,45 @@
+databaseChangeLog:
+  # 文章翻译过期锚点（multilingual P6，translation-workflow.md §2）。
+  # 13.0 已发布，13.0-article-i18n 原变更集不可再改，故以升级变更集补列——
+  # 全新建库与既有 13.0 库同走此处（createTable 保持发布时形态）：
+  #   content_date_ 本成员最后一次“原创”内容修改时间（对端译文应吸收该修改）；
+  #   synced_date_  本成员已吸收对端原创内容至此时间。
+  #   过期判定：存在对端成员 content_date_ > 本成员 synced_date_（严格大于）。
+  # 回填值 = 迁移时刻（存量成员全部视为“刚同步”，无过期），随后去除默认值
+  # （应用层写入必填，与实体默认语义一致）。columnExists 守卫使其对
+  # 开发期已含该列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.1-article-i18n-anchors
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_article_i18n
+                columnName: content_date_
+      changes:
+        - addColumn:
+            tableName: ujcms_article_i18n
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: content_date_
+                  remarks: 最后原创内容修改时间（对端应吸收）
+                  type: datetime
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  constraints:
+                    nullable: false
+                  name: synced_date_
+                  remarks: 已吸收对端原创内容至此时间
+                  type: datetime
+                  defaultValueComputed: CURRENT_TIMESTAMP
+        - dropDefaultValue:
+            tableName: ujcms_article_i18n
+            columnName: content_date_
+            columnDataType: datetime
+        - dropDefaultValue:
+            tableName: ujcms_article_i18n
+            columnName: synced_date_
+            columnDataType: datetime

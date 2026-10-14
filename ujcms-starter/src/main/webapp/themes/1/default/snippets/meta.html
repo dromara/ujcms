@@ -1,0 +1,13 @@
+[#escape x as (x)!?html]
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#0066cc">
+[#if site.favicon?has_content]<link rel="icon" href="${site.favicon}">[/#if]
+[#-- CSRF 元信息必须在 <head> 内早于响应缓冲提交输出：Spring Security 6 的 SupplierCsrfToken
+     惰性求值，FreeMarker 流式渲染下 body 尾部才首次取 token 会因响应已提交而失败 --]
+<meta name="_csrf" content="${_csrf.token}">
+<meta name="_csrf_header" content="${_csrf.headerName}">
+<meta property="og:site_name" content="${site.name}">
+<meta property="og:locale" content="zh_CN">
+[/#escape]

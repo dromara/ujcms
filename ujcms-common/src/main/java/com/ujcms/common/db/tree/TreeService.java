@@ -1,6 +1,6 @@
 package com.ujcms.common.db.tree;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -27,8 +27,19 @@ public class TreeService<T extends TreeEntity> {
 
     public void insert(T bean, @Nullable Long siteId) {
         Long parentId = bean.getParentId();
+        insert(bean, parentId != null ? entityMapper.select(parentId) : null, siteId);
+    }
+
+    /**
+     * 插入节点，上级节点由调用方给出：批量插入时上级已在手，省去逐个读取（读取上级会连同其子节点一并装配）。
+     *
+     * @param bean   待插入节点
+     * @param parent 上级节点，须与 {@code bean.getParentId()} 对应。根节点为 {@code null}
+     * @param siteId 站点ID。可以为 {@code null}
+     */
+    public void insert(T bean, @Nullable T parent, @Nullable Long siteId) {
+        Long parentId = bean.getParentId();
         if (parentId != null) {
-            T parent = entityMapper.select(parentId);
             bean.setDepth((short) ((parent != null ? parent.getDepth() : 0) + 1));
         }
         bean.setOrder(Optional.ofNullable(entityMapper.maxOrder(parentId, siteId)).orElse(0) + 1);
@@ -75,13 +86,15 @@ public class TreeService<T extends TreeEntity> {
     private void moveOrder(T from, T to, @Nullable Long siteId, TreeMoveType type) {
         int fromOrder = from.getOrder();
         int toOrder = to.getOrder();
-        boolean moveUp = fromOrder > toOrder;
         // 源节点（及其子节点）的最大order值
         int fromMaxOrder = Optional.ofNullable(entityMapper.maxOrder(from.getId(), siteId)).orElse(0);
         // 目标节点（及其子节点）的最大order值
         int toMaxOrder = Optional.ofNullable(entityMapper.maxOrder(to.getId(), siteId)).orElse(0);
         // 源节点（及其子节点）的总数量
         int fromCount = fromMaxOrder - fromOrder + 1;
+        // 空位开在目标节点之前（BEFORE）或目标子树之后（INNER、AFTER）；源节点位于空位处或其后，才会被一并后移。
+        // 不能以 fromOrder > toOrder 判断：源节点在目标子树之内时（移到祖先之内、移到上级之后）空位在源节点之后，源节点并未移动
+        boolean shifted = fromOrder >= (type == BEFORE ? toOrder : toMaxOrder + 1);
         // 增加目标节点之上或之下的空间
         if (type == BEFORE) {
             entityMapper.updateOrder(toOrder, Integer.MAX_VALUE, fromCount, siteId);
@@ -90,7 +103,7 @@ public class TreeService<T extends TreeEntity> {
         } else {
             entityMapper.updateOrder(toMaxOrder + 1, Integer.MAX_VALUE, fromCount, siteId);
         }
-        if (moveUp) {
+        if (shifted) {
             fromOrder += fromCount;
             fromMaxOrder += fromCount;
         }

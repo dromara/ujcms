@@ -1,30 +1,21 @@
 package com.ujcms.cms.core.web.frontend;
 
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.web.support.SiteResolver;
-import org.springframework.stereotype.Controller;
+import com.ujcms.cms.core.web.support.FrontendController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 /**
- * App Controller
+ * App Controller — serves XHR-fragment templates accessed via {@code /app/<name>}.
+ *
+ * <p>{@code /app/user} resolves to {@code <theme>/templates/app/user.html}.
  *
  * @author PONY
  */
-@Controller("frontendAppController")
+@FrontendController("frontendAppController")
 public class AppController {
-    private final SiteResolver siteResolver;
-
-    public AppController(SiteResolver siteResolver) {
-        this.siteResolver = siteResolver;
-    }
-
-    @GetMapping({"/app/{name:[\\w-]+}", "/{subDir:[\\w-]+}/app/{name:[\\w-]+}"})
-    public String app(@PathVariable String name, @PathVariable(required = false) String subDir,
-                      HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
-        return site.assembleTemplate("app_" + name);
+    @GetMapping("/app/{name:[\\w-]+}")
+    public String app(Site site, @PathVariable String name) {
+        return site.assembleTemplate("app/" + name);
     }
 }

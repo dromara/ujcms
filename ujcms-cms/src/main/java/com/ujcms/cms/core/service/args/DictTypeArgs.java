@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service.args;
 
 import com.ujcms.cms.core.domain.support.EntityConstants;
 import com.ujcms.common.query.BaseQueryArgs;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +13,24 @@ import java.util.Map;
  * @author PONY
  */
 public class DictTypeArgs extends BaseQueryArgs {
+    private boolean queryEntryCount = false;
+
+    /**
+     * 同时查询各类型的条目数（{@code DictType.entryCount}）。仅后台类型列表需要，其余调用方不付子查询的代价
+     */
+    public DictTypeArgs queryEntryCount() {
+        queryEntryCount = true;
+        return this;
+    }
+
+    public boolean isQueryEntryCount() {
+        return queryEntryCount;
+    }
+
     public DictTypeArgs scopeSiteId(@Nullable Long siteId) {
         if (siteId != null) {
-            queryMap.put("EQ_1_siteId_Long", siteId);
-            queryMap.put("EQ_1_scope_Short", String.valueOf(EntityConstants.SCOPE_GLOBAL));
+            queryMap.put("EQ_0scope_siteId_Long", siteId);
+            queryMap.put("EQ_0scope_scope_Short", String.valueOf(EntityConstants.SCOPE_GLOBAL));
         }
         return this;
     }

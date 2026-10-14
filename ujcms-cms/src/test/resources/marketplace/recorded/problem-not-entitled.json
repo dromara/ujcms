@@ -1,0 +1,1 @@
+{"detail":"paid item requires an entitlement: edu-campus — purchase on the storefront with a connected account (D-K5/D-K6)","instance":"/api/v1/downloads","status":403,"title":"Not entitled","code":"not_entitled"}

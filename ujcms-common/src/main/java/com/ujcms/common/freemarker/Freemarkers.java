@@ -20,7 +20,7 @@ import freemarker.template.TemplateScalarModel;
 import freemarker.template.TemplateSequenceModel;
 import no.api.freemarker.java8.time.TemporalDialerAdapter;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.NumberUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,7 +49,7 @@ import java.util.function.BiConsumer;
  * <p>
  * 所以 TemplateModel model 参数允许为 null 是必要的。
  *
- * @author liufang
+ * @author PONY
  */
 public class Freemarkers {
     /**
@@ -384,6 +384,27 @@ public class Freemarkers {
         TemplateModel model = env.getDataModel().get(FreemarkerServlet.KEY_REQUEST);
         if (model instanceof HttpRequestHashModel requestHashModel) {
             return requestHashModel.getRequest();
+        }
+        return null;
+    }
+
+    /**
+     * 从数据模型中查找并解包指定名称的对象。找不到、类型不符时返回 {@code null}（不抛异常，
+     * 供指令读取可选的页面上下文键，如 article/channel）
+     *
+     * @param env         模板环境
+     * @param name        数据模型键名
+     * @param targetClass 期望的对象类型
+     * @return 解包后的对象。找不到或类型不符则返回 {@code null}
+     */
+    @Nullable
+    public static <T> T findModel(Environment env, String name, Class<T> targetClass) throws TemplateModelException {
+        TemplateModel model = env.getDataModel().get(name);
+        if (model instanceof AdapterTemplateModel adapterTemplateModel) {
+            Object adapted = adapterTemplateModel.getAdaptedObject(targetClass);
+            if (targetClass.isInstance(adapted)) {
+                return targetClass.cast(adapted);
+            }
         }
         return null;
     }

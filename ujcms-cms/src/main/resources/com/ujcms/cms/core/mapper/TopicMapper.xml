@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.TopicMapper"><resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Topic">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="parent_id_" jdbcType="BIGINT" property="parentId" />
+    <result column="topic_model_id_" jdbcType="BIGINT" property="topicModelId" />
+    <result column="title_" jdbcType="VARCHAR" property="title" />
+    <result column="slug_" jdbcType="VARCHAR" property="slug" />
+    <result column="image_" jdbcType="VARCHAR" property="image" />
+    <result column="page_size_" jdbcType="SMALLINT" property="pageSize" />
+    <result column="order_desc_" jdbcType="CHAR" property="orderDesc" />
+    <result column="topic_static_path_" jdbcType="VARCHAR" property="topicStaticPath" />
+    <result column="seo_title_" jdbcType="VARCHAR" property="seoTitle" />
+    <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
+    <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
+    <result column="topic_template_" jdbcType="VARCHAR" property="topicTemplate" />
+    <result column="static_file_" jdbcType="VARCHAR" property="staticFile" />
+    <result column="mobile_static_file_" jdbcType="VARCHAR" property="mobileStaticFile" />
+    <result column="editor_type_" jdbcType="SMALLINT" property="editorType" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+    <result column="depth_" jdbcType="SMALLINT" property="depth" />
+    <result column="order_" jdbcType="INTEGER" property="order" />
+    <result column="views_" jdbcType="BIGINT" property="views" />
+    <result column="self_views_" jdbcType="BIGINT" property="selfViews" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
+  </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Topic">
+    <result column="text_" jdbcType="LONGVARCHAR" property="text" />
+    <result column="markdown_" jdbcType="LONGVARCHAR" property="markdown" />
+    <result column="mains_json_" jdbcType="OTHER" property="mainsJson" />
+    <result column="clobs_json_" jdbcType="OTHER" property="clobsJson" />
+  </resultMap>
+    <cache type="com.ujcms.cms.core.domain.cache.SiteCache" />
+    <resultMap extends="BaseResultMap" id="ListResultMap" type="com.ujcms.cms.core.domain.Topic">
+        <result column="has_children_" jdbcType="CHAR" property="hasChildren" />
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="topic_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="topicModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+    </resultMap>
+    <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.core.domain.Topic">
+        <association column="parent_id_" javaType="com.ujcms.cms.core.domain.Topic" property="parent" select="select" />
+        <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+        <association column="topic_model_id_" javaType="com.ujcms.cms.core.domain.Model" property="topicModel" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
+        <collection column="id_" ofType="com.ujcms.cms.core.domain.Topic" property="children" select="listChildren" />
+    </resultMap>
+    <select id="findBySiteIdAndSlug" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_topic t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT} and t.slug_ = #{slug,jdbcType=VARCHAR}
+    </select>
+    <select id="selectIdBySlugForUpdate" resultType="java.lang.Long" useCache="false">
+        select t.id_
+        from ujcms_topic t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT} and t.slug_ = #{slug,jdbcType=VARCHAR}
+        for update
+    </select>
+    <select id="listBySiteId" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_topic t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        order by t.order_, t.id_
+    </select>
+    <select id="listChildren" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_topic t
+        where t.parent_id_ = #{parentId,jdbcType=BIGINT}
+        order by t.order_, t.id_
+    </select>
+    <!-- 孤立布局选择计数（manifest 2.0 §4.1）：布局选择非空且不在合并变体目录内 -->
+    <!-- 孤立模板选择计数（template-track-variants D7）：显式模板选择非空且不在目标主题对模板名集合内 -->
+    <select id="countTopicTemplateNotIn" resultType="int">
+        select count(*)
+        from ujcms_topic t
+        where t.site_id_ = #{siteId}
+        and t.topic_template_ is not null and t.topic_template_ != ''
+        and t.topic_template_ not in
+        <foreach close=")" collection="values" item="item" open="(" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="listBySiteIdForTidy" resultMap="BaseResultMap">
+        select t.id_, t.parent_id_
+        from ujcms_topic t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        order by t.order_, t.id_
+    </select>
+    <!-- 参数可能变化很大，没必要缓存 -->
+    <select id="existsBySlug" resultType="int" useCache="false">
+        select case
+                   when exists(
+                           select *
+                           from ujcms_topic t
+                           where t.slug_ = #{slug,jdbcType=VARCHAR}
+                             and t.site_id_ = #{siteId,jdbcType=BIGINT}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="existsByModelId" resultType="int">
+        select case
+                   when exists(
+                           select *
+                           from ujcms_topic t
+                           where t.topic_model_id_ = #{modelId,jdbcType=BIGINT}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <update id="updateParentIdToNull">
+        update ujcms_topic
+        set parent_id_ = null
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </update>
+    <update id="updateViewsBatch">
+        update ujcms_topic
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then views_+#{item.views}
+                </foreach>
+            </trim>
+            <trim prefix="self_views_=case" suffix="end,">
+                <foreach collection="list" index="index" item="item">
+                    when id_=#{item.id} then self_views_+#{item.selfViews}
+                </foreach>
+            </trim>
+        </trim>
+        where id_ in
+        <foreach close=")" collection="list" index="index" item="item" open="(" separator=",">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+    <delete id="deleteBySiteId" parameterType="long">
+        delete
+        from ujcms_topic
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <update id="updateDepth">
+        update ujcms_topic
+        set depth_ = depth_ + #{depth,jdbcType=SMALLINT}
+        where id_ in (select descendant_id_ from ujcms_topic_tree where ancestor_id_ = #{id,jdbcType=BIGINT})
+    </update>
+    <update id="updateParentId">
+        update ujcms_topic
+        set parent_id_ = #{parentId}
+        where id_ = #{id}
+    </update>
+    <select id="maxOrder" resultType="int">
+        select max(c.order_)
+        from ujcms_topic c
+        <if test="parentId != null">join ujcms_topic_tree t on c.id_ = t.descendant_id_</if>
+        where
+        <choose>
+            <when test="parentId != null">
+                t.ancestor_id_ = #{parentId,jdbcType=BIGINT}
+            </when>
+            <otherwise>
+                c.site_id_ = #{siteId}
+            </otherwise>
+        </choose>
+    </select>
+    <update id="batchUpdateOrderAndDepth">
+        update ujcms_topic
+        <trim prefix="set" suffixOverrides=",">
+            order_ =
+            <foreach close="end," collection="list" item="item" open="case">
+                when id_=#{item.id} then #{item.order}
+            </foreach>
+            depth_ =
+            <foreach close="end," collection="list" item="item" open="case">
+                when id_=#{item.id} then #{item.depth}
+            </foreach>
+        </trim>
+        where id_ in
+        <foreach close=")" collection="list" item="item" open="(" separator=",">
+            #{item.id}
+        </foreach>
+    </update>
+    <update id="updateOrder">
+        update ujcms_topic
+        set order_ = order_ + #{num,jdbcType=INTEGER}
+        where order_ &gt;= #{begin,jdbcType=INTEGER}
+          and order_ &lt;= #{end,jdbcType=INTEGER}
+          and site_id_ = #{siteId,jdbcType=BIGINT}
+    </update>
+    <update id="updateOrderByParentId">
+        update ujcms_topic
+        set order_ = order_ + #{num,jdbcType=INTEGER}
+        where id_ in (select t.descendant_id_
+                      from ujcms_topic_tree t
+                      where t.ancestor_id_ = #{parentId,jdbcType=BIGINT})
+    </update>
+    <sql id="selectAllSelect">
+        <if test="isQueryHasChildren">
+            , CASE WHEN exists(select * from ujcms_topic childTopic where childTopic.parent_id_ = t.id_) THEN '1' ELSE '0' END
+            as has_children_
+        </if>
+    </sql>
+    <sql id="selectAllJoin">
+        <if test="ancestorId != null">
+            join ujcms_topic_tree topicTree on t.id_ = topicTree.descendant_id_
+        </if>
+    </sql>
+    <sql id="selectAllWhere">
+        <if test="ancestorId != null">
+            and topicTree.ancestor_id_ = #{ancestorId}
+        </if>
+    </sql>
+    <select id="selectAll" resultMap="ListResultMap">
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+            <property name="tableName" value="ujcms_topic" />
+        </include>
+    </select>
+    <select id="select" parameterType="long" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_topic t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="delete" parameterType="long">
+        delete
+        from ujcms_topic
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete><update id="update" parameterType="com.ujcms.cms.core.domain.Topic">
+    update ujcms_topic
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      topic_model_id_ = #{topicModelId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      slug_ = #{slug,jdbcType=VARCHAR},
+      image_ = #{image,jdbcType=VARCHAR},
+      page_size_ = #{pageSize,jdbcType=SMALLINT},
+      order_desc_ = #{orderDesc,jdbcType=CHAR},
+      topic_static_path_ = #{topicStaticPath,jdbcType=VARCHAR},
+      seo_title_ = #{seoTitle,jdbcType=VARCHAR},
+      seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
+      seo_description_ = #{seoDescription,jdbcType=VARCHAR},
+      topic_template_ = #{topicTemplate,jdbcType=VARCHAR},
+      static_file_ = #{staticFile,jdbcType=VARCHAR},
+      mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
+      editor_type_ = #{editorType,jdbcType=SMALLINT},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      modified_ = #{modified,jdbcType=TIMESTAMP},
+      text_ = #{text,jdbcType=LONGVARCHAR},
+      markdown_ = #{markdown,jdbcType=LONGVARCHAR},
+      mains_json_ = #{mainsJson,jdbcType=OTHER},
+      clobs_json_ = #{clobsJson,jdbcType=OTHER}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Topic">
+    update ujcms_topic
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      topic_model_id_ = #{topicModelId,jdbcType=BIGINT},
+      title_ = #{title,jdbcType=VARCHAR},
+      slug_ = #{slug,jdbcType=VARCHAR},
+      image_ = #{image,jdbcType=VARCHAR},
+      page_size_ = #{pageSize,jdbcType=SMALLINT},
+      order_desc_ = #{orderDesc,jdbcType=CHAR},
+      topic_static_path_ = #{topicStaticPath,jdbcType=VARCHAR},
+      seo_title_ = #{seoTitle,jdbcType=VARCHAR},
+      seo_keywords_ = #{seoKeywords,jdbcType=VARCHAR},
+      seo_description_ = #{seoDescription,jdbcType=VARCHAR},
+      topic_template_ = #{topicTemplate,jdbcType=VARCHAR},
+      static_file_ = #{staticFile,jdbcType=VARCHAR},
+      mobile_static_file_ = #{mobileStaticFile,jdbcType=VARCHAR},
+      editor_type_ = #{editorType,jdbcType=SMALLINT},
+      created_ = #{created,jdbcType=TIMESTAMP},
+      modified_ = #{modified,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Topic">
+    insert into ujcms_topic (id_, site_id_, parent_id_, topic_model_id_, title_, slug_, image_, page_size_, order_desc_, topic_static_path_, seo_title_, seo_keywords_, seo_description_, topic_template_, static_file_, mobile_static_file_, editor_type_, created_, modified_, depth_, order_, views_, self_views_, text_, markdown_, mains_json_, clobs_json_, origin_, origin_id_, origin_hash_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{topicModelId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{slug,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{pageSize,jdbcType=SMALLINT}, #{orderDesc,jdbcType=CHAR}, #{topicStaticPath,jdbcType=VARCHAR}, #{seoTitle,jdbcType=VARCHAR}, #{seoKeywords,jdbcType=VARCHAR}, #{seoDescription,jdbcType=VARCHAR}, #{topicTemplate,jdbcType=VARCHAR}, #{staticFile,jdbcType=VARCHAR}, #{mobileStaticFile,jdbcType=VARCHAR}, #{editorType,jdbcType=SMALLINT}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{depth,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{views,jdbcType=BIGINT}, #{selfViews,jdbcType=BIGINT}, #{text,jdbcType=LONGVARCHAR}, #{markdown,jdbcType=LONGVARCHAR}, #{mainsJson,jdbcType=OTHER}, #{clobsJson,jdbcType=OTHER}, #{origin,jdbcType=VARCHAR}, #{originId,jdbcType=VARCHAR}, #{originHash,jdbcType=CHAR})
+  </insert><sql id="Column_List">
+    t.id_, t.site_id_, t.parent_id_, t.topic_model_id_, t.title_, t.slug_, t.image_, t.page_size_, t.order_desc_, t.topic_static_path_, t.seo_title_, t.seo_keywords_, t.seo_description_, t.topic_template_, t.static_file_, t.mobile_static_file_, t.editor_type_, t.created_, t.modified_, t.depth_, t.order_, t.views_, t.self_views_, t.text_, t.markdown_, t.mains_json_, t.clobs_json_, t.origin_, t.origin_id_, t.origin_hash_
+  </sql>
+  <!-- 来源标记（theme-marketplace §5.3：内容种子幂等 select-then-insert / 卸载数据策略。
+       站点限定：origin_ 不含站点，同名主题可装于多个站点） -->
+  <select id="selectByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_topic t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+      and t.origin_id_ = #{originId,jdbcType=VARCHAR}
+  </select>
+  <select id="listByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_topic t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+    order by t.order_, t.id_
+  </select>
+  <select id="countByOrigin" resultType="int">
+    select count(*)
+    from ujcms_topic t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+  </select>
+  <update id="clearOrigin">
+    update ujcms_topic
+    set origin_ = null, origin_id_ = null, origin_hash_ = null
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+      and origin_ = #{origin,jdbcType=VARCHAR}
+  </update>
+  <!-- 来源散列写入（R4）：种子导入落库后按最终行状态计算 -->
+  <update id="updateOriginHash">
+    update ujcms_topic
+    set origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 认领操作员行（theme-seed-export §4.2 adopt）：仅无来源标记的行——他源行绝不认领（D3） -->
+  <update id="adoptOrigin">
+    update ujcms_topic
+    set origin_ = #{origin,jdbcType=VARCHAR},
+        origin_id_ = #{originId,jdbcType=VARCHAR},
+        origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+      and (origin_ is null or origin_ = '')
+  </update></mapper>

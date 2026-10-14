@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
-import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,12 +54,7 @@ public class LuceneConfig {
     @Bean
     @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public ADictionary dictionary() {
-        SegmenterConfig segmenterConfig = new SegmenterConfig();
-        // 此三项必须关闭，否则获取高亮代码会出错
-        segmenterConfig.setAppendCJKSyn(false);
-        segmenterConfig.setAppendCJKPinyin(false);
-        segmenterConfig.setEnSecondSeg(false);
-        ADictionary dic = DictionaryFactory.createSingletonDictionary(segmenterConfig, false);
+        ADictionary dic = DictionaryFactory.createSingletonDictionary(segmenterConfig(), false);
         String[] files = {"lex-admin", "lex-chars", "lex-cn-mz", "lex-company", "lex-dname-1", "lex-dname-2",
                 "lex-domain-suffix", "lex-english", "lex-festival", "lex-fname", "lex-food", "lex-lang", "lex-live",
                 "lex-ln-adorn", "lex-lname", "lex-main", "lex-mixed", "lex-nation", "lex-net", "lex-number-unit",
@@ -77,42 +71,28 @@ public class LuceneConfig {
     }
 
     /**
-     * IK 分词器
-     */
-    private static final String ANALYZER_IK = "ik";
-
-    /**
      * Lucene 分词器
      */
     @Primary
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public Analyzer analyzer() {
-        if (ANALYZER_IK.equalsIgnoreCase(props.getLuceneAnalyzer())) {
-            return new IKAnalyzer();
-        } else {
-            SegmenterConfig segmenterConfig = new SegmenterConfig();
-            // 此三项必须关闭，否则获取高亮代码会出错
-            segmenterConfig.setAppendCJKSyn(false);
-            segmenterConfig.setAppendCJKPinyin(false);
-            segmenterConfig.setEnSecondSeg(false);
-            return new JcsegAnalyzer(ISegment.COMPLEX, segmenterConfig, dictionary());
-        }
+        return new JcsegAnalyzer(ISegment.COMPLEX, segmenterConfig(), dictionary());
     }
 
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(prefix = "spring.data.elasticsearch.repositories", name = "enabled", havingValue = "false")
     public Analyzer mostAnalyzer() {
-        if (ANALYZER_IK.equalsIgnoreCase(props.getLuceneAnalyzer())) {
-            return analyzer();
-        } else {
-            SegmenterConfig segmenterConfig = new SegmenterConfig();
-            // 此三项必须关闭，否则获取高亮代码会出错
-            segmenterConfig.setAppendCJKSyn(false);
-            segmenterConfig.setAppendCJKPinyin(false);
-            segmenterConfig.setEnSecondSeg(false);
-            return new JcsegAnalyzer(ISegment.MOST, segmenterConfig, dictionary());
-        }
+        return new JcsegAnalyzer(ISegment.MOST, segmenterConfig(), dictionary());
+    }
+
+    private static SegmenterConfig segmenterConfig() {
+        SegmenterConfig segmenterConfig = new SegmenterConfig();
+        // 此三项必须关闭，否则获取高亮代码会出错
+        segmenterConfig.setAppendCJKSyn(false);
+        segmenterConfig.setAppendCJKPinyin(false);
+        segmenterConfig.setEnSecondSeg(false);
+        return segmenterConfig;
     }
 
     /**

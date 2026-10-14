@@ -40,6 +40,10 @@
   <delete id="delete" parameterType="java.lang.Long">
     delete from ujcms_performance_type
     where id_ = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete from ujcms_performance_type
+    where site_id_ = #{siteId,jdbcType=BIGINT}
   </delete><update id="update" parameterType="com.ujcms.cms.core.domain.PerformanceType">
     update ujcms_performance_type
     set site_id_ = #{siteId,jdbcType=BIGINT},

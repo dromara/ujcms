@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.UserExt;
 import com.ujcms.common.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -32,6 +32,15 @@ public interface UserExtMapper {
      * @return 更新条数
      */
     int update(UserExt bean);
+
+    /**
+     * 只更新控制台偏好列（docs/spec/console-shell）
+     *
+     * @param id          用户ID
+     * @param preferences 偏好 JSON；可为 {@code null}
+     * @return 更新条数
+     */
+    int updatePreferences(@Param("id") Long id, @Param("preferences") @Nullable String preferences);
 
     /**
      * 删除数据

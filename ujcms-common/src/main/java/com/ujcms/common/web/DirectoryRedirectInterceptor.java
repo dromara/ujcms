@@ -81,7 +81,7 @@ public class DirectoryRedirectInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 此段代码根据 Tomcat 官方代码编写
+     * 改编自 Apache Tomcat 的 DefaultServlet#doDirectoryRedirect（Apache License 2.0，见 NOTICE 与 licenses/Apache-2.0.txt）。
      *
      * @see org.apache.catalina.servlets.DefaultServlet#doDirectoryRedirect
      */

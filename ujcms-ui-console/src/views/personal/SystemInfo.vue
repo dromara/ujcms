@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toRefs, watch, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
-import echarts, { ECOption } from '@/utils/echarts';
+import echarts, { type ECOption } from '@/utils/echarts';
 import { querySystemInfo } from '@/api/personal';
 import LabelTip from '@/components/LabelTip.vue';
 

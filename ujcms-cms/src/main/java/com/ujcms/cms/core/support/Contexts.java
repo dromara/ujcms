@@ -3,7 +3,7 @@ package com.ujcms.cms.core.support;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.common.web.exception.Http401Exception;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,7 +30,7 @@ public final class Contexts {
     }
 
     /**
-     * 用户线程变量
+     * 用户线程变量。
      */
     private static final ThreadLocal<User> USER_HOLDER = new ThreadLocal<>();
 
@@ -52,7 +52,7 @@ public final class Contexts {
     }
 
     /**
-     * 站点线程变量
+     * 站点线程变量。
      */
     private static final ThreadLocal<Site> SITE_HOLDER = new ThreadLocal<>();
 
@@ -79,7 +79,7 @@ public final class Contexts {
     }
 
     /**
-     * 是否手机访问线程变量
+     * 是否手机访问线程变量。
      */
     private static final ThreadLocal<Boolean> IS_MOBILE_HOLDER = new ThreadLocal<>();
 
@@ -93,6 +93,49 @@ public final class Contexts {
 
     public static void clearMobile() {
         IS_MOBILE_HOLDER.remove();
+    }
+
+    /**
+     * 插槽预览模式线程变量（页面构成 §11.2）。前台请求带 {@code _preview=draft} 且为已认证管理员时置位：
+     * slot 指令据此让草稿可见并发出 {@code data-ujcms-slot} 编辑深链锚点。
+     */
+    private static final ThreadLocal<Boolean> SLOT_PREVIEW_HOLDER = new ThreadLocal<>();
+
+    public static void setSlotPreview(boolean slotPreview) {
+        SLOT_PREVIEW_HOLDER.set(slotPreview);
+    }
+
+    public static boolean isSlotPreview() {
+        return SLOT_PREVIEW_HOLDER.get() != null && SLOT_PREVIEW_HOLDER.get();
+    }
+
+    public static void clearSlotPreview() {
+        SLOT_PREVIEW_HOLDER.remove();
+    }
+
+    /**
+     * 主题预览覆盖线程变量（design-review P2-1 / H1）。前台请求带 {@code ?_theme=<主题名>} 且携带有效
+     * 预览身份（{@code _ptoken} 预览令牌或真实登录态）时置位：{@link com.ujcms.cms.core.domain.Site#getTheme()}
+     * / {@code getMobileTheme()} 优先返回该值，使模板组装、区域清单解析、主题设置模型等全部渲染面
+     * 以候选主题解析——激活前的真实渲染试看。只读渲染覆盖，绝不写库；
+     * {@code FrontendInterceptor} 置位/清除，{@code SiteResolver} 在站点确定后校验其可激活性。
+     */
+    private static final ThreadLocal<String> THEME_PREVIEW_HOLDER = new ThreadLocal<>();
+
+    /** 主题预览覆盖参数名（前台 URL {@code ?_theme=<主题名>}，与 {@code _preview}/{@code _ptoken} 同族）。 */
+    public static final String THEME_PREVIEW_PARAM = "_theme";
+
+    public static void setThemePreview(String themeName) {
+        THEME_PREVIEW_HOLDER.set(themeName);
+    }
+
+    @Nullable
+    public static String findThemePreview() {
+        return THEME_PREVIEW_HOLDER.get();
+    }
+
+    public static void clearThemePreview() {
+        THEME_PREVIEW_HOLDER.remove();
     }
 
     /**

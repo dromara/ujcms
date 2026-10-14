@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.TemplateHistoryMapper">
+  <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.TemplateHistory">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="path_" jdbcType="VARCHAR" property="path" />
+    <result column="length_" jdbcType="INTEGER" property="length" />
+    <result column="source_" jdbcType="VARCHAR" property="source" />
+    <result column="restored_from_" jdbcType="BIGINT" property="restoredFrom" />
+    <result column="actor_" jdbcType="VARCHAR" property="actor" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+  <!-- 列表视图不含 content_（单版本可达 1MB、每路径至多 50 条——列表把内容拖上来会到几十 MB 级；
+       单条内容经 select 获取），对应 ListResultMap 惯例 -->
+  <resultMap extends="BaseResultMap" id="ListResultMap" type="com.ujcms.cms.core.domain.TemplateHistory" />
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.TemplateHistory">
+    <result column="content_" jdbcType="LONGVARCHAR" property="content" />
+  </resultMap>
+  <sql id="List_Column_List">
+    t.id_, t.path_, t.length_, t.source_, t.restored_from_, t.actor_, t.created_
+  </sql>
+  <sql id="Column_List">
+    t.id_, t.path_, t.content_, t.length_, t.source_, t.restored_from_, t.actor_, t.created_
+  </sql>
+  <insert id="insert" parameterType="com.ujcms.cms.core.domain.TemplateHistory">
+    insert into ujcms_template_history (id_, path_, content_, length_, source_, restored_from_, actor_, created_)
+    values (#{id,jdbcType=BIGINT}, #{path,jdbcType=VARCHAR}, #{content,jdbcType=LONGVARCHAR},
+      #{length,jdbcType=INTEGER}, #{source,jdbcType=VARCHAR}, #{restoredFrom,jdbcType=BIGINT},
+      #{actor,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP})
+  </insert>
+  <delete id="delete" parameterType="long">
+    delete
+    from ujcms_template_history
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByPathPattern" parameterType="string">
+    delete
+    from ujcms_template_history
+    where path_ like #{pattern,jdbcType=VARCHAR}
+  </delete>
+  <select id="select" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_template_history t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <!-- 路径下最新一条（含内容——回填漂移检测/追加去重用；max(id_) 子查询免分页方言，索引点查） -->
+  <select id="selectLatestByPath" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_template_history t
+    where t.id_ = (select max(m.id_) from ujcms_template_history m where m.path_ = #{path,jdbcType=VARCHAR})
+  </select>
+  <!-- 路径下的全部历史（新→旧；id_ 为雪花ID单调，倒序即时间倒序；行数受保留上限约束；不含内容） -->
+  <select id="listByPath" resultMap="ListResultMap">
+    select
+    <include refid="List_Column_List" />
+    from ujcms_template_history t
+    where t.path_ = #{path,jdbcType=VARCHAR}
+    order by t.id_ desc
+  </select>
+  <!-- 目录子树下的历史（新→旧；prefix 已由服务层按 # 转义（% _ #），结尾通配符在此拼接；
+       转义符取 #——反斜杠在 MySQL 字符串字面量与标准 SQL 间语义不一，跨库不稳；
+       行数由调用方 PageHelper 限制；不含内容） -->
+  <select id="listByPathPrefix" resultMap="ListResultMap">
+    select
+    <include refid="List_Column_List" />
+    from ujcms_template_history t
+    where t.path_ like concat(#{prefix,jdbcType=VARCHAR}, '/%') escape '#'
+    order by t.id_ desc
+  </select>
+</mapper>

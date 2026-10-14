@@ -1,0 +1,45 @@
+databaseChangeLog:
+  # 13.0 重整说明（适用于全部 db.changelog-13.0-* 文件）：
+  #   预发布 DB reset——原 11.x 系列变更日志按「最终结构直建」合并改写：先建后改、先建后删、
+  #   数据迁移等中间演进不再重放（变更日志仅服务全新建库；引导数据脚本 db/data-*.sql 在
+  #   变更日志之后执行，Liquibase 运行时各表恒为空）。
+  #
+  # 本文件：零散字段规范化（原 11.1 部分内容）。
+  #   1. ujcms_task / ujcms_survey / ujcms_vote 的 begin_date_ 统一更名为 start_date_。
+  #   2. ujcms_user 增加自定义字段 JSON 列（Model 驱动的用户自定义字段）。
+
+  - changeSet:
+      id: 13.0-rename-begin-date
+      author: PONY
+      changes:
+        - renameColumn:
+            tableName: ujcms_task
+            oldColumnName: begin_date_
+            newColumnName: start_date_
+            columnDataType: DATETIME
+        - renameColumn:
+            tableName: ujcms_survey
+            oldColumnName: begin_date_
+            newColumnName: start_date_
+            columnDataType: DATETIME
+        - renameColumn:
+            tableName: ujcms_vote
+            oldColumnName: begin_date_
+            newColumnName: start_date_
+            columnDataType: DATETIME
+
+  - changeSet:
+      id: 13.0-user-customs
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_user
+            columns:
+              - column:
+                  name: mains_json_
+                  remarks: 自定义主字段JSON
+                  type: JSON
+              - column:
+                  name: clobs_json_
+                  remarks: 自定义大字段JSON
+                  type: JSON

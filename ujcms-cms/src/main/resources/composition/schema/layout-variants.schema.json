@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/layout-variants.schema.json",
+  "title": "UJCMS Layout Variants Catalog",
+  "description": "布局变体目录（§21 Q4）。声明各 surface（channel/article/topic）下存在哪些 SSR 布局变体及其展示元数据——即原 ujcms_layout_variant 表 + layout-variants-seed.sql 承载的声明那一半。由规范 React 仓库的 composition/layout-variants.json 编写，构建期聚合进 SSR 制品的 layoutVariants 块，随制品热重载。变体的 value 必须与 SSR 应用 lib/layouts/registry.ts 的注册键一致（构建期漂移校验保证）。操作员的每页选择仍是各实体的 *_layout_ 列，不在此声明。",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "channel": { "$ref": "#/$defs/variantList" },
+    "article": { "$ref": "#/$defs/variantList" },
+    "topic": { "$ref": "#/$defs/variantList" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "localizedLabel": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "variantList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/variant" }
+    },
+    "variant": {
+      "type": "object",
+      "required": ["value"],
+      "properties": {
+        "value": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "description": "变体键，必须与 SSR 注册表（registry.ts）的键一致；存入 *_layout_ 列"
+        },
+        "label": { "$ref": "#/$defs/localizedLabel" },
+        "enabled": {
+          "type": "boolean",
+          "description": "是否启用（缺省 true）。禁用项不进入后台下拉，亦不通过保存期校验"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

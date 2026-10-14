@@ -1,7 +1,7 @@
 package com.ujcms.cms.ext.domain;
 
 import com.ujcms.cms.ext.domain.generated.GeneratedSurveyFeedback;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 调查问卷反馈 实体类

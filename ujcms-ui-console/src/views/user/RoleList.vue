@@ -39,7 +39,7 @@ onMounted(fetchData);
 
 const disabled = (bean: any): boolean => (bean.global && !currentUser.globalPermission) || currentUser.rank > bean.rank;
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -84,6 +84,7 @@ const move = async (selected: any[], type: 'top' | 'up' | 'down' | 'bottom') => 
       <query-form :params="params" @search="handleSearch" @reset="handleReset">
         <query-item :label="$t('role.name')" name="Q_Contains_name"></query-item>
         <query-item :label="$t('role.description')" name="Q_Contains_description"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div>
@@ -100,14 +101,14 @@ const move = async (selected: any[], type: 'top' | 'up' | 'down' | 'bottom') => 
       ref="table"
       v-loading="loading"
       :data="data"
-      class="mt-3 bg-white shadow"
+      class="mt-3 app-block"
       @selection-change="(rows) => (selection = rows)"
       @row-dblclick="(row) => handleEdit(row.id)"
       @sort-change="handleSort"
     >
       <column-list name="role">
         <el-table-column type="selection" :selectable="(bean) => !disabled(bean)" width="50"></el-table-column>
-        <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
+        <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
         <el-table-column property="name" :label="$t('role.name')" sortable="custom" show-overflow-tooltip></el-table-column>
         <el-table-column property="description" :label="$t('role.description')" sortable="custom" show-overflow-tooltip></el-table-column>
         <el-table-column property="rank" :label="$t('role.rank')" sortable="custom" show-overflow-tooltip></el-table-column>

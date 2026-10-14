@@ -5,7 +5,7 @@ import com.ujcms.common.db.tree.TreeEntityMapper;
 import com.ujcms.common.query.QueryInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
@@ -63,11 +63,36 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     /**
      * 根据 栏目别名 查询栏目数量
      *
-     * @param alias  栏目别名
+     * @param slug   栏目别名
      * @param siteId 站点ID
      * @return 栏目数量
      */
-    int existsByAlias(@Param("alias") String alias, @Param("siteId") Long siteId);
+    int existsBySlug(@Param("slug") String slug, @Param("siteId") Long siteId);
+
+    /**
+     * 根据 栏目别名 查询栏目ID。别名唯一性校验用：只取 ID，不装配关联对象
+     *
+     * @param siteId 站点ID
+     * @param slug   栏目别名
+     * @return 栏目ID。不存在则返回 {@code null}
+     */
+    @Nullable
+    Long selectIdBySlug(@Param("siteId") Long siteId, @Param("slug") String slug);
+
+    /**
+     * 同 {@link #selectIdBySlug}，锁定读（{@code select … for update}）：生成别名时查重用
+     * （docs/spec/article-data-permission/plan.md D22），须在站点行锁之下、一个已开启的事务里调用
+     */
+    @Nullable
+    Long selectIdBySlugForUpdate(@Param("siteId") Long siteId, @Param("slug") String slug);
+
+    /**
+     * 查询栏目及其所有后代栏目的ID（按闭包表，含自身）
+     *
+     * @param ancestorId 栏目ID
+     * @return 栏目ID列表
+     */
+    List<Long> listIdsByAncestorId(@Param("ancestorId") Long ancestorId);
 
     /**
      * 根据 角色ID列表 查询文章权限是否存在
@@ -88,6 +113,23 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     int countByCreated(@Param("siteId") Long siteId, @Param("created") @Nullable OffsetDateTime created);
 
     /**
+     * 统计栏目模板选择（{@code channel_template_}）非空且不在给定模板名集合内的栏目数
+     * （主题切换影响报告的孤立模板选择计数，template-track-variants D7）。
+     *
+     * @param siteId 站点ID
+     * @param values 目标主题对模板名集合（须非空，空集合由调用方短路）
+     */
+    int countChannelTemplateNotIn(@Param("siteId") Long siteId, @Param("values") Collection<String> values);
+
+    /**
+     * 统计栏目的文章模板默认选择（{@code article_template_}）非空且不在给定模板名集合内的栏目数。
+     *
+     * @param siteId 站点ID
+     * @param values 目标主题对模板名集合（须非空，空集合由调用方短路）
+     */
+    int countArticleTemplateNotIn(@Param("siteId") Long siteId, @Param("values") Collection<String> values);
+
+    /**
      * 根据上级ID获取第一个子栏目
      *
      * @param parentId 上级栏目ID
@@ -100,10 +142,10 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * 根据 父栏目ID 获取子栏目列表
      *
      * @param siteId 站点ID
-     * @param alias  栏目别名
+     * @param slug   栏目别名
      * @return 栏目列表
      */
-    List<Channel> findBySiteIdAndAlias(@Param("siteId") Long siteId, @Param("alias") String alias);
+    List<Channel> findBySiteIdAndSlug(@Param("siteId") Long siteId, @Param("slug") String slug);
 
     /**
      * 获取栏目权限的 栏目ID 列表
@@ -146,15 +188,6 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     /**
      * 查询栏目用于sitemap。sitemap查询的数据量较大，只获取必须的字段。
      *
-     * @param id 栏目ID
-     * @return 栏目对象
-     */
-    @Nullable
-    Channel selectForSitemap(Long id);
-
-    /**
-     * 查询栏目用于sitemap。sitemap查询的数据量较大，只获取必须的字段。
-     *
      * @param siteId 站点ID
      * @return 栏目列表
      */
@@ -187,6 +220,40 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
     int updateReal(@Param("ids") List<Long> ids, @Param("real") Boolean real);
 
     /**
+     * 批量设置：只改写 {@code fields} 列出的列，并更新修改时间；其余各列（含自定义字段）不动
+     *
+     * @param siteId   站点ID。只更新本站的栏目
+     * @param ids      待设置的栏目ID
+     * @param fields   要改写的属性名，如 {@code processKey}、{@code pageSize}
+     * @param bean     承载新值的栏目对象：只读取 {@code fields} 列出的属性，值为 {@code null} 即清空该列
+     * @param modified 修改时间
+     * @return 更新条数
+     */
+    int updateSettings(@Param("siteId") Long siteId, @Param("ids") Collection<Long> ids,
+                       @Param("fields") Collection<String> fields, @Param("bean") Channel bean,
+                       @Param("modified") OffsetDateTime modified);
+
+    /**
+     * 给定栏目中，属于该站点的栏目ID
+     *
+     * @param siteId 站点ID
+     * @param ids    栏目ID
+     * @return 属于该站点的栏目ID
+     */
+    List<Long> listIdsInSite(@Param("siteId") Long siteId, @Param("ids") Collection<Long> ids);
+
+    /**
+     * 给定栏目中，已有文章（任何状态）且文章模型不是 {@code articleModelId} 的栏目ID。
+     * 改换这些栏目的文章模型，文章的自定义字段会在下次保存时丢失
+     *
+     * @param ids            栏目ID
+     * @param articleModelId 文章模型ID
+     * @return 栏目ID，按栏目顺序
+     */
+    List<Long> listIdsHoldingArticlesUnderOtherModel(@Param("ids") Collection<Long> ids,
+                                                     @Param("articleModelId") Long articleModelId);
+
+    /**
      * 设置绩效类型ID为NULL
      *
      * @param performanceTypeId 绩效类型ID
@@ -209,4 +276,67 @@ public interface ChannelMapper extends TreeEntityMapper<Channel> {
      * @return 被删除的数据条数
      */
     int deleteBySiteId(Long siteId);
+
+    /**
+     * 按来源标记获取栏目（内容种子导入幂等：select-then-insert，theme-marketplace §5.4）。
+     * 站点限定：{@code origin_} 不含站点，同名主题可装于多个站点。
+     *
+     * @param siteId   站点ID
+     * @param origin   来源（{@code theme:<themeName>}）
+     * @param originId 种子文件内的稳定ID
+     * @return 实体对象
+     */
+    @Nullable
+    Channel selectByOrigin(@Param("siteId") Long siteId, @Param("origin") String origin,
+                           @Param("originId") String originId);
+
+    /**
+     * 按来源标记获取本站栏目列表（卸载/移除演示数据策略用，站点限定缘由见 {@link #selectByOrigin}）
+     *
+     * @param siteId 站点ID
+     * @param origin 来源（{@code theme:<themeName>}）
+     * @return 栏目列表
+     */
+    List<Channel> listByOrigin(@Param("siteId") Long siteId, @Param("origin") String origin);
+
+    /**
+     * 按来源标记统计本站栏目数（影响报告 {@code demoDataPresent}，§6.2）
+     *
+     * @param siteId 站点ID
+     * @param origin 来源（{@code theme:<themeName>}）
+     * @return 行数
+     */
+    int countByOrigin(@Param("siteId") Long siteId, @Param("origin") String origin);
+
+    /**
+     * 清除本站来源标记（卸载“保留”策略：主题来源栏目转为普通操作员栏目）
+     *
+     * @param siteId 站点ID
+     * @param origin 来源（{@code theme:<themeName>}）
+     * @return 更新条数
+     */
+    int clearOrigin(@Param("siteId") Long siteId, @Param("origin") String origin);
+
+    /**
+     * 写入来源散列（R4：种子导入落库后，以持久化的最终行状态计算——服务层保存会清洗字段值，
+     * 散列必须与行内实际存储一致才能据以重导出比对）
+     *
+     * @param id         栏目ID
+     * @param originHash 种子形投影散列（SHA-256 十六进制）
+     * @return 更新条数
+     */
+    int updateOriginHash(@Param("id") Long id, @Param("originHash") String originHash);
+
+    /**
+     * 认领操作员行（theme-seed-export §4.2 adopt 模式，D2 唯一豁免）：写入铸造的来源三元组。
+     * 仅无来源标记的行可认领（SQL 内附带条件）——他源行绝不认领（D3），并发下亦然。
+     *
+     * @param id         栏目ID
+     * @param origin     来源（{@code theme:<themeName>}）
+     * @param originId   铸造的 originId
+     * @param originHash 当前种子形投影散列（SHA-256 十六进制）
+     * @return 更新条数
+     */
+    int adoptOrigin(@Param("id") Long id, @Param("origin") String origin,
+                    @Param("originId") String originId, @Param("originHash") String originHash);
 }

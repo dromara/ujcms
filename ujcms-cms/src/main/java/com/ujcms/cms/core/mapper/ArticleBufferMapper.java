@@ -2,7 +2,7 @@ package com.ujcms.cms.core.mapper;
 
 import com.ujcms.cms.core.domain.ArticleBuffer;
 import org.apache.ibatis.annotations.Mapper;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,12 +16,28 @@ import java.util.List;
 @Repository
 public interface ArticleBufferMapper {
     /**
-     * 更新数据
+     * 顶次数加一（数据库内原子自增）
      *
-     * @param bean 实体对象
+     * @param id 文章ID
      * @return 更新条数
      */
-    int update(ArticleBuffer bean);
+    int incrementUps(Long id);
+
+    /**
+     * 踩次数加一（数据库内原子自增）
+     *
+     * @param id 文章ID
+     * @return 更新条数
+     */
+    int incrementDowns(Long id);
+
+    /**
+     * 下载次数加一（数据库内原子自增）
+     *
+     * @param id 文章ID
+     * @return 更新条数
+     */
+    int incrementDownloads(Long id);
 
     /**
      * 根据主键获取数据

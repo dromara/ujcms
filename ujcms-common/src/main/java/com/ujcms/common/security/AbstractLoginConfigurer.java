@@ -1,9 +1,30 @@
+/*
+ * Copyright 2004-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * Modified for UJCMS by 南昌蓝智科技有限公司 (https://www.ujcms.com). Derived from Spring Security:
+ * org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer.
+ * First modified before 2026-04-19, the start of this repository's history; later changes are in the VCS log.
+ */
+
 package com.ujcms.common.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
@@ -13,6 +34,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.PortMapper;
 import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
@@ -24,6 +48,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
+ * 基于 Spring Security 的 AbstractAuthenticationFilterConfigurer 修改。
+ *
  * @author PONY
  */
 public abstract class AbstractLoginConfigurer<B extends HttpSecurityBuilder<B>,
@@ -53,6 +79,9 @@ public abstract class AbstractLoginConfigurer<B extends HttpSecurityBuilder<B>,
 
     @Nullable
     private String failureUrl;
+
+    @Nullable
+    private SecurityContextRepository securityContextRepository;
 
     protected AbstractLoginConfigurer() {
         setLoginPage("/login");
@@ -85,7 +114,7 @@ public abstract class AbstractLoginConfigurer<B extends HttpSecurityBuilder<B>,
     }
 
     public T securityContextRepository(SecurityContextRepository securityContextRepository) {
-        this.authFilter.setSecurityContextRepository(securityContextRepository);
+        this.securityContextRepository = securityContextRepository;
         return getSelf();
     }
 
@@ -175,6 +204,20 @@ public abstract class AbstractLoginConfigurer<B extends HttpSecurityBuilder<B>,
         if (rememberMeServices != null) {
             this.authFilter.setRememberMeServices(rememberMeServices);
         }
+        // Spring Security 6 下 AbstractAuthenticationProcessingFilter 默认使用
+        // RequestAttributeSecurityContextRepository，认证结果不会存入会话，导致不勾选"记住我"时
+        // 登录后下一个请求即变回匿名。此处仿照 AbstractAuthenticationFilterConfigurer：
+        // 优先使用显式指定的仓库，其次是共享对象，最后回退到与 SecurityContextHolderFilter
+        // 一致的 Delegating（请求属性 + 会话）仓库。
+        SecurityContextRepository contextRepository = this.securityContextRepository;
+        if (contextRepository == null) {
+            contextRepository = http.getSharedObject(SecurityContextRepository.class);
+        }
+        if (contextRepository == null) {
+            contextRepository = new DelegatingSecurityContextRepository(
+                    new RequestAttributeSecurityContextRepository(), new HttpSessionSecurityContextRepository());
+        }
+        this.authFilter.setSecurityContextRepository(contextRepository);
         F filter = postProcess(this.authFilter);
         http.addFilter(filter);
     }

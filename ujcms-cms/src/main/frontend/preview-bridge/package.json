@@ -1,0 +1,14 @@
+{
+  "name": "ujcms-preview-bridge",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "UJCMS preview-bridge core (protocol v2) — single source for the template-track IIFE and the byte-identical SSR copies (visual-builder §3)",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "~5.9.0"
+  }
+}

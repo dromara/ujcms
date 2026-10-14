@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import Cookies from 'js-cookie';
 import { useCurrentSiteStore } from '@/stores/currentSiteStore';
 
@@ -81,7 +82,8 @@ export const moveTreeList = (selected: any[], data: any[], type: 'top' | 'up' | 
  * 移动普通列表
  */
 export const moveList = (selected: any[], list: any[], type: 'top' | 'up' | 'down' | 'bottom'): any[] => {
-  selected.sort((a, b) => a.order - b.order);
+  // 按当前位置排序，而非按 order 字段：移动后不重新取数，order 已是旧值；新建数据的 order 又常常相同（默认值）
+  selected.sort((a, b) => list.indexOf(a) - list.indexOf(b));
   const top = 0;
   const bottom = list.length;
   let up = list.indexOf(selected[0]);
@@ -102,6 +104,28 @@ export const moveList = (selected: any[], list: any[], type: 'top' | 'up' | 'dow
     }
   }
   return list;
+};
+
+/**
+ * 移动带共享范围（scope）的列表：全局数据（scope = 2）与本站数据各自成组、组内移动，全局组在前（与服务端
+ * `scope_desc,order,id` 的排序一致）。全局数据的顺序各站共用、改动需全局数据权限——整表一起提交，无该权限者
+ * 连本站数据也排不了序，有该权限者则在本站页面上顺手改了各站共用的顺序。
+ *
+ * @returns 发生了移动的各组。调用方逐组提交其 ID 列表
+ */
+export const moveListByScope = (selected: any[], list: any[], type: 'top' | 'up' | 'down' | 'bottom'): any[][] => {
+  const groups = [list.filter((item) => item.scope === 2), list.filter((item) => item.scope !== 2)];
+  const moved: any[][] = [];
+  groups.forEach((group) => {
+    // 取组内自己的元素（而非 selected 的元素）：filter 出的是普通数组，其 indexOf 不再兼容“代理/原始对象”两种身份
+    const chosen = group.filter((item) => selected.some((it) => toRaw(it) === toRaw(item)));
+    if (chosen.length > 0) {
+      moveList(chosen, group, type);
+      moved.push(group);
+    }
+  });
+  list.splice(0, list.length, ...groups[0], ...groups[1]);
+  return moved;
 };
 
 export const isExternalPath = (path: string): boolean => {
@@ -130,4 +154,18 @@ export const formatDuration = (duration?: number): string => {
     str += seconds;
   }
   return str;
+};
+
+/**
+ * 对话框按 ID 读取它要处理的数据；读取失败（数据已被删除、不在数据权限之内等）时关闭对话框。
+ * 拦截器已提示错误，而对话框里留着的还是上一次打开的那条数据：不关闭的话，接着保存就改到上一条数据上去了。
+ * DialogForm 自带同一规则；不用 DialogForm、自行读取数据的对话框经此读取。
+ */
+export const loadOrClose = async <T>(load: () => Promise<T>, close: () => void): Promise<T> => {
+  try {
+    return await load();
+  } catch (e) {
+    close();
+    throw e;
+  }
 };

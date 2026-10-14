@@ -2,7 +2,7 @@ package com.ujcms.cms.core.web.support;
 
 import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http403Exception;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 校验工具类

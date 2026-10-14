@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.RegistryReloadMapper">
+  <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.RegistryReload">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="source_" jdbcType="VARCHAR" property="source" />
+    <result column="triggered_by_" jdbcType="VARCHAR" property="triggeredBy" />
+    <result column="result_" jdbcType="VARCHAR" property="result" />
+    <result column="shapes_count_" jdbcType="INTEGER" property="shapesCount" />
+    <result column="manifests_count_" jdbcType="INTEGER" property="manifestsCount" />
+    <result column="diff_summary_json_" jdbcType="OTHER" property="diffSummaryJson" />
+    <result column="error_detail_" jdbcType="LONGVARCHAR" property="errorDetail" />
+    <result column="loaded_at_" jdbcType="TIMESTAMP" property="loadedAt" />
+  </resultMap>
+  <sql id="Column_List">
+    t.id_, t.source_, t.triggered_by_, t.result_, t.shapes_count_, t.manifests_count_, t.diff_summary_json_,
+    t.error_detail_, t.loaded_at_
+  </sql>
+  <insert id="insert" parameterType="com.ujcms.cms.core.domain.RegistryReload">
+    insert into ujcms_registry_reload (id_, source_, triggered_by_, result_, shapes_count_, manifests_count_,
+      diff_summary_json_, error_detail_, loaded_at_)
+    values (#{id,jdbcType=BIGINT}, #{source,jdbcType=VARCHAR}, #{triggeredBy,jdbcType=VARCHAR},
+      #{result,jdbcType=VARCHAR}, #{shapesCount,jdbcType=INTEGER}, #{manifestsCount,jdbcType=INTEGER},
+      #{diffSummaryJson,jdbcType=OTHER}, #{errorDetail,jdbcType=LONGVARCHAR}, #{loadedAt,jdbcType=TIMESTAMP})
+  </insert>
+  <select id="selectAllOrderByLoadedAtDesc" resultMap="BaseResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_registry_reload t
+    order by t.loaded_at_ desc, t.id_ desc
+  </select>
+  <delete id="deleteByIdLessThanOrEqual" parameterType="java.lang.Long">
+    delete from ujcms_registry_reload where id_ &lt;= #{maxId,jdbcType=BIGINT}
+  </delete>
+</mapper>

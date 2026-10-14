@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -130,7 +130,7 @@ public class VisitController {
     }
 
     @GetMapping("source-type-stat")
-    @PreAuthorize("hasAnyAuthority('visitSourceType:list','backend','*')")
+    @PreAuthorize("hasAnyAuthority('visitSource:list','backend','*')")
     public List<VisitStat> sourceTypeStat(
             @RequestParam(name = "begin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate begin,
             @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {

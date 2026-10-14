@@ -1,5 +1,58 @@
 # UJCMS 发版说明
 
+## ujcms-13.1.4
+
+* feat(article): 文章管理重做，新增 Excel 导出、表格导入（商业版）及相关文章功能
+* feat(article): DOC 导入内置纯 Java 引擎，支持 .docx/.doc/.wps，不再依赖 LibreOffice（商业版）
+* feat(channel): 栏目管理重做，新增分支合并、批量新增、批量设置与大纲导出
+* feat(model): 模型管理重做，新增字段定义校验、使用情况展示及音频上传字段
+* feat(word): 敏感词、易错词词典重做，支持粘贴导入、导出及易错词一键修正
+* feat(console): 控制台菜单、首页与外壳重做，新增 ⌘K 命令面板、快捷入口、个人外观设置及我的通知
+* feat(console): 页面刷新后保持所在目录、树节点与页签；部分“类型 + 数据”页面合并为一个页面
+* feat(data-migration): 数据迁移改为后台任务，支持预览与停止（商业版）
+* feat(oauth): 第三方登录改在全局设置中配置
+* feat(install): 安装向导新增 AI 服务商、机器翻译步骤及设置回顾
+* fix(permission): 文章、表单的数据权限落实到全部操作，后台查询条件加固
+
+## ujcms-13.1.2
+
+* feat(auth): 新增短信验证码两步登录，含失败锁定与应急关闭开关
+* feat(sms): 验证码绑定用途并限制尝试次数，加强发送频率限制
+* feat(security): 加固 IPv6 支持
+* fix(ui): 重新设计主题登录、注册等认证页面
+
+## ujcms-13.1.1
+
+* feat(console): 所有列表支持按 ID 搜索，ID 列默认隐藏；文章筛选条件更丰富
+* fix(permission): 补齐专题权限
+* fix(db): slug 迁移脚本兼容 Oracle 模式
+
+## ujcms-13.1.0
+
+* feat(permalinks)!: 文章、栏目、专题的 alias 更名为 slug，新增站点级固定链接模式
+* feat(multilingual): 新增多语言翻译工作流，支持 AI 预翻译与批量新增译文（商业版）
+* feat(ai): AI 改写、AI 标题等功能增强，AI 设置拆分为 AI服务商 与 AI功能（商业版）
+* feat(dict)!: 字典整合为统一的字典管理
+* feat(sitemap): 站点地图重做，新增搜索引擎推送
+* feat(wechat): 微信公众号支持多图文群发与排版预设（商业版）
+* feat(commercial): 新增 EaseBar 无障碍工具条（旗舰版）；部分商业功能调整所属版本
+* feat(console): 完成英文控制台
+* fix(common): 雪花 ID 加固时钟回拨处理
+
+## ujcms-13.0.0
+
+* feat(composition)!: 新增页面可视化构建器，页面由区域与组件拼装
+* feat(theme)!: 主题改为结构化布局并以 Tailwind 重写默认主题，目录 webapp/templates 更名为 webapp/themes
+* feat(theme): 新增主题市场、主题种子数据导出及主题沙箱预览
+* feat(install): 新增安装向导
+* feat(template): 新增模板编辑工作台，支持编辑历史对比与恢复
+* feat(topic): 新增专题与扩展栏目
+* feat(link)!: 友情链接替换为链接组
+* feat(resource-library): 新增资源库
+* feat(console): TinyMCE 升级至 6.8，Markdown 编辑器替换为 ByteMD
+* feat(security): 新增等保三级合规套件（默认关闭）；敏感配置与用户手机号、邮箱加密存储
+* build: Spring Boot 升级至 3.5.14
+
 ## ujcms-12.3.3
 
 * build: Spring Boot 从 3.5.10 升级至 3.5.16

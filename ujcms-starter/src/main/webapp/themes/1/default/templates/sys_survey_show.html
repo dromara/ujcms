@@ -1,0 +1,132 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title=survey.title + ' - ' + site.title keywords=survey.title + ',调查问卷,' + (site.seoKeywords!'') description=survey.description?has_content?then(survey.description, survey.title)]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/survey" class="cm-link">调查问卷</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700 truncate max-w-[16rem]">${survey.title}</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <div class="border-b border-slate-200 pb-3">
+    <h1 class="text-2xl font-bold font-display mb-2">${survey.title}</h1>
+    <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+      <span>${format(survey.created, 'yyyy-MM-dd HH:mm')}</span>
+      [#if survey.status == 0]
+        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs">进行中</span>
+      [#elseif survey.status == 1]
+        <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-xs">未启用</span>
+      [#elseif survey.status == 2]
+        <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs">未开始</span>
+      [#elseif survey.status == 3]
+        <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs">已结束</span>
+      [#else]
+        <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-xs">未知状态</span>
+      [/#if]
+      <span class="inline-flex items-center gap-1">
+        <span class="size-4 inline-block">[@icon 'list-alt-outline'/]</span>
+        ${survey.times} 份
+      </span>
+    </div>
+    [#if survey.description?has_content]
+      <p class="mt-3 text-sm text-slate-600">${survey.description}</p>
+    [/#if]
+  </div>
+
+  [#--
+    提交 JSON：{ id, items: { '<itemId>': value | [values] } }。
+    多选（checkbox）项用 FormData.getAll() 收集全部选中的选项 ID；
+    单选（radio）getAll() 返回单元素数组，服务端 List<?> 分支可容忍；
+    问答（essay）项服务端期望 String，故直接发送第一个值。
+  --]
+  <form
+    x-data="{
+      submitting: false,
+      async submit(ev) {
+        if (this.submitting) return;
+        this.submitting = true;
+        try {
+          const fd = new FormData(ev.target);
+          const items = {};
+          for (const key of new Set(Array.from(fd.keys()))) {
+            const m = key.match(/^items\[(\d+)\](\[\])?$/);
+            if (!m) continue;
+            const itemId = m[1];
+            const isMulti = !!m[2];
+            if (isMulti) {
+              items[itemId] = fd.getAll(key);
+            } else {
+              items[itemId] = fd.get(key);
+            }
+          }
+          await window.fetchCsrf();
+          const res = await window.request('POST', '${api}/survey/cast', { id: '${survey.id?c}', items });
+          if (res && res.status === 0) {
+            window.displaySuccess('提交成功');
+            ev.target.reset();
+            window.location.href = '${dy}/survey/${survey.id?c}/result';
+          } else if (res && res.message) {
+            window.displayAlert(res.message);
+          }
+        } catch (e) {
+          window.displayAlert(e.message || '提交失败');
+        } finally {
+          this.submitting = false;
+        }
+      }
+    }"
+    @submit.prevent="submit($event)"
+    class="rounded-lg border border-slate-200 bg-white p-5 space-y-5"
+  >
+    [#list survey.items as item]
+      <div class="space-y-2">
+        <p class="font-medium text-slate-800">
+          <span class="text-slate-500 mr-1">${item_index + 1}.</span>${item.title}
+          <span class="ml-1 text-xs text-amber-600">（必选）</span>
+        </p>
+        <div class="ml-4">
+          [#if item.essay]
+            <textarea
+              name="items[${item.id?c}]"
+              class="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              rows="3" required></textarea>
+          [#else]
+            <div class="space-y-2">
+              [#list item.options as option]
+                <label class="flex items-start gap-3 p-2 rounded border border-slate-200 hover:border-primary transition-colors cursor-pointer">
+                  <input
+                    class="mt-0.5 shrink-0"
+                    type="[#if item.multiple]checkbox[#else]radio[/#if]"
+                    name="items[${item.id?c}][#if item.multiple][][/#if]"
+                    value="${option.id?c}"
+                    [#if !item.multiple]required[/#if]
+                  >
+                  <span class="text-sm text-slate-700">${option.title}</span>
+                </label>
+              [/#list]
+            </div>
+          [/#if]
+        </div>
+      </div>
+    [/#list]
+
+    <div class="flex justify-center gap-3 pt-2 border-t border-slate-100">
+      <button type="submit" :disabled="submitting"
+              class="px-5 py-2 rounded bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+        <span x-show="!submitting">提交</span>
+        <span x-show="submitting" x-cloak>提交中…</span>
+      </button>
+      <a href="${dy}/survey/${survey.id?c}/result"
+         class="px-5 py-2 rounded border border-rose-500 text-rose-500 text-sm hover:bg-rose-50">查看结果</a>
+    </div>
+  </form>
+</div>
+[/@layout]
+[/#escape]

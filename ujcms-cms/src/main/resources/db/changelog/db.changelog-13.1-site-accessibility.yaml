@@ -1,0 +1,24 @@
+databaseChangeLog:
+  # 站点无障碍工具条设置（商业版 T4，EaseBar 无障碍·适老化辅助浏览工具条）。13.0 已发布，故以升级变更集补列：
+  #   accessibility_settings_ 与其余 *_settings_ 同型——Site.Accessibility 序列化后的 JSON（是否开启、
+  #   悬浮入口、默认展开、无障碍声明页地址、长者版地址）。按“schema 一律在 core”规则各版本同建，低级别闲置。
+  #   ujcms_site 的 utf8mb4 VARCHAR 列已逼近 MySQL 65535 字节行上限（再加 VARCHAR(1000) 建表即报 1118），
+  #   故与 census/ai/geo 三个设置列同样取 MEDIUMTEXT（Mapper 以 LONGVARCHAR 读写）。
+  # columnExists 守卫使其对开发期已含该列的库幂等（MARK_RAN）；全新建库与既有 13.0 库同走此处。
+  - changeSet:
+      id: 13.1-site-accessibility
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_site
+                columnName: accessibility_settings_
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: accessibility_settings_
+                  remarks: 无障碍工具条设置
+                  type: MEDIUMTEXT

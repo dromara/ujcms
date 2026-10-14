@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-topics.schema.json",
+  "title": "UJCMS Theme Seed Topics",
+  "description": "主题内容种子专题文件（seed/content/topics/*.topics.json）。专题是独立树形实体（不挂栏目）；文章按 originId 关联（同主题种子内或已导入行）。站点无专题模型时整类跳过并告警（模型不可随主题携带）；按 (site_id_, origin_, origin_id_) select-then-insert 保证幂等。",
+  "type": "object",
+  "required": ["topics"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "title"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（幂等键）" },
+          "alias": { "type": "string", "pattern": "^[\\w-]+$", "maxLength": 100, "description": "专题别名（站点内唯一）；省略时取 originId。与既有非种子专题冲突时不插入、不认领（linked）" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 150 },
+          "image": { "type": "string", "maxLength": 255, "description": "专题图片URL，支持 {{asset:<relpath>}} 令牌" },
+          "text": { "type": "string", "description": "专题介绍HTML（导入时清洗），支持 {{asset:<relpath>}} 令牌" },
+          "ext": {
+            "type": "object",
+            "description": "扩展标量字段（白名单）",
+            "properties": {
+              "seoTitle": { "type": "string", "maxLength": 150 },
+              "seoKeywords": { "type": "string", "maxLength": 150 },
+              "seoDescription": { "type": "string", "maxLength": 1000 }
+            },
+            "additionalProperties": false
+          },
+          "customs": { "type": "object", "description": "模型驱动的自定义字段（按解析出的专题模型校验/清洗）" },
+          "articles": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "关联文章 originId 列表（有序；仅新插入的专题绑定，跳过/linked 的专题不重置操作员编排）" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

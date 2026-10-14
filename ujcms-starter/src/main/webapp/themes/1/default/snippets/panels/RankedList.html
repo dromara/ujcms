@@ -1,0 +1,27 @@
+[#--
+  面板片段：排行列表（RankedList）。设置驱动组件（component-settings §4.1）：按浏览量统计排序的
+  文章标题榜，名次角标 前三名 红/黄/蓝。复刻原 inc_right 热点新闻模块的视觉。
+--]
+[#escape x as (x)!?html]
+[#if (settings.title)?has_content]
+<h5 class="flex items-center gap-2 text-base font-semibold mb-4">
+  <span class="size-5 text-primary inline-block">[@icon 'newspaper'/]</span>
+  [#if (settings.moreUrl.url)?has_content]<a href="${settings.moreUrl.url}"[#if (settings.moreUrl.targetBlank)!false] target="_blank"[/#if] class="cm-link">${settings.title}</a>[#else]<span>${settings.title}</span>[/#if]
+</h5>
+[/#if]
+[#if items?size gt 0]
+<ul class="space-y-4">
+  [#list items as item]
+    [#if item_index == 0][#assign rankClass = 'bg-red-600 text-white']
+    [#elseif item_index == 1][#assign rankClass = 'bg-amber-500 text-white']
+    [#elseif item_index == 2][#assign rankClass = 'bg-primary text-primary-foreground']
+    [#else][#assign rankClass = 'bg-slate-300 text-slate-700']
+    [/#if]
+    <li class="flex items-start gap-2">
+      <span class="inline-block w-6 text-center text-xs font-bold leading-6 rounded ${rankClass}">${item_index + 1}</span>
+      <a href="${item.link.url}"[#if (item.link.targetBlank)!false] target="_blank"[/#if] class="cm-link text-sm leading-6 flex-1 truncate">${item.headline}</a>
+    </li>
+  [/#list]
+</ul>
+[/#if]
+[/#escape]

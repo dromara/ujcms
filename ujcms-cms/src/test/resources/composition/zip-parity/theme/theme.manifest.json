@@ -1,0 +1,9 @@
+{
+  "name": "Parity Fixture",
+  "themeName": "parity-fixture",
+  "version": "1.0.0",
+  "templateSpecVersion": "2.0",
+  "seed": {
+    "content": { "channels": true, "articles": true, "topics": false, "assets": true }
+  }
+}

@@ -21,7 +21,7 @@ import static com.ujcms.cms.core.web.directive.ArticleNextDirective.query;
  * @author PONY
  */
 public class ArticlePrevDirective implements TemplateDirectiveModel {
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

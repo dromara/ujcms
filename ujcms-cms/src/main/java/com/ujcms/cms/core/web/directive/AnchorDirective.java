@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.util.HtmlUtils;
 
 import com.ujcms.cms.core.support.Anchor;
@@ -24,7 +24,7 @@ import freemarker.template.TemplateModel;
 /**
  * Anchor FreeMarker标签。用于生成 html a 标签。
  *
- * @author liufang
+ * @author PONY
  */
 public class AnchorDirective implements TemplateDirectiveModel {
     public static final String BEAN = "bean";
@@ -33,7 +33,7 @@ public class AnchorDirective implements TemplateDirectiveModel {
     public static final String LENGTH = "length";
     public static final String APPEND = "append";
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars,
                         @Nullable TemplateDirectiveBody body) throws TemplateException, IOException {

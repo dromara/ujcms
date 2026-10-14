@@ -106,7 +106,7 @@
                 t.org_id_ in
                 <foreach close=")" collection="orgPermIds" item="id" open="(" separator=",">#{id}</foreach>
                 or t.org_id_ in (select orgPerm.perm_org_id_ from ujcms_org_perm orgPerm
-                where orgPerm.org_id_ in <foreach close=")" collection="permOrgIds" item="id" open="(" separator=",">#{id}</foreach>)
+                where orgPerm.org_id_ in <foreach close=")" collection="orgPermIds" item="id" open="(" separator=",">#{id}</foreach>)
             </if>
             <if test="orgRoleIds != null and orgRoleIds.size &gt; 0">
                 or t.org_id_ in (select roleOrg.org_id_ from ujcms_role_org roleOrg

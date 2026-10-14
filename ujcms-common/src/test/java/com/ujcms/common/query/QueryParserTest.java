@@ -421,5 +421,216 @@ class QueryParserTest {
         assertThrows(Http400Exception.class,
                 () -> QueryUtils.getPublicQueryMap(Map.of("orderBy", "user-password_desc")));
     }
-}
 
+    // ---- 后台接口的下限（docs/spec/article-data-permission/plan.md D19）：凭证列、全局配置表不可查
+
+    @Test
+    void backendKeysTheConsoleSendsAreAllowed() {
+        for (String key : List.of("EQ_status_Short", "Contains_1_username", "Contains_1_realName", "Like_user-username",
+                "Like_modifiedUser@user-username", "Like_org-name", "GE_@userExt-created_DateTime",
+                "Contains_@articleExt-title", "In_@ArticleTopic-topicId_Long", "Contains_@ArticleTag-tag-name",
+                "ArrayIn_@articleExt-mainsJson$$color", "Contains_mainsJson$name", "Like_ip", "Like_loginName",
+                "Contains_openid", "EQ_processKey", "GE_promptTokens_Int", "Contains_seoKeywords", "Distinct")) {
+            assertDoesNotThrow(() -> QueryParser.validateBackendKey(key, "x"), key);
+        }
+        assertDoesNotThrow(() -> QueryParser.validateBackendKey("OrderBy",
+                "user-username, @userExt-loginIp_desc,type@formType-name,modified_desc,promptTokens_Int_desc"));
+    }
+
+    @Test
+    void backendKeysNamingACredentialColumnAreRefusedOnAnyTable() {
+        for (String key : List.of("Like_password", "StartsWith_user-password", "IsNotNull_user-@userExt-historyPassword",
+                "Like_modifiedUser@user-password", "Like_site-WechatAccount-appSecret", "Like_site-WechatAccount-token",
+                "Like_site-WechatAccount-aesKey", "Like_installTokenHash", "Like_1_user-password",
+                "Like_user-password$x", "GE_passwordModified_DateTime")) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validateBackendKey(key, "x"), key);
+        }
+        for (String orderBy : List.of("user-password", "password_desc", "created_desc,user-password_desc",
+                "x_user-password_Int", "site-WechatAccount-appSecret_asc")) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validateBackendKey("OrderBy", orderBy), orderBy);
+        }
+    }
+
+    @Test
+    void backendKeysJoiningTheConfigTableAreRefused() {
+        for (String key : List.of("Like_site@config-contextPath", "Like_@config-port", "Like_config-port",
+                "Like_site-@config-channelUrl", "IsNotNull_defaultSite@Config-port")) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validateBackendKey(key, "x"), key);
+        }
+        assertThrows(Http400Exception.class, () -> QueryParser.validateBackendKey("OrderBy", "site@config-port"));
+        // 主表的同名列不受影响：只拒绝关联
+        assertDoesNotThrow(() -> QueryParser.validateBackendKey("Like_config", "x"));
+    }
+
+    @Test
+    void getQueryMapFromTheRequestAppliesTheBackendFloor() {
+        List<String> joins = List.of("user-username", "user-password", "site@config-port");
+        Map<String, Object> queryMap = QueryUtils.getQueryMap(
+                "Q_Like_user-username=admin&Q_OrderBy=created_desc&page=1", joins);
+        assertEquals(2, queryMap.size());
+        assertEquals("admin", queryMap.get("Like_user-username"));
+        // 列入许可也无济于事：下限在许可名单之前
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_Like_user-password=x", joins));
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_OrderBy=user-password_desc", joins));
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_Like_site@config-port=1", joins));
+        // 前台接口的入口另有更严的校验，与此无关
+        assertThrows(Http400Exception.class, () -> QueryUtils.getPublicQueryMap(Map.of("Q_Like_org-name", "x")));
+        assertDoesNotThrow(() -> QueryUtils.getQueryMap("Q_Like_org-name=x", List.of("org-name")));
+    }
+
+    // ---- 每个后台列表都声明它回答的关联，默认一个也没有（D24）
+
+    @Test
+    void theRequestEntryRefusesEveryJoinUnlessTheListDeclaresIt() {
+        // 主表自身的列总是许可
+        assertDoesNotThrow(() -> QueryUtils.getQueryMap("Q_Like_name=x&Q_EQ_mainsJson$age_Int=1&Q_OrderBy=created_desc"));
+        // 任何关联：条件、排序都拒绝
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_Like_user-username=x"));
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_OrderBy=user-username_desc"));
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_Like_org-name=x"));
+        // 列出的才许可；下限仍在
+        List<String> joins = List.of("user-username", "org-name");
+        assertDoesNotThrow(() -> QueryUtils.getQueryMap("Q_Like_user-username=x&Q_OrderBy=org-name_desc", joins));
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_Like_user-realName=x", joins));
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_Like_user-password=x",
+                List.of("user-password")));
+    }
+
+    @Test
+    void aWildcardAllowsEveryColumnOfAOneToOneExtensionButNotTheFloor() {
+        List<String> joins = List.of("@articleExt-*", "channel-name");
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("Contains_@articleExt-title", "x");
+        queryMap.put("GE_@articleExt-mainsJson$price_Int", "1");
+        queryMap.put("Contains_1_@articleExt-text", "x");
+        queryMap.put("Contains_channel-name", "x");
+        queryMap.put("OrderBy", "@articleExt-views_desc,@articleExt-mainsJson$age_Int,channel-name");
+        assertDoesNotThrow(() -> QueryParser.validateJoins(queryMap, joins));
+        // 通配只及该关联自身的列，不及它再往下的关联；别的关联仍拒绝
+        for (String key : List.of("Like_@articleExt-site-name", "Like_channel-slug", "Like_user-username")) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validateJoins(Map.of(key, "x"), joins), key);
+        }
+        // 键里写不了 * 本身：字符校验在前
+        assertThrows(QueryException.class, () -> QueryParser.validateJoins(Map.of("Like_@articleExt-*", "x"), joins));
+        // 下限不因通配而放开
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_Like_@userExt-historyPassword=x",
+                List.of("@userExt-*")));
+        assertDoesNotThrow(() -> QueryUtils.getQueryMap("Q_OrderBy=@userExt-loginIp_desc", List.of("@userExt-*")));
+    }
+
+    // ---- 一个列表只回答它展示的东西（D18）：关联路径按许可名单
+
+    private static final List<String> FORM_JOINS = List.of(
+            "@formExt-clobsJson", "type@formType-name", "org-name", "user-username", "modifiedUser@user-username");
+
+    @Test
+    void validateJoinsAllowsTheMainTableAndTheListedPaths() {
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("EQ_status_Short", "0");
+        queryMap.put("Contains_mainsJson$name", "x");
+        queryMap.put("GE_created_DateTime", "2026-01-01");
+        queryMap.put("Contains_@formExt-clobsJson$text", "x");
+        queryMap.put("Like_user-username", "a");
+        queryMap.put("Like_1_org-name", "a");
+        queryMap.put("Like_modifiedUser@user-username", "a");
+        queryMap.put("Distinct", "true");
+        queryMap.put("OrderBy", "type@formType-name_desc, user-username,mainsJson$age_Int_desc,id_desc");
+        assertDoesNotThrow(() -> QueryParser.validateJoins(queryMap, FORM_JOINS));
+    }
+
+    @Test
+    void validateJoinsRefusesAnyOtherJoinAsConditionOrSort() {
+        for (String key : List.of("Like_user-realName", "Like_user-mobile", "Like_site-name", "Like_user-org-name",
+                "Like_type@formType-site-name", "Like_1_user-nickname", "Contains_user-Article-@articleExt-title",
+                "Like_user-username$x-y", "IsNull_@formExt-id")) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validateJoins(Map.of(key, "x"), FORM_JOINS), key);
+        }
+        for (String orderBy : List.of("site-name", "user-realName_desc", "created_desc,user-mobile", "x_user-mobile_Int")) {
+            assertThrows(Http400Exception.class,
+                    () -> QueryParser.validateJoins(Map.of("OrderBy", orderBy), FORM_JOINS), orderBy);
+        }
+    }
+
+    @Test
+    void validateJoinsSeesThePathTheParserWillJoin() {
+        // 许可的路径与解析器实际关联的表一致：校验通过的键，解析后只关联许可的表
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("Like_1_modifiedUser@user-username", "a");
+        queryMap.put("OrderBy", "type@formType-name_desc");
+        assertDoesNotThrow(() -> QueryParser.validateJoins(queryMap, FORM_JOINS));
+        QueryInfo info = QueryParser.parse(queryMap, "form");
+        assertNotNull(info);
+        assertEquals(List.of("ujcms_form_type", "ujcms_user"),
+                info.getJoinTables().stream().map(QueryInfo.JoinTable::getTableName).sorted().toList());
+    }
+
+    // ---- 分组命名空间（docs/spec/article-data-permission/plan.md D26）：请求的组 1 起，服务端的组以 0 开头
+
+    @Test
+    void requestGroupsStartAtOneOnBothEntries() {
+        for (String key : List.of("Contains_1_username", "Contains_1-1_username", "EQ_12_status_Int",
+                "Like_3-10_title", "In_1_status")) {
+            assertDoesNotThrow(() -> QueryParser.validateBackendKey(key, "x"), key);
+            assertDoesNotThrow(() -> QueryParser.validatePublicKey(key), key);
+        }
+    }
+
+    @Test
+    void serverGroupsAreRefusedFromRequests() {
+        for (String key : List.of("GT_0scope_id_Long", "EQ_0tree_id_Long", "EQ_0_id_Long", "EQ_01_id_Long",
+                "Contains_0q_username", "IsNull_0online_onlineDate_DateTime", "LE_0start_startDate_DateTime",
+                "EQ_0scope-1_id_Long", "EQ_1-a_id_Long")) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validateBackendKey(key, "x"), key);
+            assertThrows(Http400Exception.class, () -> QueryParser.validatePublicKey(key), key);
+        }
+        assertThrows(Http400Exception.class, () -> QueryUtils.getQueryMap("Q_GT_0scope_id_Long=0"));
+        assertThrows(Http400Exception.class,
+                () -> QueryUtils.getPublicQueryMap(Map.of("Q_GT_0scope_id_Long", "0")));
+    }
+
+    @Test
+    void aServerGroupNeverSharesAnOrGroupWithARequestGroup() {
+        Map<String, Object> params = new HashMap<>(QueryUtils.getQueryMap("Q_GT_1_id_Long=0"));
+        params.put("EQ_0scope_siteId_Long", 1L);
+        params.put("EQ_0scope_scope_Short", "2");
+        QueryInfo info = QueryParser.parse(params, "ujcms_model");
+        assertNotNull(info);
+        assertEquals(2, info.getWhereOrAndConditions().get("0scope").size(), "site OR global, its own group");
+        assertEquals(1, info.getWhereOrAndConditions().get("1").size(), "the request's group stays separate");
+        assertTrue(info.getWhereOrAndConditions().get("0scope").values().stream().flatMap(List::stream)
+                .map(QueryInfo.WhereCondition::getColumn)
+                .allMatch(column -> column.equals("t.site_id_") || column.equals("t.scope_")));
+    }
+
+    @Test
+    void publicKeysCannotReachUnindexedArticleBodies() {
+        // 正文、Markdown 源、大字段型自定义字段没有索引：匿名请求不能拿它们做 LIKE 或排序（按表限定）
+        for (String key : new String[]{"Contains_@articleExt-text", "Contains_@articleExt-markdown",
+                "Contains_@articleExt-clobsJson", "Contains_@articleExt-clobsJson$summary",
+                "Contains_1_@articleExt-text", "Like_article@articleExt-text"}) {
+            assertThrows(Http400Exception.class, () -> QueryParser.validatePublicKey(key), key);
+        }
+        assertThrows(Http400Exception.class, () -> QueryParser.validatePublicOrderBy("@articleExt-text"));
+        assertThrows(Http400Exception.class, () -> QueryParser.validatePublicOrderBy("id_desc,@articleExt-markdown"));
+        // 标题、普通自定义字段照常；别的表里同名的字段不受波及
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("Contains_@articleExt-title"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("EQ_@articleExt-mainsJson$color"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("Contains_text"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicKey("Contains_@commentExt-text"));
+        assertDoesNotThrow(() -> QueryParser.validatePublicOrderBy("@articleExt-title"));
+    }
+
+    @Test
+    void distinctFalseDoesNotEnableDistinct() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("Distinct", "false");
+        assertFalse(QueryParser.parse(params, "article").isDistinct());
+        params.put("Distinct", false);
+        assertFalse(QueryParser.parse(params, "article").isDistinct());
+        params.put("Distinct", "true");
+        assertTrue(QueryParser.parse(params, "article").isDistinct());
+        // 只有键、值为空：仍然去重（控制台与模板的既有写法）
+        params.put("Distinct", "");
+        assertTrue(QueryParser.parse(params, "article").isDistinct());
+    }
+}

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.PlacementMapper">
+  <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.Placement">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="page_ref_" jdbcType="VARCHAR" property="pageRef" />
+    <result column="slot_name_" jdbcType="VARCHAR" property="slotName" />
+    <result column="panel_shape_" jdbcType="VARCHAR" property="panelShape" />
+    <result column="settings_json_" jdbcType="OTHER" property="settingsJson" />
+    <result column="enabled_" jdbcType="CHAR" property="enabled" />
+    <result column="visibility_" jdbcType="VARCHAR" property="visibility" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
+    <result column="archived_at_" jdbcType="TIMESTAMP" property="archivedAt" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.Placement" />
+  <sql id="Column_List">
+    t.id_, t.site_id_, t.page_ref_, t.slot_name_, t.panel_shape_, t.settings_json_,
+    t.enabled_, t.visibility_, t.origin_, t.origin_id_, t.origin_hash_, t.archived_at_, t.created_, t.modified_
+  </sql>
+  <insert id="insert" parameterType="com.ujcms.cms.core.domain.Placement">
+    insert into ujcms_placement (id_, site_id_, page_ref_, slot_name_, panel_shape_,
+      settings_json_, enabled_, visibility_, origin_, origin_id_, origin_hash_, archived_at_, created_, modified_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{pageRef,jdbcType=VARCHAR},
+      #{slotName,jdbcType=VARCHAR}, #{panelShape,jdbcType=VARCHAR},
+      #{settingsJson,jdbcType=OTHER}, #{enabled,jdbcType=CHAR}, #{visibility,jdbcType=VARCHAR},
+      #{origin,jdbcType=VARCHAR},
+      #{originId,jdbcType=VARCHAR}, #{originHash,jdbcType=CHAR}, #{archivedAt,jdbcType=TIMESTAMP},
+      #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP})
+  </insert>
+  <update id="update" parameterType="com.ujcms.cms.core.domain.Placement">
+    update ujcms_placement
+    set site_id_ = #{siteId,jdbcType=BIGINT},
+      page_ref_ = #{pageRef,jdbcType=VARCHAR},
+      slot_name_ = #{slotName,jdbcType=VARCHAR},
+      panel_shape_ = #{panelShape,jdbcType=VARCHAR},
+      settings_json_ = #{settingsJson,jdbcType=OTHER},
+      enabled_ = #{enabled,jdbcType=CHAR},
+      visibility_ = #{visibility,jdbcType=VARCHAR},
+      origin_ = #{origin,jdbcType=VARCHAR},
+      origin_id_ = #{originId,jdbcType=VARCHAR},
+      origin_hash_ = #{originHash,jdbcType=CHAR},
+      archived_at_ = #{archivedAt,jdbcType=TIMESTAMP},
+      modified_ = #{modified,jdbcType=TIMESTAMP}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <delete id="delete" parameterType="long">
+    delete
+    from ujcms_placement
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_placement
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <select id="select" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_placement t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <sql id="selectAllSelect" />
+  <sql id="selectAllJoin" />
+  <sql id="selectAllWhere" />
+  <select id="selectAll" resultMap="ResultMap">
+    <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
+      <property name="tableName" value="ujcms_placement" />
+    </include>
+  </select>
+  <select id="listByPage" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_placement t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.page_ref_ = #{pageRef,jdbcType=VARCHAR}
+    order by t.slot_name_
+  </select>
+  <select id="listBySiteId" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_placement t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+    order by t.page_ref_, t.slot_name_
+  </select>
+  <select id="listByOriginId" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_placement t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+      and t.origin_id_ = #{originId,jdbcType=VARCHAR}
+    order by t.id_
+  </select>
+  <select id="listByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_placement t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+    order by t.id_
+  </select>
+  <select id="countByOrigin" resultType="int">
+    select count(*)
+    from ujcms_placement t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+  </select>
+  <update id="clearOrigin">
+    update ujcms_placement
+    set origin_ = null, origin_id_ = null, origin_hash_ = null
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+      and origin_ = #{origin,jdbcType=VARCHAR}
+  </update>
+  <!-- 单行来源剥离（种子重置 D22）：被操作员移出种子位置的本源面板转为操作员投放 -->
+  <update id="clearOriginById">
+    update ujcms_placement
+    set origin_ = null, origin_id_ = null, origin_hash_ = null
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 来源散列写入（R4）：种子导入落库后按最终行状态计算 -->
+  <update id="updateOriginHash">
+    update ujcms_placement
+    set origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 认领操作员行（theme-seed-export §4.2 adopt）：仅无来源标记的行——他源行绝不认领（D3） -->
+  <update id="adoptOrigin">
+    update ujcms_placement
+    set origin_ = #{origin,jdbcType=VARCHAR},
+        origin_id_ = #{originId,jdbcType=VARCHAR},
+        origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+      and (origin_ is null or origin_ = '')
+  </update>
+</mapper>

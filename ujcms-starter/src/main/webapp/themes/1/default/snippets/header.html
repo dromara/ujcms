@@ -1,0 +1,119 @@
+[#escape x as (x)!?html]
+<nav
+  x-data="{ navOpen: false }"
+  class="border-b border-slate-300 bg-white"
+  aria-label="主导航"
+>
+  <div class="relative max-w-6xl mx-auto px-4 py-3 flex items-center gap-6">
+    <a href="${site.url}" title="${site.name}" class="shrink-0">
+      <img src="[#if site.logo?has_content]${site.logo}[#else]${assets}/img/logo.png[/#if]" alt="${site.name}" height="50" class="h-12 w-auto">
+    </a>
+
+    <button
+      @click="navOpen = !navOpen"
+      class="xl:hidden ml-auto p-2 rounded hover:bg-slate-100"
+      :aria-expanded="navOpen"
+      aria-label="切换导航"
+    >
+      <span class="size-6 inline-block">[@icon 'menu'/]</span>
+    </button>
+
+    <div
+      :class="navOpen ? 'flex' : 'hidden'"
+      class="xl:flex flex-col xl:flex-row absolute xl:static top-full left-0 right-0 xl:top-auto bg-white xl:bg-transparent border-b xl:border-0 px-4 xl:px-0 py-2 xl:py-0 gap-1 xl:gap-2 z-30 xl:flex-1 items-stretch xl:items-center"
+    >
+      <a
+        href="${dy}/"
+        class="px-2 py-2 rounded whitespace-nowrap [#if isHome!false]bg-primary text-primary-foreground[#else]hover:bg-slate-100[/#if]"
+      >首页</a>
+      [@ChannelList isNav='true' offset='0'; navList]
+      [#list navList as nav]
+        [#assign navActive = false/]
+        [#if channel?? && ((channel.paths[0].id)!0) == nav.id][#assign navActive = true/][/#if]
+        [#if channelSlug?? && channelSlug == nav.slug][#assign navActive = true/][/#if]
+        <a
+          href="${nav.url}"
+          [#if nav.targetBlank]target="_blank"[/#if]
+          class="px-2 py-2 rounded whitespace-nowrap [#if navActive]bg-primary text-primary-foreground[#else]hover:bg-slate-100[/#if]"
+        >${nav.name}</a>
+      [/#list]
+      [/@ChannelList]
+
+      <div class="ml-auto flex items-center gap-2">
+        [#if config.commercialTier gte 4 && site.accessibility.enabled]
+        [#-- 无障碍工具条入口（商业版 T4，脚本见 js.html）：悬浮入口关闭时仍可由此打开 --]
+        <button
+          type="button"
+          class="px-2 py-2 rounded whitespace-nowrap hover:bg-slate-100"
+          aria-label="打开无障碍辅助浏览工具条"
+          @click="window.EaseBar && window.EaseBar.toggle()"
+        >无障碍</button>
+        [/#if]
+        [#-- 语言切换器：站点属于语言组（多语言，商业版 T2 起可建组）时显示。条目 URL 由 LangSiteList
+             按“已关联译文 → 同别名栏目（没有则最近的同别名上级栏目）→ 对方首页”解析；语言名称取字典“站点语言”（操作员可改），缺失时回退语言标签 --]
+        [@LangSiteList; alternates]
+        [#if alternates?size gt 1]
+        [#assign langNames = {}/]
+        [@DictList type='sys_site_lang' limit='100'; langs]
+        [#list langs as d][#assign langNames = langNames + {(d.value)!'': d.name}/][/#list]
+        [/@DictList]
+        <div x-data="{ langOpen: false }" @click.outside="langOpen = false" @keydown.escape="langOpen = false" class="relative">
+          <button
+            type="button"
+            @click="langOpen = !langOpen"
+            :aria-expanded="langOpen"
+            aria-haspopup="true"
+            aria-label="切换语言"
+            class="flex items-center gap-1 px-2 py-2 rounded whitespace-nowrap hover:bg-slate-100"
+          >
+            <span class="size-5 inline-block">[@icon 'language'/]</span>
+            [#list alternates as alt][#if alt.current]<span>${langNames[alt.lang]!alt.lang}</span>[/#if][/#list]
+            <span class="size-4 inline-block">[@icon 'keyboard-arrow-down'/]</span>
+          </button>
+          <ul x-show="langOpen" x-cloak class="absolute right-0 top-full mt-1 min-w-36 py-1 bg-white border border-slate-200 rounded shadow-lg z-40">
+            [#list alternates as alt]
+            <li>
+              <a
+                href="${alt.url}"
+                hreflang="${alt.lang}"
+                lang="${alt.lang}"
+                [#if alt.current]aria-current="true"[/#if]
+                class="block px-3 py-2 whitespace-nowrap hover:bg-slate-100[#if alt.current] text-primary font-medium[/#if]"
+              >${langNames[alt.lang]!alt.lang}</a>
+            </li>
+            [/#list]
+          </ul>
+        </div>
+        [/#if]
+        [/@LangSiteList]
+        <a
+          href="${dy}/search"
+          class="p-2 rounded hover:bg-slate-100"
+          aria-label="搜索"
+        >
+          <span class="size-5 inline-block">[@icon 'search'/]</span>
+        </a>
+        <div id="headerUserBlock" class="flex items-center gap-1"></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script nonce="${csp_nonce!''}">
+  (function () {
+    function loadUser() {
+      fetch("${dy}/app/user", { credentials: 'include' })
+        // 非 2xx（片段缺失 404 / 预览令牌过期 401 等）返回的是 JSON 错误体，绝不能塞进页面
+        .then(r => (r.ok ? r.text() : ''))
+        .then(html => {
+          if (html && html.trim()) {
+            document.getElementById('headerUserBlock').innerHTML = html;
+          }
+        })
+        .catch(() => { /* silent */ });
+    }
+    if (document.readyState !== 'loading') loadUser();
+    else document.addEventListener('DOMContentLoaded', loadUser);
+  })();
+</script>
+[/#escape]

@@ -38,10 +38,20 @@ class SiteUrlTest {
     }
 
     @Test
-    void getDynamicUrl_singleDomain_noContextPath_withSubDir_startsWithSlash() {
+    void getDynamicUrl_singleDomain_noContextPath_withSubDir_hasLeadingSlash() {
+        // 根安装的子目录站点（沙箱预览站 D8 的常态）：必须以 / 开头——
+        // PreviewUrlResolver 等消费方依赖 "/ 或 /sub" 形态
         Site site = createSite();
         site.setSubDir("sub");
         assertEquals("/sub", site.getDynamicUrl());
+    }
+
+    @Test
+    void getDynamicUrl_multiDomain_withSubDir() {
+        Site site = createSite();
+        site.getConfig().setMultiDomain(true);
+        site.setSubDir("sub");
+        assertEquals("https://example.com/sub", site.getDynamicUrl());
     }
 
     @Test

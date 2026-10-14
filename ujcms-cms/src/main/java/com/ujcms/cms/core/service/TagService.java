@@ -12,7 +12,7 @@ import com.ujcms.cms.core.service.args.TagArgs;
 import com.ujcms.common.db.identifier.SnowflakeSequence;
 import com.ujcms.common.query.QueryInfo;
 import com.ujcms.common.query.QueryParser;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +68,16 @@ public class TagService implements SiteDeleteListener, UserDeleteListener {
         return mapper.selectAll(queryInfo);
     }
 
+    /**
+     * 文章的TAG列表（按关联顺序）。实体上的 tags 集合为懒加载，跨会话读取不可靠时用本方法直查
+     *
+     * @param articleId 文章ID
+     * @return TAG列表
+     */
+    public List<Tag> listByArticleId(Long articleId) {
+        return mapper.listByArticleId(articleId);
+    }
+
     public List<Tag> selectList(TagArgs args, int offset, int limit) {
         return PageMethod.offsetPage(offset, limit, false).doSelectPage(() -> selectList(args));
     }
@@ -87,7 +97,7 @@ public class TagService implements SiteDeleteListener, UserDeleteListener {
 
     @Override
     public void preSiteDelete(Long siteId) {
-        mapper.delete(siteId);
+        mapper.deleteBySiteId(siteId);
     }
 
     @Override

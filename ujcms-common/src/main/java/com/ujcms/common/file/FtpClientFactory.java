@@ -54,14 +54,14 @@ public class FtpClientFactory extends BasePooledObjectFactory<FTPClient> {
         }
         // 加密模式的设置
         if (ftp instanceof FTPSClient ftpsClient) {
-            // 设置缓冲大小 Set protection buffer size
+            // PBSZ 0：TLS 下保护缓冲区大小固定为 0
             ftpsClient.execPBSZ(0);
-            // 开启加密传输 Set data channel protection to private
+            // PROT P：数据通道同样加密
             ftpsClient.execPROT("P");
         }
         // 被动模式 或 主动模式
         if (properties.isPassive()) {
-            // 被动模式 Enter local passive mode
+            // 被动模式：由客户端发起数据连接，便于穿过防火墙与 NAT
             ftp.enterLocalPassiveMode();
         } else {
             ftp.enterLocalActiveMode();
@@ -90,7 +90,7 @@ public class FtpClientFactory extends BasePooledObjectFactory<FTPClient> {
         FTPClient ftp = p.getObject();
         try {
             if (ftp.isConnected()) {
-                // check that control connection is working OK
+                // 销毁连接前确认控制连接仍可用，再正常登出
                 ftp.noop();
                 ftp.logout();
             }

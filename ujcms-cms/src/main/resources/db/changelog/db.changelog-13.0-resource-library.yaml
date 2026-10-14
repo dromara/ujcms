@@ -1,0 +1,120 @@
+databaseChangeLog:
+  # 共享资源库（原 11.4——13.0 重整）：
+  #   1. ujcms_attachment.shared_category_id_：附件归入共享资源库分类（null 表示不在共享库）。
+  #   2. ujcms_resource_category：共享资源库分类树（外键不建，服务层维护）。
+  #   3. ujcms_attachment_favorite：我的资源库（用户收藏附件）。
+
+  - changeSet:
+      id: 13.0-attachment-shared-category
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_attachment
+            columns:
+              - column:
+                  name: shared_category_id_
+                  remarks: 共享资源库分类ID（null表示不在共享资源库）
+                  type: BIGINT
+        - createIndex:
+            tableName: ujcms_attachment
+            indexName: idx_attachment_shared_category
+            columns:
+              - column:
+                  name: site_id_
+              - column:
+                  name: shared_category_id_
+
+  - changeSet:
+      id: 13.0-create-resource-category
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 资源库分类ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  name: parent_id_
+                  remarks: 上级分类ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 分类名称
+                  type: VARCHAR(150)
+              - column:
+                  name: owner_id_
+                  remarks: 所有者用户ID（预留，null表示共享）
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 999999
+                  name: order_
+                  remarks: 排列顺序
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: depth_
+                  remarks: 节点深度
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建时间
+                  type: datetime
+            remarks: 资源库分类表（共享资源库分类树）
+            tableName: ujcms_resource_category
+
+  - changeSet:
+      id: 13.0-create-attachment-favorite
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: attachment_id_
+                  remarks: 附件ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: user_id_
+                  remarks: 用户ID
+                  type: BIGINT
+              - column:
+                  name: category_id_
+                  remarks: 收藏分类ID（预留，我的资源库分组）
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 收藏时间
+                  type: datetime
+            remarks: 我的资源库（用户收藏附件）
+            tableName: ujcms_attachment_favorite
+        - createIndex:
+            tableName: ujcms_attachment_favorite
+            indexName: idx_attachment_favorite_user
+            columns:
+              - column:
+                  name: user_id_

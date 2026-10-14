@@ -45,6 +45,11 @@
         delete
         from ujcms_message_board_type
         where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="long">
+        delete
+        from ujcms_message_board_type
+        where site_id_ = #{siteId,jdbcType=BIGINT}
     </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.MessageBoardType">
     update ujcms_message_board_type
     set site_id_ = #{siteId,jdbcType=BIGINT},

@@ -1,0 +1,150 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "portrait",
+      "ext": {
+        "author": "图片部",
+        "source": "本站原创"
+      },
+      "image": "{{asset:img/portrait/fresh-outfit.jpg}}",
+      "imageList": [
+        {
+          "description": "沿着落满花瓣的小路走来，裙摆被风轻轻带起。",
+          "url": "{{asset:img/portrait/fresh-outfit-1.jpg}}"
+        },
+        {
+          "description": "停下来把头发别到耳后，逆光给发梢镶了一道金边。",
+          "url": "{{asset:img/portrait/fresh-outfit-2.jpg}}"
+        },
+        {
+          "description": "在路边的石阶上坐一会儿，草帽往后推了推。",
+          "url": "{{asset:img/portrait/fresh-outfit-3.jpg}}"
+        }
+      ],
+      "originId": "a-fresh-outfit",
+      "publishOffsetDays": -22,
+      "tags": [
+        "摄影",
+        "人像"
+      ],
+      "text": "<p>四月的第二个周末，老城公园那条花道开到了最盛。图片部的摄影师和模特约在下午四点半碰头：这个钟点太阳已经落到树梢以下，光从身后斜斜地照过来，头发和裙摆的边缘都镶着一圈亮边。</p>\n<p>造型只有一件白色棉布长裙，长袖，前襟一排小小的珍珠扣，裙摆很宽，走起来会轻轻荡开。没有首饰，唯一的配饰是一顶草帽。摄影师的想法很简单，春天的衣服要做减法，颜色交给满树的花去负责。</p>\n<p>三张照片对应三个动作：走，停，坐。拍摄只用了四十分钟，赶在光线变黄之前就收了工。铺在石板路上的花瓣没有人动过，是前一晚的风替大家布好的景。</p>",
+      "title": "春日白裙：花落满径的那个下午"
+    },
+    {
+      "channel": "portrait",
+      "ext": {
+        "author": "图片部",
+        "source": "本站原创"
+      },
+      "image": "{{asset:img/portrait/gentle-portrait.jpg}}",
+      "imageList": [
+        {
+          "description": "趴在主人肩头的小狗，先一步发现了镜头。",
+          "url": "{{asset:img/portrait/gentle-portrait-1.jpg}}"
+        },
+        {
+          "description": "钻进帆布包里逛夜市，只露出一个圆脑袋。",
+          "url": "{{asset:img/portrait/gentle-portrait-2.jpg}}"
+        },
+        {
+          "description": "脸贴着脸看向镜头，身后是一整条街的灯。",
+          "url": "{{asset:img/portrait/gentle-portrait-3.jpg}}"
+        },
+        {
+          "description": "低头看它的时候，它也正仰着头看她。",
+          "url": "{{asset:img/portrait/gentle-portrait-4.jpg}}"
+        },
+        {
+          "description": "逛累了，小狗在长凳上的臂弯里睡着了。",
+          "url": "{{asset:img/portrait/gentle-portrait-5.jpg}}"
+        }
+      ],
+      "originId": "a-gentle-portrait",
+      "publishOffsetDays": -21,
+      "tags": [
+        "摄影",
+        "人像",
+        "城市"
+      ],
+      "text": "<p>老城夜市每晚六点亮灯，一串串暖黄色的灯泡从街头一直挂到街尾。图片部这一期想拍的不是摊位，而是来逛夜市的人：住在附近的一位年轻姑娘，和她那只三岁的白色小狗。</p>\n<p>拍摄选在天刚擦黑的二十分钟。这时天空还留着一层蓝，灯光却已经足够亮，冷暖两种颜色正好同时落进画面。镜头的光圈开到最大，身后的灯被虚化成一个个圆形光斑。她穿了一件淡紫色卫衣，在一片暖色里很容易被看见。</p>\n<p>没有设计任何动作。小狗趴上肩头、钻进帆布包、被抱在怀里、最后在臂弯里睡着，全是它自己的主意。摄影师说，拍宠物没有诀窍，能做的只有跟着走，然后等。</p>",
+      "title": "夜市暖光里：她和小狗的五个瞬间"
+    },
+    {
+      "channel": "portrait",
+      "ext": {
+        "author": "图片部",
+        "source": "本站原创"
+      },
+      "image": "{{asset:img/portrait/red-scarf-snow.jpg}}",
+      "imageList": [
+        {
+          "description": "踩着新雪从林间小路走来，红围巾在身后扬起。",
+          "url": "{{asset:img/portrait/red-scarf-snow-1.jpg}}"
+        },
+        {
+          "description": "仰起脸闭上眼睛，让雪花一片片落在脸上。",
+          "url": "{{asset:img/portrait/red-scarf-snow-2.jpg}}"
+        },
+        {
+          "description": "伸出双手去接雪花，逆光里每一片都在发亮。",
+          "url": "{{asset:img/portrait/red-scarf-snow-3.jpg}}"
+        },
+        {
+          "description": "蹲下来，把红围巾系在刚堆好的小雪人身上。",
+          "url": "{{asset:img/portrait/red-scarf-snow-4.jpg}}"
+        },
+        {
+          "description": "湖边的冷杉高高立着，红围巾是雪地里唯一的亮色。",
+          "url": "{{asset:img/portrait/red-scarf-snow-5.jpg}}"
+        }
+      ],
+      "originId": "a-red-scarf-first-snow",
+      "publishOffsetDays": -19,
+      "tags": [
+        "摄影",
+        "人像"
+      ],
+      "text": "<p>入冬后的第一场雪在北部山区下了一整夜。清晨放晴时，空中还飘着零星的雪花，湖面结了一层薄冰，冷杉的枝条被压得很低。图片部的摄影师和模特天不亮就上了山，为的是赶上太阳刚越过山脊的那一个小时。</p>\n<p>雪地是最干净的背景，也是最难拍的背景，大片的白很容易显得单调。这一组的办法是只留一种鲜艳的颜色：米白色的长大衣和毛线帽几乎融进雪里，红围巾和红手套就成了每一张照片的落点。低角度的阳光还给雪面铺上一层淡蓝色的影子，层次自然就有了。</p>\n<p>五张照片从林间小路一直拍到湖边：走来、仰头看雪、伸手去接雪花、给小雪人系上围巾，最后站到高大的冷杉下。气温是零下六度，每拍十分钟就得回车里暖一暖手，笑容却都是真的。</p>",
+      "title": "初雪的早晨：红围巾走进冷杉林"
+    },
+    {
+      "channel": "portrait",
+      "ext": {
+        "author": "图片部",
+        "source": "本站原创"
+      },
+      "image": "{{asset:img/portrait/vintage-elegance.jpg}}",
+      "imageList": [
+        {
+          "description": "并肩坐在林间空地上说笑，夕阳给头发镶了一圈金边。",
+          "url": "{{asset:img/portrait/vintage-elegance-1.jpg}}"
+        },
+        {
+          "description": "靠在朋友肩头闭上眼睛，长裙铺在落满松针的地上。",
+          "url": "{{asset:img/portrait/vintage-elegance-2.jpg}}"
+        },
+        {
+          "description": "牵着手穿过高高的草丛，四周都是暖色的逆光。",
+          "url": "{{asset:img/portrait/vintage-elegance-3.jpg}}"
+        },
+        {
+          "description": "野餐垫上的藤篮、水果和一本摊开的笔记本。",
+          "url": "{{asset:img/portrait/vintage-elegance-4.jpg}}"
+        },
+        {
+          "description": "把一片蕨叶举到脸旁，蕾丝衣领上落着树影。",
+          "url": "{{asset:img/portrait/vintage-elegance-5.jpg}}"
+        }
+      ],
+      "originId": "a-vintage-elegance",
+      "publishOffsetDays": -20,
+      "tags": [
+        "摄影",
+        "人像"
+      ],
+      "text": "<p>这一期的两位模特不是职业模特，而是认识了十年的朋友。图片部给她们的要求只有两个字：自在。地点选在北部山区一片松林里的空地，时间是太阳落山前的那一个小时，光线从树干之间斜斜地照进来，空气里浮着细小的尘埃。</p>\n<p>服装是白色蕾丝衬衫和及踝长裙，一条棕色，一条灰绿色，款式说不清属于哪个年代。造型师说，复古穿搭的关键不在于还原某个时期，而在于比例：不紧绷，不闪亮，配饰少到可以全部放进口袋。</p>\n<p>五张照片里，她们并肩坐着大笑、靠在一起闭目养神、牵着手穿过高高的草丛，中间穿插了一张野餐垫的俯拍，最后是一张手持蕨叶的特写。没有谁在摆姿势，只是两个人像往常一样待了一个黄昏。</p>",
+      "title": "松林夕照里的复古蕾丝：两个朋友的一个黄昏"
+    }
+  ]
+}

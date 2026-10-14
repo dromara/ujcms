@@ -1,0 +1,25 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-forms.schema.json",
+  "forms": [
+    {
+      "enabled": true,
+      "itemTemplate": "form_item_enter",
+      "listTemplate": "form_list_enter",
+      "mode": 0,
+      "model": "在线报名",
+      "name": "在线报名",
+      "originId": "f-54c24cf2",
+      "viewable": true
+    },
+    {
+      "enabled": true,
+      "itemTemplate": "form_item_join",
+      "listTemplate": "form_list_join",
+      "mode": 0,
+      "model": "加盟意向",
+      "name": "加盟意向",
+      "originId": "f-d19a993a",
+      "viewable": true
+    }
+  ]
+}

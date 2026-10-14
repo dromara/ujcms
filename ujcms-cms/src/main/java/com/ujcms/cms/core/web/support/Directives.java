@@ -10,7 +10,7 @@ import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;

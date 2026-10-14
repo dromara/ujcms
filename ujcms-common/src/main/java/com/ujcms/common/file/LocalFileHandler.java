@@ -10,7 +10,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -65,7 +65,7 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, Template template, Map<String, Object> dataModel) {
-        File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        File dest = resolveNewFile(filename);
         try {
             FileUtils.forceMkdirParent(dest);
         } catch (IOException e) {
@@ -84,7 +84,7 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, MultipartFile part) {
-        File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        File dest = resolveNewFile(filename);
         try {
             FileUtils.forceMkdirParent(dest);
             part.transferTo(dest);
@@ -98,7 +98,7 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, RenderedImage image, String formatName) {
-        File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        File dest = resolveNewFile(filename);
         try {
             FileUtils.forceMkdirParent(dest);
             ImageIO.write(image, formatName, dest);
@@ -112,7 +112,7 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, File file) {
-        File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        File dest = resolveNewFile(filename);
         try {
             FileUtils.copyFile(file, dest);
             if (!dest.setReadable(true, false)) {
@@ -125,7 +125,7 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, InputStream source) {
-        File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        File dest = resolveNewFile(filename);
         try {
             FileUtils.forceMkdirParent(dest);
             FileUtils.copyToFile(source, dest);
@@ -139,7 +139,7 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, String text) {
-        File dest = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+        File dest = resolveNewFile(filename);
         try {
             FileUtils.forceMkdirParent(dest);
             FileUtils.write(dest, text, UTF_8);
@@ -149,6 +149,26 @@ public class LocalFileHandler implements FileHandler {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * 解析待写入（新建或覆盖）文件的本地路径。
+     * <p>
+     * 不能直接对目标文件调用 {@code getRealPath}：Tomcat 的资源根（StandardRoot）会缓存路径查找结果，
+     * 对尚不存在的路径同样记为“不存在”并保留 cacheTtl（默认 5 秒）。凡经 ServletContext 提供的静态资源
+     * （上传目录、主题目录、生成的静态页等），文件写入后在这段时间内仍被判定为 404，表现为刚上传的图片、
+     * 刚生成的页面短暂无法访问。目录条目的缓存不影响其下文件的查找，因此只对父目录取真实路径，再拼接文件名。
+     */
+    private File resolveNewFile(String filename) {
+        String normalized = normalize(filename);
+        int index = normalized.lastIndexOf(SLASH);
+        String parent = index > 0 ? normalized.substring(0, index) : SLASH;
+        String name = normalized.substring(index + 1);
+        String parentPath = pathResolver.getRealPath(parent, storePrefix);
+        if (parentPath == null) {
+            throw new IllegalStateException("Cannot resolve real path of directory: " + parent);
+        }
+        return new File(parentPath, name);
     }
 
     @Override
@@ -187,15 +207,30 @@ public class LocalFileHandler implements FileHandler {
     public void zip(String dir, String[] names, OutputStream out,
                     BiPredicate<String, Long> isAddEntry, Predicate<String> isAddDirEntry) {
         ZipUtils.zip(dir, names, out, new ZipHandler() {
+            // getRealPath 对 Tomcat 拒绝翻译的资源返回 null（如 allowLinking=false 下的软链——
+            // pnpm/npm 安装的主题 node_modules/.bin 即是）：跳过该条目并 WARN，不让整个备份 NPE 中断
+            @Nullable
+            private String realPath(String filename) {
+                String realPath = pathResolver.getRealPath(filename, storePrefix);
+                if (realPath == null) {
+                    logger.warn("Zip entry skipped, real path unresolvable (symlink?): {}", filename);
+                }
+                return realPath;
+            }
+
             @Override
             public boolean isDir(String filename) {
-                return new File(pathResolver.getRealPath(filename, storePrefix)).isDirectory();
+                String realPath = realPath(filename);
+                return realPath != null && new File(realPath).isDirectory();
             }
 
             @Override
             public String[] listChildren(String filename) {
-                return Optional.ofNullable(new File(pathResolver.getRealPath(filename, storePrefix)).list())
-                        .orElse(new String[]{});
+                String realPath = realPath(filename);
+                if (realPath == null) {
+                    return new String[]{};
+                }
+                return Optional.ofNullable(new File(realPath).list()).orElse(new String[]{});
             }
 
             @Override
@@ -209,7 +244,11 @@ public class LocalFileHandler implements FileHandler {
 
             @Override
             public void addEntry(String filename, String entryName, ZipOutputStream zipOut) throws IOException {
-                File file = new File(pathResolver.getRealPath(normalize(filename), storePrefix));
+                String realPath = realPath(normalize(filename));
+                if (realPath == null) {
+                    return;
+                }
+                File file = new File(realPath);
                 if (!file.exists()) {
                     return;
                 }
@@ -329,7 +368,7 @@ public class LocalFileHandler implements FileHandler {
     @Override
     public void copy(String src, String dest) {
         File srcFile = new File(pathResolver.getRealPath(normalize(src), storePrefix));
-        File destFile = new File(pathResolver.getRealPath(normalize(dest), storePrefix));
+        File destFile = resolveNewFile(dest);
         try {
             if (srcFile.isDirectory()) {
                 FileUtils.copyDirectory(srcFile, destFile);

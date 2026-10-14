@@ -1,7 +1,7 @@
 import { h } from 'vue';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import i18n from '@/i18n';
+import i18n, { getLocaleHeaders } from '@/i18n';
 import { getAuthHeaders, removeAccessToken, removeRefreshToken, setAccessAt } from '@/utils/auth';
 import { getSiteHeaders } from '@/utils/common';
 import { useCurrentSiteStore } from '@/stores/currentSiteStore';
@@ -42,8 +42,8 @@ const service = axios.create({
 service.interceptors.request.use(
   (config) => {
     setAccessAt(Date.now());
-     
-    config.headers = { ...config.headers, ...getAuthHeaders(), ...getSiteHeaders() };
+
+    config.headers = { ...config.headers, ...getAuthHeaders(), ...getSiteHeaders(), ...getLocaleHeaders() };
     return config;
   },
   (error) => Promise.reject(error),
@@ -59,12 +59,23 @@ export interface ErrorInfo {
   status?: number;
 }
 
+/** 当前正在显示的微信接口错误提示，用于合并同一页面并发请求产生的相同提示 */
+let openWechatAlert: string | undefined;
+
 export const handleError = ({ timestamp, message, path, error, exception, trace, status }: ErrorInfo): void => {
   if (exception === 'com.ujcms.cms.core.web.support.SiteForbiddenException') {
     //没有当前站点权限，清空站点信息，刷新页面以获取默认站点
     useCurrentSiteStore().setCurrentSiteId(null);
     window.location.reload();
-  } else if (exception === 'com.ujcms.commons.web.exception.LogicException') {
+  } else if (exception === 'com.ujcms.cms.commercial.t3.component.WechatApiException') {
+    // 微信接口错误：后端已生成含错误码与处理建议的提示，只显示提示，不显示堆栈。
+    // 列表页会同时请求列表和数量，同一提示只弹一次
+    if (openWechatAlert !== message) {
+      openWechatAlert = message;
+      const reset = () => (openWechatAlert = undefined);
+      ElMessageBox.alert(message, { type: 'warning' }).then(reset, reset);
+    }
+  } else if (exception === 'com.ujcms.common.web.exception.LogicException') {
     ElMessageBox.alert(message, { type: 'warning' });
   } else if (status === 401) {
     removeAccessToken();
@@ -97,12 +108,36 @@ export const handleError = ({ timestamp, message, path, error, exception, trace,
   }
 };
 
+/**
+ * responseType 为 blob 的请求（文件下载）失败时，错误响应体同样是 Blob：解析出其中的 JSON 再按普通错误提示。
+ * 这类请求须带 skipErrorHandler，由调用方 catch 后交给本函数
+ */
+export const handleBlobError = async (e: any): Promise<void> => {
+  let data = e?.response?.data;
+  if (data instanceof Blob) {
+    try {
+      data = JSON.parse(await data.text());
+    } catch {
+      data = undefined;
+    }
+  }
+  if (data != null && typeof data === 'object') {
+    handleError(data);
+    return;
+  }
+  handleError({ status: e?.response?.status });
+};
+
 service.interceptors.response.use(
   (response) => response,
   (e) => {
     const {
       response: { data, status, statusText },
     } = e;
+    // 调用方自行处理错误（如 409 乐观锁冲突的 diff 后重试），跳过全局弹窗，抛出原始错误
+    if ((e.config as any)?.skipErrorHandler) {
+      return Promise.reject(e);
+    }
     // spring boot 的响应
     if (data) {
       handleError(data);

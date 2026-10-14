@@ -20,6 +20,21 @@
       <property name="tableName" value="ujcms_short_message" />
     </include>
   </select>
+  <update id="increaseAttempts">
+    update ujcms_short_message
+    set attempts_ = attempts_ + 1
+    where id_ = #{id,jdbcType=BIGINT} and status_ = 0 and attempts_ &lt; #{maxAttempts,jdbcType=INTEGER}
+  </update>
+  <update id="updateStatusIfUnused">
+    update ujcms_short_message
+    set status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT} and status_ = 0
+  </update>
+  <update id="exceedIfAttemptsReached">
+    update ujcms_short_message
+    set status_ = #{status,jdbcType=SMALLINT}
+    where id_ = #{id,jdbcType=BIGINT} and status_ = 0 and attempts_ &gt;= #{maxAttempts,jdbcType=INTEGER}
+  </update>
   <select id="select" parameterType="java.lang.Long" resultMap="ResultMap">
     select 
     <include refid="Column_List" />

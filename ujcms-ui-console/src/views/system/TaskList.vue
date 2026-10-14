@@ -41,7 +41,7 @@ const fetchData = async () => {
 };
 onMounted(fetchData);
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -75,6 +75,7 @@ defineExpose({ fetchData });
     <div class="mb-3">
       <query-form :params="params" @search="handleSearch" @reset="handleReset">
         <query-item :label="$t('task.name')" name="Q_Contains_name"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div>
@@ -89,10 +90,10 @@ defineExpose({ fetchData });
       <el-table ref="table" v-loading="loading" :data="data" @selection-change="(rows) => (selection = rows)" @row-dblclick="(row) => handleEdit(row.id)" @sort-change="handleSort">
         <column-list name="task">
           <el-table-column type="selection" width="38"></el-table-column>
-          <el-table-column property="id" label="ID" width="170" sortable="custom"></el-table-column>
+          <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
           <el-table-column property="name" :label="$t('task.name')" sortable="custom" min-width="150" show-overflow-tooltip></el-table-column>
-          <el-table-column property="beginDate" :label="$t('task.beginDate')" sortable="custom" width="170">
-            <template #default="{ row }">{{ dayjs(row.beginDate).format('YYYY-MM-DD HH:mm:ss') }}</template>
+          <el-table-column property="startDate" :label="$t('task.startDate')" sortable="custom" width="170">
+            <template #default="{ row }">{{ dayjs(row.startDate).format('YYYY-MM-DD HH:mm:ss') }}</template>
           </el-table-column>
           <el-table-column property="endDate" :label="$t('task.endDate')" sortable="custom" width="170" display="none">
             <template #default="{ row }">{{ dayjs(row.endDate).format('YYYY-MM-DD HH:mm:ss') }}</template>

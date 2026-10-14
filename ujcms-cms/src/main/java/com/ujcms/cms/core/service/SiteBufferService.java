@@ -2,7 +2,7 @@ package com.ujcms.cms.core.service;
 
 import com.ujcms.cms.core.domain.SiteBuffer;
 import com.ujcms.cms.core.mapper.SiteBufferMapper;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

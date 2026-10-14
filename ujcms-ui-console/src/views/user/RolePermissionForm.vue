@@ -3,10 +3,11 @@ import { ref, watch, computed, onMounted, toRefs, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getPermsTreeData } from '@/data';
 import { toTree, flatTree, disablePermissionTree } from '@/utils/tree';
-import { currentUser } from '@/stores/useCurrentUser';
+import { currentUser, isShowTier } from '@/stores/useCurrentUser';
 import { queryRole, updateRolePermission, queryRoleArticlePermissions, queryRoleChannelPermissions, queryRoleOrgPermissions, queryOrgList } from '@/api/user';
 import { queryChannelList } from '@/api/content';
 import LabelTip from '@/components/LabelTip.vue';
+import { loadOrClose } from '@/utils/common';
 
 defineOptions({
   name: 'RolePermissionForm',
@@ -45,7 +46,7 @@ const orgData = ref<any[]>([]);
 const disabled = computed(() => (bean.value.global && !currentUser.globalPermission) || currentUser.rank > bean.value.rank);
 const fetchRole = async () => {
   if (beanId.value != null) {
-    bean.value = await queryRole(beanId.value);
+    bean.value = await loadOrClose(() => queryRole(beanId.value), () => emit('update:modelValue', false));
     values.value = { ...bean.value };
     // 树组件先加载好，再赋值
     nextTick().then(() => {
@@ -194,8 +195,9 @@ const getPermission = (checkedNodes: any[], halfCheckedNodes: any[]) =>
               <el-tree ref="permissionTree" :data="permsData" node-key="key" class="border rounded" show-checkbox @check="() => handlePermission()" />
             </template>
           </el-tab-pane>
-          <el-tab-pane v-if="currentUser.epRank >= 1 || currentUser.epDisplay" :label="$t('role.grantPermission')" name="grantPermission">
-            <template v-if="currentUser.epRank >= 1">
+          <el-tab-pane v-if="isShowTier(1)" name="grantPermission">
+            <template #label>{{ $t('role.grantPermission') }}<commercial-badge v-if="currentUser.commercialTier < 1" :tier="1" class="ml-1" /></template>
+            <template v-if="currentUser.commercialTier >= 1">
               <el-alert :title="$t('role.grantPermission.tooltip')" type="info" :closable="false" show-icon />
               <el-form-item prop="allGrantPermission" class="mt-3">
                 <template #label><label-tip message="role.allGrantPermission" /></template>
@@ -219,13 +221,12 @@ const getPermission = (checkedNodes: any[], halfCheckedNodes: any[]) =>
               </template>
             </template>
             <template v-else>
-              <el-alert type="warning" :closable="false" :show-icon="true">
-                <template #title><span v-html="$t('error.enterprise.short')"></span></template>
-              </el-alert>
+              <commercial-notice :tier="1" />
             </template>
           </el-tab-pane>
-          <el-tab-pane v-if="currentUser.epRank >= 1 || currentUser.epDisplay" :label="$t('role.dataPermission')" name="dataPermission">
-            <template v-if="currentUser.epRank >= 1">
+          <el-tab-pane v-if="isShowTier(1)" name="dataPermission">
+            <template #label>{{ $t('role.dataPermission') }}<commercial-badge v-if="currentUser.commercialTier < 1" :tier="1" class="ml-1" /></template>
+            <template v-if="currentUser.commercialTier >= 1">
               <el-form-item prop="globalPermission" :rules="{ required: true, message: () => $t('v.required') }">
                 <template #label><label-tip message="role.globalPermission" help /></template>
                 <el-switch v-model="values.globalPermission" :disabled="!currentUser.globalPermission"></el-switch>
@@ -268,13 +269,12 @@ const getPermission = (checkedNodes: any[], halfCheckedNodes: any[]) =>
               </template>
             </template>
             <template v-else>
-              <el-alert type="warning" :closable="false" :show-icon="true">
-                <template #title><span v-html="$t('error.enterprise.short')"></span></template>
-              </el-alert>
+              <commercial-notice :tier="1" />
             </template>
           </el-tab-pane>
-          <el-tab-pane v-if="currentUser.epRank >= 1 || currentUser.epDisplay" :label="$t('role.articlePermission')" name="articlePermission">
-            <template v-if="currentUser.epRank >= 1">
+          <el-tab-pane v-if="isShowTier(1)" name="articlePermission">
+            <template #label>{{ $t('role.articlePermission') }}<commercial-badge v-if="currentUser.commercialTier < 1" :tier="1" class="ml-1" /></template>
+            <template v-if="currentUser.commercialTier >= 1">
               <el-form-item prop="allArticlePermission">
                 <template #label><label-tip message="role.allArticlePermission" help /></template>
                 <el-switch v-model="values.allArticlePermission"></el-switch>
@@ -309,13 +309,12 @@ const getPermission = (checkedNodes: any[], halfCheckedNodes: any[]) =>
               </template>
             </template>
             <template v-else>
-              <el-alert type="warning" :closable="false" :show-icon="true">
-                <template #title><span v-html="$t('error.enterprise.short')"></span></template>
-              </el-alert>
+              <commercial-notice :tier="1" />
             </template>
           </el-tab-pane>
-          <el-tab-pane v-if="currentUser.epRank >= 1 || currentUser.epDisplay" :label="$t('role.channelPermission')" name="channelPermission">
-            <template v-if="currentUser.epRank >= 1">
+          <el-tab-pane v-if="isShowTier(1)" name="channelPermission">
+            <template #label>{{ $t('role.channelPermission') }}<commercial-badge v-if="currentUser.commercialTier < 1" :tier="1" class="ml-1" /></template>
+            <template v-if="currentUser.commercialTier >= 1">
               <el-form-item prop="allChannelPermission">
                 <template #label><label-tip message="role.allChannelPermission" help /></template>
                 <el-switch v-model="values.allChannelPermission"></el-switch>
@@ -351,9 +350,7 @@ const getPermission = (checkedNodes: any[], halfCheckedNodes: any[]) =>
               </template>
             </template>
             <template v-else>
-              <el-alert type="warning" :closable="false" :show-icon="true">
-                <template #title><span v-html="$t('error.enterprise.short')"></span></template>
-              </el-alert>
+              <commercial-notice :tier="1" />
             </template>
           </el-tab-pane>
         </el-tabs>

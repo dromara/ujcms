@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783987200000-1
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueBoolean: false
+                  name: ai_generated_
+                  remarks: 是否含AI生成内容
+                  type: BOOLEAN
+            tableName: ujcms_article_ext

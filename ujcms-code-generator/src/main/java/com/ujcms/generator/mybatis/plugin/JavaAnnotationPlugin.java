@@ -21,6 +21,11 @@ public class JavaAnnotationPlugin extends PluginAdapter {
         return true;
     }
 
+    /**
+     * Portions of this class are derived from MyBatis Generator 1.4.2
+     * (org.mybatis.generator.plugins.MapperAnnotationPlugin), Copyright 2006-2022 the original author or authors,
+     * Apache License 2.0 (licenses/Apache-2.0.txt), and were modified for UJCMS.
+     */
     @Override
     public boolean clientGenerated(Interface interfaze, IntrospectedTable introspectedTable) {
         if (introspectedTable.getTargetRuntime() == IntrospectedTable.TargetRuntime.MYBATIS3) {
@@ -35,7 +40,7 @@ public class JavaAnnotationPlugin extends PluginAdapter {
 
     @Override
     public boolean clientSelectByPrimaryKeyMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
-        interfaze.addImportedType(new FullyQualifiedJavaType("org.springframework.lang.Nullable"));
+        interfaze.addImportedType(new FullyQualifiedJavaType("org.jspecify.annotations.Nullable"));
         method.addAnnotation("@Nullable");
 
         if("true".equalsIgnoreCase(introspectedTable.getTableConfigurationProperty("order"))) {
@@ -126,7 +131,7 @@ public class JavaAnnotationPlugin extends PluginAdapter {
 
         if (introspectedColumn.isNullable()) {
             // 可为空的，给 @Nullable 注解
-            topLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.lang.Nullable"));
+            topLevelClass.addImportedType(new FullyQualifiedJavaType("org.jspecify.annotations.Nullable"));
             field.addAnnotation("@Nullable");
         } else {
             // 不可为空的，给 @NotNull 校验注解
@@ -201,7 +206,7 @@ public class JavaAnnotationPlugin extends PluginAdapter {
         //     field.setName(Strings.toLowerCase(String.valueOf(field.getName().charAt(2))) + field.getName().substring(3));
         // }
         if (introspectedColumn.isNullable()) {
-            topLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.lang.Nullable"));
+            topLevelClass.addImportedType(new FullyQualifiedJavaType("org.jspecify.annotations.Nullable"));
             method.addAnnotation("@Nullable");
         }
         return true;
@@ -211,7 +216,7 @@ public class JavaAnnotationPlugin extends PluginAdapter {
     public boolean modelSetterMethodGenerated(Method method, TopLevelClass topLevelClass, IntrospectedColumn introspectedColumn,
                                               IntrospectedTable introspectedTable, ModelClassType modelClassType) {
         if (introspectedColumn.isNullable()) {
-            topLevelClass.addImportedType(new FullyQualifiedJavaType("org.springframework.lang.Nullable"));
+            topLevelClass.addImportedType(new FullyQualifiedJavaType("org.jspecify.annotations.Nullable"));
             method.getParameters().forEach(parameter -> parameter.addAnnotation("@Nullable"));
         }
         return true;

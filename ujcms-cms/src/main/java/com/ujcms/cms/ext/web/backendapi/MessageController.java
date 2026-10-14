@@ -175,8 +175,8 @@ public class MessageController {
         }
         Map<String, Object> queryMap = new HashMap<>(16);
         // 同组条件为 OR：用户名或昵称包含关键字
-        queryMap.put("Contains_1_username", q);
-        queryMap.put("Contains_1_nickname", q);
+        queryMap.put("Contains_0q_username", q);
+        queryMap.put("Contains_0q_nickname", q);
         queryMap.put("NE_status_Short", User.STATUS_CANCELLED);
         queryMap.put("NE_id_Long", User.ANONYMOUS_ID);
         List<User> users = userService.selectList(UserArgs.of(queryMap), 0,

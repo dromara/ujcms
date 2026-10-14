@@ -1,0 +1,89 @@
+databaseChangeLog:
+  # 全局配置列演进（原 11.5 + 11.x-marketplace-connection——13.0 重整）：
+  #
+  # 一、全部 *_settings_ 列由 VARCHAR 改为 MEDIUMTEXT：
+  #   1. 摆脱 MySQL 单行 65535 字节上限——该表 VARCHAR 列在 utf8mb4 下已逼近上限，
+  #      继续保留小 VARCHAR 既限制配置体积，也让"整列加密"无法落库。
+  #   2. 与全库其它大文本列统一为 MEDIUMTEXT（Liquibase 按方言翻译为各库原生 CLOB/TEXT）。
+  #   实现取"删列-重加"而非 modifyDataType：Oracle 系数据库（达梦 DM）禁止将 VARCHAR2
+  #   直接 ALTER 为 CLOB（ORA-22858）。原 11.5 为保全存量数据采用"加列-拷贝-删列-改名"，
+  #   13.0 起变更日志仅服务全新建库（引导数据脚本在变更日志之后执行，此时表恒为空），
+  #   无数据可保全，直接删旧列、按目标类型重建。
+  #
+  # 二、marketplace_settings_：应用市场账号连接（remote-marketplace C2 / D-C1-1）——
+  #   设备授权流令牌与连接账号信息（JSON 串），部署级唯一连接（不落 ujcms_site 行）。
+  #   整列 SM4-GCM 加密（config-secrets 约定，Sm4StringTypeHandler 挂在 ConfigMapper.xml），
+  #   列宽随之取 MEDIUMTEXT。该列只由 ConfigMapper.updateMarketplaceSettings 单列写入——
+  #   令牌在运行期随刷新轮换，不进通用 update/updateBase（后台"全局设置"整行保存
+  #   不得用陈旧值复活已作废的 refresh token）。
+  #
+  # 敏感列（sms/email/*storage/marketplace）的整列 SM4-GCM 加密由 ConfigMapper.xml 的
+  # TypeHandler 负责，与本 DDL 无关。
+
+  - changeSet:
+      id: 13.0-config-settings-to-mediumtext
+      author: PONY
+      changes:
+        - dropColumn:
+            tableName: ujcms_config
+            columns:
+              - column: { name: upload_settings_ }
+              - column: { name: grey_settings_ }
+              - column: { name: security_settings_ }
+              - column: { name: register_settings_ }
+              - column: { name: sms_settings_ }
+              - column: { name: email_settings_ }
+              - column: { name: upload_storage_settings_ }
+              - column: { name: html_storage_settings_ }
+              - column: { name: template_storage_settings_ }
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: upload_settings_
+                  remarks: 上传设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: grey_settings_
+                  remarks: 置灰设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: security_settings_
+                  remarks: 安全设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: register_settings_
+                  remarks: 注册设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: sms_settings_
+                  remarks: 短信设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: email_settings_
+                  remarks: 邮件设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: upload_storage_settings_
+                  remarks: 附件存储点设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: html_storage_settings_
+                  remarks: HTML存储点设置
+                  type: MEDIUMTEXT
+              - column:
+                  name: template_storage_settings_
+                  remarks: 模板存储点设置
+                  type: MEDIUMTEXT
+
+  - changeSet:
+      id: 13.0-config-marketplace-connection
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: marketplace_settings_
+                  remarks: 应用市场连接设置(加密JSON)
+                  type: MEDIUMTEXT

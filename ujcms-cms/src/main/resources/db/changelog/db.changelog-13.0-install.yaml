@@ -1,0 +1,35 @@
+databaseChangeLog:
+  # 安装状态机（install-flow §3 / D1）：NOT_INSTALLED（无 config 行）→ coreReady → installed。
+  #
+  # install_state_ 由首装引导在数据脚本之后写入 'coreReady'；安装引擎完成时以守卫单行
+  # UPDATE（WHERE install_state_ IS NULL OR install_state_ != 'installed'）翻转为
+  # 'installed'——并发安装器与集群节点下原子（数据库是唯一共享事实）。行存在但列为 NULL
+  # 视同 coreReady（数据脚本与状态写入之间崩溃的续装窗口），绝不视同已安装。
+  #
+  # install_token_hash_ 为一次性安装令牌的 SM3 摘要（D12）：引导时生成、明文仅打印日志、
+  # 所有安装 API 必带；翻转 'installed' 时清空作废。两列只经 ConfigMapper 专用单列语句
+  # 读写，不进实体/通用 update（令牌摘要不得进入任何序列化路径）。
+  #
+  # 既有库回填：列先于状态机存在的 config 行即已安装系统，加列后回填 'installed'。
+  # 全新空库在变更日志运行时表恒为空（引导数据脚本在变更日志之后执行），回填为空操作。
+  - changeSet:
+      id: 13.0-config-install-state
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: install_state_
+                  remarks: 安装状态(coreReady,installed)
+                  type: VARCHAR(20)
+              - column:
+                  name: install_token_hash_
+                  remarks: 一次性安装令牌摘要(SM3)
+                  type: VARCHAR(64)
+        - update:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: install_state_
+                  value: installed

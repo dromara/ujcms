@@ -1,0 +1,34 @@
+[#--
+  面板片段：精选专题（TopicList）。纯设置组件（vote-micro-region §5 先例）：最新专题经
+  [@TopicList] 自取，条数由 settings.limit 控制。视觉复刻原 right.html 硬编码模块。
+  商业版 T2 功能（2026-09-15 起 /topic 与 [@TopicList] 由 T2 提供）——社区版/基础版不输出，
+  门禁与 SurveyList.html、FormTypeList.html 一致（CommercialDirectiveGuardTest 校验）。
+--]
+[#escape x as (x)!?html]
+[#if config.commercialTier gte 2]
+[@TopicList limit=(settings.limit)!4; topicList]
+[#if topicList?size gt 0]
+<section>
+  [#if (settings.title)?has_content]
+  <h5 class="flex items-center gap-2 text-base font-semibold mb-4">
+    <span class="size-5 text-primary inline-block">[@icon 'bookmark-outline'/]</span>
+    <a href="${dy}/topic" class="cm-link">${settings.title}</a>
+  </h5>
+  [/#if]
+  <div class="space-y-3">
+    [#list topicList as bean]
+      <div class="space-y-1">
+        [#if bean.image?has_content]
+          <a href="${bean.url}" class="block overflow-hidden rounded">
+            <img src="${bean.image}" alt="${bean.title}" class="w-full aspect-video object-cover" loading="lazy" decoding="async">
+          </a>
+        [/#if]
+        <a href="${bean.url}" class="cm-link text-sm">${bean.title}</a>
+      </div>
+    [/#list]
+  </div>
+</section>
+[/#if]
+[/@TopicList]
+[/#if]
+[/#escape]

@@ -1,0 +1,6 @@
+/mvnw text eol=lf
+*.cmd text eol=crlf
+# 容器入口脚本等 shell 脚本必须为 LF：Windows 下 autocrlf 检出成 CRLF 后，镜像内会报 exec docker-entrypoint.sh: no such file or directory
+*.sh text eol=lf
+
+*.md text eol=lf

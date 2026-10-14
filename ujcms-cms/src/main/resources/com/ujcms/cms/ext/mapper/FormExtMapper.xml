@@ -23,6 +23,11 @@
   <delete id="delete" parameterType="java.lang.Long">
     delete from ujcms_form_ext
     where id_ = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_form_ext
+    where id_ in (select t.id_ from ujcms_form t where t.site_id_ = #{siteId,jdbcType=BIGINT})
   </delete><update id="update" parameterType="com.ujcms.cms.ext.domain.FormExt">
     update ujcms_form_ext
     set clobs_json_ = #{clobsJson,jdbcType=OTHER}

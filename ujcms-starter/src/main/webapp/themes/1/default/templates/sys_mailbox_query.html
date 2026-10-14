@@ -1,0 +1,149 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'mailbox'/]
+[#assign mbUrl = dy + '/mailbox'/]
+[@layout title='信件查询 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${mbUrl}" class="cm-link text-slate-700">领导信箱</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">信件查询</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4"
+  x-data="{
+    id: '${Params.id!?js_string}', code: '',
+    bean: null, notFound: false, querying: false,
+    rate: '1', rateText: '', rating: false,
+    typeMap: {1:'咨询',2:'建议',3:'投诉',4:'求助',5:'表扬'},
+    statusMap: {0:['待受理','bg-amber-100 text-amber-700'],1:['已受理','bg-sky-100 text-sky-700'],2:['已退回','bg-rose-100 text-rose-700'],3:['已答复','bg-emerald-100 text-emerald-700']},
+    rateMap: {1:'满意',2:'基本满意',3:'不满意'},
+    fmt(v) { return v ? window.formatDateTime(v, false) : '—'; },
+    async query() {
+      const id = this.id.trim(), code = this.code.trim();
+      if (!id || !code || this.querying) return;
+      this.querying = true;
+      try {
+        const res = await fetch('${api}/mailbox/query?id=' + encodeURIComponent(id) + '&code=' + encodeURIComponent(code), { credentials: 'include' });
+        if (!res.ok) throw new Error();
+        this.bean = await res.json();
+        this.notFound = false;
+      } catch (e) {
+        this.bean = null;
+        this.notFound = true;
+      } finally {
+        this.querying = false;
+      }
+    },
+    async submitRate() {
+      if (this.rating || !this.bean) return;
+      this.rating = true;
+      try {
+        await window.fetchCsrf();
+        await window.request('POST', '${api}/mailbox/rate', {
+          id: this.id.trim(), code: this.code.trim(),
+          rate: parseInt(this.rate, 10), rateText: this.rateText.trim(),
+        });
+        window.displaySuccess('评价提交成功，感谢您的反馈。');
+        await this.query();
+      } catch (e) {
+        if (e.status === 400) window.displayAlert('当前信件不可评价或已评价，请重新查询确认办理状态。');
+        else if (e.status === 404) window.displayAlert('信件编号或查询码不正确，请核对后重试。');
+        else window.displayAlert('评价提交失败，请刷新后重试。');
+      } finally {
+        this.rating = false;
+      }
+    }
+  }"
+>
+  <div class="flex flex-wrap justify-between items-baseline gap-2 border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'search'/]</span>
+      <span>信件查询</span>
+    </h1>
+    <div class="flex gap-2 text-sm">
+      <a href="${mbUrl}/create" class="cm-link">我要写信</a>
+      <a href="${mbUrl}" class="cm-link">领导信箱</a>
+    </div>
+  </div>
+
+  <form @submit.prevent="query" class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-4 max-w-xl">
+    <div>
+      <label for="queryId" class="block text-sm font-medium text-slate-700 mb-1.5">信件编号 <strong class="text-rose-600">*</strong></label>
+      <input id="queryId" type="text" required x-model="id"
+             class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+    </div>
+    <div>
+      <label for="queryCode" class="block text-sm font-medium text-slate-700 mb-1.5">查询码 <strong class="text-rose-600">*</strong></label>
+      <input id="queryCode" type="text" required autocomplete="off" x-model="code"
+             class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+    </div>
+    <button type="submit" :disabled="querying"
+            class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+      <span x-show="!querying">查询</span>
+      <span x-show="querying" x-cloak>查询中…</span>
+    </button>
+  </form>
+
+  <p x-show="notFound" x-cloak class="px-4 py-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm">
+    信件编号或查询码不正确，请核对后重试。
+  </p>
+
+  <div x-show="bean" x-cloak class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-4">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2" x-text="bean && bean.title"></h2>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      <div class="flex gap-2"><dt class="text-slate-500 shrink-0">写信人：</dt><dd x-text="bean && bean.name"></dd></div>
+      <div class="flex gap-2"><dt class="text-slate-500 shrink-0">信件类型：</dt><dd x-text="bean && (typeMap[bean.type] || bean.type)"></dd></div>
+      <div class="flex gap-2"><dt class="text-slate-500 shrink-0">来信日期：</dt><dd x-text="bean && fmt(bean.created)"></dd></div>
+      <div class="flex gap-2 items-center">
+        <dt class="text-slate-500 shrink-0">当前状态：</dt>
+        <dd class="flex items-center gap-1.5">
+          <span class="px-2 py-0.5 rounded text-xs"
+                :class="bean && (statusMap[bean.status] || ['', 'bg-slate-100 text-slate-600'])[1]"
+                x-text="bean && (statusMap[bean.status] || [String(bean.status)])[0]"></span>
+          <span x-show="bean && bean.extended" class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs">已延期</span>
+        </dd>
+      </div>
+      <div class="flex gap-2"><dt class="text-slate-500 shrink-0">受理日期：</dt><dd x-text="bean && fmt(bean.acceptDate)"></dd></div>
+      <div class="flex gap-2"><dt class="text-slate-500 shrink-0">答复日期：</dt><dd x-text="bean && fmt(bean.replyDate)"></dd></div>
+      <div class="flex gap-2"><dt class="text-slate-500 shrink-0">办理单位：</dt><dd>${site.name}</dd></div>
+    </dl>
+
+    <div x-show="bean && bean.rejectText" class="px-4 py-3 rounded-md bg-rose-50 border border-rose-200 text-sm">
+      <strong class="text-rose-700">退回原因：</strong><span x-text="bean && bean.rejectText"></span>
+    </div>
+
+    <div x-show="bean && bean.status === 3">
+      <h3 class="font-semibold border-b border-slate-200 pb-1.5 mb-2">答复内容</h3>
+      [#-- 答复内容为管理员在后台编辑的富文本，可信内容 --]
+      <div class="prose prose-sm max-w-none" x-html="(bean && bean.replyText) || ''"></div>
+    </div>
+
+    <div x-show="bean && bean.rate != null" class="px-4 py-3 rounded-md bg-slate-50 border border-slate-200 text-sm">
+      <strong>满意度评价：</strong><span x-text="bean && (rateMap[bean.rate] || bean.rate)"></span>
+      <p class="text-slate-500 mt-1" x-show="bean && bean.rateText" x-text="bean && bean.rateText"></p>
+    </div>
+
+    <form x-show="bean && bean.status === 3 && bean.rate == null" @submit.prevent="submitRate"
+          class="rounded-md bg-slate-50 border border-slate-200 p-4 space-y-3">
+      <p class="text-sm"><strong>满意度评价</strong>（对本次办理答复进行评价，评价提交后不可修改）</p>
+      <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <label class="inline-flex items-center gap-1.5"><input type="radio" name="rate" value="1" x-model="rate" class="accent-primary"><span>满意</span></label>
+        <label class="inline-flex items-center gap-1.5"><input type="radio" name="rate" value="2" x-model="rate" class="accent-primary"><span>基本满意</span></label>
+        <label class="inline-flex items-center gap-1.5"><input type="radio" name="rate" value="3" x-model="rate" class="accent-primary"><span>不满意</span></label>
+      </div>
+      <textarea rows="3" maxlength="500" placeholder="评价意见（选填）" x-model="rateText" aria-label="评价意见"
+                class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"></textarea>
+      <button type="submit" :disabled="rating"
+              class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">提交评价</button>
+    </form>
+  </div>
+</div>
+[/@layout]
+[/#escape]

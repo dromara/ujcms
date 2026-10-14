@@ -1,0 +1,31 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "education",
+      "ext": {
+        "doc": "{{asset:media/freemarker_manual_zh_cn.pdf}}",
+        "docLength": 299685,
+        "docName": "FreeMarker模板入门手册.pdf"
+      },
+      "image": "{{asset:img/education/freemarker-manual-pdf.png}}",
+      "originId": "a-freemarker-manual-pdf",
+      "publishOffsetDays": -7,
+      "text": "<p>这本手册由 UJCMS 项目编写，共十二页，写给准备修改默认主题、或者打算从头做一套主题的开发者。全书按“先看目录，再学语法，最后取数据”的顺序安排，代码示例都取自默认主题自带的模板文件，篇幅短小，可以照着改。</p>\n<h3>章节提要</h3>\n<dl>\n<dt>主题目录结构（第4页）</dt>\n<dd>布局、页面模板、公共片段和静态资源各放在哪里，一张页面怎样拼起来。</dd>\n<dt>基本语法（第5至6页）</dt>\n<dd>插值、注释、缺省值、判断变量是否存在，以及五个常用内建函数。</dd>\n<dt>常用指令（第7至8页）</dt>\n<dd>定义变量、条件判断、循环、包含、宏和转义，每个指令配一段模板片段。</dd>\n<dt>数据标签（第9至10页）</dt>\n<dd>文章列表、分页列表、栏目列表和专题列表的写法与参数说明。</dd>\n<dt>常见问题（第11页）</dt>\n<dd>变量为空、内容被转义、日期与数字的格式、改完页面不更新。</dd>\n</dl>\n<h3>读完能做什么</h3>\n<p>说得出默认主题各个目录的用途，读得懂模板里的插值与指令，并能用数据标签把后台录入的内容输出到页面。通读一遍大约四十分钟。</p>",
+      "title": "FreeMarker 模板入门手册（PDF）"
+    },
+    {
+      "channel": "education",
+      "ext": {
+        "doc": "{{asset:media/freemarker_manual_zh_cn.pdf}}",
+        "docLength": 299685,
+        "docName": "FreeMarker模板入门手册.pdf"
+      },
+      "image": "{{asset:img/education/freemarker-manual-contents.png}}",
+      "originId": "a-theme-template-guide-pdf",
+      "publishOffsetDays": -6,
+      "text": "<p>这篇导读写给已经装好站点、准备动手改默认主题的开发者。它不按章节讲语法，而是从最常见的五件事出发，告诉你该翻到《FreeMarker 模板入门手册》的哪一页。本页可以直接翻阅的文件就是这本手册，共十二页。</p>\n<h3>从要做的事找页码</h3>\n<table>\n<thead>\n<tr><th>想做的事</th><th>翻到哪里</th></tr>\n</thead>\n<tbody>\n<tr><td>改页头、页脚</td><td>第4页：布局宏与公共片段</td></tr>\n<tr><td>调整首页“最新文章”的条数和排序</td><td>第9页：文章列表标签及参数</td></tr>\n<tr><td>给栏目页加上分页</td><td>第9页：分页列表</td></tr>\n<tr><td>输出同级栏目的导航</td><td>第10页：栏目列表</td></tr>\n<tr><td>页面报错，或内容被原样显示</td><td>第11页：常见问题</td></tr>\n</tbody>\n</table>\n<h3>两个容易踩的地方</h3>\n<ul>\n<li>用包含指令引入的片段不受外层转义保护，转义要在片段里另写一遍（第8页）；</li>\n<li>数字用在链接或脚本里时，要按不带千位分隔符的写法输出（第11页）。</li>\n</ul>\n<p>动手之前，先确认改的是站点正在使用的那套主题。</p>",
+      "title": "UJCMS 默认主题模板开发入门（PDF）"
+    }
+  ]
+}

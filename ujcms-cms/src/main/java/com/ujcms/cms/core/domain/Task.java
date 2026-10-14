@@ -34,7 +34,7 @@ public class Task extends GeneratedTask {
     public long getProcessedIn() {
         OffsetDateTime endDate = getEndDate();
         long endMillis = endDate != null ? endDate.toInstant().toEpochMilli() : System.currentTimeMillis();
-        return (endMillis - getBeginDate().toInstant().toEpochMilli()) / 1000;
+        return (endMillis - getStartDate().toInstant().toEpochMilli()) / 1000;
     }
 
     public void setError(Exception e) {
@@ -65,6 +65,19 @@ public class Task extends GeneratedTask {
      * 类型：生成全文索引
      */
     public static final short TYPE_LUCENE = 2;
+    /**
+     * 类型：批量新增译文（控制台原“批量翻译”；商业版 T2，docs/spec/ai/article-translate.md §7）。常量置于核心与既有类型对齐，
+     * 仅作展示分类（task.type.3），无分派逻辑
+     */
+    public static final short TYPE_TRANSLATE = 3;
+    /**
+     * 类型：文章批量导入（商业版 T1）
+     */
+    public static final short TYPE_IMPORT = 4;
+    /**
+     * 类型：数据迁移（商业版 T1，docs/spec/data-migration/plan.md）。常量置于核心与既有类型对齐，仅作展示分类（task.type.5）
+     */
+    public static final short TYPE_MIGRATION = 5;
 
 
     /**

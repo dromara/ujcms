@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-surveys.schema.json",
+  "title": "UJCMS Theme Seed Surveys",
+  "description": "主题内容种子问卷文件（seed/content/surveys/*.surveys.json——theme-seed-export E4d / D35）。问卷定义按来源三元组 (site_id_, origin_, origin_id_) select-then-insert 幂等；问卷无别名（文章式）——无冲突可撞、恒不 linked。条目/选项即定义的一部分；反馈（三张反馈表）、times/选项计数与起止档期恒不入种子（§7.2）。写入经核心 SurveyService——任何版本都完整落库，升级无需补导（D46）。",
+  "type": "object",
+  "required": ["surveys"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "surveys": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "title", "items"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（来源三元组幂等键，E4d / D35）" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 1000, "description": "标题" },
+          "description": { "type": "string", "maxLength": 1000, "description": "描述" },
+          "mode": { "type": "integer", "enum": [1, 2, 3], "default": 1, "description": "模式（1：独立访客，2：独立IP，3：独立用户）" },
+          "interval": { "type": "integer", "minimum": 0, "default": 0, "description": "重复参与间隔天数（0：不可重复参与）" },
+          "enabled": { "type": "boolean", "default": true, "description": "是否启用" },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "description": "题目列表（序即排列；刷新按标题匹配既有题目保留反馈绑定）",
+            "items": {
+              "type": "object",
+              "required": ["title"],
+              "properties": {
+                "title": { "type": "string", "minLength": 1, "maxLength": 300, "description": "题目" },
+                "multiple": { "type": "boolean", "default": false, "description": "是否多选" },
+                "essay": { "type": "boolean", "default": false, "description": "是否问答题（问答题无选项）" },
+                "options": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "string", "minLength": 1, "maxLength": 300 },
+                  "description": "选项标题列表（序即排列；问答题省略）"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

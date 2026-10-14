@@ -61,7 +61,7 @@ onBeforeUnmount(() => {
   }
 });
 
-const handleSort = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
+const handleSort = ({ column, prop, order }: { column: any; prop: string | null; order: string | null }) => {
   if (prop && order) {
     sort.value = (column.sortBy ?? prop) + (order === 'descending' ? '_desc' : '');
   } else {
@@ -108,6 +108,7 @@ const handleShowError = (bean: any) => {
     <div class="mb-3">
       <query-form :params="params" @search="handleSearch" @reset="() => handleReset()">
         <query-item :label="$t('scheduleTask.name')" name="Q_Contains_name"></query-item>
+        <query-item label="ID" name="Q_EQ_id_Long" type="id"></query-item>
       </query-form>
     </div>
     <div class="space-x-2">
@@ -140,7 +141,7 @@ const handleShowError = (bean: any) => {
               <Grid />
             </el-icon>
           </el-table-column>
-          <el-table-column property="id" label="ID" width="170" sortable="custom" display="none"></el-table-column>
+          <el-table-column property="id" label="ID" width="200" sortable="custom" display="none"></el-table-column>
           <el-table-column property="name" :label="$t('scheduleTask.name')" sortable="custom" :min-width="120" show-overflow-tooltip></el-table-column>
           <el-table-column property="type" :label="$t('scheduleTask.type')" sortable="custom" width="130">
             <template #default="{ row }">{{ $t(`scheduleTask.type.${row.type}`) }}</template>
@@ -161,6 +162,7 @@ const handleShowError = (bean: any) => {
             <template #default="{ row }">
               <el-tag v-if="row.lastStatus === 1" type="success" size="small">{{ $t(`scheduleTask.status.${row.lastStatus}`) }}</el-tag>
               <el-tag v-else-if="row.lastStatus === 2" type="danger" size="small">{{ $t(`scheduleTask.status.${row.lastStatus}`) }}</el-tag>
+              <el-tag v-else-if="row.lastStatus === 3" type="warning" size="small">{{ $t(`scheduleTask.status.${row.lastStatus}`) }}</el-tag>
               <el-tag v-else type="info" size="small">{{ $t(`scheduleTask.status.${row.lastStatus}`) }}</el-tag>
             </template>
           </el-table-column>
@@ -168,7 +170,7 @@ const handleShowError = (bean: any) => {
             <template #default="{ row }">
               <el-popconfirm :title="$t('scheduleTask.confirmRun')" @confirm="() => handleRun([row.id])">
                 <template #reference>
-                  <el-button type="primary" :disabled="perm('scheduleTask:run')" size="small" link>{{ $t('scheduleTask.op.run') }}</el-button>
+                  <el-button type="primary" :disabled="perm('scheduleTask:run') || row.lastStatus === 3" size="small" link>{{ $t('scheduleTask.op.run') }}</el-button>
                 </template>
               </el-popconfirm>
               <el-button type="primary" :disabled="perm('scheduleTask:show') || !row.errorInfo" size="small" link @click="() => handleShowError(row)">

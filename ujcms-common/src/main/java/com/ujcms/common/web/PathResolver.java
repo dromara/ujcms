@@ -1,7 +1,7 @@
 package com.ujcms.common.web;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import jakarta.servlet.ServletContext;
 import java.io.File;
@@ -9,7 +9,7 @@ import java.io.File;
 /**
  * 使用ServletContext获取真实路径。支持 file: 前缀获取绝对路径。
  *
- * @author liufang
+ * @author PONY
  */
 public class PathResolver {
     /**

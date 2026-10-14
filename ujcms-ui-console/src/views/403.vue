@@ -21,7 +21,7 @@ export default defineComponent({
 
 <template>
   <div class="h-full p-4 bg-gray-200">
-    <div class="p-4 rounded shadow bg-white">
+    <div class="p-4 app-block">
       <h1 class="font-bold text-3xl">403</h1>
       <p class="mt-4">{{ message }}</p>
       <p class="mt-4">

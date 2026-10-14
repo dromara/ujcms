@@ -10,7 +10,7 @@ import freemarker.template.AdapterTemplateModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -35,7 +35,14 @@ public class Frontends {
     public static final String CONFIG = "config";
     public static final String SITE = "site";
     public static final String DEFAULT_SITE = "defaultSite";
-    public static final String FILES = "files";
+    /**
+     * 主题设置模型（页面构成 §8.2）：{@code theme.config.<group>.<name>}。
+     * 由 {@code FrontendInterceptor} / {@code HtmlService} 经 {@code ThemeSettingsService} 注入；
+     * 无设置结构的主题为 {@code {config:{}}}。
+     */
+    public static final String THEME = "theme";
+    /** 模板资源路径变量。对应主题目录 {@code assets/}。 */
+    public static final String ASSETS = "assets";
     public static final String V = "v";
     public static final String PAGE = "page";
     public static final String PAGE_SIZE = "pageSize";
@@ -43,8 +50,43 @@ public class Frontends {
     public static final String API = "api";
     public static final String QUERY_STRING = "queryString";
     public static final String PAGE_URL_RESOLVER = "pageUrlResolver";
+    /**
+     * 未组装模板名（{@code index}、{@code channel_video}…）。前台控制器在返回
+     * {@code site.assembleTemplate(...)} 时同时写入，供插槽标签按
+     * {@code (站点, 主题, 模板名)} 解析页面清单（页面构成 §10.2 渲染上下文钩子）。
+     */
+    public static final String TEMPLATE_NAME = "templateName";
+    /**
+     * 活动布局变体键（{@code <surface>:<value>}，如 {@code channel:channel_video}）。栏目/文章/专题
+     * 控制器在实体布局选择命中活动主题声明的启用变体时写入（manifest 2.0 §4.1）；
+     * {@code FrontendInterceptor} 据此叠加变体作用域设置进 {@link #PAGE_CONFIG}。
+     */
+    public static final String LAYOUT_VARIANT = "layoutVariant";
+    /**
+     * 页面作用域设置模型（manifest 2.0 §4.2）：{@code pageConfig.<group>.<field>}。
+     * 由 {@code FrontendInterceptor} 按渲染上下文（模板名 → 页面清单 + 活动变体）经
+     * {@code ThemeSettingsService.pageConfig} 解析注入；无匹配页面/变体设置时为空 Map。
+     */
+    public static final String PAGE_CONFIG = "pageConfig";
 
     public static final String TEMPLATE_URL = "templateUrl";
+
+    /** Self-documenting alias for {@link #V} (cache-busting version string). */
+    public static final String VERSION = "version";
+    /**
+     * Structured globals namespace (Shopify-style). Exposes the cryptic single-letter URL prefixes
+     * under self-documenting names so theme authors can write {@code {{ routes.api }}/foo} instead
+     * of {@code {{ api }}/foo}. The legacy short names ({@code dy}, {@code def}, {@code ctx},
+     * {@code api}) stay injected for backward compat — {@code routes.*} is purely additive.
+     * <p>Map shape:
+     * <pre>
+     *   routes.root      = {@code dy}     dynamic-URL prefix for the current site
+     *   routes.api       = {@code api}    REST API prefix (e.g. {@code /api})
+     *   routes.context   = {@code ctx}    servlet context path (often empty)
+     *   routes.default   = {@code def}    default-site URL prefix (for cross-site links)
+     * </pre>
+     */
+    public static final String ROUTES = "routes";
 
     private static String version = "";
 
@@ -75,7 +117,7 @@ public class Frontends {
         request.setAttribute(CONFIG, site.getConfig());
         request.setAttribute(SITE, site);
         request.setAttribute(DEFAULT_SITE, defaultSite);
-        request.setAttribute(FILES, site.getFilesPath());
+        request.setAttribute(ASSETS, site.getAssetsPath());
         request.setAttribute(V, version);
         // 根据
         // freemarker.ext.jakarta.servlet.AllHttpScopesHashModel#get
@@ -90,6 +132,10 @@ public class Frontends {
         request.setAttribute(URL, request.getRequestURL());
         request.setAttribute(API, site.getApi());
         request.setAttribute(QUERY_STRING, request.getQueryString());
+        // Self-documenting aliases (Shopify-style). Theme authors are encouraged to use these
+        // for new code; the cryptic single-letter names stay for backward compat.
+        request.setAttribute(VERSION, version);
+        request.setAttribute(ROUTES, buildRoutes(site, defaultSite, request.getContextPath()));
     }
 
     public static void setDate(Map<String, Object> dataModel, Site site, Site defaultSite, String url, int page,
@@ -105,13 +151,30 @@ public class Frontends {
         dataModel.put(CONFIG, site.getConfig());
         dataModel.put(SITE, site);
         dataModel.put(DEFAULT_SITE, defaultSite);
-        dataModel.put(FILES, site.getFilesPath());
+        dataModel.put(ASSETS, site.getAssetsPath());
         dataModel.put(V, version);
         dataModel.put(PAGE, page);
         dataModel.put(URL, url);
         dataModel.put(API, site.getApi());
         dataModel.put(QUERY_STRING, null);
         dataModel.put(PAGE_URL_RESOLVER, pageUrlResolver);
+        dataModel.put(VERSION, version);
+        String contextPath = Optional.ofNullable(site.getConfig().getContextPath()).orElse("");
+        dataModel.put(ROUTES, buildRoutes(site, defaultSite, contextPath));
+    }
+
+    /**
+     * Build the {@code routes} structured-globals map. Self-documenting aliases for the cryptic
+     * single-letter URL prefixes ({@code dy}, {@code def}, {@code ctx}, {@code api}). Shopify
+     * theme authors recognize this pattern; new themes are encouraged to use it.
+     */
+    static Map<String, String> buildRoutes(Site site, Site defaultSite, String contextPath) {
+        Map<String, String> routes = new java.util.LinkedHashMap<>();
+        routes.put("root", site.getDy());
+        routes.put("api", site.getApi());
+        routes.put("context", contextPath == null ? "" : contextPath);
+        routes.put("default", stripTrailingSlash(defaultSite.getDynamicUrl()));
+        return routes;
     }
 
     public static Site getSite(Environment env) throws TemplateModelException {

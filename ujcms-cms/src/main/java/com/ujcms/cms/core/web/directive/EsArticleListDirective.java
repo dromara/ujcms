@@ -86,7 +86,8 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         Boolean isWithImage = getBoolean(params, IS_WITH_IMAGE);
         List<Long> excludeIds = getLongs(params, EXCLUDE_ID);
         List<Integer> status = getIntegers(params, STATUS);
-        if (status == null) {
+        // 没有给状态、或给了空值都是已发布（与 ArticleList 一致）
+        if (status == null || status.isEmpty()) {
             status = Collections.singletonList((int) Article.STATUS_PUBLISHED);
         }
 
@@ -164,7 +165,7 @@ public class EsArticleListDirective implements TemplateDirectiveModel {
         body.render(env.getOut());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

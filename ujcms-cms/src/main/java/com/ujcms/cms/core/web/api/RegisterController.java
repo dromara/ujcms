@@ -3,6 +3,7 @@ package com.ujcms.cms.core.web.api;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.Group;
 import com.ujcms.cms.core.domain.Org;
+import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.ShortMessageService;
@@ -21,7 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -87,14 +88,14 @@ public class RegisterController {
                 break;
             case VERIFY_MODE_EMAIL:
                 if (!shortMessageService.validateCode(params.emailMessageId, params.getEmail(),
-                        params.emailMessageValue, config.getEmail().getCodeExpires())) {
+                        params.emailMessageValue, config.getEmail().getCodeExpires(), ShortMessage.USAGE_REGISTER)) {
                     throw new Http400Exception("error.emailMessageIncorrect");
                 }
                 user.setEmail(params.getEmail());
                 break;
             case VERIFY_MODE_MOBILE:
                 if (!shortMessageService.validateCode(params.mobileMessageId, params.getMobile(),
-                        params.mobileMessageValue, config.getSms().getCodeExpires())) {
+                        params.mobileMessageValue, config.getSms().getCodeExpires(), ShortMessage.USAGE_REGISTER)) {
                     throw new Http400Exception("error.mobileMessageIncorrect");
                 }
                 user.setMobile(params.getMobile());

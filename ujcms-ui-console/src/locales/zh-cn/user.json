@@ -1,6 +1,8 @@
 {
   "org.root": "根组织",
+  "org.filter": "搜索组织",
   "org.parent": "上级组织",
+  "org.addChild": "新增子组织",
   "org.name": "名称",
   "org.address": "地址",
   "org.phone": "电话",
@@ -66,6 +68,7 @@
   "user.group": "会员组",
   "user.group.tooltip": "主要用于控制前台浏览权限",
   "user.org": "组织",
+  "user.allOrg": "全部组织",
   "user.orgs": "扩展组织",
   "user.orgs.tooltip": "用户可以获得扩展组织拥有的站点权限和数据权限",
   "user.role": "角色",
@@ -76,6 +79,7 @@
   "user.passwordAgain": "确认密码",
   "user.email": "电子邮箱",
   "user.mobile": "手机号",
+  "user.mobile.twoFactorHint": "已开启双因子验证：登录验证码发往此号码，未登记或登记有误的后台用户将无法登录",
   "user.avatar": "头像",
   "user.rank": "等级",
   "user.rank.tooltip": "数值越小等级越高。等级高的用户可以管理等级低的用户，等级低的用户不能管理等级高的用户",
@@ -106,6 +110,7 @@
   "user.error.usernameExist": "用户名已存在",
   "user.error.emailExist": "邮箱地址已存在",
   "user.error.mobileExist": "手机号码已存在",
+  "user.error.mobileFormat": "手机号码格式不正确",
   "user.error.passwordNotMatch": "两次输入密码不一致",
   "user.error.passwordWrong": "密码错误",
 

@@ -1,0 +1,102 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'interview'/]
+[#assign ivUrl = dy + '/interview'/]
+[@layout title='在线访谈 - ' + site.title keywords='在线访谈,' + (site.seoKeywords!'') description=site.seoDescription!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">在线访谈</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+  <div class="flex items-baseline border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'movie-outline'/]</span>
+      <a href="${ivUrl}" class="cm-link">在线访谈</a>
+    </h1>
+  </div>
+
+  [#-- 访谈直播与预告 --]
+  <div class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">访谈直播与预告</h2>
+    [@InterviewList isPublished='true' status='0,1' orderBy='beginDate' limit='6'; list]
+    [#if list?size == 0]
+      <p class="py-4 text-sm text-slate-500">暂无访谈预告</p>
+    [#else]
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        [#list list as bean]
+        <div class="rounded-lg border border-slate-200 bg-white overflow-hidden flex flex-col">
+          [#if bean.image?has_content]
+            <a href="${ivUrl}/${bean.id?c}">
+              <img src="${bean.image}" alt="${bean.title}" class="w-full aspect-video object-cover" loading="lazy">
+            </a>
+          [/#if]
+          <div class="p-4 space-y-2 flex-1">
+            <div>
+              [#if bean.status == 1]
+                <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-xs">直播中</span>
+              [#else]
+                <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs">预告</span>
+              [/#if]
+            </div>
+            <h3 class="font-medium leading-snug">
+              <a href="${ivUrl}/${bean.id?c}" class="cm-link">${bean.title}</a>
+            </h3>
+            <div class="text-sm text-slate-500 space-y-0.5">
+              [#if bean.org?has_content]<p>访谈单位：${bean.org}</p>[/#if]
+              [#if bean.guests?has_content]<p class="truncate">访谈嘉宾：${bean.guests}</p>[/#if]
+              <p>访谈时间：${format(bean.beginDate, 'yyyy-MM-dd HH:mm')}</p>
+            </div>
+          </div>
+        </div>
+        [/#list]
+      </div>
+    [/#if]
+    [/@InterviewList]
+  </div>
+
+  [#-- 往期访谈 --]
+  <div class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">往期访谈</h2>
+    [@InterviewPage isPublished='true' status='2' limit='10'; pagedList]
+    [#if pagedList.totalElements == 0]
+      <p class="py-4 text-sm text-slate-500">暂无往期访谈</p>
+    [#else]
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+          <tr class="border-b border-slate-200 text-left text-slate-500">
+            <th scope="col" class="py-2 pr-3 font-medium">访谈主题</th>
+            <th scope="col" class="py-2 px-3 font-medium whitespace-nowrap">访谈单位</th>
+            <th scope="col" class="py-2 px-3 font-medium whitespace-nowrap">主持人</th>
+            <th scope="col" class="py-2 pl-3 font-medium whitespace-nowrap">访谈时间</th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+          [#list pagedList.content as bean]
+          <tr class="hover:bg-slate-50">
+            <td class="py-2.5 pr-3 max-w-sm truncate">
+              <a href="${ivUrl}/${bean.id?c}" class="cm-link">${bean.title}</a>
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${bean.org!'—'}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${bean.host!'—'}</td>
+            <td class="py-2.5 pl-3 whitespace-nowrap text-slate-500">${format(bean.beginDate, 'yyyy-MM-dd')}</td>
+          </tr>
+          [/#list]
+          </tbody>
+        </table>
+      </div>
+
+      [#include '../snippets/page.html'/]
+    [/#if]
+    [/@InterviewPage]
+  </div>
+</div>
+[/@layout]
+[/#escape]

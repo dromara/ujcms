@@ -15,7 +15,7 @@ import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http404Exception;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,6 +69,8 @@ public class BlockItemController {
         validateBean(bean);
         BlockItem blockItem = new BlockItem();
         Entities.copy(bean, blockItem);
+        // customs 是 Map，Entities.copy 不复制非简单值类型，需显式赋值
+        blockItem.setCustoms(bean.getCustoms());
         blockItem.setSiteId(Contexts.getCurrentSiteId());
         service.insert(blockItem);
         return Responses.ok();
@@ -82,8 +84,12 @@ public class BlockItemController {
         if (blockItem == null) {
             return Responses.notFound("BlockItem not found. ID = " + bean.getId());
         }
-        ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
-        Entities.copy(bean, blockItem);
+        // 校验已存储的数据而非请求体：请求体里的 siteId 由调用方给出，据它校验等于不校验
+        ValidUtils.dataInSite(blockItem.getSiteId(), Contexts.getCurrentSiteId());
+        // siteId 不可改投别站；order 只经排序接口改写——列表的行内开关回传整行，带着旧 order 会把刚拖好的顺序改回去
+        Entities.copy(bean, blockItem, "siteId", "order");
+        // customs 是 Map，Entities.copy 不复制非简单值类型，需显式赋值
+        blockItem.setCustoms(bean.getCustoms());
         service.update(blockItem);
         return Responses.ok();
     }

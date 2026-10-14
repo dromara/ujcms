@@ -3,7 +3,7 @@ package com.ujcms.common.web;
 import com.ujcms.common.security.Secures;
 import com.ujcms.common.web.exception.Http400Exception;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;

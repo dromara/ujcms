@@ -1,36 +1,50 @@
+# 开源版（dromara/ujcms）CNB 流水线。本文件由 ujcms-release（release-cms-copy-open）复制到开源版仓库根目录。
+# 触发：推送 v<major>.<minor>.<patch> 标签 → 构建多平台镜像 ${CNB_DOCKER_REGISTRY}/dromara/ujcms → 触发 ujcms/deploy 部署。
+
 .build_docker: &build_docker
   # 声明式的构建环境 https://docs.cnb.cool/
   # 可以去dockerhub上 https://hub.docker.com/_/maven 找到您需要maven和jdk版本
   image: maven:3.9-eclipse-temurin-17-noble
   volumes:
-    # 声明式的构建缓存 https://docs.cnb.cool/zh/grammar/pipeline.html#volumes
+    # 声明式的构建缓存 https://docs.cnb.cool/zh/build/grammar.html#pipeline-volumes
+    # 数据卷只能在流水线的 docker.volumes 声明（Job 没有 volumes 配置项，写在 Job 上不会挂载），
+    # 声明后对本流水线所有任务容器可见，故 .node_pnpm 用到的 npm / pnpm 缓存也列在这里。
     - /root/.m2:copy-on-write
+    # npm 的缓存目录。这个地址需要使用 npm config get cache 命令确认
+    - /root/.npm:copy-on-write
+    # pnpm 的缓存目录。这个地址需要使用 pnpm store path 命令确认；末段 v11 随 pnpm 大版本变化，须与 .node_pnpm 锁定的 pnpm@11 一致
+    - /workspace/.pnpm-store/v11:copy-on-write
 
 .env_setting: &env_setting
   name: version env setting
   script: |
+    # tag_push 事件下 CNB_BRANCH 为标签名（v13.1.0）
     echo "CNB_BRANCH: ${CNB_BRANCH}"
     VERSION="${CNB_BRANCH#v}"
+    if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+      echo "ERROR: 标签 ${CNB_BRANCH} 不符合 v<major>.<minor>.<patch>，无法推导版本号。" >&2
+      exit 1
+    fi
     MAJOR=$(echo "$VERSION" | cut -d'.' -f1)
     MINOR=$(echo "$VERSION" | cut -d'.' -f2)
     PATCH=$(echo "$VERSION" | cut -d'.' -f3)
-    echo "##[set-output version=$VERSION]"
-    echo "##[set-output major=$MAJOR]"
-    echo "##[set-output minor=$MINOR]"
-    echo "##[set-output patch=$PATCH]"
 
+    # 镜像标签阶梯：<version>、<major>.<minor> 恒有；本大版本最新加 <major>；全局最新加 latest
+    # 只在正式版本标签中比较：v13.1.2-rc1 之类的标签按 sort -V 排在 v13.1.2 之后，会让正式版拿不到 latest
     git fetch --quiet --tags
-    CURRENT_TAG=${CNB_BRANCH}
-    echo "CURRENT_TAG: ${CURRENT_TAG}"
-    LATEST_TAG=$(git tag | sort -V | tail -n 1)
-    echo "LATEST_TAG: ${LATEST_TAG}"
-    LATEST_MAJOR_TAG=$(git tag | grep "^v${MAJOR}\." | sort -V | tail -n 1)
-    echo "LATEST_MAJOR_TAG: ${LATEST_MAJOR_TAG}"
-
+    RELEASE_TAGS=$(git tag | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
+    LATEST_TAG=$(echo "$RELEASE_TAGS" | tail -n 1)
+    LATEST_MAJOR_TAG=$(echo "$RELEASE_TAGS" | grep "^v${MAJOR}\." | tail -n 1)
+    echo "LATEST_TAG: ${LATEST_TAG}  LATEST_MAJOR_TAG: ${LATEST_MAJOR_TAG}"
     BUILDX_TAGS="-t ${IMAGE_NAME}:${VERSION} -t ${IMAGE_NAME}:${MAJOR}.${MINOR}"
-    if [ "$CURRENT_TAG" = "$LATEST_MAJOR_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:${MAJOR}"; fi
-    if [ "$CURRENT_TAG" = "$LATEST_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:latest"; fi
-    echo "##[set-output buildx_tags=$BUILDX_TAGS]"
+    if [ "$CNB_BRANCH" = "$LATEST_MAJOR_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:${MAJOR}"; fi
+    if [ "$CNB_BRANCH" = "$LATEST_TAG" ]; then BUILDX_TAGS="${BUILDX_TAGS} -t ${IMAGE_NAME}:latest"; fi
+
+    for var in VERSION MAJOR MINOR PATCH BUILDX_TAGS; do
+      eval "value=\$$var"
+      echo "$var: $value"
+      echo "##[set-output $(echo "$var" | tr 'A-Z' 'a-z')=$value]"
+    done
   exports:
     version: VERSION
     major: MAJOR
@@ -38,40 +52,33 @@
     patch: PATCH
     buildx_tags: BUILDX_TAGS
 
-.env_testing: &env_testing
-  name: version env testing
-  script: |
-    echo "VERSION: ${VERSION}"
-    echo "MAJOR: ${MAJOR}"
-    echo "MINOR: ${MINOR}"
-    echo "PATCH: ${PATCH}"
-    echo "BUILDX_TAGS: ${BUILDX_TAGS}"
-
 .node_pnpm: &node_pnpm
   name: node pnpm
   image: node:22
-  volumes:
-    # npm 的缓存目录。这个地址需要使用 npm config get cache 命令确认
-    - /root/.npm:copy-on-write
-    # pnpm 的缓存目录。这个地址需要使用 pnpm store path 命令确认
-    - /workspace/.pnpm-store/v11:copy-on-write
   script: |
-    npm install -g pnpm --silent
-    pnpm --reporter=silent --dir ujcms-starter install
-    pnpm --reporter=silent --dir ujcms-starter run build --silent
-    pnpm --reporter=silent --dir ujcms-ui-console install
+    npm config set registry https://mirrors.cloud.tencent.com/npm/
+    # 锁定大版本：与本地开发、GitHub 流水线一致，且缓存卷路径（.build_docker 的 .pnpm-store/v11）随大版本变化
+    npm install -g pnpm@11 --silent
+    THEME=ujcms-starter/src/main/webapp/themes/1/default
+    npm --prefix "$THEME" ci
+    npm --prefix "$THEME" run build:vendor
+    # node_modules 只为生成 assets/vendor 而装；留在 webapp/ 下会被 Dockerfile 的 COPY webapp/ 带进镜像
+    rm -rf "$THEME/node_modules"
+    pnpm --reporter=silent --dir ujcms-ui-console install --frozen-lockfile
     pnpm --reporter=silent --dir ujcms-ui-console run build:starter --logLevel warn
 
 .mvn_package: &mvn_package
   name: mvn package
   script: |
-    sed -i "s#CNB_REPO_SLUG#${CNB_REPO_SLUG}#g" ".cnb/maven-settings.xml"
-    cat ".cnb/maven-settings.xml"
+    sed -i "s#CNB_REPO_SLUG#${CNB_REPO_SLUG}#g" .cnb/maven-settings.xml
+    cat .cnb/maven-settings.xml
+    # 只走 maven-settings.xml 中的镜像仓库，去掉 pom 内置的 aliyun 仓库声明
+    sed -i '/<!-- aliyun-repos begin -->/,/<!-- aliyun-repos end -->/d' pom.xml
     mvn -B clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -s .cnb/maven-settings.xml
 
 .docker_login: &docker_login
   name: docker login
-  script: docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
+  script: echo "${CNB_TOKEN}" | docker login -u "${CNB_TOKEN_USER_NAME}" --password-stdin ${CNB_DOCKER_REGISTRY}
 
 .docker_buildx: &docker_buildx
   name: docker buildx build
@@ -97,8 +104,6 @@
     token_type: "Bearer"
     token_value: "$CNB_TRIGGER_TOKEN"
 
-
-# 分支名
 v*.*.*:
   tag_push:
     - name: docker buildx multi-platform
@@ -112,19 +117,8 @@ v*.*.*:
         IMAGE_NAME: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}
       stages:
         - <<: *env_setting
-        - <<: *env_testing
         - <<: *node_pnpm
         - <<: *mvn_package
         - <<: *docker_login
         - <<: *docker_buildx
         - <<: *trigger_deploy
-
-$:
-  vscode:
-    - docker:
-        build: .ide/Dockerfile
-        volumes:
-          - /root/.m2:copy-on-write
-      services:
-        - vscode
-        - docker

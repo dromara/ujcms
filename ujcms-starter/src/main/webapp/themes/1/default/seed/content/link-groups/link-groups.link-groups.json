@@ -1,0 +1,98 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-link-groups.schema.json",
+  "linkGroups": [
+    {
+      "alias": "resources",
+      "imageHeight": 60,
+      "imageWidth": 200,
+      "links": [
+        {
+          "enabled": true,
+          "name": "UJCMS 官网",
+          "targetBlank": true,
+          "url": "https://www.ujcms.com/"
+        },
+        {
+          "enabled": true,
+          "name": "GitHub 源码",
+          "targetBlank": true,
+          "url": "https://github.com/ujcms/ujcms"
+        },
+        {
+          "enabled": true,
+          "name": "Gitee 源码",
+          "targetBlank": true,
+          "url": "https://gitee.com/ujcms/ujcms"
+        },
+        {
+          "channel": "about-us",
+          "enabled": true,
+          "name": "关于本站",
+          "targetBlank": false
+        }
+      ],
+      "name": "UJCMS 资源",
+      "originId": "resources",
+      "slot": "footer-links",
+      "type": 1
+    },
+    {
+      "alias": "site-nav",
+      "imageHeight": 60,
+      "imageWidth": 200,
+      "links": [
+        {
+          "channel": "news",
+          "enabled": true,
+          "name": "新闻频道",
+          "targetBlank": false
+        },
+        {
+          "channel": "photo",
+          "enabled": true,
+          "name": "图片频道",
+          "targetBlank": false
+        },
+        {
+          "channel": "video",
+          "enabled": true,
+          "name": "视频频道",
+          "targetBlank": false
+        },
+        {
+          "channel": "product",
+          "enabled": true,
+          "name": "产品频道",
+          "targetBlank": false
+        }
+      ],
+      "name": "站内导航",
+      "originId": "site-nav",
+      "slot": "footer-links",
+      "type": 1
+    },
+    {
+      "alias": "service",
+      "imageHeight": 60,
+      "imageWidth": 200,
+      "links": [
+        {
+          "channel": "download",
+          "enabled": true,
+          "name": "软件下载",
+          "targetBlank": false
+        },
+        {
+          "channel": "wenku",
+          "enabled": true,
+          "name": "在线文库",
+          "targetBlank": false
+        }
+      ],
+      "name": "常用服务",
+      "originId": "service",
+      "slot": "footer-links",
+      "type": 1
+    }
+  ]
+}

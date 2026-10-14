@@ -21,7 +21,7 @@ import java.util.Map;
 public class ArticleDirective implements TemplateDirectiveModel {
     private static final String ID = "id";
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

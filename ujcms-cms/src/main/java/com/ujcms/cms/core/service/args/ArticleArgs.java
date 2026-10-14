@@ -3,7 +3,7 @@ package com.ujcms.cms.core.service.args;
 import com.ujcms.common.query.BaseQueryArgs;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -135,8 +135,8 @@ public class ArticleArgs extends BaseQueryArgs {
 
     public ArticleArgs q(@Nullable String q) {
         if (StringUtils.isNotBlank(q)) {
-            queryMap.put("Contains_1_@articleExt-title", q);
-            queryMap.put("Contains_1_@articleExt-text", q);
+            queryMap.put("Contains_0q_@articleExt-title", q);
+            queryMap.put("Contains_0q_@articleExt-text", q);
         }
         return this;
     }
@@ -171,8 +171,8 @@ public class ArticleArgs extends BaseQueryArgs {
 
     public ArticleArgs leOnlineDateOrNull(@Nullable OffsetDateTime onlineDate) {
         if (onlineDate != null) {
-            queryMap.put("LE_1_onlineDate_DateTime", onlineDate);
-            queryMap.put("IsNull_1_onlineDate_DateTime", null);
+            queryMap.put("LE_0online_onlineDate_DateTime", onlineDate);
+            queryMap.put("IsNull_0online_onlineDate_DateTime", null);
         }
         return this;
     }
@@ -184,9 +184,19 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
+    /**
+     * 只在给定的文章里查。空集合视为没有这个条件（与其它条件一致）：要表达“一篇也没有”，请传入一个不存在的ID
+     */
+    public ArticleArgs inIds(@Nullable Collection<Long> ids) {
+        if (CollectionUtils.isNotEmpty(ids)) {
+            queryMap.put("In_id_Long", ids);
+        }
+        return this;
+    }
+
     public ArticleArgs excludeIds(@Nullable Collection<Long> excludeIds) {
         if (CollectionUtils.isNotEmpty(excludeIds)) {
-            queryMap.put("NotIn_id", excludeIds);
+            queryMap.put("NotIn_id_Long", excludeIds);
         }
         return this;
     }

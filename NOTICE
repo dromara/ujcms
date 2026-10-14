@@ -1,3 +1,297 @@
 UJCMS
 
 Copyright © 2021-present 南昌蓝智科技有限公司
+
+==============================================================================
+THIRD-PARTY MATERIAL
+==============================================================================
+
+This distribution contains material from other projects. Every item below
+stays under its own licence. The licence texts are in the licenses/ directory
+unless a section says otherwise; licenses/README.md maps each file to its
+upstream file and says what was changed. Modified source files carry the
+upstream notice and a change note. Libraries pulled in by Maven and npm are
+not itemised here: every binary distribution (jar, war, Docker image) carries
+the generated inventories described under "Libraries in binary
+distributions" at the end of this file. Not every distribution contains
+every module: an entry applies only where the files it names are present.
+
+Path prefixes used below:
+  common/     ujcms-common/src/main/java/com/ujcms/common/
+  generator/  ujcms-code-generator/src/main/java/com/ujcms/generator/mybatis/
+  cms/        ujcms-cms/src/main/
+  console/    ujcms-ui-console/
+  theme/      ujcms-starter/src/main/webapp/themes/1/default/
+
+------------------------------------------------------------------------------
+Apache License 2.0 (licenses/Apache-2.0.txt)
+------------------------------------------------------------------------------
+
+MyBatis Generator 1.4.2 - https://github.com/mybatis/generator
+  Copyright 2006-2022 the original author or authors.
+  Files: generator/ (22 classes are modified copies or contain portions;
+         licenses/README.md lists them)
+  Notice of the original work:
+    This product includes software developed by
+    The Apache Software Foundation (http://www.apache.org/).
+
+Spring Security - https://github.com/spring-projects/spring-security
+  Copyright 2002-2020 the original author or authors.
+  Copyright 2004-present the original author or authors.
+  Files: common/security/Pbkdf2WithHmacSm3PasswordEncoder.java,
+         common/security/AbstractLoginConfigurer.java (modified)
+
+Nimbus JOSE + JWT - https://connect2id.com/products/nimbus-jose-jwt
+  Copyright 2012-2023, Connect2id Ltd and contributors.
+  Files: common/security/jwt/HmacSm3JwsSigner.java,
+         common/security/jwt/HmacSm3JwsVerifier.java (adapted)
+
+MyBatis-Plus - https://github.com/baomidou/mybatis-plus
+  Copyright (c) 2011-2025, baomidou (jobob@qq.com).
+  File: common/db/identifier/SnowflakeSequence.java (portions, rewritten)
+  The original class credits yu120/sequence (MIT, Copyright (c) 2016 李景枫)
+  and Twitter Snowflake (Apache License 2.0, Copyright 2010-2012 Twitter, Inc.).
+
+Apache Lucene 8.11.4
+  File: common/lucene/StringNormsField.java (modified copy of StringField)
+  Notice of the original work:
+    Apache Lucene
+    Copyright 2001-2021 The Apache Software Foundation
+    This product includes software developed at
+    The Apache Software Foundation (http://www.apache.org/).
+
+Apache FreeMarker 2.3.34
+  File: common/freemarker/SimpleTemplateExceptionHandler.java (modified)
+  Notice of the original work:
+    Apache FreeMarker
+    Copyright 2015-2018 The Apache Software Foundation
+    This product includes software developed at
+    The Apache Software Foundation (http://www.apache.org/).
+
+Thymeleaf (thymeleaf-extras-java8time) - https://www.thymeleaf.org
+  Copyright (c) 2011-2014, The THYMELEAF team (http://www.thymeleaf.org)
+  File: common/freemarker/FormatMethod.java (method zonedTime, modified)
+
+Apache Tomcat 10.1
+  Files: common/web/DirectoryRedirectInterceptor.java,
+         common/web/Servlets.java (getRelativePath) (portions, modified)
+  Notice of the original work:
+    Apache Tomcat
+    Copyright 1999-2026 The Apache Software Foundation
+    This product includes software developed at
+    The Apache Software Foundation (http://www.apache.org/).
+
+Spring Framework 6.2 - https://github.com/spring-projects/spring-framework
+  Copyright 2002-present the original author or authors.
+  Files: common/web/Servlets.java (parseQueryString), common/web/Entities.java,
+         cms/java/com/ujcms/cms/core/web/support/ConditionalResponses.java
+         (portions, modified)
+  Notice of the original work:
+    Spring Framework 6.2.19
+    Copyright (c) 2002-2026 Pivotal, Inc.
+
+Liquibase 4.23.2 - https://github.com/liquibase/liquibase
+  Copyright 2023 Liquibase Inc.
+  Files: common/db/liquibase/datatype/JsonType.java (method objectToSql,
+         adapted),
+         ujcms-commercial/src/main/java/com/ujcms/cms/commercial/t1/liquibase/datatype/DateTimeWithTimeZoneType.java
+         (method toDatabaseDataType, adapted; commercial editions only)
+
+Quartz Scheduler - https://github.com/quartz-scheduler/quartz
+  All content copyright Terracotta, Inc., unless otherwise indicated.
+  File: cms/resources/db/changelog/liquibase.quartz.init.xml (modified)
+
+Material Symbols - Google - https://github.com/google/material-design-icons
+  Files: theme/snippets/icon.html (generated from @iconify/json, unmodified),
+         theme/templates/article_wenku.html (four toolbar icons, modified),
+         ujcms-ui-ssr-vue/app/components/AppHeader.vue,
+         ujcms-ui-ssr-vue/app/components/HeaderNav.vue,
+         ujcms-ui-ssr-vue/app/components/article/ArticleListItem.vue
+         (inline icon paths, unmodified)
+
+PDF.js - https://github.com/mozilla/pdf.js
+  Copyright Mozilla Foundation
+  File: theme/templates/article_wenku.html (viewer set-up follows the
+        examples/components/simpleviewer sample)
+
+Apache Maven Wrapper 3.3.4
+  Files: mvnw, mvnw.cmd (unmodified)
+  Notice of the original work:
+    Apache Maven Wrapper
+    Copyright 2013-2022 The Apache Software Foundation
+    This product includes software developed at
+    The Apache Software Foundation (http://www.apache.org/).
+    The original idea and initial implementation of the maven-wrapper module
+    is derived from the Gradle Wrapper which was written originally by
+    Hans Dockter and Adam Murdoch.
+    Copyright 2007 the original author or authors.
+
+tinymce-vue - https://github.com/tinymce/tinymce-vue
+  Copyright (c) 2018-present, Ephox, Inc.
+  Files: console/src/components/Tinymce/utils.ts (modified),
+         console/src/components/Tinymce/Tinymce.vue (portions)
+
+------------------------------------------------------------------------------
+MIT License (licenses/MIT.txt)
+------------------------------------------------------------------------------
+
+Alpine.js 3.14.1 - https://alpinejs.dev
+  Copyright © 2019-2021 Caleb Porzio and contributors
+  File: theme/assets/js/alpine.min.js
+
+PhotoSwipe 5.4.4 - https://photoswipe.com
+  Copyright (c) 2014-2022 Dmitry Semenov, https://dimsemenov.com
+  Files: theme/assets/js/photoswipe/
+
+Tailwind CSS 4.3.2 - https://tailwindcss.com
+  Copyright (c) Tailwind Labs, Inc.
+  File: theme/assets/css/style.css (compiled output that includes Tailwind's
+        base styles)
+
+vue-element-admin - https://github.com/PanJiaChen/vue-element-admin
+  Copyright (c) 2017-present PanJiaChen
+  Files: console/src/layout/composables/useResizeHandler.ts,
+         console/src/styles/transition.scss, and smaller adapted portions of
+         the console layout (breadcrumb, main view, tab bar, route guard,
+         refresh view)
+
+bpmn-js-i18n - https://github.com/bpmn-io/bpmn-js-i18n
+  Copyright (c) 2019 camunda Services GmbH
+  File: console/src/components/bpmnjs/custom-translate/translations.ts
+        (extended)
+
+bpmn-js-examples and bpmn-js-properties-panel - https://github.com/bpmn-io
+  bpmn.io contributors; Copyright (c) 2015 camunda Services GmbH
+  Files: console/src/components/bpmnjs/custom-translate/customTranslate.ts,
+         console/src/components/bpmnjs/properties-panel/utils.ts
+
+Ant Design Icons - https://github.com/ant-design/ant-design-icons
+  Copyright (c) 2018-present Ant UED, https://xtech.antfin.com/
+  File: console/src/views/config/components/OauthProviderCard.vue (three
+        glyphs). The WeChat, QQ and Weibo marks are trademarks of their
+        owners and are used only to identify those sign-in providers.
+
+Feather - https://github.com/feathericons/feather
+  Copyright (c) 2013-2023 Cole Bemis
+  File: console/src/components/MarkdownEditor/MarkdownEditor.vue (folder icon)
+
+TinyMCE 6 - https://www.tiny.cloud
+  Copyright (c) 2022 Ephox Corporation DBA Tiny Technologies, Inc.
+  Files: console/src/components/Tinymce/Tinymce.vue,
+         console/src/components/MarkdownEditor/utils.ts (image upload handler,
+         adapted from the editor core's default upload handler)
+  The editor itself (tinymce 6.8.6, MIT) is bundled by the console build; its
+  own notices.txt covers the DOMPurify (Apache-2.0 option), PrismJS (MIT) and
+  prism-themes (MIT) code it contains. TinyMCE 7 and later are
+  GPL-2.0-or-later and are not used.
+
+TinyMCE language pack (zh-Hans) - https://www.tiny.cloud
+  Copyright © Tiny Technologies Inc.; community translation distributed with
+  TinyMCE 6 under the same terms as TinyMCE 6 (MIT).
+  File: console/public/tinymce/langs/zh-Hans.js (unmodified apart from the
+        banner line; taken from tinymce-i18n@26.9.28 langs6/zh-Hans.js, sha256
+        50af56ee1aedc98cad0339472d536127923d70d7fba17ff1467fc42f855df9b8)
+
+wps2md - https://github.com/listeng/wps2md
+  Copyright (c) 2026 listeng
+  File: ujcms-commercial/src/test/resources/word-import/wps-office-12-camping-guide.wps
+        (taken from tests/sample.wps; test data, not part of the built
+        application; commercial editions only)
+
+------------------------------------------------------------------------------
+bpmn.io license (licenses/bpmn-io.txt)
+------------------------------------------------------------------------------
+
+bpmn-js 17 - https://github.com/bpmn-io/bpmn-js
+  Copyright (c) 2014-present Camunda Services GmbH
+  Files: console/src/components/bpmnjs/palette/,
+         console/src/components/bpmnjs/context-pad/ (modified)
+  The licence requires that the bpmn.io watermark in rendered diagrams is not
+  removed, changed or covered. The bpmn-font icon font (Camunda Services GmbH)
+  that the console build bundles from the same package is covered by this
+  licence.
+
+------------------------------------------------------------------------------
+SIL Open Font License 1.1 (licenses/OFL-1.1.txt)
+------------------------------------------------------------------------------
+
+KaTeX fonts - https://github.com/KaTeX/KaTeX
+  Copyright (c) 2009-2010 Design Science, Inc.; 2014-2018 Khan Academy
+  Files: the KaTeX_*.woff2/.woff/.ttf files in the console build output
+         (cp/assets/), bundled unmodified from the katex npm package (whose
+         JavaScript and CSS are MIT)
+
+------------------------------------------------------------------------------
+Creative Commons Attribution-ShareAlike 2.5
+(https://creativecommons.org/licenses/by-sa/2.5/)
+------------------------------------------------------------------------------
+
+Sitemaps.org protocol 0.9 schemas - https://www.sitemaps.org
+  Published by Google, Inc., Yahoo, Inc. and Microsoft Corporation.
+  Files: ujcms-cms/src/test/resources/sitemap-xsd/sitemap.xsd,
+         ujcms-cms/src/test/resources/sitemap-xsd/siteindex.xsd
+         (unmodified test data, not part of the built application; the
+         licence is referenced by the address above, its text is not in
+         licenses/)
+
+------------------------------------------------------------------------------
+Themes
+------------------------------------------------------------------------------
+
+The default theme (theme/) carries its own THIRD-PARTY-NOTICES.md, with the
+licence texts inline, which travels with the theme package. So does the demo
+theme "journal" (distributed only with the demo site), which uses Lucide
+icons (ISC) and QR Code Generator for JavaScript (MIT, Copyright (c) 2009
+Kazuhiko Arase).
+
+------------------------------------------------------------------------------
+Libraries in binary distributions
+------------------------------------------------------------------------------
+
+A jar, war or Docker image also contains the libraries the build resolves
+from Maven and npm. Three generated files itemise them and travel with every
+binary distribution:
+
+  META-INF/THIRD-PARTY.txt     every Java library in the archive with its
+                               version and licence (license-maven-plugin in
+                               ujcms-starter/pom.xml; licence names normalised
+                               to SPDX identifiers; the build fails on a
+                               licence outside the allow-list)
+  cp/THIRD-PARTY-LICENSES.txt  every npm package bundled into the console,
+                               with its licence text (rollup-plugin-license in
+                               ujcms-ui-console/vite.config.ts)
+  bom.json                     CycloneDX software bill of materials
+
+Licence texts for the families that occur are in licenses/: Apache-2.0, MIT,
+BSD-2-Clause, BSD-3-Clause, EPL-2.0, EDL-1.0, MPL-2.0, LGPL-2.1, CC0-1.0,
+the Bouncy Castle licence, the Dameng JDBC Using License, the
+Indiana University Extreme! Lab Software License 1.2 and the jsbn licence.
+Where a library offers a choice of licences, UJCMS distributes it under the
+option named here: Logback, jakarta.annotation, jakarta.json and Parsson
+under EPL-2.0; jakarta.mail, Angus Mail and jakarta.activation under EDL-1.0;
+JSqlParser and JNA under Apache-2.0. Items with conditions of their own:
+
+  MariaDB Connector/J (LGPL-2.1) is the MySQL / MariaDB driver of every
+  edition. It is an unmodified, separate jar (lib/ of the image, BOOT-INF/lib
+  of the jar, WEB-INF/lib of the war) and can be replaced by any other build
+  of the same library.
+  The LibreOffice UNO jars (MPL-2.0) are unmodified; their source is
+  available from https://www.libreoffice.org/.
+  The Dameng JDBC driver is redistributed under the Dameng JDBC Using License
+  reproduced in licenses/Dameng-JDBC.txt.
+  mxparser: This product includes software developed by the Indiana
+  University Extreme! Lab. For further information please visit
+  http://www.extreme.indiana.edu/
+  webp-imageio bundles native libwebp (BSD-3-Clause, Copyright (c) 2010,
+  Google Inc.).
+
+The Docker image is built on bellsoft/liberica-openjre-debian (Liberica JRE,
+GPL-2.0 with the Classpath Exception) and installs Debian packages: LibreOffice
+(MPL-2.0), the MariaDB command-line client (GPL-2.0; run only as a separate
+program by the backup feature), procps, fontconfig and the fonts Noto CJK
+(OFL-1.1), Liberation 2 (OFL-1.1), Carlito (OFL-1.1), Caladea (Apache-2.0)
+and DejaVu (Bitstream Vera licence). They are aggregated with UJCMS in one
+image and stay under their own licences; each package's licence text is in
+/usr/share/doc/<package>/copyright inside the image and their sources are
+available from Debian (https://www.debian.org/) and BellSoft
+(https://bell-sw.com/). No file of these packages is part of UJCMS.

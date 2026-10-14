@@ -1,3 +1,10 @@
+/*
+ * Derived from bpmn-js (https://github.com/bpmn-io/bpmn-js), lib/features/context-pad/ContextPadProvider.js.
+ * Copyright (c) 2014-present Camunda Services GmbH. Distributed under the bpmn.io license (licenses/bpmn-io.txt):
+ * the bpmn.io watermark must not be removed, changed or covered.
+ *
+ * Modified for UJCMS by 南昌蓝智科技有限公司 (https://www.ujcms.com): appends user tasks instead of tasks. First modified before 2026-04-19.
+ */
 import { assign, forEach, isArray, every } from 'min-dash';
 import { is } from 'bpmn-js/lib/util/ModelUtil';
 import { isExpanded, isHorizontal, isEventSubProcess } from 'bpmn-js/lib/util/DiUtil';

@@ -1,0 +1,189 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'mailbox'/]
+[#assign mbUrl = dy + '/mailbox'/]
+[@layout title='我要写信 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${mbUrl}" class="cm-link text-slate-700">领导信箱</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">我要写信</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4"
+  x-data="{
+    mailboxTypeId: '', type: '1',
+    name: '', phone: '', email: '', address: '', title: '', text: '',
+    agreePublished: false,
+    captcha: '', captchaToken: '', captchaImage: '',
+    submitting: false, error: '',
+    done: false, resultId: '', resultCode: '',
+    async refreshCaptcha() {
+      try {
+        const data = await window.request('GET', '${api}/captcha');
+        if (data) { this.captchaImage = 'data:image/png;base64,' + data.image; this.captchaToken = data.token; }
+      } catch (e) { /* 静默，提交时后端仍校验 */ }
+    },
+    async submit() {
+      if (this.submitting) return;
+      this.error = '';
+      this.submitting = true;
+      try {
+        await window.fetchCsrf();
+        const body = {
+          siteId: '${site.id?c}',
+          type: parseInt(this.type, 10),
+          name: this.name, phone: this.phone, email: this.email, address: this.address,
+          title: this.title, text: this.text,
+          agreePublished: this.agreePublished,
+          captcha: this.captcha, captchaToken: this.captchaToken,
+        };
+        if (this.mailboxTypeId) body.mailboxTypeId = this.mailboxTypeId;
+        const data = await window.request('POST', '${api}/mailbox', body);
+        if (data && data.status === 0 && data.result) {
+          this.resultId = String(data.result.id);
+          this.resultCode = String(data.result.code);
+          this.done = true;
+          window.scrollTo({ top: 0 });
+        } else {
+          this.error = (data && data.message) || '提交失败，请稍后重试';
+          this.captcha = ''; this.refreshCaptcha();
+        }
+      } catch (e) {
+        this.error = e.message || '提交失败，请稍后重试';
+        this.captcha = ''; this.refreshCaptcha();
+      } finally {
+        this.submitting = false;
+      }
+    }
+  }"
+  x-init="refreshCaptcha()"
+>
+  <div class="flex flex-wrap justify-between items-baseline gap-2 border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'edit-outline'/]</span>
+      <span>我要写信</span>
+    </h1>
+    <div class="flex gap-2 text-sm">
+      <a href="${mbUrl}/query" class="cm-link">信件查询</a>
+      <a href="${mbUrl}" class="cm-link">领导信箱</a>
+    </div>
+  </div>
+
+  [#-- 提交成功面板 --]
+  <div x-show="done" x-cloak class="rounded-lg border border-emerald-200 bg-emerald-50 p-6 space-y-3">
+    <h2 class="flex items-center gap-2 text-lg font-semibold text-emerald-700">
+      <span class="size-5 inline-block">[@icon 'check-circle-outline'/]</span>
+      <span>来信提交成功</span>
+    </h2>
+    <p class="text-sm text-slate-600">您的来信已提交，请务必保存好信件编号和查询码，以便查询办理进度、答复结果并进行满意度评价。</p>
+    <p class="text-sm">信件编号：<code class="px-1.5 py-0.5 rounded bg-white border border-emerald-200 font-mono" x-text="resultId"></code></p>
+    <p class="text-sm">查询码：<code class="px-1.5 py-0.5 rounded bg-white border border-emerald-200 font-mono" x-text="resultCode"></code></p>
+    <div class="flex gap-2 pt-1">
+      <a :href="'${mbUrl}/query?id=' + encodeURIComponent(resultId)"
+         class="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">前往信件查询</a>
+      <a href="${mbUrl}" class="px-4 py-2 rounded border border-slate-300 text-sm hover:bg-slate-50">返回领导信箱</a>
+    </div>
+  </div>
+
+  <form x-show="!done" @submit.prevent="submit" class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-4">
+    <p x-show="error" x-cloak x-text="error" class="px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+
+    [@MailboxTypeList; mailboxTypeList]
+    [#if mailboxTypeList?size gt 0]
+      <div class="max-w-md">
+        <label for="mailboxTypeId" class="block text-sm font-medium text-slate-700 mb-1.5">所属信箱</label>
+        <select id="mailboxTypeId" x-model="mailboxTypeId"
+                class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+          <option value="">未分类</option>
+          [#list mailboxTypeList as mailboxType]
+            <option value="${mailboxType.id?c}">${mailboxType.name}</option>
+          [/#list]
+        </select>
+      </div>
+    [/#if]
+    [/@MailboxTypeList]
+
+    <fieldset>
+      <legend class="block text-sm font-medium text-slate-700 mb-1.5">信件类型 <strong class="text-rose-600">*</strong></legend>
+      <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        [#list {'1':'咨询','2':'建议','3':'投诉','4':'求助','5':'表扬'} as key, label]
+          <label class="inline-flex items-center gap-1.5">
+            <input type="radio" name="type" value="${key}" x-model="type" class="accent-primary" required>
+            <span>${label}</span>
+          </label>
+        [/#list]
+      </div>
+    </fieldset>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">姓名 <strong class="text-rose-600">*</strong></label>
+        <input id="name" type="text" required maxlength="50" x-model="name" autocomplete="name"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">联系电话 <strong class="text-rose-600">*</strong></label>
+        <input id="phone" type="tel" required maxlength="50" x-model="phone" autocomplete="tel"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+      <div>
+        <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">电子邮箱</label>
+        <input id="email" type="email" maxlength="50" x-model="email" autocomplete="email"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+        <p class="mt-1 text-xs text-slate-500">填写邮箱可在答复后收到邮件通知。</p>
+      </div>
+      <div>
+        <label for="address" class="block text-sm font-medium text-slate-700 mb-1.5">联系地址</label>
+        <input id="address" type="text" maxlength="150" x-model="address" autocomplete="street-address"
+               class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+      </div>
+    </div>
+
+    <div>
+      <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">信件标题 <strong class="text-rose-600">*</strong></label>
+      <input id="title" type="text" required maxlength="150" x-model="title"
+             class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+    </div>
+
+    <div>
+      <label for="text" class="block text-sm font-medium text-slate-700 mb-1.5">来信内容 <strong class="text-rose-600">*</strong></label>
+      <textarea id="text" required maxlength="4000" rows="6" x-model="text"
+                class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"></textarea>
+      <p class="mt-1 text-xs text-slate-500">请如实、清楚地描述事项发生的时间、地点和经过，以便工作人员核实办理。</p>
+    </div>
+
+    <label class="flex items-start gap-2 text-sm text-slate-600">
+      <input type="checkbox" x-model="agreePublished" class="mt-0.5 accent-primary">
+      <span>我同意本信件及答复内容公开选登（选登时姓名将作脱敏处理，不显示联系方式）</span>
+    </label>
+
+    <div class="max-w-md">
+      <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码 <strong class="text-rose-600">*</strong></label>
+      <div class="flex gap-2">
+        <input id="captcha" type="text" required autocomplete="off" x-model="captcha"
+               class="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+        <button type="button" @click="refreshCaptcha()" title="点击重新获取验证码" class="shrink-0">
+          <img :src="captchaImage || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"
+               alt="验证码" class="h-10 rounded border border-slate-300 cursor-pointer min-w-24 bg-slate-50">
+        </button>
+      </div>
+    </div>
+
+    <div class="pt-1">
+      <button type="submit" :disabled="submitting"
+              class="px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity shadow-sm">
+        <span x-show="!submitting">确认提交</span>
+        <span x-show="submitting" x-cloak>提交中…</span>
+      </button>
+    </div>
+  </form>
+</div>
+[/@layout]
+[/#escape]

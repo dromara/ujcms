@@ -10,10 +10,11 @@ import java.util.List;
 /**
  * FreeMarker字符串截断方法。英文字符算半个，中文字符算一个。
  *
- * @author liufang
+ * @author PONY
  */
 public class SubstringMethod implements TemplateMethodModelEx {
 
+    @SuppressWarnings("rawtypes")
     @Override
     public Object exec(List args) throws TemplateModelException {
         // 参数最小个数

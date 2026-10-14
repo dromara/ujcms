@@ -8,7 +8,7 @@
             <property name="suppressAllComments" value="true"/>
             <!--<property name="addRemarkComments" value="true"/>-->
         </commentGenerator>
-        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver" connectionURL="jdbc:mysql://localhost:3306/ujcms?serverTimezone=UTC"
+        <jdbcConnection driverClass="org.mariadb.jdbc.Driver" connectionURL="jdbc:mariadb://localhost:3306/ujcms?allowPublicKeyRetrieval=true&amp;nullDatabaseMeansCurrent=true"
                         userId="ujcms" password="password"/>
 
         <javaTypeResolver type="com.ujcms.generator.mybatis.Java8TypeResolver">
@@ -28,6 +28,10 @@
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_config" domainObjectName="Config">
+            <!-- 控制台默认外观列由 Config 手写（docs/spec/console-shell D7），重新生成时忽略 -->
+            <ignoreColumn column="console_settings_"/>
+            <!-- 第三方登录设置列由 Config 手写（SM4 加密，Config.Oauth），重新生成时忽略 -->
+            <ignoreColumn column="oauth_settings_"/>
             <property name="serviceArgs" value="false"/>
             <property name="controller" value="false"/>
         </table>
@@ -61,6 +65,8 @@
         </table>
         <table tableName="ujcms_user" domainObjectName="User"/>
         <table tableName="ujcms_user_ext" domainObjectName="UserExt">
+            <!-- 控制台偏好列由 UserExt 手写（docs/spec/console-shell），重新生成时忽略 -->
+            <ignoreColumn column="preferences_"/>
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
@@ -91,7 +97,6 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
-        <table tableName="ujcms_storage" domainObjectName="Storage"/>
         <table tableName="ujcms_site" domainObjectName="Site">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
@@ -101,9 +106,13 @@
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
         </table>
-        <table tableName="ujcms_model" domainObjectName="Model"/>
+        <table tableName="ujcms_model" domainObjectName="Model">
+            <!-- 来源三元组由种子导入器专管（model-seeding D1）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
+        </table>
         <table tableName="ujcms_channel" domainObjectName="Channel">
-            <property name="updateExcludes" value="parent_id_,depth_,order_,views_,self_views_"/>
+            <!-- 来源三元组由种子导入器专管（theme-marketplace A0）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="parent_id_,depth_,order_,views_,self_views_,origin_,origin_id_,origin_hash_"/>
         </table>
         <table tableName="ujcms_channel_ext" domainObjectName="ChannelExt">
             <property name="service" value="false"/>
@@ -123,15 +132,14 @@
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_tag" domainObjectName="Tag"/>
-        <table tableName="ujcms_article" domainObjectName="Article"/>
+        <table tableName="ujcms_article" domainObjectName="Article">
+            <!-- 来源三元组由种子导入器专管（theme-marketplace A0）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
+        </table>
         <table tableName="ujcms_article_ext" domainObjectName="ArticleExt">
             <property name="service" value="false"/>
             <property name="controller" value="false"/>
             <property name="updateExcludes" value="comments_,downloads_,favorites_,ups_,downs_,views_,day_views_,week_views_,month_views_,quarter_views_,year_views_"/>
-        </table>
-        <table tableName="ujcms_article_stat" domainObjectName="ArticleStat">
-            <property name="service" value="false"/>
-            <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_article_tag" domainObjectName="ArticleTag">
             <property name="service" value="false"/>
@@ -139,12 +147,16 @@
         </table>
         <table tableName="ujcms_dict_type" domainObjectName="DictType">
             <property name="pageable" value="false"/>
+            <!-- 来源三元组由种子导入器专管（model-seeding D8）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
         </table>
         <table tableName="ujcms_dict" domainObjectName="Dict">
             <property name="pageable" value="false"/>
         </table>
         <table tableName="ujcms_block" domainObjectName="Block">
             <property name="pageable" value="false"/>
+            <!-- 来源三元组由种子导入器专管（theme-seed-export E4a / D23）：通用 update 不得改写 -->
+            <property name="updateExcludes" value="origin_,origin_id_,origin_hash_"/>
         </table>
         <table tableName="ujcms_block_item" domainObjectName="BlockItem">
             <property name="pageable" value="false"/>
@@ -155,10 +167,6 @@
             <property name="controller" value="false"/>
         </table>
         <table tableName="ujcms_task" domainObjectName="Task"/>
-        <table tableName="ujcms_schedule_task" domainObjectName="ScheduleTask">
-            <property name="pageable" value="false"/>
-            <property name="order" value="true"/>
-        </table>
         <table tableName="ujcms_short_message" domainObjectName="ShortMessage">
             <property name="controller" value="false"/>
         </table>

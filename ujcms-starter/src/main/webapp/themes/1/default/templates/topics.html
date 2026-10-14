@@ -1,0 +1,59 @@
+[#include '../layout/theme.html'/]
+[#--
+  V11.2 专题列表页（/topic）。展示当前站点的顶级专题并分页，
+  与 React track 的 app/topic/page.tsx 对应。
+--]
+[#escape x as (x)!?html]
+[@layout title="全部专题 - ${site.title}" keywords=site.seoKeywords!'' description=site.seoDescription!'']
+<div class="bg-slate-100">
+  <nav aria-label="breadcrumb" class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm text-slate-500">
+      <li><a href="${site.url}" class="text-primary hover:underline">首页</a></li>
+      <li aria-hidden="true">/</li>
+      <li><span aria-current="page" class="text-slate-700">全部专题</span></li>
+    </ol>
+  </nav>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+    [@TopicPage; pagedList]
+    <header>
+      <h1 class="text-2xl font-bold">全部专题</h1>
+      <p class="mt-1 text-sm text-slate-500">共 ${pagedList.totalElements} 个专题</p>
+    </header>
+
+    [#if pagedList.content?size == 0]
+      <p class="border border-slate-200 rounded-md p-8 text-center text-sm text-slate-500">暂无专题。</p>
+    [#else]
+      <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        [#list pagedList.content as bean]
+          <li>
+            <a href="${bean.url}" class="flex h-full flex-col overflow-hidden rounded-md border border-slate-200 bg-white transition hover:border-primary hover:shadow">
+              [#if bean.image?has_content]
+                <img src="${bean.image}" alt="${bean.title}" class="w-full aspect-video object-cover">
+              [#else]
+                <div class="flex aspect-video w-full items-center justify-center bg-slate-100">
+                  <span class="size-12 text-slate-400">[@icon 'bookmark-outline'/]</span>
+                </div>
+              [/#if]
+              <div class="flex flex-1 flex-col gap-2 p-4">
+                <h2 class="text-base font-semibold line-clamp-2">${bean.title}</h2>
+                [#if bean.seoDescription?has_content]
+                  <p class="text-sm text-slate-500 line-clamp-3">${bean.seoDescription}</p>
+                [/#if]
+              </div>
+            </a>
+          </li>
+        [/#list]
+      </ul>
+    [/#if]
+
+    [#include '../snippets/page.html'/]
+    [/@TopicPage]
+  </div>
+
+  [#include '../snippets/right.html'/]
+</div>
+[/@layout]
+[/#escape]

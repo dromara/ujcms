@@ -3,7 +3,7 @@ package com.ujcms.common.web;
 import static com.ujcms.common.file.FilesEx.DOUBLE_DOT;
 import static org.apache.commons.lang3.Strings.CS;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.ujcms.common.web.exception.Http400Exception;
 

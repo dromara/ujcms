@@ -1,6 +1,6 @@
 package com.ujcms.common.web.exception;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * SC_NOT_FOUND 找不到资源异常

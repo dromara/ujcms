@@ -63,6 +63,6 @@ public class CaptchaController {
     public boolean isDisplayCaptcha(HttpServletRequest request) {
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Config.Security security = configService.getUnique().getSecurity();
-        return !security.isTwoFactor() && ipLoginAttemptService.isExcessive(ip, security.getIpCaptchaAttempts());
+        return ipLoginAttemptService.isExcessive(ip, security.getIpCaptchaAttempts());
     }
 }

@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+@source '../snippets/*.html';
+@source '../snippets/panels/*.html';
+@source '../layout/*.html';
+@source '../templates/*.html';
+@source '../templates/app/*.html';
+@source '../assets/js/*.js';
+
+/* 区域行栅格与面板标题行的类由 [@region] 指令（后端 RegionDirective.java，与 React 渲染器逐类一致）
+   动态输出，不在上方 @source 扫描范围内——显式内联，保证行布局目录全量与面板装饰可用（page-regions §6 / §14 Q1）。 */
+@source inline("{grid,gap-8,space-y-8,grid-cols-1}");
+@source inline("md:grid-cols-{2,3,4}");
+@source inline("md:col-span-{1,2,3}");
+@source inline("{mb-2,flex,items-baseline,justify-between,text-xl,font-semibold,text-sm}");
+@source inline("{,hover:}text-gray-{500,900}");
+
+@theme {
+  --color-primary: oklch(48% 0.22 263);
+  --color-primary-foreground: oklch(98% 0 0);
+  --color-muted-foreground: oklch(48% 0.015 250);
+  --font-display: 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+}
+
+@layer components {
+  .cm-link {
+    color: inherit;
+    transition: color 150ms ease;
+  }
+
+  .cm-link:hover {
+    color: var(--color-primary);
+  }
+
+  .cm-list-thumb {
+    width: 6rem;
+    height: 4.5rem;
+    object-fit: cover;
+    border-radius: 0.375rem;
+  }
+
+  /* 文库封面是竖版文档页：竖向盒子 + 顶部对齐裁切，白底细边框，不走横版的 .cm-list-thumb */
+  .cm-doc-thumb {
+    width: 4.5rem;
+    height: 6rem;
+    object-fit: cover;
+    object-position: top;
+    background: #fff;
+    border: 1px solid var(--color-slate-200);
+    border-radius: 0.125rem;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.12);
+  }
+
+  /* PhotoSwipe 钩子。不在此固定宽高比：图集里横竖图混排，固定比例会把竖图压扁 */
+  .gallery-img {
+    cursor: zoom-in;
+  }
+
+  /* 正文富文本排版：文章正文、产品规格参数、单页栏目正文都输出在 .article-body 内。主题没有引入 typography
+     插件，preflight 又把段距、标题、列表、表格的样式全部清零，这里按语义恢复，只作用于 .article-body 之内。 */
+  .article-body {
+    line-height: 1.8;
+    color: var(--color-slate-800);
+    overflow-wrap: anywhere;
+  }
+
+  .article-body :is(p, ul, ol, table, blockquote, pre, figure, hr):not(:first-child),
+  .article-body > div:not(:first-child) {
+    margin-top: 1em;
+  }
+
+  .article-body :is(h1, h2, h3, h4) {
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-slate-900);
+  }
+
+  .article-body :is(h1, h2, h3, h4):not(:first-child) {
+    margin-top: 1.6em;
+  }
+
+  .article-body :is(h1, h2) {
+    font-size: 1.25rem;
+  }
+
+  .article-body h3 {
+    font-size: 1.125rem;
+  }
+
+  .article-body :is(ul, ol) {
+    padding-left: 1.5em;
+  }
+
+  .article-body ul {
+    list-style: disc;
+  }
+
+  .article-body ol {
+    list-style: decimal;
+  }
+
+  .article-body li + li {
+    margin-top: 0.25em;
+  }
+
+  .article-body a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .article-body blockquote {
+    padding-left: 1em;
+    border-left: 3px solid var(--color-slate-300);
+    color: var(--color-slate-600);
+  }
+
+  .article-body pre {
+    padding: 0.75em 1em;
+    overflow-x: auto;
+    border-radius: 0.375rem;
+    background: var(--color-slate-100);
+    font-size: 0.875em;
+    line-height: 1.6;
+  }
+
+  .article-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375em;
+    line-height: 1.6;
+  }
+
+  .article-body :is(th, td) {
+    padding: 0.5em 0.75em;
+    border: 1px solid var(--color-slate-200);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .article-body th {
+    background: var(--color-slate-50);
+    font-weight: 600;
+  }
+
+  /* 规格参数的「名称 - 取值」行：<dl><dt>…</dt><dd>…</dd></dl> 一行一对 */
+  .article-body dl {
+    display: flex;
+    gap: 1em;
+    padding: 0.4em 0;
+    border-bottom: 1px solid var(--color-slate-100);
+  }
+
+  .article-body :is(h1, h2, h3, h4) + dl {
+    margin-top: 0.4em;
+  }
+
+  .article-body dt {
+    flex: none;
+    width: 9em;
+    color: var(--color-slate-500);
+  }
+
+  .article-body dd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+}

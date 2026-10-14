@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.domain;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.ujcms.cms.core.domain.generated.GeneratedAction;
 

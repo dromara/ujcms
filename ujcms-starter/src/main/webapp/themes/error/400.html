@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+[#escape x as (x)!?html]
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>${status}</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="renderer" content="webkit">
+  [#-- 错误页在失败路径上渲染：样式全部内联，零外部请求。 --]
+  <style>
+    :root{--primary:oklch(48% 0.22 263)}
+    *{box-sizing:border-box}
+    body{margin:0;background:#fff;color:#0f172a;font-family:'Microsoft YaHei','PingFang SC',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+    main{max-width:36rem;width:100%;text-align:center}
+    .status{font-size:6rem;font-weight:700;line-height:1;color:var(--primary);margin:0}
+    h1{font-size:1.25rem;font-weight:600;margin:1rem 0 0}
+    .detail{margin-top:1.5rem;font-size:.875rem;color:#64748b;text-align:left;border-top:1px solid #e2e8f0;padding-top:1rem;word-break:break-all}
+    .detail p{margin:.25rem 0}
+    code{background:#f1f5f9;border-radius:.25rem;padding:.125rem .375rem;font-size:.8125rem}
+    .home{display:inline-block;margin-top:1.5rem;padding:.5rem 1.25rem;border:1px solid var(--primary);border-radius:.375rem;color:var(--primary);text-decoration:none;font-size:.875rem}
+    .home:hover{background:var(--primary);color:#fff}
+  </style>
+</head>
+<body>
+<main>
+  <p class="status">${status}</p>
+  <h1>错误的请求</h1>
+  <a class="home" href="/">返回首页</a>
+  <div class="detail">
+    <p>path: ${path}</p>
+    <p>timestamp: ${timestamp?string("yyyy-MM-dd'T'HH:mm:ss.SSSXX")}</p>
+    [#if message??]<p><code>${message}</code></p>[/#if]
+  </div>
+</main>
+</body>
+</html>
+[/#escape]

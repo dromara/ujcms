@@ -41,6 +41,13 @@ lerna-debug.log*
 .eslintcache
 
 # ===================================================
+# TinyMCE — skin assets synced from node_modules by
+# vite-plugin-static-copy at dev/build. Only the
+# custom langs/ files are committed; skins/ is generated.
+# ===================================================
+public/tinymce/skins/
+
+# ===================================================
 # Testing
 # ===================================================
 /cypress/videos/

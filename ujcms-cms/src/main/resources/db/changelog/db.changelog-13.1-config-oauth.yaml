@@ -1,0 +1,23 @@
+databaseChangeLog:
+  # 第三方登录设置（features.yaml oauthLogin，商业 T2 起）：各服务商（微信、QQ、微博）的启用开关与应用凭据，
+  # 管理员在“全局设置 › 第三方登录”维护，存于 ujcms_config.oauth_settings_（JSON 文本，MEDIUMTEXT，与各 *_settings_ 列同型；
+  # 含应用密钥，整列 SM4-GCM 加密落库——ConfigMapper.xml 的 Sm4StringTypeHandler）。此前凭据写在 application.yaml 的
+  # oauth.client.*、开关是全局自定义字段 customs.oauth；旧配置不导入，升级后在该设置页重新录入凭据。
+  # 13.0 已发布，故以升级变更集加列；columnExists 守卫令开发期已加列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.1-config-oauth-settings
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_config
+                columnName: oauth_settings_
+      changes:
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: oauth_settings_
+                  remarks: 第三方登录设置JSON
+                  type: MEDIUMTEXT

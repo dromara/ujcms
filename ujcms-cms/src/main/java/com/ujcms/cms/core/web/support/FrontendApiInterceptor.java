@@ -2,7 +2,7 @@ package com.ujcms.cms.core.web.support;
 
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.core.support.Contexts;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;

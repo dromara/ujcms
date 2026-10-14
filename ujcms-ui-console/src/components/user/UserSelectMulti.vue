@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, toRefs, PropType } from 'vue';
+import { ref, watch, toRefs, type PropType } from 'vue';
 import { ArrowLeft, ArrowRight, Search } from '@element-plus/icons-vue';
 import { toTree } from '@/utils/tree';
 import { queryUserPage, queryUserList, queryOrgList } from '@/api/user';

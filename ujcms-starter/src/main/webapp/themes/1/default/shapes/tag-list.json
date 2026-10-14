@@ -1,0 +1,12 @@
+{
+  "name": "TagList",
+  "version": "1.0.0",
+  "description": "自动获取热门标签。",
+  "label": { "zh-CN": "标签云", "en": "Tag cloud" },
+  "tags": ["region", "aside", "tag"],
+  "presentation": { "icon": "grid", "group": { "zh-CN": "内容组件", "en": "Content" }, "order": 18, "thumbnail": "thumbnails/tag-list.svg" },
+  "settings": {
+    "title": { "type": "text", "max": 150, "default": "Tags", "label": { "zh-CN": "栏目标题", "en": "Section title" } },
+    "limit": { "type": "number", "default": 10, "min": 1, "max": 30, "integer": true, "label": { "zh-CN": "条数", "en": "Count" } }
+  }
+}

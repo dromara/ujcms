@@ -35,7 +35,7 @@ public class WebFileUploadController extends AbstractWebFileController {
 
     @Override
     protected List<String> getExcludes() {
-        return Arrays.asList(EXCLUDES_WEB_INF, EXCLUDES_CP, EXCLUDES_TEMPLATES);
+        return Arrays.asList(EXCLUDES_WEB_INF, EXCLUDES_CP, EXCLUDES_THEMES);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class WebFileUploadController extends AbstractWebFileController {
 
     @PostMapping("copy")
     @PreAuthorize("hasAnyAuthority('webFileUpload:copy','*')")
-    @OperationLog(module = "webFileUpload", operation = "create", type = OperationType.CREATE)
+    @OperationLog(module = "webFileUpload", operation = "copy", type = OperationType.CREATE)
     public ResponseEntity<Responses.Body> copy(@RequestBody @Valid AbstractWebFileController.WebFileBatchParams params) {
         Site site = Contexts.getCurrentSite();
         return super.copy(params, site.getConfig().getUploadStorage());
@@ -86,7 +86,7 @@ public class WebFileUploadController extends AbstractWebFileController {
 
     @PostMapping("move")
     @PreAuthorize("hasAnyAuthority('webFileUpload:move','*')")
-    @OperationLog(module = "webFileUpload", operation = "move", type = OperationType.CREATE)
+    @OperationLog(module = "webFileUpload", operation = "move", type = OperationType.UPDATE)
     public ResponseEntity<Responses.Body> move(@RequestBody @Valid AbstractWebFileController.WebFileBatchParams params) {
         Site site = Contexts.getCurrentSite();
         return super.move(params, site.getConfig().getUploadStorage());
@@ -94,7 +94,7 @@ public class WebFileUploadController extends AbstractWebFileController {
 
     @PostMapping("upload")
     @PreAuthorize("hasAnyAuthority('webFileUpload:upload','*')")
-    @OperationLog(module = "webFileUpload", operation = "create", type = OperationType.CREATE)
+    @OperationLog(module = "webFileUpload", operation = "upload", type = OperationType.CREATE)
     public ResponseEntity<Responses.Body> upload(@RequestParam(value = "file") MultipartFile file, String parentId) {
         Site site = Contexts.getCurrentSite();
         return super.upload(file, parentId, site.getConfig().getUploadStorage());

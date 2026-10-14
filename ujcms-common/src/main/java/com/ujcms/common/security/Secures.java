@@ -11,6 +11,7 @@ import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.digests.SM3Digest;
 import org.bouncycastle.crypto.engines.SM2Engine;
+import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.params.*;
 import org.bouncycastle.crypto.signers.SM2Signer;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
@@ -19,7 +20,7 @@ import org.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.util.BigIntegers;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -171,6 +172,41 @@ public class Secures {
     }
 
     /**
+     * 使用 HMAC-SM3 对数据做带密钥的确定性散列。相同密钥与数据恒得相同结果，
+     * 因此适用于“盲索引”（blind index）等值查询：对待查值规范化后取此散列存为索引列。
+     * <p>
+     * 与 {@link #sm3(byte[])} 不同，本方法引入密钥，未持有密钥者无法离线枚举/比对（彩虹表）。
+     * 输出 256 bit（32 byte，64 个十六进制字符）。
+     *
+     * @param key  密钥。长度任意（HMAC 内部按块长处理）
+     * @param data 待散列数据
+     * @return 散列结果字节
+     */
+    public static byte[] hmacSm3(byte[] key, byte[] data) {
+        HMac mac = new HMac(new SM3Digest());
+        mac.init(new KeyParameter(key));
+        mac.update(data, 0, data.length);
+        byte[] out = new byte[mac.getMacSize()];
+        mac.doFinal(out, 0);
+        return out;
+    }
+
+    /**
+     * 使用 HMAC-SM3 对数据做带密钥的确定性散列，返回十六进制字符串（64 字符）。
+     */
+    public static String hmacSm3Hex(byte[] key, byte[] data) {
+        return Strings.encodeHex(hmacSm3(key, data));
+    }
+
+    /**
+     * 使用 HMAC-SM3 对字符串做带密钥的确定性散列，返回十六进制字符串（64 字符）。
+     * 字符串按 UTF-8 编码，跨平台结果一致。
+     */
+    public static String hmacSm3Hex(String key, String data) {
+        return hmacSm3Hex(Strings.toBytes(key), Strings.toBytes(data));
+    }
+
+    /**
      * 国密 SM4 加密。使用 SM4/GCM/NoPadding 算法。
      *
      * @param input 待加密数据
@@ -280,7 +316,10 @@ public class Secures {
             keyPairGenerator.initialize(sm2Spec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             String publicKey = Strings.encodeHex(((BCECPublicKey) keyPair.getPublic()).getQ().getEncoded(false));
-            String privateKey = Strings.encodeHex(((BCECPrivateKey) keyPair.getPrivate()).getD().toByteArray());
+            // D 值定长 32 字节：BigInteger.toByteArray() 遇最高位为 1 会多出符号字节（约一半的密钥变成 66 位 HEX），
+            // 高位为零时又会缩短；解析端（getPrivateKeyParamByQd）两者都能读，但配置文件里的值应当形制统一。
+            String privateKey = Strings.encodeHex(BigIntegers.asUnsignedByteArray(SM2_KEY_SIZE / Byte.SIZE,
+                    ((BCECPrivateKey) keyPair.getPrivate()).getD()));
             return new Pair(publicKey, privateKey);
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
             throw new IllegalStateException(e);

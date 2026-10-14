@@ -3,10 +3,12 @@ package com.ujcms.cms.core.generator;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.ArticleExt;
 import com.ujcms.cms.core.domain.Channel;
+import com.ujcms.cms.core.composition.ThemeSettingsService;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.mapper.ArticleExtMapper;
 import com.ujcms.cms.core.mapper.ChannelExtMapper;
 import com.ujcms.cms.core.mapper.SiteMapper;
+import com.ujcms.cms.core.service.LayoutVariantService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.web.support.Directives;
@@ -16,7 +18,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,15 +42,20 @@ public class HtmlService {
     private final PathResolver pathResolver;
     private final Configuration configuration;
     private final FreeMarkerProperties properties;
+    private final ThemeSettingsService themeSettingsService;
+    private final LayoutVariantService layoutVariantService;
 
     public HtmlService(SiteMapper siteMapper, ArticleExtMapper articleExtMapper, ChannelExtMapper channelExtMapper,
-                       PathResolver pathResolver, Configuration configuration, FreeMarkerProperties properties) {
+                       PathResolver pathResolver, Configuration configuration, FreeMarkerProperties properties,
+                       ThemeSettingsService themeSettingsService, LayoutVariantService layoutVariantService) {
         this.siteMapper = siteMapper;
         this.articleExtMapper = articleExtMapper;
         this.channelExtMapper = channelExtMapper;
         this.pathResolver = pathResolver;
         this.configuration = configuration;
         this.properties = properties;
+        this.themeSettingsService = themeSettingsService;
+        this.layoutVariantService = layoutVariantService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -59,6 +66,7 @@ public class HtmlService {
         Map<String, Object> dataModel = new HashMap<>(16);
         Site defaultSite = getDefaultSite(site.getConfig().getDefaultSiteId());
         Frontends.setDate(dataModel, site, defaultSite, site.getUrl(), 1, null);
+        dataModel.put(Frontends.THEME, themeSettingsService.themeModel(site.getId(), site.getTheme()));
         dataModel.put(PAGE_SIZE, site.getPageSize());
         dataModel.put("isHome", true);
         try {
@@ -95,8 +103,14 @@ public class HtmlService {
         });
     }
 
+    /**
+     * 生成文章静态页。只回写静态页路径两列（{@link ArticleExtMapper#updateStaticFile}），不回写整行扩展数据：
+     * 传进来的文章可能是任务排队之前读出的，整行写回会把期间编辑保存的正文、标题盖掉
+     * （docs/spec/article-management/plan.md D9）
+     */
     @Transactional(rollbackFor = Exception.class)
     public void updateArticleHtml(Article article) {
+        boolean hadFile = article.getStaticFile() != null || article.getMobileStaticFile() != null;
         deleteArticleHtml(article);
         Site site = siteMapper.select(article.getSiteId());
         if (site == null) {
@@ -106,6 +120,10 @@ public class HtmlService {
         if (!site.isHtmlEnabled()
                 || !StringUtils.isBlank(article.getLinkUrl())
                 || !article.isNormal()) {
+            // 页面已删除，库里记着的路径随之清掉
+            if (hadFile) {
+                articleExtMapper.updateStaticFile(article.getId(), null, null);
+            }
             return;
         }
         Map<String, Object> dataModel = new HashMap<>(16);
@@ -114,21 +132,24 @@ public class HtmlService {
         int page = 1;
         Site defaultSite = getDefaultSite(site.getConfig().getDefaultSiteId());
         Frontends.setDate(dataModel, site, defaultSite, article.getUrl(page), page, article);
+        dataModel.put(Frontends.THEME, themeSettingsService.themeModel(site.getId(), site.getTheme()));
         try {
             ArticleExt ext = article.getExt();
             Contexts.setMobile(false);
             String filename = article.getNormalStaticPath(page);
             FileHandler fileHandler = site.getConfig().getHtmlStorage().getFileHandler(pathResolver);
-            fileHandler.store(filename, resolveTemplate(article.getTemplate()), dataModel);
+            // 静态化与动态渲染同规（template-track-variants Q2）：经共享 helper 解析有效模板，
+            // 孤立显式选择回退默认而非模板缺失中断。移动端另行解析（移动主题的文件与目录不同）。
+            fileHandler.store(filename, resolveTemplate(articleTemplate(site, article)), dataModel);
             ext.setStaticFile(filename);
 
             if (site.hasMobileTheme()) {
                 Contexts.setMobile(true);
                 filename = article.getMobileStaticPath(page);
-                fileHandler.store(filename, resolveTemplate(article.getTemplate()), dataModel);
+                fileHandler.store(filename, resolveTemplate(articleTemplate(site, article)), dataModel);
                 ext.setMobileStaticFile(filename);
             }
-            articleExtMapper.update(ext);
+            articleExtMapper.updateStaticFile(article.getId(), ext.getStaticFile(), ext.getMobileStaticFile());
         } catch (IOException e) {
             throw new IllegalStateException(e);
         } finally {
@@ -138,16 +159,27 @@ public class HtmlService {
 
     public void deleteArticleHtml(Article article) {
         FileHandler fileHandler = article.getSite().getConfig().getHtmlStorage().getFileHandler(pathResolver);
+        // 13.1 之前，扩展栏目与推送产生的子行把源文章的静态页路径也复制了过来。按这个路径删除，删掉的是源文章的页面：
+        // 路径与源文章相同的不删文件，只清掉子行自己记着的路径（新建的子行已不再复制，见 ArticleExt#copyForChild）
+        Article src = article.getSrcId() != null ? article.getSrc() : null;
         Optional.ofNullable(article.getStaticFile()).ifPresent(filename -> {
-            fileHandler.deleteFileAndEmptyParentDir(filename);
+            if (src == null || !filename.equals(src.getStaticFile())) {
+                fileHandler.deleteFileAndEmptyParentDir(filename);
+            }
             article.setStaticFile(null);
         });
         Optional.ofNullable(article.getMobileStaticFile()).ifPresent(filename -> {
-            fileHandler.deleteFileAndEmptyParentDir(filename);
+            if (src == null || !filename.equals(src.getMobileStaticFile())) {
+                fileHandler.deleteFileAndEmptyParentDir(filename);
+            }
             article.setMobileStaticFile(null);
         });
     }
 
+    /**
+     * 生成栏目静态页。须传入完整读取的栏目（{@code ChannelService.select}）：列表、关联查询带出的栏目没有扩展数据、
+     * 子栏目和正文，模板一用到就出错。只回写静态页路径两列，不回写栏目正文（D9）
+     */
     @Transactional(rollbackFor = Exception.class)
     public void updateChannelHtml(Channel channel) {
         deleteChannelHtml(channel);
@@ -167,7 +199,7 @@ public class HtmlService {
                 Contexts.setMobile(true);
                 doMakeChannelHtml(channel, site);
             }
-            channelExtMapper.update(channel.getExt());
+            channelExtMapper.updateStaticFile(channel.getId(), channel.getStaticFile(), channel.getMobileStaticFile());
         } catch (IOException e) {
             throw new IllegalStateException(e);
         } finally {
@@ -180,9 +212,13 @@ public class HtmlService {
         Map<String, Object> dataModel = new HashMap<>(16);
         dataModel.put("channel", channel);
         dataModel.put(PAGE_SIZE, channel.getPageSize());
+        dataModel.put(Frontends.THEME, themeSettingsService.themeModel(site.getId(), site.getTheme()));
 
         FileHandler fileHandler = site.getConfig().getHtmlStorage().getFileHandler(pathResolver);
-        Template template = resolveTemplate(channel.getTemplate());
+        // 静态化与动态渲染同规（template-track-variants Q2）：孤立显式选择回退默认。
+        // 本方法按 Contexts.isMobile() 各调用一次，主题与回退判定随之解析。
+        Template template = resolveTemplate(site.assembleTemplate(
+                layoutVariantService.effectiveChannelTemplate(site, channel).template()));
         int page = 1;
         int totalPages = 1;
         int maxPages = site.getHtml().getListPages();
@@ -233,6 +269,15 @@ public class HtmlService {
 
     private Template resolveTemplate(String template) throws IOException {
         return configuration.getTemplate(properties.getPrefix() + template + properties.getSuffix());
+    }
+
+    /**
+     * 文章静态页的已组装模板路径：经共享 helper 解析有效模板（显式级联 &gt; 默认，孤立回退，
+     * template-track-variants Q2），按当前 {@code Contexts.isMobile()} 组装主题路径。
+     */
+    private String articleTemplate(Site site, Article article) {
+        return site.assembleTemplate(
+                layoutVariantService.effectiveArticleTemplate(site, article, article.getChannel()).template());
     }
 
     private Site getDefaultSite(Long defaultSiteId) {

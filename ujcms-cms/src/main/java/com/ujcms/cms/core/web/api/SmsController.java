@@ -1,6 +1,7 @@
 package com.ujcms.cms.core.web.api;
 
 import com.google.common.collect.ImmutableMap;
+import com.ujcms.cms.core.component.SmsCodeSender;
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.domain.ShortMessage;
 import com.ujcms.cms.core.service.ConfigService;
@@ -9,9 +10,11 @@ import com.ujcms.cms.core.support.Props;
 import com.ujcms.common.captcha.CaptchaTokenService;
 import com.ujcms.common.security.Secures;
 import com.ujcms.common.sms.IpSmsCounterService;
+import com.ujcms.common.sms.SmsCooldownCache;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.Servlets;
+import com.ujcms.common.web.exception.Http400Exception;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,9 +29,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+
+import java.util.Set;
 
 import static com.ujcms.cms.core.support.UrlConstants.API;
 import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
@@ -42,50 +48,66 @@ import static com.ujcms.cms.core.support.UrlConstants.FRONTEND_API;
 @RestController
 @RequestMapping({API + "/sms", FRONTEND_API + "/sms"})
 public class SmsController {
+    /**
+     * 公开接口允许发送的手机验证码用途。“测试”只能由后台发送；“登录”没有任何校验方；“双因子登录”只能在口令校验通过后
+     * 由登录流程发往账号登记的号码（见 {@code JwtAuthController#mfaSend}），不接受匿名请求指定号码。
+     * 验证码与用途绑定（见 {@link ShortMessageService#validateCode}），不在此列的用途发出去也无处可用，只会白白消耗短信。
+     */
+    private static final Set<Short> MOBILE_USAGES = Set.of(ShortMessage.USAGE_REGISTER,
+            ShortMessage.USAGE_RESET_PASSWORD, ShortMessage.USAGE_MODIFY_MOBILE);
+    /**
+     * 公开接口允许发送的邮件验证码用途
+     */
+    private static final Set<Short> EMAIL_USAGES = Set.of(ShortMessage.USAGE_REGISTER,
+            ShortMessage.USAGE_RESET_PASSWORD, ShortMessage.USAGE_MODIFY_EMAIL);
+
     private final ConfigService configService;
     private final ShortMessageService shortMessageService;
+    private final SmsCodeSender smsCodeSender;
     private final IpSmsCounterService ipSmsCounterService;
+    private final SmsCooldownCache smsCooldownCache;
     private final CaptchaTokenService captchaTokenService;
     private final Props props;
 
     public SmsController(ConfigService configService, ShortMessageService shortMessageService,
-                         IpSmsCounterService ipSmsCounterService, CaptchaTokenService captchaTokenService, Props props) {
+                         SmsCodeSender smsCodeSender, IpSmsCounterService ipSmsCounterService,
+                         SmsCooldownCache smsCooldownCache, CaptchaTokenService captchaTokenService, Props props) {
         this.configService = configService;
         this.shortMessageService = shortMessageService;
+        this.smsCodeSender = smsCodeSender;
         this.ipSmsCounterService = ipSmsCounterService;
+        this.smsCooldownCache = smsCooldownCache;
         this.captchaTokenService = captchaTokenService;
         this.props = props;
     }
 
     @Operation(summary = "发送手机短信")
     @PostMapping("/mobile")
-    public ResponseEntity<Body> mobileMessage(@RequestBody ShortMessageParams params, HttpServletRequest request) {
+    public ResponseEntity<Body> mobileMessage(@RequestBody @Valid ShortMessageParams params,
+                                              HttpServletRequest request) {
+        if (!MOBILE_USAGES.contains(params.usage)) {
+            throw new Http400Exception("usage not allowed: " + params.usage);
+        }
         // 验证码是否正确
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
             return Responses.failure(request, "error.captchaIncorrect");
         }
         String ip = Servlets.getRemoteAddr(request, props.getIpProxyDepth());
         Config.Sms sms = configService.getUnique().getSms();
-        // IP发送短信是否超过限制次数
-        if (ipSmsCounterService.isExcessive(ip, sms.getMaxPerIp())) {
-            return Responses.failure(request, "error.ipSendSmsExcessive");
+        SmsCodeSender.SendResult result = smsCodeSender.sendMobileCode(params.receiver, params.usage, ip, sms);
+        if (!result.isSuccess()) {
+            return result.toFailure(request);
         }
-        // 短信功能未开启
-        if (sms.getProvider() == Config.Sms.PROVIDER_NONE) {
-            return Responses.failure(request, "error.smsNotEnabled");
-        }
-        String code = Secures.randomNumeric(sms.getCodeLength());
-        String error = shortMessageService.sendMobileMessage(params.receiver, code, sms);
-        if (error != null) {
-            return Responses.failure(error);
-        }
-        ShortMessage shortMessage = shortMessageService.insertMobileMessage(params.receiver, code, ip, params.usage);
-        return Responses.ok(ImmutableMap.of("shortMessageId", shortMessage.getId()));
+        return Responses.ok(ImmutableMap.of("shortMessageId", result.getMessage().getId()));
     }
 
     @Operation(summary = "发送邮件短信")
     @PostMapping("/email")
-    public ResponseEntity<Body> emailMessage(@RequestBody ShortMessageParams params, HttpServletRequest request) {
+    public ResponseEntity<Body> emailMessage(@RequestBody @Valid ShortMessageParams params,
+                                             HttpServletRequest request) {
+        if (!EMAIL_USAGES.contains(params.usage)) {
+            throw new Http400Exception("usage not allowed: " + params.usage);
+        }
         // 验证码是否正确
         if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
             return Responses.failure(request, "error.captchaIncorrect");
@@ -100,9 +122,16 @@ public class SmsController {
         if (StringUtils.isBlank(emailConfig.getHost())) {
             return Responses.failure(request, "error.emailNotEnabled");
         }
+        // 同一邮箱地址是否处于发送冷却中
+        String cooldownKey = SmsCooldownCache.key(params.receiver);
+        if (smsCooldownCache.isCoolingDown(cooldownKey)) {
+            return Responses.failure(request, "error.codeSendCooldown", SmsCooldownCache.EXPIRES_SECONDS);
+        }
         String code = Secures.randomNumeric(emailConfig.getCodeLength());
         String text = Strings.CS.replace(emailConfig.getText(), "${code}", code);
         emailConfig.sendMail(new String[]{params.receiver}, emailConfig.getSubject(), text);
+        smsCooldownCache.start(cooldownKey);
+        ipSmsCounterService.updateCount(ip);
         ShortMessage shortMessage = shortMessageService.insertEmailMessage(params.receiver, code, ip, params.usage);
         return Responses.ok(ImmutableMap.of("shortMessageId", shortMessage.getId()));
     }

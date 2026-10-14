@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Minimal local schema for the xhtml namespace, defining exactly the <xhtml:link> element
+  Google documents for sitemap hreflang alternates
+  (https://developers.google.com/search/docs/specialty/international/localized-versions).
+  The sitemap.org XSD declares its extension point as <xsd:any namespace="##other"
+  processContents="strict"/>, so validating a sitemap that carries xhtml:link elements
+  requires SOME schema for http://www.w3.org/1999/xhtml — the full W3C XHTML schema is
+  enormous and needs network fetches, hence this offline stand-in.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://www.w3.org/1999/xhtml"
+            elementFormDefault="qualified">
+  <xsd:element name="link">
+    <xsd:complexType>
+      <xsd:attribute name="rel" type="xsd:string"/>
+      <xsd:attribute name="hreflang" type="xsd:string"/>
+      <xsd:attribute name="href" type="xsd:anyURI"/>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

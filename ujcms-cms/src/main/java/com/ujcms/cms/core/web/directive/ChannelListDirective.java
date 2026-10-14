@@ -60,9 +60,9 @@ public class ChannelListDirective implements TemplateDirectiveModel {
         boolean isIncludeChildren = Directives.getBoolean(params, IS_INCLUDE_CHILDREN, false);
         Long parentId = Directives.getLong(params, PARENT_ID);
         if (parentId == null) {
-            String parentAlias = Directives.getString(params, PARENT);
-            if (StringUtils.isNotBlank(parentAlias)) {
-                Channel parent = channelService.findBySiteIdAndAlias(siteId, parentAlias);
+            String parentSlug = Directives.getString(params, PARENT);
+            if (StringUtils.isNotBlank(parentSlug)) {
+                Channel parent = channelService.findBySiteIdAndSlug(siteId, parentSlug);
                 parentId = parent != null ? parent.getId() : Integer.MIN_VALUE;
             }
         }
@@ -81,7 +81,7 @@ public class ChannelListDirective implements TemplateDirectiveModel {
         Directives.handleOrderBy(args.getQueryMap(), params);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
             throws TemplateException, IOException {

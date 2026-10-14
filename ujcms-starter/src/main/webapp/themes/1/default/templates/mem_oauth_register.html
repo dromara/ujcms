@@ -1,0 +1,120 @@
+[#include '../layout/theme.html'/]
+[#include '../snippets/auth_shell.html'/]
+[#escape x as (x)!?html]
+[@layout title='绑定账号 - ' + site.title]
+[@authShell heading='还差一步' intro='为第三方账号设置一个本站用户名，之后即可用它直接登录。' title='绑定账号']
+
+      [#--
+        OauthEpController.registerForm 会把 Session 中的 OauthToken 放入
+        modelMap 的 `oauthToken`。
+      --]
+      [#if oauthToken??]
+        <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200">
+          [#if oauthToken.largeAvatarUrl?has_content]
+            <img src="${oauthToken.largeAvatarUrl}" alt="${oauthToken.nickname}"
+                 class="size-14 rounded-full object-cover ring-2 ring-primary/10 shrink-0">
+          [#else]
+            <div class="size-14 rounded-full bg-slate-100 text-slate-400 inline-flex items-center justify-center shrink-0">
+              <span class="size-7 inline-block">[@icon 'account-circle-outline'/]</span>
+            </div>
+          [/#if]
+          <div class="min-w-0 flex-1">
+            <p class="text-xs text-slate-500 inline-flex items-center gap-1">
+              <span class="size-3.5 inline-block">[@icon 'verified-outline'/]</span>
+              <span>来自 ${oauthToken.provider}</span>
+            </p>
+            <p class="font-semibold truncate mt-0.5">${(oauthToken.nickname)!'新用户'}</p>
+          </div>
+        </div>
+      [/#if]
+
+      <form
+        action="${def}/oauth/register"
+        method="post"
+        x-data="{
+          username: '${((oauthToken.nickname)!'')?js_string}',
+          mobile: '',
+          mobileMessage: '',
+          mobileMessageId: '',
+          mobileCountdown: 0, mobileTimer: null,
+          submitting: false,
+          requestSms() {
+            if (!/^1\d{10}$/.test(this.mobile)) { window.displayAlert('请填写有效的手机号码'); return; }
+            $dispatch('request-mobile-sms', { receiver: this.mobile, usage: 1, onSuccess: id => {
+              this.mobileMessageId = id;
+              this.mobileCountdown = 90;
+              clearInterval(this.mobileTimer);
+              this.mobileTimer = setInterval(() => { if (--this.mobileCountdown <= 0) clearInterval(this.mobileTimer); }, 1000);
+            }});
+          },
+          async submit(ev) {
+            if (this.submitting) return;
+            this.submitting = true;
+            try {
+              const ok = await window.request('GET', '${api}/user/username-not-exist?username=' + encodeURIComponent(this.username));
+              if (ok !== true) { window.displayAlert('用户名已存在'); this.submitting = false; return; }
+            } catch (e) { /* tolerate transient */ }
+            ev.target.submit();
+          }
+        }"
+        @submit.prevent="submit"
+        class="space-y-4"
+      >
+        <div>
+          <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5">用户名</label>
+          <input id="username" name="username" type="text" required autocomplete="username"
+                 minlength="${config.register.usernameMinLength?c}"
+                 maxlength="${config.register.usernameMaxLength?c}"
+                 pattern="${config.register.usernameRegex}"
+                 x-model="username"
+                 class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+          <p class="mt-1 text-xs text-slate-500">支持字母、数字、汉字、下划线、中划线、点号</p>
+        </div>
+
+        [#-- register.verifyMode == 4（手机验证）时需要手机验证码 --]
+        [#if config.register.verifyMode == 4]
+          <div>
+            <label for="mobile" class="block text-sm font-medium text-slate-700 mb-1.5">手机号码</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 size-4 inline-block text-slate-400 pointer-events-none">[@icon 'phone-android-outline'/]</span>
+              <input id="mobile" name="mobile" type="tel" required pattern="^1\d{10}$" autocomplete="tel"
+                     x-model="mobile"
+                     class="block w-full rounded-md border border-slate-300 pl-9 pr-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+            </div>
+          </div>
+          <div>
+            <label for="mobileMessage" class="block text-sm font-medium text-slate-700 mb-1.5">短信验证码</label>
+            <div class="flex gap-2">
+              <input id="mobileMessage" name="mobileMessage" type="text" required maxlength="8" autocomplete="one-time-code"
+                     x-model="mobileMessage"
+                     class="flex-1 min-w-0 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+              <button type="button" @click="requestSms" :disabled="mobileCountdown > 0"
+                      class="px-3 rounded-md border border-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 hover:border-primary hover:text-primary disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:text-slate-700 transition-colors">
+                <span x-show="mobileCountdown <= 0">获取验证码</span>
+                <span x-show="mobileCountdown > 0" x-cloak><span x-text="mobileCountdown"></span> 秒</span>
+              </button>
+            </div>
+            <input type="hidden" name="mobileMessageId" :value="mobileMessageId">
+          </div>
+        [/#if]
+
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+        <button type="submit" :disabled="submitting"
+                class="w-full px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+          <span x-show="!submitting">注册并绑定</span>
+          <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+            <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            <span>提交中…</span>
+          </span>
+        </button>
+        <p class="text-center text-xs text-slate-500">
+          注册即代表您同意 <a href="#" class="text-primary hover:underline">服务条款</a>
+        </p>
+      </form>
+[/@authShell]
+
+[#if config.register.verifyMode == 4]
+  [#include '../snippets/short_message.html'/]
+[/#if]
+[/@layout]
+[/#escape]

@@ -1,0 +1,21 @@
+[#--
+  面板片段：标签云（TagList）。纯设置组件（vote-micro-region §5 先例）：热门 Tag 经
+  [@TagList] 自取，条数由 settings.limit 控制。视觉复刻原 right.html 硬编码模块。
+--]
+[#escape x as (x)!?html]
+<section>
+  [#if (settings.title)?has_content]
+  <h5 class="flex items-center gap-2 text-base font-semibold mb-3">
+    <span class="size-5 text-primary inline-block">[@icon 'tag'/]</span>
+    <a href="${dy}/tag" class="cm-link">${settings.title}</a>
+  </h5>
+  [/#if]
+  [@TagList limit=(settings.limit)!10; tagList]
+  <div class="flex flex-wrap gap-2">
+    [#list tagList as bean]
+      <a href="${dy}/tag/${bean.id?c}" class="px-2 py-1 rounded bg-slate-200 text-slate-700 text-xs hover:bg-slate-300">${bean.name}</a>
+    [/#list]
+  </div>
+  [/@TagList]
+</section>
+[/#escape]

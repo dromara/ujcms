@@ -1,29 +1,19 @@
 package com.ujcms.cms.core.web.frontend;
 
 import com.ujcms.cms.core.domain.Site;
-import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.cms.core.web.support.FrontendController;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 会员设置 Controller
  *
  * @author PONY
  */
-@Controller("frontendSettingController")
-@RequestMapping({"/settings", "/{subDir:[\\w-]+}/settings"})
+@FrontendController("frontendSettingController")
+@RequestMapping("/settings")
 public class SettingController {
-    private final SiteResolver siteResolver;
-
-    public SettingController(SiteResolver siteResolver) {
-        this.siteResolver = siteResolver;
-    }
-
     private static final String SETTINGS_HOME_TEMPLATE = "mem_settings_home";
     private static final String SETTINGS_PROFILE_TEMPLATE = "mem_settings_profile";
     private static final String SETTINGS_AVATAR_TEMPLATE = "mem_settings_avatar";
@@ -41,78 +31,67 @@ public class SettingController {
      */
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public String settings(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String settings(Site site) {
         return site.assembleTemplate(SETTINGS_HOME_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/comment")
-    public String comment(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String comment(Site site) {
         return site.assembleTemplate(SETTINGS_COMMENT_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/profile")
-    public String profile(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String profile(Site site) {
         return site.assembleTemplate(SETTINGS_PROFILE_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/avatar")
-    public String avatar(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String avatar(Site site) {
         return site.assembleTemplate(SETTINGS_AVATAR_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/account")
-    public String account(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String account(Site site) {
         return site.assembleTemplate(SETTINGS_ACCOUNT_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/favorite")
-    public String favorite(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String favorite(Site site) {
         return site.assembleTemplate(SETTINGS_FAVORITE_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/history")
-    public String history(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String history(Site site) {
         return site.assembleTemplate(SETTINGS_HISTORY_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/follow")
-    public String follow(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String follow(Site site) {
         return site.assembleTemplate(SETTINGS_FOLLOW_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/friend")
-    public String friend(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String friend(Site site) {
         return site.assembleTemplate(SETTINGS_FRIEND_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/message")
-    public String message(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String message(Site site) {
         return site.assembleTemplate(SETTINGS_MESSAGE_TEMPLATE);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/notification")
-    public String notification(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    public String notification(Site site) {
         return site.assembleTemplate(SETTINGS_NOTIFICATION_TEMPLATE);
     }
 }

@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { usePreferencesStore } from '@/stores/preferencesStore';
+
 defineProps({ collapse: { type: Boolean, required: true } });
 const title = import.meta.env.VITE_APP_NAME || 'UJCMS';
+// 标题色随侧栏风格；品牌绿的图标两种风格通用
+const preferences = usePreferencesStore();
 </script>
 
 <template>
@@ -11,7 +15,7 @@ const title = import.meta.env.VITE_APP_NAME || 'UJCMS';
           d="M200,40h-40h-20c-11,0-20,9-20,20v20.4v40v40V200H80v-39.6v-40v-40V60c0-11-9-20-20-20h0c-11,0-20,9-20,20v20.4v40v40V200v0.4V220c0,11,9,20,20,20h20h40h20c11,0,20-9,20-20v-19.6V200v-39.6v-40V80h40v40.4v40V200l0,0h-10c-11,0-20,9-20,20v0c0,11,9,20,20,20h10l0,0h20c11,0,20-9,20-20v-19.6V200v-39.6v-40v-40V60c0-11-9-20-20-20H200z"
         />
       </svg>
-      <h1 v-if="!collapse" class="inline align-middle ml-1 text-lg font-bold text-gray-100">{{ title }}</h1>
+      <h1 v-if="!collapse" class="inline align-middle ml-1 text-lg font-bold" :class="preferences.sidebarTheme === 'dark' ? 'text-gray-100' : 'text-gray-800'">{{ title }}</h1>
     </router-link>
   </div>
 </template>

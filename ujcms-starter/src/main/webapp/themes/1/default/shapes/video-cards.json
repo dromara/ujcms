@@ -1,0 +1,33 @@
+{
+  "name": "VideoCards",
+  "version": "1.0.0",
+  "description": "获取视频栏目的文章，展示为视频缩略图卡片。",
+  "label": { "zh-CN": "视频卡片", "en": "Video cards" },
+  "tags": ["region", "article", "video", "aside"],
+  "presentation": { "icon": "video", "group": { "zh-CN": "内容组件", "en": "Content" }, "order": 14, "thumbnail": "thumbnails/video-cards.svg" },
+  "titleField": "headline",
+  "settings": {
+    "title": { "type": "text", "max": 150, "default": "精彩视频", "label": { "zh-CN": "栏目标题", "en": "Section title" } },
+    "moreUrl": { "type": "link", "label": { "zh-CN": "更多链接", "en": "More link" } },
+    "channel": { "type": "channelRef", "required": true, "default": { "alias": "video" }, "label": { "zh-CN": "栏目", "en": "Channel" } },
+    "limit": { "type": "number", "default": 2, "min": 1, "max": 12, "integer": true, "label": { "zh-CN": "条数", "en": "Count" } }
+  },
+  "data": {
+    "from": "article",
+    "where": { "channel": "$settings.channel", "isIncludeSubChannel": true },
+    "limit": "$settings.limit"
+  },
+  "item": {
+    "headline": { "type": "text", "max": 200, "required": true, "label": { "zh-CN": "标题", "en": "Headline" } },
+    "image": { "type": "media", "label": { "zh-CN": "封面", "en": "Cover" } },
+    "link": { "type": "link", "required": true, "label": { "zh-CN": "链接", "en": "Link" } },
+    "duration": { "type": "text", "max": 20, "label": { "zh-CN": "时长", "en": "Duration" } }
+  },
+  "examples": [
+    {
+      "headline": "示例视频",
+      "link": { "url": "/article/1", "targetBlank": false },
+      "duration": "03:45"
+    }
+  ]
+}

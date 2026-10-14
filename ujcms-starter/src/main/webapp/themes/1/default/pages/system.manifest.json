@@ -1,0 +1,10 @@
+{
+  "name": "system",
+  "label": { "zh-CN": "系统页", "en": "System pages" },
+  "order": 50,
+  "template": ["sys_search", "sys_tag", "sys_tag_item", "sys_vote",
+               "sys_survey", "sys_form_type", "mem_user"],
+  "slots": {
+    "aside": { "kind": "region", "shared": "site" }
+  }
+}

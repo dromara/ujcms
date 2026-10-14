@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toRefs, computed, ref } from 'vue';
 import { Setting } from '@element-plus/icons-vue';
-import { useColumnSettingsStore, mergeColumns, ColumnState } from '@/stores/columnSettingsStore';
+import { useColumnSettingsStore, mergeColumns, type ColumnState } from '@/stores/columnSettingsStore';
 
 const props = defineProps({ name: { type: String, required: true } });
 const { name } = toRefs(props);

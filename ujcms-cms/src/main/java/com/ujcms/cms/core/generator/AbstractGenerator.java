@@ -4,7 +4,7 @@ import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Task;
 import com.ujcms.cms.core.service.ArticleService;
 import com.ujcms.cms.core.service.TaskService;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.time.OffsetDateTime;
@@ -72,12 +72,19 @@ public abstract class AbstractGenerator {
     }
 
     void handleArticle(Long taskId, @Nullable Long siteId, Consumer<Article> consumer) {
+        handleArticle(taskId, siteId, null, consumer);
+    }
+
+    /**
+     * @param channelId 栏目ID（含子栏目）。为 {@code null} 则不限栏目
+     */
+    void handleArticle(Long taskId, @Nullable Long siteId, @Nullable Long channelId, Consumer<Article> consumer) {
         Long minId = 0L;
         int offset = 0;
         int limit = 100;
         int size = limit;
         while (size >= limit) {
-            List<Article> list = articleService.selectByMinId(minId, siteId, null, offset, limit);
+            List<Article> list = articleService.selectByMinId(minId, siteId, channelId, offset, limit);
             size = list.size();
             for (int i = 0; i < size; i++) {
                 Article article = list.get(i);

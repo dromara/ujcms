@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-votes.schema.json",
+  "title": "UJCMS Theme Seed Votes",
+  "description": "主题内容种子投票文件（seed/content/votes/*.votes.json——theme-seed-export E4b / D29）。投票定义按来源三元组 (site_id_, origin_, origin_id_) select-then-insert 幂等；投票无别名（文章式）——无冲突可撞、恒不 linked。选项即定义的一部分（标题列表，序即排列）；计票（times / 选项 count）、选票记录（Action）与起止档期恒不入种子（§7.2）。",
+  "type": "object",
+  "required": ["votes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "votes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "title", "options"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（来源三元组幂等键，E4b / D29）" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 1000, "description": "标题" },
+          "description": { "type": "string", "maxLength": 1000, "description": "描述" },
+          "interval": { "type": "integer", "minimum": 0, "default": 0, "description": "重复投票间隔天数（0：不可重复投票）" },
+          "mode": { "type": "integer", "enum": [1, 2, 3], "default": 1, "description": "模式（1：独立访客，2：独立IP，3：独立用户）" },
+          "multiple": { "type": "boolean", "default": false, "description": "是否多选" },
+          "enabled": { "type": "boolean", "default": true, "description": "是否启用" },
+          "options": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1, "maxLength": 300 },
+            "description": "选项标题列表（序即排列；刷新按标题匹配既有选项保留计票，未命中即新选项）"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

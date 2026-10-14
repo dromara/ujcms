@@ -3,7 +3,7 @@ package com.ujcms.cms.core.service.args;
 import com.ujcms.common.query.BaseQueryArgs;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Action 查询参数

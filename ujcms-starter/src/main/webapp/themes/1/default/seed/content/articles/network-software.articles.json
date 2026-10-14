@@ -1,0 +1,94 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "network-software",
+      "customs": {
+        "language": "简体中文",
+        "languageKey": "1",
+        "license": "免费软件",
+        "licenseKey": "1",
+        "star": "★★★☆☆",
+        "starKey": "3",
+        "system": [
+          "桌面端"
+        ],
+        "systemKey": [
+          "1"
+        ],
+        "type": "国外软件",
+        "typeKey": "2"
+      },
+      "ext": {
+        "file": "{{asset:media/file_demo.zip}}",
+        "fileLength": 158,
+        "fileName": "网页浏览器_8.4.1.zip"
+      },
+      "image": "{{asset:img/network-software/web-browser-icon.jpg}}",
+      "originId": "a-web-browser",
+      "publishOffsetDays": -33,
+      "text": "<p>这是一款主打轻快的<strong>桌面浏览器</strong>：安装包不到 90 兆，冷启动约一秒，开二十个标签页时占用的内存比同类少三成左右。它提供完整的简体中文界面，个人和单位使用都免费，老电脑装上它照样跑得动，不想被弹窗和推荐打扰的人也会喜欢。</p>\n<h3>主要功能</h3>\n<ul>\n<li>标签管理：分组、固定、静音和纵向标签栏，长时间不用的标签自动休眠；</li>\n<li>阅读模式：去掉广告和侧栏，只留正文，字号、行距和背景色都可以调；</li>\n<li>隐私保护：默认拦截跨站跟踪，无痕窗口关闭后不留浏览记录；</li>\n<li>书签与历史：支持文件夹和关键字搜索，可从别的浏览器一键导入；</li>\n<li>内置工具：网页截图、页内翻译、密码管理和下载管理。</li>\n</ul>\n<h3>8.4.1 更新内容</h3>\n<ul>\n<li>纵向标签栏可以折叠成一列图标，宽屏上多出一栏阅读空间；</li>\n<li>休眠标签恢复得更快，恢复后保留滚动位置和已经填好的表单；</li>\n<li>修复了部分网页视频全屏后工具栏不消失的问题。</li>\n</ul>\n<h3>运行环境</h3>\n<table>\n<thead>\n<tr><th>项目</th><th>要求</th></tr>\n</thead>\n<tbody>\n<tr><td>操作系统</td><td>主流桌面操作系统，近三个大版本</td></tr>\n<tr><td>内存</td><td>2GB 及以上，建议 4GB</td></tr>\n<tr><td>存储空间</td><td>约 250 兆可用空间</td></tr>\n<tr><td>显示</td><td>分辨率 1280×720 及以上</td></tr>\n</tbody>\n</table>\n<h3>使用提示</h3>\n<p>数据同步默认关闭，书签和密码只保存在本机；需要在几台电脑之间同步时，到“设置”里登录账号后手动开启。可装的扩展不算多，这是本站只给它三星推荐的主要原因，不过日常上网用得到的功能大多已经内置。从旧版本升级可以直接覆盖安装，书签、历史和设置都会保留。</p>",
+      "title": "轻量网页浏览器"
+    },
+    {
+      "channel": "network-software",
+      "customs": {
+        "language": "繁体中文",
+        "languageKey": "2",
+        "license": "免费软件",
+        "licenseKey": "1",
+        "star": "★★★★★",
+        "starKey": "5",
+        "system": [
+          "桌面端",
+          "移动端"
+        ],
+        "systemKey": [
+          "1",
+          "2"
+        ],
+        "type": "国产软件",
+        "typeKey": "1"
+      },
+      "ext": {
+        "file": "{{asset:media/file_demo.zip}}",
+        "fileLength": 158,
+        "fileName": "即时通讯客户端_5.6.0.zip"
+      },
+      "image": "{{asset:img/network-software/chat-app-icon.jpg}}",
+      "originId": "a-chat-app",
+      "publishOffsetDays": -31,
+      "text": "<p>这是一款免费的<strong>即时通讯软件</strong>，手机和电脑上的消息实时同步。除了文字和表情，它还能发语音、图片和大文件，能建群，也能拉上十几个人开语音或视频会。本页提供的是繁体中文界面版本，界面用语按繁体用户的习惯做了调整。</p>\n<h3>主要功能</h3>\n<ul>\n<li>聊天：单聊和最多五百人的群聊，支持引用回复、消息置顶和定时提醒；</li>\n<li>通话：一对一高清通话，以及最多十二人的多人视频，网络差时自动降低画质、保住声音；</li>\n<li>文件：单个文件上限 4GB，文档和图片可以在应用内直接预览；</li>\n<li>多设备：手机、平板和电脑同时在线，已读状态和草稿跟着走；</li>\n<li>隐私：设备锁、陌生登录提醒，聊天记录可以加密备份到本地；</li>\n<li>收藏：文字、图片和文件都能收藏并加标签，日后按关键字找回。</li>\n</ul>\n<h3>5.6.0 更新内容</h3>\n<ul>\n<li>新增“稍后处理”列表，长按消息即可加入，处理完一键清空；</li>\n<li>群公告支持投票和接龙，结果自动汇总成表格；</li>\n<li>语音转文字能听懂更多方言口音，准确率明显提高。</li>\n</ul>\n<h3>运行环境</h3>\n<table>\n<thead>\n<tr><th>项目</th><th>要求</th></tr>\n</thead>\n<tbody>\n<tr><td>移动端</td><td>主流移动操作系统，近三个大版本</td></tr>\n<tr><td>桌面端</td><td>主流桌面操作系统，近三个大版本</td></tr>\n<tr><td>存储空间</td><td>约 200 兆可用空间</td></tr>\n<tr><td>网络</td><td>移动数据网络或 Wi-Fi</td></tr>\n</tbody>\n</table>\n<h3>使用提示</h3>\n<p>换手机之前，先在“设置”的“聊天记录”里做一次加密备份，再到新设备上恢复。消息多的群可以开启免打扰，只在有人提到自己时才提醒。电脑端首次登录需要用手机扫码确认。</p>",
+      "title": "即时通讯客户端"
+    },
+    {
+      "channel": "network-software",
+      "customs": {
+        "language": "简体中文",
+        "languageKey": "1",
+        "license": "免费软件",
+        "licenseKey": "1",
+        "star": "★★★★☆",
+        "starKey": "4",
+        "system": [
+          "桌面端"
+        ],
+        "systemKey": [
+          "1"
+        ],
+        "type": "国产软件",
+        "typeKey": "1"
+      },
+      "ext": {
+        "file": "{{asset:media/file_demo.zip}}",
+        "fileLength": 158,
+        "fileName": "代码编辑器_2.9.0.zip"
+      },
+      "image": "{{asset:img/network-software/code-editor-icon.jpg}}",
+      "originId": "a-code-editor",
+      "publishOffsetDays": -30,
+      "text": "<p>这是一款面向桌面端的免费<strong>代码编辑器</strong>，界面为简体中文，写程序、改脚本、编辑配置文件都顺手。冷启动不到一秒，上百兆的日志也能流畅滚动；装上扩展以后，又可以当作一套够用的开发环境。</p>\n<h3>主要功能</h3>\n<ul>\n<li>编辑：语法着色覆盖六十多种语言，支持多光标、列选择、代码折叠和括号配对；</li>\n<li>智能提示：自动补全、跳转到定义、查找引用和重命名符号；</li>\n<li>搜索：在整个项目里查找替换，支持正则表达式和按文件类型过滤；</li>\n<li>版本管理：在侧栏查看改动、逐行对比差异、提交和切换分支；</li>\n<li>内置终端：不离开编辑器就能运行命令，终端可以分栏；</li>\n<li>扩展：从内置的扩展库里安装语言支持、调试器和配色主题，按工作区分别启用。</li>\n</ul>\n<h3>2.9.0 更新内容</h3>\n<ul>\n<li>新增便携模式，设置和扩展可以随安装目录一起拷走；</li>\n<li>大文件模式的内存占用降低约三分之一；</li>\n<li>差异对比视图可以直接编辑右侧文件，并修复了中文输入法候选框偶尔错位的问题。</li>\n</ul>\n<h3>运行环境</h3>\n<table>\n<thead>\n<tr><th>项目</th><th>要求</th></tr>\n</thead>\n<tbody>\n<tr><td>操作系统</td><td>主流桌面操作系统，近三个大版本</td></tr>\n<tr><td>内存</td><td>4GB 及以上</td></tr>\n<tr><td>存储空间</td><td>约 400 兆可用空间</td></tr>\n</tbody>\n</table>\n<h3>使用提示</h3>\n<p>全部命令都能从命令面板里搜到，快捷键可以按个人习惯重新绑定，并导出成一个文件带到别的电脑。配色主题分浅色和深色两组，长时间写代码建议用深色主题，并把字号调到 14 以上。旧电脑上如果觉得卡，可以先关掉小地图和动画效果。</p>",
+      "title": "代码编辑器"
+    }
+  ]
+}

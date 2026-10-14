@@ -1,0 +1,202 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'avatar'/]
+[#escape x as (x)!?html]
+[#assign extraHead]
+<link rel="stylesheet" href="${assets}/vendor/cropperjs/dist/cropper.min.css?v=${v}">
+<script src="${assets}/vendor/cropperjs/dist/cropper.min.js?v=${v}" defer></script>
+[/#assign]
+[@layout title='头像设置 - ' + site.title extraHead=extraHead]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings/profile" class="cm-link text-slate-700">设置</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">头像设置</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3"
+    x-data="{
+      uploading: false, progress: 0, error: '',
+      modalOpen: false, sourceUrl: '', cropper: null, crop: { x: 0, y: 0, width: 0, height: 0 },
+      submitting: false,
+      dragOver: false,
+      currentAvatar: '[#if user.largeAvatar?has_content]${user.largeAvatar?js_string}[#else]${config.register.avatar?js_string}[/#if]',
+      async pickFile(file) {
+        if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) {
+          this.error = '请选择图片文件';
+          return;
+        }
+        this.error = ''; this.uploading = true; this.progress = 0;
+        try {
+          await window.fetchCsrf();
+          const fd = new FormData();
+          fd.append('file', file);
+          const csrf = { header: document.querySelector('meta[name=_csrf_header]').content,
+                         token:  document.querySelector('meta[name=_csrf]').content };
+          const res = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '${api}/upload/avatar-upload');
+            xhr.setRequestHeader(csrf.header, csrf.token);
+            xhr.withCredentials = true;
+            xhr.upload.onprogress = e => { if (e.lengthComputable) this.progress = Math.floor(e.loaded / e.total * 100); };
+            xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error(xhr.responseText || xhr.statusText));
+            xhr.onerror = () => reject(new Error('上传失败'));
+            xhr.send(fd);
+          });
+          this.sourceUrl = res.url;
+          this.modalOpen = true;
+          this.$nextTick(() => this.initCropper());
+        } catch (e) {
+          this.error = e.message || '上传失败';
+        } finally {
+          this.uploading = false;
+        }
+      },
+      initCropper() {
+        const img = this.$refs.cropImg;
+        if (!img || !window.Cropper) return;
+        if (this.cropper) { this.cropper.destroy(); this.cropper = null; }
+        this.cropper = new window.Cropper(img, {
+          aspectRatio: 1, autoCropArea: 1, viewMode: 2, zoomable: false,
+          minCropBoxWidth: 16, minCropBoxHeight: 16,
+          preview: '.avatar-preview',
+          crop: e => {
+            this.crop.x = Math.floor(e.detail.x);
+            this.crop.y = Math.floor(e.detail.y);
+            this.crop.width = Math.floor(e.detail.width);
+            this.crop.height = Math.floor(e.detail.height);
+          },
+        });
+      },
+      closeModal() {
+        if (this.cropper) { this.cropper.destroy(); this.cropper = null; }
+        this.modalOpen = false; this.sourceUrl = '';
+      },
+      async submitCrop() {
+        if (this.submitting) return;
+        this.submitting = true;
+        try {
+          await window.fetchCsrf();
+          const cropRes = await window.request('POST', '${api}/upload/avatar-crop', {
+            url: this.sourceUrl, x: this.crop.x, y: this.crop.y, width: this.crop.width, height: this.crop.height,
+          });
+          const url = cropRes.url;
+          const filename = url.substring(url.lastIndexOf('/') + 1);
+          await window.request('PUT', '${api}/settings/avatar', { image: filename });
+          window.displaySuccess('头像更新成功');
+          setTimeout(() => location.reload(), 600);
+        } catch (e) {
+          this.error = e.message || '保存失败';
+        } finally {
+          this.submitting = false;
+        }
+      }
+    }">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6">
+      <header class="pb-4 mb-5 border-b border-slate-200">
+        <h1 class="flex items-center gap-2 text-lg sm:text-xl font-semibold">
+          <span class="size-5 inline-block text-primary">[@icon 'image-outline'/]</span>
+          <span>头像设置</span>
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">建议上传 512×512 以上的清晰图片</p>
+      </header>
+
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8">
+        <div class="text-center shrink-0">
+          <img :src="currentAvatar" alt="当前头像" class="size-32 sm:size-40 rounded-full object-cover ring-4 ring-slate-100 bg-white shadow-sm">
+          <p class="mt-2 text-xs text-slate-500">当前头像</p>
+        </div>
+        <div class="flex-1 w-full min-w-0">
+          [#-- 拖放区 --]
+          <label
+            @dragover.prevent="dragOver = true"
+            @dragleave.prevent="dragOver = false"
+            @drop.prevent="dragOver = false; pickFile($event.dataTransfer.files[0])"
+            :class="dragOver ? 'border-primary bg-primary/5' : 'border-slate-300 hover:border-primary hover:bg-slate-50'"
+            class="block w-full rounded-lg border-2 border-dashed p-6 sm:p-8 text-center cursor-pointer transition-colors"
+          >
+            <div class="size-12 mx-auto mb-2 inline-flex items-center justify-center rounded-full bg-primary/10 text-primary">
+              <span class="size-6 inline-block">[@icon 'add-photo-alternate-outline'/]</span>
+            </div>
+            <p class="text-sm font-medium text-slate-700">点击选择 / 拖拽图片到此</p>
+            <p class="mt-1 text-xs text-slate-500">支持 JPG / PNG / WebP，最大 ${(config.upload.imageLimitByte / 1048576)?int?c} MB</p>
+            <input type="file" class="sr-only" accept="${config.upload.imageInputAccept}" @change="pickFile($event.target.files[0]); $event.target.value=''">
+          </label>
+
+          <div x-show="uploading" x-cloak class="mt-4">
+            <div class="flex items-center justify-between text-xs text-slate-600 mb-1.5">
+              <span>上传中…</span>
+              <span><span x-text="progress"></span>%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-primary transition-[width] duration-200 ease-out" :style="`width: ${r"${progress}"}%`"></div>
+            </div>
+          </div>
+
+          <p x-show="error" x-cloak x-text="error"
+             class="mt-3 px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+        </div>
+      </div>
+    </div>
+
+    [#-- 裁剪弹窗 —— 遮罩 + 居中卡片；小屏为底部抽屉 --]
+    <div x-show="modalOpen" x-cloak
+         x-transition.opacity
+         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:p-4"
+         @click.self="closeModal"
+         @keydown.escape.window="if (modalOpen) closeModal()">
+      <div class="bg-white w-full sm:max-w-6xl sm:rounded-lg rounded-t-2xl shadow-xl max-h-[90vh] sm:max-h-[85vh] flex flex-col"
+           x-transition:enter="transition ease-out duration-200"
+           x-transition:enter-start="translate-y-4 opacity-0"
+           x-transition:enter-end="translate-y-0 opacity-100">
+        <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 shrink-0">
+          <h3 class="font-semibold flex items-center gap-2">
+            <span class="size-5 inline-block text-primary">[@icon 'edit-outline'/]</span>
+            <span>裁剪头像</span>
+          </h3>
+          <button type="button" @click="closeModal" aria-label="关闭"
+                  class="size-8 inline-flex items-center justify-center rounded-md hover:bg-slate-100 text-slate-500">
+            <span class="size-5 inline-block">[@icon 'close'/]</span>
+          </button>
+        </div>
+        <div class="flex-1 overflow-auto p-4 sm:p-5">
+          <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 sm:gap-5">
+            <div class="bg-slate-100 rounded-md overflow-hidden flex items-center justify-center" style="max-height:60vh">
+              <img x-ref="cropImg" :src="sourceUrl" alt="待裁剪图片" class="block max-w-full">
+            </div>
+            <div class="flex lg:flex-col items-center justify-center gap-4 lg:gap-3 shrink-0">
+              <p class="text-xs text-slate-500 lg:order-first">实时预览</p>
+              <div class="avatar-preview size-20 rounded-md overflow-hidden ring-2 ring-slate-200"></div>
+              <div class="avatar-preview size-12 rounded-full overflow-hidden ring-2 ring-slate-200"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 p-4 sm:p-5 border-t border-slate-200 shrink-0">
+          <button type="button" @click="closeModal"
+                  class="px-4 py-2 rounded-md border border-slate-300 text-sm font-medium hover:bg-slate-50 transition-colors">取消</button>
+          <button type="button" @click="submitCrop" :disabled="submitting"
+                  class="px-5 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+            <span x-show="!submitting">确定</span>
+            <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+              <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+              <span>保存中…</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+[/@layout]
+[/#escape]

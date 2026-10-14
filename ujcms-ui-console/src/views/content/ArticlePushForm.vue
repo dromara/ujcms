@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, toRefs, PropType } from 'vue';
+import { ref, watch, toRefs, type PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toTree, disableParentTree, disableTree } from '@/utils/tree';
 import { queryArticle, queryChannelList, internalPushArticle, externalPushArticle } from '@/api/content';
 import { querySiteList } from '@/api/system';
+import { loadOrClose } from '@/utils/common';
 
 defineOptions({
   name: 'ArticleInternalPushForm',
@@ -28,7 +29,7 @@ const channelTree = ref<any>();
 
 const fetchArticle = async () => {
   if (beanId?.value != null) {
-    bean.value = await queryArticle(beanId.value);
+    bean.value = await loadOrClose(() => queryArticle(beanId.value), () => emit('update:modelValue', false));
   }
 };
 const fetchChannelData = async (siteId?: string) => {

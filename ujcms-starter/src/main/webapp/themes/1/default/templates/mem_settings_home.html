@@ -1,0 +1,183 @@
+[#include '../layout/theme.html'/]
+[#assign settings = 'home'/]
+[#escape x as (x)!?html]
+[@layout title='个人中心 - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">个人中心</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3 space-y-5">
+    [#-- 资料卡片：服务端直接渲染当前登录会员 --]
+    <div class="rounded-lg border border-slate-200 bg-white p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+      <img src="[#if user.mediumAvatar?has_content]${user.mediumAvatar}[#else]${config.register.avatar}[/#if]"
+           alt="${user.username}" class="size-16 rounded-full object-cover ring-2 ring-primary/10 shrink-0">
+      <div class="flex-1 min-w-0">
+        <p class="text-lg font-semibold truncate">[#if user.nickname?has_content]${user.nickname}[#else]${user.username}[/#if]</p>
+        [#if (user.ext.bio)?has_content]<p class="text-sm text-slate-500 truncate">${user.ext.bio}</p>[/#if]
+        <p class="text-sm text-slate-500">加入于 ${format(user.ext.created, 'yyyy-MM-dd')}</p>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <a href="${def}${user.homepage}" class="px-3 py-1.5 rounded border border-primary text-primary text-sm hover:bg-primary/5">查看主页</a>
+        <a href="${def}/settings/profile" class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">编辑资料</a>
+      </div>
+    </div>
+
+    [#-- 统计磁贴：计数取自各分页接口的 totalElements（pageSize=1 探针），接口异常则隐藏对应磁贴 --]
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      x-data="{
+        tiles: [
+          { key: 'favorite', label: '收藏', icon: 'star', href: '${def}/settings/favorite', url: '${api}/favorite/page', count: null, ok: true },
+          { key: 'comment', label: '评论', icon: 'comment', href: '${def}/settings/comment', url: '${api}/comment/my/page', count: null, ok: true },
+          { key: 'follow', label: '关注', icon: 'rss', href: '${def}/settings/follow', url: '${api}/follow/page', count: null, ok: true },
+          { key: 'friend', label: '好友', icon: 'group', href: '${def}/settings/friend', url: '${api}/friend/page', count: null, ok: true },
+        ],
+        async load() {
+          for (const tile of this.tiles) {
+            try {
+              const r = await fetch(tile.url + '?pageSize=1', { credentials: 'include' });
+              if (!r.ok) throw new Error();
+              const d = await r.json();
+              const total = d && d.page ? d.page.totalElements : undefined;
+              if (total === undefined || total === null) throw new Error();
+              tile.count = String(total);
+            } catch (e) { tile.ok = false; }
+          }
+        }
+      }"
+      x-init="load()"
+    >
+      <template x-for="tile in tiles" :key="tile.key">
+        <a x-show="tile.ok" :href="tile.href"
+           class="rounded-lg border border-slate-200 bg-white p-4 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <p class="text-2xl font-semibold" x-text="tile.count === null ? '—' : tile.count"></p>
+          <p class="mt-1 text-sm text-slate-500" x-text="tile.label"></p>
+        </a>
+      </template>
+    </div>
+
+    [#-- 最新通知：接口失败或为空时整卡隐藏 --]
+    <div class="rounded-lg border border-slate-200 bg-white"
+      x-data="{
+        items: [], show: false,
+        typeLabels: {1:'系统公告',2:'评论回复',3:'@提及',4:'关注文章新评论',5:'关注栏目新文章',6:'好友申请',7:'好友通过',8:'新粉丝',9:'关注用户新文章'},
+        link(bean) {
+          if (bean.article && bean.article.url) return bean.article.url;
+          if (bean.channel && bean.channel.url) return bean.channel.url;
+          return bean.url || null;
+        },
+        async load() {
+          try {
+            const r = await fetch('${api}/notification/page?page=1&pageSize=5', { credentials: 'include' });
+            if (!r.ok) return;
+            const d = await r.json();
+            this.items = (d && d.content) || [];
+            this.show = this.items.length > 0;
+          } catch (e) { /* 静默 */ }
+        }
+      }"
+      x-init="load()" x-show="show" x-cloak
+    >
+      <header class="flex justify-between items-center px-5 py-3 border-b border-slate-200">
+        <h2 class="font-semibold">最新通知</h2>
+        <a href="${def}/settings/notification" class="text-sm cm-link">查看全部</a>
+      </header>
+      <ul class="divide-y divide-slate-100">
+        <template x-for="bean in items" :key="bean.id">
+          <li class="px-5 py-3">
+            <div class="flex items-center gap-2 text-sm">
+              <span x-show="!bean.read" class="px-1.5 py-0.5 rounded bg-rose-600 text-white text-xs shrink-0">未读</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 text-xs shrink-0"
+                    x-text="typeLabels[bean.type] || '通知'"></span>
+              <template x-if="link(bean)">
+                <a :href="link(bean)" class="cm-link truncate" :class="bean.read ? 'text-slate-500' : 'font-medium'"
+                   x-text="bean.title || bean.text || ''"></a>
+              </template>
+              <template x-if="!link(bean)">
+                <span class="truncate" :class="bean.read ? 'text-slate-500' : 'font-medium'"
+                      x-text="bean.title || bean.text || ''"></span>
+              </template>
+            </div>
+            <p class="mt-1 text-xs text-slate-400" x-text="window.formatDateTime(bean.created)"></p>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    [#-- 猜你喜欢：个性化推荐（商业版 T1+），无信号或接口未就绪时整卡隐藏；换一批在多于一批时显示 --]
+    [#if config.commercialTier gte 1]
+    <div class="rounded-lg border border-slate-200 bg-white"
+      x-data="{
+        items: [], show: false, page: 1, totalPages: 1,
+        async load(page) {
+          try {
+            const r = await fetch('${api}/recommend/page?page=' + page + '&pageSize=6', { credentials: 'include' });
+            if (!r.ok) return;
+            const d = await r.json();
+            const list = (d && d.content) || [];
+            if (list.length === 0) return;
+            this.items = list;
+            this.page = page;
+            this.totalPages = Number((d.page || {}).totalPages || 1);
+            this.show = true;
+          } catch (e) { /* 静默 */ }
+        },
+        next() { this.load(this.page % this.totalPages + 1); }
+      }"
+      x-init="load(1)" x-show="show" x-cloak
+    >
+      <header class="flex justify-between items-center px-5 py-3 border-b border-slate-200">
+        <h2 class="font-semibold">猜你喜欢</h2>
+        <button type="button" x-show="totalPages > 1" @click="next()"
+                class="inline-flex items-center gap-1 text-sm cm-link">
+          <span class="size-3.5 inline-block">[@icon 'refresh'/]</span>
+          <span>换一批</span>
+        </button>
+      </header>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3 p-5">
+        <template x-for="bean in items" :key="bean.id">
+          <a :href="bean.url" class="flex items-center gap-3 min-w-0 group">
+            <template x-if="bean.image">
+              <img :src="bean.image" alt="" class="w-16 h-12 rounded object-cover shrink-0">
+            </template>
+            <span class="truncate text-sm group-hover:text-primary" x-text="bean.title || '无标题'"></span>
+          </a>
+        </template>
+      </div>
+    </div>
+    [/#if]
+
+    [#-- 快捷入口 --]
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <a href="${def}/settings/favorite"
+         class="flex items-center justify-center gap-2 px-3 py-2.5 rounded border border-slate-300 text-sm hover:bg-slate-50 hover:border-primary hover:text-primary transition-colors">
+        <span class="size-4 inline-block">[@icon 'star-outline'/]</span><span>我的收藏</span>
+      </a>
+      <a href="${def}/settings/comment"
+         class="flex items-center justify-center gap-2 px-3 py-2.5 rounded border border-slate-300 text-sm hover:bg-slate-50 hover:border-primary hover:text-primary transition-colors">
+        <span class="size-4 inline-block">[@icon 'comment-outline'/]</span><span>我的评论</span>
+      </a>
+      <a href="${def}/settings/message"
+         class="flex items-center justify-center gap-2 px-3 py-2.5 rounded border border-slate-300 text-sm hover:bg-slate-50 hover:border-primary hover:text-primary transition-colors">
+        <span class="size-4 inline-block">[@icon 'forum-outline'/]</span><span>私信</span>
+      </a>
+      <a href="${def}/settings/account"
+         class="flex items-center justify-center gap-2 px-3 py-2.5 rounded border border-slate-300 text-sm hover:bg-slate-50 hover:border-primary hover:text-primary transition-colors">
+        <span class="size-4 inline-block">[@icon 'lock-outline'/]</span><span>账号安全</span>
+      </a>
+    </div>
+  </section>
+</div>
+[/@layout]
+[/#escape]

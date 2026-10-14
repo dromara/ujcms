@@ -1,0 +1,20 @@
+{
+  "name": "channel",
+  "label": { "zh-CN": "栏目页", "en": "Channel" },
+  "order": 20,
+  "template": ["channel", "channel_about", "channel_video", "channel_product",
+               "channel_download", "channel_wenku", "channel_leader_board"],
+  "slots": {
+    "aside": { "kind": "region", "shared": "site" }
+  },
+  "settings": {
+    "groups": [
+      { "name": "listing", "label": { "zh-CN": "列表展示", "en": "Listing" }, "fields": {
+        "showSummary": { "type": "boolean", "default": true,
+                         "label": { "zh-CN": "显示摘要", "en": "Show summary" } },
+        "showDate": { "type": "boolean", "default": true,
+                      "label": { "zh-CN": "显示日期", "en": "Show date" } }
+      } }
+    ]
+  }
+}

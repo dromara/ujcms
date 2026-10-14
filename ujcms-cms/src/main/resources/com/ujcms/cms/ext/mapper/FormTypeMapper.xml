@@ -12,10 +12,16 @@
     <result column="viewable_" jdbcType="CHAR" property="viewable" />
     <result column="order_" jdbcType="BIGINT" property="order" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.FormType" />
   <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.FormType">
     <association column="model_id_" javaType="com.ujcms.cms.core.domain.Model" property="model" select="com.ujcms.cms.core.mapper.ModelMapper.select" />
     <association column="site_id_" javaType="com.ujcms.cms.core.domain.Site" property="site" select="com.ujcms.cms.core.mapper.SiteMapper.selectRefer" />
+  </resultMap>
+  <resultMap extends="ResultMap" id="ListResultMap" type="com.ujcms.cms.ext.domain.FormType">
+    <result column="form_count_" jdbcType="INTEGER" property="formCount" />
   </resultMap>
   <update id="moveUp">
     update ujcms_form_type
@@ -47,10 +53,14 @@
     from ujcms_form_type
     where site_id_ = #{siteId,jdbcType=BIGINT}
   </delete>
-  <sql id="selectAllSelect" />
+  <sql id="selectAllSelect">
+    <if test="isQueryFormCount">
+      , (select count(*) from ujcms_form t_form_ where t_form_.type_id_ = t.id_) as form_count_
+    </if>
+  </sql>
   <sql id="selectAllJoin" />
   <sql id="selectAllWhere" />
-  <select id="selectAll" resultMap="ResultMap">
+  <select id="selectAll" resultMap="ListResultMap">
     <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All">
       <property name="tableName" value="ujcms_form_type" />
     </include>
@@ -89,8 +99,54 @@
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.FormType">
-    insert into ujcms_form_type (id_, site_id_, model_id_, process_key_, name_, list_template_, item_template_, mode_, viewable_, order_, enabled_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{modelId,jdbcType=BIGINT}, #{processKey,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{listTemplate,jdbcType=VARCHAR}, #{itemTemplate,jdbcType=VARCHAR}, #{mode,jdbcType=SMALLINT}, #{viewable,jdbcType=CHAR}, #{order,jdbcType=BIGINT}, #{enabled,jdbcType=CHAR})
-  </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.model_id_, t.process_key_, t.name_, t.list_template_, t.item_template_, t.mode_, t.viewable_, t.order_, t.enabled_
+    insert into ujcms_form_type (id_, site_id_, model_id_, process_key_, name_, list_template_, item_template_, mode_, viewable_, order_, enabled_, origin_, origin_id_, origin_hash_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{modelId,jdbcType=BIGINT}, #{processKey,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{listTemplate,jdbcType=VARCHAR}, #{itemTemplate,jdbcType=VARCHAR}, #{mode,jdbcType=SMALLINT}, #{viewable,jdbcType=CHAR}, #{order,jdbcType=BIGINT}, #{enabled,jdbcType=CHAR}, #{origin,jdbcType=VARCHAR}, #{originId,jdbcType=VARCHAR}, #{originHash,jdbcType=CHAR})
+  </insert>
+  <!-- 来源三元组（theme-seed-export E4e / D38）：表单无别名，文章式——三元组即唯一键，恒不 linked。
+       update/updateBase 恒不写 origin 列（来源由种子导入器专管，操作员编辑绝不清空，E4b Part-0 约定）-->
+  <select id="selectByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_form_type t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+      and t.origin_id_ = #{originId,jdbcType=VARCHAR}
+  </select>
+  <select id="listByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_form_type t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+    order by t.order_ desc, t.id_
+  </select>
+  <select id="countByOrigin" resultType="int">
+    select count(*)
+    from ujcms_form_type t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+  </select>
+  <update id="clearOrigin">
+    update ujcms_form_type
+    set origin_ = null, origin_id_ = null, origin_hash_ = null
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+      and origin_ = #{origin,jdbcType=VARCHAR}
+  </update>
+  <!-- 来源散列写入：种子导入落库后按最终行状态计算 -->
+  <update id="updateOriginHash">
+    update ujcms_form_type
+    set origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 认领操作员行（§4.2 adopt）：仅无来源标记的行——他源绝不认领（D3）；表单类型恒本站私有 -->
+  <update id="adoptOrigin">
+    update ujcms_form_type
+    set origin_ = #{origin,jdbcType=VARCHAR},
+        origin_id_ = #{originId,jdbcType=VARCHAR},
+        origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+      and (origin_ is null or origin_ = '')
+  </update>
+  <sql id="Column_List">
+    t.id_, t.site_id_, t.model_id_, t.process_key_, t.name_, t.list_template_, t.item_template_, t.mode_, t.viewable_, t.order_, t.enabled_, t.origin_, t.origin_id_, t.origin_hash_
   </sql></mapper>

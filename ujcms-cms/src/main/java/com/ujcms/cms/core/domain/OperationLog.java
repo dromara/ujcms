@@ -1,6 +1,6 @@
 package com.ujcms.cms.core.domain;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -80,6 +80,12 @@ public class OperationLog extends GeneratedOperationLog {
      */
     @JsonIncludeProperties({"id", "name"})
     private Site site = new Site();
+    /**
+     * 审计签名（HMAC-SM3，64 个十六进制字符）。开启 {@code ujcms.security.audit-integrity} 后，
+     * 由 {@code OperationLogService} 写入时统一计算；历史行 / 未开启时为 {@code null}（合法的未签名行）。
+     */
+    @Nullable
+    private String sign;
 
     public OperationLogExt getExt() {
         return ext;
@@ -103,6 +109,16 @@ public class OperationLog extends GeneratedOperationLog {
 
     public void setSite(Site site) {
         this.site = site;
+    }
+
+    @JsonIgnore
+    @Nullable
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(@Nullable String sign) {
+        this.sign = sign;
     }
 
     /**

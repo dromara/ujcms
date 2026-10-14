@@ -1,7 +1,7 @@
 package com.ujcms.cms.ext.service.args;
 
 import com.ujcms.common.query.BaseQueryArgs;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -35,12 +35,12 @@ public class VoteArgs extends BaseQueryArgs {
         if (withinDate != null) {
             OffsetDateTime now = OffsetDateTime.now();
             if (withinDate) {
-                queryMap.put("IsNull_1_beginDate_DateTime", null);
-                queryMap.put("GE_1_beginDate_DateTime", now);
-                queryMap.put("IsNull_2_endDate_DateTime", null);
-                queryMap.put("LE_2_endDate_DateTime", now);
+                queryMap.put("IsNull_0start_startDate_DateTime", null);
+                queryMap.put("GE_0start_startDate_DateTime", now);
+                queryMap.put("IsNull_0end_endDate_DateTime", null);
+                queryMap.put("LE_0end_endDate_DateTime", now);
             } else {
-                queryMap.put("LT_beginDate_DateTime", now);
+                queryMap.put("LT_startDate_DateTime", now);
                 queryMap.put("GT_endDate_DateTime", now);
             }
         }

@@ -2,7 +2,7 @@ package com.ujcms.common.file;
 
 import io.minio.messages.Item;
 import io.minio.messages.Owner;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

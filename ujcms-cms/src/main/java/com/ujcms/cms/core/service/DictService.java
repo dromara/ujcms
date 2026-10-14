@@ -8,16 +8,14 @@ import com.ujcms.cms.core.service.args.DictArgs;
 import com.ujcms.common.db.identifier.SnowflakeSequence;
 import com.ujcms.common.query.QueryInfo;
 import com.ujcms.common.query.QueryParser;
-import org.springframework.lang.Nullable;
+import com.ujcms.common.web.exception.LogicException;
+import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-
-import static com.ujcms.cms.core.domain.support.EntityConstants.SCOPE_GLOBAL;
 
 /**
  * 字典 Service
@@ -55,9 +53,18 @@ public class DictService {
         }
     }
 
+    /**
+     * 删除条目。系统条目（{@code sys}）为系统状态，任何路径（控制台、种子）均不可删。
+     */
     @Transactional(rollbackFor = Exception.class)
     public int delete(Long id) {
-
+        Dict bean = mapper.select(id);
+        if (bean == null) {
+            return 0;
+        }
+        if (Boolean.TRUE.equals(bean.getSys())) {
+            throw new LogicException("error.dict.sys");
+        }
         return mapper.delete(id);
     }
 
@@ -84,13 +91,21 @@ public class DictService {
         return selectList(DictArgs.of().typeId(typeId));
     }
 
-    public List<Dict> listByAlias(String alias, String name, Long siteId) {
-        Map<String, Object> queryMap = new HashMap<>(16);
-        queryMap.put("EQ_1-1_type@dictType-alias", alias);
-        queryMap.put("EQ_1-2_type@dictType-scope", SCOPE_GLOBAL);
-        queryMap.put("EQ_2-1_type@dictType-alias", alias);
-        queryMap.put("EQ_2-2_type@dictType-siteId", siteId);
-        queryMap.put("Contains_name", name);
-        return selectList(DictArgs.of(queryMap));
+    /**
+     * 按类型别名取条目，可见范围 = 本站 ∪ 全局（{@link DictArgs#scopeSiteId}）。
+     */
+    public List<Dict> listByAlias(String alias, @Nullable String name, Long siteId) {
+        DictArgs args = DictArgs.of().typeAlias(alias).scopeSiteId(siteId);
+        if (StringUtils.isNotBlank(name)) {
+            args.getQueryMap().put("Contains_name", name);
+        }
+        return selectList(args);
+    }
+
+    /**
+     * 同一类型内 value 是否已存在（条目按 value 定位——种子刷新亦以此为键）。
+     */
+    public boolean existsByValue(Long typeId, String value) {
+        return mapper.existsByValue(typeId, value) > 0;
     }
 }

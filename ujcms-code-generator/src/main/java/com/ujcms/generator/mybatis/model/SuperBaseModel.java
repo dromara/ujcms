@@ -14,6 +14,11 @@ import java.util.List;
 import static org.mybatis.generator.internal.util.JavaBeansUtil.*;
 import static org.mybatis.generator.internal.util.messages.Messages.getString;
 
+/**
+ * Portions of this class are derived from MyBatis Generator 1.4.2 (SimpleModelGenerator),
+ * Copyright 2006-2022 the original author or authors, Apache License 2.0 (licenses/Apache-2.0.txt),
+ * and were modified for UJCMS.
+ */
 public class SuperBaseModel extends AbstractJavaGenerator {
 
     public SuperBaseModel(String project) {

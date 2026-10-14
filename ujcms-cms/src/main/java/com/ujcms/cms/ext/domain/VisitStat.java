@@ -2,7 +2,7 @@ package com.ujcms.cms.ext.domain;
 
 import com.ujcms.cms.ext.domain.generated.GeneratedVisitStat;
 import com.ujcms.cms.ext.domain.support.StatDateString;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

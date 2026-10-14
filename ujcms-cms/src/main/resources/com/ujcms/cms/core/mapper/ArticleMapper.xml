@@ -20,6 +20,10 @@
     <result column="type_" jdbcType="SMALLINT" property="type" />
     <result column="status_" jdbcType="SMALLINT" property="status" />
     <result column="order_" jdbcType="BIGINT" property="order" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
+    <result column="slug_" jdbcType="VARCHAR" property="slug" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Article" />
     <resultMap extends="BaseResultMap" id="ReferResultMap" type="com.ujcms.cms.core.domain.Article">
         <association column="id_" javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext" select="com.ujcms.cms.core.mapper.ArticleExtMapper.select" />
@@ -37,12 +41,27 @@
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.BlockItem" property="blockItemList" select="com.ujcms.cms.core.mapper.BlockItemMapper.listByArticleId" />
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.core.domain.Article" property="destList" select="com.ujcms.cms.core.mapper.ArticleMapper.listBySrcId" />
     </resultMap>
+    <!-- sitemap 专用（docs/spec/sitemap/plan.md D2/D3/D10）：只映射组装 URL 与 lastmod 所需的列。
+         created_/modified_ 必须显式映射——本项目未开启 mapUnderscoreToCamelCase，且含嵌套 resultMap 的
+         映射不做自动映射，漏映射时 Article 字段保留 OffsetDateTime.now() 初始值（lastmod 变成请求时间）。
+         栏目别名经 join 一次取回（channel_slug_），不再逐行嵌套查询 -->
     <resultMap id="SitemapResultMap" type="com.ujcms.cms.core.domain.Article">
         <id column="id_" jdbcType="BIGINT" property="id" />
         <result column="channel_id_" jdbcType="BIGINT" property="channelId" />
         <result column="status_" jdbcType="SMALLINT" property="status" />
+        <result column="created_" jdbcType="TIMESTAMP" property="created" />
+        <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+        <result column="slug_" jdbcType="VARCHAR" property="slug" />
         <association javaType="com.ujcms.cms.core.domain.ArticleExt" property="ext" resultMap="com.ujcms.cms.core.mapper.ArticleExtMapper.BaseResultMap" />
-        <association column="channel_id_" javaType="com.ujcms.cms.core.domain.Channel" property="channel" select="com.ujcms.cms.core.mapper.ChannelMapper.selectForSitemap" />
+        <association javaType="com.ujcms.cms.core.domain.Channel" property="channel">
+            <id column="channel_id_" jdbcType="BIGINT" property="id" />
+            <result column="channel_slug_" jdbcType="VARCHAR" property="slug" />
+        </association>
+    </resultMap>
+    <!-- 栏目 sitemap 的 lastmod：以 Channel 为载体，id = 栏目ID，modified = 该栏目子树内最新已发布文章的修改时间 -->
+    <resultMap id="SitemapChannelModifiedResultMap" type="com.ujcms.cms.core.domain.Channel">
+        <id column="id_" jdbcType="BIGINT" property="id" />
+        <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
     </resultMap>
     <select id="listByIds" resultMap="ResultMap">
         select
@@ -54,14 +73,40 @@
         </foreach>
         order by t.order_,t.id_
     </select>
-    <select id="listBySiteIdForSitemap" resultMap="SitemapResultMap">
-        select t.id_, t.channel_id_, t.created_, t.modified_, t.status_, uae.alias_, uae.link_url_
-        from ujcms_article t join ujcms_article_ext uae on t.id_ = uae.id_
+    <sql id="Sitemap_Where">
         where t.site_id_ = #{siteId}
-        <if test="minId != null">
-            and t.id_ &gt;= #{minId}
-        </if>
+        <foreach close=")" collection="status" item="item" nullable="true" open="and t.status_ in (" separator=",">
+            #{item}
+        </foreach>
+        and (uae.link_url_ is null or uae.link_url_ = '')
+    </sql>
+    <!-- 可收录条件（状态 + 非链接）在 SQL 内过滤：计数、分页与页内容由此天然一致（plan.md D1）；调用方用 PageHelper offsetPage 分页 -->
+    <select id="listBySiteIdForSitemap" resultMap="SitemapResultMap">
+        select t.id_, t.channel_id_, t.created_, t.modified_, t.status_, t.slug_, uae.link_url_, uae.image_, c.slug_ as channel_slug_
+        from ujcms_article t
+        join ujcms_article_ext uae on t.id_ = uae.id_
+        join ujcms_channel c on t.channel_id_ = c.id_
+        <include refid="Sitemap_Where" />
         order by t.id_
+    </select>
+    <!-- 全站可收录文章的修改时间，按 id_ 升序：索引文件按页切片求每页 lastmod（plan.md D5）；单列结果，各库可移植 -->
+    <select id="listModifiedForSitemap" resultType="java.time.OffsetDateTime">
+        select t.modified_
+        from ujcms_article t
+        join ujcms_article_ext uae on t.id_ = uae.id_
+        <include refid="Sitemap_Where" />
+        order by t.id_
+    </select>
+    <!-- 各栏目（含祖先栏目，经闭包表 ujcms_channel_tree）子树内最新已发布文章的修改时间：栏目列表页的 lastmod（plan.md D3） -->
+    <select id="listChannelModifiedForSitemap" resultMap="SitemapChannelModifiedResultMap">
+        select ct.ancestor_id_ as id_, max(t.modified_) as modified_
+        from ujcms_article t
+        join ujcms_channel_tree ct on ct.descendant_id_ = t.channel_id_
+        where t.site_id_ = #{siteId}
+        <foreach close=")" collection="status" item="item" nullable="true" open="and t.status_ in (" separator=",">
+            #{item}
+        </foreach>
+        group by ct.ancestor_id_
     </select>
     <select id="findNext" resultMap="ResultMap">
         select
@@ -100,19 +145,33 @@
         from ujcms_article t
         where t.src_id_ = #{srcId}
     </select>
-    <select id="findFirstByChannelId" resultMap="ReferResultMap">
+    <!-- 扩展栏目是本站之内的事：只取与源文章同站点的子行所在的栏目，站群推送到其它站点的不计 -->
+    <select id="listChannelsBySrcId" resultMap="com.ujcms.cms.core.mapper.ChannelMapper.LinkResultMap">
+        select distinct c.*
+        from ujcms_article a
+        join ujcms_article s on s.id_ = a.src_id_
+        join ujcms_channel c on c.id_ = a.channel_id_
+        where a.src_id_ = #{srcId,jdbcType=BIGINT} and a.type_ in (1, 3) and a.site_id_ = s.site_id_
+        order by c.order_, c.id_
+    </select>
+    <select id="listByTopicId" resultMap="ResultMap">
         select
-        <if test="_databaseId == 'sqlserver'">TOP 1</if>
-        <if test="_databaseId == 'informix' and _databaseId == 'gbase'">FIRST 1</if>
         <include refid="Column_List" />
         from ujcms_article t
-        where t.channel_id_ = #{channelId,jdbcType=BIGINT} and t.status_ = 0
-        <if test="_databaseId == 'oracle' and _databaseId == 'dm' and _databaseId == 'oscar'">and ROWNUM &lt;= 1</if>
-        order by t.id_ desc
-        <if test="_databaseId == 'h2' and _databaseId == 'db2'">FETCH FIRST 1 ROWS ONLY</if>
-        <if test="_databaseId != 'oracle' and _databaseId != 'sqlserver' and _databaseId != 'db2' and _databaseId != 'informix' and _databaseId != 'h2' and _databaseId != 'dm' and _databaseId != 'oscar'">
-            LIMIT 1
+        join (
+            select at.article_id_, min(at.order_) as min_order
+            from ujcms_article_topic at
+            join ujcms_topic_tree tt on tt.descendant_id_ = at.topic_id_
+            where tt.ancestor_id_ = #{topicId,jdbcType=BIGINT}
+            group by at.article_id_
+        ) at on at.article_id_ = t.id_
+        <if test="status != null and !status.isEmpty()">
+            where t.status_ in
+            <foreach item="item" collection="status" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
+        order by at.min_order asc, t.id_ desc
     </select>
     <select id="existsByChannelId" resultType="int">
         select case
@@ -120,6 +179,16 @@
                            select *
                            from ujcms_article t
                            where t.channel_id_ = #{channelId}
+                       ) then 1
+                   else 0
+                   end as non_zero_exists
+    </select>
+    <select id="existsByChannelAncestorId" resultType="int">
+        select case
+                   when exists(
+                           select *
+                           from ujcms_article t
+                           where t.channel_id_ in (select d.descendant_id_ from ujcms_channel_tree d where d.ancestor_id_ = #{channelId})
                        ) then 1
                    else 0
                    end as non_zero_exists
@@ -144,11 +213,15 @@
              else 0
              end as non_zero_exists
   </select>
-    <select id="countBySiteId" resultType="int">
+    <!-- 孤立布局选择计数（manifest 2.0 §4.1）：文章布局选择非空且不在合并变体目录内（不含回收站） -->
+    <!-- 孤立模板选择计数（template-track-variants D7）：显式模板选择非空且不在目标主题对模板名集合内 -->
+    <select id="countArticleTemplateNotIn" resultType="int">
         select count(*)
-        from ujcms_article t
-        where t.site_id_ = #{siteId}
-        <foreach close=")" collection="status" item="item" nullable="true" open="and t.status_ in (" separator=",">
+        from ujcms_article t join ujcms_article_ext uae on t.id_ = uae.id_
+        where t.site_id_ = #{siteId} and t.status_ != 20
+        and uae.article_template_ is not null and uae.article_template_ != ''
+        and uae.article_template_ not in
+        <foreach close=")" collection="values" item="item" open="(" separator=",">
             #{item}
         </foreach>
     </select>
@@ -166,15 +239,6 @@
             </foreach>
         </if>
     </select>
-    <select id="statForSitemap" resultType="map">
-        select count(*) as count, max(t.id_) as maxId
-        from ujcms_article t
-        where t.site_id_ = #{siteId}
-        <foreach close=")" collection="status" item="item" nullable="true" open="and t.status_ in (" separator=",">
-            #{item}
-        </foreach>
-        order by t.id_
-    </select>
     <update id="updateChannelId">
         update ujcms_article
         set channel_id_ = #{toChannelId}
@@ -190,6 +254,29 @@
         set sticky_      = 0,
             sticky_date_ = null
         where sticky_date_ &lt;= #{now}
+    </update>
+    <!-- 列定向写入（docs/spec/article-management/plan.md Phase 1.1）：状态、置顶、落位各写各的列。
+         整行 update 会把读出之后别人改过的列写回去——定时任务曾因此把到期的置顶又写了回来 -->
+    <update id="updateStatus">
+        update ujcms_article
+        set status_ = #{status,jdbcType=SMALLINT}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateSticky">
+        update ujcms_article
+        set sticky_      = #{sticky,jdbcType=SMALLINT},
+            sticky_date_ = #{stickyDate,jdbcType=TIMESTAMP}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateChannel">
+        update ujcms_article
+        set channel_id_ = #{channelId,jdbcType=BIGINT}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateSrcIdToNull">
+        update ujcms_article
+        set src_id_ = null
+        where id_ = #{id,jdbcType=BIGINT}
     </update>
     <update id="updateOnlineStatus">
         update ujcms_article
@@ -233,6 +320,11 @@
         from ujcms_article
         where site_id_ = #{siteId,jdbcType=BIGINT}
     </delete>
+    <update id="updateSrcIdToNullBySiteId" parameterType="long">
+        update ujcms_article
+        set src_id_ = null
+        where site_id_ = #{siteId,jdbcType=BIGINT} and src_id_ is not null
+    </update>
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere">
@@ -285,6 +377,114 @@
             <property name="tableName" value="ujcms_article" />
         </include>
     </select>
+    <!-- 各状态的文章数：与 selectAll 同一组 FROM / JOIN / WHERE（查询键、栏目、数据权限），只是换成按状态汇总。
+         经专题、标签、区块这类一对多的表筛选时一篇文章会连出多行，所以数的是不重复的文章ID -->
+    <resultMap id="StatusCountResultMap" type="com.ujcms.cms.core.domain.ArticleStatusCount">
+        <result column="status_" jdbcType="SMALLINT" property="status" />
+        <result column="total_" jdbcType="INTEGER" property="total" />
+    </resultMap>
+    <select id="countByStatus" resultMap="StatusCountResultMap">
+        SELECT t.status_ AS status_, COUNT(DISTINCT t.id_) AS total_
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All_From">
+            <property name="tableName" value="ujcms_article" />
+        </include>
+        GROUP BY t.status_
+    </select>
+    <!-- 只取主键：条件、排序与 selectAll 完全相同。文章导出按列表的顺序分批取 ID，再按 ID 取导出用的行。
+         导出的三条语句都不进二级缓存：几万行的导出结果不该占着缓存 -->
+    <select id="selectIds" resultType="java.lang.Long" useCache="false">
+        SELECT
+        <!-- DISTINCT 时排序字段必须都在 select 列里（MySQL 3065、PostgreSQL 同理），所以与列表取一样的列：
+             主表全列 + 关联排序列；首列仍是 t.id_，resultType 只读首列。不去重时只取主键 -->
+        <choose>
+            <when test="queryInfo != null and queryInfo.distinct">
+                DISTINCT
+                <include refid="Column_List" />
+                <if test="queryInfo.selectOrderBy != null">${queryInfo.selectOrderBy}</if>
+            </when>
+            <otherwise>t.id_</otherwise>
+        </choose>
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All_From">
+            <property name="tableName" value="ujcms_article" />
+        </include>
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All_Order_By" />
+    </select>
+    <resultMap id="ExportResultMap" type="com.ujcms.cms.core.domain.ArticleExportRow">
+        <id column="id_" jdbcType="BIGINT" property="id" />
+        <result column="channel_id_" jdbcType="BIGINT" property="channelId" />
+        <result column="created_" jdbcType="TIMESTAMP" property="created" />
+        <result column="modified_" jdbcType="TIMESTAMP" property="modified" />
+        <result column="publish_date_" jdbcType="TIMESTAMP" property="publishDate" />
+        <result column="online_date_" jdbcType="TIMESTAMP" property="onlineDate" />
+        <result column="offline_date_" jdbcType="TIMESTAMP" property="offlineDate" />
+        <result column="sticky_" jdbcType="SMALLINT" property="sticky" />
+        <result column="with_image_" jdbcType="CHAR" property="withImage" />
+        <result column="type_" jdbcType="SMALLINT" property="type" />
+        <result column="status_" jdbcType="SMALLINT" property="status" />
+        <result column="slug_" jdbcType="VARCHAR" property="slug" />
+        <result column="title_" jdbcType="VARCHAR" property="title" />
+        <result column="subtitle_" jdbcType="VARCHAR" property="subtitle" />
+        <result column="full_title_" jdbcType="VARCHAR" property="fullTitle" />
+        <result column="link_url_" jdbcType="VARCHAR" property="linkUrl" />
+        <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
+        <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
+        <result column="author_" jdbcType="VARCHAR" property="author" />
+        <result column="editor_" jdbcType="VARCHAR" property="editor" />
+        <result column="source_" jdbcType="VARCHAR" property="source" />
+        <result column="article_static_path_" jdbcType="VARCHAR" property="articleStaticPath" />
+        <result column="comments_" jdbcType="INTEGER" property="comments" />
+        <result column="ups_" jdbcType="INTEGER" property="ups" />
+        <result column="downs_" jdbcType="INTEGER" property="downs" />
+        <result column="views_" jdbcType="BIGINT" property="views" />
+        <result column="mains_json_" jdbcType="VARCHAR" property="mainsJson" />
+        <result column="org_name_" jdbcType="VARCHAR" property="orgName" />
+        <result column="user_username_" jdbcType="VARCHAR" property="username" />
+        <result column="modified_user_username_" jdbcType="VARCHAR" property="modifiedUsername" />
+    </resultMap>
+    <!-- 导出用的行：一条语句关联出扩展表、组织、用户的列，不逐行嵌套查询；不取正文 -->
+    <select id="listForExport" resultMap="ExportResultMap" useCache="false">
+        select t.id_, t.channel_id_, t.created_, t.modified_, t.publish_date_, t.online_date_, t.offline_date_,
+               t.sticky_, t.with_image_, t.type_, t.status_, t.slug_,
+               e.title_, e.subtitle_, e.full_title_, e.link_url_, e.seo_keywords_, e.seo_description_,
+               e.author_, e.editor_, e.source_, e.article_static_path_, e.comments_, e.ups_, e.downs_, e.views_, e.mains_json_,
+               o.name_ as org_name_, u.username_ as user_username_, mu.username_ as modified_user_username_
+        from ujcms_article t
+        join ujcms_article_ext e on e.id_ = t.id_
+        left join ujcms_org o on o.id_ = t.org_id_
+        left join ujcms_user u on u.id_ = t.user_id_
+        left join ujcms_user mu on mu.id_ = t.modified_user_id_
+        where t.id_ in
+        <foreach close=")" collection="ids" item="item" open="(" separator=",">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+    </select>
+    <!-- 这些标题里，本站已有文章用了的那些。回收站里的、推送与扩展栏目生成的子行不算 -->
+    <select id="listExistingTitles" resultType="java.lang.String" useCache="false">
+        select distinct e.title_
+        from ujcms_article t join ujcms_article_ext e on e.id_ = t.id_
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        and t.status_ &lt;&gt; 20
+        and t.src_id_ is null
+        and e.title_ in
+        <foreach close=")" collection="titles" item="item" open="(" separator=",">
+            #{item,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+    <resultMap id="TagNameResultMap" type="com.ujcms.cms.core.domain.ArticleTagName">
+        <result column="article_id_" jdbcType="BIGINT" property="articleId" />
+        <result column="tag_id_" jdbcType="BIGINT" property="tagId" />
+        <result column="name_" jdbcType="VARCHAR" property="name" />
+    </resultMap>
+    <!-- 一批文章的 TAG 名称，按文章内的顺序 -->
+    <select id="listTagNames" resultMap="TagNameResultMap" useCache="false">
+        select articleTag.article_id_, tag_.id_ as tag_id_, tag_.name_
+        from ujcms_article_tag articleTag join ujcms_tag tag_ on tag_.id_ = articleTag.tag_id_
+        where articleTag.article_id_ in
+        <foreach close=")" collection="ids" item="item" open="(" separator=",">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+        order by articleTag.article_id_, articleTag.order_
+    </select>
     <select id="selectRefer" parameterType="long" resultMap="ReferResultMap">
         select
         <include refid="Column_List" />
@@ -296,6 +496,39 @@
         <include refid="Column_List" />
         from ujcms_article t
         where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="lockById" parameterType="long" resultType="java.lang.Long">
+        select id_
+        from ujcms_article
+        where id_ = #{id,jdbcType=BIGINT}
+        for update
+    </select>
+    <select id="lockByIds" resultType="java.lang.Long">
+        select id_
+        from ujcms_article
+        where id_ in
+        <foreach close=")" collection="ids" item="item" open="(" separator=",">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+        order by id_
+        for update
+    </select>
+    <resultMap id="PlacementResultMap" type="com.ujcms.cms.core.domain.ArticlePlacement">
+        <constructor>
+            <arg column="id_" javaType="java.lang.Long" jdbcType="BIGINT" />
+            <arg column="src_id_" javaType="java.lang.Long" jdbcType="BIGINT" />
+            <arg column="channel_id_" javaType="java.lang.Long" jdbcType="BIGINT" />
+        </constructor>
+    </resultMap>
+    <select id="lockPlacementsInChannels" resultMap="PlacementResultMap">
+        select id_, src_id_, channel_id_
+        from ujcms_article
+        where channel_id_ in
+        <foreach close=")" collection="channelIds" item="item" open="(" separator=",">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+        order by id_
+        for update
     </select>
     <delete id="delete" parameterType="long">
         delete
@@ -319,7 +552,8 @@
       with_image_ = #{withImage,jdbcType=CHAR},
       input_type_ = #{inputType,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=SMALLINT}
+      status_ = #{status,jdbcType=SMALLINT},
+      slug_ = #{slug,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><update id="updateBase" parameterType="com.ujcms.cms.core.domain.Article">
     update ujcms_article
@@ -339,11 +573,95 @@
       with_image_ = #{withImage,jdbcType=CHAR},
       input_type_ = #{inputType,jdbcType=SMALLINT},
       type_ = #{type,jdbcType=SMALLINT},
-      status_ = #{status,jdbcType=SMALLINT}
+      status_ = #{status,jdbcType=SMALLINT},
+      slug_ = #{slug,jdbcType=VARCHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Article">
-    insert into ujcms_article (id_, src_id_, site_id_, org_id_, channel_id_, user_id_, modified_user_id_, created_, modified_, publish_date_, online_date_, offline_date_, sticky_, sticky_date_, with_image_, input_type_, type_, status_, order_)
-    values (#{id,jdbcType=BIGINT}, #{srcId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{modifiedUserId,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{publishDate,jdbcType=TIMESTAMP}, #{onlineDate,jdbcType=TIMESTAMP}, #{offlineDate,jdbcType=TIMESTAMP}, #{sticky,jdbcType=SMALLINT}, #{stickyDate,jdbcType=TIMESTAMP}, #{withImage,jdbcType=CHAR}, #{inputType,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{order,jdbcType=BIGINT})
+    insert into ujcms_article (id_, src_id_, site_id_, org_id_, channel_id_, user_id_, modified_user_id_, created_, modified_, publish_date_, online_date_, offline_date_, sticky_, sticky_date_, with_image_, input_type_, type_, status_, order_, origin_, origin_id_, origin_hash_, slug_)
+    values (#{id,jdbcType=BIGINT}, #{srcId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{orgId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{modifiedUserId,jdbcType=BIGINT}, #{created,jdbcType=TIMESTAMP}, #{modified,jdbcType=TIMESTAMP}, #{publishDate,jdbcType=TIMESTAMP}, #{onlineDate,jdbcType=TIMESTAMP}, #{offlineDate,jdbcType=TIMESTAMP}, #{sticky,jdbcType=SMALLINT}, #{stickyDate,jdbcType=TIMESTAMP}, #{withImage,jdbcType=CHAR}, #{inputType,jdbcType=SMALLINT}, #{type,jdbcType=SMALLINT}, #{status,jdbcType=SMALLINT}, #{order,jdbcType=BIGINT}, #{origin,jdbcType=VARCHAR}, #{originId,jdbcType=VARCHAR}, #{originHash,jdbcType=CHAR}, #{slug,jdbcType=VARCHAR})
   </insert><sql id="Column_List">
-    t.id_, t.src_id_, t.site_id_, t.org_id_, t.channel_id_, t.user_id_, t.modified_user_id_, t.created_, t.modified_, t.publish_date_, t.online_date_, t.offline_date_, t.sticky_, t.sticky_date_, t.with_image_, t.input_type_, t.type_, t.status_, t.order_
-  </sql></mapper>
+    t.id_, t.src_id_, t.site_id_, t.org_id_, t.channel_id_, t.user_id_, t.modified_user_id_, t.created_, t.modified_, t.publish_date_, t.online_date_, t.offline_date_, t.sticky_, t.sticky_date_, t.with_image_, t.input_type_, t.type_, t.status_, t.order_, t.origin_, t.origin_id_, t.origin_hash_, t.slug_
+  </sql>
+  <!-- 按站点与别名取文章（固定链接别名型/混合型解析回退，docs/spec/permalinks/plan.md D7）。
+       (site_id_, slug_) 唯一索引保证至多一行；调用方以 offsetPage(0,1) 取首行 -->
+  <select id="findBySiteIdAndSlug" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_article t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT} and t.slug_ = #{slug,jdbcType=VARCHAR}
+  </select>
+  <!-- 别名是否已被站内其他文章占用（excludeId 排除自身，供更新校验）。参数变化大，不缓存 -->
+  <select id="listIdsBySlugForUpdate" resultType="java.lang.Long" useCache="false">
+    select t.id_
+    from ujcms_article t
+    where t.slug_ = #{slug,jdbcType=VARCHAR}
+      and t.site_id_ = #{siteId,jdbcType=BIGINT}
+      <if test="excludeId != null">
+      and t.id_ &lt;&gt; #{excludeId,jdbcType=BIGINT}
+      </if>
+    for update
+  </select>
+  <select id="existsBySlug" resultType="int" useCache="false">
+    select case
+               when exists(
+                       select *
+                       from ujcms_article t
+                       where t.slug_ = #{slug,jdbcType=VARCHAR}
+                         and t.site_id_ = #{siteId,jdbcType=BIGINT}
+                         <if test="excludeId != null">
+                         and t.id_ &lt;&gt; #{excludeId,jdbcType=BIGINT}
+                         </if>
+                   ) then 1
+               else 0
+               end as non_zero_exists
+  </select>
+  <!-- 来源标记（theme-marketplace §5.3：内容种子幂等 select-then-insert / 卸载数据策略。
+       站点限定：origin_ 不含站点，同名主题可装于多个站点） -->
+  <select id="selectByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_article t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+      and t.origin_id_ = #{originId,jdbcType=VARCHAR}
+  </select>
+  <select id="listByOrigin" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_article t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+    order by t.id_
+  </select>
+  <select id="countByOrigin" resultType="int">
+    select count(*)
+    from ujcms_article t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.origin_ = #{origin,jdbcType=VARCHAR}
+  </select>
+  <select id="countByChannelId" resultType="int">
+    select count(*)
+    from ujcms_article t
+    where t.channel_id_ = #{channelId,jdbcType=BIGINT}
+  </select>
+  <update id="clearOrigin">
+    update ujcms_article
+    set origin_ = null, origin_id_ = null, origin_hash_ = null
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+      and origin_ = #{origin,jdbcType=VARCHAR}
+  </update>
+  <!-- 来源散列写入（R4）：种子导入落库后按最终行状态计算 -->
+  <update id="updateOriginHash">
+    update ujcms_article
+    set origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+  </update>
+  <!-- 认领操作员行（theme-seed-export §4.2 adopt）：仅无来源标记的行——他源行绝不认领（D3） -->
+  <update id="adoptOrigin">
+    update ujcms_article
+    set origin_ = #{origin,jdbcType=VARCHAR},
+        origin_id_ = #{originId,jdbcType=VARCHAR},
+        origin_hash_ = #{originHash,jdbcType=CHAR}
+    where id_ = #{id,jdbcType=BIGINT}
+      and (origin_ is null or origin_ = '')
+  </update></mapper>

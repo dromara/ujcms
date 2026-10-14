@@ -1,11 +1,13 @@
 package com.ujcms.cms.core.web.backendapi;
 
 import com.ujcms.cms.core.component.ContentStatCache;
+import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
+import com.ujcms.cms.core.support.StaticProps;
+import com.ujcms.common.security.Pbkdf2WithHmacSm3PasswordEncoder;
 import com.ujcms.common.security.Secures;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,48 +28,70 @@ import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 @RequestMapping(BACKEND_API + "/core/homepage")
 public class HomepageController {
     private final ContentStatCache contentStatCache;
-    private final PasswordEncoder passwordEncoder;
     private final Props props;
 
-    public HomepageController(ContentStatCache contentStatCache, PasswordEncoder passwordEncoder, Props props) {
+    public HomepageController(ContentStatCache contentStatCache, Props props) {
         this.contentStatCache = contentStatCache;
-        this.passwordEncoder = passwordEncoder;
         this.props = props;
     }
 
     @GetMapping("content-stat")
     @PreAuthorize("hasAnyAuthority('backend','*')")
-    public Map<String, Object> contentStat() {
+    public ContentStatResult contentStat() {
         Long siteId = Contexts.getCurrentSiteId();
-        Map<String, Object> result = new HashMap<>(16);
-        result.put("article", contentStatCache.articleStat(siteId));
-        result.put("channel", contentStatCache.channelStat(siteId));
-        result.put("user", contentStatCache.userStat());
-        result.put("attachment", contentStatCache.attachmentStat(siteId));
-        return result;
+        return new ContentStatResult(
+                contentStatCache.articleStat(siteId),
+                contentStatCache.channelStat(siteId),
+                contentStatCache.userStat(),
+                contentStatCache.attachmentStat(siteId));
     }
 
+    public record ContentStatResult(
+            ContentStatCache.StatBucket article,
+            ContentStatCache.StatBucket channel,
+            ContentStatCache.StatBucket user,
+            ContentStatCache.StatBucket attachment) {}
+
+    /** 口令重置 SQL 所设的统一初始口令。 */
+    static final String RESET_PASSWORD = "password";
+
+    /**
+     * 生成 application.yaml「密钥」段的一整套随机密钥——{@code jwt.secret}、{@code captcha.secret}、
+     * {@code ujcms.download-secret}、客户端 SM2 密钥对、{@code ujcms.data-secret-key}、{@code ujcms.password-pepper}
+     * （集群各节点须用同一份）——并按**新生成的** {@code password-pepper} 给出把账号口令重置为
+     * {@value #RESET_PASSWORD} 的 {@code UPDATE} 语句。密钥与重置 SQL 自洽：换上这些密钥并执行该 SQL 后，全员即可用
+     * 初始口令登录——从根本上规避“改胡椒后无法登录、也就取不到新胡椒哈希”的自举问题（见 runbook §2.2）。
+     * <p>
+     * 输出只含数据（YAML 行与 SQL），说明文字由控制台按当前语言渲染。
+     */
     @GetMapping("generated-key")
     @PreAuthorize("hasAnyAuthority('homepage:generatedKey','*')")
     @SuppressWarnings("java:S6437")
-    public String generatedKey() {
+    public GeneratedKeyResult generatedKey() {
         Secures.Pair keyPair = Secures.generateSm2QdKeyPair();
-        String newline = "\n";
-        StringBuilder buff = new StringBuilder();
-        buff.append("# 以下密钥皆随机生成，用于application.yaml配置文件。注意不要和原配置重复，同一配置项只允许出现一次。").append(newline);
-        buff.append("jwt.secret: ").append(Secures.randomAlphanumeric(64)).append(newline);
-        buff.append("jwt.token-secret: ").append(Secures.randomAlphanumeric(16)).append(newline);
-        buff.append("ujcms.download-secret: ").append(Secures.randomAlphanumeric(32)).append(newline);
-        buff.append("ujcms.client-sm2-public-key: ").append(keyPair.getPublicKey()).append(newline);
-        buff.append("ujcms.client-sm2-private-key: ").append(keyPair.getPrivateKey()).append(newline);
-        String password = passwordEncoder.encode("password");
-        buff.append(newline);
-        buff.append("# 以下内容只用于修改数据库数据，不用于application.yaml配置文件。").append(newline);
-        buff.append("# ujcms.password-pepper修改后，用户密码Hash值也会改变，原密码将无法登录。").append(newline);
-        buff.append("# 需要根据以下值修改数据库ujcms_user表的password_字段的值，修改后用户密码将被重置为password").append(newline);
-        buff.append("ujcms_user.password_: ").append(password).append(newline);
-        return buff.toString();
+        String dataSecretKey = Secures.randomAlphanumeric(StaticProps.DATA_SECRET_KEY_LENGTH);
+        String passwordPepper = Secures.randomAlphanumeric(32);
+        // 用新生成的胡椒计算初始口令的哈希，使密钥与重置 SQL 自洽。
+        String passwordHash = new Pbkdf2WithHmacSm3PasswordEncoder(passwordPepper).encode(RESET_PASSWORD);
+        // 条目顺序与 application.yaml 的「密钥」段一致；签名密钥（jwt / captcha）至少 32 字节
+        String yaml = "jwt.secret: " + Secures.randomAlphanumeric(64) + "\n"
+                + "captcha.secret: " + Secures.randomAlphanumeric(32) + "\n"
+                + "ujcms.download-secret: " + Secures.randomAlphanumeric(32) + "\n"
+                + "ujcms.client-sm2-public-key: " + keyPair.getPublicKey() + "\n"
+                + "ujcms.client-sm2-private-key: " + keyPair.getPrivateKey() + "\n"
+                + "ujcms.data-secret-key: " + dataSecretKey + "\n"
+                + "ujcms.password-pepper: " + passwordPepper + "\n";
+        // 只重置设有口令的账号：纯第三方登录账号（password_ 为 PASSWORD_NONE）保持无口令，否则会平白得到一个人人皆知的初始口令
+        String resetSql = "UPDATE ujcms_user SET password_='" + passwordHash + "', pwd_must_change_='1'"
+                + " WHERE password_<>'" + User.PASSWORD_NONE + "';\n";
+        return new GeneratedKeyResult(yaml, resetSql, RESET_PASSWORD);
     }
+
+    /**
+     * 密钥生成结果：{@code yaml} 为可直接粘贴到 application.yaml 的 {@code key: value} 行；{@code resetSql} 为按其中
+     * {@code ujcms.password-pepper} 计算的口令重置语句；{@code resetPassword} 即该语句所设的初始口令。
+     */
+    public record GeneratedKeyResult(String yaml, String resetSql, String resetPassword) {}
 
     @GetMapping("system-info")
     @PreAuthorize("hasAnyAuthority('homepage:systemInfo','*')")

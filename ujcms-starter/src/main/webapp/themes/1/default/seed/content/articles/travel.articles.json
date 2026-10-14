@@ -1,0 +1,35 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "articles": [
+    {
+      "channel": "travel",
+      "ext": {
+        "author": "图片部",
+        "source": "本站原创"
+      },
+      "image": "{{asset:img/travel/sailing-regatta.jpg}}",
+      "imageList": [
+        {
+          "description": "顺风航段，各船升起彩色球帆，领头的一条船冲在船队最前面。",
+          "url": "{{asset:img/travel/sailing-regatta-1.jpg}}"
+        },
+        {
+          "description": "风最大的一轮，四名船员并排坐上高处的船舷，用体重压住倾斜的船身。",
+          "url": "{{asset:img/travel/sailing-regatta-2.jpg}}"
+        },
+        {
+          "description": "绕过浮标的一刻，黄色球帆刚被风鼓满，船头的船员还在忙着整理帆索。",
+          "url": "{{asset:img/travel/sailing-regatta-3.jpg}}"
+        }
+      ],
+      "originId": "a-sailing-regatta",
+      "publishOffsetDays": -18,
+      "tags": [
+        "摄影",
+        "体育"
+      ],
+      "text": "<p>帆船赛很少有观众席。赛道设在离岸几公里的海面上，站在岸边只能看见一排小小的白帆。上周末，本市帆船公开赛在近海举行，图片部的摄影师跟着裁判艇出海三天，把这场比赛带回了岸上。</p>\n<p>三天里一共进行九轮比赛，二十六条同一型号的帆船同场竞速。船是一样的船，帆是一样的帆，胜负全看船员怎么读风：风从哪一侧先到，什么时候换舷，绕标时球帆升得早还是晚。第二天午后风力升到六级，船身压着浪往前冲，甲板上的人几乎一直泡在飞沫里。</p>\n<p>摄影师说，在摇晃的小艇上拍照，十张里有八张是歪的。这组照片从六百多张里选出三张：顺风航段铺满海面的彩色球帆，并排压在船舷上的四名船员，还有绕标那一刻被风鼓满的帆。</p>",
+      "title": "逐风三日：跟船拍下一场帆船赛"
+    }
+  ]
+}

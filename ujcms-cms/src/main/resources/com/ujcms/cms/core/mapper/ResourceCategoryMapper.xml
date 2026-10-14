@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.ResourceCategoryMapper">
+    <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.ResourceCategory">
+        <id column="id_" jdbcType="BIGINT" property="id" />
+        <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+        <result column="parent_id_" jdbcType="BIGINT" property="parentId" />
+        <result column="name_" jdbcType="VARCHAR" property="name" />
+        <result column="owner_id_" jdbcType="BIGINT" property="ownerId" />
+        <result column="order_" jdbcType="INTEGER" property="order" />
+        <result column="depth_" jdbcType="SMALLINT" property="depth" />
+        <result column="created_" jdbcType="TIMESTAMP" property="created" />
+    </resultMap>
+    <sql id="Column_List">
+        t.id_, t.site_id_, t.parent_id_, t.name_, t.owner_id_, t.order_, t.depth_, t.created_
+    </sql>
+    <select id="select" parameterType="long" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_resource_category t
+        where t.id_ = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="listBySiteId" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_resource_category t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        <choose>
+            <when test="ownerId != null">and t.owner_id_ = #{ownerId,jdbcType=BIGINT}</when>
+            <otherwise>and t.owner_id_ is null</otherwise>
+        </choose>
+        order by t.order_, t.id_
+    </select>
+    <select id="findByName" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_resource_category t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.owner_id_ is null
+          and t.name_ = #{name,jdbcType=VARCHAR}
+        <choose>
+            <when test="parentId != null">and t.parent_id_ = #{parentId,jdbcType=BIGINT}</when>
+            <otherwise>and t.parent_id_ is null</otherwise>
+        </choose>
+        order by t.id_
+    </select>
+    <select id="maxOrder" resultType="java.lang.Integer">
+        select max(t.order_)
+        from ujcms_resource_category t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+        <choose>
+            <when test="parentId != null">and t.parent_id_ = #{parentId,jdbcType=BIGINT}</when>
+            <otherwise>and t.parent_id_ is null</otherwise>
+        </choose>
+    </select>
+    <select id="countChildren" resultType="int">
+        select count(*)
+        from ujcms_resource_category t
+        where t.parent_id_ = #{parentId,jdbcType=BIGINT}
+    </select>
+    <select id="countAttachments" resultType="int">
+        select count(*)
+        from ujcms_attachment t
+        where t.shared_category_id_ = #{categoryId,jdbcType=BIGINT}
+    </select>
+    <insert id="insert" parameterType="com.ujcms.cms.core.domain.ResourceCategory">
+        insert into ujcms_resource_category (id_, site_id_, parent_id_, name_, owner_id_, order_, depth_, created_)
+        values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR},
+          #{ownerId,jdbcType=BIGINT}, #{order,jdbcType=INTEGER}, #{depth,jdbcType=SMALLINT}, #{created,jdbcType=TIMESTAMP})
+    </insert>
+    <update id="update" parameterType="com.ujcms.cms.core.domain.ResourceCategory">
+        update ujcms_resource_category
+        set site_id_ = #{siteId,jdbcType=BIGINT},
+          parent_id_ = #{parentId,jdbcType=BIGINT},
+          name_ = #{name,jdbcType=VARCHAR},
+          owner_id_ = #{ownerId,jdbcType=BIGINT},
+          order_ = #{order,jdbcType=INTEGER},
+          depth_ = #{depth,jdbcType=SMALLINT}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <delete id="delete" parameterType="long">
+        delete
+        from ujcms_resource_category
+        where id_ = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteBySiteId" parameterType="long">
+        delete
+        from ujcms_resource_category
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByOwnerId" parameterType="long">
+        delete
+        from ujcms_resource_category
+        where owner_id_ = #{ownerId,jdbcType=BIGINT}
+    </delete>
+</mapper>

@@ -3,7 +3,7 @@ package com.ujcms.cms.ext.mapper;
 import com.ujcms.cms.ext.domain.LeaderBoard;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;

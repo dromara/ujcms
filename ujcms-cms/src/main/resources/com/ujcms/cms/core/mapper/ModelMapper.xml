@@ -7,6 +7,9 @@
     <result column="type_" jdbcType="VARCHAR" property="type" />
     <result column="scope_" jdbcType="SMALLINT" property="scope" />
     <result column="order_" jdbcType="INTEGER" property="order" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.core.domain.Model">
     <result column="mains_" jdbcType="LONGVARCHAR" property="mains" />
     <result column="asides_" jdbcType="LONGVARCHAR" property="asides" />
@@ -69,8 +72,82 @@
       order_ = #{order,jdbcType=INTEGER}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.core.domain.Model">
-    insert into ujcms_model (id_, site_id_, name_, type_, scope_, order_, mains_, asides_, customs_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{mains,jdbcType=LONGVARCHAR}, #{asides,jdbcType=LONGVARCHAR}, #{customs,jdbcType=LONGVARCHAR})
-  </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.name_, t.type_, t.scope_, t.order_, t.mains_, t.asides_, t.customs_
+    insert into ujcms_model (id_, site_id_, name_, type_, scope_, order_, mains_, asides_, customs_,
+      origin_, origin_id_, origin_hash_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{scope,jdbcType=SMALLINT}, #{order,jdbcType=INTEGER}, #{mains,jdbcType=LONGVARCHAR}, #{asides,jdbcType=LONGVARCHAR}, #{customs,jdbcType=LONGVARCHAR},
+      #{origin,jdbcType=VARCHAR}, #{originId,jdbcType=VARCHAR}, #{originHash,jdbcType=CHAR})
+  </insert>
+    <resultMap id="UsageResultMap" type="com.ujcms.cms.core.domain.ModelUsage">
+        <constructor>
+            <arg column="model_id_" javaType="java.lang.Long" jdbcType="BIGINT" />
+            <arg column="usage_count_" javaType="_int" jdbcType="INTEGER" />
+            <arg column="external_count_" javaType="_int" jdbcType="INTEGER" />
+        </constructor>
+    </resultMap>
+    <!-- 模型使用统计（model-management M4）：六个指向 ujcms_model 的外键列各计一次。引用表不在本缓存域内，
+         计数不走二级缓存；派生表别名不写 as（兼容 Oracle 系方言）；全局区块 site_id_ 为空，按外部计 -->
+    <select id="selectUsages" resultMap="UsageResultMap" useCache="false">
+        select u.model_id_,
+               count(*) as usage_count_,
+               sum(case when u.site_id_ is null or u.site_id_ &lt;&gt; #{siteId,jdbcType=BIGINT} then 1 else 0 end) as external_count_
+        from (select c1.channel_model_id_ as model_id_, c1.site_id_ from ujcms_channel c1
+              union all
+              select c2.article_model_id_, c2.site_id_ from ujcms_channel c2
+              union all
+              select p.topic_model_id_, p.site_id_ from ujcms_topic p
+              union all
+              select b.block_item_model_id_, b.site_id_ from ujcms_block b where b.block_item_model_id_ is not null
+              union all
+              select f.model_id_, f.site_id_ from ujcms_form_type f
+              union all
+              select s.model_id_, s.id_ from ujcms_site s) u
+        group by u.model_id_
+    </select>
+    <!-- 来源三元组由种子导入器专管（model-seeding D1）：update/updateBase 恒不改写 origin 列 -->
+    <select id="selectByOrigin" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_model t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.origin_ = #{origin,jdbcType=VARCHAR}
+          and t.origin_id_ = #{originId,jdbcType=VARCHAR}
+    </select>
+    <select id="listByOrigin" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_model t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.origin_ = #{origin,jdbcType=VARCHAR}
+        order by t.order_, t.id_
+    </select>
+    <select id="countByOrigin" resultType="int">
+        select count(*)
+        from ujcms_model t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.origin_ = #{origin,jdbcType=VARCHAR}
+    </select>
+    <update id="clearOrigin">
+        update ujcms_model
+        set origin_ = null, origin_id_ = null, origin_hash_ = null
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+          and origin_ = #{origin,jdbcType=VARCHAR}
+    </update>
+    <!-- 来源散列写入（R4）：种子导入落库后按最终行状态计算 -->
+    <update id="updateOriginHash">
+        update ujcms_model
+        set origin_hash_ = #{originHash,jdbcType=CHAR}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <!-- 认领操作员行（§4.2 adopt）：仅无来源标记的本站私有行——他源绝不认领（D3）、全局模型绝不认领（model-seeding D1） -->
+    <update id="adoptOrigin">
+        update ujcms_model
+        set origin_ = #{origin,jdbcType=VARCHAR},
+            origin_id_ = #{originId,jdbcType=VARCHAR},
+            origin_hash_ = #{originHash,jdbcType=CHAR}
+        where id_ = #{id,jdbcType=BIGINT}
+          and (origin_ is null or origin_ = '')
+          and site_id_ is not null
+    </update>
+    <sql id="Column_List">
+    t.id_, t.site_id_, t.name_, t.type_, t.scope_, t.order_, t.mains_, t.asides_, t.customs_, t.origin_, t.origin_id_, t.origin_hash_
   </sql></mapper>

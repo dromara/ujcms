@@ -1,7 +1,7 @@
 package com.ujcms.cms.core.web.support;
 
 import com.ujcms.common.web.exception.Http503Exception;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 站点禁用异常

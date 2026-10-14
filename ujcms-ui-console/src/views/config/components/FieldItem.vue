@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, toRefs, watchEffect, computed } from 'vue';
-import { queryDictList } from '@/api/content';
+import { queryDictList } from '@/api/config';
 import Tinymce from '@/components/Tinymce';
 import { BaseUpload, ImageUpload } from '@/components/Upload';
 
@@ -56,7 +56,7 @@ const dataKey = computed<any>({
       { label: '下拉多选', type: 'multipleSelect' },
       { label: '级联选择', type: 'cascader' },
       { label: '开关', type: 'switch' },
-      { label: '富文本编辑器', type: 'tinyEditor' },
+      { label: '富文本编辑器', type: 'richEditor' },
       { label: '图片上传', type: 'imageUpload' },
       { label: '视频上传', type: 'videoUpload' },
       { label: '音频上传', type: 'audioUpload' },
@@ -124,6 +124,7 @@ const dataKey = computed<any>({
     <el-input v-model="data" :placeholder="field.placeholder" maxlength="255"></el-input>
     <base-upload
       type="video"
+      pickable
       :file-accept="field.fileAccept"
       :file-max-size="field.fileMaxSize != null ? field.fileMaxSize * 1024 * 1024 : undefined"
       :on-success="(res: any) => (data = res.url)"
@@ -133,6 +134,7 @@ const dataKey = computed<any>({
     <el-input v-model="data" :placeholder="field.placeholder" maxlength="255"></el-input>
     <base-upload
       type="audio"
+      pickable
       :file-accept="field.fileAccept"
       :file-max-size="field.fileMaxSize != null ? field.fileMaxSize * 1024 * 1024 : undefined"
       :on-success="(res: any) => (data = res.url)"
@@ -142,13 +144,14 @@ const dataKey = computed<any>({
     <el-input v-model="data" :placeholder="field.placeholder" maxlength="255"></el-input>
     <base-upload
       type="file"
+      pickable
       :file-accept="field.fileAccept"
       :file-max-size="field.fileMaxSize != null ? field.fileMaxSize * 1024 * 1024 : undefined"
       :on-success="(res: any) => (data = res.url)"
     ></base-upload>
   </template>
   <tinymce
-    v-else-if="field.type === 'tinyEditor'"
+    v-else-if="field.type === 'richEditor'"
     v-model="data"
     class="w-full"
     :init="{ placeholder: field.placeholder, ...(field.minHeight ? { min_height: field.minHeight } : {}), ...(field.maxHeight ? { max_height: field.maxHeight } : {}) }"

@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.Objects;
 
 import static com.ujcms.cms.core.support.Constants.validPage;
@@ -54,11 +55,16 @@ public class MessageBoardController {
         this.props = props;
     }
 
+    /**
+     * 列表的查询条件、排序可以关联的字段（docs/spec/article-data-permission/plan.md D24）：留言列表按留言类型、留言人的名称排序
+     */
+    private static final Set<String> QUERY_JOINS = Set.of("type@dict-name", "user-username");
+
     @GetMapping
     @PreAuthorize("hasAnyAuthority('messageBoard:list','*')")
     public Page<MessageBoard> list(@RequestParam("page") Integer page, @RequestParam("pageSize") Integer pageSize,
                                    HttpServletRequest request) {
-        MessageBoardArgs args = MessageBoardArgs.of(getQueryMap(request.getQueryString()))
+        MessageBoardArgs args = MessageBoardArgs.of(getQueryMap(request.getQueryString(), QUERY_JOINS))
                 .siteId(Contexts.getCurrentSiteId());
         return springPage(service.selectPage(args, validPage(page), validPageSize(pageSize)));
     }

@@ -13,11 +13,15 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ujcms.common.sms.SmsError;
 import com.ujcms.common.sms.SmsUtils;
 
 import jakarta.xml.bind.DatatypeConverter;
@@ -32,6 +36,12 @@ import jakarta.xml.bind.DatatypeConverter;
  */
 @Service
 public class AliyunSmsService {
+    /**
+     * 服务商标识
+     */
+    public static final String PROVIDER = "aliyun";
+    /** 仅用于解析 HTTP 错误响应体 */
+    private static final ObjectMapper ERROR_BODY_MAPPER = new ObjectMapper();
     public static final String HOST = "dysmsapi.aliyuncs.com";
     private static final String ALGORITHM = "ACS3-HMAC-SHA256";
     private static final String SMS_ACTION = "SendSms";
@@ -62,6 +72,14 @@ public class AliyunSmsService {
     private static final String RESPONSE_CODE = "Code";
     private static final String RESPONSE_MESSAGE = "Message";
 
+    // 错误码对照官方文档：https://help.aliyun.com/zh/sms/developer-reference/api-error-codes
+    // 账号级限额（isv.DAY_LIMIT_CONTROL、isv.MONTH_LIMIT_CONTROL）是管理员在阿里云控制台设置的总量阈值，
+    // 终端用户稍后重试无效，归入其它错误。
+    // 错误码：触发云通信流控限制。号码维度的发送频率上限（同一签名对同一号码，默认 1条/分钟、5条/小时、10条/天，按自然分钟、小时计）
+    private static final String CODE_BUSINESS_LIMIT_CONTROL = "isv.BUSINESS_LIMIT_CONTROL";
+    // 错误码：手机号码格式错误
+    private static final String CODE_MOBILE_NUMBER_ILLEGAL = "isv.MOBILE_NUMBER_ILLEGAL";
+
     // 线程安全的日期格式化器（DateTimeFormatter是线程安全的，无需ThreadLocal）
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT)
             .withZone(ZoneOffset.UTC);
@@ -86,7 +104,7 @@ public class AliyunSmsService {
      * @return 返回 {@code null} 代表成功，否则返回错误信息
      */
     @Nullable
-    public String sendSms(String accessKeyId, String accessKeySecret, String signName, String templateCode,
+    public SmsError sendSms(String accessKeyId, String accessKeySecret, String signName, String templateCode,
             String codeName, String code, String mobile) {
         try {
             // 构建查询参数
@@ -102,9 +120,32 @@ public class AliyunSmsService {
             // 发送请求并解析响应
             JsonNode response = sendRequest(processedQueryParams, headers);
             return parseResponse(response);
+        } catch (RestClientResponseException e) {
+            // 凭证、签名类错误（如 InvalidAccessKeyId.NotFound）阿里云以 HTTP 4xx 返回，响应体同样带 Code / Message
+            return parseErrorResponse(e);
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to send SMS", e);
+            // 网络不通、超时等。与腾讯云实现一致：作为错误返回而非抛出，由调用方给出友好提示并记录日志，
+            // 否则短信配置有误时，依赖验证码的流程（如双因子登录）只会得到一个 500
+            return SmsError.other(PROVIDER, "SMS send error: " + e.getMessage());
         }
+    }
+
+    /**
+     * 解析 HTTP 错误响应。响应体是阿里云的错误 JSON 时按错误码分类，否则只报告 HTTP 状态码
+     */
+    private SmsError parseErrorResponse(RestClientResponseException e) {
+        try {
+            JsonNode body = ERROR_BODY_MAPPER.readTree(e.getResponseBodyAsString());
+            if (body != null && body.has(RESPONSE_CODE)) {
+                SmsError error = parseResponse(body);
+                if (error != null) {
+                    return error;
+                }
+            }
+        } catch (JsonProcessingException ignored) {
+            // 响应体不是 JSON（如网关错误页）：按 HTTP 状态码报告
+        }
+        return SmsError.other(PROVIDER, "HTTP " + e.getStatusCode().value());
     }
 
     /**
@@ -344,9 +385,9 @@ public class AliyunSmsService {
      * 解析响应结果
      */
     @Nullable
-    private String parseResponse(@Nullable JsonNode response) {
+    private SmsError parseResponse(@Nullable JsonNode response) {
         if (response == null) {
-            return "Invalid response from SMS service";
+            return SmsError.other(PROVIDER, "Invalid response from SMS service");
         }
 
         String code = response.has(RESPONSE_CODE) ? response.get(RESPONSE_CODE).asText() : null;
@@ -356,7 +397,19 @@ public class AliyunSmsService {
             return null; // 成功
         }
 
-        return "code: " + (code != null ? code : "Unknown") + ", message: "
-                + (message != null ? message : "Unknown error");
+        return SmsError.of(classify(code), PROVIDER, code != null ? code : "Unknown", message);
+    }
+
+    /**
+     * 错误码分类
+     */
+    private static SmsError.Kind classify(@Nullable String code) {
+        if (CODE_BUSINESS_LIMIT_CONTROL.equals(code)) {
+            return SmsError.Kind.RATE_LIMITED;
+        }
+        if (CODE_MOBILE_NUMBER_ILLEGAL.equals(code)) {
+            return SmsError.Kind.INVALID_MOBILE;
+        }
+        return SmsError.Kind.OTHER;
     }
 }

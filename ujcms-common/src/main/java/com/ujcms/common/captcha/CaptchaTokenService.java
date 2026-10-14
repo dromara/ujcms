@@ -11,13 +11,12 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.BadJWTException;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.JWTClaimsSetVerifier;
-import com.octo.captcha.image.ImageCaptcha;
 import com.ujcms.common.security.jwt.HmacSm3JwsSigner;
 import com.ujcms.common.security.jwt.HmacSm3JwsVerifier;
 import com.ujcms.common.security.jwt.JwtUtils;
 import com.ujcms.common.web.Strings;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -37,12 +36,12 @@ import static java.util.Locale.ENGLISH;
  * <p>
  * 使用缓存记住已经使用的验证码，防止重复使用。
  *
- * @author liufang
+ * @author PONY
  */
 public class CaptchaTokenService {
-    public CaptchaTokenService(GmailCaptchaEngine gmailCaptchaEngine, CaptchaCache cache,
+    public CaptchaTokenService(CaptchaRenderer renderer, CaptchaCache cache,
                                CaptchaProperties properties) throws KeyLengthException {
-        this.gmailCaptchaEngine = gmailCaptchaEngine;
+        this.renderer = renderer;
         this.cache = cache;
         this.properties = properties;
         this.jwsSigner = new HmacSm3JwsSigner(properties.getSecret());
@@ -57,14 +56,13 @@ public class CaptchaTokenService {
      * @return CaptchaToken
      */
     public CaptchaToken getCaptchaToken() {
-        ImageCaptcha captcha = gmailCaptchaEngine.getNextImageCaptcha();
-        BufferedImage bufferedImage = captcha.getImageChallenge();
+        CaptchaRenderer.CaptchaImage captcha = renderer.next();
+        BufferedImage bufferedImage = captcha.image();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             ImageIO.write(bufferedImage, "png", outputStream);
             String image = Strings.encodeBase64(outputStream.toByteArray());
-            // 区分大小写
-            String word = captcha.getResponse();
+            String word = captcha.word();
             Date now = new Date();
             // 只取秒级，不要毫秒。JWT 的 expiresAt 只能记录到秒
             Date expiresAt = new Date(now.getTime() / 1000 * 1000 + (long) properties.getExpires() * 60 * 1000);
@@ -160,7 +158,7 @@ public class CaptchaTokenService {
         return Strings.encodeUrlBase64(subjectBytes);
     }
 
-    private final GmailCaptchaEngine gmailCaptchaEngine;
+    private final CaptchaRenderer renderer;
     private final CaptchaCache cache;
     private final CaptchaProperties properties;
     private final HmacSm3JwsSigner jwsSigner;

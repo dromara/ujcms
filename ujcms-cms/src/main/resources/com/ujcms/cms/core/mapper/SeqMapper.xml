@@ -28,16 +28,10 @@
     <sql id="selectAllSelect" />
     <sql id="selectAllJoin" />
     <sql id="selectAllWhere" />
-    <!-- 通用的列表和分页查询。必须放在一个已经映射Mapper文件里。 -->
-    <sql id="Select_All">
-        SELECT
-        <if test="queryInfo != null and queryInfo.distinct">DISTINCT</if>
-        <include refid="Column_List" />
-        <include refid="selectAllSelect" />
-        <!-- 防止使用DISTINCT时，order by字段不在select字段里 -->
-        <if test="queryInfo != null and queryInfo.distinct and queryInfo.selectOrderBy != null">
-            ${queryInfo.selectOrderBy}
-        </if>
+    <!-- 通用查询的 FROM … JOIN … WHERE 部分，不含 SELECT 列与 ORDER BY。列表查询（Select_All）之外，同一组条件上的
+         汇总查询（按状态计数、导出）也引用它，保证“数的”与“列的”是同一批数据。selectAllJoin / selectAllWhere 与表名
+         仍由引用它的 Mapper 提供 -->
+    <sql id="Select_All_From">
         FROM
         <choose>
             <when test="queryInfo != null">${queryInfo.tableName}</when>
@@ -73,6 +67,22 @@
             </if>
             <include refid="selectAllWhere" />
         </where>
+    </sql>
+    <!-- 通用的列表和分页查询。必须放在一个已经映射Mapper文件里。 -->
+    <sql id="Select_All">
+        SELECT
+        <if test="queryInfo != null and queryInfo.distinct">DISTINCT</if>
+        <include refid="Column_List" />
+        <include refid="selectAllSelect" />
+        <!-- 防止使用DISTINCT时，order by字段不在select字段里 -->
+        <if test="queryInfo != null and queryInfo.distinct and queryInfo.selectOrderBy != null">
+            ${queryInfo.selectOrderBy}
+        </if>
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All_From" />
+        <include refid="com.ujcms.cms.core.mapper.SeqMapper.Select_All_Order_By" />
+    </sql>
+    <!-- Select_All 的 ORDER BY 子句。只取主键的查询（文章导出按列表的排序分批取 ID）与它共用 -->
+    <sql id="Select_All_Order_By">
         <if test="queryInfo!=null and queryInfo.orderByConditions!=null">
             <foreach collection="queryInfo.orderByConditions" item="condition" open="ORDER BY " separator=",">
                 <choose>

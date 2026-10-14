@@ -15,6 +15,13 @@ export const copyWebFileTemplate = async (dir: string, names: string[], destDir:
 export const moveWebFileTemplate = async (dir: string, names: string[], destDir: string): Promise<any> =>
   (await axios.post('/backend/ext/web-file-template/move', { dir, names, destDir })).data;
 export const deleteWebFileTemplate = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/web-file-template?_method=delete', data)).data;
+// 模板编辑历史（template-history / design-review P3-6）：id（单文件）与 dir（目录子树，含已删除文件）二选一
+export const queryWebFileTemplateHistory = async (params: { id?: string; dir?: string }): Promise<any> =>
+  (await axios.get('/backend/ext/web-file-template/history', { params })).data;
+export const queryWebFileTemplateHistoryDetail = async (historyId: string): Promise<any> =>
+  (await axios.get(`/backend/ext/web-file-template/history/${historyId}`)).data;
+export const restoreWebFileTemplateHistory = async (historyId: string): Promise<any> =>
+  (await axios.post('/backend/ext/web-file-template/history/restore', { historyId })).data;
 
 export const uploadWebFileUploadUrl = `${import.meta.env.VITE_BASE_API}/backend/ext/web-file-upload/upload`;
 export const uploadZipWebFileUploadUrl = `${import.meta.env.VITE_BASE_API}/backend/ext/web-file-upload/upload-zip`;

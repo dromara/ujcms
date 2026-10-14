@@ -11,10 +11,10 @@ com.ujcms.common
 ├── file         # 文件存储：本地、FTP、MinIO(S3) 多后端，ZIP 工具
 ├── freemarker   # FreeMarker 扩展：分页方法、BBCode、格式化、自定义模板加载器
 ├── function     # 函数式工具类
-├── image        # 图片处理：缩略图（Thumbnailator）、ImageMagick (im4java) 支持
+├── image        # 图片处理：缩略图、裁剪、水印（Thumbnailator）
 ├── ip           # IP 归属地查询（ip2region）
 ├── lucene       # Lucene 全文检索封装：操作模板、高亮、指数衰减评分
-├── misc         # 杂项工具：媒体处理（JAVE）、序列化工具
+├── misc         # 杂项工具：进制编码、序列化工具
 ├── query        # 动态查询：QueryParser 解析前端查询参数，生成 MyBatis 条件
 ├── security     # 安全：JWT(HmacSM3)、OAuth2(微信/QQ/微博)、XSS 过滤、SM2/SM3 加密、PBKDF2
 ├── sms          # 短信：IP 级发送频率限制
@@ -68,18 +68,18 @@ com.ujcms.common
 
 ### 验证码（captcha）
 
-- 图形验证码生成（jcaptcha）
+- 图形验证码生成 `CaptchaRenderer`（纯 Java2D 几何绘制，字形来自内置笔画表 `CaptchaGlyphs`，不依赖字体文件与 fontconfig）
 - 验证码令牌服务 `CaptchaTokenService`
 - 基于 Caffeine 缓存的 IP 登录频率限制
 
 ### IP 归属地（ip）
 
-基于 ip2region 的离线 IP 归属地查询，`IpSeeker` 提供统一查询接口，`Region` 封装国家/省/市/ISP 信息。
+基于 ip2region 的离线 IP 归属地查询，`IpSeeker` 提供统一查询接口（IPv4 地址库内置，IPv6 地址库按需配置，缺省时 IPv6 返回 UNKNOWN），`Region` 封装国家/省/市/ISP 信息。
+`IpAddresses` 提供 IP 字面量解析、RFC 5952 规范化、限流分组键（IPv6 按前缀）和内网/保留地址判定（IPv4 与 IPv6，含 NAT64/6to4 内嵌形式），是客户端 IP 获取与 SSRF 防护的共用基础。
 
 ### 图片处理（image）
 
-- Thumbnailator：Java 原生图片缩略图
-- im4java：调用本机 ImageMagick 进行高质量图片转换
+- Thumbnailator：Java 原生图片缩略图、裁剪、水印
 
 ## 依赖技术栈
 
@@ -91,8 +91,7 @@ com.ujcms.common
 | 存储 | MinIO、Apache Commons Net (FTP)、Commons Compress |
 | 检索 | Apache Lucene 8.11 |
 | 模板 | FreeMarker + freemarker-java8 |
-| 图片 | Thumbnailator、im4java |
-| 媒体 | JAVE (FFmpeg 封装) |
+| 图片 | Thumbnailator |
 | IP | ip2region |
 | HTML | jsoup |
 | 缓存 | Caffeine |

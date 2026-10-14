@@ -1,0 +1,77 @@
+[#include '../layout/theme.html'/]
+[#--
+  V11.2 专题落地页。文章排序来自策划维护（ujcms_article_topic.order_），父专题经
+  ujcms_topic_tree 闭包表聚合子孙专题文章——[@ArticleTopicList] 直接走
+  ArticleService.selectPageByTopicId，完全绕过 facet 查询。
+--]
+[#escape x as (x)!?html]
+[@layout title="${topic.title} - ${site.title}" keywords=topic.seoKeywords!'' description=topic.seoDescription!'']
+<div class="bg-slate-100">
+  <nav aria-label="breadcrumb" class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm text-slate-500">
+      <li><a href="${site.url}" class="text-primary hover:underline">首页</a></li>
+      <li aria-hidden="true">/</li>
+      <li><a href="${dy}/topic" class="text-primary hover:underline">全部专题</a></li>
+      [#if topic.parent??]
+        <li aria-hidden="true">/</li>
+        <li><a href="${topic.parent.url}" class="text-primary hover:underline">${topic.parent.name}</a></li>
+      [/#if]
+      <li aria-hidden="true">/</li>
+      <li><span aria-current="page" class="text-slate-700">${topic.name}</span></li>
+    </ol>
+  </nav>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+    [#if topic.image?has_content]
+      <img src="${topic.image}" alt="${topic.title}" class="w-full rounded-md object-cover" style="aspect-ratio:16/5;">
+    [/#if]
+    <header>
+      <h1 class="text-2xl font-bold">${topic.title}</h1>
+      [#if topic.seoDescription?has_content]
+        <p class="mt-1 text-sm text-slate-500">${topic.seoDescription}</p>
+      [/#if]
+    </header>
+
+    [#assign hasChildren=false/]
+    [@TopicList parentId=topic.id; childTopics]
+    [#assign hasChildren=(childTopics?size gt 0)/]
+    [#if hasChildren]
+      <section>
+        <h2 class="text-base font-semibold mb-3">子专题</h2>
+        <ul class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          [#list childTopics as child]
+            <li>
+              <a href="${child.url}" class="block border border-slate-200 rounded-md px-4 py-3 text-center text-sm text-slate-700 transition hover:border-primary hover:text-primary">${child.name}</a>
+            </li>
+          [/#list]
+        </ul>
+      </section>
+    [/#if]
+    [/@TopicList]
+
+    [@ArticleTopicList topicId=topic.id; pagedList]
+      [#if hasChildren]
+        <h2 class="text-base font-semibold mb-3">文章列表</h2>
+      [/#if]
+      [#if pagedList.content?size == 0]
+        <p class="border border-slate-200 rounded-md p-8 text-center text-sm text-slate-500">
+          [#if hasChildren]本专题暂无直接关联的文章，请查看上方子专题。[#else]本专题暂无文章。[/#if]
+        </p>
+      [#else]
+        <ul class="divide-y divide-slate-200">
+          [#assign list = pagedList.content/]
+          [#include '../snippets/part_article_items.html'/]
+        </ul>
+      [/#if]
+      [#include '../snippets/page.html'/]
+    [/@ArticleTopicList]
+  </div>
+
+  [#include '../snippets/right.html'/]
+
+</div>
+<script nonce="${csp_nonce!''}">fetch('${api}/topic/view/${topic.id?c}').catch(()=>{});</script>
+[/@layout]
+[/#escape]

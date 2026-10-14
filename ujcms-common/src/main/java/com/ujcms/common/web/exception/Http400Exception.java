@@ -1,6 +1,6 @@
 package com.ujcms.common.web.exception;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * SC_BAD_REQUEST 请求错误 异常

@@ -5,7 +5,7 @@
     <result column="site_id_" jdbcType="BIGINT" property="siteId" />
     <result column="title_" jdbcType="VARCHAR" property="title" />
     <result column="description_" jdbcType="VARCHAR" property="description" />
-    <result column="begin_date_" jdbcType="TIMESTAMP" property="beginDate" />
+    <result column="start_date_" jdbcType="TIMESTAMP" property="startDate" />
     <result column="end_date_" jdbcType="TIMESTAMP" property="endDate" />
     <result column="created_" jdbcType="TIMESTAMP" property="created" />
     <result column="interval_" jdbcType="INTEGER" property="interval" />
@@ -14,6 +14,9 @@
     <result column="multiple_" jdbcType="CHAR" property="multiple" />
     <result column="enabled_" jdbcType="CHAR" property="enabled" />
     <result column="order_" jdbcType="BIGINT" property="order" />
+    <result column="origin_" jdbcType="VARCHAR" property="origin" />
+    <result column="origin_id_" jdbcType="VARCHAR" property="originId" />
+    <result column="origin_hash_" jdbcType="CHAR" property="originHash" />
   </resultMap><resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.ujcms.cms.ext.domain.Vote" />
     <resultMap extends="ResultMapWithBLOBs" id="ResultMap" type="com.ujcms.cms.ext.domain.Vote">
         <collection column="id_" fetchType="lazy" ofType="com.ujcms.cms.ext.domain.VoteOption" property="options" select="com.ujcms.cms.ext.mapper.VoteOptionMapper.listByVoteId" />
@@ -66,7 +69,7 @@
     set site_id_ = #{siteId,jdbcType=BIGINT},
       title_ = #{title,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
-      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      start_date_ = #{startDate,jdbcType=TIMESTAMP},
       end_date_ = #{endDate,jdbcType=TIMESTAMP},
       created_ = #{created,jdbcType=TIMESTAMP},
       interval_ = #{interval,jdbcType=INTEGER},
@@ -80,7 +83,7 @@
     set site_id_ = #{siteId,jdbcType=BIGINT},
       title_ = #{title,jdbcType=VARCHAR},
       description_ = #{description,jdbcType=VARCHAR},
-      begin_date_ = #{beginDate,jdbcType=TIMESTAMP},
+      start_date_ = #{startDate,jdbcType=TIMESTAMP},
       end_date_ = #{endDate,jdbcType=TIMESTAMP},
       created_ = #{created,jdbcType=TIMESTAMP},
       interval_ = #{interval,jdbcType=INTEGER},
@@ -90,8 +93,53 @@
       enabled_ = #{enabled,jdbcType=CHAR}
     where id_ = #{id,jdbcType=BIGINT}
   </update><insert id="insert" parameterType="com.ujcms.cms.ext.domain.Vote">
-    insert into ujcms_vote (id_, site_id_, title_, description_, begin_date_, end_date_, created_, interval_, times_, mode_, multiple_, enabled_, order_)
-    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{beginDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{created,jdbcType=TIMESTAMP}, #{interval,jdbcType=INTEGER}, #{times,jdbcType=INTEGER}, #{mode,jdbcType=SMALLINT}, #{multiple,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT})
-  </insert><sql id="Column_List">
-    t.id_, t.site_id_, t.title_, t.description_, t.begin_date_, t.end_date_, t.created_, t.interval_, t.times_, t.mode_, t.multiple_, t.enabled_, t.order_
+    insert into ujcms_vote (id_, site_id_, title_, description_, start_date_, end_date_, created_, interval_, times_, mode_, multiple_, enabled_, order_, origin_, origin_id_, origin_hash_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{startDate,jdbcType=TIMESTAMP}, #{endDate,jdbcType=TIMESTAMP}, #{created,jdbcType=TIMESTAMP}, #{interval,jdbcType=INTEGER}, #{times,jdbcType=INTEGER}, #{mode,jdbcType=SMALLINT}, #{multiple,jdbcType=CHAR}, #{enabled,jdbcType=CHAR}, #{order,jdbcType=BIGINT}, #{origin,jdbcType=VARCHAR}, #{originId,jdbcType=VARCHAR}, #{originHash,jdbcType=CHAR})
+  </insert>
+    <!-- 来源三元组（theme-seed-export E4b / D29）：投票无别名，文章式——三元组即唯一键，恒不 linked -->
+    <select id="selectByOrigin" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_vote t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.origin_ = #{origin,jdbcType=VARCHAR}
+          and t.origin_id_ = #{originId,jdbcType=VARCHAR}
+    </select>
+    <select id="listByOrigin" resultMap="ResultMap">
+        select
+        <include refid="Column_List" />
+        from ujcms_vote t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.origin_ = #{origin,jdbcType=VARCHAR}
+        order by t.order_ desc, t.id_
+    </select>
+    <select id="countByOrigin" resultType="int">
+        select count(*)
+        from ujcms_vote t
+        where t.site_id_ = #{siteId,jdbcType=BIGINT}
+          and t.origin_ = #{origin,jdbcType=VARCHAR}
+    </select>
+    <update id="clearOrigin">
+        update ujcms_vote
+        set origin_ = null, origin_id_ = null, origin_hash_ = null
+        where site_id_ = #{siteId,jdbcType=BIGINT}
+          and origin_ = #{origin,jdbcType=VARCHAR}
+    </update>
+    <!-- 来源散列写入（R4）：种子导入落库后按最终行状态计算 -->
+    <update id="updateOriginHash">
+        update ujcms_vote
+        set origin_hash_ = #{originHash,jdbcType=CHAR}
+        where id_ = #{id,jdbcType=BIGINT}
+    </update>
+    <!-- 认领操作员行（§4.2 adopt）：仅无来源标记的行——他源绝不认领（D3）；投票恒本站私有（D31） -->
+    <update id="adoptOrigin">
+        update ujcms_vote
+        set origin_ = #{origin,jdbcType=VARCHAR},
+            origin_id_ = #{originId,jdbcType=VARCHAR},
+            origin_hash_ = #{originHash,jdbcType=CHAR}
+        where id_ = #{id,jdbcType=BIGINT}
+          and (origin_ is null or origin_ = '')
+    </update>
+    <sql id="Column_List">
+    t.id_, t.site_id_, t.title_, t.description_, t.start_date_, t.end_date_, t.created_, t.interval_, t.times_, t.mode_, t.multiple_, t.enabled_, t.order_, t.origin_, t.origin_id_, t.origin_hash_
   </sql></mapper>

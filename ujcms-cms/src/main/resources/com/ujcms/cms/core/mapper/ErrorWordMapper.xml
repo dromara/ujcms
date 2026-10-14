@@ -21,6 +21,13 @@
     from ujcms_error_word t
     where t.id_ = #{id,jdbcType=BIGINT}
   </select>
+  <insert id="insertBatch">
+    insert into ujcms_error_word (id_, name_, correct_, enabled_)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.id,jdbcType=BIGINT}, #{item.name,jdbcType=VARCHAR}, #{item.correct,jdbcType=VARCHAR}, #{item.enabled,jdbcType=CHAR})
+    </foreach>
+  </insert>
   <delete id="delete" parameterType="java.lang.Long">
     delete from ujcms_error_word
     where id_ = #{id,jdbcType=BIGINT}

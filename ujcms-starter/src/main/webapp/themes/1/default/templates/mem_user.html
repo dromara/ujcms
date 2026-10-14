@@ -1,0 +1,222 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign displayName = targetUser.nickname?has_content?then(targetUser.nickname, targetUser.username)/]
+[@layout title=displayName + ' - ' + site.title description=targetUser.bio?has_content?then(targetUser.bio, targetUser.username)]
+[#-- 面包屑 --]
+<div class="bg-slate-50 border-b border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li class="text-slate-600">${displayName}</li>
+    </ol>
+  </div>
+</div>
+
+[#-- 渐变横幅 + 叠加头像 + 社交操作（关注/加好友/发私信，匿名点击提示登录） --]
+<div class="relative"
+  x-data="{
+    targetUserId: '${targetUser.id?c}',
+    loggedIn: [#if user??]true[#else]false[/#if],
+    followRelation: '', friendRelation: '',
+    followers: null, following: null,
+    async loadFollowRelation() {
+      try { this.followRelation = await window.request('GET', '${api}/follow/relation?toUserId=' + this.targetUserId); } catch (e) { /* 静默 */ }
+    },
+    async loadFriendRelation() {
+      try { this.friendRelation = await window.request('GET', '${api}/friend/relation?userId=' + this.targetUserId); } catch (e) { /* 静默 */ }
+    },
+    async loadStat() {
+      try {
+        const d = await window.request('GET', '${api}/follow/user-stat?userId=' + this.targetUserId);
+        if (d) { this.followers = String(d.followers || 0); this.following = String(d.following || 0); }
+      } catch (e) { /* 静默 */ }
+    },
+    requireLogin() { window.displayAlert('请登录后操作！'); },
+    async follow() {
+      if (!this.loggedIn) { this.requireLogin(); return; }
+      try {
+        await window.fetchCsrf();
+        await window.request('POST', '${api}/follow', { toUserId: this.targetUserId });
+        window.displaySuccess('已关注！');
+        this.loadFollowRelation(); this.loadStat();
+      } catch (e) { window.displayAlert(e.message || '操作失败'); }
+    },
+    async unfollow() {
+      if (!this.loggedIn) { this.requireLogin(); return; }
+      try {
+        await window.fetchCsrf();
+        await window.request('DELETE', '${api}/follow?toUserId=' + this.targetUserId);
+        window.displaySuccess('已取消关注！');
+        this.loadFollowRelation(); this.loadStat();
+      } catch (e) { window.displayAlert(e.message || '操作失败'); }
+    },
+    async requestFriend() {
+      if (!this.loggedIn) { this.requireLogin(); return; }
+      try {
+        await window.fetchCsrf();
+        const relation = await window.request('POST', '${api}/friend', { userId: this.targetUserId });
+        // 交叉申请时直接成为好友
+        window.displaySuccess(relation === 'accepted' ? '对方也申请了您，已成为好友！' : '已发送好友申请！');
+        this.loadFriendRelation();
+      } catch (e) { window.displayAlert(e.message || '操作失败'); }
+    },
+    async acceptFriend() {
+      if (!this.loggedIn) { this.requireLogin(); return; }
+      try {
+        await window.fetchCsrf();
+        await window.request('PUT', '${api}/friend/accept', { userId: this.targetUserId });
+        window.displaySuccess('已通过好友申请！');
+        this.loadFriendRelation();
+      } catch (e) { window.displayAlert(e.message || '操作失败'); }
+    },
+    async removeFriendRelation(message, confirmText) {
+      if (!this.loggedIn) { this.requireLogin(); return; }
+      if (confirmText && !confirm(confirmText)) return;
+      try {
+        await window.fetchCsrf();
+        await window.request('DELETE', '${api}/friend?userId=' + this.targetUserId);
+        window.displaySuccess(message);
+        this.loadFriendRelation();
+      } catch (e) { window.displayAlert(e.message || '操作失败'); }
+    }
+  }"
+  x-init="loadFollowRelation(); loadFriendRelation(); loadStat()"
+>
+  <div class="h-32 sm:h-44 bg-linear-to-br from-primary/20 via-primary/10 to-slate-100"></div>
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="-mt-12 sm:-mt-16 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
+      <img
+        src="[#if targetUser.largeAvatar?has_content]${targetUser.largeAvatar}[#else]${config.register.avatar}[/#if]"
+        alt="${targetUser.username}"
+        class="size-24 sm:size-32 rounded-full object-cover ring-4 ring-white bg-white shadow-md shrink-0"
+      >
+      <div class="flex-1 min-w-0 pb-1 sm:pb-2">
+        <h1 class="text-xl sm:text-2xl font-bold font-display truncate">${displayName}</h1>
+        <p class="text-sm text-slate-500">
+          [#if targetUser.nickname?has_content]<span>@${targetUser.username}</span>[/#if]
+          <span x-show="followers !== null" x-cloak>
+            <span x-text="'粉丝 ' + followers"></span> · <span x-text="'关注 ' + following"></span>
+          </span>
+        </p>
+      </div>
+      [#-- 操作按钮：本人 → 编辑资料；他人 → 关注/加好友/发私信（发送门禁由服务端判定） --]
+      <div class="flex flex-wrap gap-2 pb-1 sm:pb-2 shrink-0 text-sm">
+        [#if user?? && user.id == targetUser.id]
+          <a href="${def}/settings/profile"
+             class="px-3 py-1.5 rounded bg-primary text-primary-foreground hover:opacity-90">编辑资料</a>
+        [#else]
+          <template x-if="followRelation !== 'self'">
+            <span class="flex flex-wrap gap-2">
+              <button type="button" x-show="followRelation !== 'following'" @click="follow()"
+                      class="px-3 py-1.5 rounded bg-primary text-primary-foreground hover:opacity-90">关注</button>
+              <button type="button" x-show="followRelation === 'following'" x-cloak @click="unfollow()"
+                      class="px-3 py-1.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50">已关注</button>
+            </span>
+          </template>
+          <template x-if="friendRelation !== 'self'">
+            <span class="flex flex-wrap gap-2 items-center">
+              <a :href="'${def}/settings/message?peerId=' + targetUserId"
+                 @click="if (!loggedIn) { $event.preventDefault(); requireLogin(); }"
+                 class="px-3 py-1.5 rounded border border-primary text-primary hover:bg-primary/5">发私信</a>
+              <button type="button" x-show="!friendRelation || friendRelation === 'none'" @click="requestFriend()"
+                      class="px-3 py-1.5 rounded bg-primary text-primary-foreground hover:opacity-90">加好友</button>
+              <template x-if="friendRelation === 'pending_sent'">
+                <button type="button" @click="removeFriendRelation('已取消申请！')"
+                        class="px-3 py-1.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50">已申请 · 取消</button>
+              </template>
+              <template x-if="friendRelation === 'pending_received'">
+                <button type="button" @click="acceptFriend()"
+                        class="px-3 py-1.5 rounded bg-primary text-primary-foreground hover:opacity-90">接受好友申请</button>
+              </template>
+              <template x-if="friendRelation === 'accepted'">
+                <button type="button" @click="removeFriendRelation('已删除好友！', '确定删除该好友？')"
+                        class="px-3 py-1.5 rounded border border-rose-200 text-rose-600 hover:bg-rose-50">已是好友 · 删除</button>
+              </template>
+            </span>
+          </template>
+        [/#if]
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+  <div class="lg:col-span-2 space-y-5">
+    [#if targetUser.bio?has_content]
+      <p class="text-sm text-slate-600 leading-relaxed">${targetUser.bio}</p>
+    [/#if]
+    <p class="text-sm text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
+      [#if (targetUser.ext.location)?has_content]
+        <span class="inline-flex items-center gap-1">
+          <span class="size-3.5 inline-block">[@icon 'home-outline'/]</span>
+          ${targetUser.ext.location}
+        </span>
+      [/#if]
+      <span class="inline-flex items-center gap-1">
+        <span class="size-3.5 inline-block">[@icon 'schedule-outline'/]</span>
+        加入于 ${format(targetUser.ext.created, 'yyyy-MM-dd')}
+      </span>
+    </p>
+
+    [#-- 该用户发表的文章 --]
+    <div>
+      <h2 class="flex items-center gap-2 pb-2 border-b border-slate-200 font-semibold">
+        <span class="size-5 inline-block text-primary">[@icon 'newspaper'/]</span>
+        <span>发表的文章</span>
+      </h2>
+      [@ArticlePage Q_EQ_userId_Long=targetUser.id orderBy='publishDate_desc,id_desc'; pagedList]
+        [#if pagedList.totalElements == 0]
+          <div class="py-12 text-center">
+            <div class="size-12 mx-auto mb-3 inline-flex items-center justify-center rounded-full bg-slate-100 text-slate-400">
+              <span class="size-6 inline-block">[@icon 'newspaper'/]</span>
+            </div>
+            <p class="text-slate-500 text-sm">该用户还没有发表文章</p>
+          </div>
+        [#else]
+          <ul class="divide-y divide-slate-200">
+            [#assign list = pagedList.content/]
+            [#include '../snippets/part_article_items.html'/]
+          </ul>
+        [/#if]
+        [#include '../snippets/page.html'/]
+      [/@ArticlePage]
+    </div>
+
+    [#-- 最近评论：公开评论接口已强制只返回已审核评论，无评论时隐藏整卡 --]
+    <div
+      x-data="{
+        items: [], show: false,
+        async load() {
+          try {
+            const list = await window.request('GET', '${api}/comment?userId=${targetUser.id?c}&limit=5');
+            this.items = list || [];
+            this.show = this.items.length > 0;
+          } catch (e) { /* 静默 */ }
+        }
+      }"
+      x-init="load()" x-show="show" x-cloak
+    >
+      <h2 class="flex items-center gap-2 pb-2 border-b border-slate-200 font-semibold">
+        <span class="size-5 inline-block text-primary">[@icon 'comment-outline'/]</span>
+        <span>最近评论</span>
+      </h2>
+      <ul class="divide-y divide-slate-100">
+        <template x-for="bean in items" :key="bean.id">
+          <li class="py-3 space-y-1">
+            <a class="cm-link block truncate text-sm font-medium"
+               :href="(bean.article && bean.article.url) || '#'"
+               x-text="(bean.article && bean.article.title) || ''"></a>
+            [#-- 评论正文：先转义再链接化 @提及，见 theme.js linkifyMentions --]
+            <p class="text-sm whitespace-pre-wrap wrap-break-word" x-html="window.linkifyMentions(bean.text || '', '${def}')"></p>
+            <p class="text-xs text-slate-400" x-text="window.formatDateTime(bean.created)"></p>
+          </li>
+        </template>
+      </ul>
+    </div>
+  </div>
+
+  [#include '../snippets/right.html'/]
+</div>
+[/@layout]
+[/#escape]

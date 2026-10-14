@@ -1,0 +1,194 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign extraHead]
+<link rel="stylesheet" href="${assets}/js/photoswipe/photoswipe.css">
+<style>
+  .article-body img { max-width: 100%; height: auto; cursor: zoom-in; }
+</style>
+<meta property="og:title" content="${article.title}">
+[#if article.image?has_content]<meta property="og:image" content="${article.image}">[/#if]
+<meta property="og:type" content="article">
+[/#assign]
+
+[#assign extraScripts]
+<script type="module" nonce="${csp_nonce!''}">
+  const articleImgs = document.querySelectorAll('.article-body img, .gallery-img');
+  if (articleImgs.length > 0) {
+    const { default: PhotoSwipeLightbox } = await import("${assets}/js/photoswipe/photoswipe-lightbox.esm.min.js");
+    articleImgs.forEach(img => {
+      if (img.parentElement.tagName === 'A' && img.parentElement.classList.contains('pswp-target')) return;
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.classList.add('pswp-target');
+      const probe = new Image();
+      probe.onload = () => {
+        a.setAttribute('data-pswp-width', probe.naturalWidth);
+        a.setAttribute('data-pswp-height', probe.naturalHeight);
+      };
+      probe.src = img.src;
+      img.parentNode.insertBefore(a, img);
+      a.appendChild(img);
+    });
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: '.article-body, body',
+      children: 'a.pswp-target',
+      pswpModule: () => import("${assets}/js/photoswipe/photoswipe.esm.min.js"),
+    });
+    lightbox.init();
+  }
+</script>
+[/#assign]
+
+[@layout title="${article.title} - ${site.title}" keywords=article.seoKeywords!'' description=article.seoDescription!'' extraHead=extraHead extraScripts=extraScripts]
+[#-- Breadcrumb --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      [#list channel.paths as c]
+        <li class="text-slate-400">/</li>
+        <li><a href="${c.url}" class="cm-link">${c.name}</a></li>
+      [/#list]
+    </ol>
+  </div>
+</div>
+
+<div
+  class="max-w-6xl mx-auto px-4 mt-6 space-y-6"
+  x-data="{
+    ups: 0, downs: 0, downloads: 0,
+    load() { fetch('${api}/article/buffer/${article.id?c}').then(r => r.ok ? r.json() : null).then(d => { if (d) { this.ups = d.ups; this.downs = d.downs; this.downloads = d.downloads; } }).catch(() => {}); },
+    up() { window.fetchCsrf().then(() => window.request('POST', '${api}/article/up/${article.id?c}')).then(n => { if (n <= 0) window.displayAlert('您已经参与过一次！'); else this.ups = n; }).catch(e => window.displayAlert(e.message || '操作失败')); },
+    down() { window.fetchCsrf().then(() => window.request('POST', '${api}/article/down/${article.id?c}')).then(n => { if (n <= 0) window.displayAlert('您已经参与过一次！'); else this.downs = n; }).catch(e => window.displayAlert(e.message || '操作失败')); }
+  }"
+  x-init="load()"
+>
+
+  [#-- Hero: image + download panel --]
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded border border-slate-200 p-3 flex items-center justify-center min-h-55">
+      [#if article.image?has_content]
+        <img src="${article.image}" alt="${article.title}" class="max-w-full max-h-65 object-contain gallery-img">
+      [#else]
+        <div class="text-slate-400 text-sm">暂无图片</div>
+      [/#if]
+    </div>
+
+    <div class="md:col-span-2 space-y-4">
+      <h1 class="text-2xl font-bold font-display">${article.title}</h1>
+
+      <div class="flex flex-wrap items-center gap-3 pb-3 border-b border-slate-200 text-sm text-slate-500">
+        <span>${format(article.publishDate,'yyyy-MM-dd HH:mm')}</span>
+        [#if article.source?has_content]<span>${article.source}</span>[/#if]
+        <span class="inline-flex items-center gap-1">
+          <span class="size-3 inline-block">[@icon 'visibility-outline'/]</span>
+          <span id="articleViews">—</span>
+        </span>
+      </div>
+
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        [#if (article.customs['language'])?has_content]
+          <div><dt class="inline text-slate-500 mr-1">软件语言：</dt><dd class="inline">${article.customs['language']}</dd></div>
+        [/#if]
+        [#if (article.customs['type'])?has_content]
+          <div><dt class="inline text-slate-500 mr-1">软件类型：</dt><dd class="inline">${article.customs['type']}</dd></div>
+        [/#if]
+        [#if (article.customs['license'])?has_content]
+          <div><dt class="inline text-slate-500 mr-1">授权方式：</dt><dd class="inline">${article.customs['license']}</dd></div>
+        [/#if]
+        <div><dt class="inline text-slate-500 mr-1">软件大小：</dt><dd class="inline">${article.fileSize}</dd></div>
+        [#if (article.customs['star'])?has_content]
+          <div><dt class="inline text-slate-500 mr-1">推荐星级：</dt><dd class="inline text-rose-600">${article.customs['star']}</dd></div>
+        [/#if]
+        <div><dt class="inline text-slate-500 mr-1">更新时间：</dt><dd class="inline">${format(article.publishDate,'yyyy-MM-dd')}</dd></div>
+        <div><dt class="inline text-slate-500 mr-1">下载次数：</dt><dd class="inline text-rose-600" x-text="downloads"></dd></div>
+        [#if (article.customs['system'])?has_content]
+          <div><dt class="inline text-slate-500 mr-1">运行环境：</dt><dd class="inline">[#if article.customs['system']?is_sequence]${article.customs['system']?join(', ')}[#else]${article.customs['system']}[/#if]</dd></div>
+        [/#if]
+      </dl>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <a id="articleDownload" class="inline-flex items-center gap-2 px-5 py-3 rounded bg-primary text-primary-foreground text-base font-semibold hover:opacity-90">
+          <span class="size-5 inline-block">[@icon 'download'/]</span>
+          <span>立即下载</span>
+        </a>
+        <button type="button" @click="up()" class="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-primary">
+          <span class="size-4 inline-block">[@icon 'thumb-up-outline'/]</span>
+          <span x-text="ups"></span>
+        </button>
+        <button type="button" @click="down()" class="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-primary">
+          <span class="size-4 inline-block">[@icon 'thumb-down-outline'/]</span>
+          <span x-text="downs"></span>
+        </button>
+      </div>
+      <script nonce="${csp_nonce!''}">
+        fetch('${api}/article/download-params/${article.id?c}').then(r => r.text()).then(sig => {
+          document.getElementById('articleDownload').setAttribute('href', '${dy}/download-file/${article.id?c}?' + sig);
+        });
+      </script>
+    </div>
+  </div>
+
+  [#-- Body / 软件介绍 --]
+  <div>
+    <h2 class="pb-1 border-b border-slate-200 font-semibold">软件介绍</h2>
+    <div class="article-body prose max-w-none mt-3">
+      [#noescape]${article.text!}[/#noescape]
+    </div>
+  </div>
+
+  [#-- Additional attachments (beyond primary file) --]
+  [#if article.fileList?size gt 1]
+    <div>
+      <h2 class="pb-1 border-b border-slate-200 font-semibold">附件下载</h2>
+      <ul class="mt-3 text-sm space-y-1">
+        [#list article.fileList as file]
+          <li class="flex items-center gap-2">
+            <span class="size-4 inline-block text-primary">[@icon 'download'/]</span>
+            <a class="article-download cm-link">${file.name}</a>
+          </li>
+        [/#list]
+      </ul>
+      <script nonce="${csp_nonce!''}">
+        fetch('${api}/article/download-params/${article.id?c}').then(r => r.text()).then(sig => {
+          document.querySelectorAll('.article-download').forEach((el, i) => {
+            el.setAttribute('href', '${dy}/download-file/${article.id?c}/' + i + '?' + sig);
+          });
+        });
+      </script>
+    </div>
+  [/#if]
+
+  [#-- Prev / Next --]
+  <ul class="space-y-1 text-sm border-t border-slate-200 pt-4">
+    [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; nextItem]
+    <li class="truncate"><strong>上一条：</strong>[#if nextItem??]<a href="${nextItem.url}" class="cm-link">${nextItem.title}</a>[#else]没有了[/#if]</li>
+    [/@ArticleNext]
+    [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; prevItem]
+    <li class="truncate"><strong>下一条：</strong>[#if prevItem??]<a href="${prevItem.url}" class="cm-link">${prevItem.title}</a>[#else]没有了[/#if]</li>
+    [/@ArticlePrev]
+  </ul>
+
+  [#-- Related downloads via ES --]
+  [@ArticleRelatedList id=article.id limit='5'; relatedList]
+  [#if relatedList?size gt 0]
+    <div>
+      <h5 class="pb-1 border-b border-slate-200 font-semibold">相关下载</h5>
+      <ul class="mt-2 space-y-1 text-sm">
+        [#list relatedList as bean]
+          <li class="truncate"><a href="${bean.url}" class="cm-link">${bean.title}</a></li>
+        [/#list]
+      </ul>
+    </div>
+  [/#if]
+  [/@ArticleRelatedList]
+
+</div>
+
+<script nonce="${csp_nonce!''}">
+  fetch('${api}/article/view/${article.id?c}').then(r => r.json()).then(n => {
+    document.getElementById('articleViews').textContent = n;
+  }).catch(() => {});
+</script>
+[/@layout]
+[/#escape]

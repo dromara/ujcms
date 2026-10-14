@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * bbcode转换成html
  *
- * @author liufang
+ * @author PONY
  */
 public class BbCodeMethod implements TemplateMethodModelEx {
     @SuppressWarnings("rawtypes")

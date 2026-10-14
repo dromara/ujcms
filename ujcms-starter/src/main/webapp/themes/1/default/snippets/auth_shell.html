@@ -1,0 +1,59 @@
+[#--
+  认证页共用外壳（登录 / 注册 / 重置密码 / 绑定账号）。以 [#include] 引入后调用：
+
+    [@authShell heading='欢迎回来' intro='…' tab='login']表单主体[/@authShell]
+
+  参数：
+    heading — 左侧品牌栏的大标题
+    intro   — 标题下的一行说明（窄屏品牌栏隐藏时显示在表单上方）
+    tab     — 'login' / 'register'：表单顶部显示「登录 | 注册」切换（两页互为链接，非 JS 标签页）
+    title   — 无 tab 的页面（重置密码、绑定账号）在同一位置显示的页面标题
+
+  外壳顶部对齐而非垂直居中：登录与注册表单高度不同，居中会使切换时标签位置跳动。
+--]
+[#macro authShell heading intro tab='' title='']
+[#-- 类名放在变量里：紧贴 FreeMarker 标签（如 `[#else]border-…`）的类名会被 Tailwind 扫描器当成任意值语法而漏掉 --]
+[#local tabOn = 'border-primary text-slate-900'/]
+[#local tabOff = 'border-transparent text-slate-400 hover:text-slate-700'/]
+[#escape x as (x)!?html]
+<div class="min-h-[calc(100vh-180px)] bg-linear-to-b from-slate-50 to-white px-4 py-8 sm:py-14">
+  <div class="mx-auto w-full max-w-md md:max-w-4xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:grid md:grid-cols-[2fr_3fr]">
+    <aside class="relative hidden md:flex flex-col justify-between overflow-hidden bg-primary p-10 text-primary-foreground">
+      [#-- 以右下角为圆心的同心圆弧，纯装饰 --]
+      <div aria-hidden="true" class="pointer-events-none absolute -right-24 -bottom-24 size-48 rounded-full border border-white/15"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -right-36 -bottom-36 size-72 rounded-full border border-white/15"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -right-48 -bottom-48 size-96 rounded-full border border-white/15"></div>
+      <div class="relative">
+        <p class="text-sm opacity-80">${site.name!'UJCMS'}</p>
+        <p class="mt-5 text-3xl font-bold font-display leading-tight">${heading}</p>
+        <p class="mt-4 text-sm leading-relaxed opacity-80">${intro}</p>
+      </div>
+      <a href="${dy}/" class="relative mt-10 inline-flex items-center gap-1.5 self-start text-sm opacity-80 hover:opacity-100 transition-opacity">
+        <span class="size-4 inline-block">[@icon 'arrow-back'/]</span>
+        <span>返回首页</span>
+      </a>
+    </aside>
+
+    <div class="p-6 sm:p-10">
+      [#if tab?has_content]
+        <h1 class="sr-only">[#if tab == 'login']登录[#else]注册[/#if]</h1>
+        <nav aria-label="登录与注册" class="flex gap-7 border-b border-slate-200 text-xl font-bold font-display">
+          <a href="${def}/login"[#if tab == 'login'] aria-current="page"[/#if]
+             class="-mb-px border-b-2 pb-3 transition-colors ${(tab == 'login')?then(tabOn, tabOff)}">登录</a>
+          <a href="${def}/register"[#if tab == 'register'] aria-current="page"[/#if]
+             class="-mb-px border-b-2 pb-3 transition-colors ${(tab == 'register')?then(tabOn, tabOff)}">注册</a>
+        </nav>
+      [#else]
+        <div class="flex border-b border-slate-200">
+          <h1 class="-mb-px border-b-2 border-primary pb-3 text-xl font-bold font-display text-slate-900">${title}</h1>
+        </div>
+      [/#if]
+      <p class="mt-4 text-sm text-slate-500 md:hidden">${intro}</p>
+      <div class="mt-6">
+        [#nested/]
+      </div>
+    </div>
+  </div>
+</div>
+[/#escape]
+[/#macro]

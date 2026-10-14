@@ -53,7 +53,7 @@ public class BaseService extends AbstractJavaGenerator {
         topLevelClass.addImportedType(getModelBaseType());
         topLevelClass.addImportedType(introspectedTable.getMyBatis3JavaMapperType());
         topLevelClass.addImportedType(getArgsType());
-        topLevelClass.addImportedType("org.springframework.lang.Nullable");
+        topLevelClass.addImportedType("org.jspecify.annotations.Nullable");
         topLevelClass.addImportedType("org.springframework.stereotype.Service");
         topLevelClass.addImportedType("org.springframework.transaction.annotation.Transactional");
         if (pageable) {

@@ -23,7 +23,7 @@ public class Survey extends GeneratedSurvey implements OrderEntity {
         OffsetDateTime now = OffsetDateTime.now();
         if (Boolean.FALSE.equals(getEnabled())) {
             return STATUS_DISABLED;
-        } else if (getBeginDate() != null && now.compareTo(getBeginDate()) < 0) {
+        } else if (getStartDate() != null && now.compareTo(getStartDate()) < 0) {
             return STATUS_NOT_STARTED;
         } else if (getEndDate() != null && now.compareTo(getEndDate()) > 0) {
             return STATUS_HAS_ENDED;

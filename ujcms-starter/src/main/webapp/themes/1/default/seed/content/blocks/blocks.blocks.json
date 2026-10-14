@@ -1,0 +1,29 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-blocks.schema.json",
+  "blocks": [
+    {
+      "alias": "focus",
+      "enabled": true,
+      "items": [
+        {
+          "article": "a-island-climate-threat",
+          "image": "{{asset:img/focus/coral-island-aerial.jpg}}",
+          "title": "抬高地面 修复礁盘：一个珊瑚岛国的三十年规划"
+        },
+        {
+          "article": "a-wetland-egrets-return",
+          "image": "{{asset:img/focus/wetland-egrets-dawn.jpg}}",
+          "title": "城北湿地公园迎来今秋首批大白鹭 鸟类记录增至97种"
+        },
+        {
+          "article": "a-library-reading-hall",
+          "image": "{{asset:img/focus/library-reading-hall.jpg}}",
+          "title": "市图书馆新馆试开放一周 日均接待读者8000人次"
+        }
+      ],
+      "name": "首页焦点",
+      "originId": "focus",
+      "recommendable": true
+    }
+  ]
+}

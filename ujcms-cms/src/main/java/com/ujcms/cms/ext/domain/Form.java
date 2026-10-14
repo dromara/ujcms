@@ -12,8 +12,8 @@ import com.ujcms.cms.ext.domain.generated.GeneratedForm;
 import com.ujcms.common.db.order.OrderEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
-import org.owasp.html.PolicyFactory;
-import org.springframework.lang.Nullable;
+import com.ujcms.cms.core.security.HtmlSanitizeService;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -98,8 +98,8 @@ public class Form extends GeneratedForm implements OrderEntity {
         this.customs = customs;
     }
 
-    public void disassembleCustoms(Model model, PolicyFactory policyFactory) {
-        Map<String, Object> map = model.sanitizeMap(getCustoms(), policyFactory);
+    public void disassembleCustoms(Model model, HtmlSanitizeService sanitizeService) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), sanitizeService);
         setCustoms(map);
         model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
     }

@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/theme-manifest.schema.json",
+  "title": "UJCMS Theme Manifest",
+  "description": "主题清单（theme.manifest.json，由 template.json 直接更名）。既有 template.json 字段全部保留，新增 settings 与 seed；templateSpecVersion 升至 2.0（theme-marketplace R7 市场代际：layoutVariants、页面 settings、seed.content、kind、screenshots[]、homepage、changelogUrl 随 Phase A1/A2 加入本 Schema）。未知字段告警而不拒绝（与既有读取行为一致），故 additionalProperties 不设为 false。",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string" },
+    "themeName": { "type": "string" },
+    "version": { "type": "string" },
+    "templateSpecVersion": { "type": "string" },
+    "kind": {
+      "enum": ["theme", "data-only"],
+      "description": "包类型（§8）。缺省 theme（渲染器主题包）；data-only 为纯数据包：可安装、不可激活，种子经解耦的 seed/import 导入"
+    },
+    "author": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "url": { "type": "string" }
+      }
+    },
+    "description": { "type": "string" },
+    "license": { "type": "string" },
+    "homepage": {
+      "type": "string",
+      "description": "主题主页 URL（展示用元数据）"
+    },
+    "changelogUrl": {
+      "type": "string",
+      "description": "更新日志 URL（展示用元数据）"
+    },
+    "preview": {
+      "type": "string",
+      "description": "封面预览图相对路径（主题目录内）。推荐 16:10 宽高比（如 800×500、1280×800）；画廊/市场/详情页展示容器统一按 16:10 居中裁切（object-fit: cover），其他比例不报错但会被裁切"
+    },
+    "screenshots": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "截图相对路径列表（主题目录内；画廊/详情页展示用，preview 之外的补充图）"
+    },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "compatibleSiteTypes": { "type": "array", "items": { "type": "string" } },
+    "minUjcmsVersion": { "type": "string" },
+    "seed": {
+      "type": "object",
+      "properties": {
+        "policy": { "enum": ["non-destructive"] },
+        "content": {
+          "type": "object",
+          "description": "内容种子声明标志（§5，Phase A2 消费）：声明 seed/content/ 下随包携带哪些内容类别（展示与导入提示用；文件事实以 seed/content/ 目录为准）",
+          "properties": {
+            "channels": { "type": "boolean" },
+            "articles": { "type": "boolean" },
+            "topics": { "type": "boolean" },
+            "blocks": { "type": "boolean" },
+            "votes": { "type": "boolean" },
+            "surveys": { "type": "boolean" },
+            "models": { "type": "boolean" },
+            "dicts": { "type": "boolean" },
+            "forms": { "type": "boolean" },
+            "linkGroups": { "type": "boolean" },
+            "assets": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "layoutVariants": {
+      "type": "object",
+      "description": "主题声明的布局变体目录（manifest 2.0 §4.1）。与 SSR 制品的 layoutVariants 块同为统一注册表（R1）的声明来源，按站点合并（SSR ∪ 活动主题，同 value SSR 胜出）。value 存入既有 *_layout_ 选择列；template 为变体绑定的未组装模板名（模板轨道渲染精度：显式模板选择 > 变体绑定 > 默认）；settings 为变体作用域设置结构（§4.2 语法，存值键 variants.<surface>:<value>）",
+      "properties": {
+        "channel": { "$ref": "#/$defs/variantList" },
+        "article": { "$ref": "#/$defs/variantList" },
+        "topic": { "$ref": "#/$defs/variantList" }
+      },
+      "additionalProperties": false
+    },
+    "settings": { "$ref": "#/$defs/settingsBlock" },
+    "linkSlots": {
+      "type": "array",
+      "description": "主题声明的链接组展示位词汇表（link-groups D7）。链接组的 slot_ 取本词汇表内名称；模板经 [@LinkGroupList slot='<name>'] 按展示位取组渲染；未赋展示位的组不自动展示（模板按别名引用）",
+      "items": { "$ref": "#/$defs/linkSlot" }
+    }
+  },
+  "$defs": {
+    "localizedLabel": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "linkSlot": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "maxLength": 50,
+          "description": "展示位名（链接组 slot_ 存值；跨主题存续的语义键）"
+        },
+        "label": { "$ref": "#/$defs/localizedLabel" }
+      },
+      "additionalProperties": false
+    },
+    "settingsBlock": {
+      "type": "object",
+      "required": ["groups"],
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "fields"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+              "label": { "$ref": "#/$defs/localizedLabel" },
+              "fields": {
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+                "additionalProperties": { "$ref": "#/$defs/field" }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "variantList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/variant" }
+    },
+    "variant": {
+      "type": "object",
+      "required": ["value"],
+      "properties": {
+        "value": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "description": "变体键（语义键，跨主题/跨轨道存续）；存入 *_layout_ 选择列"
+        },
+        "label": { "$ref": "#/$defs/localizedLabel" },
+        "enabled": {
+          "type": "boolean",
+          "description": "是否启用（缺省 true）。禁用项不进入后台下拉，亦不通过保存期校验"
+        },
+        "template": {
+          "type": "string",
+          "minLength": 1,
+          "description": "变体绑定的未组装模板名（与页面清单 template 字段同匹配语义）。仅模板轨道有意义"
+        },
+        "settings": { "$ref": "#/$defs/settingsBlock" }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "label": { "$ref": "#/$defs/localizedLabel" },
+        "description": { "type": "string" },
+        "default": {},
+        "deprecated": { "type": "boolean" },
+        "of": { "$ref": "#/$defs/field" },
+        "fields": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/field" }
+        }
+      }
+    }
+  }
+}

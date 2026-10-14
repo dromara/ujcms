@@ -1,0 +1,268 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1783158940515-1
+      author: PONY
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id_
+                  remarks: 申请ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id_
+                  remarks: 申请用户ID
+                  type: BIGINT
+              - column:
+                  name: reply_user_id_
+                  remarks: 答复用户ID
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: type_
+                  remarks: 申请人类型(1:公民,2:法人或其他组织)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name_
+                  remarks: 姓名/机构名称
+                  type: VARCHAR(150)
+              - column:
+                  name: org_
+                  remarks: 工作单位
+                  type: VARCHAR(450)
+              - column:
+                  name: cert_type_
+                  remarks: 证件名称
+                  type: VARCHAR(90)
+              - column:
+                  name: cert_number_
+                  remarks: 证件号码
+                  type: VARCHAR(50)
+              - column:
+                  name: credit_code_
+                  remarks: 统一社会信用代码
+                  type: VARCHAR(50)
+              - column:
+                  name: legal_person_
+                  remarks: 法定代表人
+                  type: VARCHAR(90)
+              - column:
+                  name: contact_name_
+                  remarks: 联系人
+                  type: VARCHAR(90)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: phone_
+                  remarks: 联系电话
+                  type: VARCHAR(50)
+              - column:
+                  name: email_
+                  remarks: 电子邮箱
+                  type: VARCHAR(50)
+              - column:
+                  name: address_
+                  remarks: 联系地址
+                  type: VARCHAR(450)
+              - column:
+                  name: zip_code_
+                  remarks: 邮政编码
+                  type: VARCHAR(20)
+              - column:
+                  name: fax_
+                  remarks: 传真
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title_
+                  remarks: 所需信息名称
+                  type: VARCHAR(450)
+              - column:
+                  name: text_
+                  remarks: 所需信息的内容描述
+                  type: MEDIUMTEXT
+              - column:
+                  name: purpose_
+                  remarks: 信息用途
+                  type: VARCHAR(900)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: provide_method_
+                  remarks: 信息提供方式(1:纸质,2:电子邮件,3:光盘,4:其他)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 1
+                  name: obtain_method_
+                  remarks: 获取信息方式(1:邮寄,2:电子邮件,3:自行领取,4:传真)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: code_
+                  remarks: 查询码
+                  type: VARCHAR(32)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+                  name: status_
+                  remarks: 状态(0:待受理,1:已受理,2:已补正告知,3:已答复)
+                  type: SMALLINT
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: '0'
+                  name: extended_
+                  remarks: 是否延期
+                  type: CHAR(1)
+              - column:
+                  name: accept_date_
+                  remarks: 受理日期
+                  type: datetime
+              - column:
+                  name: correct_text_
+                  remarks: 补正告知内容
+                  type: VARCHAR(3000)
+              - column:
+                  name: reply_type_
+                  remarks: 答复类型(1:已主动公开,2:予以公开,3:部分公开,4:不予公开,5:信息不存在,6:非本机关掌握,7:重复申请,8:按其他规定办理)
+                  type: SMALLINT
+              - column:
+                  name: reply_text_
+                  remarks: 答复内容
+                  type: MEDIUMTEXT
+              - column:
+                  name: reply_date_
+                  remarks: 答复日期
+                  type: datetime
+              - column:
+                  constraints:
+                    nullable: false
+                  name: ip_
+                  remarks: IP地址
+                  type: VARCHAR(45)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_
+                  remarks: 创建日期
+                  type: datetime
+            remarks: 依申请公开
+            tableName: ujcms_disclosure
+  - changeSet:
+      id: 1783158940515-2
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: site_id_
+            indexName: idx_disclosure_site
+            tableName: ujcms_disclosure
+  - changeSet:
+      id: 1783158940515-3
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id_
+            indexName: idx_disclosure_user
+            tableName: ujcms_disclosure
+  - changeSet:
+      id: 1783158940515-4
+      author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: reply_user_id_
+            indexName: idx_disclosure_user_reply
+            tableName: ujcms_disclosure
+  - changeSet:
+      id: 1783158940515-5
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: site_id_
+            baseTableName: ujcms_disclosure
+            constraintName: fk_disclosure_site
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_site
+            validate: true
+  - changeSet:
+      id: 1783158940515-6
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id_
+            baseTableName: ujcms_disclosure
+            constraintName: fk_disclosure_user
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783158940515-7
+      author: PONY
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: reply_user_id_
+            baseTableName: ujcms_disclosure
+            constraintName: fk_disclosure_user_reply
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id_
+            referencedTableName: ujcms_user
+            validate: true
+  - changeSet:
+      id: 1783158940515-8
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: disclosure_settings_
+                  remarks: 依申请公开设置
+                  type: VARCHAR(1000)
+            tableName: ujcms_site
+  - changeSet:
+      id: 1783158940515-9
+      author: PONY
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: supplement_text_
+                  remarks: 申请人补正内容
+                  type: VARCHAR(3000)
+            tableName: ujcms_disclosure

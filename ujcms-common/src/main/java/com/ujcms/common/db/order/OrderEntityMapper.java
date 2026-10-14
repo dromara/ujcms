@@ -1,7 +1,7 @@
 package com.ujcms.common.db.order;
 
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 可排序实体类 Mapper

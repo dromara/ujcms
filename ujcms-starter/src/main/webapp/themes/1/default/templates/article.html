@@ -1,0 +1,493 @@
+[#include '../layout/theme.html'/]
+[#include '../snippets/jsonld.html'/]
+[#escape x as (x)!?html]
+[#--
+  Lighthouse SEO requires a non-empty meta description. seoDescription is
+  operator-curated and frequently blank; fall back to the article body
+  (HTML stripped, ~160 chars) so search snippets still get something useful.
+--]
+[#if (article.seoDescription)?has_content]
+  [#assign pageDescription = article.seoDescription/]
+[#else]
+  [#assign pageDescription = substring((article.text!'')?replace('<[^>]*>','','r')?replace('\\s+',' ','r'),160,'...')/]
+[/#if]
+
+[#assign extraHead]
+<link rel="stylesheet" href="${assets}/js/photoswipe/photoswipe.css">
+<style>
+  .article-body img { max-width: 100%; height: auto; cursor: zoom-in; }
+</style>
+<meta property="og:title" content="${article.title}">
+[#assign ogImage = site.absoluteUrl(article.image!)!/]
+[#if ogImage?has_content]<meta property="og:image" content="${ogImage}">[/#if]
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="${article.publishDate.format()}">
+[@articleJsonLd article/]
+[@breadcrumbJsonLd channel/]
+[/#assign]
+
+[#assign extraScripts]
+<script type="module" nonce="${csp_nonce!''}">
+  // Initialize PhotoSwipe v5 only if there are images on the page.
+  const articleImgs = document.querySelectorAll('.article-body img, .gallery-img');
+  if (articleImgs.length > 0) {
+    const { default: PhotoSwipeLightbox } = await import("${assets}/js/photoswipe/photoswipe-lightbox.esm.min.js");
+    articleImgs.forEach(img => {
+      if (img.parentElement.tagName === 'A' && img.parentElement.classList.contains('pswp-target')) return;
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.classList.add('pswp-target');
+      const probe = new Image();
+      probe.onload = () => {
+        a.setAttribute('data-pswp-width', probe.naturalWidth);
+        a.setAttribute('data-pswp-height', probe.naturalHeight);
+      };
+      probe.src = img.src;
+      img.parentNode.insertBefore(a, img);
+      a.appendChild(img);
+    });
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: '.article-body, .lg\\:col-span-2 figure',
+      children: 'a.pswp-target',
+      pswpModule: () => import("${assets}/js/photoswipe/photoswipe.esm.min.js"),
+    });
+    lightbox.init();
+  }
+</script>
+[/#assign]
+
+[@layout title="${article.title} - ${site.title}" keywords=article.seoKeywords!'' description=pageDescription extraHead=extraHead extraScripts=extraScripts]
+[#-- Breadcrumb --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      [#list channel.paths as c]
+        <li class="text-slate-400">/</li>
+        <li><a href="${c.url}" class="cm-link">${c.name}</a></li>
+      [/#list]
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-4">
+    <h1 class="text-2xl font-bold font-display">${article.title}</h1>
+
+    [#if article.tags?size gt 0]
+      <div class="flex flex-wrap gap-1 text-xs">
+        [#list article.tags as tag]
+          <a href="${dy}/tag/${tag.id?c}" class="px-2 py-0.5 rounded bg-slate-200 text-slate-700 hover:bg-slate-300">${tag.name}</a>
+        [/#list]
+      </div>
+    [/#if]
+
+    [#-- Meta row + 收藏/关注 toggles（匿名点击提示登录；exists 探针对匿名恒 false，不会 401） --]
+    <div class="flex flex-wrap items-center gap-3 pb-2 border-b border-slate-200 text-sm text-slate-500"
+      x-data="{
+        loggedIn: [#if user??]true[#else]false[/#if],
+        favorited: false, favorites: '',
+        followed: false,
+        async init() {
+          try {
+            const d = await window.request('GET', '${api}/article/buffer/${article.id?c}');
+            if (d && d.favorites != null) this.favorites = String(d.favorites);
+          } catch (e) { /* 静默 */ }
+          try { this.favorited = (await window.request('GET', '${api}/favorite/exists?articleId=${article.id?c}')) === true; } catch (e) { /* 静默 */ }
+          try { this.followed = (await window.request('GET', '${api}/follow/exists?articleId=${article.id?c}')) === true; } catch (e) { /* 静默 */ }
+        },
+        async toggleFavorite() {
+          if (!this.loggedIn) { window.displayAlert('请登录后收藏！'); return; }
+          try {
+            await window.fetchCsrf();
+            const total = this.favorited
+              ? await window.request('DELETE', '${api}/favorite?articleId=${article.id?c}')
+              : await window.request('POST', '${api}/favorite', { articleId: '${article.id?c}' });
+            this.favorited = !this.favorited;
+            if (total != null) this.favorites = String(total);
+            window.displaySuccess(this.favorited ? '收藏成功！' : '已取消收藏！');
+          } catch (e) { window.displayAlert(e.message || '操作失败'); }
+        },
+        async toggleFollow() {
+          if (!this.loggedIn) { window.displayAlert('请登录后关注！'); return; }
+          try {
+            await window.fetchCsrf();
+            if (this.followed) await window.request('DELETE', '${api}/follow?articleId=${article.id?c}');
+            else await window.request('POST', '${api}/follow', { articleId: '${article.id?c}' });
+            this.followed = !this.followed;
+            window.displaySuccess(this.followed ? '关注成功！' : '已取消关注！');
+          } catch (e) { window.displayAlert(e.message || '操作失败'); }
+        }
+      }"
+    >
+      <span>${format(article.publishDate,'yyyy-MM-dd HH:mm')}</span>
+      [#if article.source?has_content]<span>${article.source}</span>[/#if]
+      [#if article.author?has_content]<span>${article.author}</span>[/#if]
+      <span class="inline-flex items-center gap-1">
+        <span class="size-3 inline-block">[@icon 'visibility-outline'/]</span>
+        <span id="articleViews">—</span>
+      </span>
+      <span class="ml-auto flex items-center gap-3">
+        <button type="button" @click="toggleFollow()"
+                class="inline-flex items-center gap-1 hover:text-primary" :class="followed ? 'text-primary' : ''">
+          <span class="size-3.5 inline-block">[@icon 'notifications-outline'/]</span>
+          <span x-text="followed ? '已关注' : '关注'"></span>
+        </button>
+        <button type="button" @click="toggleFavorite()"
+                class="inline-flex items-center gap-1 hover:text-primary" :class="favorited ? 'text-primary' : ''">
+          <span class="size-3.5 inline-block">[@icon 'star-outline'/]</span>
+          <span>收藏 <span x-text="favorites"></span></span>
+        </button>
+      </span>
+    </div>
+    <script nonce="${csp_nonce!''}">
+      fetch('${api}/article/view/${article.id?c}').then(r => r.json()).then(n => {
+        document.getElementById('articleViews').textContent = n;
+      }).catch(() => {});
+    </script>
+
+    [#-- Media --]
+    [#if article.video?has_content]
+      <video controls class="w-full max-w-full rounded">
+        <source src="${article.video}" type="video/mp4">您的浏览器不支持视频(Video)标签。
+      </video>
+    [/#if]
+    [#if article.audio?has_content]
+      <audio controls class="w-full">
+        <source src="${article.audio}">您的浏览器不支持音频(Audio)标签
+      </audio>
+    [/#if]
+    [#if article.imageList?size gt 0]
+      <div class="space-y-3">
+        [#list article.imageList as image]
+          [#-- 按原始宽高比显示：横图占满栏宽，竖图限高居中，两侧留浅灰底 --]
+          <figure>
+            <div class="rounded bg-slate-100">
+              <img src="${image.url}" alt="${image.description}" class="mx-auto max-w-full max-h-[85vh] w-auto h-auto rounded gallery-img">
+            </div>
+            <figcaption class="mt-1 text-sm text-slate-500"><strong>${image_index+1}</strong>/${article.imageList?size} ${image.description}</figcaption>
+          </figure>
+        [/#list]
+      </div>
+    [/#if]
+
+    [#-- Body --]
+    <div class="article-body prose max-w-none">
+      [#noescape]${article.text!}[/#noescape]
+    </div>
+
+    [#-- Downloads --]
+    [#if article.fileList?size gt 0]
+      <div class="mt-6 p-3 bg-slate-100 rounded">附件下载</div>
+      <ul class="text-sm space-y-1">
+        [#list article.fileList as file]
+          <li class="flex items-center gap-2">
+            <span class="size-4 inline-block text-primary">[@icon 'download'/]</span>
+            <a class="article-download cm-link">${file.name}</a>
+          </li>
+        [/#list]
+      </ul>
+      <script nonce="${csp_nonce!''}">
+        fetch('${api}/article/download-params/${article.id?c}').then(r => r.text()).then(sig => {
+          document.querySelectorAll('.article-download').forEach((el, i) => {
+            el.setAttribute('href', '${dy}/download-file/${article.id?c}/' + i + '?' + sig);
+          });
+        });
+      </script>
+    [/#if]
+
+    [#-- Vote up/down --]
+    <div
+      x-data="{
+        ups: 0, downs: 0,
+        load() { fetch('${api}/article/buffer/${article.id?c}').then(r => r.ok ? r.json() : null).then(d => { if (d) { this.ups = d.ups; this.downs = d.downs; } }).catch(() => {}); },
+        up() { window.fetchCsrf().then(() => window.request('POST', '${api}/article/up/${article.id?c}')).then(n => { if (n <= 0) window.displayAlert('您已经参与过一次！'); else this.ups = n; }).catch(e => window.displayAlert(e.message || '操作失败')); },
+        down() { window.fetchCsrf().then(() => window.request('POST', '${api}/article/down/${article.id?c}')).then(n => { if (n <= 0) window.displayAlert('您已经参与过一次！'); else this.downs = n; }).catch(e => window.displayAlert(e.message || '操作失败')); }
+      }"
+      x-init="load()"
+      class="flex justify-center gap-6 py-6 text-lg"
+    >
+      <button type="button" @click="up()" class="flex items-center gap-2 hover:text-primary">
+        <span class="size-5 inline-block">[@icon 'thumb-up-outline'/]</span>
+        <span x-text="ups"></span>
+      </button>
+      <button type="button" @click="down()" class="flex items-center gap-2 hover:text-primary">
+        <span class="size-5 inline-block">[@icon 'thumb-down-outline'/]</span>
+        <span x-text="downs"></span>
+      </button>
+    </div>
+
+    [#-- 评论：站点开关 site.comment.enabled + 文章开关 article.allowComment 双重门控 --]
+    [#if article.allowComment && site.comment.enabled]
+    <div class="mt-6"
+      x-data="{
+        items: [], page: 1, totalPages: 1, total: null, loading: false,
+        text: '', captcha: '', captchaToken: '', captchaImage: '',
+        submitting: false,
+        canPost: [#if user?? || !site.comment.loginRequired]true[#else]false[/#if],
+        [#if user??]
+        mentionOpen: false, friendNames: null,
+        commentUsernames: [],
+        [/#if]
+        [#if user?? && site.comment.imageEnabled]
+        images: [], imageMaxCount: ${site.comment.imageMaxCount},
+        [/#if]
+        userName(bean) {
+          const isMember = bean.user && String(bean.user.id) !== '0';
+          return (isMember && (bean.user.nickname || bean.user.username)) || '匿名网友';
+        },
+        isMember(bean) { return bean.user && String(bean.user.id) !== '0'; },
+        async load(page) {
+          if (this.loading) return;
+          this.loading = true;
+          try {
+            const d = await window.request('GET', '${api}/comment/page?articleId=${article.id?c}&page=' + page + '&pageSize=10');
+            if (page === 1) this.items = [];
+            const content = (d && d.content) || [];
+            this.items.push(...content);
+            [#if user??]
+            content.forEach(b => {
+              if (this.isMember(b) && b.user.username && !this.commentUsernames.includes(b.user.username)) {
+                this.commentUsernames.push(b.user.username);
+              }
+            });
+            [/#if]
+            this.total = d.page ? String(d.page.totalElements) : null;
+            this.page = page;
+            this.totalPages = Number((d.page || {}).totalPages || 1);
+          } catch (e) { /* 静默 */ } finally { this.loading = false; }
+        },
+        async refreshCaptcha() {
+          try {
+            const data = await window.request('GET', '${api}/captcha');
+            if (data) { this.captchaImage = 'data:image/png;base64,' + data.image; this.captchaToken = data.token; }
+          } catch (e) { /* 静默，提交时后端仍校验 */ }
+        },
+        [#if user??]
+        async toggleMention() {
+          if (this.mentionOpen) { this.mentionOpen = false; return; }
+          if (this.friendNames === null) {
+            try {
+              const list = await window.request('GET', '${api}/friend');
+              this.friendNames = [];
+              (list || []).forEach(b => {
+                if (b.friend && b.friend.username && !this.friendNames.includes(b.friend.username)) {
+                  this.friendNames.push(b.friend.username);
+                }
+              });
+            } catch (e) { this.friendNames = []; }
+          }
+          this.mentionOpen = true;
+        },
+        get mentionNames() {
+          const names = (this.friendNames || []).slice();
+          this.commentUsernames.forEach(n => {
+            if (n !== '${user.username?js_string}' && !names.includes(n)) names.push(n);
+          });
+          return names;
+        },
+        insertMention(name) {
+          this.text += '@' + name + ' ';
+          this.mentionOpen = false;
+          this.$refs.commentText && this.$refs.commentText.focus();
+        },
+        [/#if]
+        [#if user?? && site.comment.imageEnabled]
+        async pickImages(event) {
+          let files = Array.from(event.target.files || []);
+          event.target.value = '';
+          if (files.length === 0) return;
+          if (this.images.length + files.length > this.imageMaxCount) {
+            window.displayAlert('最多上传 ' + this.imageMaxCount + ' 张图片！');
+            files = files.slice(0, Math.max(this.imageMaxCount - this.images.length, 0));
+          }
+          try {
+            const csrf = await window.fetchCsrf();
+            for (const file of files) {
+              if (this.images.length >= this.imageMaxCount) break;
+              const formData = new FormData();
+              formData.append('file', file);
+              // 图片上传为 multipart，不能走 JSON 版 window.request
+              const res = await fetch('${api}/upload/image-upload', {
+                method: 'POST', credentials: 'include',
+                headers: { [csrf.headerName]: csrf.token },
+                body: formData,
+              });
+              if (!res.ok) throw new Error('上传失败');
+              const d = await res.json();
+              if (d && d.url) this.images.push(d.url);
+            }
+          } catch (e) { window.displayAlert(e.message || '上传失败'); }
+        },
+        removeImage(index) { this.images.splice(index, 1); },
+        [/#if]
+        async submit() {
+          const text = this.text.trim();
+          if (!text || this.submitting) return;
+          this.submitting = true;
+          try {
+            await window.fetchCsrf();
+            const body = {
+              articleId: '${article.id?c}',
+              text: text,
+              [#if user?? && site.comment.imageEnabled]
+              images: this.images,
+              [/#if]
+              captcha: this.captcha, captchaToken: this.captchaToken,
+            };
+            const data = await window.request('POST', '${api}/comment', body);
+            if (data && data.status === 0) {
+              this.text = ''; this.captcha = '';
+              [#if user?? && site.comment.imageEnabled]
+              this.images = [];
+              [/#if]
+              this.refreshCaptcha();
+              [#if site.comment.auditRequired]
+              window.displaySuccess('评论成功，等待管理员审核！');
+              [#else]
+              this.load(1);
+              window.displaySuccess('评论成功！');
+              [/#if]
+            } else {
+              window.displayAlert((data && data.message) || '操作失败！');
+              this.refreshCaptcha();
+            }
+          } catch (e) {
+            window.displayAlert(e.message || '操作失败！');
+            this.refreshCaptcha();
+          } finally { this.submitting = false; }
+        }
+      }"
+      x-init="load(1); if (canPost) refreshCaptcha()"
+    >
+      <h2 class="flex items-baseline gap-2 pb-2 border-b border-slate-200 font-semibold">
+        <span>评论</span>
+        <span class="text-sm text-slate-500 font-normal" x-show="total !== null" x-text="'(' + total + ')'"></span>
+      </h2>
+
+      [#if user?? || !site.comment.loginRequired]
+      <form @submit.prevent="submit" class="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-4 space-y-3">
+        [#if user??]
+        [#-- @好友：首次点击加载好友列表，与已加载评论的用户名合并 --]
+        <div class="relative" @click.outside="mentionOpen = false">
+          <button type="button" @click="toggleMention()" :aria-expanded="mentionOpen"
+                  class="px-2.5 py-1 rounded border border-slate-300 text-sm text-slate-600 hover:bg-white">@ 好友</button>
+          <div x-show="mentionOpen" x-cloak
+               class="absolute left-0 mt-1 w-56 max-h-48 overflow-y-auto rounded-md bg-white shadow-lg ring-1 ring-slate-200 py-1 z-30 text-sm">
+            <p x-show="mentionNames.length === 0" class="px-3 py-1.5 text-slate-500">暂无好友，可直接输入 @用户名</p>
+            <template x-for="name in mentionNames" :key="name">
+              <button type="button" @click="insertMention(name)" x-text="'@' + name"
+                      class="block w-full px-3 py-1.5 text-left hover:bg-slate-50"></button>
+            </template>
+          </div>
+        </div>
+        [/#if]
+
+        <label for="commentText" class="sr-only">发表评论</label>
+        <textarea id="commentText" x-ref="commentText" rows="3" maxlength="2000" required x-model="text"
+                  placeholder="发表评论"
+                  class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"></textarea>
+
+        [#if user?? && site.comment.imageEnabled]
+        <div x-show="images.length > 0" class="flex flex-wrap gap-2">
+          <template x-for="(url, index) in images" :key="url">
+            <span class="relative">
+              <img :src="url" alt="评论图片" class="size-16 rounded border border-slate-200 object-cover">
+              <button type="button" @click="removeImage(index)" aria-label="移除"
+                      class="absolute -top-1.5 -right-1.5 size-4 inline-flex items-center justify-center rounded-full bg-white border border-slate-300 text-slate-500 hover:text-rose-600">
+                <span class="size-2.5 inline-block">[@icon 'close'/]</span>
+              </button>
+            </span>
+          </template>
+        </div>
+        [/#if]
+
+        <div class="flex flex-wrap items-center gap-2">
+          <label for="commentCaptcha" class="sr-only">验证码</label>
+          <input id="commentCaptcha" type="text" required autocomplete="off" x-model="captcha" placeholder="验证码"
+                 class="w-28 rounded-md border border-slate-300 px-3 py-1.5 text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+          <button type="button" @click="refreshCaptcha()" title="点击重新获取验证码" class="shrink-0">
+            <img :src="captchaImage || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"
+                 alt="验证码" class="h-8 rounded border border-slate-300 cursor-pointer min-w-20 bg-white">
+          </button>
+          [#if user?? && site.comment.imageEnabled]
+          <button type="button" @click="$refs.commentImageInput.click()"
+                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-300 text-sm text-slate-600 hover:bg-white">
+            <span class="size-4 inline-block">[@icon 'image-outline'/]</span>
+            <span>添加图片</span>
+          </button>
+          <input type="file" x-ref="commentImageInput" @change="pickImages($event)" accept="image/*" multiple class="hidden" aria-label="选择评论图片">
+          [/#if]
+          <button type="submit" :disabled="submitting"
+                  class="ml-auto px-4 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">发表评论</button>
+        </div>
+      </form>
+      [#else]
+      <p class="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-500">
+        请<a href="${def}/login" class="cm-link">登录</a>后发表评论
+      </p>
+      [/#if]
+
+      <ul class="divide-y divide-slate-100">
+        <template x-for="bean in items" :key="bean.id">
+          <li class="py-3 space-y-1.5">
+            <p class="text-sm text-slate-500 flex items-center gap-1">
+              <span class="size-3.5 inline-block">[@icon 'person-outline'/]</span>
+              [#-- 会员用户名链接到其个人主页，匿名评论保持纯文本 --]
+              <template x-if="isMember(bean)">
+                <a class="cm-link" :href="'${def}/users/' + bean.user.id" x-text="userName(bean)"></a>
+              </template>
+              <template x-if="!isMember(bean)">
+                <span x-text="userName(bean)"></span>
+              </template>
+              <span class="size-3.5 inline-block ml-2">[@icon 'schedule-outline'/]</span>
+              <span x-text="window.formatDateTime(bean.created)"></span>
+            </p>
+            [#-- 评论正文：先转义再链接化 @提及，见 theme.js linkifyMentions --]
+            <p class="text-sm whitespace-pre-wrap wrap-break-word" x-html="window.linkifyMentions(bean.text || '', '${def}')"></p>
+            <div x-show="bean.images && bean.images.length > 0" class="flex flex-wrap gap-2">
+              <template x-for="url in (bean.images || [])" :key="url">
+                <img :src="url" alt="评论图片" class="size-24 rounded object-cover">
+              </template>
+            </div>
+          </li>
+        </template>
+      </ul>
+
+      <p x-show="total === '0'" x-cloak class="py-6 text-center text-sm text-slate-500">暂无评论</p>
+
+      <div x-show="totalPages > page" x-cloak class="text-center my-3">
+        <button type="button" @click="load(page + 1)" :disabled="loading"
+                class="px-4 py-2 rounded border border-slate-300 text-sm hover:bg-slate-50 disabled:opacity-60">加载更多</button>
+      </div>
+    </div>
+    [/#if]
+
+    [#-- Prev / Next --]
+    <ul class="space-y-1 text-sm">
+      [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; nextItem]
+      <li class="truncate"><strong>上一条：</strong>[#if nextItem??]<a href="${nextItem.url}" class="cm-link">${nextItem.title}</a>[#else]没有了[/#if]</li>
+      [/@ArticleNext]
+      [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; prevItem]
+      <li class="truncate"><strong>下一条：</strong>[#if prevItem??]<a href="${prevItem.url}" class="cm-link">${prevItem.title}</a>[#else]没有了[/#if]</li>
+      [/@ArticlePrev]
+    </ul>
+
+    [#-- 相关文章：先取手动关联的文章，不足 limit 时按标题、标签、栏目自动补齐 --]
+    [@ArticleRelatedList id=article.id limit='5'; relatedList]
+    [#if relatedList?size gt 0]
+      <h5 class="mt-6 pb-1 border-b border-slate-200 font-semibold">相关新闻</h5>
+      <ul class="space-y-1 text-sm">
+        [#list relatedList as bean]
+          <li class="truncate"><a href="${bean.url}" class="cm-link">${bean.title}</a></li>
+        [/#list]
+      </ul>
+    [/#if]
+    [/@ArticleRelatedList]
+  </div>
+
+  [#include '../snippets/right.html'/]
+
+</div>
+[/@layout]
+[/#escape]

@@ -1,0 +1,62 @@
+[#--
+  输入（来自调用方作用域）：
+    list        要渲染的文章列表。
+    metric      可选。'views'（默认）或 'downloads' —— 控制频道面包屑旁显示的
+                计数与图标。channel_download 设为 'downloads'；首页与
+                channel/channel_wenku 使用默认值。
+    pageConfig  页面级设置（manifest 2.0 §4.2；由渲染支撑从
+                pages/channel.manifest.json#settings 注入）。
+                listing.showSummary / listing.showDate 控制摘要行与发布日期；
+                缺省（如首页）时照常渲染。
+--]
+[#escape x as (x)!?html]
+[#list list as bean]
+  <li class="flex gap-4 py-3 border-b border-slate-200">
+    [#if bean.image?has_content]
+      <a href="${bean.url}" class="shrink-0">
+        [#-- 文库文章的封面是竖版文档页，用竖向缩略图盒子 --]
+        <img src="${bean.image}" alt="${bean.title}" class="[#if ((bean.channel.articleTemplate)!'') == 'article_wenku']cm-doc-thumb[#else]cm-list-thumb[/#if]" loading="lazy" decoding="async">
+      </a>
+    [/#if]
+    <div class="flex-1 min-w-0">
+      [#-- inline-block：行内链接的可点击区域仅为字形盒（约 19px），不足 24px
+           无障碍触控目标；inline-block 使其占满 24px 行高（Lighthouse target-size，
+           无摘要行的条目间距不足时会被判不达标） --]
+      <p class="mb-1"><a href="${bean.url}" class="cm-link font-medium inline-block">${bean.title}</a></p>
+      [#if (pageConfig.listing.showSummary)!true]
+      <p class="hidden sm:block text-sm text-slate-500 line-clamp-2 mb-2">
+        <a href="${bean.url}" class="text-inherit no-underline">${substring(bean.description,60,'...')}</a>
+      </p>
+      [/#if]
+      <div class="flex justify-between items-center text-xs text-slate-500">
+        <div class="flex items-center gap-2">
+          <span>
+            [#-- inline-block + py-1：text-xs 行高仅 16px，补足 24px 触控目标（同上） --]
+            [#list bean.channel.paths as c]<a href="${c.url}" class="cm-link inline-block py-1">${c.name}</a>[#if c_has_next] &gt; [/#if][/#list]
+          </span>
+          [#if (metric!'views') == 'downloads']
+            <span class="inline-flex items-center gap-1">
+              <span class="size-3 inline-block">[@icon 'download'/]</span>
+              ${bean.downloads}
+            </span>
+          [#else]
+            <span class="inline-flex items-center gap-1">
+              <span class="size-3 inline-block">[@icon 'visibility-outline'/]</span>
+              ${bean.views}
+            </span>
+          [/#if]
+        </div>
+        [#if (pageConfig.listing.showDate)!true]
+        <span class="inline-flex items-center gap-1">
+          <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+          ${format(bean.publishDate,'yyyy-MM-dd')}
+        </span>
+        [/#if]
+      </div>
+    </div>
+  </li>
+  [#if !bean_has_next]
+    <script nonce="${csp_nonce!''}">window.lastArticleDate = '${bean.publishDate.format()}';</script>
+  [/#if]
+[/#list]
+[/#escape]

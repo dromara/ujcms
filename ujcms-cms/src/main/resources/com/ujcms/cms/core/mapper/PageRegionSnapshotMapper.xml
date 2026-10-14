@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.PageRegionSnapshotMapper">
+  <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.PageRegionSnapshot">
+    <id column="id_" jdbcType="BIGINT" property="id" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+    <result column="page_ref_" jdbcType="VARCHAR" property="pageRef" />
+    <result column="region_name_" jdbcType="VARCHAR" property="regionName" />
+    <result column="scope_" jdbcType="VARCHAR" property="scope" />
+    <result column="content_json_" jdbcType="OTHER" property="contentJson" />
+    <result column="rows_count_" jdbcType="INTEGER" property="rowsCount" />
+    <result column="panels_count_" jdbcType="INTEGER" property="panelsCount" />
+    <result column="source_" jdbcType="VARCHAR" property="source" />
+    <result column="restored_from_" jdbcType="BIGINT" property="restoredFrom" />
+    <result column="actor_" jdbcType="VARCHAR" property="actor" />
+    <result column="label_" jdbcType="VARCHAR" property="label" />
+    <result column="created_" jdbcType="TIMESTAMP" property="created" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMap" type="com.ujcms.cms.core.domain.PageRegionSnapshot" />
+  <sql id="Column_List">
+    t.id_, t.site_id_, t.page_ref_, t.region_name_, t.scope_, t.content_json_,
+    t.rows_count_, t.panels_count_, t.source_, t.restored_from_, t.actor_, t.label_, t.created_
+  </sql>
+  <insert id="insert" parameterType="com.ujcms.cms.core.domain.PageRegionSnapshot">
+    insert into ujcms_page_region_snapshot (id_, site_id_, page_ref_, region_name_, scope_,
+      content_json_, rows_count_, panels_count_, source_, restored_from_, actor_, label_, created_)
+    values (#{id,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT}, #{pageRef,jdbcType=VARCHAR},
+      #{regionName,jdbcType=VARCHAR}, #{scope,jdbcType=VARCHAR},
+      #{contentJson,jdbcType=OTHER}, #{rowsCount,jdbcType=INTEGER}, #{panelsCount,jdbcType=INTEGER},
+      #{source,jdbcType=VARCHAR}, #{restoredFrom,jdbcType=BIGINT}, #{actor,jdbcType=VARCHAR},
+      #{label,jdbcType=VARCHAR}, #{created,jdbcType=TIMESTAMP})
+  </insert>
+  <delete id="delete" parameterType="long">
+    delete
+    from ujcms_page_region_snapshot
+    where id_ = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBySiteId" parameterType="long">
+    delete
+    from ujcms_page_region_snapshot
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <select id="select" parameterType="long" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_page_region_snapshot t
+    where t.id_ = #{id,jdbcType=BIGINT}
+  </select>
+  <!-- 坐标下的全部快照（新→旧；id_ 为雪花ID单调，倒序即时间倒序；行数受保留上限约束） -->
+  <select id="listByCoordinates" resultMap="ResultMap">
+    select
+    <include refid="Column_List" />
+    from ujcms_page_region_snapshot t
+    where t.site_id_ = #{siteId,jdbcType=BIGINT}
+      and t.page_ref_ = #{pageRef,jdbcType=VARCHAR}
+      and t.region_name_ = #{regionName,jdbcType=VARCHAR}
+      and t.scope_ = #{scope,jdbcType=VARCHAR}
+    order by t.id_ desc
+  </select>
+</mapper>

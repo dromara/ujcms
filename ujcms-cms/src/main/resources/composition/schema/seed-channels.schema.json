@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-channels.schema.json",
+  "title": "UJCMS Theme Seed Channels",
+  "description": "主题内容种子栏目文件（seed/content/channels.channels.json，全主题恰好一个）。树序：parent 必须先于子项出现。导入器按 (site_id_, origin_, origin_id_) select-then-insert 保证幂等；别名与既有非种子栏目冲突时不插入、不认领（linked，引用映射指向既有栏目）。processKey 与权限不可种子化。",
+  "type": "object",
+  "required": ["channels"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "channels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "name"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（幂等键）" },
+          "alias": { "type": "string", "pattern": "^[\\w-]+$", "maxLength": 100, "description": "栏目别名（跨引用键，站点内唯一）；省略时取 originId" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 150 },
+          "parent": { "type": ["string", "null"], "description": "上级栏目 originId；null 或省略为顶级。须先于本项出现（树序）" },
+          "nav": { "type": "boolean", "default": true, "description": "是否导航显示" },
+          "type": { "enum": ["normal", "single", "link"], "default": "normal", "description": "normal=常规列表栏目；single=单页栏目（正文在 ext.text）；link=转向链接栏目（目标在 linkUrl；「链接到第一个子栏目」类型不可种子化）" },
+          "linkUrl": { "type": "string", "maxLength": 255, "pattern": "^(http|/).*$", "description": "转向链接（type=link 时使用）：站内路径或 http(s) 绝对地址，原样写入、不做令牌展开" },
+          "targetBlank": { "type": "boolean", "default": false, "description": "是否新窗口打开（导航用）" },
+          "channelModel": { "type": "string", "description": "栏目模型名称；缺失或站点无此模型时回落站点默认模型并告警（模型不可随主题携带）" },
+          "articleModel": { "type": "string", "description": "文章模型名称；同上" },
+          "channelLayout": { "type": "string", "maxLength": 50, "description": "栏目页页面类型意图（布局变体值）：安装时按主题变体绑定物化为栏目模板列；主题未声明该变体时忽略" },
+          "articleLayout": { "type": "string", "maxLength": 50, "description": "本栏目文章页页面类型意图（布局变体值）：安装时按主题变体绑定物化为文章模板列；同上" },
+          "pageSize": { "type": "integer", "minimum": 1, "maximum": 200, "description": "每页条数" },
+          "image": { "type": "string", "maxLength": 255, "description": "栏目图片URL，支持 {{asset:<relpath>}} 令牌" },
+          "ext": {
+            "type": "object",
+            "description": "扩展标量字段（白名单）",
+            "properties": {
+              "seoTitle": { "type": "string", "maxLength": 150 },
+              "seoKeywords": { "type": "string", "maxLength": 150 },
+              "seoDescription": { "type": "string", "maxLength": 1000 },
+              "text": { "type": "string", "description": "单页栏目正文HTML，支持 {{asset:<relpath>}} 令牌" }
+            },
+            "additionalProperties": false
+          },
+          "customs": { "type": "object", "description": "模型驱动的自定义字段（按解析出的栏目模型校验/清洗）" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

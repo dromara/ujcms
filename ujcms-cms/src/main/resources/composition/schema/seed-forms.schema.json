@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-forms.schema.json",
+  "title": "UJCMS Theme Seed Forms",
+  "description": "主题内容种子表单类型文件（seed/content/forms/*.forms.json——theme-seed-export E4e / D38）。表单类型定义按来源三元组 (site_id_, origin_, origin_id_) select-then-insert 幂等；表单无别名（文章式）——无冲突可撞、恒不 linked。绑定模型以名称随行（type=form，按名迟绑，model-seeding D4——种子闭包随包携带该模型）。有意排除：processKey（流程绑定属站点运营状态，§7.2）、order（操作员编排）、提交（ujcms_form 用户数据，§7.2 永久排除）。写入经核心 FormTypeService——任何版本都完整落库，升级无需补导（D46）。",
+  "type": "object",
+  "required": ["forms"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "forms": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "name", "model"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（来源三元组幂等键，E4e / D38）" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 50, "description": "名称" },
+          "model": { "type": "string", "minLength": 1, "maxLength": 50, "description": "绑定表单模型的名称（type=form，导入按名在站点可见集解析回 id；缺 form 模型即 modelMissing 整行失败——缺省闭包随包携带模型）" },
+          "listTemplate": { "type": "string", "maxLength": 255, "description": "列表模板" },
+          "itemTemplate": { "type": "string", "maxLength": 255, "description": "详情模板" },
+          "mode": { "type": "integer", "enum": [0, 1, 2], "default": 2, "description": "录入模式（0：前台游客，1：前台登录用户，2：仅后台用户）" },
+          "viewable": { "type": "boolean", "default": false, "description": "前台可查看" },
+          "enabled": { "type": "boolean", "default": true, "description": "是否启用" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

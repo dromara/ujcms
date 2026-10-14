@@ -1,4 +1,4 @@
-import { Editor, Ui } from 'tinymce';
+import { Editor, type Ui } from 'tinymce';
 
 const register = (editor: Editor, defaultOptions: any): void => {
   const onAction = () => editor.execCommand(defaultOptions.id);

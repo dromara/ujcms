@@ -11,7 +11,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
-import org.springframework.lang.Nullable;
+import com.ujcms.cms.core.security.HtmlSanitizeService;
+import com.ujcms.cms.core.support.Commercial;
+import com.ujcms.cms.core.support.StaticProps;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -194,6 +197,16 @@ public class User extends GeneratedUser implements UserDetails {
     }
 
     /**
+     * 是否可进入后台：超级管理员（id=1，不论是否开启三权分立），或拥有任一后台角色。
+     * <p>
+     * 用于判断账号是否属于双因子登录要保护的对象，如开启双因子后禁止这类账号经短信自助找回密码。
+     */
+    @JsonIgnore
+    public boolean hasBackendAccess() {
+        return getId() == 1 || !getRoleList().isEmpty();
+    }
+
+    /**
      * 是否拥有所有授权权限
      */
     @JsonIgnore
@@ -324,11 +337,38 @@ public class User extends GeneratedUser implements UserDetails {
     }
 
     /**
+     * 纯 OAuth 账号的口令哨兵值。第三方登录创建的账号没有本地口令，口令列存 {@code "0"}。
+     *
+     * @see #isHasPassword()
+     */
+    public static final String PASSWORD_NONE = "0";
+
+    /**
+     * 是否设置过本地口令（用于区分纯 OAuth 账号）。
+     * <p>
+     * 模板中以 {@code user.hasPassword} 访问：会员“账号设置”页据此决定是显示“修改密码”（需填原密码）
+     * 还是“设置密码”。此前主题直接读 {@code user.password} 与哨兵值 {@code "0"} 比较——把口令散列
+     * 暴露给了模板，且经 {@code article.user} 一类实体图链可读到<b>他人</b>的散列。
+     * {@code getPassword()} 现已从模板对象包装器中摘除（{@code TemplateMemberAccessPolicy}，
+     * design-review-2026-07 T5），本方法是其唯一正当用途的替代读法，语义完全等价：
+     * 口令非空且不等于 {@code "0"}。
+     * <p>
+     * {@code @JsonIgnore}：仅供模板使用。JSON 侧同名字段由 {@code UserController.MeUser} 投影提供，
+     * 此处不参与序列化，避免改变既有 API 响应形状。
+     */
+    @JsonIgnore
+    public boolean isHasPassword() {
+        String pw = getPassword();
+        return StringUtils.isNotBlank(pw) && !PASSWORD_NONE.equals(pw);
+    }
+
+    /**
      * 是否超级管理员。ID为1的用户为超级管理员
      */
     @Schema(description = "是否超级管理员。ID为1的用户为超级管理员")
     public boolean isRoot() {
-        return getId() == 1;
+        // 三权分立开启时，超级管理员(id=1)的全局权限旁路被中和（等保三级 访问控制 / G4）
+        return getId() == 1 && !StaticProps.isSeparationOfDuties();
     }
 
     /**
@@ -377,6 +417,10 @@ public class User extends GeneratedUser implements UserDetails {
     @Schema(description = "是否正常状态")
     @Override
     public boolean isEnabled() {
+        // 三权分立开启时，强制停用超级管理员(id=1)且不可重新启用（即使库中 status 被改回正常，登录/认证仍判为禁用）
+        if (StaticProps.isSeparationOfDuties() && getId() == 1) {
+            return false;
+        }
         return getStatus() == STATUS_ENABLED;
     }
 
@@ -389,10 +433,17 @@ public class User extends GeneratedUser implements UserDetails {
     }
     // region UserDetails
 
+    /**
+     * 安全上下文中的权限。商业权限码在当前版本未解锁时（{@link Commercial#isUnlocked}）不进入权限集合：
+     * 社区版的角色树为推广而显示带徽标的商业节点、角色 CSV 也可能自更高版本迁移而来，
+     * 只由类路径裁剪不足以拦住留在 core 的接口（全站置灰、站点全文重建、组织权限等），故在此统一收口。
+     * 超级权限 {@code *} 不在映射内，不受影响。
+     */
     @JsonIgnore
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return getPermissions().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        return getPermissions().stream().filter(Commercial::isUnlocked)
+                .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 
     /**
@@ -637,5 +688,119 @@ public class User extends GeneratedUser implements UserDetails {
     public static final Long ANONYMOUS_ID = 0L;
 
     public static final String NOT_FOUND = "User not found. ID: ";
+
+    /**
+     * 用户模型类别
+     */
+    public static final String MODEL_TYPE = "user";
+    // endregion
+
+    // region JsonFields
+
+    /**
+     * 自定义字段
+     */
+    @Nullable
+    private transient Map<String, Object> customs;
+
+    @Schema(description = "自定义字段")
+    public Map<String, Object> getCustoms() {
+        if (customs != null) {
+            return customs;
+        }
+        customs = new HashMap<>(16);
+        Model model = getUserModel();
+        if (model == null) {
+            return customs;
+        }
+        customs.putAll(model.assembleMap(getMainsJson()));
+        customs.putAll(model.assembleMap(getClobsJson()));
+        return customs;
+    }
+
+    public void setCustoms(Map<String, Object> customs) {
+        this.customs = customs;
+    }
+
+    public void disassembleCustoms(Model model, HtmlSanitizeService sanitizeService) {
+        Map<String, Object> map = model.sanitizeMap(getCustoms(), sanitizeService);
+        setCustoms(map);
+        model.disassembleMap(map, this::setMainsJson, this::setClobsJson);
+    }
+
+    /**
+     * 用户模型。由 UserService 在加载时统一注入；无全局用户模型时为 {@code null}。
+     */
+    @JsonIgnore
+    @Nullable
+    private transient Model userModel;
+
+    @JsonIgnore
+    @Nullable
+    public Model getUserModel() {
+        return userModel;
+    }
+
+    public void setUserModel(@Nullable Model userModel) {
+        this.userModel = userModel;
+    }
+    // endregion
+
+    // region BlindIndex
+    /**
+     * 手机号盲索引（HMAC-SM3，64 个十六进制字符）。由 {@code UserService} 在写入时统一计算，
+     * 不接受外部入参、也不对外序列化（{@code @JsonIgnore}）。值为空时为 {@code null}。
+     *
+     * @see com.ujcms.cms.core.security.PiiBlindIndex
+     */
+    @Nullable
+    private String mobileIndex;
+    /**
+     * 邮箱盲索引（HMAC-SM3，64 个十六进制字符）。语义同 {@link #mobileIndex}。
+     */
+    @Nullable
+    private String emailIndex;
+
+    @JsonIgnore
+    @Nullable
+    public String getMobileIndex() {
+        return mobileIndex;
+    }
+
+    @JsonIgnore
+    public void setMobileIndex(@Nullable String mobileIndex) {
+        this.mobileIndex = mobileIndex;
+    }
+
+    @JsonIgnore
+    @Nullable
+    public String getEmailIndex() {
+        return emailIndex;
+    }
+
+    @JsonIgnore
+    public void setEmailIndex(@Nullable String emailIndex) {
+        this.emailIndex = emailIndex;
+    }
+    // endregion
+
+    // region PwdMustChange
+    /**
+     * 首次登录强制改密标记。开启 {@code Config.Security.forceChangePasswordOnFirstLogin} 后，
+     * 该值为 {@code true} 的用户登录时需先改密。由后台“新增用户 / 重置密码”置位、用户自助改密时清除，
+     * 不接受外部入参（{@code @JsonIgnore}，且在 UserController 的 EXCLUDE_FIELDS 中排除）。
+     */
+    @JsonIgnore
+    private Boolean pwdMustChange = false;
+
+    @JsonIgnore
+    public Boolean getPwdMustChange() {
+        return pwdMustChange;
+    }
+
+    @JsonIgnore
+    public void setPwdMustChange(Boolean pwdMustChange) {
+        this.pwdMustChange = pwdMustChange;
+    }
     // endregion
 }

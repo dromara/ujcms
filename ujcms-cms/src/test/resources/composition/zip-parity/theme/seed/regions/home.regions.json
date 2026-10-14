@@ -1,0 +1,12 @@
+{
+  "page": "home",
+  "regions": {
+    "body": {
+      "rows": [
+        { "id": "r1", "layout": "full", "columns": [ { "panels": [
+          { "component": "RichHtml", "settings": { "title": "你好" } }
+        ] } ] }
+      ]
+    }
+  }
+}

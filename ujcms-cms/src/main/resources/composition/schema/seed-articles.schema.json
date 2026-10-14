@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/seed-articles.schema.json",
+  "title": "UJCMS Theme Seed Articles",
+  "description": "主题内容种子文章文件（seed/content/articles/*.articles.json，分组自由）。导入经 ArticleService（清洗、Lucene、附件引用、标签），恒不触发审批流程（skipProcess）；按 (site_id_, origin_, origin_id_) select-then-insert 保证幂等。",
+  "type": "object",
+  "required": ["articles"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "articles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["originId", "channel", "title"],
+        "properties": {
+          "originId": { "type": "string", "minLength": 1, "maxLength": 128, "description": "主题内稳定ID（幂等键；专题引用键）" },
+          "channel": { "type": "string", "minLength": 1, "description": "目标栏目：本主题种子栏目的 originId 或站点内栏目别名（种子或既有均可）" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 150 },
+          "subtitle": { "type": "string", "maxLength": 150 },
+          "image": { "type": "string", "maxLength": 255, "description": "题图URL，支持 {{asset:<relpath>}} 令牌" },
+          "text": { "type": "string", "description": "正文HTML（导入时清洗），支持 {{asset:<relpath>}} 令牌" },
+          "publishOffsetDays": { "type": "integer", "maximum": 0, "default": 0, "description": "发布日期 = 导入时刻 + 偏移天数（非正数，演示列表保持新鲜）" },
+          "status": { "enum": ["published", "draft"], "default": "published" },
+          "tags": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "标签名列表" },
+          "imageList": {
+            "type": "array",
+            "description": "图片集（image_list_json_；相册/图集类文章），url 支持 {{asset:<relpath>}} 令牌",
+            "items": {
+              "type": "object",
+              "required": ["url"],
+              "properties": {
+                "url": { "type": "string", "minLength": 1, "maxLength": 255 },
+                "name": { "type": "string", "maxLength": 150 },
+                "description": { "type": "string", "maxLength": 1000 }
+              },
+              "additionalProperties": false
+            }
+          },
+          "fileList": {
+            "type": "array",
+            "description": "附件列表（file_list_json_；正文附件下载），url 支持 {{asset:<relpath>}} 令牌",
+            "items": {
+              "type": "object",
+              "required": ["url"],
+              "properties": {
+                "url": { "type": "string", "minLength": 1, "maxLength": 255 },
+                "name": { "type": "string", "maxLength": 150, "description": "展示文件名" },
+                "length": { "type": "integer", "minimum": 0, "description": "文件字节数" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "ext": {
+            "type": "object",
+            "description": "扩展标量字段（白名单）",
+            "properties": {
+              "author": { "type": "string", "maxLength": 50 },
+              "editor": { "type": "string", "maxLength": 50 },
+              "source": { "type": "string", "maxLength": 100 },
+              "seoKeywords": { "type": "string", "maxLength": 150 },
+              "seoDescription": { "type": "string", "maxLength": 1000 },
+              "video": { "type": "string", "maxLength": 255, "description": "视频URL，支持 {{asset:<relpath>}} 令牌" },
+              "videoDuration": { "type": "integer", "minimum": 0, "description": "视频时长（秒）" },
+              "file": { "type": "string", "maxLength": 255, "description": "下载文件URL，支持 {{asset:<relpath>}} 令牌" },
+              "fileName": { "type": "string", "maxLength": 150, "description": "下载文件名（展示用）" },
+              "fileLength": { "type": "integer", "minimum": 0, "description": "下载文件字节数" },
+              "doc": { "type": "string", "maxLength": 255, "description": "文库文档URL（PDF），支持 {{asset:<relpath>}} 令牌" },
+              "docName": { "type": "string", "maxLength": 150, "description": "文库文档名（展示用）" },
+              "docLength": { "type": "integer", "minimum": 0, "description": "文库文档字节数" }
+            },
+            "additionalProperties": false
+          },
+          "customs": { "type": "object", "description": "模型驱动的自定义字段（按目标栏目的文章模型校验/清洗）" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

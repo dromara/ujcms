@@ -1,0 +1,81 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#assign channelSlug = 'disclosure'/]
+[#assign dcUrl = dy + '/disclosure'/]
+[@layout title='依申请公开 - ' + site.title keywords='依申请公开,' + (site.seoKeywords!'') description=site.seoDescription!'']
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">依申请公开</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-5">
+  <div class="flex flex-wrap justify-between items-baseline gap-2 border-b border-slate-200 pb-2">
+    <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
+      <span class="size-6 text-primary inline-block">[@icon 'list-alt-outline'/]</span>
+      <a href="${dcUrl}" class="cm-link">依申请公开</a>
+    </h1>
+    <div class="flex gap-2">
+      <a href="${dcUrl}/query"
+         class="px-3 py-1.5 rounded border border-primary text-primary text-sm hover:bg-primary/5">结果查询</a>
+      <a href="${dcUrl}/create"
+         class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">我要申请</a>
+    </div>
+  </div>
+
+  [#-- 申请须知 --]
+  <div class="rounded-lg border border-slate-200 bg-slate-50 p-5">
+    <h2 class="font-semibold mb-2">申请须知</h2>
+    <ol class="list-decimal pl-5 space-y-1 text-sm text-slate-600">
+      <li>根据《中华人民共和国政府信息公开条例》，公民、法人或者其他组织可以向本机关申请获取相关政府信息。</li>
+      <li>申请应当包括申请人的姓名或者名称、身份证明、联系方式，以及申请公开的政府信息的名称、文号或者便于查询的其他特征性描述。</li>
+      <li>本机关收到申请后，能够当场答复的，将当场予以答复；不能当场答复的，自收到申请之日起20个工作日内予以答复；需要延长答复期限的，延长的期限不超过20个工作日，并告知申请人。</li>
+      <li>申请内容不明确的，本机关将自收到申请之日起7个工作日内一次性告知申请人作出补正，申请人无正当理由逾期不补正的，视为放弃申请。</li>
+      <li>提交申请成功后，请务必保存好申请编号和查询码，以便查询办理进度和答复结果。</li>
+    </ol>
+  </div>
+
+  [#-- 我的申请（仅登录时显示，最近10条） --]
+  [#if user??]
+  <div class="space-y-3">
+    <h2 class="text-lg font-semibold border-b border-slate-200 pb-2">我的申请</h2>
+    [@DisclosureList userId=user.id limit='10'; myList]
+    [#if myList?size == 0]
+      <p class="py-4 text-sm text-slate-500">暂无申请记录</p>
+    [#else]
+      <ul class="divide-y divide-slate-100">
+        [#list myList as bean]
+        <li class="py-3 space-y-1.5">
+          <div class="flex items-center gap-2 text-sm">
+            <span class="flex-1 truncate font-medium">${bean.title}</span>
+            [#switch bean.status]
+              [#case 0]<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs shrink-0">待受理</span>[#break]
+              [#case 1]<span class="px-2 py-0.5 rounded bg-sky-100 text-sky-700 text-xs shrink-0">已受理[#if bean.extended]·延期[/#if]</span>[#break]
+              [#case 2]<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-xs shrink-0">已补正告知</span>[#break]
+              [#case 3]<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs shrink-0">已答复</span>[#break]
+            [/#switch]
+          </div>
+          <div class="flex justify-between text-xs text-slate-500">
+            <span>申请编号：${bean.id?c}</span>
+            <span class="inline-flex items-center gap-1">
+              <span class="size-3 inline-block">[@icon 'schedule-outline'/]</span>
+              ${format(bean.created, 'yyyy-MM-dd')}
+            </span>
+          </div>
+        </li>
+        [/#list]
+      </ul>
+    [/#if]
+    [/@DisclosureList]
+    <p class="text-sm text-slate-500">查看答复详情请前往
+      <a href="${dcUrl}/query" class="cm-link">结果查询</a> 页面，凭申请编号和查询码查询。</p>
+  </div>
+  [/#if]
+</div>
+[/@layout]
+[/#escape]

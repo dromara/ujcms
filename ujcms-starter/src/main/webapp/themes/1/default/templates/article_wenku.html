@@ -1,0 +1,304 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[#-- 第三方声明：工具栏中缩小、放大、适合宽度、全屏四个内联图标基于 Material Symbols（Google，Apache License 2.0）修改；阅读器初始化脚本参照 PDF.js 的 examples/components/simpleviewer 示例（Mozilla Foundation，Apache License 2.0）编写。见主题根目录 THIRD-PARTY-NOTICES.md。 --]
+[#assign extraHead]
+[#if article.doc?has_content]<link rel="stylesheet" href="${assets}/vendor/pdfjs-dist/web/pdf_viewer.css?v=${v}">[/#if]
+<style>
+  .pdfViewer .page { margin: 8px auto; border: 1px solid #e2e8f0; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  #pdfFullscreenWrap { height: 85vh; }
+  #pdfFullscreenWrap:fullscreen { height: 100vh !important; background: #f1f5f9; }
+</style>
+<meta property="og:title" content="${article.title}">
+[#if article.image?has_content]<meta property="og:image" content="${article.image}">[/#if]
+<meta property="og:type" content="article">
+[/#assign]
+
+[@layout title="${article.title} - ${site.title}" keywords=article.seoKeywords!'' description=article.seoDescription!'' extraHead=extraHead]
+[#-- Breadcrumb --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      [#list channel.paths as c]
+        <li class="text-slate-400">/</li>
+        <li><a href="${c.url}" class="cm-link">${c.name}</a></li>
+      [/#list]
+    </ol>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-3">
+  <h1 class="text-2xl font-bold font-display">${article.title}</h1>
+  <div class="flex flex-wrap items-center gap-3 pb-2 border-b border-slate-200 text-sm text-slate-500">
+    <span>${format(article.publishDate,'yyyy-MM-dd HH:mm')}</span>
+    [#if article.source?has_content]<span>${article.source}</span>[/#if]
+    [#if article.author?has_content]<span>${article.author}</span>[/#if]
+    <span class="inline-flex items-center gap-1">
+      <span class="size-3 inline-block">[@icon 'visibility-outline'/]</span>
+      <span id="articleViews">—</span>
+    </span>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-4 mb-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+  [#-- Document column --]
+  <div class="lg:col-span-3 space-y-4">
+    [#if article.doc?has_content]
+      <div id="pdfFullscreenWrap" class="bg-slate-50 rounded border border-slate-200 flex flex-col">
+        <div id="pdfToolbar" class="flex items-center justify-center gap-2 flex-wrap py-2 px-2 border-b border-slate-200 bg-white sticky top-0 z-10 rounded-t text-sm">
+          <button type="button" id="prevPage" title="上一页" class="inline-flex items-center justify-center h-8 px-2 rounded border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
+            <span class="size-4 inline-block">[@icon 'chevron-left'/]</span>
+          </button>
+          <div class="flex items-center gap-1">
+            <input type="number" id="pageNumber" value="1" min="1" class="w-14 h-8 text-center px-1 rounded border border-slate-300 tabular-nums">
+            <span class="text-slate-500">/</span>
+            <span id="totalPages" class="text-slate-500 tabular-nums">0</span>
+          </div>
+          <button type="button" id="nextPage" title="下一页" class="inline-flex items-center justify-center h-8 px-2 rounded border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
+            <span class="size-4 inline-block">[@icon 'chevron-right'/]</span>
+          </button>
+          <span class="mx-1 h-5 w-px bg-slate-300"></span>
+          <button type="button" id="zoomOut" title="缩小" class="inline-flex items-center justify-center h-8 px-2 rounded border border-slate-200 hover:bg-slate-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-4 inline-block" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14M7 10v-1h5v1z"/></svg>
+          </button>
+          <button type="button" id="zoomIn" title="放大" class="inline-flex items-center justify-center h-8 px-2 rounded border border-slate-200 hover:bg-slate-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-4 inline-block" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9 12V10H7V9h2V7h1v2h2v1h-2v2zm.5 2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg>
+          </button>
+          <button type="button" id="fitToggle" title="适合窗口宽度" class="inline-flex items-center justify-center h-8 px-2 rounded border border-slate-200 hover:bg-slate-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-4 inline-block" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m6 17l-4-4l4-4l1.4 1.4L5.825 12H10v2H5.825L7.4 15.6zm12 0l-1.4-1.4L18.175 14H14v-2h4.175L16.6 10.4L18 9l4 4z"/></svg>
+          </button>
+          <span class="mx-1 h-5 w-px bg-slate-300"></span>
+          <a id="pdfDownload" href="${article.docOrig!article.doc}" download="${article.title}.pdf" target="_blank" rel="noopener" title="下载" class="inline-flex items-center justify-center h-8 px-2 rounded border border-slate-200 hover:bg-slate-100">
+            <span class="size-4 inline-block">[@icon 'download'/]</span>
+          </a>
+          <button type="button" id="fullscreenToggle" title="全屏" class="inline-flex items-center justify-center h-8 px-2 rounded border border-slate-200 hover:bg-slate-100">
+            <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" class="size-4 inline-block" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 19v-5h2v3h3v2zm0-9V5h5v2H7v3zm9 9v-2h3v-3h2v5zm3-9V7h-3V5h5v5z"/></svg>
+          </button>
+        </div>
+        <div class="relative flex-1 overflow-hidden">
+          <div id="viewerWrapper" class="absolute inset-0 overflow-auto p-2 bg-slate-100">
+            <div id="viewer" class="pdfViewer"></div>
+          </div>
+        </div>
+      </div>
+      <script type="module" nonce="${csp_nonce!''}">
+        import * as pdfjsLib    from "${assets}/vendor/pdfjs-dist/build/pdf.min.mjs?v=${v}";
+        import * as pdfjsViewer from "${assets}/vendor/pdfjs-dist/web/pdf_viewer.mjs?v=${v}";
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "${assets}/vendor/pdfjs-dist/build/pdf.worker.min.mjs?v=${v}";
+
+        const wrap = document.getElementById('pdfFullscreenWrap');
+        const container = document.getElementById('viewerWrapper');
+        const viewer = document.getElementById('viewer');
+        const eventBus = new pdfjsViewer.EventBus();
+        const pdfLinkService = new pdfjsViewer.PDFLinkService({ eventBus });
+        const pdfViewer = new pdfjsViewer.PDFViewer({
+          container,
+          viewer,
+          eventBus,
+          linkService: pdfLinkService,
+          findController: new pdfjsViewer.PDFFindController({ eventBus, linkService: pdfLinkService }),
+          scriptingManager: new pdfjsViewer.PDFScriptingManager({
+            eventBus,
+            sandboxBundleSrc: "${assets}/vendor/pdfjs-dist/build/pdf.sandbox.min.mjs?v=${v}",
+          }),
+        });
+        pdfLinkService.setViewer(pdfViewer);
+
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageNumberInput = document.getElementById('pageNumber');
+        const totalPagesSpan = document.getElementById('totalPages');
+        const fitToggleBtn = document.getElementById('fitToggle');
+        const fullscreenToggleBtn = document.getElementById('fullscreenToggle');
+
+        const CSS_UNITS = 96.0 / 72.0;
+        let pdfPageWidth = 0;
+        let currentFitMode = 'page';
+        let userZoomed = false;
+        let suppressScaleTracking = false;
+
+        function computeFitWidthScale() {
+          if (pdfPageWidth > 0) {
+            return (container.clientWidth - 16) / (pdfPageWidth * CSS_UNITS);
+          }
+          return null;
+        }
+
+        function applyScale(scaleFn) {
+          suppressScaleTracking = true;
+          const savedScrollTop = container.scrollTop;
+          scaleFn();
+          userZoomed = false;
+          requestAnimationFrame(() => { container.scrollTop = savedScrollTop; });
+        }
+
+        function applyFitMode() {
+          if (currentFitMode === 'width') {
+            applyScale(() => {
+              const scale = computeFitWidthScale();
+              pdfViewer.currentScale = scale ?? (pdfViewer.currentScaleValue = 'page-width', pdfViewer.currentScale);
+            });
+          } else {
+            applyScale(() => { pdfViewer.currentScaleValue = 'page-fit'; });
+          }
+        }
+
+        function updatePageButtons() {
+          prevPageBtn.disabled = pdfViewer.currentPageNumber <= 1;
+          nextPageBtn.disabled = pdfViewer.currentPageNumber >= pdfViewer.pagesCount;
+        }
+
+        eventBus.on('pagesinit', () => { applyFitMode(); updatePageButtons(); container.scrollTop = 0; });
+        eventBus.on('pagechanging', ({ pageNumber }) => { pageNumberInput.value = pageNumber; updatePageButtons(); });
+        eventBus.on('scalechanging', () => { if (suppressScaleTracking) { suppressScaleTracking = false; return; } userZoomed = true; });
+
+        prevPageBtn.addEventListener('click', () => { if (pdfViewer.currentPageNumber > 1) pdfViewer.currentPageNumber--; });
+        nextPageBtn.addEventListener('click', () => { if (pdfViewer.currentPageNumber < pdfViewer.pagesCount) pdfViewer.currentPageNumber++; });
+        pageNumberInput.addEventListener('change', () => {
+          let page = parseInt(pageNumberInput.value, 10);
+          if (Number.isNaN(page)) page = 1;
+          pdfViewer.currentPageNumber = Math.max(1, Math.min(page, pdfViewer.pagesCount));
+          pageNumberInput.value = pdfViewer.currentPageNumber;
+        });
+        document.getElementById('zoomOut').addEventListener('click', () => { userZoomed = true; pdfViewer.decreaseScale(); });
+        document.getElementById('zoomIn').addEventListener('click', () => { userZoomed = true; pdfViewer.increaseScale(); });
+        fitToggleBtn.addEventListener('click', () => {
+          currentFitMode = currentFitMode === 'width' ? 'page' : 'width';
+          fitToggleBtn.title = currentFitMode === 'width' ? '适应页面' : '适合窗口宽度';
+          applyFitMode();
+        });
+
+        fullscreenToggleBtn.addEventListener('click', () => {
+          if (!document.fullscreenElement) wrap.requestFullscreen().catch(() => {});
+          else document.exitFullscreen();
+        });
+        document.addEventListener('fullscreenchange', () => {
+          fullscreenToggleBtn.title = document.fullscreenElement ? '退出全屏' : '全屏';
+          if (!userZoomed) applyFitMode();
+        });
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => { if (!userZoomed) applyFitMode(); }, 200);
+        });
+
+        wrap.addEventListener('keydown', (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          const h = container.clientHeight;
+          if (e.key === 'PageDown' || e.key === 'ArrowDown') { e.preventDefault(); container.scrollBy({ top: h * 0.9, behavior: 'smooth' }); }
+          else if (e.key === 'PageUp' || e.key === 'ArrowUp') { e.preventDefault(); container.scrollBy({ top: -h * 0.9, behavior: 'smooth' }); }
+          else if (e.key === 'ArrowRight') { e.preventDefault(); if (pdfViewer.currentPageNumber < pdfViewer.pagesCount) pdfViewer.currentPageNumber++; }
+          else if (e.key === 'ArrowLeft')  { e.preventDefault(); if (pdfViewer.currentPageNumber > 1) pdfViewer.currentPageNumber--; }
+        });
+        wrap.tabIndex = 0;
+
+        (async () => {
+          try {
+            const pdfDocument = await pdfjsLib.getDocument({
+              url: "${article.doc}",
+              cMapUrl: "${assets}/vendor/pdfjs-dist/cmaps/",
+              cMapPacked: true,
+              standardFontDataUrl: "${assets}/vendor/pdfjs-dist/standard_fonts/",
+              enableXfa: true,
+              rangeChunkSize: 65536,
+            }).promise;
+            const viewport = (await pdfDocument.getPage(1)).getViewport({ scale: 1.0 });
+            pdfPageWidth = viewport.width;
+            pdfViewer.setDocument(pdfDocument);
+            pdfLinkService.setDocument(pdfDocument, null);
+            totalPagesSpan.textContent = pdfDocument.numPages;
+            pageNumberInput.max = pdfDocument.numPages;
+            updatePageButtons();
+          } catch (e) {
+            container.innerHTML = '<div class="p-6 text-center text-slate-500 text-sm">文档加载失败：' + (e && e.message ? e.message : '未知错误') + '</div>';
+          }
+        })();
+      </script>
+      [#-- 有文档时正文作为简介显示在阅读器下方（无文档时正文即主体，见下） --]
+      [#if article.text?has_content]
+        <div>
+          <h2 class="pb-1 border-b border-slate-200 font-semibold">文档简介</h2>
+          <div class="article-body prose max-w-none mt-3">[#noescape]${article.text!}[/#noescape]</div>
+        </div>
+      [/#if]
+    [#else]
+      <div class="article-body prose max-w-none">[#noescape]${article.text!}[/#noescape]</div>
+    [/#if]
+  </div>
+
+  [#-- Sidebar: vote + related --]
+  <aside
+    class="lg:col-span-1 space-y-4"
+    x-data="{
+      ups: 0, downs: 0,
+      load() { fetch('${api}/article/buffer/${article.id?c}').then(r => r.ok ? r.json() : null).then(d => { if (d) { this.ups = d.ups; this.downs = d.downs; } }).catch(() => {}); },
+      up() { window.fetchCsrf().then(() => window.request('POST', '${api}/article/up/${article.id?c}')).then(n => { if (n <= 0) window.displayAlert('您已经参与过一次！'); else this.ups = n; }).catch(e => window.displayAlert(e.message || '操作失败')); },
+      down() { window.fetchCsrf().then(() => window.request('POST', '${api}/article/down/${article.id?c}')).then(n => { if (n <= 0) window.displayAlert('您已经参与过一次！'); else this.downs = n; }).catch(e => window.displayAlert(e.message || '操作失败')); }
+    }"
+    x-init="load()"
+  >
+    <div class="rounded border border-slate-200 bg-white p-4">
+      <h5 class="flex items-center gap-2 text-base font-semibold pb-2 mb-3 border-b border-slate-100">
+        <span class="size-5 inline-block text-primary">[@icon 'thumb-up-outline'/]</span>
+        <span>文档评价</span>
+      </h5>
+      <div class="flex justify-around items-center text-sm">
+        <button type="button" @click="up()" class="flex flex-col items-center gap-1 text-primary hover:opacity-80">
+          <span class="size-10 rounded-full bg-slate-100 flex items-center justify-center">
+            <span class="size-5 inline-block">[@icon 'thumb-up-outline'/]</span>
+          </span>
+          <span class="font-bold text-slate-700" x-text="ups"></span>
+          <span class="text-xs text-slate-500">有用</span>
+        </button>
+        <button type="button" @click="down()" class="flex flex-col items-center gap-1 text-rose-500 hover:opacity-80">
+          <span class="size-10 rounded-full bg-slate-100 flex items-center justify-center">
+            <span class="size-5 inline-block">[@icon 'thumb-down-outline'/]</span>
+          </span>
+          <span class="font-bold text-slate-700" x-text="downs"></span>
+          <span class="text-xs text-slate-500">无用</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="rounded border border-slate-200 bg-white p-4">
+      <h5 class="flex items-center gap-2 text-base font-semibold pb-2 mb-3 border-b border-slate-100">
+        <span class="size-5 inline-block text-primary">[@icon 'newspaper'/]</span>
+        <span>延伸阅读</span>
+      </h5>
+      <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">上一篇</div>
+      [@ArticleNext id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; nextItem]
+      <div class="pl-2 border-l-2 border-primary/40 mb-3 text-sm">
+        [#if nextItem??]<a href="${nextItem.url}" class="cm-link block truncate">${nextItem.title}</a>[#else]<span class="text-slate-400 italic">已是第一篇</span>[/#if]
+      </div>
+      [/@ArticleNext]
+      <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">下一篇</div>
+      [@ArticlePrev id=article.id order=article.order channelId=article.channelId isDesc=article.channel.orderDesc; prevItem]
+      <div class="pl-2 border-l-2 border-primary/40 mb-3 text-sm">
+        [#if prevItem??]<a href="${prevItem.url}" class="cm-link block truncate">${prevItem.title}</a>[#else]<span class="text-slate-400 italic">已是最后一篇</span>[/#if]
+      </div>
+      [/@ArticlePrev]
+
+      [@ArticleRelatedList id=article.id channelId=article.channelId limit='5'; relatedList]
+      [#if relatedList?size gt 0]
+        <h6 class="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500">相关文档</h6>
+        <ul class="mt-2 space-y-1 text-sm">
+          [#list relatedList as bean]
+            <li class="truncate"><a href="${bean.url}" class="cm-link">${bean.title}</a></li>
+          [/#list]
+        </ul>
+      [/#if]
+      [/@ArticleRelatedList]
+    </div>
+  </aside>
+</div>
+
+<script nonce="${csp_nonce!''}">
+  fetch('${api}/article/view/${article.id?c}').then(r => r.json()).then(n => {
+    document.getElementById('articleViews').textContent = n;
+  }).catch(() => {});
+</script>
+[/@layout]
+[/#escape]

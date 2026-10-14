@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref, shallowRef } from 'vue';
+import { onMounted, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import dayjs from 'dayjs';
-import echarts, { ECOption } from '@/utils/echarts';
+import echarts, { type ECOption } from '@/utils/echarts';
 import { queryDeviceStat, queryOsStat, queryBrowserStat } from '@/api/stat';
+import { enumParam, useRouteState } from '@/composables/useRouteState';
 
 const { t, n } = useI18n();
 
-const dateRange = ref<string>('last30day');
+// 统计时段存于 query.range（docs/spec/console-view-state）：视图在刷新、页签往返时都会重建，对比各统计页时不应回到近30天
+const { range: dateRange } = useRouteState({
+  range: enumParam('last30day', ['today', 'yesterday', 'last7day', 'last30day', 'last3month', 'last6month', 'lastYear', 'all']),
+});
 const getBeginByDateRange = (range: string): string | undefined => {
   switch (range) {
     case 'today':

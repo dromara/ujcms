@@ -1,0 +1,19 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-votes.schema.json",
+  "votes": [
+    {
+      "enabled": true,
+      "interval": 0,
+      "mode": 1,
+      "multiple": false,
+      "options": [
+        "亲友或同事推荐",
+        "技术社区与论坛",
+        "搜索引擎",
+        "其他途径"
+      ],
+      "originId": "v-8d0d3423",
+      "title": "您是通过什么途径了解到本站的？"
+    }
+  ]
+}

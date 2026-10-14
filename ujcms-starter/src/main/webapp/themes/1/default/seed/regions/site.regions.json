@@ -1,0 +1,133 @@
+{
+  "$schema": "https://www.ujcms.com/schema/composition/seed-regions.schema.json",
+  "page": "site",
+  "regions": {
+    "aside": {
+      "rows": [
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "RankedList",
+                  "settings": {
+                    "limit": 9,
+                    "orderBy": "weekViews desc",
+                    "title": "热点新闻"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-aside-ranked",
+          "layout": "full"
+        },
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "VideoCards",
+                  "settings": {
+                    "channel": "{{channel:video}}",
+                    "limit": 2,
+                    "moreUrl": {
+                      "url": "/channel/video"
+                    },
+                    "title": "精彩视频"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-aside-video",
+          "layout": "full"
+        },
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "TopicList",
+                  "settings": {
+                    "limit": 4,
+                    "title": "精选专题"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-aside-topics",
+          "layout": "full"
+        },
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "FormTypeList",
+                  "settings": {
+                    "limit": 2,
+                    "title": "自定义表单"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-aside-forms",
+          "layout": "full"
+        },
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "SurveyList",
+                  "settings": {
+                    "limit": 9,
+                    "title": "调查问卷"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-aside-surveys",
+          "layout": "full"
+        },
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "Vote",
+                  "settings": {
+                    "vote": "{{vote:v-8d0d3423}}"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-aside-vote",
+          "layout": "full"
+        },
+        {
+          "columns": [
+            {
+              "panels": [
+                {
+                  "component": "TagList",
+                  "settings": {
+                    "limit": 10,
+                    "title": "Tags"
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "seed-aside-tags",
+          "layout": "full"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ujcms.com/schema/composition/shape.schema.json",
+  "title": "UJCMS Shape",
+  "description": "组件（Shape v2）定义。代码/主题包/SSR 制品内的 JSON 文件，声明组件的实例设置结构（settings）、可选数据模板（data）与条目字段结构（item）。面板即组件实例：操作员按 settings 填一张表单，服务端以 $settings.* 替换执行 data 模板，产出 item 形态的条目（component-settings §4.1）。",
+  "type": "object",
+  "required": ["name", "version"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]+$",
+      "description": "PascalCase 名称，命名空间内唯一"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+      "description": "semver 版本，驱动兼容性分级"
+    },
+    "description": { "type": "string" },
+    "label": { "$ref": "#/$defs/localizedLabel" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "titleField": {
+      "type": "string",
+      "description": "后台列表用作行标题的条目字段名，默认取 item 中第一个 text 字段"
+    },
+    "presentation": {
+      "type": "object",
+      "description": "构建器调色板呈现元数据（visual-builder §7.1，可选）。icon 为控制台图标的受控枚举；group 为调色板分组显示名（缺省回退第一个 tag，再回退「其他」）；order 为组内排序；thumbnail 为调色板缩略图（P6/D11）",
+      "properties": {
+        "icon": {
+          "type": "string",
+          "enum": ["card", "carousel", "list", "grid", "image", "text", "link", "banner", "ad", "video"],
+          "description": "控制台图标枚举（受控映射，未知值按缺省图标渲染）"
+        },
+        "group": { "$ref": "#/$defs/localizedLabel" },
+        "order": { "type": "integer", "description": "组内排序，小者在前；缺省 0" },
+        "thumbnail": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^(?:data:image/[A-Za-z0-9.+-]+[;,].*|(?!/)(?!.*\\.\\.)[^:\\\\]+)$",
+          "description": "调色板缩略图（visual-builder P6/D11）：相对路径或 data:image/ URI。相对路径相对主题根目录解析（经模板存储公开前缀服务，与画廊 preview 同源；约定 thumbnails/<name>.svg）。禁止绝对路径、.. 与协议前缀（防目录穿越）；缺省回退 icon"
+        }
+      },
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "description": "实例设置结构（字段名 → 字段定义，component-settings §4.1）。操作员在构建器中按此结构填一张表单，值随面板存储；渲染契约中引用设置（channelRef/articleRef）展开为摘要对象。支持全部字段类型，list-of-object 设置即页面本地编排条目（§5）",
+      "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+      "additionalProperties": { "$ref": "#/$defs/field" }
+    },
+    "data": {
+      "type": "object",
+      "description": "数据模板（可选，作者侧查询 DSL，component-settings §4.1）。以 $settings.*（及 $ctx.*）替换后由服务端解析管线执行，产出 item 形态的条目。声明 from 走查询；声明 items 引用一个 list 设置作为手工条目来源；两者兼有时以 mode 引用的 enum 设置切换（值 manual 跳过查询）",
+      "properties": {
+        "from": {
+          "type": "string",
+          "enum": ["article", "channel", "blockItem"],
+          "description": "查询来源实体"
+        },
+        "where": {
+          "type": "object",
+          "description": "精确匹配过滤（键白名单见 query-dsl.md §4）。值可为字面量、$settings.<name> 或 $ctx.<key>；引用值为空时按 missing 策略"
+        },
+        "orderBy": {
+          "type": "string",
+          "description": "排序（如 \"publishedAt desc\"，字段白名单见 query-dsl.md §3），可为 $settings.<name>（enum 设置）"
+        },
+        "limit": {
+          "oneOf": [
+            { "type": "integer", "minimum": 1 },
+            { "type": "string", "pattern": "^\\$settings\\.[a-z][A-Za-z0-9]*$" }
+          ],
+          "description": "取数上限，可为 $settings.<name>（number 设置，min/max 钳制）"
+        },
+        "missing": {
+          "type": "string",
+          "enum": ["skip", "empty"],
+          "description": "引用值缺失策略：skip 丢弃该过滤（默认）；empty 返回空结果"
+        },
+        "projection": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "投影（item 字段 → $.路径 表达式，query-dsl.md §5），省略按来源约定映射"
+        },
+        "mode": {
+          "type": "string",
+          "pattern": "^\\$settings\\.[a-z][A-Za-z0-9]*$",
+          "description": "查询/手工切换（Q3）：引用一个 enum 设置，解析值为 manual 时跳过查询、以 items 引用的设置为条目来源"
+        },
+        "items": {
+          "type": "string",
+          "pattern": "^\\$settings\\.[a-z][A-Za-z0-9]*$",
+          "description": "手工条目来源：引用一个 list-of-object 设置（元素字段与 item 一致，§5 页面本地编排）"
+        },
+        "pinned": {
+          "type": "string",
+          "pattern": "^\\$settings\\.[a-z][A-Za-z0-9]*$",
+          "description": "编辑置顶（§5）：引用一个 list-of-articleRef/channelRef 设置；置顶条目先渲染，查询填充到 limit 并按来源实体ID去重"
+        }
+      },
+      "anyOf": [
+        { "required": ["from"] },
+        { "required": ["items"] }
+      ],
+      "additionalProperties": false
+    },
+    "item": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "条目字段结构（渲染契约 items[] 的元素形态）。投影按类型包装、渲染器类型生成与手工条目共用；纯设置组件（无条目列表）可省略",
+      "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+      "additionalProperties": { "$ref": "#/$defs/field" }
+    },
+    "migrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from"],
+        "properties": {
+          "from": { "type": "string", "description": "semver range，如 1.x" },
+          "rename": { "type": "object", "additionalProperties": { "type": "string" } },
+          "default": { "type": "object" },
+          "remove": { "type": "array", "items": { "type": "string" } },
+          "transform": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "examples": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "localizedLabel": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "按 locale 的显示名，如 {\"zh-CN\": \"焦点图卡片\"}"
+    },
+    "field": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean", "default": false },
+        "label": { "$ref": "#/$defs/localizedLabel" },
+        "description": { "type": "string" },
+        "help": {
+          "$ref": "#/$defs/localizedLabel",
+          "description": "表单内的帮助文案（设置表单渲染在字段下方）"
+        },
+        "group": {
+          "$ref": "#/$defs/localizedLabel",
+          "description": "设置分组标签（Q1：扁平设置列表 + 可选分组标签；相邻同组字段在表单中归入一节）"
+        },
+        "default": {},
+        "deprecated": { "type": "boolean" },
+        "visibleWhen": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "additionalProperties": {
+            "oneOf": [
+              { "type": ["string", "number", "boolean"] },
+              {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": ["string", "number", "boolean"] }
+              }
+            ]
+          },
+          "description": "条件显示（设置表单，component-settings D22）：兄弟设置名 → 期望值（或期望值数组，其一命中即可）；多键为「与」。按当前生效值（未存值回退声明缺省）判定；不满足时字段隐藏、已存值保留（切回即恢复），渲染期解析不受影响。仅顶层设置字段生效"
+        },
+        "of": { "$ref": "#/$defs/field" },
+        "fields": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "additionalProperties": { "$ref": "#/$defs/field" }
+        }
+      }
+    }
+  }
+}

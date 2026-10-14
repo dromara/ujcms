@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref, PropType } from 'vue';
+import { computed, ref, type PropType } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { queryMessageBoard, createMessageBoard, updateMessageBoard, deleteMessageBoard } from '@/api/interaction';
-import { queryMessageBoardTypeList } from '@/api/config';
+import { aiReplyDraft, updateAiLogAccepted } from '@/api/ai';
+import { currentUser, perm } from '@/stores/useCurrentUser';
+import { useCurrentSiteStore } from '@/stores/currentSiteStore';
 import Tinymce from '@/components/Tinymce';
 import DialogForm from '@/components/DialogForm.vue';
 import LabelTip from '@/components/LabelTip.vue';
@@ -9,25 +12,55 @@ import LabelTip from '@/components/LabelTip.vue';
 defineOptions({
   name: 'MessageBoardForm',
 });
-defineProps({ modelValue: { type: Boolean, required: true }, beanId: { type: String, default: null }, beanIds: { type: Array as PropType<string[]>, required: true } });
+// 留言类型由列表页传入：类型就在同一屏（“类型管理”）增删，挂载时自取一次会过期
+const props = defineProps({
+  modelValue: { type: Boolean, required: true },
+  beanId: { type: String, default: null },
+  beanIds: { type: Array as PropType<string[]>, required: true },
+  types: { type: Array as PropType<any[]>, required: true },
+});
 defineEmits({ 'update:modelValue': null, finished: null });
+const { t } = useI18n();
 const focus = ref<any>();
 const values = ref<any>({});
-const messageBoardTypeList = ref<any[]>([]);
+const messageBoardTypeList = computed(() => props.types);
 
-const fetchCategoryList = async () => {
-  messageBoardTypeList.value = await queryMessageBoardTypeList();
+// AI 拟稿（docs/spec/ai/ugc-moderation.md §6）：仅填入答复编辑框供修改，绝不自动发送；
+// 发送仍是既有的人工答复动作。工作人员提交含拟稿的答复时标记采纳（客户端启发式）
+const currentSiteStore = useCurrentSiteStore();
+const aiDraftAvailable = computed(() => currentUser.commercialTier >= 2 && currentSiteStore.currentSite?.ai?.replyDraft === true && !perm('ai:replyDraft'));
+const aiDraftLoading = ref<boolean>(false);
+const aiDraftLogId = ref<string>();
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const handleAiDraft = async () => {
+  aiDraftLoading.value = true;
+  try {
+    const { draft, logId } = await aiReplyDraft({ type: 'messageBoard', refId: values.value.id });
+    values.value.replyText = draft
+      .split(/\n+/)
+      .filter((line: string) => line.trim() !== '')
+      .map((line: string) => `<p>${escapeHtml(line)}</p>`)
+      .join('');
+    aiDraftLogId.value = logId;
+    ElMessage.success(t('success'));
+  } finally {
+    aiDraftLoading.value = false;
+  }
 };
-
-onMounted(async () => {
-  fetchCategoryList();
-});
+const handleBeforeSubmit = (formValues: any) => {
+  // 拟稿已填入且答复非空时视为采纳（docs/spec/ai/ai-foundation.md §5 的采纳标记）
+  if (aiDraftLogId.value != null && formValues.replyText != null && formValues.replyText !== '') {
+    updateAiLogAccepted(aiDraftLogId.value).catch(() => undefined);
+    aiDraftLogId.value = undefined;
+  }
+};
 </script>
 
 <template>
   <dialog-form
     v-model:values="values"
-    :name="$t('menu.interaction.messageBoard')"
+    :name="$t('messageBoard.label')"
     :query-bean="queryMessageBoard"
     :create-bean="createMessageBoard"
     :update-bean="updateMessageBoard"
@@ -41,6 +74,7 @@ onMounted(async () => {
     :model-value="modelValue"
     large
     @update:model-value="(event) => $emit('update:modelValue', event)"
+    @before-submit="handleBeforeSubmit"
     @finished="() => $emit('finished')"
   >
     <template #header-status="{ isEdit }">
@@ -78,6 +112,9 @@ onMounted(async () => {
         <el-col v-if="isEdit" :span="24">
           <el-form-item prop="replyText">
             <template #label><label-tip message="messageBoard.replyText" /></template>
+            <div v-if="aiDraftAvailable" class="mb-1 w-full">
+              <el-button size="small" :loading="aiDraftLoading" @click="() => handleAiDraft()">{{ $t('aiModeration.op.draft') }}</el-button>
+            </div>
             <tinymce v-model="values.replyText" class="w-full" />
           </el-form-item>
         </el-col>

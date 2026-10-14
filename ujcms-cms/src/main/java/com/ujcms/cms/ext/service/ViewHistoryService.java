@@ -113,8 +113,10 @@ public class ViewHistoryService implements ArticleViewListener, ArticleDeleteLis
     }
 
     public List<ViewHistory> selectList(ViewHistoryArgs args) {
-        // 默认按最后浏览日期倒序（最近浏览语义），而非收藏的 id_desc
-        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedViewHistory.TABLE_NAME, "updated_desc");
+        // 默认按最后浏览日期倒序（最近浏览语义），而非收藏的 id_desc。updated_ 只精确到秒，同一秒内的记录
+        // 再按 id 倒序，否则并列记录的先后不确定，分页会重复或漏行
+        QueryInfo queryInfo = QueryParser.parse(args.getQueryMap(), GeneratedViewHistory.TABLE_NAME,
+                "updated_desc,id_desc");
         return mapper.selectAll(queryInfo);
     }
 

@@ -3,13 +3,12 @@ package com.ujcms.common.web;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
 
 import static jakarta.servlet.http.HttpServletResponse.*;
 
@@ -31,7 +30,7 @@ public final class Responses {
     /**
      * 操作成功
      */
-    public static ResponseEntity<Body> ok(Map<String, Object> result) {
+    public static ResponseEntity<Body> ok(Object result) {
         return ResponseEntity.ok().body(new Body(Body.SUCCESS, result));
     }
 
@@ -68,7 +67,7 @@ public final class Responses {
     /**
      * 操作失败
      */
-    public static ResponseEntity<Body> failure(Map<String, Object> result) {
+    public static ResponseEntity<Body> failure(Object result) {
         return ResponseEntity.ok().body(new Body(Body.FAILURE, result));
     }
 
@@ -348,7 +347,7 @@ public final class Responses {
          */
         @Schema(description = "数据")
         @Nullable
-        private Map<String, Object> result;
+        private Object result;
         /**
          * 信息
          */
@@ -380,7 +379,7 @@ public final class Responses {
             this.exception = exception;
         }
 
-        public Body(int status, @Nullable Map<String, Object> result) {
+        public Body(int status, @Nullable Object result) {
             this.status = status;
             this.result = result;
         }
@@ -400,11 +399,11 @@ public final class Responses {
         }
 
         @Nullable
-        public Map<String, Object> getResult() {
+        public Object getResult() {
             return result;
         }
 
-        public void setResult(@Nullable Map<String, Object> result) {
+        public void setResult(@Nullable Object result) {
             this.result = result;
         }
 

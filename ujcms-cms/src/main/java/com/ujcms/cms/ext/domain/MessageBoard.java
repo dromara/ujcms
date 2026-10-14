@@ -10,7 +10,7 @@ import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.ext.domain.generated.GeneratedMessageBoard;
 import com.ujcms.common.web.HtmlParserUtils;
 import com.ujcms.common.web.Views;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -28,48 +28,50 @@ public class MessageBoard extends GeneratedMessageBoard {
         return HtmlParserUtils.getUrls(getReplyText());
     }
 
+    // 留言人联系方式（联系人/电话/邮箱/地址）与 IP 属于隐私字段：仅在详情/后台视图（默认 Whole）返回。
+    // 公开的留言列表/详情使用 @JsonView(Views.List)，不会返回这些字段，避免向匿名访客泄露他人联系方式。
+    // 留言的标题与正文是公开内容，不在此列。
+
+    @JsonView(Views.Whole.class)
+    @Nullable
+    @Override
+    public String getContact() {
+        return super.getContact();
+    }
+
+    @JsonView(Views.Whole.class)
+    @Nullable
+    @Override
+    public String getPhone() {
+        return super.getPhone();
+    }
+
+    @JsonView(Views.Whole.class)
+    @Nullable
+    @Override
+    public String getEmail() {
+        return super.getEmail();
+    }
+
+    @JsonView(Views.Whole.class)
+    @Nullable
+    @Override
+    public String getAddress() {
+        return super.getAddress();
+    }
+
+    @JsonView(Views.Whole.class)
+    @Override
+    public String getIp() {
+        return super.getIp();
+    }
+
     /**
      * 是否可在前台显示。只有已审核且公开的留言才可在前台显示
      */
     @JsonIgnore
     public boolean isDisplayable() {
         return getStatus() == STATUS_AUDITED && Boolean.TRUE.equals(getOpen());
-    }
-
-    // IP、联系方式为隐私数据，只在后台接口输出，前台接口（使用 Views.List 或 Views.Whole）不输出
-
-    @JsonView(Views.Backend.class)
-    @Override
-    @Nullable
-    public String getContact() {
-        return super.getContact();
-    }
-
-    @JsonView(Views.Backend.class)
-    @Override
-    @Nullable
-    public String getPhone() {
-        return super.getPhone();
-    }
-
-    @JsonView(Views.Backend.class)
-    @Override
-    @Nullable
-    public String getEmail() {
-        return super.getEmail();
-    }
-
-    @JsonView(Views.Backend.class)
-    @Override
-    @Nullable
-    public String getAddress() {
-        return super.getAddress();
-    }
-
-    @JsonView(Views.Backend.class)
-    @Override
-    public String getIp() {
-        return super.getIp();
     }
 
     /**

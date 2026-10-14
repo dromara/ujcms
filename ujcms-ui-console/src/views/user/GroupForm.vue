@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, PropType } from 'vue';
+import { ref, type PropType } from 'vue';
 import { queryGroup, createGroup, updateGroup, deleteGroup } from '@/api/user';
 import DialogForm from '@/components/DialogForm.vue';
 import LabelTip from '@/components/LabelTip.vue';

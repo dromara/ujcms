@@ -1,0 +1,10 @@
+[#escape x as (x)!?html]
+<aside class="hidden lg:block lg:col-span-1 space-y-6">
+  [#-- 整条侧栏 = aside 区域（component-settings §13 区域整并）：原硬编码 精选专题/自定义表单/
+     调查问卷/Tags 模块组件化为 TopicList/FormTypeList/SurveyList/TagList 面板，与既有
+     RankedList/VideoCards（§12.2）及并入的 Vote 面板（原 vote 微区域，vote-micro-region §3）
+     一并由各页面种子预置（seed/regions/*.regions.json），可在构建器中编辑/重排。
+     无清单页面已由 pages/system.manifest.json 收编（system 页种子预置原硬编码四模块）。 --]
+  [@region name='aside'/]
+</aside>
+[/#escape]

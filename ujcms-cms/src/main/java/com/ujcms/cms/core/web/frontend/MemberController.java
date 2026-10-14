@@ -5,14 +5,12 @@ import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ConfigService;
 import com.ujcms.cms.core.service.UserService;
-import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.cms.core.web.support.FrontendController;
 import com.ujcms.common.web.exception.Http404Exception;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,16 +19,14 @@ import java.util.Optional;
  *
  * @author PONY
  */
-@Controller("frontendMemberController")
+@FrontendController("frontendMemberController")
 public class MemberController {
     private final UserService userService;
     private final ConfigService configService;
-    private final SiteResolver siteResolver;
 
-    public MemberController(UserService userService, ConfigService configService, SiteResolver siteResolver) {
+    public MemberController(UserService userService, ConfigService configService) {
         this.userService = userService;
         this.configService = configService;
-        this.siteResolver = siteResolver;
     }
 
     private static final String USER_TEMPLATE = "mem_user";
@@ -38,15 +34,13 @@ public class MemberController {
     private static final String REGISTER_TEMPLATE = "mem_register";
     private static final String PASSWORD_RESET_TEMPLATE = "mem_password_reset";
 
-    @GetMapping({"/login", "/{subDir:[\\w-]+}/login"})
-    public String login(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/login")
+    public String login(Site site) {
         return site.assembleTemplate(LOGIN_TEMPLATE);
     }
 
-    @GetMapping({"/register", "/{subDir:[\\w-]+}/register"})
-    public String register(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/register")
+    public String register(Site site) {
         Config.Register register = configService.getUnique().getRegister();
         if (!register.isEnabled()) {
             throw new Http404Exception("error.registerNotEnabled");
@@ -54,9 +48,8 @@ public class MemberController {
         return site.assembleTemplate(REGISTER_TEMPLATE);
     }
 
-    @GetMapping({"/password-reset", "/{subDir:[\\w-]+}/password-reset"})
-    public String passwordReset(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/password-reset")
+    public String passwordReset(Site site) {
         return site.assembleTemplate(PASSWORD_RESET_TEMPLATE);
     }
 
@@ -64,22 +57,20 @@ public class MemberController {
      * 用户名解析跳转。供评论 @提及 链接使用（见 docs/spec/membership/comment-mention.md），
      * 与注册时的用户名重复校验等价，不新增用户名枚举面
      */
-    @GetMapping({"/users/name/{username}", "/{subDir:[\\w-]+}/users/name/{username}"})
-    public String userByName(@PathVariable String username, @PathVariable(required = false) String subDir,
-                             HttpServletRequest request) {
-        siteResolver.resolve(request, subDir);
+    @GetMapping("/users/name/{username}")
+    public String userByName(Site site, @PathVariable String username) {
         User targetUser = Optional.ofNullable(userService.selectByUsername(username))
                 .orElseThrow(() -> new Http404Exception("User not found. Username: " + username));
+        // redirect: 以 / 开头的地址相对于 contextPath，因此用子目录拼接，不用已含 contextPath 的 site.getDy()
+        String subDir = site.getSubDir();
         if (StringUtils.isNotBlank(subDir)) {
             return "redirect:/" + subDir + "/users/" + targetUser.getId();
         }
         return "redirect:/users/" + targetUser.getId();
     }
 
-    @GetMapping({"/users/{id}", "/{subDir:[\\w-]+}/users/{id}"})
-    public String users(@PathVariable Long id, @PathVariable(required = false) String subDir,
-                        HttpServletRequest request, Map<String, Object> modelMap) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/users/{id}")
+    public String users(Site site, @PathVariable Long id, Map<String, Object> modelMap) {
         User targetUser = Optional.ofNullable(userService.select(id))
                 .orElseThrow(() -> new Http404Exception(User.NOT_FOUND + id));
         modelMap.put("targetUser", targetUser);

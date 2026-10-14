@@ -1,0 +1,35 @@
+[#include '../layout/theme.html'/]
+[#escape x as (x)!?html]
+[@layout title=example.name + ' - ' + site.title]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${dy}/example" class="cm-link">示例列表</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700 truncate max-w-[16rem]">${example.name}</span></li>
+    </ol>
+    <a href="${dy}/example/create" class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90">提交示例</a>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 mt-6 space-y-4">
+  <h1 class="text-2xl font-bold font-display border-b border-slate-200 pb-2">${example.name}</h1>
+
+  <dl class="grid grid-cols-1 sm:grid-cols-[8rem_1fr] gap-y-2 text-sm rounded border border-slate-200 bg-white p-4">
+    <dt class="font-semibold text-slate-600">描述</dt>
+    <dd class="text-slate-800">${example.description}</dd>
+
+    <dt class="font-semibold text-slate-600">身高</dt>
+    <dd class="text-slate-800">${example.height}</dd>
+
+    <dt class="font-semibold text-slate-600">出生日期</dt>
+    <dd class="text-slate-800">[#if example.birthday??]${format(example.birthday, 'yyyy-MM-dd HH:mm:ss')}[#else]无[/#if]</dd>
+
+    <dt class="font-semibold text-slate-600">是否启用</dt>
+    <dd class="text-slate-800">${example.enabled?string('是', '否')}</dd>
+  </dl>
+</div>
+[/@layout]
+[/#escape]

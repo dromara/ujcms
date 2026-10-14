@@ -4,7 +4,7 @@ import com.ujcms.common.web.Dates;
 import com.ujcms.common.web.Servlets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.NumberUtils;
 
@@ -40,10 +40,26 @@ public class QueryUtils {
     public static final String CUSTOMS_PREFIX = "customs_";
 
     /**
-     * 从 http 请求中获取查询参数
+     * 从 http 请求中获取后台接口的查询参数（docs/spec/article-data-permission/plan.md D24）：只许主表自身的列（含 JSON
+     * 自定义字段）作条件、排序，任何关联都拒绝。一个列表接口只该回答它展示的东西；屏幕上确有关联列的接口用
+     * {@link #getQueryMap(String, Collection)} 列出它们。不符合要求则抛出 400 异常
      */
     public static Map<String, Object> getQueryMap(@Nullable String queryString) {
-        return getQueryMap(getParams(queryString), QUERY_PREFIX);
+        return getQueryMap(queryString, List.of());
+    }
+
+    /**
+     * 从 http 请求中获取后台接口的查询参数，许可列出的关联路径（{@link QueryParser#validateJoins}）。后台接口的参数由操作员
+     * 传入，但不论关联与否都不许指向凭证类的列或关联全局配置表（{@link QueryParser#validateBackendKey}，各后台列表接口
+     * 共同的下限）。不符合要求则抛出 400 异常
+     *
+     * @param joins 许可的关联路径，如 {@code user-username}、{@code @articleExt-*}
+     */
+    public static Map<String, Object> getQueryMap(@Nullable String queryString, Collection<String> joins) {
+        Map<String, Object> queryMap = getQueryMap(getParams(queryString), QUERY_PREFIX);
+        queryMap.forEach(QueryParser::validateBackendKey);
+        QueryParser.validateJoins(queryMap, joins);
+        return queryMap;
     }
 
     public static Map<String, String> getParams(@Nullable String queryString) {

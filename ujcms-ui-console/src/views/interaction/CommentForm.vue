@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, PropType } from 'vue';
+import { ref, type PropType } from 'vue';
 import { Delete } from '@element-plus/icons-vue';
 import { queryComment, updateComment, deleteComment } from '@/api/interaction';
 import DialogForm from '@/components/DialogForm.vue';
@@ -62,7 +62,7 @@ const values = ref<any>({});
           <el-form-item prop="images">
             <template #label><label-tip message="comment.images" /></template>
             <div v-for="(url, index) in values.images" :key="url" class="relative mr-2">
-              <el-image :src="url" :preview-src-list="values.images" :initial-index="index" preview-teleported fit="cover" style="width: 96px; height: 96px"></el-image>
+              <el-image :src="url" :preview-src-list="values.images" :initial-index="Number(index)" preview-teleported fit="cover" style="width: 96px; height: 96px"></el-image>
               <el-button
                 type="danger"
                 size="small"

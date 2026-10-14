@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRefs, watch, ref, shallowRef } from 'vue';
-import echarts, { ECOption } from '@/utils/echarts';
+import { useI18n } from 'vue-i18n';
+import echarts, { type ECOption } from '@/utils/echarts';
 import { querySystemMonitor, querySystemLoad } from '@/api/personal';
 import LabelTip from '@/components/LabelTip.vue';
 
@@ -8,6 +9,7 @@ defineOptions({
   name: 'SystemMonitor',
 });
 const props = defineProps({ modelValue: { type: Boolean, required: true } });
+const { t } = useI18n();
 defineEmits({ 'update:modelValue': null });
 
 const { modelValue: visible } = toRefs(props);
@@ -45,7 +47,7 @@ const initCpuLoadChart = (data: number[]) => {
       min: 0,
       max: 100,
     },
-    series: [{ name: '利用率', type: 'line', animation: false, showSymbol: false, lineStyle: { color: '#66abd3', width: 1 }, areaStyle: { color: '#f1f6fa' }, data }],
+    series: [{ name: t('systemMonitor.usage'), type: 'line', animation: false, showSymbol: false, lineStyle: { color: '#66abd3', width: 1 }, areaStyle: { color: '#f1f6fa' }, data }],
   };
   chart.setOption(option);
 };
@@ -81,7 +83,7 @@ const initMemoryLoadChart = (data: number[]) => {
       min: 0,
       max: 100,
     },
-    series: [{ name: '利用率', type: 'line', animation: false, showSymbol: false, lineStyle: { color: '#ca93d9', width: 1 }, areaStyle: { color: '#f4f2f4' }, data }],
+    series: [{ name: t('systemMonitor.usage'), type: 'line', animation: false, showSymbol: false, lineStyle: { color: '#ca93d9', width: 1 }, areaStyle: { color: '#f4f2f4' }, data }],
   };
   chart.setOption(option);
 };

@@ -55,7 +55,7 @@ public abstract class AbstractWebFileController {
     public static final String EXCLUDES_CP = "/cp";
     public static final String EXCLUDES_WEB_INF = "/WEB-INF";
     public static final String EXCLUDES_META_INF = "/META-INF";
-    public static final String EXCLUDES_TEMPLATES = "/templates";
+    public static final String EXCLUDES_THEMES = "/themes";
     public static final String EXCLUDES_UPLOADS = "/uploads";
 
     protected List<WebFile> list(String parentId, boolean isDir, String name, String sort, Config.Storage storage) {
@@ -193,13 +193,13 @@ public abstract class AbstractWebFileController {
         return Responses.ok();
     }
 
-    private void checkFilesManagementEnabled() {
+    protected void checkFilesManagementEnabled() {
         if (!props.isFilesManagementEnabled()) {
             throw new Http403Exception("Files management not enabled!");
         }
     }
 
-    private void checkId(String... ids) {
+    protected void checkId(String... ids) {
         for (String id : ids) {
             boolean globalPermission = Contexts.getCurrentUser().hasGlobalPermission();
             String[] illegals = new String[]{"./", "..", "\\", "//", "~"};

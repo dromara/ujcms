@@ -3,13 +3,11 @@ package com.ujcms.cms.core.web.frontend;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.Tag;
 import com.ujcms.cms.core.service.TagService;
-import com.ujcms.cms.core.web.support.SiteResolver;
+import com.ujcms.cms.core.web.support.FrontendController;
 import com.ujcms.common.web.exception.Http404Exception;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -17,29 +15,24 @@ import java.util.Map;
  *
  * @author PONY
  */
-@Controller("frontendTagController")
+@FrontendController("frontendTagController")
 public class TagController {
-    private final SiteResolver siteResolver;
     private final TagService service;
 
-    public TagController(SiteResolver siteResolver, TagService service) {
-        this.siteResolver = siteResolver;
+    public TagController(TagService service) {
         this.service = service;
     }
 
     private static final String TEMPLATE = "sys_tag";
     private static final String TEMPLATE_ITEM = "sys_tag_item";
 
-    @GetMapping({"/tag", "/{subDir:[\\w-]+}/tag"})
-    public String index(@PathVariable(required = false) String subDir, HttpServletRequest request) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/tag")
+    public String index(Site site) {
         return site.assembleTemplate(TEMPLATE);
     }
 
-    @GetMapping({"/tag/{id}", "/{subDir:[\\w-]+}/tag/{id}"})
-    public String show(@PathVariable(required = false) String subDir, @PathVariable Long id,
-                       HttpServletRequest request, Map<String, Object> modelMap) {
-        Site site = siteResolver.resolve(request, subDir);
+    @GetMapping("/tag/{id}")
+    public String show(Site site, @PathVariable Long id, Map<String, Object> modelMap) {
         Tag tag = service.select(id);
         if (tag == null) {
             throw new Http404Exception("Tag not found. ID=" + id);

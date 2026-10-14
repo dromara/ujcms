@@ -10,7 +10,7 @@ import com.ujcms.cms.ext.mapper.VisitPageMapper;
 import com.ujcms.cms.ext.service.args.VisitPageArgs;
 import com.ujcms.common.query.QueryInfo;
 import com.ujcms.common.query.QueryParser;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

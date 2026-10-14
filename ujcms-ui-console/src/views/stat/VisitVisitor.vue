@@ -4,10 +4,14 @@ import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { UserFilled } from '@element-plus/icons-vue';
 import { queryVisitorStat } from '@/api/stat';
+import { enumParam, useRouteState } from '@/composables/useRouteState';
 
 dayjs.extend(duration);
 
-const dateRange = ref<string>('last30day');
+// 统计时段存于 query.range（docs/spec/console-view-state）：视图在刷新、页签往返时都会重建，对比各统计页时不应回到近30天
+const { range: dateRange } = useRouteState({
+  range: enumParam('last30day', ['today', 'yesterday', 'last7day', 'last30day', 'last3month', 'last6month', 'lastYear', 'all']),
+});
 const getBeginByDateRange = (range: string): string | undefined => {
   switch (range) {
     case 'today':

@@ -1,0 +1,245 @@
+databaseChangeLog:
+  # 站点设置列统一为 MEDIUMTEXT（13.0 已发布，故以升级变更集实施，全新建库与既有 13.0 库同走此处）：
+  #   ujcms_site 的八个 *_settings_ VARCHAR(1000) 列（编辑器/水印/静态页/留言板/评论/依申请公开/领导信箱/在线访谈）
+  #   与 census_settings_（TEXT）一并改为 MEDIUMTEXT，同 ujcms_config 在 13.0 的做法：
+  #   1. 摆脱 MySQL 单行 65535 字节上限——utf8mb4 VARCHAR(1000) 按声明宽度计 4000 字节，八列合计 32000 字节，
+  #      令该表逼近上限（再加一个 VARCHAR(1000) 建表即报 1118），而实际存储的 JSON 仅数十至数百字节；
+  #      TEXT 系列只按指针计入行宽，DYNAMIC 行格式下小值仍存于页内，读写无额外开销。
+  #   2. 与 ai/geo/accessibility 三个设置列及全库其它大文本列统一为 MEDIUMTEXT（Liquibase 按方言翻译为各库原生 CLOB/TEXT）。
+  #   3. 原 VARCHAR(1000) 只是对序列化 JSON 串的人为上限，各设置子对象的校验并不约束它，超长时以 MySQL 1406 落库失败告终。
+  #   ujcms_census.settings_ 为 Site.Census 的快照，随源列同型（TEXT → MEDIUMTEXT）。
+  #
+  # 为什么用“加列-拷贝-删列-改名”而不是 modifyDataType：Oracle 系数据库（达梦 DM）禁止将 VARCHAR2 直接 ALTER 为 CLOB（ORA-22858）。
+  # 本迁移仅由 addColumn(MEDIUMTEXT) + UPDATE 赋值 + dropColumn + renameColumn 组成，各步骤已在受支持数据库上验证
+  # （原 11.5 配置表迁移同法；DML 中的 VARCHAR→CLOB 隐式赋值在 Oracle 系同样允许）。
+  # SiteMapper.xml 相应改为 jdbcType=LONGVARCHAR；生成类去掉 @Length（生成器对 LONGVARCHAR 列不生成该注解）。
+
+  - changeSet:
+      id: 13.1-site-editor-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: editor_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 编辑器设置
+        - sql:
+            sql: update ujcms_site set editor_settings_tmp_ = editor_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: editor_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: editor_settings_tmp_
+            newColumnName: editor_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 编辑器设置
+
+  - changeSet:
+      id: 13.1-site-watermark-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: watermark_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 水印设置
+        - sql:
+            sql: update ujcms_site set watermark_settings_tmp_ = watermark_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: watermark_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: watermark_settings_tmp_
+            newColumnName: watermark_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 水印设置
+
+  - changeSet:
+      id: 13.1-site-html-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: html_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 静态页设置
+        - sql:
+            sql: update ujcms_site set html_settings_tmp_ = html_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: html_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: html_settings_tmp_
+            newColumnName: html_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 静态页设置
+
+  - changeSet:
+      id: 13.1-site-message-board-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: message_board_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 留言板设置
+        - sql:
+            sql: update ujcms_site set message_board_settings_tmp_ = message_board_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: message_board_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: message_board_settings_tmp_
+            newColumnName: message_board_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 留言板设置
+
+  - changeSet:
+      id: 13.1-site-comment-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: comment_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 评论设置
+        - sql:
+            sql: update ujcms_site set comment_settings_tmp_ = comment_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: comment_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: comment_settings_tmp_
+            newColumnName: comment_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 评论设置
+
+  - changeSet:
+      id: 13.1-site-disclosure-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: disclosure_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 依申请公开设置
+        - sql:
+            sql: update ujcms_site set disclosure_settings_tmp_ = disclosure_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: disclosure_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: disclosure_settings_tmp_
+            newColumnName: disclosure_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 依申请公开设置
+
+  - changeSet:
+      id: 13.1-site-mailbox-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: mailbox_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 领导信箱设置
+        - sql:
+            sql: update ujcms_site set mailbox_settings_tmp_ = mailbox_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: mailbox_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: mailbox_settings_tmp_
+            newColumnName: mailbox_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 领导信箱设置
+
+  - changeSet:
+      id: 13.1-site-interview-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: interview_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 在线访谈设置
+        - sql:
+            sql: update ujcms_site set interview_settings_tmp_ = interview_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: interview_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: interview_settings_tmp_
+            newColumnName: interview_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 在线访谈设置
+
+  - changeSet:
+      id: 13.1-site-census-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: census_settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 网站普查设置
+        - sql:
+            sql: update ujcms_site set census_settings_tmp_ = census_settings_
+        - dropColumn:
+            tableName: ujcms_site
+            columnName: census_settings_
+        - renameColumn:
+            tableName: ujcms_site
+            oldColumnName: census_settings_tmp_
+            newColumnName: census_settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 网站普查设置
+
+  - changeSet:
+      id: 13.1-census-settings-to-mediumtext
+      author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_census
+            columns:
+              - column:
+                  name: settings_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 普查设置快照(JSON)
+        - sql:
+            sql: update ujcms_census set settings_tmp_ = settings_
+        - dropColumn:
+            tableName: ujcms_census
+            columnName: settings_
+        - renameColumn:
+            tableName: ujcms_census
+            oldColumnName: settings_tmp_
+            newColumnName: settings_
+            columnDataType: MEDIUMTEXT
+            remarks: 普查设置快照(JSON)

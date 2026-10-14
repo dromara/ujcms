@@ -1,26 +1,60 @@
-@forward 'element-plus/theme-chalk/src/common/var.scss' with (
-  // 与 tailwindcss 的 xl 保持一致
-  $xl: 1536px
-);
-
-// 如果只是按需导入，则可以忽略以下内容。
-// 如果你想导入所有样式:
-@use 'element-plus/theme-chalk/src/index.scss' as *;
-
-// dialog body 与标题的padding太大，原30px改为10px。
-.el-dialog__body {
-  padding-top: 10px;
+// drawer header 默认 margin-bottom 32px，与 body 的 padding-top 20px 叠加共 52px，
+// 比 el-dialog 的 16px 间距宽松得多。置 0 让 body 的 padding 自然承担间距，
+// 与 el-dialog 的结构保持一致。父选择器是为了提高优先级，覆盖按需注入的 EP 样式。
+.el-drawer .el-drawer__header {
+  margin-bottom: 0;
 }
-// drawer header 下边距太大，再加上drawer body的padding，内容被挤的太靠下。原32px改为4px。
-.el-drawer__header {
-  margin-bottom: 4px;
+// .el-table 是不透明的白色直角盒子（自带 overflow:hidden），直接放进圆角的 .app-block
+// 时会盖住区块顶部两个圆角的边线，看起来像缺了角。让表格继承区块的圆角即可，底部圆角
+// 同样被裁剪，与其后透明的分页区无冲突。
+.app-block > .el-table {
+  border-radius: inherit;
 }
-// Popconfirm 使用p的默认上下margin，但p的margin被tailwind默认样式设置为0。
-.el-popconfirm__main {
-  margin-top: 14px;
-  margin-bottom: 14px;
+// 区块页签：el-tabs 作为 .app-block 的首行导航（tab-pane 为空，表格紧随其后）。
+// 去掉 EP 默认的 15px 下边距；左右 12px 内边距与表格首列对齐。EP 的下划线是
+// nav-wrap 的 ::after，被 -1px 外边距推到 header 盒子之外，正好被紧随其后的表头
+// 白底盖住，所以分隔线改画在 header 自身的 border-bottom 上，颜色与表格线一致。
+.block-tabs.el-tabs {
+  --el-tabs-header-height: 40px;
 }
-// Button 和 Button 之间的间距过大，原12px改为8px。
-.el-button + .el-button {
-  margin-left: 8px;
+.block-tabs > .el-tabs__header {
+  margin: 0;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+.block-tabs > .el-tabs__header .el-tabs__nav-wrap::after {
+  display: none;
+}
+.block-tabs > .el-tabs__content {
+  display: none;
+}
+// Element Plus 2.10+ 用 outline 渲染 el-radio-button 边框，绘制在元素盒子之外，
+// 会被相邻元素覆盖。给 group 留出 1px 内边距，让 outline 有自己的位置。
+.el-radio-group {
+  padding: 1px;
+}
+// 侧边导航场景：el-tabs 仅作导航使用（tab-pane 为空），加 .sidebar-tabs 启用。
+// EP 默认布局让空的 .el-tabs__content 用 flex-grow:1 吃掉容器右侧，active-bar
+// (right:0 于 nav-wrap) 因此飘在容器中间。下面四条规则把空 content 折叠、
+// 把 header 撑满容器、让 nav-wrap 和 nav 也撑满 header，最终 active-bar 紧贴右边缘，
+// active 项的高亮背景也铺满整宽。带 tab-pane 内容的 tabs 不要加这个类。
+.sidebar-tabs.el-tabs--left > .el-tabs__content {
+  flex-grow: 0;
+  padding: 0;
+}
+.sidebar-tabs.el-tabs--left .el-tabs__header.is-left {
+  flex: 1;
+  margin-right: 0;
+}
+.sidebar-tabs.el-tabs--left .el-tabs__nav-wrap.is-left {
+  align-self: stretch;
+}
+.sidebar-tabs.el-tabs--left .el-tabs__nav.is-left {
+  float: none;
+  width: 100%;
+}
+// 导航项左对齐。EP 的左侧页签默认右对齐，长短不一的名称左缘参差，无法对齐扫读。左对齐与主侧栏一致，选中指示条仍贴右缘。
+// 现仅全局设置、站点设置的左侧页签使用；数据列表的左侧导航一律走 CollapsibleAside / AsideEntityList（docs/spec/console-aside）。
+.sidebar-tabs.el-tabs--left .el-tabs__item.is-left {
+  justify-content: flex-start;
 }

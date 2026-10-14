@@ -1,9 +1,10 @@
 package com.ujcms.cms.core.service.args;
 
+import com.ujcms.cms.core.domain.support.EntityConstants;
 import com.ujcms.common.query.BaseQueryArgs;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +19,22 @@ public class DictArgs extends BaseQueryArgs {
     public DictArgs siteId(@Nullable Long siteId) {
         if (siteId != null) {
             queryMap.put("EQ_siteId_Long", siteId);
+        }
+        return this;
+    }
+
+    /**
+     * 站点可见范围：所属字典类型为全局共享，或属于当前站点（本站 ∪ 全局）。
+     * <p>
+     * 同组（{@code 1_}）不带子组的两个条件落入各自的子组，组内 OR、组间 AND
+     * （{@code SeqMapper.Select_All}）。值直接放 {@link Long}/{@link Short} 对象——
+     * 不加 {@code _Long}/{@code _Short} 后缀也不 {@code String.valueOf}：字符串 {@code '2'}
+     * 对 SMALLINT 在 PostgreSQL 上不可比较。
+     */
+    public DictArgs scopeSiteId(@Nullable Long siteId) {
+        if (siteId != null) {
+            queryMap.put("EQ_0scope_type@dictType-siteId", siteId);
+            queryMap.put("EQ_0scope_type@dictType-scope", EntityConstants.SCOPE_GLOBAL);
         }
         return this;
     }
