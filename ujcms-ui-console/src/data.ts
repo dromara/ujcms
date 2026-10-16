@@ -898,7 +898,8 @@ export function getPermsTreeData(): any[] {
             { label: t('list'), key: 'org:page' },
             { label: t('add'), key: 'org:create', perms: ['org:create'] },
             { label: t('edit'), key: 'org:update', perms: ['org:update', 'org:show'] },
-            { label: t('permissionSettings'), key: 'org:updatePermission', perms: ['org:updatePermission', 'org:show'] },
+            // channel:list：权限设置抽屉的文章权限、栏目权限两棵树要取栏目列表
+            { label: t('permissionSettings'), key: 'org:updatePermission', perms: ['org:updatePermission', 'org:show', 'channel:list'] },
             { label: t('delete'), key: 'org:delete', perms: ['org:delete'] },
             { label: t('tidyTree'), key: 'org:tidyTree', perms: ['org:tidyTree'] },
           ],
