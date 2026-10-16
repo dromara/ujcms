@@ -155,3 +155,17 @@ export const disablePermissionTree = (data: any[], permissions: readonly string[
   });
   return allDisabled;
 };
+
+/**
+ * 把 el-tree 的勾选恢复成保存过的 key：先全部清空，再逐个勾选，不级联下级。
+ * 不能直接用 setCheckedKeys：保存的 key 带着半选的上级，非 check-strictly 的树会把这些上级的下级全部勾上。
+ * 树组件在抽屉、对话框里常驻，换一条数据打开时上一条的勾选还在，必须先清空。
+ *
+ * @param tree el-tree 组件实例，未渲染（null）时不处理
+ * @param keys 要勾选的 node-key
+ */
+export const restoreCheckedKeys = (tree: any, keys: (string | number)[]): void => {
+  if (tree == null) return;
+  tree.setCheckedKeys([]);
+  keys.forEach((key) => tree.setChecked(key, true, false));
+};

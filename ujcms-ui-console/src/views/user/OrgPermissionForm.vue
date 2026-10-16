@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, toRefs } from 'vue';
+import { ref, watch, computed, toRefs, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getPermsTreeData } from '@/data';
-import { toTree, flatTree, disablePermissionTree } from '@/utils/tree';
-import { currentUser } from '@/stores/useCurrentUser';
+import { toTree, flatTree, disablePermissionTree, restoreCheckedKeys } from '@/utils/tree';
+import { currentUser, hasPermission } from '@/stores/useCurrentUser';
 import { queryOrg, updateOrgPermission, queryOrgArticlePermissions, queryOrgChannelPermissions, queryOrgPermPermissions, queryOrgList } from '@/api/user';
 import { queryChannelList } from '@/api/content';
 import { loadOrClose } from '@/utils/common';
@@ -20,6 +20,7 @@ const tabName = ref<string>('articlePermission');
 const form = ref<any>();
 const bean = ref<any>({});
 const values = ref<any>({});
+const loading = ref<boolean>(false);
 const buttonLoading = ref<boolean>(false);
 
 const articlePermissionExpand = ref<boolean>(false);
@@ -37,57 +38,56 @@ disablePermissionTree(permsData, currentUser.grantPermissions ?? []);
 const channelData = ref<any[]>([]);
 const orgData = ref<any[]>([]);
 const disabled = computed(() => (bean.value.global && !currentUser.globalPermission) || currentUser.rank > bean.value.rank);
-const fetchOrg = async () => {
-  if (beanId.value != null) {
-    bean.value = await loadOrClose(() => queryOrg(beanId.value), () => emit('update:modelValue', false));
-    values.value = { ...bean.value };
+// 组织、各项权限、栏目和组织列表一起加载，到齐后先赋值，等树按新数据重建好再勾选。
+// 分头加载时权限可能先于栏目数据到达，勾选落空；连续打开时，上一个组织的慢响应还会盖掉当前组织的勾选
+let loadSeq = 0;
+const fetchPermissions = async () => {
+  const id = beanId.value;
+  if (id == null) return;
+  const seq = ++loadSeq;
+  bean.value = {};
+  values.value = {};
+  loading.value = true;
+  try {
+    const [org, articlePermissions, channelPermissions, orgPermissions, channels, orgs] = await loadOrClose(
+      () =>
+        Promise.all([
+          queryOrg(id),
+          queryOrgArticlePermissions(id),
+          queryOrgChannelPermissions(id),
+          queryOrgPermPermissions(id, props.showGlobalData),
+          // 早先保存的角色里，组织的权限设置可能还不带栏目列表权限（channel:list），没有就不请求，栏目树为空
+          hasPermission('channel:list') ? queryChannelList() : [],
+          queryOrgList({ current: true }),
+        ]),
+      () => {
+        if (seq === loadSeq) emit('update:modelValue', false);
+      },
+    );
+    // 加载期间又打开了其它组织，丢弃过期结果
+    if (seq !== loadSeq) return;
+    bean.value = org;
+    values.value = { ...org };
+    // 三棵树都随新数据重建，是折叠、未勾选的，开关跟着复位
+    channelData.value = toTree(channels);
+    orgData.value = toTree(orgs);
+    articlePermissionExpand.value = false;
+    articlePermissionCheck.value = false;
+    channelPermissionExpand.value = false;
+    channelPermissionCheck.value = false;
+    orgPermissionExpand.value = false;
+    orgPermissionCheck.value = false;
+    await nextTick();
+    restoreCheckedKeys(articlePermissionTree.value, articlePermissions);
+    restoreCheckedKeys(channelPermissionTree.value, channelPermissions);
+    restoreCheckedKeys(orgPermissionTree.value, orgPermissions);
+  } finally {
+    if (seq === loadSeq) loading.value = false;
   }
-};
-const fetchArticlePermissions = async () => {
-  if (beanId.value != null) {
-    const articlePermissions = await queryOrgArticlePermissions(beanId.value);
-    articlePermissionTree.value?.setCheckedKeys([]);
-    articlePermissions.forEach((key: string) => {
-      articlePermissionTree.value?.setChecked(key, true, false);
-    });
-  }
-};
-const fetchChannelPermissions = async () => {
-  if (beanId.value != null) {
-    const channelPermissions = await queryOrgChannelPermissions(beanId.value);
-    channelPermissionTree.value?.setCheckedKeys([]);
-    channelPermissions.forEach((key: string) => {
-      channelPermissionTree.value?.setChecked(key, true, false);
-    });
-  }
-};
-const fetchOrgPermissions = async () => {
-  if (beanId.value != null) {
-    const orgPermissions = await queryOrgPermPermissions(beanId.value, props.showGlobalData);
-    orgPermissionTree.value?.setCheckedKeys([]);
-    orgPermissions.forEach((key: string) => {
-      orgPermissionTree.value?.setChecked(key, true, false);
-    });
-  }
-};
-const fetchChannelData = async () => {
-  channelData.value = toTree(await queryChannelList());
-};
-const fetchOrgData = async () => {
-  orgData.value = toTree(await queryOrgList({ current: true }));
 };
 
-watch(visible, async () => {
-  if (visible.value) {
-    fetchOrg();
-    fetchArticlePermissions();
-    fetchChannelPermissions();
-    fetchOrgPermissions();
-  }
-});
-onMounted(() => {
-  fetchChannelData();
-  fetchOrgData();
+watch(visible, () => {
+  if (visible.value) fetchPermissions();
 });
 
 const handleSubmit = () => {
@@ -141,7 +141,7 @@ const handleOrgPermission = () => {
   <!-- eslint-disable vue/no-v-html -->
   <el-drawer :title="$t('permissionSettings')" :with-header="false" :model-value="modelValue" :size="576" @update:model-value="(event) => $emit('update:modelValue', event)">
     <template #default>
-      <el-form ref="form" :model="values" :disabled="disabled" label-width="150px">
+      <el-form ref="form" v-loading="loading" :model="values" :disabled="disabled" label-width="150px">
         <el-tabs v-model="tabName">
           <el-tab-pane :label="$t('org.articlePermission')" name="articlePermission">
             <div class="border-t">
@@ -228,7 +228,7 @@ const handleOrgPermission = () => {
         </div>
         <div>
           <el-button @click="() => $emit('update:modelValue', false)">{{ $t('cancel') }}</el-button>
-          <el-button type="primary" :loading="buttonLoading" :disabled="disabled" @click="() => handleSubmit()">{{ $t('save') }}</el-button>
+          <el-button type="primary" :loading="buttonLoading" :disabled="disabled || loading" @click="() => handleSubmit()">{{ $t('save') }}</el-button>
         </div>
       </div>
     </template>
