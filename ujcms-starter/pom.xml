@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.ujcms</groupId>
 		<artifactId>ujcms</artifactId>
-		<version>13.1.5</version>
+		<version>13.2.0</version>
 	</parent>
 
 	<artifactId>ujcms-starter</artifactId>
@@ -140,6 +140,9 @@
 							<!-- 文件已直接写在 classes/META-INF 下，不再把输出目录追加为资源目录（否则 jar 里多一份 BOOT-INF/classes/THIRD-PARTY.txt） -->
 							<addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
 							<excludedScopes>test,provided,system</excludedScopes>
+							<!-- UJCMS 自身模块不是第三方材料：其许可证由根 pom 声明（GPL-3.0 / 商业授权），不进清单也不参与 includedLicenses 校验。
+							     插件把该正则拼成 <正则>:[^:]+ 再与 groupId:artifactId 整体匹配，故不能写结尾的 $ -->
+							<excludedGroups>^com\.ujcms</excludedGroups>
 							<sortArtifactByName>true</sortArtifactByName>
 							<useMissingFile>true</useMissingFile>
 							<missingFile>${project.basedir}/src/license/THIRD-PARTY.properties</missingFile>
@@ -185,6 +188,8 @@
 			     META-INF/sbom/application.cdx.json 打进 jar / war（actuator 的 /actuator/sbom 读它）。发行包与镜像随附的 bom.json 就是这份文件，
 			     由 .cnb/ent/.cnb.yml 与 Dockerfile 从 target/classes/META-INF/sbom/ 复制，不再单独生成 -->
 			<plugin>
+				<!-- m2e（VS Code / Eclipse）：IDE 内构建跳过，SBOM 只在打包时需要，不必每次增量构建都解析整棵依赖树 -->
+				<?m2e ignore?>
 				<groupId>org.cyclonedx</groupId>
 				<artifactId>cyclonedx-maven-plugin</artifactId>
 			</plugin>

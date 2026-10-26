@@ -29,10 +29,19 @@
           rememberMe: true,
           showPassword: false,
           submitting: false,
+          captchaRequired: false, cap: null,
+          async initCaptcha() {
+            // 同一 IP 登录失败超过“IP验证码次数”后 /login 要求验证码：组件以 data-hidden 把答案镜像到隐藏域随表单提交
+            try { this.captchaRequired = await window.request('GET', '${api}/captcha/is-display'); } catch (e) { this.captchaRequired = false; }
+            if (this.captchaRequired) {
+              this.$nextTick(() => { this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', hidden: true }); });
+            }
+          },
           async submit(ev) {
             if (this.submitting) return;
             this.submitting = true;
             try {
+              if (this.cap) await this.cap.answer();
               ev.target.querySelector('input[name=password]').value = await window.sm2Encrypt(this.password);
               ev.target.submit();
             } catch (e) {
@@ -42,6 +51,7 @@
           }
         }"
         @submit.prevent="submit"
+        x-init="initCaptcha()"
         class="space-y-4"
       >
         <div>
@@ -67,6 +77,11 @@
               <span class="size-4 inline-block">[@icon 'visibility-outline'/]</span>
             </button>
           </div>
+        </div>
+
+        <div x-show="captchaRequired" x-cloak>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">人机验证</label>
+          <div x-ref="captcha" data-captcha></div>
         </div>
 
         <label class="flex items-center gap-2 text-sm text-slate-600 select-none">

@@ -417,6 +417,7 @@
   "log.config.updateGrey": "Update global grey mode",
   "log.config.updateRegister": "Update global registration settings",
   "log.config.updateSecurity": "Update global security settings",
+  "log.config.updateCaptcha": "Update global captcha settings",
   "log.config.updateOauth": "Update global third-party login settings",
   "log.config.updateSms": "Update global SMS settings",
   "log.config.sendSms": "Send test SMS from global settings",

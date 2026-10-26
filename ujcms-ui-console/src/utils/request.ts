@@ -54,6 +54,8 @@ export interface ErrorInfo {
   path?: string;
   error?: string;
   exception?: string;
+  /** 5xx 错误编号（DisclosureErrorAttributes）：与服务器日志、模板管理「最近错误」中的编号一致 */
+  errorId?: string;
   trace?: string;
   timestamp?: Date;
   status?: number;
@@ -62,7 +64,7 @@ export interface ErrorInfo {
 /** 当前正在显示的微信接口错误提示，用于合并同一页面并发请求产生的相同提示 */
 let openWechatAlert: string | undefined;
 
-export const handleError = ({ timestamp, message, path, error, exception, trace, status }: ErrorInfo): void => {
+export const handleError = ({ timestamp, message, path, error, exception, errorId, trace, status }: ErrorInfo): void => {
   if (exception === 'com.ujcms.cms.core.web.support.SiteForbiddenException') {
     //没有当前站点权限，清空站点信息，刷新页面以获取默认站点
     useCurrentSiteStore().setCurrentSiteId(null);
@@ -101,6 +103,7 @@ export const handleError = ({ timestamp, message, path, error, exception, trace,
         h('p', { class: 'mt-2' }, path),
         h('p', { class: 'mt-2' }, message),
         h('p', { class: 'mt-2' }, exception),
+        errorId ? h('p', { class: 'mt-2' }, `${t('error.id')}${t('punct.colon')}${errorId}`) : null,
         h('pre', { class: 'mt-2' }, [h('code', { class: ['whitespace-pre-wrap'] }, trace)]),
       ]),
       customStyle: { maxWidth: '100%' },

@@ -5,7 +5,7 @@ import com.ujcms.cms.core.web.support.Directives;
 import com.ujcms.cms.ext.domain.Example;
 import com.ujcms.cms.ext.service.ExampleService;
 import com.ujcms.cms.ext.service.args.ExampleArgs;
-import com.ujcms.common.captcha.CaptchaTokenService;
+import com.ujcms.cms.core.component.CaptchaGuard;
 import com.ujcms.common.query.QueryUtils;
 import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
@@ -39,11 +39,11 @@ import static com.ujcms.common.db.MyBatis.springPage;
 // @RestController
 // @RequestMapping({API + "/example", FRONTEND_API + "/example"})
 public class ExampleController {
-    private final CaptchaTokenService captchaTokenService;
+    private final CaptchaGuard captchaGuard;
     private final ExampleService service;
 
-    public ExampleController(CaptchaTokenService captchaTokenService, ExampleService service) {
-        this.captchaTokenService = captchaTokenService;
+    public ExampleController(CaptchaGuard captchaGuard, ExampleService service) {
+        this.captchaGuard = captchaGuard;
         this.service = service;
     }
 
@@ -107,8 +107,10 @@ public class ExampleController {
     public ResponseEntity<Responses.Body> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "示例对象")
             @RequestBody @Valid ExampleParams params, HttpServletRequest request) {
-        if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
-            return Responses.failure(request, "error.captchaIncorrect");
+        String captchaError = captchaGuard.verify(request, CaptchaGuard.SCOPE_EXAMPLE, params.captchaToken,
+                params.captcha, params.getWebsite());
+        if (captchaError != null) {
+            return Responses.failure(request, captchaError);
         }
         Example example = new Example();
         Entities.copy(params, example);
@@ -124,6 +126,10 @@ public class ExampleController {
         private String captcha;
         @Schema(description = "验证码TOKEN")
         private String captchaToken;
+        /**
+         * 蜜罐字段。人不会填，非空即机器人
+         */
+        private String website;
 
         public String getCaptcha() {
             return captcha;
@@ -139,6 +145,14 @@ public class ExampleController {
 
         public void setCaptchaToken(String captchaToken) {
             this.captchaToken = captchaToken;
+        }
+
+        public String getWebsite() {
+            return website;
+        }
+
+        public void setWebsite(String website) {
+            this.website = website;
         }
     }
 }

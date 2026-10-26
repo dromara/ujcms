@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.owasp.html.PolicyFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -48,6 +49,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.ujcms.cms.core.component.CaptchaGuard;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.security.AdminAccessWindowFilter;
 import com.ujcms.cms.core.security.AdminIpWhitelistFilter;
@@ -194,9 +196,13 @@ public class SecurityConfig {
      */
     @Bean
     public FilterRegistrationBean<SecurityHeadersFilter> securityHeadersFilterRegistration(
-            SecurityProperties securityProperties) {
+            SecurityProperties securityProperties, ObjectProvider<CaptchaGuard> captchaGuard) {
+        // 后台 CSP 只放行当前选中的第三方验证码厂商的域名（docs/spec/captcha/plan.md）；ObjectProvider 延迟取用，避免启动期循环依赖
         FilterRegistrationBean<SecurityHeadersFilter> reg = new FilterRegistrationBean<>(
-                new SecurityHeadersFilter(securityProperties.isHttpsEnabled()));
+                new SecurityHeadersFilter(securityProperties.isHttpsEnabled(), () -> {
+                    CaptchaGuard guard = captchaGuard.getIfAvailable();
+                    return guard == null ? Map.of() : guard.cspSources();
+                }));
         reg.setOrder(Ordered.HIGHEST_PRECEDENCE + 100);
         reg.addUrlPatterns("/*");
         return reg;

@@ -21,14 +21,12 @@
     mailboxTypeId: '', type: '1',
     name: '', phone: '', email: '', address: '', title: '', text: '',
     agreePublished: false,
-    captcha: '', captchaToken: '', captchaImage: '',
+    cap: null,
     submitting: false, error: '',
     done: false, resultId: '', resultCode: '',
-    async refreshCaptcha() {
-      try {
-        const data = await window.request('GET', '${api}/captcha');
-        if (data) { this.captchaImage = 'data:image/png;base64,' + data.image; this.captchaToken = data.token; }
-      } catch (e) { /* 静默，提交时后端仍校验 */ }
+    initCaptcha() {
+      // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明
+      this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'mailbox' });
     },
     async submit() {
       if (this.submitting) return;
@@ -36,13 +34,15 @@
       this.submitting = true;
       try {
         await window.fetchCsrf();
+        const answer = await this.cap.answer();
         const body = {
           siteId: '${site.id?c}',
           type: parseInt(this.type, 10),
           name: this.name, phone: this.phone, email: this.email, address: this.address,
           title: this.title, text: this.text,
           agreePublished: this.agreePublished,
-          captcha: this.captcha, captchaToken: this.captchaToken,
+          captcha: answer.captcha, captchaToken: answer.captchaToken,
+          website: this.$refs.hp.value,
         };
         if (this.mailboxTypeId) body.mailboxTypeId = this.mailboxTypeId;
         const data = await window.request('POST', '${api}/mailbox', body);
@@ -53,17 +53,17 @@
           window.scrollTo({ top: 0 });
         } else {
           this.error = (data && data.message) || '提交失败，请稍后重试';
-          this.captcha = ''; this.refreshCaptcha();
+          this.cap.refresh();
         }
       } catch (e) {
         this.error = e.message || '提交失败，请稍后重试';
-        this.captcha = ''; this.refreshCaptcha();
+        this.cap.refresh();
       } finally {
         this.submitting = false;
       }
     }
   }"
-  x-init="refreshCaptcha()"
+  x-init="initCaptcha()"
 >
   <div class="flex flex-wrap justify-between items-baseline gap-2 border-b border-slate-200 pb-2">
     <h1 class="flex items-center gap-2 text-2xl font-bold font-display">
@@ -164,16 +164,9 @@
       <span>我同意本信件及答复内容公开选登（选登时姓名将作脱敏处理，不显示联系方式）</span>
     </label>
 
-    <div class="max-w-md">
-      <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码 <strong class="text-rose-600">*</strong></label>
-      <div class="flex gap-2">
-        <input id="captcha" type="text" required autocomplete="off" x-model="captcha"
-               class="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
-        <button type="button" @click="refreshCaptcha()" title="点击重新获取验证码" class="shrink-0">
-          <img :src="captchaImage || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"
-               alt="验证码" class="h-10 rounded border border-slate-300 cursor-pointer min-w-24 bg-slate-50">
-        </button>
-      </div>
+    <div class="max-w-md relative">
+      <div x-ref="captcha" data-captcha></div>
+      <input type="text" name="website" x-ref="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
     </div>
 
     <div class="pt-1">

@@ -10,6 +10,8 @@ import com.ujcms.cms.core.service.ModelService;
 import com.ujcms.cms.core.service.ShortMessageService;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.cms.core.support.UrlConstants;
+import com.ujcms.common.captcha.CaptchaProvider;
+import com.ujcms.common.captcha.CaptchaTokenService;
 import com.ujcms.common.file.FilesEx;
 import com.ujcms.common.security.Secures;
 import com.ujcms.common.sms.SmsError;
@@ -22,6 +24,7 @@ import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.LogicException;
 import org.apache.commons.lang3.StringUtils;
 import com.ujcms.cms.core.security.HtmlSanitizeService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,14 +49,17 @@ public class GlobalSettingsController {
     private final ModelService modelService;
     private final ShortMessageService shortMessageService;
     private final ConfigService service;
+    private final CaptchaTokenService captchaTokenService;
     private final Props props;
 
     public GlobalSettingsController(HtmlSanitizeService sanitizeService, ModelService modelService,
-                                    ShortMessageService shortMessageService, ConfigService service, Props props) {
+                                    ShortMessageService shortMessageService, ConfigService service,
+                                    CaptchaTokenService captchaTokenService, Props props) {
         this.sanitizeService = sanitizeService;
         this.modelService = modelService;
         this.shortMessageService = shortMessageService;
         this.service = service;
+        this.captchaTokenService = captchaTokenService;
         this.props = props;
     }
 
@@ -77,7 +84,8 @@ public class GlobalSettingsController {
         // 与类型化对象均不随 Config 序列化，请求体里必然为空——漏排除即“保存基础设置清空该项设置”
         Entities.copy(bean, config, "id", "uploadSettings", "securitySettings", "registerSettings", "smsSettings",
                 "emailSettings", "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings",
-                "packageStorageSettings", "aiSettings", "oauthSettings", "marketplaceSettings", "customsSettings");
+                "packageStorageSettings", "aiSettings", "oauthSettings", "marketplaceSettings", "customsSettings",
+                "captchaSettings");
         service.update(config);
         return Responses.ok();
     }
@@ -100,6 +108,50 @@ public class GlobalSettingsController {
         config.setRegister(bean);
         service.update(config);
         return Responses.ok();
+    }
+
+    @GetMapping("captcha")
+    @PreAuthorize("hasAnyAuthority('config:captcha:show','*')")
+    public CaptchaResult showCaptcha() {
+        Config.Captcha captcha = service.getUnique().getCaptcha();
+        // 可选类型：已注册且可见（工作量证明是互动场景的静默附加项，不是“验证码类型”）
+        List<String> types = captchaTokenService.types().stream().filter(type -> {
+            CaptchaProvider provider = captchaTokenService.provider(type);
+            return provider != null && provider.visible();
+        }).toList();
+        return new CaptchaResult(captcha.masked(), captcha.storedSecrets(), types);
+    }
+
+    @PutMapping("captcha")
+    @OperationLog(module = "config", operation = "updateCaptcha", type = OperationType.UPDATE)
+    @PreAuthorize("hasAnyAuthority('config:captcha:update','*')")
+    public ResponseEntity<Body> updateCaptcha(@RequestBody @Valid Config.Captcha bean) {
+        Config config = service.getUnique();
+        // 类型须为本发行版已注册的可见类型：社区版选不到厂商；pow 只能作为静默附加项
+        CaptchaProvider provider = captchaTokenService.provider(bean.getType());
+        if (provider == null || !provider.visible()) {
+            throw new Http400Exception("Captcha type not available: " + bean.getType());
+        }
+        // 写时合并：表单留空的密钥沿用库中原值（配合 showCaptcha 的“只写不回显”脱敏）
+        config.getCaptcha().fillStoredSecrets(bean);
+        // 选中的厂商须凭据齐全，否则出题即失败、所有互动表单都提交不了
+        if (bean.isVendor() && !bean.isVendorUsable(bean.getType())) {
+            throw new Http400Exception("Captcha provider '" + bean.getType() + "' is selected but its credentials are incomplete");
+        }
+        config.setCaptcha(bean);
+        service.update(config);
+        return Responses.ok();
+    }
+
+    /**
+     * 验证码设置表单数据：脱敏后的设置（可原样回传保存）、各厂商是否已存密钥、本发行版可选的类型。
+     *
+     * @param captcha       设置（密钥置空）
+     * @param storedSecrets 厂商代码 → 是否已存密钥
+     * @param types         可选类型代码（已注册且可见）
+     */
+    @Schema(name = "GlobalSettingsController.CaptchaResult", description = "验证码设置表单数据")
+    public record CaptchaResult(Config.Captcha captcha, Map<String, Boolean> storedSecrets, List<String> types) {
     }
 
     @GetMapping("sms")

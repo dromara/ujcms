@@ -412,6 +412,34 @@ public class User extends GeneratedUser implements UserDetails {
     }
 
     /**
+     * 注销账号（会员自助，{@code DELETE /api/settings/account}；docs/spec/membership/member-center.md §13）。
+     * <p>
+     * 行保留、状态置为已注销，个人信息就地抹除：评论、文章等引用 {@code user_id_} 的数据不悬空，
+     * 登录与好友 / 私信等处的 {@link #isCancelled()} 门禁照旧生效。用户名改为 {@code cancelled_<id>}：
+     * 原用户名释放给新注册者；以原用户名为主体的访问令牌、记住我令牌与会话再也查不到用户，
+     * 无需吊销名单。第三方登录绑定由 {@code UserService#cancel} 一并删除。
+     * 保留 ID、所属组 / 组织、注册时间与登录统计；登录日志、操作日志按审计要求留存。
+     */
+    public void cancel() {
+        setStatus(STATUS_CANCELLED);
+        setUsername(CANCELLED_USERNAME_PREFIX + getId());
+        setPassword(null);
+        setEmail(null);
+        setMobile(null);
+        setAlias(null);
+        setNickname(CANCELLED_NICKNAME);
+        setRealName(null);
+        setGender(GENDER_SECRET);
+        setAvatar(null);
+        setCustoms(new HashMap<>(0));
+        UserExt userExt = getExt();
+        userExt.setBirthday(null);
+        userExt.setLocation(null);
+        userExt.setBio(null);
+        userExt.setHistoryPassword(null);
+    }
+
+    /**
      * 是否正常状态
      */
     @Schema(description = "是否正常状态")
@@ -660,6 +688,18 @@ public class User extends GeneratedUser implements UserDetails {
      * 用户状态：已注销
      */
     public static final short STATUS_CANCELLED = 3;
+    /**
+     * 注销后的用户名前缀，其后接用户 ID（{@link #cancel()}）
+     */
+    public static final String CANCELLED_USERNAME_PREFIX = "cancelled_";
+    /**
+     * 注销后的昵称。评论等处按“昵称，缺省用户名”署名，于是显示为中性标签而非占位用户名
+     */
+    public static final String CANCELLED_NICKNAME = "已注销用户";
+    /**
+     * 性别：保密
+     */
+    public static final short GENDER_SECRET = 0;
 
     /**
      * 用户类型：系统管理员

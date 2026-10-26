@@ -3,12 +3,13 @@ import { onMounted, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { LocationQueryValue } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { User, Lock, Picture } from '@element-plus/icons-vue';
+import { User, Lock } from '@element-plus/icons-vue';
 
 import { sm2Encrypt } from '@/utils/sm';
 import { removeAccessToken, removeRefreshToken } from '@/utils/auth';
-import { queryClientPublicKey, queryIsDisplayCaptcha, queryCaptcha, tryCaptcha } from '@/api/login';
+import { queryClientPublicKey, queryIsDisplayCaptcha } from '@/api/login';
 import { login } from '@/stores/useCurrentUser';
+import CaptchaWidget from '@/components/CaptchaWidget.vue';
 import ChangePassword from '@/views/ChangePassword.vue';
 import SecondFactorDialog from '@/views/SecondFactorDialog.vue';
 
@@ -17,8 +18,8 @@ const form = ref<any>();
 const bean = ref<any>({});
 const focus = ref<any>();
 const isDisplayCaptcha = ref<boolean>(false);
-const captchaData = ref<string>();
-const captchaToken = ref<string>();
+// 共用的人机验证组件（/static/captcha.js）：按全局设置出滑块 / 字符 / 厂商题，答案在登录时取
+const captchaWidget = ref<InstanceType<typeof CaptchaWidget>>();
 const error = ref<string>();
 const buttonLoading = ref<boolean>(false);
 const redirect = ref<string | null>();
@@ -43,16 +44,11 @@ if (envMode === 'development') {
   bean.value = { username: 'admin', password: 'password' };
 }
 
-const fetchCaptcha = async () => {
-  const { token, image } = await queryCaptcha();
-  captchaData.value = 'data:image/png;base64,' + image;
-  captchaToken.value = token;
-};
-
+// 需要验证码时组件挂载即出题；已挂载时换一题（登录失败会消费令牌）
 const fetchIsDisplayCaptcha = async () => {
   isDisplayCaptcha.value = await queryIsDisplayCaptcha();
   if (isDisplayCaptcha.value) {
-    fetchCaptcha();
+    captchaWidget.value?.refresh();
   }
 };
 
@@ -87,9 +83,19 @@ const handleLogin = () => {
     if (!valid) return;
     buttonLoading.value = true;
     try {
+      let answer: { captcha?: string; captchaToken?: string } = {};
+      if (isDisplayCaptcha.value) {
+        try {
+          answer = (await captchaWidget.value?.answer()) ?? {};
+        } catch (e: any) {
+          // 可见题未完成：组件已高亮，提示后留在登录页
+          error.value = e?.message;
+          return;
+        }
+      }
       const publicKey = await queryClientPublicKey();
       const password = sm2Encrypt(bean.value.password, publicKey);
-      const data = await login({ ...bean.value, password, captchaToken: captchaToken.value });
+      const data = await login({ ...bean.value, password, captcha: answer.captcha, captchaToken: answer.captchaToken });
       // 需先修改密码（首次登录强制改密 1010 / 密码已过期 1011）：弹出修改密码对话框，弹窗内提示原因
       if (data.status === 1010 || data.status === 1011) {
         error.value = undefined;
@@ -172,35 +178,8 @@ const handlePasswordChanged = ({ username, password }: { username: string; passw
           show-password
         />
       </el-form-item>
-      <el-form-item
-        v-if="isDisplayCaptcha"
-        prop="captcha"
-        :rules="[
-          { required: true, message: () => $t('v.required') },
-          {
-            asyncValidator: async (rule, value, callback) => {
-              if (captchaToken == null || !(await tryCaptcha(captchaToken, value))) {
-                callback($t('captchaIncorrect'));
-                return;
-              }
-              callback();
-            },
-            trigger: 'blur',
-          },
-        ]"
-        class="captcha"
-      >
-        <el-input v-model="bean.captcha" name="captcha" maxlength="10" :placeholder="$t('captcha')" :prefix-icon="Picture">
-          <template #append>
-            <el-image
-              :src="captchaData"
-              style="height: 30px; margin-right: 1px"
-              class="rounded-r cursor-pointer"
-              :title="$t('clickToRetrieveCaptcha')"
-              @click="() => fetchCaptcha()"
-            />
-          </template>
-        </el-input>
+      <el-form-item v-if="isDisplayCaptcha" class="captcha">
+        <captcha-widget ref="captchaWidget" />
       </el-form-item>
       <div>
         <el-button type="primary" native-type="submit" class="w-full" :loading="buttonLoading" @click.prevent="handleLogin">{{ $t('login') }}</el-button>
@@ -221,7 +200,7 @@ const handlePasswordChanged = ({ username, password }: { username: string; passw
 </template>
 
 <style lang="scss" scoped>
-:deep(.captcha .el-input-group__append) {
-  padding: 0;
+:deep(.captcha .el-form-item__content) {
+  display: block;
 }
 </style>

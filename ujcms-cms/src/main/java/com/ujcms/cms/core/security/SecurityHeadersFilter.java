@@ -3,7 +3,10 @@ package com.ujcms.cms.core.security;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -133,13 +136,23 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
 
     /** 是否发送 HSTS 响应头（{@code ujcms.security.https-enabled}）。 */
     private final boolean hstsEnabled;
+    /**
+     * 后台 CSP 的额外来源：当前生效的第三方验证码厂商的脚本、接口、iframe 域名（CSP 指令名 → 来源列表），
+     * 由 {@code CaptchaGuard#cspSources()} 按全局设置给出；自托管验证码为空。只放行选中的那一家
+     */
+    private final Supplier<Map<String, List<String>>> cspSources;
 
     public SecurityHeadersFilter() {
-        this(false);
+        this(false, Map::of);
     }
 
     public SecurityHeadersFilter(boolean hstsEnabled) {
+        this(hstsEnabled, Map::of);
+    }
+
+    public SecurityHeadersFilter(boolean hstsEnabled, Supplier<Map<String, List<String>>> cspSources) {
         this.hstsEnabled = hstsEnabled;
+        this.cspSources = cspSources;
     }
 
     @Override
@@ -168,7 +181,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
             case PUBLIC_LONG_CACHE -> response.setHeader("Cache-Control", CACHE_PUBLIC_SITEMAP);
             case BACKOFFICE -> {
                 response.setHeader("Cache-Control", CACHE_NO_STORE);
-                response.setHeader("Content-Security-Policy", backofficeCsp());
+                response.setHeader("Content-Security-Policy", backofficeCsp(cspSources.get()));
             }
             case PRIVATE -> response.setHeader("Cache-Control", CACHE_NO_STORE);
         }
@@ -269,14 +282,44 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
      * inherit {@code default-src 'self'} and the flow designer renders empty glyph boxes.
      */
     static String backofficeCsp() {
-        return "default-src 'self'; "
-                + "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                + "style-src 'self' 'unsafe-inline'; "
-                + "img-src 'self' data: https:; "
-                + "font-src 'self' data:; "
-                + "connect-src 'self'; "
-                + "object-src 'none'; "
-                + "base-uri 'self'";
+        return backofficeCsp(Map.of());
+    }
+
+    /**
+     * @param extra 额外来源：CSP 指令名 → 来源列表（第三方验证码厂商）。未在基础策略中的指令（如 {@code frame-src}）
+     *              追加为新指令；来源只接受 {@code https://} 开头的域名，其它一律忽略
+     */
+    static String backofficeCsp(Map<String, List<String>> extra) {
+        Map<String, String> directives = new LinkedHashMap<>();
+        directives.put("default-src", "'self'");
+        directives.put("script-src", "'self' 'unsafe-inline' 'unsafe-eval'");
+        directives.put("style-src", "'self' 'unsafe-inline'");
+        directives.put("img-src", "'self' data: https:");
+        directives.put("font-src", "'self' data:");
+        directives.put("connect-src", "'self'");
+        directives.put("object-src", "'none'");
+        directives.put("base-uri", "'self'");
+        for (Map.Entry<String, List<String>> entry : extra.entrySet()) {
+            String name = entry.getKey();
+            if (!name.matches("[a-z-]+-src")) {
+                continue;
+            }
+            StringBuilder sb = new StringBuilder(directives.getOrDefault(name, "'self'"));
+            for (String source : entry.getValue()) {
+                if (source != null && source.matches("https://[A-Za-z0-9.*-]+(:\\d+)?")) {
+                    sb.append(' ').append(source);
+                }
+            }
+            directives.put(name, sb.toString());
+        }
+        StringBuilder csp = new StringBuilder();
+        for (Map.Entry<String, String> entry : directives.entrySet()) {
+            if (csp.length() > 0) {
+                csp.append("; ");
+            }
+            csp.append(entry.getKey()).append(' ').append(entry.getValue());
+        }
+        return csp.toString();
     }
 
     private String generateNonce() {

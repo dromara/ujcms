@@ -98,11 +98,14 @@ public class TemplateMemberAccessPolicy implements MemberAccessPolicy {
                 "getAi",
                 // 第三方登录设置含各服务商的应用密钥；模板只读 config.oauthProviders（可用服务商代码，无凭据）
                 "getOauth",
+                // 验证码设置含各厂商密钥；浏览器只经 GET /api/captcha 拿到出题所需的公开标识
+                "getCaptcha",
                 // 落库前 SM4-GCM 加密、读取时由 Sm4StringTypeHandler 解密的原文 JSON
                 "getSmsSettings", "getEmailSettings",
                 "getUploadStorageSettings", "getHtmlStorageSettings", "getTemplateStorageSettings",
                 "getAiSettings",
                 "getOauthSettings",
+                "getCaptchaSettings",
                 TO_STRING));
         // 凭据子对象自身：纵深防御。上面已断了 config 这条路，这里保证即便日后有别的代码
         // 把 Storage/Sms/Email/Ai.Provider 实例塞进数据模型，密钥依然不可读。
@@ -114,6 +117,11 @@ public class TemplateMemberAccessPolicy implements MemberAccessPolicy {
                 "getUsername", "getPassword"));
         denied.put(Config.Ai.Provider.class, methods("getApiKey"));
         denied.put(Config.Oauth.Client.class, methods("getClientSecret"));
+        denied.put(Config.Captcha.Geetest.class, methods("getCaptchaKey"));
+        denied.put(Config.Captcha.Tencent.class, methods("getAppSecretKey", "getSecretKey"));
+        denied.put(Config.Captcha.Aliyun.class, methods("getAccessKeySecret"));
+        denied.put(Config.Captcha.Yidun.class, methods("getSecretKey"));
+        denied.put(Config.Captcha.Turnstile.class, methods("getSecretKey"));
         // 站点 GEO 设置：百度推送接口地址带搜索资源平台 token（凭据），原文 JSON 同样含它；
         // 模板只需 site.geo.jsonLdEnabled 一类开关，整段原文没有正当模板用途
         denied.put(Site.Geo.class, methods("getBaiduPushUrl"));

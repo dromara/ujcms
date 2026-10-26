@@ -15,6 +15,8 @@ export const copyWebFileTemplate = async (dir: string, names: string[], destDir:
 export const moveWebFileTemplate = async (dir: string, names: string[], destDir: string): Promise<any> =>
   (await axios.post('/backend/ext/web-file-template/move', { dir, names, destDir })).data;
 export const deleteWebFileTemplate = async (data: string[]): Promise<any> => (await axios.post('/backend/ext/web-file-template?_method=delete', data)).data;
+// 最近模板错误（进程内环形缓冲，按当前站点过滤，重启清空）：模板管理「最近错误」
+export const queryWebFileTemplateErrors = async (): Promise<any> => (await axios.get('/backend/ext/web-file-template/errors')).data;
 // 模板编辑历史（template-history / design-review P3-6）：id（单文件）与 dir（目录子树，含已删除文件）二选一
 export const queryWebFileTemplateHistory = async (params: { id?: string; dir?: string }): Promise<any> =>
   (await axios.get('/backend/ext/web-file-template/history', { params })).data;

@@ -11,6 +11,7 @@
     { "id": "articleImport", "tier": 1, "permissions": ["article:import"] },
     { "id": "recommend", "tier": 1, "permissions": [] },
     { "id": "nationalDatabase", "tier": 1, "permissions": [] },
+    { "id": "captchaProviders", "tier": 1, "permissions": [] },
     { "id": "internalPush", "tier": 2, "permissions": ["article:internalPush"] },
     { "id": "aiProvider", "tier": 2, "permissions": ["config:ai:show", "config:ai:update", "siteSettings:ai:update", "aiLog:page"], "route": "/log/ai-log" },
     { "id": "articleTranslation", "tier": 2, "permissions": ["article:createTranslation", "ai:translate"] },

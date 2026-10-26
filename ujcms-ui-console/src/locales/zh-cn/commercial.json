@@ -24,6 +24,8 @@
   "commercial.feature.dataMigration.description": "从其它系统的数据库按 SQL 迁移栏目与文章数据，并维护新旧主键对应关系；需在配置中开启 ujcms.data-migration-enabled。",
   "commercial.feature.securitySettings": "安全设置",
   "commercial.feature.securitySettings.description": "密码强度与有效期策略、登录失败锁定，以及一键应用等保三级推荐策略。",
+  "commercial.feature.captchaProviders": "第三方验证码",
+  "commercial.feature.captchaProviders.description": "把人机验证交给极验、腾讯云、阿里云、网易易盾或 Cloudflare Turnstile 的风控引擎：填入凭据并选为验证码类型即可。",
   "commercial.feature.docImport": "Word 文档导入",
   "commercial.feature.docImport.description": "在文章编辑器中导入 Word 文档（转换为 HTML），以及素材库文档转换。",
   "commercial.feature.articleImport": "文章批量导入",

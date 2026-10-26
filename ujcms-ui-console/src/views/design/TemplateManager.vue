@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n';
 import { currentUser, perm } from '@/stores/useCurrentUser';
 import { queryCurrentSite } from '@/api/system';
 import { queryThemeList, type ThemeInfo } from '@/api/theme';
-import { queryPreviewUrls } from '@/api/composition';
-import { newTabPreviewBase } from '@/composables/usePreviewBridge';
+import dayjs from 'dayjs';
+import { queryPreviewUrls, type PreviewUrlsResult } from '@/api/composition';
 import { openThemePreviewAt } from '@/views/design/themeUi';
 import {
   uploadWebFileTemplateUrl,
@@ -21,6 +21,7 @@ import {
   moveWebFileTemplate,
   deleteWebFileTemplate,
   queryWebFileTemplateList,
+  queryWebFileTemplateErrors,
 } from '@/api/file';
 import WebFileList from '@/views/file/WebFileList.vue';
 import TemplateWorkbench from './template/TemplateWorkbench.vue';
@@ -47,7 +48,6 @@ const ready = ref<boolean>(false);
 
 // 主题上下文浏览根：/{siteId}/{theme}（Site.getThemeKey 同构）——操作员不接触站点 ID
 const browseRoot = computed<string>(() => (site.value != null && selectedTheme.value ? `/${site.value.id}/${selectedTheme.value}` : ''));
-const selectedThemeInfo = computed<ThemeInfo | undefined>(() => themes.value.find((item) => item.themeName === selectedTheme.value));
 
 // 深链（/design/template?theme={name}，主题画廊/详情的「模板」入口）：命中已装主题即选中
 const applyThemeQuery = () => {
@@ -120,6 +120,25 @@ onBeforeRouteLeave(async () => {
   }
 });
 
+// ----- 最近模板错误（template-error-disclosure D5）：进程内环形缓冲，按当前站点过滤，重启清空 -----
+const errorsVisible = ref(false);
+const errorsLoading = ref(false);
+const templateErrors = ref<any[]>([]);
+const fetchTemplateErrors = async () => {
+  errorsLoading.value = true;
+  try {
+    templateErrors.value = await queryWebFileTemplateErrors();
+  } finally {
+    errorsLoading.value = false;
+  }
+};
+const openTemplateErrors = async () => {
+  errorsVisible.value = true;
+  await fetchTemplateErrors();
+};
+const errorLocation = (row: any): string =>
+  row.line != null ? (row.column != null ? `${row.line}:${row.column}` : String(row.line)) : '';
+
 // ----- 模板预览（preview-url-resolver P3）：主题与目录为外壳显式上下文，仅 templates/ 直下的 .html -----
 // 解析端点权限面：pageRegion:show 或 theme:list 皆放行（两者俱无才禁用）
 const previewDenied = computed<boolean>(() => perm('pageRegion:show') && perm('theme:list'));
@@ -132,27 +151,43 @@ const templateNameOf = (row: any): string | undefined => {
   const name = id.slice(prefix.length, -'.html'.length);
   return name.includes('/') ? undefined : name;
 };
+// 无候选时的提示（P4 原因码）：缺内容说缺哪类、层级不足、功能未启用说哪项、没有页面渲染该模板
+const previewSubject = (prefix: string, subject: string | null): string => {
+  const key = `${prefix}.${subject ?? ''}`;
+  return subject != null && t(key) !== key ? t(key) : t('webFile.preview.subject.content');
+};
+const previewEmptyMessage = (result: PreviewUrlsResult): string => {
+  switch (result.emptyReason) {
+    case 'no-content':
+      return t('webFile.preview.noContent', { subject: previewSubject('webFile.preview.subject', result.emptySubject) });
+    case 'tier-locked':
+      return t('webFile.preview.tierLocked');
+    case 'disabled':
+      return t('webFile.preview.disabled', { feature: previewSubject('webFile.preview.feature', result.emptySubject) });
+    default:
+      return t('webFile.preview.unsupported');
+  }
+};
 const handlePreview = async (row: any) => {
   const template = templateNameOf(row);
   if (template == null || selectedTheme.value == null) return;
   previewingId.value = row.id;
   try {
     const result = await queryPreviewUrls({ template, limit: 1 });
-    const path = result.candidates[0]?.url;
-    if (path == null) {
-      // 无候选：非页面模板（布局变体未被任何实体命中 / 表单模板无数据行等）
-      ElMessage.info(t('webFile.preview.noCandidate'));
+    const candidate = result.candidates[0];
+    if (candidate == null) {
+      ElMessage.info(previewEmptyMessage(result));
       return;
     }
-    if (selectedThemeInfo.value?.active !== true) {
-      // 非活动主题：以 ?_theme= 候选主题渲染试看打开（需预览令牌）
-      try {
-        await openThemePreviewAt(selectedTheme.value, path);
-      } catch {
-        ElMessage.error(t('theme.preview.tokenError'));
+    // 活动与非活动主题一律以 ?_theme=<主题>&_ptoken= 打开（template-error-disclosure D6）：预览令牌携带操作员身份，
+    // 既让需会员登录的页面可开，也让模板错误以带编号的细节内联呈现（匿名访客只见通用错误页）
+    try {
+      await openThemePreviewAt(selectedTheme.value, candidate.url);
+      if (candidate.loginRequired) {
+        ElMessage.info(t('webFile.preview.loginRequiredOpened'));
       }
-    } else {
-      window.open(`${newTabPreviewBase}${path}`, '_blank');
+    } catch {
+      ElMessage.error(t('theme.preview.tokenError'));
     }
   } finally {
     previewingId.value = undefined;
@@ -176,7 +211,8 @@ const handlePreview = async (row: any) => {
               </el-option>
             </el-select>
           </template>
-          <el-checkbox v-if="currentUser.globalPermission" v-model="rawMode" class="!ml-auto" :label="$t('webFile.template.rawMode')" :border="true" />
+          <el-button v-if="perm('webFileTemplate:list')" class="!ml-auto" @click="() => openTemplateErrors()">{{ $t('webFile.errors.recent') }}</el-button>
+          <el-checkbox v-if="currentUser.globalPermission" v-model="rawMode" :label="$t('webFile.template.rawMode')" :border="true" />
         </div>
         <web-file-list
           v-if="rawMode || browseRoot"
@@ -228,5 +264,27 @@ const handlePreview = async (row: any) => {
         @close="() => handleWorkbenchClose()"
       />
     </template>
+    <el-dialog v-model="errorsVisible" :title="$t('webFile.errors.title')" width="80%" top="5vh">
+      <div class="mb-3 flex items-start gap-2 text-sm text-gray-500">
+        <span class="flex-1">{{ $t('webFile.errors.hint') }}</span>
+        <el-button size="small" :loading="errorsLoading" @click="() => fetchTemplateErrors()">{{ $t('refresh') }}</el-button>
+      </div>
+      <el-table v-loading="errorsLoading" :data="templateErrors" :empty-text="$t('webFile.errors.empty')" max-height="60vh">
+        <el-table-column :label="$t('webFile.errors.time')" width="170">
+          <template #default="{ row }">{{ dayjs(row.time).format('YYYY-MM-DD HH:mm:ss') }}</template>
+        </el-table-column>
+        <el-table-column :label="$t('webFile.errors.id')" prop="id" width="110" />
+        <el-table-column :label="$t('webFile.errors.template')" prop="template" min-width="220" show-overflow-tooltip />
+        <el-table-column :label="$t('webFile.errors.location')" width="90">
+          <template #default="{ row }">{{ errorLocation(row) }}</template>
+        </el-table-column>
+        <el-table-column :label="$t('webFile.errors.path')" prop="path" min-width="160" show-overflow-tooltip />
+        <el-table-column :label="$t('webFile.errors.message')" min-width="360">
+          <template #default="{ row }">
+            <pre class="m-0 whitespace-pre-wrap break-all font-mono text-xs">{{ row.message }}</pre>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>

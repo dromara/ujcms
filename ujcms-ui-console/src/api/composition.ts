@@ -84,20 +84,41 @@ export const previewToken = async (): Promise<PreviewTokenResult> =>
   (await axios.get('/backend/core/composition/preview-token')).data;
 
 // 代表性预览地址（preview-url-resolver §4.1）：给定（页面, [变体], [栏目], [q]）产出候选 URL。
-// 构建器默认路径 / 路径选择器 / 范围自动寻址的数据源；emptyReason: null | 'no-content' | 'no-manifest'。
-// page 与 template 二选一：template 按模板名反查（P3 模板列表预览按钮——内置固定路由表 + FormType
-// 反查 + 清单正向绑定）
+// 构建器默认路径 / 路径选择器 / 范围自动寻址的数据源。
+// page 与 template 二选一：template 按模板名反查（P3 模板列表预览按钮——清单正向绑定 + 内置固定路由表
+// + 实例页来源 + FormType 反查；P4 无候选时带原因码 emptyReason 与主体 emptySubject）
+export type PreviewUrlKind =
+  | 'fixed'
+  | 'channel'
+  | 'article'
+  | 'topic'
+  | 'form'
+  | 'tag'
+  | 'vote'
+  | 'messageBoard'
+  | 'user'
+  | 'survey'
+  | 'mailbox'
+  | 'interview';
 export interface PreviewUrlCandidate {
-  kind: 'fixed' | 'channel' | 'article' | 'topic' | 'form';
+  kind: PreviewUrlKind;
   label: string;
   url: string;
   entityId: string | null;
   template: string | null;
   variant: string | null;
+  /** 页面需会员登录（isAuthenticated 门禁）：匿名打开会被送去登录页，须以预览令牌身份打开 */
+  loginRequired: boolean;
 }
+/**
+ * 空态原因：no-content 缺内容（emptySubject 说明缺哪类）；no-manifest 活动主题未声明该页面（仅页面名解析）；
+ * tier-locked 页面由更高版本渲染；disabled 所属功能未启用（emptySubject 说明哪项）；unsupported 没有页面渲染该模板
+ */
+export type PreviewEmptyReason = 'no-content' | 'no-manifest' | 'tier-locked' | 'disabled' | 'unsupported';
 export interface PreviewUrlsResult {
   candidates: PreviewUrlCandidate[];
-  emptyReason: 'no-content' | 'no-manifest' | null;
+  emptyReason: PreviewEmptyReason | null;
+  emptySubject: string | null;
 }
 export const queryPreviewUrls = async (params: {
   page?: string;

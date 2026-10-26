@@ -35,6 +35,8 @@ import {
   updateConfigGrey,
   queryConfigOauth,
   updateConfigOauth,
+  queryConfigCaptcha,
+  updateConfigCaptcha,
 } from '@/api/config';
 import { htmlAllHome } from '@/api/content';
 import { queryConfigAi, updateConfigAi, testConfigAi, testConfigAiMt } from '@/api/ai';
@@ -44,6 +46,7 @@ import { useSysConfigStore } from '@/stores/sysConfigStore';
 import LabelTip from '@/components/LabelTip.vue';
 import FieldItem from '@/views/config/components/FieldItem.vue';
 import OauthProviderCard from '@/views/config/components/OauthProviderCard.vue';
+import CaptchaWidget from '@/components/CaptchaWidget.vue';
 import ThemeColorSwatches from '@/components/ThemeColorSwatches.vue';
 import { enumParam, useRouteState } from '@/composables/useRouteState';
 import { useSettingsFieldFocus } from './settingsFocus';
@@ -72,6 +75,15 @@ const handleCopy = async (text?: string) => {
   } catch {
     ElMessage.error(t('error.title'));
   }
+};
+
+// 验证码页：设置（密钥只写不回显）、各厂商是否已存密钥、本发行版可选的类型；厂商选项按注册表顺序展示，
+// 社区版带锁（isShowTier(1) 展示、commercialTier < 1 禁用），商业版只启用已注册的厂商
+const CAPTCHA_VENDORS = ['geetest', 'tencent', 'aliyun', 'yidun', 'turnstile'];
+const captchaPreviewKey = ref<number>(0);
+const fetchConfigCaptcha = async () => {
+  const { captcha, storedSecrets, types } = await queryConfigCaptcha();
+  return { ...captcha, storedSecrets, types };
 };
 
 // Long 字段序列化为字符串，el-input-number 需要数字
@@ -123,6 +135,8 @@ const switchType = async () => {
     values.value = await queryConfigGrey();
   } else if (type.value === 'oauth') {
     values.value = await queryConfigOauth();
+  } else if (type.value === 'captcha') {
+    values.value = await fetchConfigCaptcha();
   } else if (type.value === 'uploadStorage') {
     values.value = await queryUploadStorage();
   } else if (type.value === 'htmlStorage') {
@@ -196,6 +210,11 @@ const handleSubmit = () => {
         await updateConfigOauth(values.value);
         // 重新读取：应用密钥只写不回显，保存后输入框清空，“库中已存密钥”的状态随之更新
         values.value = await queryConfigOauth();
+      } else if (type.value === 'captcha') {
+        await updateConfigCaptcha(values.value);
+        values.value = await fetchConfigCaptcha();
+        // 预览组件按已保存的设置出题：保存后重建
+        captchaPreviewKey.value++;
       } else if (type.value === 'uploadStorage') {
         await updateUploadStorage(values.value);
       } else if (type.value === 'htmlStorage') {
@@ -777,6 +796,203 @@ const handleTestMt = async (engine: string) => {
                 <template #label><label-tip message="config.security.ssrfWhiteList" help /></template>
                 <el-input v-model="values.ssrfWhiteList" :rows="12" type="textarea" />
               </el-form-item>
+            </el-col>
+          </el-row>
+        </template>
+        <template v-else-if="type === 'captcha'">
+          <!-- 切换页签时 values 在请求返回前仍是上一页签的数据：可选类型列表就绪后才渲染。密钥只写不回显（同第三方登录） -->
+          <el-row v-if="values.types">
+            <el-col :span="24">
+              <el-form-item prop="type" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="config.captcha.type" help /></template>
+                <div class="w-full">
+                  <el-radio-group v-model="values.type">
+                    <el-radio value="slider">{{ $t('config.captcha.type.slider') }}</el-radio>
+                    <el-radio value="char">{{ $t('config.captcha.type.char') }}</el-radio>
+                    <template v-if="isShowTier(1)">
+                      <el-radio
+                        v-for="vendor in CAPTCHA_VENDORS"
+                        :key="vendor"
+                        :value="vendor"
+                        :disabled="currentUser.commercialTier < 1 || !values.types.includes(vendor)"
+                      >
+                        {{ $t(`config.captcha.type.${vendor}`) }}
+                      </el-radio>
+                    </template>
+                  </el-radio-group>
+                  <div v-if="currentUser.commercialTier < 1" class="text-xs text-gray-secondary leading-5">{{ $t('config.captcha.vendorsLocked') }}</div>
+                </div>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="silentSubmits" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="config.captcha.silentSubmits" help /></template>
+                <el-input-number v-model="values.silentSubmits" :min="0" :max="100" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="powDifficulty" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="config.captcha.powDifficulty" help /></template>
+                <el-input-number v-model="values.powDifficulty" :min="10" :max="24" :disabled="values.silentSubmits <= 0" />
+              </el-form-item>
+            </el-col>
+            <el-col v-if="values.type === 'geetest'" :span="24">
+              <el-divider content-position="left">{{ $t('config.captcha.type.geetest') }}</el-divider>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item prop="geetest.captchaId" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.geetest.captchaId" /></template>
+                    <el-input v-model="values.geetest.captchaId" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="geetest.captchaKey" :rules="{ required: !values.storedSecrets?.geetest, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.geetest.captchaKey" /></template>
+                    <el-input
+                      v-model="values.geetest.captchaKey"
+                      maxlength="200"
+                      show-password
+                      :placeholder="values.storedSecrets?.geetest ? $t('config.secretKeepBlank') : undefined"
+                    ></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-col>
+            <el-col v-if="values.type === 'tencent'" :span="24">
+              <el-divider content-position="left">{{ $t('config.captcha.type.tencent') }}</el-divider>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item prop="tencent.appId" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.tencent.appId" /></template>
+                    <el-input v-model="values.tencent.appId" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="tencent.appSecretKey" :rules="{ required: !values.storedSecrets?.tencent, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.tencent.appSecretKey" /></template>
+                    <el-input
+                      v-model="values.tencent.appSecretKey"
+                      maxlength="200"
+                      show-password
+                      :placeholder="values.storedSecrets?.tencent ? $t('config.secretKeepBlank') : undefined"
+                    ></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="tencent.secretId" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.tencent.secretId" /></template>
+                    <el-input v-model="values.tencent.secretId" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="tencent.secretKey" :rules="{ required: !values.storedSecrets?.tencent, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.tencent.secretKey" /></template>
+                    <el-input
+                      v-model="values.tencent.secretKey"
+                      maxlength="200"
+                      show-password
+                      :placeholder="values.storedSecrets?.tencent ? $t('config.secretKeepBlank') : undefined"
+                    ></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-col>
+            <el-col v-if="values.type === 'aliyun'" :span="24">
+              <el-divider content-position="left">{{ $t('config.captcha.type.aliyun') }}</el-divider>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item prop="aliyun.accessKeyId" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.aliyun.accessKeyId" /></template>
+                    <el-input v-model="values.aliyun.accessKeyId" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="aliyun.accessKeySecret" :rules="{ required: !values.storedSecrets?.aliyun, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.aliyun.accessKeySecret" /></template>
+                    <el-input
+                      v-model="values.aliyun.accessKeySecret"
+                      maxlength="200"
+                      show-password
+                      :placeholder="values.storedSecrets?.aliyun ? $t('config.secretKeepBlank') : undefined"
+                    ></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="aliyun.sceneId" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.aliyun.sceneId" /></template>
+                    <el-input v-model="values.aliyun.sceneId" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="aliyun.prefix" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.aliyun.prefix" /></template>
+                    <el-input v-model="values.aliyun.prefix" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="aliyun.region" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.aliyun.region" /></template>
+                    <el-select v-model="values.aliyun.region" class="w-full">
+                      <el-option v-for="n in ['cn', 'sgp']" :key="n" :value="n" :label="$t(`config.captcha.aliyun.region.${n}`)" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-col>
+            <el-col v-if="values.type === 'yidun'" :span="24">
+              <el-divider content-position="left">{{ $t('config.captcha.type.yidun') }}</el-divider>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item prop="yidun.captchaId" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.yidun.captchaId" /></template>
+                    <el-input v-model="values.yidun.captchaId" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="yidun.secretId" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.yidun.secretId" /></template>
+                    <el-input v-model="values.yidun.secretId" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="yidun.secretKey" :rules="{ required: !values.storedSecrets?.yidun, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.yidun.secretKey" /></template>
+                    <el-input
+                      v-model="values.yidun.secretKey"
+                      maxlength="200"
+                      show-password
+                      :placeholder="values.storedSecrets?.yidun ? $t('config.secretKeepBlank') : undefined"
+                    ></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-col>
+            <el-col v-if="values.type === 'turnstile'" :span="24">
+              <el-divider content-position="left">{{ $t('config.captcha.type.turnstile') }}</el-divider>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item prop="turnstile.siteKey" :rules="{ required: true, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.turnstile.siteKey" /></template>
+                    <el-input v-model="values.turnstile.siteKey" maxlength="100"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item prop="turnstile.secretKey" :rules="{ required: !values.storedSecrets?.turnstile, message: () => $t('v.required') }">
+                    <template #label><label-tip message="config.captcha.turnstile.secretKey" /></template>
+                    <el-input
+                      v-model="values.turnstile.secretKey"
+                      maxlength="200"
+                      show-password
+                      :placeholder="values.storedSecrets?.turnstile ? $t('config.secretKeepBlank') : undefined"
+                    ></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-col>
+            <el-col :span="24">
+              <el-divider content-position="left">{{ $t('config.captcha.preview') }}</el-divider>
+              <div class="text-xs text-gray-secondary leading-5 mb-2">{{ $t('config.captcha.preview.tooltip') }}</div>
+              <captcha-widget :key="captchaPreviewKey" type="auto" />
             </el-col>
           </el-row>
         </template>

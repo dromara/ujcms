@@ -287,6 +287,8 @@ lower_case_table_names=2
 
 ## 开源协议
 
+Copyright © 2021-present 南昌蓝智科技有限公司（UJCMS）
+
 UJCMS 采用 `GPL-3.0` 与 `商业授权` 双重许可（Dual License）模式：
 
 * **开源协议**：采用 [GNU General Public License v3.0](LICENSE)（GPL-3.0）协议。基于 GPL-3.0 使用本软件时，须遵守 GPL-3.0 协议的全部条款，如分发本软件（含修改后的版本）时，必须以 GPL-3.0 协议开放全部源代码。

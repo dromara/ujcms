@@ -4,7 +4,7 @@ import com.ujcms.common.security.Secures;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 图形验证码属性
+ * 验证码属性
  *
  * @author PONY
  */
@@ -29,11 +29,11 @@ public class CaptchaProperties {
      */
     private int maxAttempts = 5;
     /**
-     * 图片宽
+     * 字符验证码图片宽
      */
     private int width = 120;
     /**
-     * 图片高
+     * 字符验证码图片高
      */
     private int height = 36;
     /**
@@ -52,6 +52,26 @@ public class CaptchaProperties {
      * 像素密度倍数。实际图片尺寸为 width、height 乘以该倍数，高分屏显示更清晰；页面以 CSS 固定显示尺寸。默认 2
      */
     private int scale = 2;
+    /**
+     * 滑块拼图背景逻辑宽。默认 300
+     */
+    private int sliderWidth = 300;
+    /**
+     * 滑块拼图背景逻辑高。默认 150
+     */
+    private int sliderHeight = 150;
+    /**
+     * 滑块拼图主体边长（逻辑像素）。默认 50
+     */
+    private int sliderPieceSize = 50;
+    /**
+     * 滑块拼图允许误差（逻辑像素）。默认 5
+     */
+    private int sliderTolerance = 5;
+    /**
+     * 工作量证明难度（前导零比特数，10-24）的默认值。全局设置可覆盖。默认 18
+     */
+    private int powDifficulty = 18;
 
     public String getSecret() {
         return secret;
@@ -147,5 +167,45 @@ public class CaptchaProperties {
 
     public void setScale(int scale) {
         this.scale = scale;
+    }
+
+    public int getSliderWidth() {
+        return sliderWidth;
+    }
+
+    public void setSliderWidth(int sliderWidth) {
+        this.sliderWidth = sliderWidth;
+    }
+
+    public int getSliderHeight() {
+        return sliderHeight;
+    }
+
+    public void setSliderHeight(int sliderHeight) {
+        this.sliderHeight = sliderHeight;
+    }
+
+    public int getSliderPieceSize() {
+        return sliderPieceSize;
+    }
+
+    public void setSliderPieceSize(int sliderPieceSize) {
+        this.sliderPieceSize = sliderPieceSize;
+    }
+
+    public int getSliderTolerance() {
+        return sliderTolerance;
+    }
+
+    public void setSliderTolerance(int sliderTolerance) {
+        this.sliderTolerance = sliderTolerance;
+    }
+
+    public int getPowDifficulty() {
+        return powDifficulty;
+    }
+
+    public void setPowDifficulty(int powDifficulty) {
+        this.powDifficulty = powDifficulty;
     }
 }

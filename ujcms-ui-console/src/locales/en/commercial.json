@@ -24,6 +24,8 @@
   "commercial.feature.dataMigration.description": "Migrate channel and article data from another system's database via SQL, keeping the old-to-new ID mapping; requires ujcms.data-migration-enabled in the configuration.",
   "commercial.feature.securitySettings": "Security Settings",
   "commercial.feature.securitySettings.description": "Password strength and expiry policies, login-failure lockout, and a one-click MLPS Level 3 recommended policy.",
+  "commercial.feature.captchaProviders": "Third-party Captcha",
+  "commercial.feature.captchaProviders.description": "Hand human verification to the risk engines of GeeTest, Tencent Cloud, Alibaba Cloud, NetEase Yidun or Cloudflare Turnstile: enter the credentials and select it as the captcha type.",
   "commercial.feature.docImport": "Word Import",
   "commercial.feature.docImport.description": "Import Word documents into the article editor (converted to HTML) and convert documents in the media library.",
   "commercial.feature.articleImport": "Bulk Article Import",

@@ -20,13 +20,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -53,16 +58,19 @@ public class SettingsController {
     private final PasswordEncoder passwordEncoder;
     private final PathResolver pathResolver;
     private final Props props;
+    private final PersistentTokenRepository persistentTokenRepository;
 
     public SettingsController(ShortMessageService shortMessageService, ConfigService configService,
                               UserService userService, PasswordEncoder passwordEncoder,
-                              PathResolver pathResolver, Props props) {
+                              PathResolver pathResolver, Props props,
+                              PersistentTokenRepository persistentTokenRepository) {
         this.shortMessageService = shortMessageService;
         this.configService = configService;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.pathResolver = pathResolver;
         this.props = props;
+        this.persistentTokenRepository = persistentTokenRepository;
     }
 
     @Operation(summary = "更新个人信息")
@@ -146,6 +154,42 @@ public class SettingsController {
         return Responses.ok();
     }
 
+    /**
+     * 会员自助注销（docs/spec/membership/member-center.md §13）。软注销：{@link UserService#cancel}
+     * 抹除个人信息并置为已注销，行与其发表的内容保留。口令校验与改邮箱 / 改手机同一口径，
+     * 错误计入登录失败次数；未设置口令的第三方登录账号可不传口令。
+     */
+    @Operation(summary = "注销账号")
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/account")
+    public ResponseEntity<Body> cancelAccount(@RequestBody @Valid CancelAccountParams params,
+                                              HttpServletRequest request, HttpServletResponse response) {
+        User user = Contexts.getCurrentUser();
+        if (props.isDemo() && DEMO_USER_ID == user.getId()) {
+            return Responses.failure(request, DEMO_USER_FORBIDDEN);
+        }
+        // 仅前台会员可自助注销。管理员类型或持有后台角色的账号牵涉权限与审计，由管理员在控制台处理
+        if (user.isAdminType() || user.hasBackendAccess()) {
+            return Responses.failure(request, "error.cancelAccountBackendUser");
+        }
+        Config.Security securityConfig = configService.getUnique().getSecurity();
+        if (user.isExcessiveAttempts(securityConfig.getUserMaxAttempts(), securityConfig.getUserLockMinutes())) {
+            return Responses.failure(request, "error.userExcessiveAttempts");
+        }
+        ResponseEntity<Body> failure = validatePassword(params.password, props.getClientSm2PrivateKey(), user,
+                securityConfig, request);
+        if (failure != null) {
+            return failure;
+        }
+        String username = user.getUsername();
+        userService.cancel(user);
+        // 原用户名的记住我令牌一并清除，当前会话结束。JWT 客户端自行丢弃令牌：其主体已指向不存在的用户名
+        persistentTokenRepository.removeUserTokens(username);
+        new SecurityContextLogoutHandler().logout(request, response,
+                SecurityContextHolder.getContext().getAuthentication());
+        return Responses.ok();
+    }
+
     private ResponseEntity<Body> validatePassword(String encryptedPassword, String privateKey, User user,
                                                   Config.Security securityConfig, HttpServletRequest request) {
         if (StringUtils.isBlank(encryptedPassword) && StringUtils.isNotBlank(user.getPassword())) {
@@ -199,6 +243,12 @@ public class SettingsController {
         @Schema(description = "手机验证码")
         @NotBlank
         public String mobileMessageValue;
+    }
+
+    @Schema(name = "SettingsController.CancelAccountParams", description = "注销账号参数")
+    public static class CancelAccountParams {
+        @Schema(description = "密码。需使用sm2加密；仅未设置密码的第三方登录账号可不传")
+        public String password;
     }
 
     @Schema(name = "SettingsController.AvatarParams", description = "头像参数")

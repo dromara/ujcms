@@ -286,6 +286,8 @@ public class Model extends GeneratedModel {
         private String luceneField = "";
         private boolean clob = false;
         private boolean showInList = false;
+        /** 必填：控制台编辑器按它校验；文章批量导入对可导入的字段同样要求 */
+        private boolean required = false;
         @Nullable
         private Integer precision;
         @Nullable
@@ -371,6 +373,14 @@ public class Model extends GeneratedModel {
 
         public void setShowInList(boolean showInList) {
             this.showInList = showInList;
+        }
+
+        public boolean isRequired() {
+            return required;
+        }
+
+        public void setRequired(boolean required) {
+            this.required = required;
         }
 
         @Nullable

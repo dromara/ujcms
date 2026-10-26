@@ -7,6 +7,7 @@ import com.ujcms.cms.core.security.TemplateMemberAccessPolicy;
 import com.ujcms.cms.core.service.*;
 import com.ujcms.cms.core.support.Frontends;
 import com.ujcms.cms.core.support.Props;
+import com.ujcms.cms.core.support.TemplateErrorHandler;
 import com.ujcms.cms.core.web.directive.*;
 import com.ujcms.cms.core.web.support.SiteResolver;
 import com.ujcms.common.freemarker.*;
@@ -50,6 +51,7 @@ public class ContextConfig implements InitializingBean {
     private final freemarker.template.Configuration configuration;
     private final Props props;
     private final ResourceLoader resourceLoader;
+    private final TemplateErrorHandler templateErrorHandler;
 
     public ContextConfig(SiteService siteService, ChannelService channelService,
                          ArticleLucene articleLucene, ArticleService articleService,
@@ -58,7 +60,7 @@ public class ContextConfig implements InitializingBean {
                          BlockService blockService, RegionTemplateSupport regionTemplateSupport,
                          LangAlternateService langAlternateService,
                          freemarker.template.Configuration configuration, Props props,
-                         ResourceLoader resourceLoader) {
+                         ResourceLoader resourceLoader, TemplateErrorHandler templateErrorHandler) {
         this.siteService = siteService;
         this.channelService = channelService;
         this.articleLucene = articleLucene;
@@ -74,6 +76,7 @@ public class ContextConfig implements InitializingBean {
         this.configuration = configuration;
         this.props = props;
         this.resourceLoader = resourceLoader;
+        this.templateErrorHandler = templateErrorHandler;
     }
 
     @Override
@@ -92,6 +95,12 @@ public class ContextConfig implements InitializingBean {
         // 禁止模板通过 ?new 创建类实例，防止远程代码执行（RCE）。主题可通过 ZIP 安装、可在线编辑，
         // 沙箱不能只依赖 yaml 配置（new_builtin_class_resolver），此处用代码固定，yaml 仅作后备说明
         configuration.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
+        // 模板错误处理由代码固定、按查看者身份决定呈现（TemplateErrorHandler，docs/spec/template-error-disclosure D1），
+        // 不再随 profile 在 rethrow 与 SimpleTemplateExceptionHandler 之间切换；yaml 里的
+        // template_exception_handler / log_template_exceptions 不再配置。FreeMarker 自带的整段堆栈日志关闭：
+        // 记录器已记一条带错误编号的日志，重新抛出的错误 Tomcat 还会记一次完整堆栈
+        configuration.setTemplateExceptionHandler(templateErrorHandler);
+        configuration.setLogTemplateExceptions(false);
         // 标签
         configuration.setSharedVariable("SiteList", new SiteListDirective(siteService));
         configuration.setSharedVariable("Site", new SiteDirective(siteService));

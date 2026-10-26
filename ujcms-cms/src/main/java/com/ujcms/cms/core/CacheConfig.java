@@ -9,6 +9,7 @@ import com.ujcms.cms.core.domain.cache.SiteSpringCache;
 import com.ujcms.common.captcha.CaptchaCache;
 import com.ujcms.common.captcha.CaptchaProperties;
 import com.ujcms.common.captcha.IpLoginCache;
+import com.ujcms.common.captcha.IpSubmitCache;
 import com.ujcms.common.sms.IpSmsCache;
 import com.ujcms.common.sms.SmsCooldownCache;
 import com.ujcms.common.social.FriendRequestCache;
@@ -46,6 +47,10 @@ public class CacheConfig {
             cacheManager.registerCustomCache(IpLoginCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(IpLoginCache.EXPIRES, TimeUnit.MINUTES)
                     .maximumSize(IpLoginCache.MAXIMUM_SIZE).recordStats().build());
+            // IP互动提交次数缓存（评论、留言等的免验证额度）
+            cacheManager.registerCustomCache(IpSubmitCache.CACHE_NAME, Caffeine.newBuilder()
+                    .expireAfterWrite(IpSubmitCache.EXPIRES, TimeUnit.MINUTES)
+                    .maximumSize(IpSubmitCache.MAXIMUM_SIZE).recordStats().build());
             // IP短信发送次数缓存
             cacheManager.registerCustomCache(IpSmsCache.CACHE_NAME, Caffeine.newBuilder()
                     .expireAfterWrite(IpSmsCache.EXPIRES, TimeUnit.MINUTES)

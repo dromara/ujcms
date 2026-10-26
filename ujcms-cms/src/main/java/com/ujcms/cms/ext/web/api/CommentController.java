@@ -3,6 +3,7 @@ package com.ujcms.cms.ext.web.api;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.Attachment;
+import com.ujcms.cms.core.component.CaptchaGuard;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.ArticleService;
@@ -16,7 +17,6 @@ import com.ujcms.cms.ext.domain.Comment;
 import com.ujcms.cms.ext.service.CommentService;
 import com.ujcms.cms.ext.service.args.CommentArgs;
 import com.ujcms.cms.ext.web.directive.CommentListDirective;
-import com.ujcms.common.captcha.CaptchaTokenService;
 import com.ujcms.common.query.QueryUtils;
 import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
@@ -61,7 +61,7 @@ import static com.ujcms.common.db.MyBatis.springPage;
 @RestController
 @RequestMapping({API + "/comment", FRONTEND_API + "/comment"})
 public class CommentController {
-    private final CaptchaTokenService captchaTokenService;
+    private final CaptchaGuard captchaGuard;
     private final ArticleService articleService;
     private final AttachmentService attachmentService;
     private final ConfigService configService;
@@ -69,10 +69,10 @@ public class CommentController {
     private final SiteResolver siteResolver;
     private final Props props;
 
-    public CommentController(CaptchaTokenService captchaTokenService, ArticleService articleService,
+    public CommentController(CaptchaGuard captchaGuard, ArticleService articleService,
                              AttachmentService attachmentService, ConfigService configService,
                              CommentService service, SiteResolver siteResolver, Props props) {
-        this.captchaTokenService = captchaTokenService;
+        this.captchaGuard = captchaGuard;
         this.articleService = articleService;
         this.attachmentService = attachmentService;
         this.configService = configService;
@@ -231,8 +231,10 @@ public class CommentController {
         } else {
             userId = user.getId();
         }
-        if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
-            return Responses.failure(request, "error.captchaIncorrect");
+        String captchaError = captchaGuard.verify(request, CaptchaGuard.SCOPE_COMMENT, params.captchaToken,
+                params.captcha, params.website);
+        if (captchaError != null) {
+            return Responses.failure(request, captchaError);
         }
         if (StringUtils.isBlank(params.getText())) {
             throw new Http400Exception("Comment text is required.");
@@ -318,5 +320,7 @@ public class CommentController {
         public String captcha;
         @Schema(description = "验证码TOKEN")
         public String captchaToken;
+        @Schema(description = "蜜罐字段。人不会填，非空即机器人")
+        public String website;
     }
 }

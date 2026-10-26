@@ -140,6 +140,7 @@
   "view.grid": "网格视图",
 
   "error.title": "错误信息",
+  "error.id": "错误编号",
   "error.forbidden": "对不起，您没有该功能的访问权限",
   "error.notFound": "数据不存在或已被删除",
   "error.pageNotFound": "页面不存在，请检查地址是否正确",

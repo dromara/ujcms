@@ -35,9 +35,9 @@ ujcms.database-bin-path:
 
 # 人大金仓数据库（使用 PostgreSQL 驱动，官方推荐方式。不能使用 kingbase8 驱动）
 # 安装参数选项：数据库兼容模式(PG)，字符集编码(UTF8)，大小写敏感(YES)
-#spring.datasource.url: jdbc:postgresql://127.0.0.1:54321/ujcms
-#spring.datasource.username: postgres
-#spring.datasource.password: password
+# spring.datasource.url: jdbc:postgresql://192.168.0.35:54321/ujcms
+# spring.datasource.username: system
+# spring.datasource.password: password
 #spring.datasource.driver-class-name: org.postgresql.Driver
 #ujcms.database-type: kingbase
 #ujcms.database-bin-path:
@@ -70,11 +70,12 @@ ujcms.database-bin-path:
 #ujcms.database-type: postgresql
 #ujcms.database-bin-path:
 
-# 达梦数据库（不可直接创建模式；应该创建用户，达梦会自动创建同名模式；用户要赋予 RESOURCE 角色；使用新建的用户连接数据库）
+# 达梦数据库（不可直接创建模式；应该创建用户，达梦会自动创建同名模式；用户要赋予 RESOURCE 角色；使用新建的用户连接数据库；安装时，字符集选择UTF-8）
+# 若启动报“无效的表或视图名[ALL_TABLES]”，是达梦实例缺少系统视图（首次启动未建完整），由 SYSDBA 执行 `CALL SP_CREATE_SYSTEM_VIEWS(1);` 后再启动
 #spring.datasource.url: jdbc:dm://127.0.0.1:5236/UJCMS
 ## 达梦的用户名需与 spring.datasource.url 中的数据库名一致
 #spring.datasource.username: UJCMS
-#spring.datasource.password: Pass@0000
+#spring.datasource.password: Pass0000
 #spring.datasource.driver-class-name: dm.jdbc.driver.DmDriver
 ## 达梦必须指定工作流的 schema 名称，需与 spring.datasource.url 中的数据库名一致
 #flowable.database-schema: UJCMS
@@ -167,7 +168,8 @@ spring.messages.fallback-to-system-locale: false
 # SiteForbiddenException 以自动重置当前站点），生产环境也需保持 true。仅泄露异常类名，不含堆栈
 server.error.include-exception: true
 # 错误处理是否包含 "message" 属性。Include the "message" attribute
-# 后台前端的错误弹窗依赖该属性显示业务错误信息（LogicException 等），生产环境也需保持 always
+# 后台前端的错误弹窗依赖该属性显示业务错误信息（LogicException 等），生产环境也需保持 always。
+# 5xx 的 message 是异常原文：DisclosureErrorAttributes 只对已登录的后台操作员保留它，对匿名访客隐去并换成错误编号
 server.error.include-message: always
 # 错误处理是否包含 "stacktrace" (trace?) 属性。When to include a "stacktrace" attribute
 # 生产环境不应泄露堆栈信息，默认为 never。开发/测试 profile（main/next/feat/test）覆盖为 always
@@ -258,13 +260,10 @@ spring.freemarker.suffix: .html
 spring.freemarker.settings.tag_syntax: square_bracket
 # 数值默认不加千分号
 spring.freemarker.settings.number_format: "0.######"
-# Freemarker 错误信息处理方式
-# 模板异常处理方式。`rethrow`将异常重新抛出，由 spring 处理异常并渲染 error 页面，不向页面泄露错误细节，
-# 适用于生产环境（默认）。开发/演示 profile（main/next/feat/test/demo）覆盖为
-# com.ujcms.common.freemarker.SimpleTemplateExceptionHandler，将错误信息直接显示在页面里，方便调试
-spring.freemarker.settings.template_exception_handler: rethrow
-# 生产环境下，模板异常写入日志可能导致日志文件过于庞大，可设置模板异常不写入日志。
-spring.freemarker.settings.log_template_exceptions: false
+# Freemarker 模板错误的处理由代码固定（com.ujcms.cms.core.support.TemplateErrorHandler），不随 profile 变化：
+# 每个模板错误记一条带 8 位错误编号的 ERROR 日志，并进入控制台「设计 › 模板管理 › 最近错误」；已登录的后台操作员
+# （含控制台「预览」携带的预览身份）在页面内看到带编号的错误细节，匿名访客只看到带同一编号的通用错误页。
+# 不要在这里配置 template_exception_handler / log_template_exceptions，配置了也会被代码覆盖。
 # Freemarker 默认允许在模板里创建类的实例，这会导致远程执行漏洞
 # 例如：[#assign value="freemarker.template.utility.Execute"?new()]${value("calc.exe")}
 # 此项配置禁止模板创建类的实例

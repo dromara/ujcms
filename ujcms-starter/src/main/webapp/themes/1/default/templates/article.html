@@ -222,7 +222,7 @@
     <div class="mt-6"
       x-data="{
         items: [], page: 1, totalPages: 1, total: null, loading: false,
-        text: '', captcha: '', captchaToken: '', captchaImage: '',
+        text: '', cap: null,
         submitting: false,
         canPost: [#if user?? || !site.comment.loginRequired]true[#else]false[/#if],
         [#if user??]
@@ -257,11 +257,9 @@
             this.totalPages = Number((d.page || {}).totalPages || 1);
           } catch (e) { /* 静默 */ } finally { this.loading = false; }
         },
-        async refreshCaptcha() {
-          try {
-            const data = await window.request('GET', '${api}/captcha');
-            if (data) { this.captchaImage = 'data:image/png;base64,' + data.image; this.captchaToken = data.token; }
-          } catch (e) { /* 静默，提交时后端仍校验 */ }
+        initCaptcha() {
+          // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明
+          this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'comment' });
         },
         [#if user??]
         async toggleMention() {
@@ -327,21 +325,23 @@
           this.submitting = true;
           try {
             await window.fetchCsrf();
+            const answer = await this.cap.answer();
             const body = {
               articleId: '${article.id?c}',
               text: text,
               [#if user?? && site.comment.imageEnabled]
               images: this.images,
               [/#if]
-              captcha: this.captcha, captchaToken: this.captchaToken,
+              captcha: answer.captcha, captchaToken: answer.captchaToken,
+              website: this.$refs.hp.value,
             };
             const data = await window.request('POST', '${api}/comment', body);
             if (data && data.status === 0) {
-              this.text = ''; this.captcha = '';
+              this.text = '';
               [#if user?? && site.comment.imageEnabled]
               this.images = [];
               [/#if]
-              this.refreshCaptcha();
+              this.cap.refresh();
               [#if site.comment.auditRequired]
               window.displaySuccess('评论成功，等待管理员审核！');
               [#else]
@@ -350,15 +350,15 @@
               [/#if]
             } else {
               window.displayAlert((data && data.message) || '操作失败！');
-              this.refreshCaptcha();
+              this.cap.refresh();
             }
           } catch (e) {
             window.displayAlert(e.message || '操作失败！');
-            this.refreshCaptcha();
+            this.cap.refresh();
           } finally { this.submitting = false; }
         }
       }"
-      x-init="load(1); if (canPost) refreshCaptcha()"
+      x-init="load(1); if (canPost) initCaptcha()"
     >
       <h2 class="flex items-baseline gap-2 pb-2 border-b border-slate-200 font-semibold">
         <span>评论</span>
@@ -403,13 +403,8 @@
         [/#if]
 
         <div class="flex flex-wrap items-center gap-2">
-          <label for="commentCaptcha" class="sr-only">验证码</label>
-          <input id="commentCaptcha" type="text" required autocomplete="off" x-model="captcha" placeholder="验证码"
-                 class="w-28 rounded-md border border-slate-300 px-3 py-1.5 text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
-          <button type="button" @click="refreshCaptcha()" title="点击重新获取验证码" class="shrink-0">
-            <img :src="captchaImage || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"
-                 alt="验证码" class="h-8 rounded border border-slate-300 cursor-pointer min-w-20 bg-white">
-          </button>
+          <div x-ref="captcha" data-captcha class="w-full"></div>
+          <input type="text" name="website" x-ref="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
           [#if user?? && site.comment.imageEnabled]
           <button type="button" @click="$refs.commentImageInput.click()"
                   class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-300 text-sm text-slate-600 hover:bg-white">

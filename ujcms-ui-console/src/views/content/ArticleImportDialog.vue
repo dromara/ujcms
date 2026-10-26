@@ -15,7 +15,8 @@ import {
 } from '@/api/content';
 
 // 文章批量导入（docs/spec/article-management/plan.md D7，商业版 T1）。三步：选文件与选项 → 预检（只读）→ 执行（后台任务，
-// 轮询进度）。服务端不在预检与执行之间保存文件：执行时把同一份文件再传一次，重新核对
+// 轮询进度）。服务端不在预检与执行之间保存文件：执行时把同一份文件再传一次，重新核对。
+// 模板按所选的默认栏目下载：系统列之后是该栏目文章模型的自定义字段列；表格里的自定义字段按每一行所在栏目的模型识别
 defineOptions({
   name: 'ArticleImportDialog',
 });
@@ -106,7 +107,7 @@ const handleFileRemove = () => {
 };
 const handleTemplate = async () => {
   try {
-    const { blob, filename } = await downloadArticleImportTemplate();
+    const { blob, filename } = await downloadArticleImportTemplate(defaultChannelId.value);
     saveAs(blob, filename);
   } catch (e) {
     await handleBlobError(e);
@@ -245,6 +246,9 @@ const handleBack = () => {
           <el-tag v-if="preview.skipped > 0" type="warning" disable-transitions>{{ $t('article.import.result.skipped', { count: preview.skipped }) }}</el-tag>
           <el-tag v-if="preview.invalid > 0" type="danger" disable-transitions>{{ $t('article.import.result.invalid', { count: preview.invalid }) }}</el-tag>
         </div>
+        <div v-if="preview.customColumns?.length > 0" class="mb-3 text-xs leading-5 text-gray-secondary">
+          {{ $t('article.import.customColumns', { headers: preview.customColumns.join($t('punct.enum')) }) }}
+        </div>
         <el-alert
           v-if="preview.unknownHeaders?.length > 0"
           type="warning"
@@ -252,6 +256,14 @@ const handleBack = () => {
           show-icon
           class="mb-3"
           :title="$t('article.import.unknownHeaders', { headers: preview.unknownHeaders.join($t('punct.enum')) })"
+        />
+        <el-alert
+          v-if="preview.shadowedFields?.length > 0"
+          type="info"
+          :closable="false"
+          show-icon
+          class="mb-3"
+          :title="$t('article.import.shadowedFields', { fields: preview.shadowedFields.join($t('punct.enum')) })"
         />
       </template>
 

@@ -1,6 +1,7 @@
 package com.ujcms.cms.ext.web.api;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.ujcms.cms.core.component.CaptchaGuard;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.support.Contexts;
@@ -14,7 +15,6 @@ import com.ujcms.cms.ext.service.MessageBoardService;
 import com.ujcms.cms.ext.service.MessageBoardTypeService;
 import com.ujcms.cms.ext.service.args.MessageBoardArgs;
 import com.ujcms.cms.ext.web.directive.MessageBoardListDirective;
-import com.ujcms.common.captcha.CaptchaTokenService;
 import com.ujcms.common.query.QueryUtils;
 import com.ujcms.common.web.Entities;
 import com.ujcms.common.web.Responses;
@@ -55,15 +55,15 @@ import static com.ujcms.common.db.MyBatis.springPage;
 @RestController
 @RequestMapping({API + "/message-board", FRONTEND_API + "/message-board"})
 public class MessageBoardController {
-    private final CaptchaTokenService captchaTokenService;
+    private final CaptchaGuard captchaGuard;
     private final MessageBoardService service;
     private final MessageBoardTypeService typeService;
     private final SiteResolver siteResolver;
     private final Props props;
 
-    public MessageBoardController(CaptchaTokenService captchaTokenService, MessageBoardService service,
+    public MessageBoardController(CaptchaGuard captchaGuard, MessageBoardService service,
                                   MessageBoardTypeService typeService, SiteResolver siteResolver, Props props) {
-        this.captchaTokenService = captchaTokenService;
+        this.captchaGuard = captchaGuard;
         this.service = service;
         this.typeService = typeService;
         this.siteResolver = siteResolver;
@@ -170,8 +170,10 @@ public class MessageBoardController {
         } else {
             userId = user.getId();
         }
-        if (!captchaTokenService.validateCaptcha(params.captchaToken, params.captcha)) {
-            return Responses.failure(request, "error.captchaIncorrect");
+        String captchaError = captchaGuard.verify(request, CaptchaGuard.SCOPE_MESSAGE_BOARD, params.captchaToken,
+                params.captcha, params.website);
+        if (captchaError != null) {
+            return Responses.failure(request, captchaError);
         }
         // 留言类型须属于提交站点：跨站点 typeId 会让本站留言行引用他站类型，使类型所属站点删除时外键受阻
         MessageBoardType type = Optional.ofNullable(typeService.select(params.getTypeId()))
@@ -194,5 +196,7 @@ public class MessageBoardController {
         public String captcha;
         @Schema(description = "验证码TOKEN")
         public String captchaToken;
+        @Schema(description = "蜜罐字段。人不会填，非空即机器人")
+        public String website;
     }
 }

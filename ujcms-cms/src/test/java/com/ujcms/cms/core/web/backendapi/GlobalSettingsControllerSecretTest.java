@@ -14,6 +14,7 @@ import com.ujcms.cms.core.service.ModelService;
 import com.ujcms.cms.core.service.ShortMessageService;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Props;
+import com.ujcms.common.captcha.CaptchaTokenService;
 import com.ujcms.common.web.exception.LogicException;
 
 /**
@@ -25,7 +26,7 @@ class GlobalSettingsControllerSecretTest {
         ConfigService service = mock(ConfigService.class);
         when(service.getUnique()).thenReturn(config);
         return new GlobalSettingsController(mock(HtmlSanitizeService.class), mock(ModelService.class),
-                mock(ShortMessageService.class), service, mock(Props.class));
+                mock(ShortMessageService.class), service, mock(CaptchaTokenService.class), mock(Props.class));
     }
 
     private Config configWithSms() {

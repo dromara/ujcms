@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -61,7 +62,7 @@ import jakarta.validation.constraints.Size;
 @JsonIgnoreProperties({"uploadSettings", "greySettings", "securitySettings", "registerSettings", "smsSettings", "emailSettings",
         "aiSettings", "oauthSettings", "uploadStorageSettings", "htmlStorageSettings", "templateStorageSettings",
         "packageStorageSettings",
-        "customsSettings", "marketplaceSettings", "consoleSettings", "handler"})
+        "customsSettings", "marketplaceSettings", "consoleSettings", "captchaSettings", "handler"})
 public class Config extends GeneratedConfig {
 
     /**
@@ -559,6 +560,57 @@ public class Config extends GeneratedConfig {
             this.console = console;
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot write value of Console", e);
+        }
+    }
+
+    /**
+     * 验证码设置原始 JSON 字段。映射 ujcms_config.captcha_settings_（SM4-GCM 加密落库），不放入 GeneratedConfig
+     * （生成器 ignoreColumn）。含厂商密钥：不随 Config 序列化，基础设置整行保存时排除（GlobalSettingsController.updateBase）
+     */
+    @Nullable
+    private String captchaSettings;
+    @Nullable
+    private Captcha captcha;
+
+    @Nullable
+    public String getCaptchaSettings() {
+        return captchaSettings;
+    }
+
+    public void setCaptchaSettings(@Nullable String captchaSettings) {
+        this.captchaSettings = captchaSettings;
+        this.captcha = null;
+    }
+
+    /**
+     * 验证码设置含各厂商的密钥，不可随 Config 序列化，模板亦不可达（TemplateMemberAccessPolicy）。
+     * 后台展示走 GlobalSettingsController.showCaptcha 的“只写不回显”脱敏路径；浏览器只经 {@code GET /api/captcha}
+     * 拿到出题所需的公开标识
+     */
+    @JsonIgnore
+    public Captcha getCaptcha() {
+        if (captcha != null) {
+            return captcha;
+        }
+        String settings = getCaptchaSettings();
+        if (StringUtils.isBlank(settings)) {
+            captcha = new Captcha();
+            return captcha;
+        }
+        try {
+            captcha = MAPPER.readValue(settings, Captcha.class);
+            return captcha;
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot read value of Captcha: " + settings, e);
+        }
+    }
+
+    public void setCaptcha(Captcha captcha) {
+        try {
+            setCaptchaSettings(MAPPER.writeValueAsString(captcha));
+            this.captcha = captcha;
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Captcha", e);
         }
     }
 
@@ -2649,6 +2701,574 @@ public class Config extends GeneratedConfig {
 
         public void setThemeColor(String themeColor) {
             this.themeColor = themeColor;
+        }
+    }
+
+    /**
+     * 验证码设置（docs/spec/captcha/plan.md）。类型决定 {@code GET /api/captcha} 默认出什么题：滑块拼图（默认）、
+     * 字符图片，或第三方厂商（极验、腾讯云、阿里云、网易易盾、Cloudflare Turnstile，商业 T1 起注册，
+     * 社区版无法选中）；互动场景在同一 IP 一小时内的提交未达免验证次数时只做静默的工作量证明。
+     * 各厂商的密钥随 {@code captcha_settings_} 整体 SM4-GCM 加密存储，后台“只写不回显”。
+     */
+    @Schema(name = "Config.Captcha", description = "验证码设置")
+    public static class Captcha implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        public static final String TYPE_SLIDER = "slider";
+        public static final String TYPE_CHAR = "char";
+        public static final String VENDOR_GEETEST = "geetest";
+        public static final String VENDOR_TENCENT = "tencent";
+        public static final String VENDOR_ALIYUN = "aliyun";
+        public static final String VENDOR_YIDUN = "yidun";
+        public static final String VENDOR_TURNSTILE = "turnstile";
+        /**
+         * 第三方厂商代码，按设置页的展示顺序
+         */
+        public static final List<String> VENDORS = List.of(VENDOR_GEETEST, VENDOR_TENCENT, VENDOR_ALIYUN,
+                VENDOR_YIDUN, VENDOR_TURNSTILE);
+        public static final int DEFAULT_SILENT_SUBMITS = 3;
+        public static final int DEFAULT_POW_DIFFICULTY = 18;
+
+        /**
+         * 验证码类型：slider | char | 厂商代码
+         */
+        @NotNull
+        @Pattern(regexp = "^[a-z]{2,20}$")
+        @Schema(description = "验证码类型：slider | char | geetest | tencent | aliyun | yidun | turnstile")
+        private String type = TYPE_SLIDER;
+        /**
+         * 互动场景免验证提交次数：同一 IP 一小时内被接受的提交达到该次数后须完成可见验证。0 为总是要求验证
+         */
+        @Min(0)
+        @Max(100)
+        private int silentSubmits = DEFAULT_SILENT_SUBMITS;
+        /**
+         * 工作量证明难度（前导零比特数）。10-24
+         */
+        @Min(10)
+        @Max(24)
+        private int powDifficulty = DEFAULT_POW_DIFFICULTY;
+        @Valid
+        private Geetest geetest = new Geetest();
+        @Valid
+        private Tencent tencent = new Tencent();
+        @Valid
+        private Aliyun aliyun = new Aliyun();
+        @Valid
+        private Yidun yidun = new Yidun();
+        @Valid
+        private Turnstile turnstile = new Turnstile();
+
+        /**
+         * 当前类型是否为第三方厂商
+         */
+        @JsonIgnore
+        public boolean isVendor() {
+            return VENDORS.contains(type);
+        }
+
+        /**
+         * 按代码取厂商设置。代码不在 {@link #VENDORS} 之列时返回 {@code null}
+         */
+        @Nullable
+        public Vendor vendor(String code) {
+            return switch (code) {
+                case VENDOR_GEETEST -> geetest;
+                case VENDOR_TENCENT -> tencent;
+                case VENDOR_ALIYUN -> aliyun;
+                case VENDOR_YIDUN -> yidun;
+                case VENDOR_TURNSTILE -> turnstile;
+                default -> null;
+            };
+        }
+
+        /**
+         * 厂商凭据是否齐全
+         */
+        public boolean isVendorUsable(String code) {
+            Vendor vendor = vendor(code);
+            return vendor != null && vendor.isUsable();
+        }
+
+        /**
+         * 密钥留空的厂商沿用本设置中的已存密钥（配合后台“只写不回显”脱敏）
+         *
+         * @param bean 表单提交的设置
+         */
+        public void fillStoredSecrets(Captcha bean) {
+            for (String code : VENDORS) {
+                Vendor submitted = bean.vendor(code);
+                Vendor stored = vendor(code);
+                if (submitted != null && stored != null) {
+                    submitted.fillStoredSecrets(stored);
+                }
+            }
+        }
+
+        /**
+         * 脱敏副本：各厂商密钥置空。深拷贝，不改动缓存中的配置对象
+         */
+        public Captcha masked() {
+            Captcha copy = new Captcha();
+            copy.type = type;
+            copy.silentSubmits = silentSubmits;
+            copy.powDifficulty = powDifficulty;
+            copy.geetest = geetest.masked();
+            copy.tencent = tencent.masked();
+            copy.aliyun = aliyun.masked();
+            copy.yidun = yidun.masked();
+            copy.turnstile = turnstile.masked();
+            return copy;
+        }
+
+        /**
+         * 各厂商是否已存密钥（厂商代码 → 是否），供后台把密钥输入框标为“留空表示不修改”
+         */
+        @JsonIgnore
+        public Map<String, Boolean> storedSecrets() {
+            Map<String, Boolean> map = new LinkedHashMap<>();
+            for (String code : VENDORS) {
+                Vendor vendor = vendor(code);
+                map.put(code, vendor != null && vendor.hasSecrets());
+            }
+            return map;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(@Nullable String type) {
+            this.type = StringUtils.defaultIfBlank(StringUtils.trimToNull(type), TYPE_SLIDER);
+        }
+
+        public int getSilentSubmits() {
+            return silentSubmits;
+        }
+
+        public void setSilentSubmits(int silentSubmits) {
+            this.silentSubmits = silentSubmits;
+        }
+
+        public int getPowDifficulty() {
+            return powDifficulty;
+        }
+
+        public void setPowDifficulty(int powDifficulty) {
+            this.powDifficulty = powDifficulty;
+        }
+
+        public Geetest getGeetest() {
+            return geetest;
+        }
+
+        public void setGeetest(@Nullable Geetest geetest) {
+            this.geetest = geetest != null ? geetest : new Geetest();
+        }
+
+        public Tencent getTencent() {
+            return tencent;
+        }
+
+        public void setTencent(@Nullable Tencent tencent) {
+            this.tencent = tencent != null ? tencent : new Tencent();
+        }
+
+        public Aliyun getAliyun() {
+            return aliyun;
+        }
+
+        public void setAliyun(@Nullable Aliyun aliyun) {
+            this.aliyun = aliyun != null ? aliyun : new Aliyun();
+        }
+
+        public Yidun getYidun() {
+            return yidun;
+        }
+
+        public void setYidun(@Nullable Yidun yidun) {
+            this.yidun = yidun != null ? yidun : new Yidun();
+        }
+
+        public Turnstile getTurnstile() {
+            return turnstile;
+        }
+
+        public void setTurnstile(@Nullable Turnstile turnstile) {
+            this.turnstile = turnstile != null ? turnstile : new Turnstile();
+        }
+
+        /**
+         * 厂商设置的公共形态：标识类字段后台可见，密钥“只写不回显”
+         */
+        public abstract static class Vendor implements Serializable {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            /**
+             * 凭据是否齐全
+             */
+            @JsonIgnore
+            public abstract boolean isUsable();
+
+            /**
+             * 是否已存密钥
+             */
+            @JsonIgnore
+            public abstract boolean hasSecrets();
+
+            /**
+             * 本对象（表单提交）留空的密钥沿用已存值
+             */
+            public abstract void fillStoredSecrets(Vendor stored);
+
+            /**
+             * 密钥置空的副本
+             */
+            public abstract Vendor masked();
+
+            static String clean(@Nullable String value) {
+                return StringUtils.trimToEmpty(value);
+            }
+
+            static String keep(String submitted, String stored) {
+                return StringUtils.isBlank(submitted) ? stored : submitted;
+            }
+        }
+
+        /**
+         * 极验 GeeTest v4：验证 ID（公开）与验证 KEY（密钥）
+         */
+        @Schema(name = "Config.Captcha.Geetest", description = "极验设置")
+        public static class Geetest extends Vendor {
+            @Serial
+            private static final long serialVersionUID = 1L;
+            @Length(max = 100)
+            private String captchaId = "";
+            @Length(max = 200)
+            private String captchaKey = "";
+
+            @Override
+            public boolean isUsable() {
+                return StringUtils.isNoneBlank(captchaId, captchaKey);
+            }
+
+            @Override
+            public boolean hasSecrets() {
+                return StringUtils.isNotBlank(captchaKey);
+            }
+
+            @Override
+            public void fillStoredSecrets(Vendor stored) {
+                if (stored instanceof Geetest s) {
+                    captchaKey = keep(captchaKey, s.captchaKey);
+                }
+            }
+
+            @Override
+            public Geetest masked() {
+                Geetest copy = new Geetest();
+                copy.captchaId = captchaId;
+                return copy;
+            }
+
+            public String getCaptchaId() {
+                return captchaId;
+            }
+
+            public void setCaptchaId(@Nullable String captchaId) {
+                this.captchaId = clean(captchaId);
+            }
+
+            public String getCaptchaKey() {
+                return captchaKey;
+            }
+
+            public void setCaptchaKey(@Nullable String captchaKey) {
+                this.captchaKey = clean(captchaKey);
+            }
+        }
+
+        /**
+         * 腾讯云天御：验证码 CaptchaAppId（公开）、App Secret Key（票据校验密钥）、以及调用云 API 的 SecretId / SecretKey
+         */
+        @Schema(name = "Config.Captcha.Tencent", description = "腾讯云验证码设置")
+        public static class Tencent extends Vendor {
+            @Serial
+            private static final long serialVersionUID = 1L;
+            @Length(max = 100)
+            private String appId = "";
+            @Length(max = 200)
+            private String appSecretKey = "";
+            @Length(max = 100)
+            private String secretId = "";
+            @Length(max = 200)
+            private String secretKey = "";
+
+            @Override
+            public boolean isUsable() {
+                return StringUtils.isNoneBlank(appId, appSecretKey, secretId, secretKey);
+            }
+
+            @Override
+            public boolean hasSecrets() {
+                return StringUtils.isNoneBlank(appSecretKey, secretKey);
+            }
+
+            @Override
+            public void fillStoredSecrets(Vendor stored) {
+                if (stored instanceof Tencent s) {
+                    appSecretKey = keep(appSecretKey, s.appSecretKey);
+                    secretKey = keep(secretKey, s.secretKey);
+                }
+            }
+
+            @Override
+            public Tencent masked() {
+                Tencent copy = new Tencent();
+                copy.appId = appId;
+                copy.secretId = secretId;
+                return copy;
+            }
+
+            public String getAppId() {
+                return appId;
+            }
+
+            public void setAppId(@Nullable String appId) {
+                this.appId = clean(appId);
+            }
+
+            public String getAppSecretKey() {
+                return appSecretKey;
+            }
+
+            public void setAppSecretKey(@Nullable String appSecretKey) {
+                this.appSecretKey = clean(appSecretKey);
+            }
+
+            public String getSecretId() {
+                return secretId;
+            }
+
+            public void setSecretId(@Nullable String secretId) {
+                this.secretId = clean(secretId);
+            }
+
+            public String getSecretKey() {
+                return secretKey;
+            }
+
+            public void setSecretKey(@Nullable String secretKey) {
+                this.secretKey = clean(secretKey);
+            }
+        }
+
+        /**
+         * 阿里云验证码 2.0：AccessKey（调用 VerifyIntelligentCaptcha）、场景 ID 与身份标（公开）、地域（cn / sgp）
+         */
+        @Schema(name = "Config.Captcha.Aliyun", description = "阿里云验证码设置")
+        public static class Aliyun extends Vendor {
+            @Serial
+            private static final long serialVersionUID = 1L;
+            public static final String REGION_CN = "cn";
+            public static final String REGION_SGP = "sgp";
+
+            @Length(max = 100)
+            private String accessKeyId = "";
+            @Length(max = 200)
+            private String accessKeySecret = "";
+            @Length(max = 100)
+            private String sceneId = "";
+            @Length(max = 100)
+            private String prefix = "";
+            @Pattern(regexp = "^(cn|sgp)$")
+            private String region = REGION_CN;
+
+            @Override
+            public boolean isUsable() {
+                return StringUtils.isNoneBlank(accessKeyId, accessKeySecret, sceneId, prefix);
+            }
+
+            @Override
+            public boolean hasSecrets() {
+                return StringUtils.isNotBlank(accessKeySecret);
+            }
+
+            @Override
+            public void fillStoredSecrets(Vendor stored) {
+                if (stored instanceof Aliyun s) {
+                    accessKeySecret = keep(accessKeySecret, s.accessKeySecret);
+                }
+            }
+
+            @Override
+            public Aliyun masked() {
+                Aliyun copy = new Aliyun();
+                copy.accessKeyId = accessKeyId;
+                copy.sceneId = sceneId;
+                copy.prefix = prefix;
+                copy.region = region;
+                return copy;
+            }
+
+            public String getAccessKeyId() {
+                return accessKeyId;
+            }
+
+            public void setAccessKeyId(@Nullable String accessKeyId) {
+                this.accessKeyId = clean(accessKeyId);
+            }
+
+            public String getAccessKeySecret() {
+                return accessKeySecret;
+            }
+
+            public void setAccessKeySecret(@Nullable String accessKeySecret) {
+                this.accessKeySecret = clean(accessKeySecret);
+            }
+
+            public String getSceneId() {
+                return sceneId;
+            }
+
+            public void setSceneId(@Nullable String sceneId) {
+                this.sceneId = clean(sceneId);
+            }
+
+            public String getPrefix() {
+                return prefix;
+            }
+
+            public void setPrefix(@Nullable String prefix) {
+                this.prefix = clean(prefix);
+            }
+
+            public String getRegion() {
+                return region;
+            }
+
+            public void setRegion(@Nullable String region) {
+                this.region = StringUtils.defaultIfBlank(StringUtils.trimToNull(region), REGION_CN);
+            }
+        }
+
+        /**
+         * 网易易盾：验证码 ID（公开）与密钥对 secretId / secretKey
+         */
+        @Schema(name = "Config.Captcha.Yidun", description = "网易易盾设置")
+        public static class Yidun extends Vendor {
+            @Serial
+            private static final long serialVersionUID = 1L;
+            @Length(max = 100)
+            private String captchaId = "";
+            @Length(max = 100)
+            private String secretId = "";
+            @Length(max = 200)
+            private String secretKey = "";
+
+            @Override
+            public boolean isUsable() {
+                return StringUtils.isNoneBlank(captchaId, secretId, secretKey);
+            }
+
+            @Override
+            public boolean hasSecrets() {
+                return StringUtils.isNotBlank(secretKey);
+            }
+
+            @Override
+            public void fillStoredSecrets(Vendor stored) {
+                if (stored instanceof Yidun s) {
+                    secretKey = keep(secretKey, s.secretKey);
+                }
+            }
+
+            @Override
+            public Yidun masked() {
+                Yidun copy = new Yidun();
+                copy.captchaId = captchaId;
+                copy.secretId = secretId;
+                return copy;
+            }
+
+            public String getCaptchaId() {
+                return captchaId;
+            }
+
+            public void setCaptchaId(@Nullable String captchaId) {
+                this.captchaId = clean(captchaId);
+            }
+
+            public String getSecretId() {
+                return secretId;
+            }
+
+            public void setSecretId(@Nullable String secretId) {
+                this.secretId = clean(secretId);
+            }
+
+            public String getSecretKey() {
+                return secretKey;
+            }
+
+            public void setSecretKey(@Nullable String secretKey) {
+                this.secretKey = clean(secretKey);
+            }
+        }
+
+        /**
+         * Cloudflare Turnstile：站点密钥（公开）与密钥
+         */
+        @Schema(name = "Config.Captcha.Turnstile", description = "Cloudflare Turnstile 设置")
+        public static class Turnstile extends Vendor {
+            @Serial
+            private static final long serialVersionUID = 1L;
+            @Length(max = 100)
+            private String siteKey = "";
+            @Length(max = 200)
+            private String secretKey = "";
+
+            @Override
+            public boolean isUsable() {
+                return StringUtils.isNoneBlank(siteKey, secretKey);
+            }
+
+            @Override
+            public boolean hasSecrets() {
+                return StringUtils.isNotBlank(secretKey);
+            }
+
+            @Override
+            public void fillStoredSecrets(Vendor stored) {
+                if (stored instanceof Turnstile s) {
+                    secretKey = keep(secretKey, s.secretKey);
+                }
+            }
+
+            @Override
+            public Turnstile masked() {
+                Turnstile copy = new Turnstile();
+                copy.siteKey = siteKey;
+                return copy;
+            }
+
+            public String getSiteKey() {
+                return siteKey;
+            }
+
+            public void setSiteKey(@Nullable String siteKey) {
+                this.siteKey = clean(siteKey);
+            }
+
+            public String getSecretKey() {
+                return secretKey;
+            }
+
+            public void setSecretKey(@Nullable String secretKey) {
+                this.secretKey = clean(secretKey);
+            }
         }
     }
 }

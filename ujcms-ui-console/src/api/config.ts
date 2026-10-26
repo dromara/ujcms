@@ -17,6 +17,7 @@ export const queryConfigModel = async (): Promise<any> => (await axios.get('/bac
 export const queryConfig = async (): Promise<any> => (await axios.get('/backend/core/config')).data;
 export const queryConfigGrey = async (): Promise<any> => (await axios.get('/backend/core/config/grey')).data;
 export const queryConfigOauth = async (): Promise<any> => (await axios.get('/backend/core/config/oauth')).data;
+export const queryConfigCaptcha = async (): Promise<any> => (await axios.get('/backend/core/config/captcha')).data;
 export const queryConfigSms = async (): Promise<any> => (await axios.get('/backend/core/config/sms')).data;
 export const queryConfigEmail = async (): Promise<any> => (await axios.get('/backend/core/config/email')).data;
 export const queryUploadStorage = async (): Promise<any> => (await axios.get('/backend/core/config/upload-storage')).data;
@@ -28,6 +29,7 @@ export const updateConfigCustoms = async (data: Record<string, any>): Promise<an
 export const updateConfigUpload = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/config/upload?_method=put', data)).data;
 export const updateConfigGrey = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/config/grey?_method=put', data)).data;
 export const updateConfigOauth = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/config/oauth?_method=put', data)).data;
+export const updateConfigCaptcha = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/config/captcha?_method=put', data)).data;
 export const updateConfigRegister = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/config/register?_method=put', data)).data;
 export const updateConfigSecurity = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/config/security?_method=put', data)).data;
 export const applyConfigSecurityL3 = async (): Promise<any> => (await axios.post('/backend/core/config/security/apply-l3')).data;

@@ -6,6 +6,9 @@ import com.ujcms.cms.core.lucene.ArticleLucene;
 import com.ujcms.cms.core.security.TemplateMemberAccessPolicy;
 import com.ujcms.cms.core.service.*;
 import com.ujcms.cms.core.support.Props;
+import com.ujcms.cms.core.support.ErrorDisclosure;
+import com.ujcms.cms.core.support.TemplateErrorHandler;
+import com.ujcms.cms.core.support.TemplateErrorRecorder;
 import com.ujcms.cms.core.web.directive.*;
 import com.ujcms.common.freemarker.*;
 import freemarker.core.TemplateClassResolver;
@@ -48,7 +51,9 @@ class ContextConfigTest {
                 mock(TagService.class), mock(DictService.class), mock(BlockItemService.class),
                 mock(BlockService.class), mock(RegionTemplateSupport.class),
                 mock(LangAlternateService.class),
-                configuration, mock(Props.class), mock(ResourceLoader.class));
+                configuration, mock(Props.class), mock(ResourceLoader.class),
+                // 真实处理器：匿名查看者路径重新抛出异常（Mockito mock 会吞掉异常，使 ?new 的拒绝无法观测）
+                new TemplateErrorHandler(new TemplateErrorRecorder(), new ErrorDisclosure(mock(UserService.class))));
         contextConfig.afterPropertiesSet();
     }
 

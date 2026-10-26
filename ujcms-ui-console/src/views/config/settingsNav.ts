@@ -41,7 +41,7 @@ const STORAGE_FIELDS: readonly string[] = [
   'config.storage.secretKey',
 ];
 
-// 部署（基础、上传、存储）→ 账号（注册、安全、第三方登录）→ 外部服务（短信、邮件、AI服务商）→ 一键置灰 → 自定义
+// 部署（基础、上传、存储）→ 账号（注册、安全、验证码、第三方登录）→ 外部服务（短信、邮件、AI服务商）→ 一键置灰 → 自定义
 export const GLOBAL_SETTINGS_TABS: SettingsTab[] = [
   {
     type: 'base',
@@ -119,6 +119,32 @@ export const GLOBAL_SETTINGS_TABS: SettingsTab[] = [
       'config.security.passwordMaxHistory',
       'config.security.twoFactor',
       'config.security.ssrfWhiteList',
+    ],
+  },
+  {
+    type: 'captcha',
+    nav: 'captcha',
+    perm: 'config:captcha:update',
+    fields: [
+      'config.captcha.type',
+      'config.captcha.silentSubmits',
+      'config.captcha.powDifficulty',
+      'config.captcha.geetest.captchaId',
+      'config.captcha.geetest.captchaKey',
+      'config.captcha.tencent.appId',
+      'config.captcha.tencent.appSecretKey',
+      'config.captcha.tencent.secretId',
+      'config.captcha.tencent.secretKey',
+      'config.captcha.aliyun.accessKeyId',
+      'config.captcha.aliyun.accessKeySecret',
+      'config.captcha.aliyun.sceneId',
+      'config.captcha.aliyun.prefix',
+      'config.captcha.aliyun.region',
+      'config.captcha.yidun.captchaId',
+      'config.captcha.yidun.secretId',
+      'config.captcha.yidun.secretKey',
+      'config.captcha.turnstile.siteKey',
+      'config.captcha.turnstile.secretKey',
     ],
   },
   {

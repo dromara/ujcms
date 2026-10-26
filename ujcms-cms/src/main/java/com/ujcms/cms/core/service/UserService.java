@@ -274,6 +274,18 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
         extMapper.update(userExt);
     }
 
+    /**
+     * 会员自助注销：抹除个人信息并置为已注销（{@link User#cancel()}），删除第三方登录绑定。
+     * 走 {@link #update(User)} 的整行写入：自定义字段随之清空，盲索引随空值置空，头像附件引用解除。
+     * 不是 {@link #delete(Long)}：删除会级联清掉评论、收藏、私信，且作者有文章时被拒。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void cancel(User user) {
+        user.cancel();
+        openidMapper.deleteByUserId(user.getId());
+        update(user, user.getExt());
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public int delete(Long id) {
         deleteListeners.forEach(it -> it.preUserDelete(id));

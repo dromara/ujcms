@@ -65,6 +65,13 @@ public class LocalFileHandler implements FileHandler {
 
     @Override
     public void store(String filename, Template template, Map<String, Object> dataModel) {
+        // 先整页渲染进内存，再写文件：渲染中途失败不留下半截静态页（残页会继续对外提供，且错误无人可见）
+        StringWriter buffer = new StringWriter();
+        try {
+            template.process(dataModel, buffer);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
         File dest = resolveNewFile(filename);
         try {
             FileUtils.forceMkdirParent(dest);
@@ -73,8 +80,8 @@ public class LocalFileHandler implements FileHandler {
         }
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(dest), UTF_8))) {
-            template.process(dataModel, writer);
-        } catch (Exception e) {
+            writer.write(buffer.toString());
+        } catch (IOException e) {
             throw new IllegalStateException(e);
         }
         if (!dest.setReadable(true, false)) {

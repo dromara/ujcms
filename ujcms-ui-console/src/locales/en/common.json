@@ -140,6 +140,7 @@
   "view.grid": "Grid view",
 
   "error.title": "Error",
+  "error.id": "Error ID",
   "error.forbidden": "Sorry, you do not have permission to access this feature",
   "error.notFound": "The data does not exist or has been deleted",
   "error.pageNotFound": "This page does not exist. Check that the address is correct",

@@ -16,6 +16,7 @@ declare module 'vue' {
     AssignmentProps: typeof import('./src/components/bpmnjs/properties-panel/properties/AssignmentProps.vue')['default']
     BaseUpload: typeof import('./src/components/Upload/BaseUpload.vue')['default']
     BreadCrumb: typeof import('./src/components/BreadCrumb/index.vue')['default']
+    CaptchaWidget: typeof import('./src/components/CaptchaWidget.vue')['default']
     CollapsibleAside: typeof import('./src/components/CollapsibleAside.vue')['default']
     ColumnList: typeof import('./src/components/TableList/ColumnList.vue')['default']
     ColumnSetting: typeof import('./src/components/TableList/ColumnSetting.vue')['default']

@@ -19,7 +19,7 @@
 /*
  * Modified for UJCMS by 南昌蓝智科技有限公司 (https://www.ujcms.com). Derived from Apache FreeMarker 2.3.34:
  * freemarker.template.TemplateExceptionHandler (HTML_DEBUG_HANDLER). Changes: prints the escaped message
- * without the stack trace.
+ * without the stack trace; the printing is exposed as a static method so a request-aware handler can reuse it.
  * First modified before 2026-04-19, the start of this repository's history; later changes are in the VCS log.
  */
 
@@ -39,6 +39,9 @@ import freemarker.template.TemplateExceptionHandler;
  * <p>
  * 根据 {@link TemplateExceptionHandler#HTML_DEBUG_HANDLER} 修改，去除繁琐的堆栈信息，有利用户快速找到错误原因。
  * 且忽略空值异常。
+ * <p>
+ * 页面内的错误框由 {@link #printError(Writer, String)} 输出；CMS 的请求感知处理器
+ * （{@code com.ujcms.cms.core.support.TemplateErrorHandler}）复用它，只对后台操作员内联呈现。
  *
  * @author PONY
  */
@@ -56,38 +59,48 @@ public class SimpleTemplateExceptionHandler implements TemplateExceptionHandler 
         //     return;
         // }
         if (!env.isInAttemptBlock()) {
-            boolean externalPw = out instanceof PrintWriter;
-            PrintWriter pw = externalPw ? (PrintWriter) out : new PrintWriter(out);
-            pw.print("<!-- FREEMARKER ERROR MESSAGE STARTS HERE -->"
-                    + "<!-- ]]> -->"
-                    + "<script language=javascript>//\"></script>"
-                    + "<script language=javascript>//'></script>"
-                    + "<script language=javascript>//\"></script>"
-                    + "<script language=javascript>//'></script>"
-                    + "</title></xmp></script></noscript></style></object>"
-                    + "</head></pre></table>"
-                    + "</form></table></table></table></a></u></i></b>"
-                    + "<div align='left' "
-                    + "style='background-color:#FFFF7C; "
-                    + "display:block; border-top:double; padding:4px; margin:0; "
-                    + "font-family:Arial,sans-serif; ");
-            pw.println("'>"
-                    + "<pre style='display:block; background: none; border: 0; margin:0; padding: 0;"
-                    + "font-family:monospace; "
-                    + "color:#A80000; font-size:12px; font-style:normal; font-variant:normal; "
-                    + "font-weight:normal; text-decoration:none; text-transform: none; "
-                    + "white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; "
-                    + "white-space: -o-pre-wrap; word-wrap: break-word;'>");
-
-            pw.println("[ERROR: " + Strings.htmlEscape(te.getMessage()) + "]");
-
-            pw.println("</pre></div></html>");
-            // To commit the HTTP response
-            pw.flush();
+            printError(out, te.getMessage());
         }  // if (!env.isInAttemptBlock())
         // 此处抛出异常，会在日志信息里显示。有可能导致日志信息过于庞大。
         if (env.getLogTemplateExceptions()) {
             throw te;
         }
+    }
+
+    /**
+     * 把错误信息以醒目的错误框写进页面输出（HTML 转义；先关闭可能未闭合的标签，使错误框总能显示）。
+     *
+     * @param out     模板输出
+     * @param message 错误信息
+     */
+    public static void printError(Writer out, String message) {
+        boolean externalPw = out instanceof PrintWriter;
+        PrintWriter pw = externalPw ? (PrintWriter) out : new PrintWriter(out);
+        pw.print("<!-- FREEMARKER ERROR MESSAGE STARTS HERE -->"
+                + "<!-- ]]> -->"
+                + "<script language=javascript>//\"></script>"
+                + "<script language=javascript>//'></script>"
+                + "<script language=javascript>//\"></script>"
+                + "<script language=javascript>//'></script>"
+                + "</title></xmp></script></noscript></style></object>"
+                + "</head></pre></table>"
+                + "</form></table></table></table></a></u></i></b>"
+                + "<div align='left' "
+                + "style='background-color:#FFFF7C; "
+                + "display:block; border-top:double; padding:4px; margin:0; "
+                + "font-family:Arial,sans-serif; ");
+        pw.println("'>"
+                + "<pre style='display:block; background: none; border: 0; margin:0; padding: 0;"
+                + "font-family:monospace; "
+                + "color:#A80000; font-size:12px; font-style:normal; font-variant:normal; "
+                + "font-weight:normal; text-decoration:none; text-transform: none; "
+                + "white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; "
+                + "white-space: -o-pre-wrap; word-wrap: break-word;'>");
+
+        pw.println("[ERROR: " + Strings.htmlEscape(message) + "]");
+
+        pw.println("</pre></div></html>");
+        // To commit the HTTP response
+        pw.flush();
     }
 }

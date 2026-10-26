@@ -30,20 +30,18 @@
     x-data="{
       typeId: [#if typeList?size gt 0]'${typeList[0].id?c}'[#else]''[/#if],
       title: '', text: '', contact: '', phone: '', email: '',
-      captcha: '', captchaToken: '', captchaImg: '',
+      cap: null,
       submitting: false,
-      async fetchCaptcha() {
-        try {
-          const data = await window.request('GET', '${api}/captcha');
-          this.captchaImg = 'data:image/png;base64,' + data.image;
-          this.captchaToken = data.token;
-        } catch (e) { window.displayAlert(e.message || '获取验证码失败'); }
+      initCaptcha() {
+        // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明
+        this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'messageBoard' });
       },
       async submit() {
         if (this.submitting) return;
         this.submitting = true;
         try {
           await window.fetchCsrf();
+          const answer = await this.cap.answer();
           const payload = {
             // 雪花 ID 超过 JS 安全整数范围（2^53），须以字符串提交，不能转为 Number
             siteId: '${site.id?c}',
@@ -53,8 +51,9 @@
             contact: this.contact || null,
             phone: this.phone || null,
             email: this.email || null,
-            captcha: this.captcha,
-            captchaToken: this.captchaToken,
+            captcha: answer.captcha,
+            captchaToken: answer.captchaToken,
+            website: this.$refs.hp.value,
           };
           const res = await window.request('POST', '${api}/message-board', payload);
           if (res && res.status === 0) {
@@ -62,15 +61,15 @@
             window.location.href = '${mbUrl}';
           } else if (res && res.message) {
             window.displayAlert(res.message);
-            this.captcha = ''; this.fetchCaptcha();
+            this.cap.refresh();
           }
         } catch (e) {
           window.displayAlert(e.message || '提交失败');
-          this.captcha = ''; this.fetchCaptcha();
+          this.cap.refresh();
         } finally { this.submitting = false; }
       }
     }"
-    x-init="fetchCaptcha()"
+    x-init="initCaptcha()"
     @submit.prevent="submit"
     class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-5"
   >
@@ -119,14 +118,9 @@
              class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
     </div>
 
-    <div>
-      <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码<span class="ml-0.5 text-rose-500">*</span></label>
-      <div class="flex gap-2">
-        <input id="captcha" type="text" required maxlength="8" autocomplete="off" x-model="captcha"
-               class="flex-1 rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-        <img :src="captchaImg" alt="图形验证码" @click="fetchCaptcha" title="点击换一张"
-             class="h-10 w-32 rounded border border-slate-300 cursor-pointer object-contain bg-slate-50 hover:border-primary">
-      </div>
+    <div class="relative">
+      <div x-ref="captcha" data-captcha></div>
+      <input type="text" name="website" x-ref="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
     </div>
 
     <button type="submit" :disabled="submitting"

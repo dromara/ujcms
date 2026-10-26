@@ -311,6 +311,82 @@
         </div>
       </form>
     </div>
+
+    [#-- 注销账号：仅前台会员可自助注销，管理员账号由控制台处理（服务端同样拒绝） --]
+    [#if !(user.adminType || user.hasBackendAccess())]
+    <div class="rounded-lg border border-rose-200 bg-white p-5 sm:p-6"
+      x-data="{
+        password: '', confirmed: false, showPassword: false,
+        submitting: false, error: '',
+        async submit() {
+          if (this.submitting || !this.confirmed) return;
+          this.error = '';
+          this.submitting = true;
+          try {
+            await window.fetchCsrf();
+            const body = {};
+            [#if user.hasPassword]
+              body.password = await window.sm2Encrypt(this.password);
+            [/#if]
+            await window.request('DELETE', '${api}/settings/account', body);
+            window.displaySuccess('账号已注销');
+            setTimeout(() => { location.href = '${site.url}'; }, 800);
+          } catch (e) {
+            this.error = e.message || '注销失败';
+          } finally {
+            this.submitting = false;
+          }
+        }
+      }">
+      <header class="pb-4 mb-5 border-b border-rose-200">
+        <h2 class="flex items-center gap-2 text-base sm:text-lg font-semibold text-rose-700">
+          <span class="size-5 inline-block">[@icon 'person-remove-outline'/]</span>
+          <span>注销账号</span>
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">注销后账号无法恢复，请谨慎操作</p>
+      </header>
+
+      <ul class="mb-5 pl-5 list-disc space-y-1 text-sm text-slate-600 max-w-md">
+        <li>账号立即停用并退出登录，用户名释放后可被他人注册</li>
+        <li>昵称、真实姓名、头像、邮箱、手机号、生日、居住地、自我介绍和第三方登录绑定将被清除</li>
+        <li>已发表的评论保留，署名显示为“已注销用户”</li>
+      </ul>
+
+      <p x-show="error" x-cloak x-text="error" class="mb-4 px-3 py-2 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-sm"></p>
+
+      <form @submit.prevent="submit" class="space-y-4 max-w-md">
+        [#if user.hasPassword]
+          <div>
+            <label for="cancelAccountPassword" class="block text-sm font-medium text-slate-700 mb-1.5">登录密码</label>
+            <div class="relative">
+              <input id="cancelAccountPassword" required autocomplete="current-password"
+                     :type="showPassword ? 'text' : 'password'"
+                     x-model="password"
+                     class="block w-full rounded-md border border-slate-300 px-3 py-2.5 pr-10 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
+              <button type="button" @click="showPassword = !showPassword" :aria-label="showPassword ? '隐藏密码' : '显示密码'"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 size-7 inline-flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+                <span class="size-4 inline-block">[@icon 'visibility-outline'/]</span>
+              </button>
+            </div>
+          </div>
+        [/#if]
+        <label class="flex items-start gap-2 text-sm text-slate-700 cursor-pointer">
+          <input type="checkbox" x-model="confirmed" class="mt-0.5 size-4 rounded border-slate-300">
+          <span>我已了解注销后账号无法恢复</span>
+        </label>
+        <div class="pt-1 flex flex-col sm:flex-row sm:justify-end">
+          <button type="submit" :disabled="submitting || !confirmed"
+                  class="px-5 py-2.5 rounded-md bg-rose-600 text-white text-base sm:text-sm font-semibold hover:opacity-90 active:opacity-100 disabled:opacity-60 transition-opacity shadow-sm">
+            <span x-show="!submitting">注销账号</span>
+            <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+              <span class="size-4 inline-block animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+              <span>注销中…</span>
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+    [/#if]
   </section>
 </div>
 

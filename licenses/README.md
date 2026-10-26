@@ -157,7 +157,9 @@ Two hand-kept tables feed the Java inventory: `ujcms-starter/src/license/overrid
 whose pom declares a licence different from the one in the jar, e.g. the Dameng driver; entries are pinned to a version)
 and `ujcms-starter/src/license/THIRD-PARTY.properties`, which the plugin would create only if a dependency declared no
 licence at all (none does today, so that file does not exist). `bom.json` takes its licence fields from the poms as declared, so for the Dameng and
-HighGo drivers `THIRD-PARTY.txt` is the authoritative record. `scripts/check-licenses.mjs` checks the whole npm
+HighGo drivers `THIRD-PARTY.txt` is the authoritative record. UJCMS's own modules (`com.ujcms`) are not third-party material: `THIRD-PARTY.txt`
+excludes the group, and `bom.json` takes their publisher (南昌蓝智科技有限公司) and licence (the SPDX expression
+`GPL-3.0-only OR LicenseRef-UJCMS-Commercial`, the dual licence stated in `README.md`) from the root pom. `scripts/check-licenses.mjs` checks the whole npm
 production trees at lint time. xmlpull (commercial T3 binaries, via weixin-java) declares itself public domain and has
 no licence text. Logos, theme previews, thumbnails and the console favicon are UJCMS's own artwork and need no row here.
 

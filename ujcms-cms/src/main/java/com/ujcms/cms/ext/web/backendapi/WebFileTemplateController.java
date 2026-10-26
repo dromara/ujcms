@@ -8,6 +8,7 @@ import com.ujcms.cms.core.service.TemplateHistoryService;
 import com.ujcms.cms.core.service.TemplateHistoryService.CapturedFile;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
+import com.ujcms.cms.core.support.TemplateErrorRecorder;
 import com.ujcms.common.file.FileHandler;
 import com.ujcms.common.file.FilesEx;
 import com.ujcms.common.file.WebFile;
@@ -49,12 +50,14 @@ import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 public class WebFileTemplateController extends AbstractWebFileController {
     private final PathResolver pathResolver;
     private final TemplateHistoryService historyService;
+    private final TemplateErrorRecorder errorRecorder;
 
     public WebFileTemplateController(PathResolver pathResolver, Props props,
-                                     TemplateHistoryService historyService) {
+                                     TemplateHistoryService historyService, TemplateErrorRecorder errorRecorder) {
         super(pathResolver, props);
         this.pathResolver = pathResolver;
         this.historyService = historyService;
+        this.errorRecorder = errorRecorder;
     }
 
     @Override
@@ -79,6 +82,16 @@ public class WebFileTemplateController extends AbstractWebFileController {
                               @RequestParam(defaultValue = "name") String sort) {
         Site site = Contexts.getCurrentSite();
         return super.list(parentId, isDir, name, sort, site.getConfig().getTemplateStorage());
+    }
+
+    /**
+     * 最近模板错误（docs/spec/template-error-disclosure D5）：进程内环形缓冲，新的在前，重启清空；按当前站点过滤，
+     * 站点未知的记录（错误页自身出错等）对所有站点可见。能读模板的操作员即能读模板错误，不另设权限码。
+     */
+    @GetMapping("errors")
+    @PreAuthorize("hasAnyAuthority('webFileTemplate:list','*')")
+    public List<TemplateErrorRecorder.TemplateError> errors() {
+        return errorRecorder.list(Contexts.getCurrentSiteId());
     }
 
     @GetMapping("show")

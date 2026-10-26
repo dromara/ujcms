@@ -77,7 +77,8 @@ public class UserController {
     @GetMapping("/{id:[\\d]+}")
     public PublicUser show(@Parameter(description = "用户ID") @PathVariable Long id) {
         User user = service.select(id);
-        if (user == null) {
+        // 已注销账号与不存在同样答 404：个人信息已抹除，也不暴露账号曾经存在
+        if (user == null || user.isCancelled()) {
             throw new Http404Exception(User.NOT_FOUND + id);
         }
         return PublicUser.from(user);

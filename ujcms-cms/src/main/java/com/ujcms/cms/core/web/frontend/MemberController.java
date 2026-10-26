@@ -71,7 +71,8 @@ public class MemberController {
 
     @GetMapping("/users/{id}")
     public String users(Site site, @PathVariable Long id, Map<String, Object> modelMap) {
-        User targetUser = Optional.ofNullable(userService.select(id))
+        // 已注销账号与不存在同样答 404（docs/spec/membership/member-center.md §13）
+        User targetUser = Optional.ofNullable(userService.select(id)).filter(it -> !it.isCancelled())
                 .orElseThrow(() -> new Http404Exception(User.NOT_FOUND + id));
         modelMap.put("targetUser", targetUser);
         return site.assembleTemplate(USER_TEMPLATE);

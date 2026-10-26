@@ -5,13 +5,24 @@
 
 	<groupId>com.ujcms</groupId>
 	<artifactId>ujcms</artifactId>
-	<version>13.1.5</version>
+	<version>13.2.0</version>
 	<packaging>pom</packaging>
 
 	<name>UJCMS</name>
 	<description>UJCMS 是基于 Java 的 CMS 网站内容系统。使用 SpringBoot、MyBatis、Vite、Vue3、ElementPlus、TailwindCSS 等技术开发。</description>
 	<url>https://www.ujcms.com</url>
 	<inceptionYear>2021-present</inceptionYear>
+	<organization>
+		<name>南昌蓝智科技有限公司</name>
+		<url>https://www.ujcms.com</url>
+	</organization>
+	<!-- 双重许可（社区版 GPL-3.0，商业版按合同）；不声明会继承父 pom 的 Apache-2.0 并写进 bom.json -->
+	<licenses>
+		<license>
+			<name>GPL-3.0-only OR LicenseRef-UJCMS-Commercial</name>
+			<url>https://www.ujcms.com</url>
+		</license>
+	</licenses>
 
 	<modules>
 		<module>ujcms-common</module>
@@ -99,7 +110,7 @@
 		<mybatis-caffeine.version>1.2.0</mybatis-caffeine.version>
 
 		<!-- 达梦 JDBC驱动 -->
-		<DmJdbcDriver8.version>8.1.4.181</DmJdbcDriver8.version>
+		<DmJdbcDriver8.version>8.1.5.45</DmJdbcDriver8.version>
 		<!-- 人大金仓 JDBC驱动 -->
 		<kingbase8.version>9.0.1</kingbase8.version>
 		<!-- openGauss JDBC驱动 -->

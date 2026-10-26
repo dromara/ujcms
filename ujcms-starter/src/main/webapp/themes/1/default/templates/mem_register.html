@@ -12,7 +12,7 @@
       x-data="{
         username: '', password: '', confirm: '',
         email: '', mobile: '',
-        captcha: '', captchaToken: '', captchaImg: '',
+        cap: null,
         emailMessageValue: '', emailMessageId: '',
         mobileMessageValue: '', mobileMessageId: '',
         mobileCountdown: 0, mobileTimer: null,
@@ -20,12 +20,9 @@
         showPassword: false,
         submitting: false,
         verifyMode: ${config.register.verifyMode?c},
-        async fetchCaptcha() {
-          try {
-            const data = await window.request('GET', '${api}/captcha');
-            this.captchaImg = 'data:image/png;base64,' + data.image;
-            this.captchaToken = data.token;
-          } catch (e) { /* tolerate */ }
+        initCaptcha() {
+          // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：弹层模式，点击“注册”时才弹出题目，答完显示“已验证”
+          this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', popup: true });
         },
         requestMobileSms() {
           if (!/^1\d{10}$/.test(this.mobile)) { window.displayAlert('请填写有效的手机号码'); return; }
@@ -62,7 +59,8 @@
               password: await window.sm2Encrypt(this.password),
             };
             if (this.verifyMode === 1 || this.verifyMode === 2) {
-              body.captcha = this.captcha; body.captchaToken = this.captchaToken;
+              const answer = await this.cap.answer();
+              body.captcha = answer.captcha; body.captchaToken = answer.captchaToken;
             } else if (this.verifyMode === 3) {
               body.email = this.email; body.emailMessageValue = this.emailMessageValue;
               body.emailMessageId = this.emailMessageId || null;
@@ -87,12 +85,13 @@
             }
           } catch (e) {
             window.displayAlert(e.message || '注册失败');
+            if (this.cap) this.cap.refresh();
           } finally {
             this.submitting = false;
           }
         }
       }"
-      x-init="if (verifyMode === 1 || verifyMode === 2) fetchCaptcha()"
+      x-init="if (verifyMode === 1 || verifyMode === 2) initCaptcha()"
     >
       [#if !config.register.enabled]
         <div class="py-8 text-center">
@@ -139,18 +138,9 @@
                  class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
         </div>
 
-        [#-- verifyMode 1（不验证）/ 2（人工验证）：图形验证码 --]
+        [#-- verifyMode 1（不验证）/ 2（人工验证）：人机验证。弹层模式：点击“注册”时才弹出滑块；宿主答完前为空、答完显示“已验证” --]
         [#if config.register.verifyMode == 1 || config.register.verifyMode == 2]
-          <div>
-            <label for="captcha" class="block text-sm font-medium text-slate-700 mb-1.5">图形验证码</label>
-            <div class="flex gap-2">
-              <input id="captcha" type="text" required maxlength="8" autocomplete="off"
-                     x-model="captcha"
-                     class="flex-1 min-w-0 rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-colors">
-              <img :src="captchaImg" alt="图形验证码" @click="fetchCaptcha"
-                   class="h-11 sm:h-10 w-32 shrink-0 rounded-md border border-slate-300 cursor-pointer object-contain bg-slate-50 hover:border-primary transition-colors" title="点击换一张">
-            </div>
-          </div>
+          <div x-ref="captcha" data-captcha></div>
         [/#if]
 
         [#-- verifyMode 3：邮箱 + 邮件验证码 --]

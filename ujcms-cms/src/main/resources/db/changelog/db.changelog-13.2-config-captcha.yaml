@@ -1,0 +1,22 @@
+databaseChangeLog:
+  # 验证码设置（docs/spec/captcha/plan.md）：验证码类型（滑块 / 字符 / 第三方厂商）、互动场景免验证提交次数、
+  # 工作量证明难度，以及各厂商的凭据，管理员在“全局设置 › 验证码”维护，存于 ujcms_config.captcha_settings_
+  # （JSON 文本，MEDIUMTEXT，与各 *_settings_ 列同型；含厂商密钥，整列 SM4-GCM 加密落库——ConfigMapper.xml 的 Sm4StringTypeHandler）。
+  # 13.1 已发布，故以升级变更集加列；columnExists 守卫令开发期已加列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.2-config-captcha-settings
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_config
+                columnName: captcha_settings_
+      changes:
+        - addColumn:
+            tableName: ujcms_config
+            columns:
+              - column:
+                  name: captcha_settings_
+                  remarks: 验证码设置JSON
+                  type: MEDIUMTEXT

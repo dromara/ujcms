@@ -32,6 +32,8 @@
   <div class="detail">
     <p>path: ${path!}</p>
     <p>timestamp: ${timestamp?string("yyyy-MM-dd'T'HH:mm:ss.SSSXX")}</p>
+    [#-- 错误编号：与服务器日志、控制台「模板管理 › 最近错误」里的编号一致，访客据此向管理员反馈即可定位 --]
+    [#if errorId??]<p>错误编号: <code>${errorId}</code>（反馈问题时请提供此编号）</p>[/#if]
     [#if message??]<p><code>${message}</code></p>[/#if]
     [#if trace??]<pre><code>${trace}</code></pre>[/#if]
   </div>

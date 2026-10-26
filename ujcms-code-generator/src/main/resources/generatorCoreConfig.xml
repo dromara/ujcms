@@ -32,6 +32,7 @@
             <ignoreColumn column="console_settings_"/>
             <!-- 第三方登录设置列由 Config 手写（SM4 加密，Config.Oauth），重新生成时忽略 -->
             <ignoreColumn column="oauth_settings_"/>
+            <ignoreColumn column="captcha_settings_"/>
             <property name="serviceArgs" value="false"/>
             <property name="controller" value="false"/>
         </table>

@@ -98,9 +98,9 @@ export const exportArticles = async (
   const filename = parseAttachmentFilename(response.headers?.['content-disposition'] ?? '') ?? 'articles.xlsx';
   return { blob: response.data, filename };
 };
-/** 文章批量导入（T1）：下载模板。响应是文件，出错时交给 handleBlobError */
-export const downloadArticleImportTemplate = async (): Promise<{ blob: Blob; filename: string }> => {
-  const response = await axios.get('/backend/core/article-import/template', { responseType: 'blob', skipErrorHandler: true } as any);
+/** 文章批量导入（T1）：下载模板。给了栏目时，模板带上该栏目文章模型的自定义字段列。响应是文件，出错时交给 handleBlobError */
+export const downloadArticleImportTemplate = async (channelId?: string): Promise<{ blob: Blob; filename: string }> => {
+  const response = await axios.get('/backend/core/article-import/template', { params: { channelId }, responseType: 'blob', skipErrorHandler: true } as any);
   const filename = parseAttachmentFilename(response.headers?.['content-disposition'] ?? '') ?? 'article-import-template.xlsx';
   return { blob: response.data, filename };
 };
