@@ -160,6 +160,61 @@ class ArticleServiceStatusTest {
         verify(mapper).updateStatus(ID, STATUS_READY);
     }
 
+    // ----- 提交审核、绝不直接发布（docs/spec/member-contribute/plan.md D6） -----
+
+    @Test
+    void submitForReviewStaysPendingWithoutAProcess() {
+        Article article = article(STATUS_REJECTED, null);
+        article.getExt().setRejectReason("fix");
+
+        service.submitForReview(article, USER);
+
+        assertEquals(STATUS_PENDING, article.getStatus());
+        assertNull(article.getProcessInstanceId());
+        verify(mapper).updateStatus(ID, STATUS_PENDING);
+        verify(extMapper).updateProcess(ID, null, null);
+        assertNull(article.getExt().getRejectReason());
+    }
+
+    @Test
+    void submitForReviewStartsTheProcessWhenTheChannelHasOneAndThePortIsPresent() {
+        Article article = article(STATUS_REJECTED, "k");
+        ArticleProcessPort port = port();
+
+        service.submitForReview(article, USER);
+
+        verify(port).cancelAll(ID, SITE, "resubmit");
+        verify(port).start(article, "k", USER);
+        verify(mapper).updateStatus(ID, STATUS_PENDING);
+        verify(extMapper).updateProcess(ID, "p-new", null);
+    }
+
+    @Test
+    void submitForReviewNeverPublishesEvenWhenThePortIsAbsent() {
+        // 栏目有流程键而社区版无端口：submit 会直接发布，submitForReview 停在待审核
+        Article article = article(STATUS_PENDING, "k");
+
+        service.submitForReview(article, USER);
+
+        assertEquals(STATUS_PENDING, article.getStatus());
+        verify(mapper, never()).updateStatus(ID, STATUS_PUBLISHED);
+    }
+
+    @Test
+    void rejectFiresTheRejectListenersAfterWritingTheReason() {
+        Article article = article(STATUS_PENDING, null);
+        com.ujcms.cms.core.listener.ArticleRejectListener listener =
+                mock(com.ujcms.cms.core.listener.ArticleRejectListener.class);
+        service.setRejectListeners(List.of(listener));
+
+        service.reject(article, "reason");
+
+        verify(mapper).updateStatus(ID, STATUS_REJECTED);
+        verify(extMapper).updateProcess(ID, null, "reason");
+        verify(listener).afterArticleReject(article);
+        assertEquals("reason", article.getExt().getRejectReason());
+    }
+
     @Test
     void submitRefusesAnArticleWhoseOfflineDateHasPassed() {
         Article article = article(STATUS_OFFLINE, null);

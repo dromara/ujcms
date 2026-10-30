@@ -6,7 +6,7 @@
 # ./mvnw clean package -DskipTests
 # docker compose up -d --build
 
-# 后续运行，如只修改了后端代码和模板文件，只需执行以下命令：
+# 后续运行，如只修改了后端代码和模板文件，只需执行以下命令（模板在卷 ujcms 里，要随镜像更新须开启下方 UJCMS_THEME_SYNC）：
 # ./mvnw clean package -DskipTests && docker compose up -d --build
 
 services:
@@ -36,12 +36,27 @@ services:
       UJCMS_INSTALL_ADMIN_USERNAME: admin
       UJCMS_INSTALL_ADMIN_PASSWORD: ${UJCMS_INSTALL_ADMIN_PASSWORD:-Ujcms@2026}
       UJCMS_INSTALL_SITES_0_NAME: UJCMS演示站
+      # 主题随镜像更新：换镜像后的首次启动用镜像内置的主题目录与主题包覆盖已安装的同名主题实例（见 Dockerfile 注释）。
+      # 本机迭代模板或演示 / 测试环境开启；正式站勿开——控制台里改过的模板会被覆盖。
+      # UJCMS_THEME_SYNC: "true"
     depends_on:
       mysql:
         condition: service_healthy
         restart: true
     volumes:
       - ujcms:/ujcms/static
+      # JVM 类数据共享归档（镜像 CMD 的 -XX:+AutoCreateSharedArchive）：首次正常停止后归档，之后启动快约 1/3；放卷里容器重建不丢
+      - cds:/ujcms/cds
+    # 内存：不限时 JVM 按宿主机内存的 25% 取堆上限，几个容器就能把小机器挤进 swap。生产环境建议设容器上限并固定堆，例如
+    # 2G 上限 + 1G 堆（堆外的元空间 / JIT / 线程栈 / soffice 约需 400～600M）；小机器可再加 -XX:+UseSerialGC（见 Dockerfile 注释）。
+    # 两值相等即禁止容器用 swap。
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 2048M
+    # memswap_limit: 2048M
+    # environment:
+    #   JAVA_TOOL_OPTIONS: -Xmx1g -Xlog:gc:stdout
 
   mysql:
     image: mysql:8.4
@@ -66,4 +81,5 @@ services:
 
 volumes:
   ujcms:
+  cds:
   mysql:

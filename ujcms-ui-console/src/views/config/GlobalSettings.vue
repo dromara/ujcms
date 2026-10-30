@@ -637,6 +637,19 @@ const handleTestMt = async (engine: string) => {
                 <el-input-number v-model="values.imageMaxHeight" :min="0" :max="65535"></el-input-number>
               </el-form-item>
             </el-col>
+            <!-- 会员上传限制：评论图片、投稿图片等前台会员上传接口共用（docs/spec/member-contribute/plan.md D10） -->
+            <el-col :span="12">
+              <el-form-item prop="memberImageLimit" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="config.upload.memberImageLimit" help /></template>
+                <el-input-number v-model="values.memberImageLimit" :min="0" :max="1024"></el-input-number>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="memberImageDailyLimit" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="config.upload.memberImageDailyLimit" help /></template>
+                <el-input-number v-model="values.memberImageDailyLimit" :min="0" :max="10000"></el-input-number>
+              </el-form-item>
+            </el-col>
           </el-row>
         </template>
         <template v-else-if="type === 'register'">

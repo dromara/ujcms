@@ -385,6 +385,12 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
     @JsonIgnore
     private ChannelExt ext = new ChannelExt();
     /**
+     * 投稿用户组ID列表（docs/spec/member-contribute/plan.md）。只有单独查询栏目对象时才有；为空表示全部用户组可投。
+     * 新增、修改时随表单提交：{@code null} 表示不改动（新增时沿用上级栏目的）
+     */
+    @Nullable
+    private List<Long> contributeGroupIds;
+    /**
      * 子栏目列表。只有在单独查询栏目对象时，才有此属性；查询栏目列表时，此属性为`null`
      */
     @JsonIncludeProperties({"id", "name", "url", "image", "nav"})
@@ -442,6 +448,15 @@ public class Channel extends GeneratedChannel implements PageUrlResolver, Anchor
 
     public void setChildren(@Nullable List<Channel> children) {
         this.children = children;
+    }
+
+    @Nullable
+    public List<Long> getContributeGroupIds() {
+        return contributeGroupIds;
+    }
+
+    public void setContributeGroupIds(@Nullable List<Long> contributeGroupIds) {
+        this.contributeGroupIds = contributeGroupIds;
     }
 
     @Nullable

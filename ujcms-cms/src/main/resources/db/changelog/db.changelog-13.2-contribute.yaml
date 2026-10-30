@@ -1,0 +1,102 @@
+databaseChangeLog:
+  # 会员投稿（docs/spec/member-contribute/plan.md）：
+  #   ujcms_group_contribute —— 栏目的投稿用户组（栏目 × 用户组），与 ujcms_group_access 同构：栏目开启“允许投稿”后，
+  #     无行表示全部用户组可投，有行则只有所列用户组可投；随栏目、用户组、站点删除而清理。
+  #   ujcms_site.contribute_settings_ —— 站点的投稿设置 JSON（Site.Contribute：是否开启、是否允许图片），
+  #     MEDIUMTEXT，与各 *_settings_ 列同型。
+  # 13.2 已发布，故以升级变更集实施；tableExists / columnExists 守卫令开发期已建表、已加列的库幂等（MARK_RAN）。
+  - changeSet:
+      id: 13.2-group-contribute-table
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: ujcms_group_contribute
+      changes:
+        - createTable:
+            tableName: ujcms_group_contribute
+            remarks: 用户组投稿权限表
+            columns:
+              - column:
+                  name: group_id_
+                  remarks: 用户组ID
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: channel_id_
+                  remarks: 栏目ID
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: site_id_
+                  remarks: 站点ID
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: ujcms_group_contribute
+            indexName: idx_groupcontribute_channel
+            columns:
+              - column:
+                  name: channel_id_
+        - createIndex:
+            tableName: ujcms_group_contribute
+            indexName: idx_groupcontribute_site
+            columns:
+              - column:
+                  name: site_id_
+        - addForeignKeyConstraint:
+            baseTableName: ujcms_group_contribute
+            baseColumnNames: group_id_
+            constraintName: fk_groupcontribute_group
+            referencedTableName: ujcms_group
+            referencedColumnNames: id_
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            deferrable: false
+            initiallyDeferred: false
+            validate: true
+        - addForeignKeyConstraint:
+            baseTableName: ujcms_group_contribute
+            baseColumnNames: channel_id_
+            constraintName: fk_groupcontribute_channel
+            referencedTableName: ujcms_channel
+            referencedColumnNames: id_
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            deferrable: false
+            initiallyDeferred: false
+            validate: true
+        - addForeignKeyConstraint:
+            baseTableName: ujcms_group_contribute
+            baseColumnNames: site_id_
+            constraintName: fk_groupcontribute_site
+            referencedTableName: ujcms_site
+            referencedColumnNames: id_
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            deferrable: false
+            initiallyDeferred: false
+            validate: true
+  - changeSet:
+      id: 13.2-site-contribute-settings
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ujcms_site
+                columnName: contribute_settings_
+      changes:
+        - addColumn:
+            tableName: ujcms_site
+            columns:
+              - column:
+                  name: contribute_settings_
+                  remarks: 投稿设置
+                  type: MEDIUMTEXT

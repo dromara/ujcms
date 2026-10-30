@@ -1,28 +1,10 @@
 [#include '../layout/theme.html'/]
+[#include '../snippets/model_fields.html'/]
 [#escape x as (x)!?html]
 [#--
   FormType 通用提交页（FormController 固定使用模板名 form_submit）。
-  字段类型 → 输入控件的映射对应 Model.TYPE_* 常量：
-
-    text                              → <input type="text">（按 code 启发式覆盖：
-                                          code=email → type=email，
-                                          code 形如 phone/mobile/tel → type=tel）
-    textarea / richEditor /
-      markdownEditor                  → <textarea>
-    number / slider                   → <input type="number">
-    date                              → <input type="date">
-    color                             → <input type="color">
-    switch                            → <input type="checkbox">
-    radio（带 dictTypeId）            → radio 组；提交 customs[code]=显示名、
-                                          customs[codeKey]=值
-    select（带 dictTypeId）           → <select>；同样双写提交
-    checkbox（带 dictTypeId）         → checkbox 组；customs[code] 与 [codeKey]
-                                          均提交数组
-    multipleSelect（带 dictTypeId）   → 多选下拉；同 checkbox
-    cascader                          → 文本输入（级联选择渲染不在本基线范围内）
-    imageUpload / videoUpload /
-      audioUpload / fileUpload        → “暂不支持文件上传”占位
-
+  字段类型 → 输入控件的映射与提交时的 customs 采集在 snippets/model_fields.html（[@modelFields/] 渲染字段，
+  [@modelFieldsScript/] 输出 window.collectModelCustoms，两者都在 [@layout] 主体内调用），会员投稿表单共用同一份。
   以 {siteId, typeId, captcha, captchaToken, website(蜜罐), customs} POST 到 ${api}/form；人机验证见 /static/captcha.js（scope=form）。
 --]
 [#assign formListUrl = dy + '/form-list/' + formType.id?c/]
@@ -68,75 +50,11 @@
         cap: null,
         submitting: false,
         initCaptcha() {
-          // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明
-          this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'form' });
+          // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明；弹层模式，需要时点击提交才弹出题目
+          this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'form', popup: true });
         },
         collectCustoms(form) {
-          const customs = {};
-          form.querySelectorAll('[data-field]').forEach((wrap) => {
-            const code = wrap.dataset.fieldCode;
-            const type = wrap.dataset.fieldType;
-            if (!code) return;
-            if (type === 'switch') {
-              const cb = wrap.querySelector('input[type=checkbox]');
-              customs[code] = !!(cb && cb.checked);
-              return;
-            }
-            if (type === 'radio') {
-              const checked = wrap.querySelector('input[type=radio]:checked');
-              if (checked && checked.value !== '') {
-                customs[code + 'Key'] = checked.value;
-                customs[code] = checked.dataset.display || checked.value;
-              } else {
-                customs[code] = null;
-              }
-              return;
-            }
-            if (type === 'checkbox') {
-              const checked = wrap.querySelectorAll('input[type=checkbox]:checked');
-              const values = [], displays = [];
-              checked.forEach((c) => { values.push(c.value); displays.push(c.dataset.display || c.value); });
-              customs[code + 'Key'] = values;
-              customs[code] = displays;
-              return;
-            }
-            if (type === 'select') {
-              const sel = wrap.querySelector('select');
-              if (sel && sel.value !== '') {
-                customs[code + 'Key'] = sel.value;
-                const opt = sel.options[sel.selectedIndex];
-                customs[code] = (opt && opt.dataset.display) || (opt && opt.textContent) || sel.value;
-              } else {
-                customs[code] = null;
-              }
-              return;
-            }
-            if (type === 'multipleSelect') {
-              const sel = wrap.querySelector('select[multiple]');
-              const values = [], displays = [];
-              if (sel) {
-                Array.from(sel.selectedOptions).forEach((opt) => {
-                  values.push(opt.value);
-                  displays.push(opt.dataset.display || opt.textContent || opt.value);
-                });
-              }
-              customs[code + 'Key'] = values;
-              customs[code] = displays;
-              return;
-            }
-            if (type === 'number' || type === 'slider') {
-              const inp = wrap.querySelector('input, textarea');
-              if (!inp) return;
-              const raw = inp.value.trim();
-              if (raw === '') { customs[code] = null; }
-              else { const n = Number(raw); customs[code] = Number.isFinite(n) ? n : raw; }
-              return;
-            }
-            const inp = wrap.querySelector('input, textarea');
-            if (!inp) return;
-            customs[code] = inp.value === '' ? null : inp.value;
-          });
-          return customs;
+          return window.collectModelCustoms(form);
         },
         async submit(ev) {
           if (this.submitting) return;
@@ -175,151 +93,8 @@
       @submit.prevent="submit"
       class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-5"
     >
-      [#list fields as field]
-        [#if field.code?has_content]
-          [#assign fcode = field.code/]
-          [#assign fname = field.name?has_content?then(field.name, field.code)/]
-          [#assign ftype = field.type/]
-          [#assign fid = 'field-' + fcode/]
-
-          [#--
-            纯文本字段的 code 启发式输入子类型：email 命名的字段用 type="email"，
-            电话类字段用 type="tel"。无需升级模型定义即可获得合适的移动端键盘与校验。
-          --]
-          [#assign textInputType = 'text'/]
-          [#if ftype == 'text']
-            [#if fcode == 'email'][#assign textInputType = 'email'/][/#if]
-            [#if fcode == 'phone' || fcode == 'mobile' || fcode == 'tel' || fcode == 'telephone'][#assign textInputType = 'tel'/][/#if]
-          [/#if]
-
-          [#switch ftype]
-          [#case 'imageUpload'][#case 'videoUpload'][#case 'audioUpload'][#case 'fileUpload']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
-              <div class="block w-full rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-400">暂不支持文件上传</div>
-            </div>
-          [#break]
-          [#case 'textarea'][#case 'richEditor'][#case 'markdownEditor']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
-              <textarea id="${fid}" rows="5"
-                        class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"></textarea>
-            </div>
-          [#break]
-          [#case 'switch']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label for="${fid}" class="inline-flex cursor-pointer items-center gap-2 text-sm">
-                <input id="${fid}" type="checkbox">
-                <span>${fname}</span>
-              </label>
-            </div>
-          [#break]
-          [#case 'number'][#case 'slider']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
-              <input id="${fid}" type="number"
-                     class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-            </div>
-          [#break]
-          [#case 'date']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
-              <input id="${fid}" type="date"
-                     class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-            </div>
-          [#break]
-          [#case 'color']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
-              <input id="${fid}" type="color"
-                     class="h-10 w-20 rounded border border-slate-300 bg-white p-1 cursor-pointer">
-            </div>
-          [#break]
-          [#case 'radio']
-            <fieldset data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <legend class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</legend>
-              [#if field.dictTypeId??]
-                [@DictList typeId=field.dictTypeId; dictList]
-                <div class="flex flex-wrap gap-2">
-                  [#list dictList as dict]
-                    <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-200 hover:border-primary cursor-pointer text-sm">
-                      <input type="radio" name="${fcode}" value="${dict.value}" data-display="${dict.name}">
-                      <span>${dict.name}</span>
-                    </label>
-                  [/#list]
-                </div>
-                [/@DictList]
-              [#else]
-                <input id="${fid}" type="text"
-                       class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-              [/#if]
-            </fieldset>
-          [#break]
-          [#case 'select']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
-              [#if field.dictTypeId??]
-                [@DictList typeId=field.dictTypeId; dictList]
-                <select id="${fid}" class="block w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  <option value="">请选择</option>
-                  [#list dictList as dict]
-                    <option value="${dict.value}" data-display="${dict.name}">${dict.name}</option>
-                  [/#list]
-                </select>
-                [/@DictList]
-              [#else]
-                <input id="${fid}" type="text"
-                       class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-              [/#if]
-            </div>
-          [#break]
-          [#case 'checkbox']
-            <fieldset data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <legend class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</legend>
-              [#if field.dictTypeId??]
-                [@DictList typeId=field.dictTypeId; dictList]
-                <div class="flex flex-wrap gap-2">
-                  [#list dictList as dict]
-                    <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-200 hover:border-primary cursor-pointer text-sm">
-                      <input type="checkbox" value="${dict.value}" data-display="${dict.name}">
-                      <span>${dict.name}</span>
-                    </label>
-                  [/#list]
-                </div>
-                [/@DictList]
-              [#else]
-                <input id="${fid}" type="text"
-                       class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-              [/#if]
-            </fieldset>
-          [#break]
-          [#case 'multipleSelect']
-            <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
-              <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname} <span class="text-xs text-slate-400">(可多选，按住 Ctrl/⌘)</span></label>
-              [#if field.dictTypeId??]
-                [@DictList typeId=field.dictTypeId; dictList]
-                <select id="${fid}" multiple size="5" class="block w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                  [#list dictList as dict]
-                    <option value="${dict.value}" data-display="${dict.name}">${dict.name}</option>
-                  [/#list]
-                </select>
-                [/@DictList]
-              [#else]
-                <input id="${fid}" type="text"
-                       class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-              [/#if]
-            </div>
-          [#break]
-          [#default]
-            [#-- text / cascader 及任何未知类型均退化为纯文本输入。 --]
-            <div data-field data-field-code="${fcode}" data-field-type="text">
-              <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
-              <input id="${fid}" type="${textInputType}"
-                     class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-            </div>
-          [/#switch]
-        [/#if]
-      [/#list]
+      [@modelFields fields=fields /]
+      [@modelFieldsScript/]
 
       <div class="relative">
         <div x-ref="captcha" data-captcha></div>

@@ -47,11 +47,12 @@ public class CaptchaGuard {
     public static final String SCOPE_DISCLOSURE = "disclosure";
     public static final String SCOPE_INTERVIEW = "interview";
     public static final String SCOPE_EXAMPLE = "example";
+    public static final String SCOPE_CONTRIBUTE = "contribute";
     /**
      * 受保护场景。{@code is-display?scope=} 只认这些
      */
     public static final Set<String> SCOPES = Set.of(SCOPE_COMMENT, SCOPE_MESSAGE_BOARD, SCOPE_FORM, SCOPE_MAILBOX,
-            SCOPE_DISCLOSURE, SCOPE_INTERVIEW, SCOPE_EXAMPLE);
+            SCOPE_DISCLOSURE, SCOPE_INTERVIEW, SCOPE_EXAMPLE, SCOPE_CONTRIBUTE);
     /**
      * 任何场景都可请求的自托管类型
      */

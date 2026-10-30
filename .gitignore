@@ -73,6 +73,10 @@ Thumbs.db
 # ===================================================
 *.local
 
+# Python virtual environment (DOCX generation helpers)
+.venv/
+__pycache__/
+
 # ===================================================
 # AI / editor tooling (never published)
 # ===================================================

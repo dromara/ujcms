@@ -25,8 +25,8 @@
     submitting: false, error: '',
     done: false, resultId: '', resultCode: '',
     initCaptcha() {
-      // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明
-      this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'mailbox' });
+      // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明；弹层模式，需要时点击提交才弹出题目
+      this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'mailbox', popup: true });
     },
     async submit() {
       if (this.submitting) return;

@@ -358,7 +358,7 @@ public class ThemeContentSeedImporter {
         applyChannelSeed(run, seed, bean, alias);
         bean.setOrigin(run.origin);
         bean.setOriginId(originId);
-        channelService.insert(bean, List.of(), List.of(), List.of());
+        channelService.insert(bean, new ChannelService.Grants(List.of(), List.of(), List.of(), List.of()));
         // R4：散列按服务层保存后的最终状态计算（customs 清洗在保存内发生）
         channelMapper.updateOriginHash(bean.getId(), SeedHash.channelHash(bean));
         run.channelIdByOrigin.put(originId, bean.getId());
@@ -417,7 +417,7 @@ public class ThemeContentSeedImporter {
         applyChannelSeed(run, seed, bean, aliasOf(seed, bean.getOriginId()));
         bean.setMainsJson(null);
         bean.setClobsJson(null);
-        channelService.update(bean, null, null, null);
+        channelService.update(bean, null, null, null, null);
         channelMapper.updateOriginHash(bean.getId(), SeedHash.channelHash(bean));
     }
 

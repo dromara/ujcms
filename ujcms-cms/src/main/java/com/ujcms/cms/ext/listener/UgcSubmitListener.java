@@ -23,7 +23,7 @@ public interface UgcSubmitListener {
     /**
      * UGC提交内容
      *
-     * @param type       内容类型：{@link #TYPE_COMMENT}/{@link #TYPE_MESSAGE_BOARD}
+     * @param type       内容类型：{@link #TYPE_COMMENT}/{@link #TYPE_MESSAGE_BOARD}/{@link #TYPE_ARTICLE}
      * @param refId      内容ID
      * @param siteId     站点ID
      * @param userId     提交用户ID。匿名提交为 {@code User.ANONYMOUS_ID}
@@ -35,5 +35,9 @@ public interface UgcSubmitListener {
                          List<WordHit> dictHits, Short heldStatus) {
         public static final String TYPE_COMMENT = "comment";
         public static final String TYPE_MESSAGE_BOARD = "messageBoard";
+        /**
+         * 会员投稿的文章（docs/spec/member-contribute/plan.md）。text 为标题加正文纯文本
+         */
+        public static final String TYPE_ARTICLE = "article";
     }
 }

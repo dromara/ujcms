@@ -750,6 +750,20 @@ public class Config extends GeneratedConfig {
          * 图片最大高度。等于 0 则不限制。默认0
          */
         private int imageMaxHeight = 0;
+        /**
+         * 会员上传的单张图片大小上限（MB）：评论图片、投稿图片等前台会员上传接口共用（docs/spec/member-contribute/plan.md D10）。
+         * 0 为按“图片最大长度”；两者都不为 0 时取较小者。“图片最大长度”默认 0（不限）对编辑合适，
+         * 对每个自助注册的会员都能调用的接口不行，所以这里默认给了上限
+         */
+        @Min(0)
+        @Max(1024)
+        private int memberImageLimit = 5;
+        /**
+         * 会员每人 24 小时内的图片上传张数上限，前台会员上传接口共用、按会员全局计数（不分站点、不分用途）。0 为不限
+         */
+        @Min(0)
+        @Max(10000)
+        private int memberImageDailyLimit = 50;
 
         /**
          * 标准的允许上传后缀以逗号分割后缀名，如 `jpg,jpeg,png,gif`，而 input 的 accept 格式为 .jpg,.jpeg,.png,.gif。
@@ -816,6 +830,21 @@ public class Config extends GeneratedConfig {
 
         public long getImageLimitByte() {
             return this.imageLimit * 1024L * 1024L;
+        }
+
+        /**
+         * 会员上传图片实际生效的大小上限（字节）：会员上限与“图片最大长度”都不为 0 时取较小者；0 为不限
+         */
+        public long getMemberImageLimitByte() {
+            long memberLimitByte = this.memberImageLimit * 1024L * 1024L;
+            long imageLimitByte = getImageLimitByte();
+            if (memberLimitByte <= 0) {
+                return imageLimitByte;
+            }
+            if (imageLimitByte <= 0) {
+                return memberLimitByte;
+            }
+            return Math.min(memberLimitByte, imageLimitByte);
         }
 
         public long getVideoLimitByte() {
@@ -952,6 +981,22 @@ public class Config extends GeneratedConfig {
 
         public void setImageMaxHeight(int imageMaxHeight) {
             this.imageMaxHeight = imageMaxHeight;
+        }
+
+        public int getMemberImageLimit() {
+            return memberImageLimit;
+        }
+
+        public void setMemberImageLimit(int memberImageLimit) {
+            this.memberImageLimit = memberImageLimit;
+        }
+
+        public int getMemberImageDailyLimit() {
+            return memberImageDailyLimit;
+        }
+
+        public void setMemberImageDailyLimit(int memberImageDailyLimit) {
+            this.memberImageDailyLimit = memberImageDailyLimit;
         }
     }
 

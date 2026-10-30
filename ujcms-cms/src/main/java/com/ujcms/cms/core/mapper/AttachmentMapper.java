@@ -96,6 +96,15 @@ public interface AttachmentMapper {
     int countByCreated(@Param("siteId") Long siteId, @Param("created") @Nullable OffsetDateTime created);
 
     /**
+     * 统计某用户自某时刻起上传的附件数（会员上传配额，docs/spec/member-contribute/plan.md D10）。不分站点：会员身份是全局的
+     *
+     * @param userId  用户ID
+     * @param created 创建日期（含）
+     * @return 附件数量
+     */
+    int countByUserCreated(@Param("userId") Long userId, @Param("created") OffsetDateTime created);
+
+    /**
      * 根据 url 附件对象
      *
      * @param url URL

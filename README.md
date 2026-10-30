@@ -45,30 +45,30 @@ UJCMS 是一款基于 Java 的开源企业级网站内容管理系统（Java CMS
 
 打开 `ujcms-starter/src/main/resources/application.yaml`，修改：
 
-* `spring.datasource.url`：数据库连接地址（MySQL 与 MariaDB 均写 `jdbc:mariadb://主机:3306/库名?allowPublicKeyRetrieval=true&allowLocalInfile=false&nullDatabaseMeansCurrent=true`，参数说明见文件内注释）
+* `spring.datasource.url`：数据库连接地址（MySQL 与 MariaDB 均写 `jdbc:mariadb://127.0.0.1:3306/ujcms?allowPublicKeyRetrieval=true&allowLocalInfile=false&nullDatabaseMeansCurrent=true`，其中 `127.0.0.1`、`3306`、`ujcms` 分别换成数据库地址、端口和库名，参数说明见文件内注释）
 * `spring.datasource.username`：数据库用户名
 * `spring.datasource.password`：数据库密码
 
 ### 构建前台模板静态资源
 
-前台默认主题（`ujcms-starter/src/main/webapp/themes/1/default`）依赖的第三方前端库（cropperjs、sm-crypto、pdfjs 等）由主题自带的 npm 脚本复制到 `assets/vendor` 目录。该目录不纳入版本库，而会员头像裁剪、注册/找回密码（SM2 加密）、文库文章等页面在运行时需要这些文件，因此首次运行前必须先构建。执行：
+前台默认主题（`ujcms-starter/src/main/webapp/themes/1/default`）依赖的第三方前端库（cropperjs、sm-crypto、pdfjs-dist）由主题自带的 npm 脚本从 `node_modules` 复制到 `assets/vendor` 目录。该目录不纳入版本库（见 `ujcms-starter/.gitignore`），而会员登录、注册、找回密码、账号设置（密码 SM2 加密传输）、会员头像裁剪、文库文章（PDF 预览）等页面在运行时需要这些文件，因此首次运行前必须先构建。执行：
 
 ```bash
 cd ujcms-starter/src/main/webapp/themes/1/default && npm install && npm run build
 ```
 
-`npm run build` 会依次生成图标、复制 vendor 库并编译 Tailwind 样式（`assets/css/style.css`）。其中样式和图标产物已纳入版本库，CI 打包时只需执行 `npm run build:vendor`：
+`npm run build` 依次执行三个子任务：`build:icons` 由 `_src/icons.json` 生成图标宏 `snippets/icon.html`，`build:vendor` 复制 vendor 库到 `assets/vendor`，`build:css` 用 Tailwind 将 `_src/style.css` 编译为 `assets/css/style.css`。其中图标宏和样式产物已纳入版本库，CI 打包时只需执行 `npm run build:vendor`：
 
 ```bash
 npm --prefix ujcms-starter/src/main/webapp/themes/1/default ci
 npm --prefix ujcms-starter/src/main/webapp/themes/1/default run build:vendor
 ```
 
-主题目录下的 `node_modules`（约 500 MB）只在构建时使用，运行时不需要，也不应随程序部署：war 打包会自动排除它；jar 部署复制 `webapp` 目录时不要带上。
+主题目录下的 `node_modules`（约 500 MB）只在构建时使用，运行时不需要，也不应随程序部署：war 打包和 Docker 镜像构建会自动排除它；jar 部署复制 `webapp` 目录时不要带上。
 
 ### 编译后台前端（管理控制台）
 
-将后台前端编译到 `ujcms-starter/src/main/webapp/cp`，以便直接访问（可不必启动后台前端）：
+将后台前端编译到 `ujcms-starter/src/main/webapp/cp`（该目录不纳入版本库），以便直接访问（可不必启动后台前端）：
 
 ```bash
 pnpm --dir ujcms-ui-console install
@@ -83,26 +83,45 @@ pnpm --dir ujcms-ui-console build:starter
 ./mvnw clean spring-boot:run
 ```
 
+> 如使用 IntelliJ IDEA 的 `Run` 方式启动，则需要在 `Edit configurations...` 中点击 `Modify options`，勾选 `Working directory`，选择 `ujcms-starter` 项目作为工作路径，否则访问前台会出现找不到模板的错误：`No static resource 1/default/index.`。
+
+> 如程序无法正常编译，通常是因为 maven 没有正确下载 jar 依赖包。可以尝试在 IntelliJ IDEA 的 `Maven` 窗口点击刷新按钮 `Reload All Maven Projects` 按钮，尝试重新下载 jar 依赖包，或者点击菜单 `Build` - `Rebuild Project` 重新编译项目。
+
+> 如首次使用 IntelliJ IDEA，没有配置 JDK，也会导致程序不能编译。可选中项目，点击 `File` - `Project Structure...`，在 `Project Settings - Project` 处，配置 `Project SDK`。
+
 ## 确认启动
-首次运行程序，系统会自动创建数据库表和初始化数据库，需要一些时间，请耐心等待。直到出现类似 `com.ujcms.cms.starter.Application: Started Application in xxx seconds` 信息，代表程序启动完成。
+
+首次运行程序，系统会自动创建数据库表并写入初始数据，需要一些时间，请耐心等待。直到出现类似 `com.ujcms.cms.starter.Application: Started Application in xxx seconds` 信息，代表程序启动完成。
+
+空数据库首次启动后，系统处于“待安装”状态：启动日志中会用醒目的分隔线打印一段提示，其中包含一个 32 位的**一次性安装令牌**（install token）。同一令牌也会写入 `WEB-INF/install-token.txt`（源码运行时为 `ujcms-starter/src/main/webapp/WEB-INF/install-token.txt`），看不到日志时可在该文件中查看，安装完成后自动删除。令牌仅本次启动有效，重启会重新生成并再次打印，以最后一次为准。
 
 ## 访问程序
 
 * 网站前台：`http://localhost:8080/`
-* 网站后台：`http://localhost:8080/cp`
-* 默认管理员账号：`admin`，密码：`password`
+* 网站后台：`http://localhost:8080/cp/`
 
-> 请在首次登录后尽快修改默认密码，并妥善保管管理员账号。
+系统没有内置的默认管理员密码。未安装时打开后台会自动进入**安装向导**，按步骤填写：
+
+1. **安装令牌**：填入启动日志或令牌文件中的令牌；
+2. **站点设置**：站点名称、协议、域名和端口（按当前访问地址预先填写，可修改）；
+3. **管理员**：用户名（默认 `admin`）和密码，安装完成后用它登录后台；
+4. **主题与数据**：主题来源选“内置默认主题”、演示数据选“导入演示数据”即可得到完整的演示站；选“空站点”则不导入演示数据。
+
+向导只能向前，每一步提交即保存；中途退出后重新打开后台即可继续。完成后点击“进入登录”，全部安装接口（`/api/install/**`）自动关闭，令牌作废。
+
+开发、演示或 Docker 环境可改用**无人值守安装**：在 `application.yaml` 中加入以下配置，空数据库首次启动时会自动完成安装，使用内置默认主题并导入全部演示数据，之后直接用该账号密码登录后台：
+
+```yaml
+ujcms.install.auto: true
+ujcms.install.admin.username: admin
+ujcms.install.admin.password: password
+```
+
+> 无人值守安装请勿将示例密码部署到公网环境；如已使用，请在首次登录后尽快修改，并妥善保管管理员账号。清单的完整字段（预设令牌、多站点、第三方登录、AI 服务商、Docker 环境变量等）见 [安装指南](docs/guide/install-flow.zh.md)。
 
 使用手机访问前台或者使用浏览器模拟手机访问前台，会自适应显示手机端的界面。
 
-> 如使用 IntelliJ IDEA 的 `Run` 方式启动，则需要在 `Edit configurations...` 中点击 `Modify options`，勾选 `Working directory`，选择 `ujcms-starter` 项目作为工作路径，否则访问前台会出现找不到模板的错误：`No static resource 1/default/index.`。
-
-> 如遇到前台页面没有样式的情况，请先按上面 `构建前台模板静态资源` 部分构建主题静态资源。如果依然没有样式，则是因为程序没有部署在 Tomcat 的根目录。如前台首页地址类似为 `http://localhost:8080/abc` ，即代表部署在 `/abc` 目录下，没有部署在根目录。解决办法请参考下面 `关于部署路径` 部分内容。
-
-> 如程序无法正常编译，通常是因为 maven 没有正确下载 jar 依赖包。可以尝试在 IntelliJ IDEA 的 `Maven` 窗口点击刷新按钮 `Reload All Maven Projects` 按钮，尝试重新下载 jar 依赖包，或者点击菜单 `Build` - `Rebuild Project` 重新编译项目。
-
-> 如首次使用 IntelliJ IDEA，没有配置 JDK，也会导致无法正常程序不能编译。可选中项目，点击 `File` - `Project Structure...`，在 `Project Settings - Project` 处，配置 `Project SDK`。
+> 如遇到前台页面没有样式的情况，通常是因为程序没有部署在根目录。如前台首页地址类似为 `http://localhost:8080/abc` ，即代表部署在 `/abc` 目录下，没有部署在根目录。解决办法请参考下面 `关于部署路径` 部分内容。
 
 ## 常见错误
 
@@ -233,7 +252,7 @@ Eclipse 默认的 Tomcat 启动方式会将应用程序部署到一个特定的�
 
 程序在启动时会检查并升级数据库表结构版本，如果此时强行关闭程序，再次启动时会出现 `LockException: Could not acquire change log lock` 或 `Waiting for changelog lock...` 错误。如果您受此问题困扰，可在首次启动程序后（已成功创建表结构和初始数据），关闭表结构升级功能。
 
-打开 `application.yaml`（源码位置：`ujcms-starter/src/main/resources/application.yaml`，war 位置：`WEB-INF/classes/application.yaml`）文件，修改以下选项：
+打开 `application.yaml`（源码位置：`ujcms-starter/src/main/resources/application.yaml`，war 位置：`WEB-INF/classes/application.yaml`，jar 位置：`config/application.yaml`）文件，修改以下选项：
 
 ```yaml
 # 关闭 liquibase 的表结构升级功能

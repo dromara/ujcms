@@ -55,7 +55,7 @@ import jakarta.validation.constraints.Size;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"watermarkSettings", "htmlSettings", "messageBoardSettings", "commentSettings",
-        "disclosureSettings", "mailboxSettings", "interviewSettings", "censusSettings",
+        "contributeSettings", "disclosureSettings", "mailboxSettings", "interviewSettings", "censusSettings",
         "accessibilitySettings", "aiSettings", "geoSettings", "permalinkSettings", "handler"})
 public class Site extends GeneratedSite implements Anchor, TreeEntity {
 
@@ -657,6 +657,37 @@ public class Site extends GeneratedSite implements Anchor, TreeEntity {
             setCommentSettings(Constants.MAPPER.writeValueAsString(comment));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot write value of Comment", e);
+        }
+    }
+
+    /**
+     * 投稿设置（docs/spec/member-contribute/plan.md）
+     */
+    @Nullable
+    private Contribute contribute;
+
+    @Valid
+    public Contribute getContribute() {
+        if (contribute != null) {
+            return contribute;
+        }
+        String settings = getContributeSettings();
+        if (StringUtils.isBlank(settings)) {
+            return new Contribute();
+        }
+        try {
+            return Constants.MAPPER.readValue(settings, Contribute.class);
+        } catch (JsonProcessingException e) {
+            return new Contribute();
+        }
+    }
+
+    public void setContribute(Contribute contribute) {
+        this.contribute = contribute;
+        try {
+            setContributeSettings(Constants.MAPPER.writeValueAsString(contribute));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot write value of Contribute", e);
         }
     }
 
@@ -1505,6 +1536,56 @@ public class Site extends GeneratedSite implements Anchor, TreeEntity {
 
         public void setImageMaxCount(int imageMaxCount) {
             this.imageMaxCount = imageMaxCount;
+        }
+    }
+
+    /**
+     * 投稿设置（docs/spec/member-contribute/plan.md）。开关在站点，哪些栏目收稿、哪些用户组可投在栏目上
+     * （{@code Channel.allowContribute} 与 ujcms_group_contribute）；投稿一律待审核，不在此设免审。
+     * 投稿配额（D10）按人按 24 小时计数；图片的张数与大小上限是会员上传接口共用的，在全局上传设置
+     * （{@code Config.Upload.memberImageLimit} / {@code memberImageDailyLimit}），不在站点
+     */
+    @Schema(name = "Site.Contribute", description = "投稿设置")
+    public static class Contribute implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
+        /**
+         * 是否开启。新增的内容入口，默认关闭
+         */
+        private boolean enabled = false;
+        /**
+         * 每人 24 小时内的投稿上限（新投稿计数，修改重提不计）。0 为不限
+         */
+        @Min(0)
+        @Max(1000)
+        private int dailyLimit = 10;
+        /**
+         * 是否允许图片（封面与正文插图，经会员上传接口；大小与张数上限见全局上传设置）
+         */
+        private boolean imageEnabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getDailyLimit() {
+            return dailyLimit;
+        }
+
+        public void setDailyLimit(int dailyLimit) {
+            this.dailyLimit = dailyLimit;
+        }
+
+        public boolean isImageEnabled() {
+            return imageEnabled;
+        }
+
+        public void setImageEnabled(boolean imageEnabled) {
+            this.imageEnabled = imageEnabled;
         }
     }
 

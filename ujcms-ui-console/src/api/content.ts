@@ -125,6 +125,8 @@ export const stopArticleImportTask = async (taskId: string): Promise<any> => (aw
 export const queryArticleStatusCounts = async (params?: Record<string, any>): Promise<{ status: number; total: number }[]> =>
   (await axios.get('/backend/core/article/status-counts', { params, skipErrorHandler: true } as any)).data;
 export const queryArticleRejectCount = async (params?: Record<string, any>, quiet = false): Promise<any> => (await axios.get('/backend/core/article/reject-count', { params, skipErrorHandler: quiet } as any)).data;
+export const queryArticleContributePendingCount = async (params?: Record<string, any>, quiet = false): Promise<any> =>
+  (await axios.get('/backend/core/article/contribute-pending-count', { params, skipErrorHandler: quiet } as any)).data;
 export const queryArticle = async (id: string): Promise<any> => (await axios.get(`/backend/core/article/${id}`)).data;
 /** 文章别名是否已被占用（id 排除自身） */
 export const articleSlugExist = async (slug?: string, id?: string): Promise<any> => (await axios.get('/backend/core/article/slug-exist', { params: { slug, id } })).data;
@@ -147,6 +149,8 @@ export const stickyArticle = async (ids: string[], sticky: number, stickyDate?: 
   (await axios.post('/backend/core/article/sticky?_method=put', { ids, sticky, stickyDate })).data;
 export const deleteArticle = async (data: string[]): Promise<any> => (await axios.post('/backend/core/article/delete?_method=put', data)).data;
 export const submitArticle = async (data: string[]): Promise<any> => (await axios.post('/backend/core/article/submit?_method=put', data)).data;
+// 退回待审核且未进入审批流程的文章（会员投稿的轻量审核）；进入了流程的由 rejectArticle（文章审核）处理
+export const rejectArticles = async (ids: string[], reason: string): Promise<any> => (await axios.post('/backend/core/article/reject?_method=put', { ids, reason })).data;
 export const archiveArticle = async (data: string[]): Promise<any> => (await axios.post('/backend/core/article/archive?_method=put', data)).data;
 export const offlineArticle = async (data: string[]): Promise<any> => (await axios.post('/backend/core/article/offline?_method=put', data)).data;
 export const completelyDeleteArticle = async (data: string[]): Promise<any> => (await axios.post('/backend/core/article?_method=delete', data)).data;

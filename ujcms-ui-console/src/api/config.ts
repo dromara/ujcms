@@ -53,6 +53,8 @@ export const updateSiteMessageBoardSettings = async (data: Record<string, any>):
   (await axios.post('/backend/core/site-settings/message-board?_method=put', data)).data;
 export const updateSiteCommentSettings = async (data: Record<string, any>): Promise<any> =>
   (await axios.post('/backend/core/site-settings/comment?_method=put', data)).data;
+export const updateSiteContributeSettings = async (data: Record<string, any>): Promise<any> =>
+  (await axios.post('/backend/core/site-settings/contribute?_method=put', data)).data;
 export const updateSiteDisclosureSettings = async (data: Record<string, any>): Promise<any> =>
   (await axios.post('/backend/core/site-settings/disclosure?_method=put', data)).data;
 export const updateSiteMailboxSettings = async (data: Record<string, any>): Promise<any> =>

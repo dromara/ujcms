@@ -79,6 +79,50 @@ public class Images {
     }
 
     /**
+     * 图片尺寸（像素）
+     *
+     * @param width  宽
+     * @param height 高
+     */
+    public record Dimension(int width, int height) {
+        /**
+         * 像素总数（宽 × 高），用 long 以免大图溢出
+         */
+        public long pixels() {
+            return (long) width * height;
+        }
+    }
+
+    /**
+     * 只读文件头取图片尺寸，不解码像素。解码前先按尺寸把关：一个几 KB 的文件可以在头里声称几万 × 几万像素，
+     * {@code ImageIO.read} 会按声称的尺寸分配内存（解压炸弹）
+     *
+     * @param file 图片文件
+     * @return 尺寸；没有能读该文件的 ImageReader、或头部损坏时为 {@code null}
+     */
+    @Nullable
+    public static Dimension readDimension(File file) {
+        try (ImageInputStream iis = ImageIO.createImageInputStream(file)) {
+            if (iis == null) {
+                return null;
+            }
+            Iterator<ImageReader> it = ImageIO.getImageReaders(iis);
+            if (!it.hasNext()) {
+                return null;
+            }
+            ImageReader reader = it.next();
+            try {
+                reader.setInput(iis, true, true);
+                return new Dimension(reader.getWidth(0), reader.getHeight(0));
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
      * 通过 ContextType 获取图片后缀名
      *
      * @param contentType Http响应的MIME type

@@ -168,6 +168,15 @@ public class UserService implements OrgDeleteListener, GroupDeleteListener {
         contentStatEvictor.user();
     }
 
+    /**
+     * 新建用户并一并分配角色（批量录入 / 导入用户，docs/spec/user-management/plan.md D8）。角色的等级与三权分立由调用方核对
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void insert(User bean, UserExt ext, List<Long> orgIds, List<Long> roleIds) {
+        insert(bean, ext, orgIds);
+        roleIds.stream().distinct().forEach(roleId -> userRoleMapper.insert(new UserRole(bean.getId(), roleId)));
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void insertOpenid(UserOpenid bean) {
         openidMapper.insert(bean);

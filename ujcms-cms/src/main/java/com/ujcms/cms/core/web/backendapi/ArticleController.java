@@ -593,6 +593,49 @@ public class ArticleController {
         return Responses.ok();
     }
 
+    /**
+     * 退回待审核的文章（docs/spec/member-contribute/plan.md D6）：会员投稿到没有审批流程的栏目时停在待审核、无流程实例，
+     * “通过”就是提交，“退回”走这里。进入了审批流程的文章由“文章审核”退回，这里拒绝——两处各管各的流程实例
+     */
+    @PutMapping("/reject")
+    @PreAuthorize("hasAnyAuthority('article:reject','*')")
+    @OperationLog(module = "article", operation = "reject", type = OperationType.UPDATE)
+    public ResponseEntity<Body> reject(@RequestBody @Valid RejectParams params) {
+        Site site = Contexts.getCurrentSite();
+        User user = Contexts.getCurrentUser();
+        List<Article> articles = selectForWrite(params.ids(), site, user);
+        for (Article bean : articles) {
+            if (bean.getStatus() != Article.STATUS_PENDING || bean.getProcessInstanceId() != null) {
+                throw new Http400Exception("error.article.rejectInProcess", bean.getTitle());
+            }
+        }
+        for (Article bean : articles) {
+            service.reject(bean, params.reason());
+        }
+        return Responses.ok();
+    }
+
+    public record RejectParams(@NotEmpty List<Long> ids, @NotBlank @Length(max = 300) String reason) {
+    }
+
+    /**
+     * 待审投稿数：待审核、录入类型为投稿、尚未进入审批流程（进入了的由“文章审核”计数），在操作员的文章权限与数据范围之内。
+     * 供首页待办胶囊显示
+     */
+    @GetMapping("contribute-pending-count")
+    @PreAuthorize("hasAnyAuthority('article:list','*')")
+    public long contributePendingCount() {
+        Site site = Contexts.getCurrentSite();
+        User user = Contexts.getCurrentUser();
+        ArticleArgs args = ArticleArgs.of();
+        args.siteId(site.getId());
+        args.status(Collections.singleton(Article.STATUS_PENDING));
+        args.inputType(Article.INPUT_TYPE_CONTRIBUTE);
+        args.withoutProcessInstance();
+        dataPermission.filter(args, user);
+        return service.count(args);
+    }
+
     @PutMapping("/archive")
     @PreAuthorize("hasAnyAuthority('article:archive','*')")
     @OperationLog(module = "article", operation = "archive", type = OperationType.UPDATE)

@@ -155,6 +155,7 @@ public class ChannelController {
             throw new Http404Exception(Channel.NOT_FOUND + id);
         }
         ValidUtils.dataInSite(bean.getSiteId(), Contexts.getCurrentSiteId());
+        bean.setContributeGroupIds(service.listContributeGroupIds(bean.getId()));
         return bean;
     }
 
@@ -177,9 +178,13 @@ public class ChannelController {
             requireChannelPermission(user, site.getId(), List.of(parentId));
         }
         validateBean(channel, null);
-        // 授权：有上级栏目照搬上级的，根栏目给所有未设“全部权限”的用户组、角色
+        // 授权：有上级栏目照搬上级的，根栏目给所有未设“全部权限”的用户组、角色；投稿用户组表单有填则按表单
         ChannelService.Grants grants = service.defaultGrants(site.getId(), parentId);
-        service.insert(channel, grants.groupIds(), grants.articleRoleIds(), grants.channelRoleIds());
+        if (bean.getContributeGroupIds() != null) {
+            grants = new ChannelService.Grants(grants.groupIds(), grants.articleRoleIds(), grants.channelRoleIds(),
+                    bean.getContributeGroupIds());
+        }
+        service.insert(channel, grants);
 
         if (site.getHtml().isEnabledAndAuto()) {
             String taskName = Servlets.getMessage(request, TASK_HTML_CHANNEL_RELATED);
@@ -226,7 +231,7 @@ public class ChannelController {
                     "created", "modified", "views", "selfViews", "depth", "staticFile", "mobileStaticFile");
             channel.setCustoms(bean.getCustoms());
             validateBean(channel, original);
-            service.update(channel, null, null, null);
+            service.update(channel, null, null, null, bean.getContributeGroupIds());
         });
     }
 

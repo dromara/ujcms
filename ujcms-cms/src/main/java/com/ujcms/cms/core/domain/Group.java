@@ -32,6 +32,19 @@ public class Group extends GeneratedGroup {
     }
 
     /**
+     * 类型：系统组（游客等内置组）
+     */
+    public static final short TYPE_SYSTEM = 1;
+    /**
+     * 类型：常规组（可以分配给用户的组）
+     */
+    public static final short TYPE_REGULAR = 2;
+    /**
+     * 类型：IP组
+     */
+    public static final short TYPE_IP = 3;
+
+    /**
      * 游客组ID
      */
     public static final Long ANONYMOUS_ID = 1L;

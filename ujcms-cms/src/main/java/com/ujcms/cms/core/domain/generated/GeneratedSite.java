@@ -214,6 +214,13 @@ public class GeneratedSite implements Serializable {
     private String commentSettings;
 
     /**
+     * 投稿设置
+     */
+    @Nullable
+    @Schema(description="投稿设置")
+    private String contributeSettings;
+
+    /**
      * 依申请公开设置
      */
     @Nullable

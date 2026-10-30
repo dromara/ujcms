@@ -37,40 +37,16 @@ public class UserController {
         this.service = service;
     }
 
+    /**
+     * 注册表单的用户名预检。用户名由访客自己起、敏感度低、表单需要即时反馈，故匿名直答。
+     * 手机号 / 邮箱没有预检接口：“某号码是否在本站注册”是可字典遍历的账号枚举口子（OWASP WSTG-IDNT-04），
+     * 业界做法是只在提交注册时（{@code POST /api/register}，始终可见的人机验证之后）报重复；
+     * 曾有的 {@code *-exist} / {@code mobile-not-exist} / {@code email-not-exist} 已移除（backend-authorization §3）。
+     */
     @Operation(summary = "用户名是否未使用")
     @GetMapping("/username-not-exist")
     public boolean usernameNotExist(@Parameter(description = "用户名") @NotBlank String username) {
         return service.selectByUsername(username) == null;
-    }
-
-    @Operation(summary = "用户名是否存在")
-    @GetMapping("/username-exist")
-    public boolean usernameExist(@Parameter(description = "用户名") @NotBlank String username) {
-        return service.selectByUsername(username) != null;
-    }
-
-    @Operation(summary = "手机号码是否未使用")
-    @GetMapping("/mobile-not-exist")
-    public boolean mobileNotExist(@Parameter(description = "手机号码") @NotBlank String mobile) {
-        return service.selectByMobile(mobile) == null;
-    }
-
-    @Operation(summary = "手机号码是否存在")
-    @GetMapping("/mobile-exist")
-    public boolean mobileExist(@Parameter(description = "手机号码") @NotBlank String mobile) {
-        return service.selectByMobile(mobile) != null;
-    }
-
-    @Operation(summary = "邮箱地址是否未使用")
-    @GetMapping("/email-not-exist")
-    public boolean emailNotExist(@Parameter(description = "邮箱地址") @NotBlank String email) {
-        return service.selectByEmail(email) == null;
-    }
-
-    @Operation(summary = "邮箱地址是否存在")
-    @GetMapping("/email-exist")
-    public boolean emailExist(@Parameter(description = "邮箱地址") @NotBlank String email) {
-        return service.selectByEmail(email) != null;
     }
 
     @Operation(summary = "用户公开信息")

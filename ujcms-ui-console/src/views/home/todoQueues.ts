@@ -1,5 +1,5 @@
 import { currentUser, hasPermission } from '@/stores/useCurrentUser';
-import { queryArticlePendingCount, queryArticleRejectCount, queryFormPendingCount, queryFormRejectCount } from '@/api/content';
+import { queryArticlePendingCount, queryArticleRejectCount, queryArticleContributePendingCount, queryFormPendingCount, queryFormRejectCount } from '@/api/content';
 import {
   queryCommentUnreviewedCount,
   queryMessageBoardUnreviewedCount,
@@ -28,6 +28,8 @@ export interface TodoQueue {
 export const TODO_QUEUES: TodoQueue[] = [
   { key: 'pendingArticle', labelKey: 'todo.pendingArticle', permission: 'articleReview:list', tier: 1, fetch: () => queryArticlePendingCount(undefined, true), to: { name: 'ArticleReviewList' } },
   { key: 'rejectedArticle', labelKey: 'todo.rejectedArticle', permission: 'article:list', tier: 1, fetch: () => queryArticleRejectCount(undefined, true), to: { name: 'ArticleList', query: { status: 22 } } },
+  // 待审投稿：待审核、尚未进入审批流程的会员投稿（docs/spec/member-contribute/plan.md D6），核心功能，落在文章管理的待审核页签
+  { key: 'pendingContribute', labelKey: 'todo.pendingContribute', permission: 'article:list', tier: 0, fetch: () => queryArticleContributePendingCount(undefined, true), to: { name: 'ArticleList', query: { status: 11 } } },
   { key: 'pendingForm', labelKey: 'todo.pendingForm', permission: 'formReview:list', tier: 2, fetch: () => queryFormPendingCount(undefined, true), to: { name: 'FormReviewList' } },
   { key: 'rejectedForm', labelKey: 'todo.rejectedForm', permission: 'form:list', tier: 2, fetch: () => queryFormRejectCount(undefined, true), to: { name: 'FormList', query: { status: 22 } } },
   { key: 'unreviewedMessageBoard', labelKey: 'todo.unreviewedMessageBoard', permission: 'messageBoard:list', tier: 0, fetch: () => queryMessageBoardUnreviewedCount(undefined, true), to: { name: 'MessageBoardList', query: { status: 1 } } },

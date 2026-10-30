@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { Plus, Delete, ArrowDown } from '@element-plus/icons-vue';
+import { Plus, Delete, ArrowDown, Grid, Upload } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import dayjs from 'dayjs';
-import { currentUser, perm } from '@/stores/useCurrentUser';
+import { currentUser, perm, isShowTier } from '@/stores/useCurrentUser';
+import { showCommercialNotice } from '@/utils/commercial';
 import { pageSizes, pageLayout, toParams, resetParams } from '@/utils/common';
 import { toTree, findTreeItem, filterTreeNodeByName } from '@/utils/tree';
 import { useRouteState, stringParam, flagParam } from '@/composables/useRouteState';
@@ -12,8 +13,11 @@ import { ColumnList, ColumnSetting } from '@/components/TableList';
 import { QueryForm, QueryItem } from '@/components/QueryForm';
 import CollapsibleAside from '@/components/CollapsibleAside.vue';
 import UserForm from './UserForm.vue';
+import UserBatchForm from './UserBatchForm.vue';
+import UserImportDialog from './UserImportDialog.vue';
 import UserPasswordForm from './UserPasswordForm.vue';
 import UserPermissionForm from './UserPermissionForm.vue';
+import UserRolesForm from './UserRolesForm.vue';
 
 defineOptions({
   name: 'UserList',
@@ -29,8 +33,12 @@ const data = ref<Array<any>>([]);
 const selection = ref<Array<any>>([]);
 const loading = ref<boolean>(false);
 const formVisible = ref<boolean>(false);
+const batchFormVisible = ref<boolean>(false);
+const importVisible = ref<boolean>(false);
 const passwordFormVisible = ref<boolean>(false);
 const permissionFormVisible = ref<boolean>(false);
+const rolesFormVisible = ref<boolean>(false);
+const rolesFormMode = ref<'add' | 'remove'>('add');
 const passwordFormUsername = ref<string>('');
 const beanId = ref<string>();
 const beanIds = computed(() => data.value.map((row) => row.id));
@@ -144,6 +152,17 @@ const handleEdit = (id: string) => {
   beanId.value = id;
   formVisible.value = true;
 };
+const handleBatchAdd = () => {
+  batchFormVisible.value = true;
+};
+// 导入用户是商业版 T1：社区版的入口带徽标，点击说明所需版本
+const handleImport = () => {
+  if (currentUser.commercialTier < 1) {
+    showCommercialNotice(1, t('commercial.feature.userImport'));
+    return;
+  }
+  importVisible.value = true;
+};
 const handlePasswordEdit = (id: string, username: string) => {
   beanId.value = id;
   passwordFormUsername.value = username;
@@ -152,6 +171,11 @@ const handlePasswordEdit = (id: string, username: string) => {
 const handlePermissionEdit = (id: string) => {
   beanId.value = id;
   permissionFormVisible.value = true;
+};
+// 批量添加 / 移除角色：对选中的行，只加减指定的角色（D9）
+const handleRoles = (mode: 'add' | 'remove') => {
+  rolesFormMode.value = mode;
+  rolesFormVisible.value = true;
 };
 const handleDelete = async (ids: string[]) => {
   await deleteUser(ids);
@@ -209,6 +233,10 @@ const handleStatus = async (ids: string[], status: number) => {
       </div>
       <div>
         <el-button type="primary" :icon="Plus" @click="handleAdd">{{ $t('add') }}</el-button>
+        <el-button :icon="Grid" :disabled="perm('user:create')" class="ml-2" @click="handleBatchAdd">{{ $t('user.op.batchCreate') }}</el-button>
+        <el-button v-if="isShowTier(1)" :icon="Upload" :disabled="currentUser.commercialTier >= 1 && perm('user:import')" class="ml-2" @click="handleImport">
+          {{ $t('user.op.import') }}<commercial-badge v-if="currentUser.commercialTier < 1" :tier="1" :size="12" class="ml-1" />
+        </el-button>
         <el-dropdown :disabled="selection.length <= 0 || perm('user:updateStatus')" class="ml-2">
           <el-button :disabled="selection.length <= 0 || perm('user:updateStatus')">
             {{ $t('user.op.status') }}<el-icon class="el-icon--right"><ArrowDown /></el-icon>
@@ -227,6 +255,17 @@ const handleStatus = async (ids: string[], status: number) => {
               >
                 {{ $t(`user.status.${n}`) }}
               </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-dropdown :disabled="selection.length <= 0 || perm('user:updatePermission')" class="ml-2">
+          <el-button :disabled="selection.length <= 0 || perm('user:updatePermission')">
+            {{ $t('user.op.roles') }}<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="() => handleRoles('add')">{{ $t('user.roles.add') }}</el-dropdown-item>
+              <el-dropdown-item @click="() => handleRoles('remove')">{{ $t('user.roles.remove') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -346,7 +385,10 @@ const handleStatus = async (ids: string[], status: number) => {
         ></el-pagination>
       </div>
       <user-form v-model="formVisible" :bean-id="beanId" :bean-ids="beanIds" :org="org" :show-global-data="showGlobalData" @finished="fetchData" />
+      <user-batch-form v-model="batchFormVisible" :org="org" :show-global-data="showGlobalData" @finished="fetchData" />
+      <user-import-dialog v-model="importVisible" :org="org" :show-global-data="showGlobalData" @finished="fetchData" />
       <user-permission-form v-model="permissionFormVisible" :bean-id="beanId" @finished="fetchData"></user-permission-form>
+      <user-roles-form v-model="rolesFormVisible" :mode="rolesFormMode" :users="selection" @finished="fetchData" />
       <user-password-form v-model="passwordFormVisible" :bean-id="beanId" :username="passwordFormUsername"></user-password-form>
     </el-main>
   </el-container>

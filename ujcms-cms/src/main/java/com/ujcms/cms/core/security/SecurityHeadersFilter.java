@@ -22,8 +22,27 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Per-route Cache-Control + Content-Security-Policy header writer.
  *
- * <p>Replaces Spring Security's blanket {@code Cache-Control: no-store} on routes that should
- * be cacheable by anonymous visitors (homepage, channel listings, articles, sitemap, RSS).
+ * <p>Replaces Spring Security's blanket {@code Cache-Control: no-store} on the routes a visitor's
+ * own browser may cache (homepage, channel listings, articles, tags, member profiles, search) and
+ * on the feeds a shared cache may hold (sitemap, RSS, robots.txt, llms.txt).
+ *
+ * <h2>Pages are browser-private, never shared-cacheable</h2>
+ *
+ * <p>Every FreeMarker page is rendered per session: the header shows the member menu, the article
+ * page decides server-side whether to render the comment box, {@code [#if user??]} appears all over
+ * the themes. The page bucket therefore answers {@code private, max-age=300, must-revalidate} plus
+ * {@code Vary: Cookie}: the visitor's own browser keeps the page for five minutes and re-fetches it
+ * once the session cookie changes at login or logout, while a CDN or reverse-proxy cache that follows
+ * the origin never stores it. A {@code public} page in front of such a cache was served to logged-in
+ * members as the anonymous rendering (comment box replaced by "please log in"), and whichever request
+ * repopulated the edge could leak a member's personalised page to everyone for the TTL. Only the
+ * feeds stay {@code public}: their body never depends on the viewer.
+ *
+ * <p>This filter runs before Spring Security, so the session is not resolved here (the container's
+ * {@code getUserPrincipal()} is always {@code null}). The authenticated case is owned by
+ * {@link AuthenticatedCacheControlFilter} inside the front-end security chain, which replaces
+ * whatever this filter wrote with {@code no-store} once a non-anonymous authentication is on the
+ * context. Contract: {@code docs/spec/http-cache/plan.md}.
  *
  * <h2>CSP on public routes is currently DISABLED</h2>
  *
@@ -59,10 +78,13 @@ import jakarta.servlet.http.HttpServletResponse;
  * <h2>Route → policy mapping</h2>
  * <table>
  * <tr><th>Bucket</th><th>Cache-Control</th><th>CSP</th></tr>
- * <tr><td>Public anonymous GET to {@code /}, {@code /channel/**}, {@code /article/**},
+ * <tr><td>Anonymous GET to {@code /}, {@code /channel/**}, {@code /article/**},
  *     {@code /tag/**}, {@code /search}, {@code /users/**}</td>
- *     <td>{@code public, max-age=300, must-revalidate}</td>
+ *     <td>{@code private, max-age=300, must-revalidate} + {@code Vary: Cookie}</td>
  *     <td>none (was strict-nonce; see header note)</td></tr>
+ * <tr><td>Authenticated GET to any of the above (form login, remember-me, preview token)</td>
+ *     <td>{@code no-store}, written by {@link AuthenticatedCacheControlFilter}</td>
+ *     <td>none</td></tr>
  * <tr><td>Public anonymous GET to {@code /sitemap*.xml}, {@code /rss/**}, {@code /robots.txt}, {@code /llms.txt}
  *     (also under a site sub-directory, {@code /en/sitemap.xml})</td>
  *     <td>{@code public, max-age=3600, must-revalidate}</td>
@@ -70,7 +92,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * <tr><td>Backoffice {@code /cp/**}</td>
  *     <td>{@code no-store}</td>
  *     <td>looser (allows {@code 'unsafe-inline'} + {@code 'unsafe-eval'} for ElementPlus runtime)</td></tr>
- * <tr><td>Anything else (authenticated, mutating method, {@code /api/**}, member pages, login)</td>
+ * <tr><td>Anything else (mutating method, {@code /api/**}, member pages, login)</td>
  *     <td>{@code no-store}</td>
  *     <td>none</td></tr>
  * </table>
@@ -98,17 +120,20 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
     /** HSTS 值：1 年 + 包含子域。仅在 {@code ujcms.security.https-enabled} 开启时发送（Phase 4 / G6）。 */
     private static final String HSTS_VALUE = "max-age=31536000; includeSubDomains";
 
-    private static final long PAGE_TTL_SECONDS = 300L;        // 5 min — operator-approved
+    private static final long PAGE_TTL_SECONDS = 300L;        // 5 min in the visitor's own browser
     private static final long SITEMAP_TTL_SECONDS = 3600L;    // 1 hour for /sitemap*.xml + /rss
 
-    private static final String CACHE_PUBLIC_PAGE =
-            "public, max-age=" + PAGE_TTL_SECONDS + ", must-revalidate";
+    /** 前台页：仅访客自己的浏览器可缓存 5 分钟；共享缓存（CDN、反向代理）不得存储——页面按会话渲染。 */
+    private static final String CACHE_PAGE =
+            "private, max-age=" + PAGE_TTL_SECONDS + ", must-revalidate";
+    /** 与 {@link #CACHE_PAGE} 同发：浏览器缓存按 Cookie 取值分键，登录 / 登出后会话 Cookie 一变即重新取页。 */
+    private static final String VARY_COOKIE = "Cookie";
     private static final String CACHE_PUBLIC_SITEMAP =
             "public, max-age=" + SITEMAP_TTL_SECONDS + ", must-revalidate";
     private static final String CACHE_NO_STORE = "no-store";
 
-    /** URL prefixes that, when GET-ed anonymously, qualify for the 5-minute public cache. */
-    private static final List<String> PUBLIC_PAGE_PREFIXES = List.of(
+    /** URL prefixes that, when GET-ed anonymously, qualify for the 5-minute browser cache. */
+    private static final List<String> PAGE_PREFIXES = List.of(
             "/channel/", "/article/", "/tag/", "/users/");
 
     /** URL prefixes for the long-cache (sitemap / RSS / robots.txt / llms.txt) bucket. */
@@ -177,15 +202,18 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         Bucket bucket = classify(request, path);
         switch (bucket) {
-            case PUBLIC_PAGE -> response.setHeader("Cache-Control", CACHE_PUBLIC_PAGE);
+            case PAGE -> {
+                response.setHeader("Cache-Control", CACHE_PAGE);
+                response.addHeader("Vary", VARY_COOKIE);
+            }
             case PUBLIC_LONG_CACHE -> response.setHeader("Cache-Control", CACHE_PUBLIC_SITEMAP);
             case BACKOFFICE -> {
                 response.setHeader("Cache-Control", CACHE_NO_STORE);
                 response.setHeader("Content-Security-Policy", backofficeCsp(cspSources.get()));
             }
-            case PRIVATE -> response.setHeader("Cache-Control", CACHE_NO_STORE);
+            case NO_STORE -> response.setHeader("Cache-Control", CACHE_NO_STORE);
         }
-        // PUBLIC_PAGE / PUBLIC_LONG_CACHE intentionally do NOT set CSP — see the class Javadoc.
+        // PAGE / PUBLIC_LONG_CACHE intentionally do NOT set CSP — see the class Javadoc.
         // To re-enable strict CSP, add `response.setHeader("Content-Security-Policy", strictCsp(nonce));`
         // to those two switch arms above. `strictCsp(...)` and the per-request nonce attribute are
         // both retained so re-enabling is a one-line revert.
@@ -193,7 +221,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    enum Bucket { PUBLIC_PAGE, PUBLIC_LONG_CACHE, BACKOFFICE, PRIVATE }
+    enum Bucket { PAGE, PUBLIC_LONG_CACHE, BACKOFFICE, NO_STORE }
 
     Bucket classify(HttpServletRequest request, String path) {
         if (path.startsWith("/cp/")) {
@@ -201,29 +229,26 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         }
         // 草稿预览（Phase 7 / §7.0）：带 _preview=draft 一律 no-store。本过滤器先于安全链运行，此时
         // 预览令牌尚未置上下文（getUserPrincipal() 仍为 null），缺此判定首页等 GET 会落入可缓存的
-        // PUBLIC_PAGE 桶——草稿内容绝不能被公共缓存命中。
+        // PAGE 桶——草稿内容绝不能被缓存命中。
         if ("draft".equals(request.getParameter("_preview"))) {
-            return Bucket.PRIVATE;
+            return Bucket.NO_STORE;
         }
         // 主题预览覆盖（P2-1）：带 _theme 同理一律 no-store——候选主题渲染的响应绝不能被公共缓存
         // 命中后回放给匿名访客（未激活主题“泄漏”成线上页面）。
         String themePreview = request.getParameter("_theme");
         if (themePreview != null && !themePreview.isBlank()) {
-            return Bucket.PRIVATE;
+            return Bucket.NO_STORE;
         }
-        // GET-only for the public buckets. POST/PUT/DELETE/PATCH always default to no-store.
+        // GET-only for the cacheable buckets. POST/PUT/DELETE/PATCH always default to no-store.
         if (!"GET".equalsIgnoreCase(request.getMethod())
                 && !"HEAD".equalsIgnoreCase(request.getMethod())) {
-            return Bucket.PRIVATE;
+            return Bucket.NO_STORE;
         }
-        // Authenticated requests bypass public caching even on otherwise-public routes —
-        // session-bearing pages may include personalised chrome (logged-in nav, member greeting).
-        if (request.getUserPrincipal() != null) {
-            return Bucket.PRIVATE;
-        }
+        // 登录态在此尚不可知（本过滤器先于安全链运行，容器层的 getUserPrincipal() 恒为 null）：已认证响应的
+        // no-store 由前台安全链内的 AuthenticatedCacheControlFilter 在认证之后改写，这里不做任何身份判定。
         for (String prefix : NEVER_CACHE_PREFIXES) {
             if (path.startsWith(prefix)) {
-                return Bucket.PRIVATE;
+                return Bucket.NO_STORE;
             }
         }
         String sitePath = stripSubDir(path);
@@ -234,14 +259,14 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         }
         // Homepage exact match — startsWith("/") would over-match.
         if ("/".equals(path) || path.equals("/search") || sitePath.equals("/search")) {
-            return Bucket.PUBLIC_PAGE;
+            return Bucket.PAGE;
         }
-        for (String prefix : PUBLIC_PAGE_PREFIXES) {
+        for (String prefix : PAGE_PREFIXES) {
             if (path.startsWith(prefix) || sitePath.startsWith(prefix)) {
-                return Bucket.PUBLIC_PAGE;
+                return Bucket.PAGE;
             }
         }
-        return Bucket.PRIVATE;
+        return Bucket.NO_STORE;
     }
 
     /**

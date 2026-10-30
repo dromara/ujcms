@@ -13,6 +13,7 @@ import {
   updateSiteEditorSettings,
   updateSiteMessageBoardSettings,
   updateSiteCommentSettings,
+  updateSiteContributeSettings,
   updateSiteDisclosureSettings,
   updateSiteMailboxSettings,
   updateSiteInterviewSettings,
@@ -217,6 +218,8 @@ const switchType = () => {
     values.value = site.value.messageBoard;
   } else if (type.value === 'comment') {
     values.value = site.value.comment;
+  } else if (type.value === 'contribute') {
+    values.value = site.value.contribute;
   } else if (type.value === 'disclosure') {
     values.value = site.value.disclosure;
   } else if (type.value === 'mailbox') {
@@ -351,6 +354,8 @@ const handleSubmit = () => {
         await updateSiteMessageBoardSettings(values.value);
       } else if (type.value === 'comment') {
         await updateSiteCommentSettings(values.value);
+      } else if (type.value === 'contribute') {
+        await updateSiteContributeSettings(values.value);
       } else if (type.value === 'disclosure') {
         await updateSiteDisclosureSettings(values.value);
       } else if (type.value === 'mailbox') {
@@ -637,6 +642,28 @@ const handleSubmit = () => {
               <el-form-item prop="imageMaxCount" :rules="{ required: true, message: () => $t('v.required') }">
                 <template #label><label-tip message="site.comment.imageMaxCount" /></template>
                 <el-input-number v-model="values.imageMaxCount" :min="1" :max="9"></el-input-number>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </template>
+        <template v-else-if="type === 'contribute'">
+          <el-row>
+            <el-col :span="12">
+              <el-form-item prop="enabled" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.contribute.enabled" help /></template>
+                <el-switch v-model="values.enabled"></el-switch>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="dailyLimit" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.contribute.dailyLimit" help /></template>
+                <el-input-number v-model="values.dailyLimit" :min="0" :max="1000"></el-input-number>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="imageEnabled" :rules="{ required: true, message: () => $t('v.required') }">
+                <template #label><label-tip message="site.contribute.imageEnabled" help /></template>
+                <el-switch v-model="values.imageEnabled"></el-switch>
               </el-form-item>
             </el-col>
           </el-row>

@@ -3,7 +3,7 @@
   桌面端为分组纵向导航卡片，移动端为横向胶囊行（分组标题仅桌面端显示）。
   活动项由父模板赋值的 settings 变量决定：[#assign settings = 'profile'/]
   （'home' / 'profile' / 'avatar' / 'account' / 'favorite' / 'history' / 'comment'
-   / 'follow' / 'friend' / 'message' / 'notification'）。
+   / 'contribute' / 'follow' / 'friend' / 'message' / 'notification'）。
   私信/通知未读徽章由本片段独立轮询（60秒；两个 unread-count 端点均为匿名安全的
   索引扫描，与头部 app/user 轮询并存的开销可忽略，换来片段自治）。
 --]
@@ -94,6 +94,14 @@
     <span class="size-4 inline-block">[@icon 'comment-outline'/]</span>
     <span>我的评论</span>
   </a>
+  [#if site.contribute.enabled]
+  <a href="${def}/settings/contribute"
+     [#if settings == 'contribute']aria-current="page"[/#if]
+     class="${navClass} [#if settings == 'contribute']${activeClass}[#else]${idleClass}[/#if]">
+    <span class="size-4 inline-block">[@icon 'edit-outline'/]</span>
+    <span>我的投稿</span>
+  </a>
+  [/#if]
 
   <span class="${groupClass}">社交</span>
   <a href="${def}/settings/follow"

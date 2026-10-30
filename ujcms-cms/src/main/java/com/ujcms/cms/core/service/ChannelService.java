@@ -54,6 +54,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     private final ChannelTreeMapper treeMapper;
     private final ArticleMapper articleMapper;
     private final GroupAccessMapper groupAccessMapper;
+    private final GroupContributeMapper groupContributeMapper;
     private final RoleArticleMapper roleArticleMapper;
     private final RoleChannelMapper roleChannelMapper;
     private final OrgArticleMapper orgArticleMapper;
@@ -70,7 +71,8 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     public ChannelService(
             HtmlService htmlService, HtmlSanitizeService sanitizeService, AttachmentService attachmentService,
             ModelService modelService, ChannelMapper mapper, ChannelExtMapper extMapper, ChannelTreeMapper treeMapper,
-            ArticleMapper articleMapper, GroupAccessMapper groupAccessMapper, RoleArticleMapper roleArticleMapper,
+            ArticleMapper articleMapper, GroupAccessMapper groupAccessMapper,
+            GroupContributeMapper groupContributeMapper, RoleArticleMapper roleArticleMapper,
             RoleChannelMapper roleChannelMapper, OrgArticleMapper orgArticleMapper, OrgChannelMapper orgChannelMapper,
             SnowflakeSequence snowflakeSequence, SlugGenerator slugGenerator, ContentStatEvictor contentStatEvictor,
             RoleService roleService, GroupService groupService,
@@ -81,6 +83,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         this.modelService = modelService;
         this.articleMapper = articleMapper;
         this.groupAccessMapper = groupAccessMapper;
+        this.groupContributeMapper = groupContributeMapper;
         this.mapper = mapper;
         this.extMapper = extMapper;
         this.treeMapper = treeMapper;
@@ -179,33 +182,41 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
     }
 
     /**
-     * 新建栏目的默认授权：前台浏览用户组、文章权限角色、栏目权限角色
+     * 新建栏目的默认授权：前台浏览用户组、文章权限角色、栏目权限角色、投稿用户组（空表示全部用户组可投）
      */
-    public record Grants(List<Long> groupIds, List<Long> articleRoleIds, List<Long> channelRoleIds) {
+    public record Grants(List<Long> groupIds, List<Long> articleRoleIds, List<Long> channelRoleIds,
+                         List<Long> contributeGroupIds) {
     }
 
     /**
      * 新建栏目的默认授权：有上级栏目则照搬上级的；根栏目则授予所有未设“全部权限”的用户组与角色
-     * （设了全部权限的无需逐栏目授权）
+     * （设了全部权限的无需逐栏目授权）。投稿用户组同样照搬上级的，根栏目为空（全部用户组）
      */
     public Grants defaultGrants(Long siteId, @Nullable Long parentId) {
         if (parentId != null) {
             return new Grants(groupAccessMapper.listGroupByChannelId(parentId, null),
                     roleArticleMapper.listRoleByChannelId(parentId, null),
-                    roleChannelMapper.listRoleByChannelId(parentId, null));
+                    roleChannelMapper.listRoleByChannelId(parentId, null),
+                    groupContributeMapper.listGroupByChannelId(parentId));
         }
         return new Grants(
                 groupService.listNotAllAccessPermission().stream().map(GeneratedGroup::getId).toList(),
                 roleService.listNotAllArticlePermission(siteId).stream().map(GeneratedRole::getId).toList(),
-                roleService.listNotAllChannelPermission(siteId).stream().map(GeneratedRole::getId).toList());
+                roleService.listNotAllChannelPermission(siteId).stream().map(GeneratedRole::getId).toList(),
+                List.of());
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void insert(Channel bean, List<Long> groupIds, List<Long> articleRoleIds,
-                       List<Long> channelRoleIds) {
+    public void insert(Channel bean, Grants grants) {
         Long parentId = bean.getParentId();
-        doInsert(bean, parentId != null ? mapper.select(parentId) : null,
-                new Grants(groupIds, articleRoleIds, channelRoleIds), slug -> false);
+        doInsert(bean, parentId != null ? mapper.select(parentId) : null, grants, slug -> false);
+    }
+
+    /**
+     * 栏目的投稿用户组ID。空表示全部用户组可投（docs/spec/member-contribute/plan.md）
+     */
+    public List<Long> listContributeGroupIds(Long channelId) {
+        return groupContributeMapper.listGroupByChannelId(channelId);
     }
 
     /**
@@ -225,6 +236,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         insertGroupIds(grants.groupIds(), bean.getId(), bean.getSiteId());
         insertArticleRoleIds(grants.articleRoleIds(), bean.getId(), bean.getSiteId());
         insertChannelRoleIds(grants.channelRoleIds(), bean.getId(), bean.getSiteId());
+        insertContributeGroupIds(grants.contributeGroupIds(), bean.getId(), bean.getSiteId());
         attachmentService.insertRefer(GeneratedChannel.TABLE_NAME, bean.getId(), bean.getAttachmentUrls(model));
         contentStatEvictor.channel(bean.getSiteId());
     }
@@ -317,9 +329,17 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         channelRoleIds.forEach(roleId -> roleChannelMapper.insert(new RoleChannel(roleId, channelId, siteId)));
     }
 
+    private void insertContributeGroupIds(List<Long> groupIds, Long channelId, Long siteId) {
+        groupIds.forEach(groupId -> groupContributeMapper.insert(new GroupContribute(groupId, channelId, siteId)));
+    }
+
+    /**
+     * @param contributeGroupIds 投稿用户组；{@code null} 表示不改动
+     */
     @Transactional(rollbackFor = Exception.class)
     public void update(Channel bean, @Nullable List<Long> groupIds,
-                       @Nullable List<Long> articleRoleIds, @Nullable List<Long> channelRoleIds) {
+                       @Nullable List<Long> articleRoleIds, @Nullable List<Long> channelRoleIds,
+                       @Nullable List<Long> contributeGroupIds) {
         fillSlug(bean, slug -> false);
         bean.setModified(OffsetDateTime.now());
         Model model = Optional.ofNullable(modelService.select(bean.getChannelModelId())).orElseThrow(() ->
@@ -338,6 +358,10 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         if (channelRoleIds != null) {
             roleChannelMapper.deleteByChannelId(bean.getId());
             insertChannelRoleIds(channelRoleIds, bean.getId(), bean.getSiteId());
+        }
+        if (contributeGroupIds != null) {
+            groupContributeMapper.deleteByChannelId(bean.getId());
+            insertContributeGroupIds(contributeGroupIds, bean.getId(), bean.getSiteId());
         }
         attachmentService.updateRefer(GeneratedChannel.TABLE_NAME, bean.getId(), bean.getAttachmentUrls());
     }
@@ -734,6 +758,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         deleteListeners.forEach(it -> it.preChannelDelete(bean.getId()));
         attachmentService.deleteRefer(GeneratedChannel.TABLE_NAME, bean.getId());
         groupAccessMapper.deleteByChannelId(bean.getId());
+        groupContributeMapper.deleteByChannelId(bean.getId());
         roleArticleMapper.deleteByChannelId(bean.getId());
         roleChannelMapper.deleteByChannelId(bean.getId());
         orgArticleMapper.deleteByChannelId(bean.getId());
@@ -917,6 +942,7 @@ public class ChannelService implements ModelDeleteListener, SiteDeleteListener {
         extMapper.deleteBySiteId(siteId);
         treeMapper.deleteBySiteId(siteId);
         groupAccessMapper.deleteBySiteId(siteId);
+        groupContributeMapper.deleteBySiteId(siteId);
         orgArticleMapper.deleteBySiteId(siteId);
         orgChannelMapper.deleteBySiteId(siteId);
         mapper.updateParentIdToNull(siteId);

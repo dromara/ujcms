@@ -1,7 +1,9 @@
 package com.ujcms.cms.core.web.support;
 
+import com.ujcms.cms.core.domain.User;
 import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http403Exception;
+import org.springframework.security.core.GrantedAuthority;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -45,6 +47,18 @@ public final class ValidUtils {
         short rank = origRank > newRank ? newRank : origRank;
         if (userRank > rank) {
             throw new Http403Exception(String.format("user rank(%d) below then data rank(%d)", userRank, rank));
+        }
+    }
+
+    /**
+     * 要求当前用户持有某个权限码（或超级权限 {@code *}）。给方法上 {@code @PreAuthorize} 之外、按参数才需要的权限用：
+     * 批量新建用户时给了角色，须另有“权限设置”的权限
+     */
+    public static void requireAuthority(User user, String permission) {
+        boolean granted = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                .anyMatch(authority -> permission.equals(authority) || "*".equals(authority));
+        if (!granted) {
+            throw new Http403Exception("Permission denied: " + permission);
         }
     }
 

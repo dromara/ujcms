@@ -30,6 +30,8 @@
   "commercial.feature.docImport.description": "在文章编辑器中导入 Word 文档（转换为 HTML），以及素材库文档转换。",
   "commercial.feature.articleImport": "文章批量导入",
   "commercial.feature.articleImport.description": "上传一份 Excel 表格批量导入文章：先预检哪些行可以导入、哪些行有问题，再由后台任务逐篇导入为草稿，结束后给出结果报告。",
+  "commercial.feature.userImport": "用户批量导入",
+  "commercial.feature.userImport.description": "上传一份 Excel 表格批量导入用户：先预检哪些行可以导入、哪些行有问题，再逐个创建并给出结果报告；组织、用户组、初始密码可在表格里逐行写或统一设置。",
   "commercial.feature.recommend": "猜你喜欢",
   "commercial.feature.recommend.description": "会员中心的个性化文章推荐：按浏览历史、收藏和关注的标签、栏目、作者打分，匿名或无信号时回退全站周热门。",
   "commercial.feature.nationalDatabase": "国产数据库支持",

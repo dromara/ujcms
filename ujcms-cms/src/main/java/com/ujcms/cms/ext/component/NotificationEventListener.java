@@ -2,6 +2,8 @@ package com.ujcms.cms.ext.component;
 
 import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.listener.ArticlePublishListener;
+import com.ujcms.cms.core.listener.ArticleRejectListener;
+import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.ext.component.NotificationFanoutService.ArticlePayload;
 import com.ujcms.cms.ext.component.NotificationFanoutService.CommentPayload;
 import com.ujcms.cms.ext.domain.Comment;
@@ -18,7 +20,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author PONY
  */
 @Component
-public class NotificationEventListener implements ArticlePublishListener, CommentAuditListener {
+public class NotificationEventListener implements ArticlePublishListener, ArticleRejectListener,
+        CommentAuditListener {
     private final NotificationMapper mapper;
     private final NotificationFanoutService fanoutService;
 
@@ -40,8 +43,25 @@ public class NotificationEventListener implements ArticlePublishListener, Commen
             return;
         }
         ArticlePayload payload = new ArticlePayload(article.getId(), article.getSiteId(),
-                article.getChannelId(), article.getUserId(), article.getTitle());
+                article.getChannelId(), article.getUserId(), article.getTitle(), article.getInputType());
         dispatchAfterCommit(() -> fanoutService.articlePublished(payload));
+    }
+
+    /**
+     * 投稿被退回：通知作者（docs/spec/member-contribute/plan.md D6）。退回是一次人为动作，每次都通知，不用认领标记；
+     * 只限投稿——编辑自己的文章在审批流程里被退回，走流程任务的意见
+     */
+    @Override
+    public void afterArticleReject(Article article) {
+        if (article.getInputType() != Article.INPUT_TYPE_CONTRIBUTE
+                || User.ANONYMOUS_ID.equals(article.getUserId())) {
+            return;
+        }
+        String reason = article.getExt().getRejectReason();
+        String url = article.getSite().getDy() + "/settings/contribute";
+        Long userId = article.getUserId();
+        String title = article.getTitle();
+        dispatchAfterCommit(() -> fanoutService.contributeRejected(userId, title, reason, url));
     }
 
     @Override

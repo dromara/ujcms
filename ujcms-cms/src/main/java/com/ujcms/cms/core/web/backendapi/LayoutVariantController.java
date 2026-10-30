@@ -6,6 +6,7 @@ import com.ujcms.cms.core.service.LayoutVariantService;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.common.web.exception.Http400Exception;
 import org.jspecify.annotations.Nullable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +37,7 @@ public class LayoutVariantController {
      * 后端表单下拉用：按 surface 返回当前站点的启用变体（按声明顺序）。
      */
     @GetMapping("by-surface/{surface}")
+    @PreAuthorize("hasAnyAuthority('backend','*')")
     public List<VariantResult> bySurface(@PathVariable String surface) {
         if (!LayoutVariantCatalog.SURFACES.contains(surface)) {
             throw new Http400Exception("unknown surface: " + surface);

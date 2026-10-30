@@ -14,6 +14,7 @@ import {
   updateArticle,
   passArticle,
   submitArticle,
+  rejectArticles,
   archiveArticle,
   offlineArticle,
   deleteArticle,
@@ -54,7 +55,7 @@ import ImageExtractor from './components/ImageExtractor.vue';
 import ArticleI18nPanel from './components/ArticleI18nPanel.vue';
 import ArticleRelatedPanel from './components/ArticleRelatedPanel.vue';
 import { openArticleLink, articleStatusTagType } from './components/articleUtils';
-import { canSubmit, canArchive, canOffline, canRestore } from './components/articleActions';
+import { canSubmit, canReject, canArchive, canOffline, canRestore } from './components/articleActions';
 import ReviewFormProperties from './components/ReviewFormProperties.vue';
 import ReviewDelegate from './components/ReviewDelegate.vue';
 import ReviewTransfer from './components/ReviewTransfer.vue';
@@ -459,6 +460,16 @@ const handleReject = async (bean: any) => {
   }
   dialog.value.remove(async () => {
     await rejectArticle([bean.taskId], reason);
+  });
+};
+// 文章管理里的退回：待审核且未进入审批流程的文章（会员投稿，docs/spec/member-contribute/plan.md D6），不经流程任务
+const handleRejectDirect = async (bean: any) => {
+  const reason = await promptRejectReason(t);
+  if (reason == null) {
+    return;
+  }
+  dialog.value.remove(async () => {
+    await rejectArticles([bean.id], reason);
   });
 };
 
@@ -1087,6 +1098,9 @@ const handleAiGeneratedChange = (checked: boolean) => {
               <el-button :disabled="!canSubmit(bean) || perm('article:submit') || unsaved" :title="unsaved ? $t('article.unsavedFirst') : undefined" :icon="Finished">{{ $t('article.op.submit') }}</el-button>
             </template>
           </el-popconfirm>
+          <el-button v-if="isEdit && canReject(bean)" :disabled="perm('article:reject') || unsaved" :title="unsaved ? $t('article.unsavedFirst') : undefined" :icon="CircleClose" @click="() => handleRejectDirect(bean)">
+            {{ $t('article.op.reject') }}
+          </el-button>
           <el-popconfirm v-if="isEdit" :title="$t('confirmExecute')" @confirm="() => handleExecute('archive', bean.id)">
             <template #reference>
               <el-button :disabled="!canArchive(bean) || perm('article:archive') || unsaved" :title="unsaved ? $t('article.unsavedFirst') : undefined" :icon="Box">{{ $t('article.op.archive') }}</el-button>

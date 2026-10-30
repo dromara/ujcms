@@ -30,6 +30,8 @@
   "commercial.feature.docImport.description": "Import Word documents into the article editor (converted to HTML) and convert documents in the media library.",
   "commercial.feature.articleImport": "Bulk Article Import",
   "commercial.feature.articleImport.description": "Import articles in bulk from an Excel sheet: a dry run shows which rows can be imported and what is wrong with the others, then a background task creates the articles as drafts and reports the result.",
+  "commercial.feature.userImport": "Bulk User Import",
+  "commercial.feature.userImport.description": "Import users in bulk from an Excel sheet: a dry run shows which rows can be imported and what is wrong with the others, then the users are created and the result is reported; organization, user group and initial password can be set per row or for the whole sheet.",
   "commercial.feature.recommend": "Recommended for You",
   "commercial.feature.recommend.description": "Personalized article recommendations in the member center, scored by browsing history, favorites and followed tags, channels and authors; falls back to the site's weekly top articles for anonymous visitors or when there is no signal.",
   "commercial.feature.nationalDatabase": "Chinese Database Support",

@@ -171,3 +171,6 @@ databaseChangeLog:
   - include:
       file: db.changelog-13.2-config-captcha.yaml
       relativeToChangelogFile: true
+  - include:
+      file: db.changelog-13.2-contribute.yaml
+      relativeToChangelogFile: true

@@ -41,6 +41,13 @@ import static com.ujcms.common.web.Uploads.*;
  * @author PONY
  */
 public abstract class AbstractUploadController {
+    /**
+     * 图片像素上限（宽 × 高）。解码前按文件头的尺寸把关：几 KB 的文件头里可以声称几万 × 几万像素，
+     * {@code ImageIO.read} 按声称的尺寸分配内存，一张精心构造的小图就能把堆打爆（解压炸弹）。
+     * 1 亿像素约合 10000 × 10000，解码后约 400MB，已远超任何正常的网页配图；超出者在接收后立即 400
+     */
+    public static final long MAX_IMAGE_PIXELS = 100_000_000L;
+
     protected final AttachmentService attachmentService;
     protected final ImageHandler imageHandler;
     protected final PathResolver pathResolver;
@@ -81,6 +88,15 @@ public abstract class AbstractUploadController {
                 extension = Images.getFormatName(tempFile);
                 if (extension == null) {
                     throw new Http400Exception("Image format type not supported.");
+                }
+                // 解码前先按文件头声称的尺寸把关（解压炸弹，见 MAX_IMAGE_PIXELS）：会员上传接口对任何登录用户开放
+                Images.Dimension dimension = Images.readDimension(tempFile);
+                if (dimension == null) {
+                    throw new Http400Exception("Image file is corrupt or unreadable.");
+                }
+                if (dimension.pixels() > MAX_IMAGE_PIXELS) {
+                    throw new Http400Exception(String.format("Image dimensions too large: %dx%d, must be within %d pixels.",
+                            dimension.width(), dimension.height(), MAX_IMAGE_PIXELS));
                 }
                 // 退化图片（签名完好但数据截断/损坏）须在此显式失败为 400：否则后续缩放步骤的解码异常
                 // 带 EOFException 因由，被 Spring 的断连客户端静默机制吞成空 200 响应

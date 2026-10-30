@@ -9,6 +9,7 @@
     { "id": "securitySettings", "tier": 1, "permissions": ["config:security:update"] },
     { "id": "docImport", "tier": 1, "permissions": [] },
     { "id": "articleImport", "tier": 1, "permissions": ["article:import"] },
+    { "id": "userImport", "tier": 1, "permissions": ["user:import"] },
     { "id": "recommend", "tier": 1, "permissions": [] },
     { "id": "nationalDatabase", "tier": 1, "permissions": [] },
     { "id": "captchaProviders", "tier": 1, "permissions": [] },

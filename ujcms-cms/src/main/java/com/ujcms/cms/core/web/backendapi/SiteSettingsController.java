@@ -87,6 +87,16 @@ public class SiteSettingsController {
         return Responses.ok();
     }
 
+    @PutMapping("contribute")
+    @PreAuthorize("hasAnyAuthority('siteSettings:contribute:update','*')")
+    @OperationLog(module = "siteSettings", operation = "updateContribute", type = OperationType.UPDATE)
+    public ResponseEntity<Body> updateContribute(@RequestBody @Valid Site.Contribute bean) {
+        Site site = Contexts.getCurrentSite();
+        site.setContribute(bean);
+        service.update(site);
+        return Responses.ok();
+    }
+
     @PutMapping("disclosure")
     @PreAuthorize("hasAnyAuthority('siteSettings:disclosure:update','*')")
     @OperationLog(module = "siteSettings", operation = "updateDisclosure", type = OperationType.UPDATE)

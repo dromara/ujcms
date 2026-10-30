@@ -25,7 +25,7 @@
       items: [], page: 1, totalPages: 1, total: null, loading: false,
       // null：全部；false：未读
       isRead: null,
-      typeLabels: {1:'系统公告',2:'评论回复',3:'@提及',4:'关注文章新评论',5:'关注栏目新文章',6:'好友申请',7:'好友通过',8:'新粉丝',9:'关注用户新文章'},
+      typeLabels: {1:'系统公告',2:'评论回复',3:'@提及',4:'关注文章新评论',5:'关注栏目新文章',6:'好友申请',7:'好友通过',8:'新粉丝',9:'关注用户新文章',10:'投稿审核'},
       link(bean) {
         if (bean.article && bean.article.url) return bean.article.url;
         if (bean.channel && bean.channel.url) return bean.channel.url;

@@ -24,16 +24,16 @@ public class Notification extends GeneratedNotification {
     @JsonIncludeProperties({"id", "username", "nickname", "avatar"})
     private User sender;
     /**
-     * 所属文章
+     * 所属文章。{@code url} 供与前台同源的主题使用，{@code fullUrl} 供控制台（与前台不一定同源）
      */
     @Nullable
-    @JsonIncludeProperties({"id", "title", "url"})
+    @JsonIncludeProperties({"id", "title", "url", "fullUrl"})
     private Article article;
     /**
-     * 所属栏目
+     * 所属栏目。{@code url} / {@code fullUrl} 的分工同上
      */
     @Nullable
-    @JsonIncludeProperties({"id", "name", "url"})
+    @JsonIncludeProperties({"id", "name", "url", "fullUrl"})
     private Channel channel;
 
     @Nullable
@@ -99,6 +99,10 @@ public class Notification extends GeneratedNotification {
      * 类型：关注的用户发布新文章
      */
     public static final short TYPE_FOLLOW_USER_ARTICLE = 9;
+    /**
+     * 类型：投稿审核结果（发布或退回，docs/spec/member-contribute/plan.md）。text 为退回原因
+     */
+    public static final short TYPE_CONTRIBUTE_RESULT = 10;
 
     public static final String NOT_FOUND = "Notification not found. ID: ";
 }

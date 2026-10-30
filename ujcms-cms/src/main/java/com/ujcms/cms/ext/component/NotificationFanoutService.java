@@ -1,5 +1,6 @@
 package com.ujcms.cms.ext.component;
 
+import com.ujcms.cms.core.domain.Article;
 import com.ujcms.cms.core.domain.User;
 import com.ujcms.cms.core.service.UserService;
 import com.ujcms.cms.ext.domain.Comment;
@@ -70,6 +71,12 @@ public class NotificationFanoutService {
     @Async
     public void articlePublished(ArticlePayload payload) {
         String title = StringUtils.substring(payload.title(), 0, TITLE_MAX_LENGTH);
+        // 0. 投稿发布：通知作者（docs/spec/member-contribute/plan.md D6）。认领标记令它与粉丝分发一样只发一次
+        if (payload.inputType() != null && payload.inputType() == Article.INPUT_TYPE_CONTRIBUTE
+                && !User.ANONYMOUS_ID.equals(payload.userId())) {
+            notificationService.send(Notification.TYPE_CONTRIBUTE_RESULT, payload.userId(), null, payload.siteId(),
+                    payload.id(), null, payload.channelId(), "《" + title + "》已发布");
+        }
         // 1. 关注用户新文章分发。作者本人已在查询中排除；收件人收入 skip 集，供更泛的栏目分发去重
         Set<Long> notifiedUserIds = new HashSet<>();
         fanoutFollowers(minUserId -> followService.listUserIdByToUserId(
@@ -104,6 +111,15 @@ public class NotificationFanoutService {
                 },
                 null,
                 "channel " + payload.channelId());
+    }
+
+    /**
+     * 投稿退回通知。链接指向会员中心的“我的投稿”（已退回的文章没有可访问的页面），退回原因放在正文
+     */
+    @Async
+    public void contributeRejected(Long userId, String title, @Nullable String reason, String url) {
+        String line = "《" + StringUtils.substring(title, 0, TITLE_MAX_LENGTH - 10) + "》未通过审核";
+        notificationService.send(Notification.TYPE_CONTRIBUTE_RESULT, userId, null, line, reason, url);
     }
 
     /**
@@ -202,7 +218,8 @@ public class NotificationFanoutService {
     /**
      * 文章发布事件的不可变载荷
      */
-    public record ArticlePayload(Long id, Long siteId, Long channelId, Long userId, String title) {
+    public record ArticlePayload(Long id, Long siteId, Long channelId, Long userId, String title,
+                                 @Nullable Short inputType) {
     }
 
     /**

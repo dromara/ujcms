@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujcms.cms.core.mapper.GroupContributeMapper">
+  <resultMap id="BaseResultMap" type="com.ujcms.cms.core.domain.GroupContribute">
+    <id column="group_id_" jdbcType="BIGINT" property="groupId" />
+    <id column="channel_id_" jdbcType="BIGINT" property="channelId" />
+    <result column="site_id_" jdbcType="BIGINT" property="siteId" />
+  </resultMap>
+  <select id="listGroupByChannelId" resultType="long">
+    select t.group_id_
+    from ujcms_group_contribute t
+    where t.channel_id_ = #{channelId}
+  </select>
+  <select id="listChannelByGroupId" resultType="long">
+    select t.channel_id_
+    from ujcms_group_contribute t
+    where t.group_id_ = #{groupId}
+    <if test="siteId != null">and t.site_id_ = #{siteId}</if>
+  </select>
+  <select id="listBySiteId" resultMap="BaseResultMap">
+    select t.group_id_, t.channel_id_, t.site_id_
+    from ujcms_group_contribute t
+    where t.site_id_ = #{siteId}
+  </select>
+  <delete id="deleteByChannelId">
+    delete
+    from ujcms_group_contribute
+    where channel_id_ = #{channelId}
+  </delete>
+  <delete id="deleteByGroupId">
+    delete
+    from ujcms_group_contribute
+    where group_id_ = #{groupId}
+  </delete>
+  <delete id="deleteBySiteId">
+    delete
+    from ujcms_group_contribute
+    where site_id_ = #{siteId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.ujcms.cms.core.domain.GroupContribute">
+    insert into ujcms_group_contribute (group_id_, channel_id_, site_id_)
+    values (#{groupId,jdbcType=BIGINT}, #{channelId,jdbcType=BIGINT}, #{siteId,jdbcType=BIGINT})
+  </insert>
+</mapper>

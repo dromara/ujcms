@@ -30,6 +30,7 @@
 
   "todo.pendingArticle": "Articles pending review",
   "todo.rejectedArticle": "My rejected articles",
+  "todo.pendingContribute": "Submissions pending review",
   "todo.pendingForm": "Forms pending review",
   "todo.rejectedForm": "My rejected forms",
   "todo.unreviewedMessageBoard": "Unmoderated messages",

@@ -26,6 +26,12 @@ export const reviewStatuses = [11, 12, 22];
 export const canSubmit = (row: ArticleStatusRow): boolean =>
   [1, 10, 21, 22].includes(row.status) || (row.status === 11 && (!row.processInstanceId || currentUser.commercialTier < 1));
 
+/**
+ * 可退回：待审核且没有流程实例——会员投稿到没有审批流程的栏目时停在这个状态（docs/spec/member-contribute/plan.md D6），
+ * “通过”就是提交，“退回”走文章管理自己的退回接口；进入了审批流程的由“文章审核”退回
+ */
+export const canReject = (row: ArticleStatusRow): boolean => row.status === 11 && !row.processInstanceId;
+
 /** 可归档：已发布 */
 export const canArchive = (row: ArticleStatusRow): boolean => row.status === 0;
 

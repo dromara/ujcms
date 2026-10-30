@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.security.Principal;
 import java.util.Base64;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
@@ -36,14 +37,17 @@ class SecurityHeadersFilterTest {
         return resp;
     }
 
-    // ----------------------------------------------------------------- public bucket
+    // ------------------------------------------------------ page bucket (browser-private)
 
     @Test
-    void publicHomeGet_setsFiveMinuteCache_andNoCsp() throws Exception {
+    void anonymousHomeGet_setsPrivateFiveMinuteCache_andVaryCookie_andNoCsp() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest("GET", "/");
         MockHttpServletResponse resp = runFilter(req);
 
-        assertEquals("public, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
+        // 前台页按会话渲染：仅访客自己的浏览器可缓存（private），CDN / 反向代理不得存储；Vary: Cookie 让浏览器在
+        // 登录 / 登出（会话 Cookie 变化）后重新取页，而不是回放登录前缓存的匿名页。
+        assertEquals("private, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
+        assertEquals(List.of("Cookie"), resp.getHeaders("Vary"));
         // CSP is intentionally NOT emitted on public buckets — see SecurityHeadersFilter Javadoc.
         // The nonce request attribute is still published so templates with nonce="{{csp_nonce}}"
         // continue to render correctly; the browser ignores a nonce attribute when no CSP is set.
@@ -53,35 +57,37 @@ class SecurityHeadersFilterTest {
     }
 
     @Test
-    void publicChannelGet_setsFiveMinuteCache() throws Exception {
+    void anonymousChannelGet_setsPrivateFiveMinuteCache() throws Exception {
         MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", "/channel/news"));
-        assertEquals("public, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
+        assertEquals("private, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
     }
 
     @Test
-    void publicArticleGet_setsFiveMinuteCache() throws Exception {
+    void anonymousArticleGet_setsPrivateFiveMinuteCache() throws Exception {
         MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", "/article/3"));
-        assertEquals("public, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
+        assertEquals("private, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
     }
 
     @Test
-    void searchRoot_isPublicCacheable() throws Exception {
+    void searchRoot_isBrowserCacheable() throws Exception {
         MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", "/search"));
-        assertEquals("public, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
+        assertEquals("private, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
     }
 
     @Test
-    void publicTagGet_setsFiveMinuteCache() throws Exception {
+    void anonymousTagGet_setsPrivateFiveMinuteCache() throws Exception {
         MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", "/tag/9"));
-        assertEquals("public, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
+        assertEquals("private, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
     }
 
     // ------------------------------------------------------- long-cache (sitemap / RSS)
 
     @Test
-    void sitemapGet_setsOneHourCache_andNoCsp() throws Exception {
+    void sitemapGet_setsOneHourSharedCache_andNoCsp() throws Exception {
         MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", "/sitemap.xml"));
+        // 订阅源与访客身份无关，是唯一允许共享缓存（public）的桶，也不带 Vary: Cookie
         assertEquals("public, max-age=3600, must-revalidate", resp.getHeader(CACHE_CONTROL));
+        assertTrue(resp.getHeaders("Vary").isEmpty(), "feeds do not depend on the viewer");
         assertNull(resp.getHeader(CSP), "public buckets no longer ship CSP");
     }
 
@@ -110,10 +116,10 @@ class SecurityHeadersFilterTest {
     }
 
     @Test
-    void subDirSitePages_setFiveMinuteCache() throws Exception {
+    void subDirSitePages_setPrivateFiveMinuteCache() throws Exception {
         for (String path : new String[]{"/en/channel/news", "/en/article/100", "/en/tag/1", "/en/search"}) {
             MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", path));
-            assertEquals("public, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL), path);
+            assertEquals("private, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL), path);
         }
     }
 
@@ -193,16 +199,26 @@ class SecurityHeadersFilterTest {
     }
 
     @Test
-    void authenticatedPublicRoute_setsNoStore() throws Exception {
-        // A logged-in user hitting the homepage gets no public cache: the page may include
-        // personalised chrome (member greeting, logged-in nav) so a shared CDN MUST NOT cache it.
+    void noStoreBuckets_carryNoVaryCookie() throws Exception {
+        for (String path : new String[]{"/login", "/settings/profile", "/api/article/3", "/cp/index.html"}) {
+            MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", path));
+            assertEquals("no-store", resp.getHeader(CACHE_CONTROL), path);
+            assertTrue(resp.getHeaders("Vary").isEmpty(), path);
+        }
+    }
+
+    @Test
+    void containerPrincipal_doesNotChangeThePagePolicy() throws Exception {
+        // 本过滤器先于安全链运行，容器层的 getUserPrincipal() 在生产中恒为 null，不能据此判定登录态：
+        // 已认证响应的 no-store 由前台安全链内的 AuthenticatedCacheControlFilter 在认证之后改写
+        // （AuthenticatedCacheControlFilterTest）。这里固定的是"不依赖容器 principal"这一事实。
         MockHttpServletRequest req = new MockHttpServletRequest("GET", "/");
         Principal user = mock(Principal.class);
         when(user.getName()).thenReturn("admin");
         req.setUserPrincipal(user);
 
         MockHttpServletResponse resp = runFilter(req);
-        assertEquals("no-store", resp.getHeader(CACHE_CONTROL));
+        assertEquals("private, max-age=300, must-revalidate", resp.getHeader(CACHE_CONTROL));
     }
 
     // ----------------------------------------------------------- X-Frame-Options
@@ -210,7 +226,7 @@ class SecurityHeadersFilterTest {
     private static final String XFO = "X-Frame-Options";
 
     @Test
-    void publicRoute_setsFrameOptionsDeny() throws Exception {
+    void pageRoute_setsFrameOptionsDeny() throws Exception {
         // 默认对所有响应 DENY，禁止任何内嵌（点击劫持防护）。
         MockHttpServletResponse resp = runFilter(new MockHttpServletRequest("GET", "/"));
         assertEquals("DENY", resp.getHeader(XFO));

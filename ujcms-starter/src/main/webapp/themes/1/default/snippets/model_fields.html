@@ -1,0 +1,281 @@
+[#--
+  模型字段渲染宏：Model.Field 列表 → 输入控件。自定义表单提交页（form_submit.html）与会员投稿表单
+  （mem_settings_contribute_form.html）共用。
+
+    [#include '../snippets/model_fields.html'/]              （页面顶部、[@layout] 之前）
+    [@modelFields fields=fieldList values=existingCustoms/]  （[@layout] 主体内）
+    [@modelFieldsScript/]                                     （同上，输出 window.collectModelCustoms）
+
+  values 为已有值（编辑时回填），键是字段 code；字典类字段（radio / select / checkbox / multipleSelect）的
+  键值在 code + 'Key'。字段类型 → 输入控件的映射对应 Model.TYPE_* 常量：
+
+    text                              → <input type="text">（按 code 启发式覆盖：
+                                          code=email → type=email，
+                                          code 形如 phone/mobile/tel → type=tel）
+    textarea / richEditor /
+      markdownEditor                  → <textarea>
+    number / slider                   → <input type="number">
+    date                              → <input type="date">
+    color                             → <input type="color">
+    switch                            → <input type="checkbox">
+    radio（带 dictTypeId）            → radio 组；提交 customs[code]=显示名、
+                                          customs[codeKey]=值
+    select（带 dictTypeId）           → <select>；同样双写提交
+    checkbox（带 dictTypeId）         → checkbox 组；customs[code] 与 [codeKey]
+                                          均提交数组
+    multipleSelect（带 dictTypeId）   → 多选下拉；同 checkbox
+    cascader                          → 文本输入（级联选择渲染不在本基线范围内）
+    imageUpload / videoUpload /
+      audioUpload / fileUpload        → “暂不支持文件上传”占位
+
+  每个字段包在 [data-field data-field-code data-field-type] 容器里；提交时用 [@modelFieldsScript/] 输出的
+  window.collectModelCustoms(form) 把它们收成 customs 对象。
+--]
+[#escape x as (x)!?html]
+[#-- 字典键值统一按字符串比较：数值型字典键不走千分位格式化 --]
+[#function keyStr v]
+  [#if v?is_number][#return v?c/][#else][#return v?string/][/#if]
+[/#function]
+[#macro modelFields fields values={}]
+  [#list fields as field]
+    [#if field.code?has_content]
+      [#assign fcode = field.code/]
+      [#assign fname = field.name?has_content?then(field.name, field.code)/]
+      [#assign ftype = field.type/]
+      [#assign fid = 'field-' + fcode/]
+      [#assign fvalue = values[fcode]!/]
+      [#assign fkey = values[fcode + 'Key']!/]
+      [#-- 文本类字段的已有值：数值不走千分位格式化 --]
+      [#assign ftext = ''/]
+      [#if fvalue?has_content]
+        [#if fvalue?is_number][#assign ftext = fvalue?c/]
+        [#elseif fvalue?is_string][#assign ftext = fvalue/]
+        [#elseif fvalue?is_date_like][#assign ftext = fvalue?string('yyyy-MM-dd')/]
+        [#else][#assign ftext = fvalue?string/]
+        [/#if]
+      [/#if]
+      [#-- 多选字典的已有键值 --]
+      [#assign fkeys = []/]
+      [#if fkey?has_content && fkey?is_sequence]
+        [#list fkey as k][#assign fkeys = fkeys + [keyStr(k)]/][/#list]
+      [#elseif fkey?has_content]
+        [#assign fkeys = [keyStr(fkey)]/]
+      [/#if]
+
+      [#--
+        纯文本字段的 code 启发式输入子类型：email 命名的字段用 type="email"，
+        电话类字段用 type="tel"。无需升级模型定义即可获得合适的移动端键盘与校验。
+      --]
+      [#assign textInputType = 'text'/]
+      [#if ftype == 'text']
+        [#if fcode == 'email'][#assign textInputType = 'email'/][/#if]
+        [#if fcode == 'phone' || fcode == 'mobile' || fcode == 'tel' || fcode == 'telephone'][#assign textInputType = 'tel'/][/#if]
+      [/#if]
+
+      [#switch ftype]
+      [#case 'imageUpload'][#case 'videoUpload'][#case 'audioUpload'][#case 'fileUpload']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
+          <div class="block w-full rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-400">暂不支持文件上传</div>
+        </div>
+      [#break]
+      [#case 'textarea'][#case 'richEditor'][#case 'markdownEditor']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if]</label>
+          <textarea id="${fid}" rows="5"[#if field.required] required[/#if]
+                    class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">${ftext}</textarea>
+        </div>
+      [#break]
+      [#case 'switch']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label for="${fid}" class="inline-flex cursor-pointer items-center gap-2 text-sm">
+            <input id="${fid}" type="checkbox"[#if fvalue?has_content && fvalue?is_boolean && fvalue] checked[/#if]>
+            <span>${fname}</span>
+          </label>
+        </div>
+      [#break]
+      [#case 'number'][#case 'slider']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if]</label>
+          <input id="${fid}" type="number" value="${ftext}"[#if field.required] required[/#if]
+                 class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+        </div>
+      [#break]
+      [#case 'date']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if]</label>
+          <input id="${fid}" type="date" value="${ftext}"[#if field.required] required[/#if]
+                 class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+        </div>
+      [#break]
+      [#case 'color']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}</label>
+          <input id="${fid}" type="color"[#if ftext?has_content] value="${ftext}"[/#if]
+                 class="h-10 w-20 rounded border border-slate-300 bg-white p-1 cursor-pointer">
+        </div>
+      [#break]
+      [#case 'radio']
+        <fieldset data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <legend class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if]</legend>
+          [#if field.dictTypeId??]
+            [@DictList typeId=field.dictTypeId; dictList]
+            <div class="flex flex-wrap gap-2">
+              [#list dictList as dict]
+                <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-200 hover:border-primary cursor-pointer text-sm">
+                  <input type="radio" name="${fcode}" value="${dict.value}" data-display="${dict.name}"[#if fkeys?seq_contains(dict.value)] checked[/#if]>
+                  <span>${dict.name}</span>
+                </label>
+              [/#list]
+            </div>
+            [/@DictList]
+          [#else]
+            <input id="${fid}" type="text" value="${ftext}"
+                   class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+          [/#if]
+        </fieldset>
+      [#break]
+      [#case 'select']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if]</label>
+          [#if field.dictTypeId??]
+            [@DictList typeId=field.dictTypeId; dictList]
+            <select id="${fid}"[#if field.required] required[/#if] class="block w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+              <option value="">请选择</option>
+              [#list dictList as dict]
+                <option value="${dict.value}" data-display="${dict.name}"[#if fkeys?seq_contains(dict.value)] selected[/#if]>${dict.name}</option>
+              [/#list]
+            </select>
+            [/@DictList]
+          [#else]
+            <input id="${fid}" type="text" value="${ftext}"
+                   class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+          [/#if]
+        </div>
+      [#break]
+      [#case 'checkbox']
+        <fieldset data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <legend class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if]</legend>
+          [#if field.dictTypeId??]
+            [@DictList typeId=field.dictTypeId; dictList]
+            <div class="flex flex-wrap gap-2">
+              [#list dictList as dict]
+                <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-200 hover:border-primary cursor-pointer text-sm">
+                  <input type="checkbox" value="${dict.value}" data-display="${dict.name}"[#if fkeys?seq_contains(dict.value)] checked[/#if]>
+                  <span>${dict.name}</span>
+                </label>
+              [/#list]
+            </div>
+            [/@DictList]
+          [#else]
+            <input id="${fid}" type="text" value="${ftext}"
+                   class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+          [/#if]
+        </fieldset>
+      [#break]
+      [#case 'multipleSelect']
+        <div data-field data-field-code="${fcode}" data-field-type="${ftype}">
+          <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if] <span class="text-xs text-slate-400">(可多选，按住 Ctrl/⌘)</span></label>
+          [#if field.dictTypeId??]
+            [@DictList typeId=field.dictTypeId; dictList]
+            <select id="${fid}" multiple size="5" class="block w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+              [#list dictList as dict]
+                <option value="${dict.value}" data-display="${dict.name}"[#if fkeys?seq_contains(dict.value)] selected[/#if]>${dict.name}</option>
+              [/#list]
+            </select>
+            [/@DictList]
+          [#else]
+            <input id="${fid}" type="text" value="${ftext}"
+                   class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+          [/#if]
+        </div>
+      [#break]
+      [#default]
+        [#-- text / cascader 及任何未知类型均退化为纯文本输入。 --]
+        <div data-field data-field-code="${fcode}" data-field-type="text">
+          <label for="${fid}" class="block text-sm font-medium text-slate-700 mb-1.5">${fname}[#if field.required]<span class="text-rose-600 ml-0.5">*</span>[/#if]</label>
+          <input id="${fid}" type="${textInputType}" value="${ftext}"[#if field.required] required[/#if]
+                 class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+        </div>
+      [/#switch]
+    [/#if]
+  [/#list]
+[/#macro]
+[#--
+  收集脚本：页面在 [@layout] 主体内、紧随 [@modelFields/] 之后调用 [@modelFieldsScript/]。
+  必须包在宏里：本片段在页面顶部、[@layout] 之前被 [#include]，宏外的任何输出都会落在 <!doctype html> 之前，
+  浏览器因此进入怪异模式（quirks mode），TinyMCE 6 据此拒绝初始化——投稿表单的正文编辑器不出现、提交报“请填写正文”。
+--]
+[#macro modelFieldsScript]
+<script nonce="${csp_nonce!''}">
+  // 把 modelFields 宏渲染出的字段收成 customs 对象：字典类字段双写 code（显示名）与 codeKey（值），数值转 Number，开关转布尔
+  window.collectModelCustoms = function (form) {
+    const customs = {};
+    form.querySelectorAll('[data-field]').forEach((wrap) => {
+      const code = wrap.dataset.fieldCode;
+      const type = wrap.dataset.fieldType;
+      if (!code) return;
+      if (type === 'switch') {
+        const cb = wrap.querySelector('input[type=checkbox]');
+        customs[code] = !!(cb && cb.checked);
+        return;
+      }
+      if (type === 'radio') {
+        const checked = wrap.querySelector('input[type=radio]:checked');
+        if (checked && checked.value !== '') {
+          customs[code + 'Key'] = checked.value;
+          customs[code] = checked.dataset.display || checked.value;
+        } else {
+          customs[code] = null;
+        }
+        return;
+      }
+      if (type === 'checkbox') {
+        const checked = wrap.querySelectorAll('input[type=checkbox]:checked');
+        const values = [], displays = [];
+        checked.forEach((c) => { values.push(c.value); displays.push(c.dataset.display || c.value); });
+        customs[code + 'Key'] = values;
+        customs[code] = displays;
+        return;
+      }
+      if (type === 'select') {
+        const sel = wrap.querySelector('select');
+        if (sel && sel.value !== '') {
+          customs[code + 'Key'] = sel.value;
+          const opt = sel.options[sel.selectedIndex];
+          customs[code] = (opt && opt.dataset.display) || (opt && opt.textContent) || sel.value;
+        } else {
+          customs[code] = null;
+        }
+        return;
+      }
+      if (type === 'multipleSelect') {
+        const sel = wrap.querySelector('select[multiple]');
+        const values = [], displays = [];
+        if (sel) {
+          Array.from(sel.selectedOptions).forEach((opt) => {
+            values.push(opt.value);
+            displays.push(opt.dataset.display || opt.textContent || opt.value);
+          });
+        }
+        customs[code + 'Key'] = values;
+        customs[code] = displays;
+        return;
+      }
+      if (type === 'number' || type === 'slider') {
+        const inp = wrap.querySelector('input, textarea');
+        if (!inp) return;
+        const raw = inp.value.trim();
+        if (raw === '') { customs[code] = null; }
+        else { const n = Number(raw); customs[code] = Number.isFinite(n) ? n : raw; }
+        return;
+      }
+      const inp = wrap.querySelector('input, textarea');
+      if (!inp) return;
+      customs[code] = inp.value === '' ? null : inp.value;
+    });
+    return customs;
+  };
+</script>
+[/#macro]
+[/#escape]

@@ -58,6 +58,7 @@ import com.ujcms.cms.core.security.HtmlSanitizeService;
 import com.ujcms.cms.core.security.PolicyTier;
 import com.ujcms.cms.core.security.PreviewBridgeInjectionFilter;
 import com.ujcms.cms.core.security.SecurityHeadersFilter;
+import com.ujcms.cms.core.security.AuthenticatedCacheControlFilter;
 import com.ujcms.cms.core.security.PreviewAuthFilter;
 import com.ujcms.cms.core.security.PreviewTokenService;
 import com.ujcms.cms.core.security.UserDetailsServiceImpl;
@@ -162,6 +163,10 @@ public class SecurityConfig {
                 // 插槽预览（Phase 7 / §7.0）：?_preview=draft&_ptoken=<令牌> 时据预览令牌置 SecurityContext，
                 // 令 FrontendInterceptor 既有草稿门禁通过。位于授权前、上下文加载之后。
                 .addFilterBefore(new PreviewAuthFilter(slotPreviewTokenService), AuthorizationFilter.class)
+                // 已认证响应一律 no-store（docs/spec/http-cache/plan.md）：SecurityHeadersFilter 先于安全链给前台页
+                // 写入 private, max-age=300，此时会话未解析；在 PreviewAuthFilter 之后按真实登录态（表单登录、
+                // 记住我、预览令牌）改写，登录态页面既不进共享缓存，也不留在浏览器缓存。
+                .addFilterAfter(new AuthenticatedCacheControlFilter(), PreviewAuthFilter.class)
                 // 预览桥注入（visual-builder §3）：模板轨道草稿预览响应在 </body> 前注入
                 // /_ujcms/preview-bridge.js（协议 v2）。位于 PreviewAuthFilter 之后——仅在预览令牌
                 // 已置身份时缓冲并注入；非预览请求零成本跳过。
@@ -171,8 +176,10 @@ public class SecurityConfig {
                         .useSecureCookie(securityProperties.isHttpsEnabled()))
                 .logout(logout -> logout.logoutSuccessUrl("/"))
                 // SecurityHeadersFilter owns Cache-Control + Content-Security-Policy on the
-                // public site too (per-route TTL for anonymous GETs to /, /channel/**, /article/**,
-                // sitemap, RSS; no-store everywhere else). Disable Spring's default Cache-Control
+                // public site too (browser-private 5-min TTL for anonymous GETs to /, /channel/**,
+                // /article/**; shared-cacheable 1 h for sitemap, RSS; no-store everywhere else, and
+                // AuthenticatedCacheControlFilter above turns every authenticated response into
+                // no-store). Disable Spring's default Cache-Control
                 // so the per-route value survives. Likewise disable the frame-options writer:
                 // SecurityHeadersFilter sets X-Frame-Options itself (DENY, but SAMEORIGIN for
                 // ?_preview=draft so the console live-preview iframe can same-origin-embed the

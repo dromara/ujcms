@@ -323,7 +323,7 @@ final class ExportWorld {
             bean.setOrder(Math.toIntExact(bean.getId()));
             channels.put(bean.getId(), bean);
             return null;
-        }).when(channelService).insert(any(Channel.class), anyList(), anyList(), anyList());
+        }).when(channelService).insert(any(Channel.class), any(ChannelService.Grants.class));
         when(channelService.findBySiteIdAndSlug(any(), any())).thenAnswer(inv ->
                 channels.values().stream()
                         .filter(channel -> channel.getSlug().equals(inv.getArgument(1)))

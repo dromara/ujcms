@@ -35,6 +35,7 @@ public final class Commercial {
             Map.entry("importData:show", 1),
             Map.entry("config:security:update", 1),
             Map.entry("article:import", 1),
+            Map.entry("user:import", 1),
             // T2
             Map.entry("article:internalPush", 2),
             Map.entry("article:createTranslation", 2),

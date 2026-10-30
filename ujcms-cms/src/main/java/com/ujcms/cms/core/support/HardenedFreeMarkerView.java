@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * <p>渲染先整页写入内存缓冲，再一次写出响应（docs/spec/template-error-disclosure D4）：模板中途出错时响应尚未
  * 提交，Tomcat 才能把它换成真正的 500 错误页；直接写响应则页面一过输出缓冲就以 200 发出半页，访客与开发者
- * 都看不到任何错误，且该半页还会按公开页的 Cache-Control 被缓存。同时在渲染环境上置
+ * 都看不到任何错误，且该半页还会按前台页的 Cache-Control 被浏览器缓存。同时在渲染环境上置
  * {@link TemplateErrorHandler#INLINE_DETAILS}——只有这条前台动态页面路径允许向操作员内联错误细节。
  *
  * @author PONY

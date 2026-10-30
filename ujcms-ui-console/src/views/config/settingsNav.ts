@@ -77,6 +77,8 @@ export const GLOBAL_SETTINGS_TABS: SettingsTab[] = [
       'config.upload.fileLimit',
       'config.upload.imageMaxWidth',
       'config.upload.imageMaxHeight',
+      'config.upload.memberImageLimit',
+      'config.upload.memberImageDailyLimit',
     ],
   },
   { type: 'uploadStorage', nav: 'storage', perm: 'config:uploadStorage:update', fields: STORAGE_FIELDS },
@@ -327,6 +329,7 @@ export const SITE_SETTINGS_TABS: SettingsTab[] = [
     perm: 'siteSettings:comment:update',
     fields: ['site.comment.enabled', 'site.comment.loginRequired', 'site.comment.auditRequired', 'site.comment.imageEnabled', 'site.comment.imageMaxCount'],
   },
+  { type: 'contribute', nav: 'contribute', perm: 'siteSettings:contribute:update', fields: ['site.contribute.enabled', 'site.contribute.dailyLimit', 'site.contribute.imageEnabled'] },
   { type: 'disclosure', nav: 'disclosure', perm: 'siteSettings:disclosure:update', tier: 4, fields: ['site.disclosure.enabled', 'site.disclosure.loginRequired'] },
   {
     type: 'mailbox',

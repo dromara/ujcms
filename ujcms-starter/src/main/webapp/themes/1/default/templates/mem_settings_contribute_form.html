@@ -1,0 +1,253 @@
+[#include '../layout/theme.html'/]
+[#include '../snippets/model_fields.html'/]
+[#assign settings = 'contribute'/]
+[#assign isEdit = article??/]
+[#assign pageTitle = isEdit?then('修改投稿', '新建投稿')/]
+[#-- 编辑时回填的自定义字段值；新建为空 --]
+[#assign existingCustoms = isEdit?then(article.customs, {})/]
+[#escape x as (x)!?html]
+[@layout title=pageTitle + ' - ' + site.title]
+[#-- 面包屑 --]
+<div class="bg-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3">
+    <ol class="flex flex-wrap items-center gap-1 text-sm">
+      <li><a href="${site.url}" class="cm-link">首页</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings" class="cm-link text-slate-700">个人中心</a></li>
+      <li class="text-slate-400">/</li>
+      <li><a href="${def}/settings/contribute" class="cm-link text-slate-700">我的投稿</a></li>
+      <li class="text-slate-400">/</li>
+      <li><span class="text-slate-700">${pageTitle}</span></li>
+    </ol>
+  </div>
+</div>
+
+[#--
+  投稿表单：栏目、标题、摘要、封面、正文、标签、作者，加上所选栏目文章模型里
+  简单类型的自定义字段（[@modelFields/]，收集脚本由 [@modelFieldsScript/] 输出）。栏目选在地址上：换栏目即重载页面，表单按新栏目的模型渲染；修改时栏目不可改。
+  正文用共享的 TinyMCE（${ctx}/static/tinymce，与控制台同版本），工具栏只开放半可信净化（PolicyTier.BASIC）保得住的格式；
+  autosave 插件把未提交的内容留在本地，投稿不存服务端草稿。
+  以 {siteId, channelId, title, seoDescription, author, image, text, tagNames, customs, captcha, captchaToken, website}
+  POST/PUT 到 ${api}/contribute；人机验证 scope=contribute。
+--]
+<script src="${ctx}/static/tinymce/tinymce.min.js" nonce="${csp_nonce!''}"></script>
+
+<div class="max-w-6xl mx-auto px-4 mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
+  <aside class="md:col-span-1">
+    [#include '../snippets/mem_settings_left.html'/]
+  </aside>
+
+  <section class="md:col-span-3">
+    <div class="flex items-baseline gap-2 pb-2 border-b border-slate-200 mb-4">
+      <h1 class="flex items-center gap-2 text-xl font-bold font-display">
+        <span class="size-5 text-primary inline-block">[@icon 'edit-outline'/]</span>
+        <span>${pageTitle}</span>
+      </h1>
+      <a href="${def}/settings/contribute" class="ml-auto text-sm cm-link">返回列表</a>
+    </div>
+
+    [#if !isEdit && contributeChannels?size == 0]
+      <p class="py-8 text-center text-slate-500">暂无可投稿的栏目</p>
+    [#else]
+    <form
+      x-data="{
+        cap: null,
+        submitting: false,
+        uploading: false,
+        image: '[#if isEdit]${article.image!''}[/#if]',
+        init() {
+          [#if channel??]
+          this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'contribute', popup: true });
+          this.initEditor();
+          [/#if]
+        },
+        initEditor() {
+          if (!window.tinymce) { window.displayAlert('编辑器加载失败'); return; }
+          window.tinymce.init({
+            selector: '#contribute-text',
+            language: 'zh-Hans',
+            language_url: '${ctx}/static/tinymce/langs/zh-Hans.js',
+            skin_url: '${ctx}/static/tinymce/skins/ui/oxide',
+            content_css: '${ctx}/static/tinymce/skins/content/default/content.min.css',
+            plugins: 'lists link image autoresize autosave',
+            // 只开放半可信净化保得住的格式：标题、粗斜体、列表、引用、链接、图片
+            toolbar: 'undo redo | blocks | bold italic | bullist numlist blockquote | link image',
+            block_formats: '正文=p; 标题=h2; 小标题=h3',
+            menubar: false,
+            branding: false,
+            promotion: false,
+            min_height: 360,
+            convert_urls: false,
+            autosave_prefix: 'ujcms-contribute-[#if isEdit]${article.id?c}[#else]new[/#if]-',
+            autosave_restore_when_empty: true,
+            [#if site.contribute.imageEnabled]
+            images_upload_handler: (blobInfo) => this.uploadBlob(blobInfo.blob(), blobInfo.filename()),
+            [#else]
+            images_upload_handler: () => Promise.reject({ message: '本站投稿不允许上传图片', remove: true }),
+            [/#if]
+          });
+        },
+        changeChannel(id) {
+          if (id) window.location.href = '${def}/settings/contribute/create?channelId=' + id;
+        },
+        async uploadBlob(blob, filename) {
+          const csrf = await window.fetchCsrf();
+          const formData = new FormData();
+          formData.append('file', blob, filename);
+          // 图片上传为 multipart，不能走 JSON 版 window.request
+          const res = await fetch('${api}/upload/contribute-image-upload', {
+            method: 'POST', credentials: 'include',
+            headers: { [csrf.headerName]: csrf.token },
+            body: formData,
+          });
+          // 大小、张数、尺寸超限都是 400 带 message：原样给出，会员才知道该怎么改
+          const d = await res.json().catch(() => null);
+          if (!res.ok || !d || !d.url) throw new Error((d && d.message) || '上传失败');
+          return d.url;
+        },
+        async uploadCover(event) {
+          const file = (event.target.files || [])[0];
+          event.target.value = '';
+          if (!file) return;
+          this.uploading = true;
+          try { this.image = await this.uploadBlob(file, file.name); }
+          catch (e) { window.displayAlert(e.message || '上传失败'); }
+          finally { this.uploading = false; }
+        },
+        async submit(ev) {
+          if (this.submitting) return;
+          this.submitting = true;
+          try {
+            const form = ev.target;
+            const editor = window.tinymce && window.tinymce.get('contribute-text');
+            const text = editor ? editor.getContent() : '';
+            if (!text || !text.replace(/<[^>]*>/g, '').trim()) {
+              window.displayAlert('请填写正文');
+              return;
+            }
+            await window.fetchCsrf();
+            const answer = await this.cap.answer();
+            const payload = {
+              // 雪花 ID 超过 JS 安全整数范围（2^53），须以字符串提交
+              siteId: '${site.id?c}',
+              [#if !isEdit]channelId: '${channel.id?c}',[/#if]
+              title: this.$refs.title.value.trim(),
+              seoDescription: this.$refs.seoDescription.value.trim(),
+              author: this.$refs.author.value.trim(),
+              image: this.image || null,
+              text: text,
+              tagNames: this.$refs.tags.value.split(/[,，\s]+/).map((s) => s.trim()).filter((s) => s).slice(0, 20),
+              customs: window.collectModelCustoms(form),
+              captcha: answer.captcha,
+              captchaToken: answer.captchaToken,
+              website: this.$refs.hp.value,
+            };
+            const res = await window.request('[#if isEdit]PUT[#else]POST[/#if]', '${api}/contribute[#if isEdit]/${article.id?c}[/#if]', payload);
+            if (res && res.status === 0) {
+              if (editor && editor.plugins && editor.plugins.autosave) { try { editor.plugins.autosave.removeDraft(false); } catch (e) { /* 忽略 */ } }
+              window.displaySuccess('已提交，等待审核');
+              window.location.href = '${def}/settings/contribute';
+            } else if (res && res.message) {
+              window.displayAlert(res.message);
+              this.cap.refresh();
+            }
+          } catch (e) {
+            window.displayAlert(e.message || '提交失败');
+            if (this.cap) this.cap.refresh();
+          } finally { this.submitting = false; }
+        }
+      }"
+      @submit.prevent="submit"
+      class="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 space-y-5"
+    >
+      <div>
+        <label for="channelId" class="block text-sm font-medium text-slate-700 mb-1.5">栏目<span class="text-rose-600 ml-0.5">*</span></label>
+        [#if isEdit]
+          <select id="channelId" disabled class="block w-full rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+            <option>${channel.name}</option>
+          </select>
+        [#else]
+          <select id="channelId" @change="changeChannel($event.target.value)"
+                  class="block w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+            <option value="">请选择栏目</option>
+            [#list contributeChannels as item]
+              <option value="${item.id?c}"[#if channel?? && channel.id == item.id] selected[/#if]>[#if item.depth gt 0][#list 1..item.depth as i]　[/#list][/#if]${item.name}</option>
+            [/#list]
+          </select>
+          [#if !channel??]
+            <p class="mt-1 text-xs text-slate-400">选择栏目后显示该栏目的投稿表单</p>
+          [/#if]
+        [/#if]
+      </div>
+
+      [#if channel??]
+      <div>
+        <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">标题<span class="text-rose-600 ml-0.5">*</span></label>
+        <input id="title" x-ref="title" type="text" required maxlength="150" value="[#if isEdit]${article.title}[/#if]"
+               class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+      </div>
+      <div>
+        <label for="seoDescription" class="block text-sm font-medium text-slate-700 mb-1.5">摘要</label>
+        <textarea id="seoDescription" x-ref="seoDescription" rows="3" maxlength="1000"
+                  class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">[#if isEdit]${article.seoDescription!''}[/#if]</textarea>
+      </div>
+      [#if site.contribute.imageEnabled]
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">封面</label>
+        <div class="flex items-center gap-3">
+          <img x-show="image" x-cloak :src="image" alt="封面" class="h-20 w-30 rounded object-cover border border-slate-200">
+          <label class="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-slate-300 text-sm cursor-pointer hover:bg-slate-50">
+            <span class="size-4 inline-block">[@icon 'add-photo-alternate-outline'/]</span>
+            <span x-text="uploading ? '上传中…' : (image ? '更换封面' : '上传封面')"></span>
+            <input type="file" accept="image/*" class="hidden" @change="uploadCover($event)" :disabled="uploading">
+          </label>
+          <button type="button" x-show="image" x-cloak @click="image = ''" class="text-sm text-slate-500 hover:text-rose-600">移除</button>
+        </div>
+      </div>
+      [/#if]
+      <div>
+        <label for="contribute-text" class="block text-sm font-medium text-slate-700 mb-1.5">正文<span class="text-rose-600 ml-0.5">*</span></label>
+        <textarea id="contribute-text" rows="12" class="block w-full rounded border border-slate-300 px-3 py-2 text-sm">[#if isEdit]${article.text!''}[/#if]</textarea>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label for="tags" class="block text-sm font-medium text-slate-700 mb-1.5">标签 <span class="text-xs text-slate-400">(逗号分隔，只能用本站已有标签)</span></label>
+          [#-- 只收本站已有标签（D11）：datalist 给出引用最多的一批供挑选，服务端对不存在的标签报错 --]
+          <input id="tags" x-ref="tags" type="text" list="tag-options" autocomplete="off" value="[#if isEdit][#list article.tags as tag]${tag.name}[#sep],[/#list][/#if]"
+                 class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+          <datalist id="tag-options">
+            [@TagList siteId=site.id limit=100; tag]<option value="${tag.name}"></option>[/@TagList]
+          </datalist>
+        </div>
+        <div>
+          <label for="author" class="block text-sm font-medium text-slate-700 mb-1.5">作者</label>
+          <input id="author" x-ref="author" type="text" maxlength="50" value="[#if isEdit]${article.author!''}[/#if]"
+                 class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+        </div>
+      </div>
+
+      [@modelFields fields=fieldList values=existingCustoms /]
+      [@modelFieldsScript/]
+
+      <div class="relative">
+        <div x-ref="captcha" data-captcha></div>
+        <input type="text" name="website" x-ref="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="submit" :disabled="submitting"
+                class="inline-flex items-center gap-1 px-5 py-2.5 rounded bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+          <span class="size-4 inline-block">[@icon 'send'/]</span>
+          <span x-show="!submitting">[#if isEdit]保存并重新提交[#else]提交审核[/#if]</span>
+          <span x-show="submitting" x-cloak>提交中…</span>
+        </button>
+        <a href="${def}/settings/contribute" class="text-sm text-slate-500 hover:text-primary">取消</a>
+        <span class="text-xs text-slate-400">提交后由编辑审核，审核结果会通知您</span>
+      </div>
+      [/#if]
+    </form>
+    [/#if]
+  </section>
+</div>
+[/@layout]
+[/#escape]

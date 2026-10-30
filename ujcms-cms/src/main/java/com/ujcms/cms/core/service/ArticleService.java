@@ -9,6 +9,7 @@ import com.ujcms.cms.core.domain.generated.GeneratedArticle;
 import com.ujcms.cms.core.generator.HtmlService;
 import com.ujcms.cms.core.listener.ArticleDeleteListener;
 import com.ujcms.cms.core.listener.ArticlePublishListener;
+import com.ujcms.cms.core.listener.ArticleRejectListener;
 import com.ujcms.cms.core.listener.ChannelDeleteListener;
 import com.ujcms.cms.core.listener.SiteDeleteListener;
 import com.ujcms.cms.core.listener.UserDeleteListener;
@@ -354,6 +355,34 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     }
 
     /**
+     * 提交审核、绝不直接发布（docs/spec/member-contribute/plan.md D6）：会员投稿一律待审核。栏目有审批流程且装有流程引擎时
+     * 进入流程（流程端口把状态置为待审核并记下实例ID）；否则停在待审核、无流程实例，由“文章管理”里的提交（通过）或退回处置。
+     * {@link #submit} 不适用：栏目没有流程时它会直接发布。
+     * <p>
+     * 退回原因随重新提交清除；名下过时的流程实例先撤销（同 {@link #submit}）。只写状态与流程两组列
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void submitForReview(Article bean, Long userId) {
+        requireOfflineDateAhead(bean);
+        String processKey = bean.getChannel().getProcessKey();
+        ArticleProcessPort port = StringUtils.isNotBlank(processKey) ? processPort.getIfAvailable() : null;
+        if (port != null && bean.getStatus() == STATUS_PENDING && port.isRunning(bean, processKey)) {
+            return;
+        }
+        cancelProcesses(bean, "resubmit");
+        if (port != null) {
+            port.start(bean, processKey, userId);
+        } else {
+            bean.setStatus(STATUS_PENDING);
+            bean.setProcessInstanceId(null);
+        }
+        bean.getExt().setRejectReason(null);
+        mapper.updateStatus(bean.getId(), bean.getStatus());
+        extMapper.updateProcess(bean.getId(), bean.getProcessInstanceId(), null);
+        afterStatusChange(bean.getId());
+    }
+
+    /**
      * 下线时间已过的文章不能提交（D4）
      */
     public static void requireOfflineDateAhead(Article bean) {
@@ -435,6 +464,7 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
         mapper.updateStatus(bean.getId(), STATUS_REJECTED);
         extMapper.updateProcess(bean.getId(), bean.getProcessInstanceId(), reason);
         afterStatusChange(bean.getId());
+        rejectListeners.forEach(it -> it.afterArticleReject(bean));
     }
 
     /**
@@ -737,6 +767,16 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void lockSource(Long articleId) {
+        lockArticle(articleId);
+    }
+
+    /**
+     * 对文章行加行锁（{@code select … for update}），同 {@link #lockSource} 的约束：调用方已开事务，且是该事务里对
+     * 这篇文章的第一次读。会员投稿的修改、删除在校验归属与状态前先锁行（docs/spec/member-contribute/plan.md D8）：
+     * 校验时还“可修改”、写回时已被编辑发布的话，全行更新会把刚发布的文章改回待审核
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockArticle(Long articleId) {
         mapper.lockById(articleId);
     }
 
@@ -1531,6 +1571,14 @@ public class ArticleService implements ChannelDeleteListener, UserDeleteListener
     @Autowired(required = false)
     public void setPublishListeners(List<ArticlePublishListener> publishListeners) {
         this.publishListeners = publishListeners;
+    }
+
+    private List<ArticleRejectListener> rejectListeners = Collections.emptyList();
+
+    @Lazy
+    @Autowired(required = false)
+    public void setRejectListeners(List<ArticleRejectListener> rejectListeners) {
+        this.rejectListeners = rejectListeners;
     }
 
     /**

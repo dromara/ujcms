@@ -7,12 +7,14 @@ import { pageSizes, pageLayout } from '@/utils/common';
 import { useRouteState, enumParam } from '@/composables/useRouteState';
 import { queryNotificationPage, readNotifications, readAllNotifications, deleteReadNotifications } from '@/api/interaction';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useCurrentSiteStore } from '@/stores/currentSiteStore';
 
 defineOptions({
   name: 'NotificationList',
 });
 const { t } = useI18n();
 const notificationStore = useNotificationStore();
+const currentSiteStore = useCurrentSiteStore();
 
 // 导航上下文（状态行 全部 / 未读）存于路由 query：刷新、页签往返后恢复（console-view-state）
 const { status } = useRouteState({ status: enumParam('all', ['all', 'unread']) });
@@ -53,8 +55,21 @@ const senderName = (item: any): string => {
   if (String(item.sender.id) === '0') return t('notification.inbox.anonymous');
   return item.sender.nickname || item.sender.username;
 };
-// 引用类通知（评论回复、关注……）按关联对象取地址，系统公告用显式 url
-const linkOf = (item: any): string | undefined => item.article?.url || item.channel?.url || item.url || undefined;
+// 引用类通知（评论回复、关注……）按关联对象取地址，系统公告、好友、投稿退回用显式 url。
+// 控制台与前台不一定同源（开发期 :5173 对 :8080、多域名站点）：关联对象取完整地址（与页头网站首页、最近更新一致）；
+// 显式 url 是站内相对路径（主题同源直接可用），按当前站点的动态完整地址补全，关联对象的相对地址同样兜底补全；只放行 http(s)
+const linkOf = (item: any): string | undefined => {
+  const link = item.article?.fullUrl || item.channel?.fullUrl || item.article?.url || item.channel?.url || item.url;
+  if (!link) return undefined;
+  const site = currentSiteStore.currentSite;
+  const base = site?.dynamicFullUrl || site?.fullUrl || window.location.origin;
+  try {
+    const url = new URL(link, base);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+};
 const formatTime = (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm');
 
 const handleOpen = async (item: any) => {

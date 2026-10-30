@@ -169,4 +169,7 @@
   [x-cloak] {
     display: none !important;
   }
+
+  /* 人机验证宿主（/static/captcha.js 弹层模式）：挂载前、答题前为空，折叠掉，晚挂载（评论框首次聚焦）时按钮不跳动 */
+  [data-captcha]:empty { display: none; }
 }

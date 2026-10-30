@@ -2,6 +2,7 @@ package com.ujcms.cms.core.web.backendapi;
 
 import com.ujcms.cms.core.aop.annotations.OperationLog;
 import com.ujcms.cms.core.aop.enums.OperationType;
+import com.ujcms.cms.core.component.UserBatchService;
 import com.ujcms.cms.core.domain.Role;
 import com.ujcms.cms.core.domain.Site;
 import com.ujcms.cms.core.domain.User;
@@ -19,11 +20,13 @@ import com.ujcms.common.web.Responses.Body;
 import com.ujcms.common.web.exception.Http400Exception;
 import com.ujcms.common.web.exception.Http403Exception;
 import com.ujcms.common.web.exception.Http404Exception;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -31,6 +34,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +46,7 @@ import static com.ujcms.cms.core.support.Constants.*;
 import static com.ujcms.cms.core.support.Constants.validLimit;
 import static com.ujcms.cms.core.support.UrlConstants.BACKEND_API;
 import static com.ujcms.cms.core.web.support.ValidUtils.rankPermission;
+import static com.ujcms.cms.core.web.support.ValidUtils.requireAuthority;
 import static com.ujcms.common.db.MyBatis.springPage;
 import static com.ujcms.common.query.QueryUtils.getQueryMap;
 
@@ -55,14 +61,16 @@ public class UserController {
     private final RoleService roleService;
     private final OrgService orgService;
     private final UserService service;
+    private final UserBatchService batchService;
     private final Props props;
     private final SeparationOfDuties separationOfDuties;
 
-    public UserController(RoleService roleService, OrgService orgService, UserService service, Props props,
-                          SeparationOfDuties separationOfDuties) {
+    public UserController(RoleService roleService, OrgService orgService, UserService service,
+                          UserBatchService batchService, Props props, SeparationOfDuties separationOfDuties) {
         this.roleService = roleService;
         this.orgService = orgService;
         this.service = service;
+        this.batchService = batchService;
         this.props = props;
         this.separationOfDuties = separationOfDuties;
     }
@@ -131,6 +139,74 @@ public class UserController {
         return Responses.ok();
     }
 
+    /**
+     * 批量录入：一次新建多个用户，全有或全无。规则与单个新增相同（{@link UserBatchService}）：任何一行有问题就一个也不建，
+     * 把问题逐行返回给控制台改正。密码（统一的初始密码、行里的密码）由控制台以 SM2 加密后提交。
+     * 给了角色时须另有“权限设置”的权限（D8）：新建账号与授权是两件事，各有各的权限码与日志
+     */
+    @PostMapping("batch")
+    @PreAuthorize("hasAnyAuthority('user:create','*')")
+    @OperationLog(module = "user", operation = "batchCreate", type = OperationType.CREATE)
+    public BatchCreateResult batchCreate(@RequestBody @Valid BatchCreateParams params, HttpServletRequest request) {
+        User currentUser = Contexts.getCurrentUser();
+        validatePermission(params.orgId(), currentUser.getRank(), currentUser.getRank(), currentUser);
+        List<Long> roleIds = params.roleIds() == null ? List.of()
+                : params.roleIds().stream().filter(Objects::nonNull).distinct().toList();
+        if (!roleIds.isEmpty()) {
+            requireAuthority(currentUser, "user:updatePermission");
+        }
+        List<UserBatchService.Row> rows = new ArrayList<>(params.users().size());
+        for (int i = 0; i < params.users().size(); i++) {
+            BatchCreateRow row = params.users().get(i);
+            rows.add(new UserBatchService.Row(i + 1, row.username(), row.realName(), row.mobile(), row.email(),
+                    decryptPassword(row.password()), null, null, null, null));
+        }
+        UserBatchService.Defaults defaults = new UserBatchService.Defaults(params.orgId(), params.groupId(),
+                decryptPassword(params.password()), roleIds, false);
+        UserBatchService.Plan plan = batchService.plan(rows, defaults, currentUser, RequestContextUtils.getLocale(request));
+        if (!plan.issues().isEmpty()) {
+            return new BatchCreateResult(0, plan.issues());
+        }
+        return new BatchCreateResult(batchService.createAll(plan.prepared()), List.of());
+    }
+
+    @Nullable
+    private String decryptPassword(@Nullable String encrypted) {
+        if (StringUtils.isBlank(encrypted)) {
+            return null;
+        }
+        return Secures.sm2Decrypt(encrypted, props.getClientSm2PrivateKey());
+    }
+
+    /**
+     * 批量录入的一行。密码已 SM2 加密；为空时用统一的初始密码
+     */
+    public record BatchCreateRow(@Nullable String username, @Nullable String realName, @Nullable String mobile,
+                                 @Nullable String email, @Nullable String password) {
+    }
+
+    /**
+     * 批量录入的参数
+     *
+     * @param password 统一的初始密码，已 SM2 加密；为空且行里也没有密码时，用户没有密码
+     * @param roleIds  分配给这一批用户的角色；可为空。给了就须有权限设置的权限
+     */
+    public record BatchCreateParams(@NotNull Long orgId, @NotNull Long groupId, @Nullable String password,
+                                    @Nullable List<Long> roleIds,
+                                    @NotNull @Size(min = 1, max = BATCH_MAX_ROWS) List<@Valid BatchCreateRow> users) {
+    }
+
+    /**
+     * 批量录入的结果：有问题时一个也没建，{@code issues} 逐行说明
+     */
+    public record BatchCreateResult(int created, List<UserBatchService.Issue> issues) {
+    }
+
+    /**
+     * 一次最多录入的用户数
+     */
+    public static final int BATCH_MAX_ROWS = 200;
+
     @PutMapping
     @PreAuthorize("hasAnyAuthority('user:update','*')")
     @OperationLog(module = "user", operation = "update", type = OperationType.UPDATE)
@@ -182,6 +258,59 @@ public class UserController {
         service.update(user, bean.getRoleIds());
         return Responses.ok();
     }
+
+    /**
+     * 批量添加 / 移除角色（D9）：给列表里选中的用户统一加上或去掉几个角色，各人其余的角色不动——不是整体替换，
+     * 免得把各人原有的、互不相同的角色悄悄抹掉。规则与单个“权限设置”相同（{@link UserBatchService#planRoles}）：
+     * 任何一个用户有问题就一个也不改，逐个返回原因；角色已持有、或本来就没有的用户不算问题
+     */
+    @PutMapping("roles")
+    @PreAuthorize("hasAnyAuthority('user:updatePermission','*')")
+    @OperationLog(module = "user", operation = "batchUpdateRoles", type = OperationType.UPDATE)
+    public BatchRolesResult batchUpdateRoles(@RequestBody @Valid BatchRolesParams params, HttpServletRequest request) {
+        User currentUser = Contexts.getCurrentUser();
+        List<Role> roles = new ArrayList<>();
+        for (Long roleId : params.roleIds().stream().filter(Objects::nonNull).distinct().toList()) {
+            Role role = roleService.select(roleId);
+            if (role == null) {
+                throw new Http404Exception("Role not found: " + roleId);
+            }
+            roles.add(role);
+        }
+        boolean remove = "remove".equals(params.action());
+        UserBatchService.RolesPlan plan = batchService.planRoles(params.ids(), roles, remove, currentUser,
+                RequestContextUtils.getLocale(request));
+        if (!plan.issues().isEmpty()) {
+            return new BatchRolesResult(0, plan.unchanged(), plan.issues());
+        }
+        return new BatchRolesResult(batchService.applyRoles(plan.changes()), plan.unchanged(), List.of());
+    }
+
+    /**
+     * 批量添加 / 移除角色的参数
+     *
+     * @param ids     选中的用户
+     * @param roleIds 要添加或移除的角色
+     * @param action  {@code add} 添加，{@code remove} 移除
+     */
+    public record BatchRolesParams(@NotNull @Size(min = 1, max = BATCH_ROLES_MAX_USERS) List<Long> ids,
+                                   @NotNull @Size(min = 1) List<Long> roleIds,
+                                   @NotNull @Pattern(regexp = "add|remove") String action) {
+    }
+
+    /**
+     * 批量添加 / 移除角色的结果：有问题时一个也没改，{@code issues} 逐个说明
+     *
+     * @param updated   角色改写了的用户数
+     * @param unchanged 角色没有变化的用户数
+     */
+    public record BatchRolesResult(int updated, int unchanged, List<UserBatchService.UserIssue> issues) {
+    }
+
+    /**
+     * 一次最多加减角色的用户数：与控制台列表一页最多的行数相同
+     */
+    public static final int BATCH_ROLES_MAX_USERS = 800;
 
     public static class UpdateStatusParams {
         @NotNull
@@ -240,16 +369,19 @@ public class UserController {
     }
 
     @GetMapping("username-exist")
+    @PreAuthorize("hasAnyAuthority('user:create','user:update','*')")
     public boolean usernameExist(@NotBlank String username) {
         return service.selectByUsername(username) != null;
     }
 
     @GetMapping("email-exist")
+    @PreAuthorize("hasAnyAuthority('user:create','user:update','*')")
     public boolean emailExist(@NotBlank String email) {
         return service.selectByEmail(email) != null;
     }
 
     @GetMapping("mobile-exist")
+    @PreAuthorize("hasAnyAuthority('user:create','user:update','*')")
     public boolean mobileExist(@NotBlank String mobile) {
         return service.selectByMobile(mobile) != null;
     }

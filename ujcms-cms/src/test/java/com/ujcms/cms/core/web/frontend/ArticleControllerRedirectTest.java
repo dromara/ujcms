@@ -133,7 +133,7 @@ class ArticleControllerRedirectTest {
         assertEquals(HttpStatus.MOVED_PERMANENTLY, response.getStatusCode());
         assertEquals(location, response.getHeaders().getFirst(HttpHeaders.LOCATION));
         // 形态切换后旧规范形反向 301，浏览器缓存的 301 会成环：必须 no-cache。
-        // 写在 Servlet 响应上（覆盖 SecurityHeadersFilter 预设的 public, max-age=300），而非实体头（addHeader 会追加成两条）
+        // 写在 Servlet 响应上（覆盖 SecurityHeadersFilter 预设的 private, max-age=300），而非实体头（addHeader 会追加成两条）
         assertEquals("no-cache", servletResponse.getHeader(HttpHeaders.CACHE_CONTROL));
         assertNull(response.getHeaders().getCacheControl());
     }

@@ -30,6 +30,7 @@
 
   "todo.pendingArticle": "待审核文章",
   "todo.rejectedArticle": "我的已退回文章",
+  "todo.pendingContribute": "待审投稿",
   "todo.pendingForm": "待审核表单",
   "todo.rejectedForm": "我的已退回表单",
   "todo.unreviewedMessageBoard": "未审核留言",

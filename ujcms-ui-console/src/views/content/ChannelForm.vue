@@ -15,6 +15,7 @@ import {
 } from '@/api/content';
 import { queryProcessModelList } from '@/api/system';
 import { queryModelList, queryPerformanceTypeList } from '@/api/config';
+import { queryGroupList } from '@/api/user';
 import { getModelData, mergeModelFields, arr2obj } from '@/data';
 import { currentUser } from '@/stores/useCurrentUser';
 import FieldItem from '@/views/config/components/FieldItem.vue';
@@ -47,6 +48,7 @@ const performanceTypeList = ref<any[]>([]);
 const channelList = ref<any[]>([]);
 const channelModelList = ref<any[]>([]);
 const articleModelList = ref<any[]>([]);
+const groupList = ref<any[]>([]);
 const channelPermissions = ref<string[]>([]);
 const channelTemplates = ref<any[]>([]);
 const articleTemplates = ref<any[]>([]);
@@ -115,6 +117,10 @@ const fetchArticleTemplates = async () => {
 const fetchChannelPermissions = async () => {
   channelPermissions.value = await queryChannelPermissions();
 };
+// 投稿用户组选项（docs/spec/member-contribute/plan.md D3）。用户组是全局的，一次取齐
+const fetchGroupList = async () => {
+  groupList.value = await queryGroupList();
+};
 // 新建时模型的默认值取自下面的模型列表，模板下拉的标签取自模板列表：等四份列表到齐才打开对话框。
 // 否则页面加载后第一次点“新增”时列表还是空的，栏目模型、文章模型两个必填项会是空白
 const ready = ref<boolean>(false);
@@ -137,7 +143,8 @@ const initChannelValues = (bean?: any, isEdit?: boolean): any => {
     articleTemplate: (base ?? parent.value)?.articleTemplate ?? null,
     pageSize: 10,
     allowComment: base?.allowComment ?? parent.value?.allowComment ?? true,
-    allowContribute: base?.allowContribute ?? parent.value?.allowContribute ?? true,
+    // 允许投稿默认关；投稿用户组新建时不填，由服务端沿用上级栏目的
+    allowContribute: base?.allowContribute ?? parent.value?.allowContribute ?? false,
     allowSearch: base?.allowSearch ?? parent.value?.allowSearch ?? true,
     orderDesc: base?.orderDesc ?? parent.value?.orderDesc ?? true,
     customs: {},
@@ -151,6 +158,7 @@ watch(visible, async () => {
   // 上级栏目选择器的数据每次打开取一次；上一条、下一条之间不必重取
   fetchChannelList();
   fetchChannelPermissions();
+  fetchGroupList();
   fetchProcessModelList();
   fetchPerformanceTypeList();
   try {
@@ -327,16 +335,21 @@ const initCustoms = (customs: any) => {
                 <el-switch v-model="values.allowComment"></el-switch>
               </el-form-item>
             </el-col>
+            -->
             <el-col v-if="mains['allowContribute'].show" :span="mains['allowContribute'].double ? 12 : 24">
-              <el-form-item
-                prop="allowContribute"
-                :label="mains['allowContribute'].name ?? $t('channel.allowContribute')"
-                :rules="mains['allowContribute'].required ? { required: true, message: () => $t('v.required') } : undefined"
-              >
+              <el-form-item prop="allowContribute" :rules="mains['allowContribute'].required ? { required: true, message: () => $t('v.required') } : undefined">
+                <template #label><label-tip :label="mains['allowContribute'].name ?? $t('channel.allowContribute')" message="channel.allowContribute" help /></template>
                 <el-switch v-model="values.allowContribute"></el-switch>
               </el-form-item>
             </el-col>
-            -->
+            <el-col v-if="mains['allowContribute'].show && values.allowContribute" :span="mains['allowContribute'].double ? 12 : 24">
+              <el-form-item prop="contributeGroupIds">
+                <template #label><label-tip message="channel.contributeGroupIds" help /></template>
+                <el-select v-model="values.contributeGroupIds" multiple clearable class="w-full" :placeholder="$t('all')">
+                  <el-option v-for="item in groupList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
             <el-col v-if="mains['nav'].show" :span="mains['nav'].double ? 12 : 24">
               <el-form-item prop="nav" :rules="mains['nav'].required ? { required: true, message: () => $t('v.required') } : undefined">
                 <template #label><label-tip :label="mains['nav'].name ?? $t('channel.nav')" message="channel.nav" help /></template>

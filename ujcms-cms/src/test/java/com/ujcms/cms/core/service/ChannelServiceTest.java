@@ -17,6 +17,7 @@ import com.ujcms.cms.core.mapper.ChannelExtMapper;
 import com.ujcms.cms.core.mapper.ChannelMapper;
 import com.ujcms.cms.core.mapper.ChannelTreeMapper;
 import com.ujcms.cms.core.mapper.GroupAccessMapper;
+import com.ujcms.cms.core.mapper.GroupContributeMapper;
 import com.ujcms.cms.core.mapper.OrgArticleMapper;
 import com.ujcms.cms.core.mapper.OrgChannelMapper;
 import com.ujcms.cms.core.mapper.RoleArticleMapper;
@@ -117,7 +118,7 @@ class ChannelServiceTest {
         when(snowflakeSequence.nextId()).thenAnswer(invocation -> nextId.incrementAndGet());
         service = new ChannelService(mock(HtmlService.class), mock(HtmlSanitizeService.class),
                 mock(AttachmentService.class), modelService, mapper, mock(ChannelExtMapper.class), treeMapper,
-                articleMapper, groupAccessMapper, roleArticleMapper, roleChannelMapper,
+                articleMapper, groupAccessMapper, mock(GroupContributeMapper.class), roleArticleMapper, roleChannelMapper,
                 mock(OrgArticleMapper.class), mock(OrgChannelMapper.class), snowflakeSequence,
                 new SlugGenerator(mock(SiteMapper.class)), mock(ContentStatEvictor.class), roleService, groupService,
                 processDefinitionPort, siteMapper);
@@ -283,7 +284,7 @@ class ChannelServiceTest {
         when(groupService.listNotAllAccessPermission()).thenReturn(List.of(group));
         when(roleService.listNotAllArticlePermission(SITE)).thenReturn(List.of(role));
         when(roleService.listNotAllChannelPermission(SITE)).thenReturn(List.of());
-        assertEquals(new Grants(List.of(3L), List.of(4L), List.of()), service.defaultGrants(SITE, null));
+        assertEquals(new Grants(List.of(3L), List.of(4L), List.of(), List.of()), service.defaultGrants(SITE, null));
     }
 
     // ---------------------------------------------------------------- 编辑
@@ -294,7 +295,7 @@ class ChannelServiceTest {
         OffsetDateTime before = OffsetDateTime.now().minusDays(1);
         bean.setModified(before);
 
-        service.update(bean, null, null, List.of(5L));
+        service.update(bean, null, null, List.of(5L), null);
 
         assertTrue(bean.getModified().isAfter(before));
         verify(roleChannelMapper).deleteByChannelId(60L);

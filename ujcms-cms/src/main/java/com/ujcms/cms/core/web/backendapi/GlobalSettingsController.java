@@ -441,6 +441,7 @@ public class GlobalSettingsController {
     }
 
     @GetMapping("storage-path-allowed")
+    @PreAuthorize("hasAnyAuthority('config:uploadStorage:update','config:htmlStorage:update','config:templateStorage:update','config:packageStorage:update','*')")
     public boolean storagePathAllowed(String path) {
         if (StringUtils.isBlank(path)) {
             return false;

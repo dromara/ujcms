@@ -1,4 +1,5 @@
 import axios from '@/utils/request';
+import { parseAttachmentFilename } from '@/api/theme';
 
 export const queryOrgList = async (params?: Record<string, any>): Promise<any> => (await axios.get('/backend/core/org', { params })).data;
 export const queryOrg = async (id: string): Promise<any> => (await axios.get(`/backend/core/org/${id}`)).data;
@@ -55,3 +56,43 @@ export const deleteUser = async (data: string[]): Promise<any> => (await axios.p
 export const usernameExist = async (username?: string): Promise<any> => (await axios.get('/backend/core/user/username-exist', { params: { username } })).data;
 export const emailExist = async (email?: string): Promise<any> => (await axios.get('/backend/core/user/email-exist', { params: { email } })).data;
 export const mobileExist = async (mobile?: string): Promise<any> => (await axios.get('/backend/core/user/mobile-exist', { params: { mobile } })).data;
+/** 批量录入：全有或全无。有问题时一个也不建，返回 { created: 0, issues: [{ row, username, reason }] }；密码已 SM2 加密 */
+export const batchCreateUser = async (data: Record<string, any>): Promise<any> => (await axios.post('/backend/core/user/batch', data, { timeout: 120000 })).data;
+/** 批量添加 / 移除角色：只加减指定的角色，其余不动。有问题时一个也不改，返回 { updated: 0, unchanged, issues: [{ userId, username, reason }] } */
+export const batchUpdateUserRoles = async (data: { ids: string[]; roleIds: string[]; action: 'add' | 'remove' }): Promise<any> =>
+  (await axios.post('/backend/core/user/roles?_method=put', data, { timeout: 120000 })).data;
+/** 用户批量导入（T1）：下载模板。响应是文件，出错时交给 handleBlobError */
+export const downloadUserImportTemplate = async (): Promise<{ blob: Blob; filename: string }> => {
+  const response = await axios.get('/backend/core/user-import/template', { responseType: 'blob', skipErrorHandler: true } as any);
+  const filename = parseAttachmentFilename(response.headers?.['content-disposition'] ?? '') ?? 'user-import-template.xlsx';
+  return { blob: response.data, filename };
+};
+export interface UserImportOptions {
+  orgId?: string;
+  groupId?: string;
+  /** 初始密码，已 SM2 加密 */
+  password?: string;
+  /** 默认角色；只有持有 user:updatePermission 的操作员才能给 */
+  roleIds?: string[];
+}
+const userImportForm = (file: File, options: UserImportOptions): FormData => {
+  const form = new FormData();
+  form.append('file', file);
+  if (options.orgId != null) {
+    form.append('orgId', options.orgId);
+  }
+  if (options.groupId != null) {
+    form.append('groupId', options.groupId);
+  }
+  if (options.password) {
+    form.append('password', options.password);
+  }
+  options.roleIds?.forEach((roleId) => form.append('roleIds', roleId));
+  return form;
+};
+/** 预检：只读，返回可导入的行数与有问题的行 */
+export const previewUserImport = async (file: File, options: UserImportOptions): Promise<any> =>
+  (await axios.post('/backend/core/user-import/preview', userImportForm(file, options), { timeout: 120000 })).data;
+/** 执行：当场逐个创建，返回结果报告 { total, created, skipped, failed, issues } */
+export const importUser = async (file: File, options: UserImportOptions): Promise<any> =>
+  (await axios.post('/backend/core/user-import', userImportForm(file, options), { timeout: 120000 })).data;

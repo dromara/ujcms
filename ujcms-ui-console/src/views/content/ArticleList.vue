@@ -15,6 +15,7 @@ import { querySiteList } from '@/api/system';
 import {
   deleteArticle,
   submitArticle,
+  rejectArticles,
   archiveArticle,
   offlineArticle,
   completelyDeleteArticle,
@@ -40,6 +41,7 @@ import ArticleExportDialog from './ArticleExportDialog.vue';
 import ArticleImportDialog from './ArticleImportDialog.vue';
 import WechatPushForm from './WechatPushForm.vue';
 import BlockItemForm from './BlockItemForm.vue';
+import { promptRejectReason } from '@/utils/review';
 import { openArticleLink, articleStatusTagType } from './components/articleUtils';
 import {
   articleStatuses,
@@ -49,6 +51,7 @@ import {
   articleActionPerms,
   primaryStatusAction,
   canSubmit,
+  canReject,
   canArchive,
   canOffline,
   type ArticleStatusAction,
@@ -206,6 +209,30 @@ const handleBatch = async (action: ArticleStatusAction) => {
     message = t('article.batch.confirmSkipped', { total, skipped, count: ids.length, action: actionLabel });
   }
   await confirmThen(message, actionLabel, action === 'completelyDelete', () => handleExecute(action, ids));
+};
+// 退回（docs/spec/member-contribute/plan.md D6）：只对待审核且未进入审批流程的文章；要填退回原因，所以不在 handleBatch 的状态操作里。
+// 批量时不适用的行计数并略过，与其它批量操作一致
+const handleReject = async (rows: any[]) => {
+  const actionLabel = t('article.op.reject');
+  const eligible = rows.filter((row: any) => canReject(row));
+  if (eligible.length === 0) {
+    ElMessage.warning(t('article.batch.noneEligible', { action: actionLabel }));
+    return;
+  }
+  const reason = await promptRejectReason(t);
+  if (reason == null) {
+    return;
+  }
+  await rejectArticles(
+    eligible.map((row: any) => row.id),
+    reason,
+  );
+  refresh();
+  if (rows.length > eligible.length) {
+    ElMessage.success(t('article.batch.confirmSkipped', { total: rows.length, skipped: rows.length - eligible.length, count: eligible.length, action: actionLabel }));
+  } else {
+    ElMessage.success(t('success'));
+  }
 };
 // “更多”菜单里的状态操作：下拉项包不了气泡确认框，改用对话框确认
 const handleRowAction = async (action: ArticleStatusAction, row: any) => {
@@ -609,6 +636,7 @@ const selectedIds = computed<string[]>(() => selection.value.map((row: any) => r
             :options="blockList.filter((item) => item.recommendable).map((item) => ({ label: item.name, value: item.id }))"
           ></query-item>
           <query-item :label="$t('article.type')" name="Q_In_type_Short" :options="[0, 1, 2, 3].map((item) => ({ label: $t(`article.type.${item}`), value: item }))"></query-item>
+          <query-item :label="$t('article.inputType')" name="Q_In_inputType_Short" :options="[0, 1, 2, 3, 4, 5].map((item) => ({ label: $t(`article.inputType.${item}`), value: item }))"></query-item>
           <query-item
             :label="$t('article.withImage')"
             name="Q_EQ_withImage_Boolean"
@@ -648,6 +676,7 @@ const selectedIds = computed<string[]>(() => selection.value.map((row: any) => r
               <el-dropdown-item v-for="item in batchStatusActions" :key="item" :disabled="perm(articleActionPerms[item])" @click="() => handleBatch(item)">
                 {{ $t(articleActionLabels[item]) }}
               </el-dropdown-item>
+              <el-dropdown-item :disabled="perm('article:reject')" @click="() => handleReject(selection)">{{ $t('article.op.reject') }}</el-dropdown-item>
               <el-dropdown-item :disabled="perm('article:sticky')" divided @click="() => handleSticky(selectedIds)">{{ $t('article.op.sticky') }}</el-dropdown-item>
               <el-dropdown-item :disabled="perm('article:update')" @click="() => handleMove(selectedIds)">{{ $t('article.op.move') }}</el-dropdown-item>
               <el-dropdown-item :disabled="perm('article:delete')" divided @click="() => handleBatch('restore')">{{ $t('article.op.restore') }}</el-dropdown-item>
@@ -724,6 +753,8 @@ const selectedIds = computed<string[]>(() => selection.value.map((row: any) => r
               <template #default="{ row }">
                 <!-- <el-button type="primary" link @click="() => openArticleLink(row.status, row.fullUrl, row.dynamicFullUrl)">{{ row.title }}</el-button> -->
                 <el-link href="javascript:" underline="never" @click="() => openArticleLink(row.status, row.fullUrl, row.dynamicFullUrl)">{{ row.title }}</el-link>
+                <!-- 投稿：前台投来的文章（docs/spec/member-contribute/plan.md D1） -->
+                <el-tag v-if="row.inputType === 1" type="warning" size="small" class="ml-1" disable-transitions>{{ $t('article.inputType.1') }}</el-tag>
                 <el-tag
                   v-for="item in row.blockItemList"
                   :key="item.id"
@@ -899,6 +930,9 @@ const selectedIds = computed<string[]>(() => selection.value.map((row: any) => r
                       <el-dropdown-menu>
                         <el-dropdown-item v-if="canSubmit(row) && primaryStatusAction(row) !== 'submit'" :disabled="perm('article:submit')" @click="() => handleRowAction('submit', row)">
                           <span class="text-xs">{{ $t('article.op.submit') }}</span>
+                        </el-dropdown-item>
+                        <el-dropdown-item v-if="canReject(row)" :disabled="perm('article:reject')" @click="() => handleReject([row])">
+                          <span class="text-xs">{{ $t('article.op.reject') }}</span>
                         </el-dropdown-item>
                         <el-dropdown-item v-if="canArchive(row)" :disabled="perm('article:archive')" @click="() => handleRowAction('archive', row)">
                           <span class="text-xs">{{ $t('article.op.archive') }}</span>

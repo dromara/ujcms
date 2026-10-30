@@ -8,7 +8,7 @@ agreement for a commercial edition.
 | File | Licence | Applies to |
 |---|---|---|
 | Apache-2.0.txt | Apache License 2.0 | MyBatis Generator, Spring Security, Nimbus JOSE + JWT, MyBatis-Plus, Lucene, FreeMarker, Thymeleaf, Tomcat, Spring Framework, Liquibase, Quartz, Material Symbols, PDF.js, Maven Wrapper, tinymce-vue; most Java libraries in the binary distributions |
-| MIT.txt | MIT License (copyright lines are in NOTICE) | Alpine.js, PhotoSwipe, Tailwind CSS, vue-element-admin, bpmn-js-i18n, bpmn-js-examples, bpmn-js-properties-panel, Ant Design Icons, Feather, TinyMCE 6 and its zh-Hans language pack, wps2md; most npm packages in the console build |
+| MIT.txt | MIT License (copyright lines are in NOTICE) | Alpine.js, PhotoSwipe, Tailwind CSS, vue-element-admin, bpmn-js-i18n, bpmn-js-examples, bpmn-js-properties-panel, Ant Design Icons, Feather, TinyMCE 6 and its zh-Hans language pack (console build and the copy served at `/static/tinymce/` for the default theme's submission editor), wps2md; most npm packages in the console build |
 | OFL-1.1.txt | SIL Open Font License 1.1 | KaTeX fonts in the console build |
 | bpmn-io.txt | bpmn.io license | bpmn-js (including its bpmn-font) |
 | BSD-2-Clause.txt, BSD-3-Clause.txt | BSD licences (template texts; copyright lines are in the generated inventories) | PostgreSQL and HighGo JDBC drivers, commonmark, XStream, dom4j, curvesapi, libwebp, highlight.js, zrender and others in the binary distributions |
@@ -128,6 +128,7 @@ otherwise the notice is the `NOTICE` entry and, where listed below, a text file 
 | `ujcms-ui-ssr-vue/app/components/article/ArticleListItem.vue` | Material Symbols (Google) | Apache-2.0 | inline icon paths, unmodified; one comment line |
 | `console/src/views/config/components/OauthProviderCard.vue` | Ant Design Icons (wechat-filled, qq-outlined, weibo-outlined) | MIT | three glyph paths, unmodified; one comment line |
 | `console/src/components/MarkdownEditor/MarkdownEditor.vue` | Feather, the folder icon | MIT | icon path, unmodified; one comment line |
+| `ujcms-starter/src/main/resources/static/static/tinymce/**` | TinyMCE 6.8.6 release files (`tinymce.min.js`, silver theme, default icons, dom model, the lists / link / image / autoresize / autosave plugins, oxide and default skins) plus the zh-Hans language pack below | MIT | unmodified copies written by `scripts/sync-tinymce-static.mjs` from the console's `node_modules/tinymce`; `license.txt` and a generated `README.txt` sit beside them; loaded by the default theme's member submission form |
 | `console/public/tinymce/langs/zh-Hans.js` | TinyMCE 6 community language pack (zh-Hans), `tinymce-i18n@26.9.28` `langs6/zh-Hans.js` (sha256 `50af56ee1aedc98cad0339472d536127923d70d7fba17ff1467fc42f855df9b8`) | MIT (the terms of TinyMCE 6) | banner line added on 2026-10-12; no translation changed. Replaced the TinyMCE 5 packs (LGPL-2.1) `zh_CN.js` / `zh_TW.js` |
 | `ujcms-commercial/src/test/resources/word-import/wps-office-12-camping-guide.wps` | wps2md, `tests/sample.wps` | MIT | test data, not part of the built application; see the `README.md` beside it; commercial editions only |
 

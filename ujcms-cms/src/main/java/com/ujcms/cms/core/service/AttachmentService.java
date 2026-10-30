@@ -371,6 +371,17 @@ public class AttachmentService implements SiteDeleteListener, UserDeleteListener
         return mapper.countByCreated(siteId, created);
     }
 
+    /**
+     * 某用户自某时刻起上传的附件数（会员上传配额）
+     *
+     * @param userId  用户ID
+     * @param created 创建日期（含）
+     * @return 附件数量
+     */
+    public int countByUserCreated(Long userId, OffsetDateTime created) {
+        return mapper.countByUserCreated(userId, created);
+    }
+
     @Override
     public void preSiteDelete(Long siteId) {
         favoriteMapper.deleteBySiteId(siteId);

@@ -19,7 +19,6 @@ import com.ujcms.common.web.exception.Http404Exception;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.http.ResponseEntity;
 import org.jspecify.annotations.NonNull;
@@ -73,11 +72,16 @@ public class RegisterController {
         if (!register.isEnabled()) {
             throw new Http404Exception("error.registerNotEnabled");
         }
-        validateRegister(params, register);
+        // 用户名的格式与重复先于人机验证报出：用户名是访客自己选定的公开标识（匿名预检 /api/user/username-not-exist
+        // 本就存在），先报不泄露任何信息，还省得一个重复用户名白白消耗一次验证码或短信。
+        validateUsername(params.getUsername(), register);
         int verifyMode = register.getVerifyMode();
         User user = new User();
         Entities.copyIncludes(params, user, "username", "nickname", "realName", "gender", "birthday",
                 "location", "bio");
+        // 手机号 / 邮箱是否已注册只在验证码通过之后才查、才报（backend-authorization §3）：验证码由该号码 / 地址的
+        // 持有者收取，重复的答案只会回到持有者手里，这里才不是账号枚举口子。不验证 / 人工验证模式不收手机号与邮箱
+        // （下方不写入），也就无从重复，连查都不查。
         switch (verifyMode) {
             case VERIFY_MODE_NONE:
             case VERIFY_MODE_MANUAL:
@@ -91,12 +95,18 @@ public class RegisterController {
                         params.emailMessageValue, config.getEmail().getCodeExpires(), ShortMessage.USAGE_REGISTER)) {
                     throw new Http400Exception("error.emailMessageIncorrect");
                 }
+                if (userService.selectByEmail(params.getEmail()) != null) {
+                    throw new Http400Exception("error.emailExist");
+                }
                 user.setEmail(params.getEmail());
                 break;
             case VERIFY_MODE_MOBILE:
                 if (!shortMessageService.validateCode(params.mobileMessageId, params.getMobile(),
                         params.mobileMessageValue, config.getSms().getCodeExpires(), ShortMessage.USAGE_REGISTER)) {
                     throw new Http400Exception("error.mobileMessageIncorrect");
+                }
+                if (userService.selectByMobile(params.getMobile()) != null) {
+                    throw new Http400Exception("error.mobileExist");
                 }
                 user.setMobile(params.getMobile());
                 break;
@@ -116,21 +126,13 @@ public class RegisterController {
         return Responses.ok();
     }
 
-    private void validateRegister(RegisterParams params, Config.Register register) {
-        if (!Pattern.matches(register.getUsernameRegex(), params.getUsername())) {
+    private void validateUsername(String username, Config.Register register) {
+        if (!Pattern.matches(register.getUsernameRegex(), username)) {
             throw new Http400Exception(String.format("username '%s' not matches pattern: %s",
-                    params.getUsername(), register.getUsernameRegex()));
+                    username, register.getUsernameRegex()));
         }
-        if (userService.selectByUsername(params.getUsername()) != null) {
-            throw new Http400Exception("username already exists");
-        }
-        String mobile = params.getMobile();
-        if (StringUtils.isNotBlank(mobile) && userService.selectByMobile(mobile) != null) {
-            throw new Http400Exception("mobile already exists");
-        }
-        String email = params.getEmail();
-        if (StringUtils.isNotBlank(email) && userService.selectByEmail(email) != null) {
-            throw new Http400Exception("mobile already exists");
+        if (userService.selectByUsername(username) != null) {
+            throw new Http400Exception("error.usernameExist");
         }
     }
 

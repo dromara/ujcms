@@ -12,7 +12,8 @@
  *   - 厂商：按需加载厂商脚本（8 秒超时），加载不了就回落到滑块；厂商凭证作为答案原样提交，由服务端二次校验。
  *   - popup / data-popup：弹层模式。挂载时不出题，answer() 时才把滑块 / 字符题弹出在 <dialog> 里，答对即关闭并解析，
  *     关闭或取消则拒绝；答完后宿主只显示“已验证”。静默场景照旧后台做工作量证明；厂商题照旧即时渲染（厂商自带弹层，
- *     放进顶层的 <dialog> 会被盖住），挂载时经 /captcha/type 判断。注册这类“提交时才验证”的表单用它。
+ *     放进顶层的 <dialog> 会被盖住），挂载时经 /captcha/type 判断。参考主题的全部表单都用它：注册这类始终可见的
+ *     表单点提交才出题；带 scope 的互动表单静默时无感，超额时点提交才弹出，题目不占表单位置、不在页面加载时出题。
  *   - 语言：mount 的 lang > 脚本标签的 data-lang（主题按自己的文案语言钉一次：<script src=".../captcha.js" data-lang="zh">）
  *     > <html lang>。组件文案与主题文案同处一屏，跟主题走，不跟站点语言走。
  *   - data-hidden：把答案镜像到所在表单的 <input type=hidden name=captcha|captchaToken>，供传统表单提交（/login）。
@@ -255,6 +256,7 @@
         this.answerValue = null;
         this.token = null;
         this.powPromise = null;
+        this.priming = null;
         this.generation = 0;
         this.vendorState = null;
         root.setAttribute('data-captcha-mounted', VERSION);
@@ -310,6 +312,8 @@
     Captcha.prototype.answer = function () {
         var self = this;
         if (this.pending) return this.pending;
+        // 弹层模式且挂载 / 重置的决定还没回来：先等它。否则静默场景里抢在 is-display 应答前的提交会白白弹出滑块
+        if (this.popup && this.priming) return this.priming.then(function () { return self.answer(); });
         if (this.popup && !this.solved && this.type === null) return this.openDialog();
         if (this.type === 'pow') {
             return (this.powPromise || Promise.reject(new Error(this.t.error))).then(function (nonce) {
@@ -388,7 +392,8 @@
         return this.decide(typeOverride).then(function (type) { return self.load(type); }).catch(noop);
     };
 
-    /** 弹层模式的挂载 / 重置：静默场景后台做工作量证明；厂商题即时渲染（厂商自带弹层）；自托管题留到 answer() 时弹出 */
+    /** 弹层模式的挂载 / 重置：静默场景后台做工作量证明；厂商题即时渲染（厂商自带弹层）；自托管题留到 answer() 时弹出。
+     *  决定期间 priming 持有这条链，answer() 先等它再决定是否弹出 */
     Captcha.prototype.prime = function () {
         var self = this;
         var generation = this.generation;
@@ -396,7 +401,7 @@
         this.token = null;
         this.renderChip();
         function stale() { return generation !== self.generation || !!self.dialog; }
-        return this.decide().then(function (type) {
+        var priming = this.decide().then(function (type) {
             if (stale()) return undefined;
             if (type === 'pow') return self.load('pow');
             if (type || self.vendorDown) return undefined;
@@ -404,7 +409,9 @@
                 if (stale() || SELF_HOSTED[result.type]) return undefined;
                 return self.load('');
             });
-        }).catch(noop);
+        }).catch(noop).then(function () { if (self.priming === priming) self.priming = null; });
+        this.priming = priming;
+        return priming;
     };
 
     /** 弹层模式下宿主的内容：答完可见题后显示“已验证”，否则为空（CSS 把空宿主折叠掉） */

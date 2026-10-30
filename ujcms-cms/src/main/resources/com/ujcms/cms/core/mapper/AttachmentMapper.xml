@@ -32,6 +32,12 @@
             and t.created_ &gt;= #{created}
         </if>
     </select>
+    <select id="countByUserCreated" resultType="int">
+        select count(*)
+        from ujcms_attachment t
+        where t.user_id_ = #{userId}
+          and t.created_ &gt;= #{created}
+    </select>
     <select id="selectExistingUrls" resultType="java.lang.String">
         select t.url_
         from ujcms_attachment t

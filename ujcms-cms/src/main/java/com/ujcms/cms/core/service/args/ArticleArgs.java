@@ -208,6 +208,31 @@ public class ArticleArgs extends BaseQueryArgs {
         return this;
     }
 
+    /**
+     * 创建时间不早于。会员投稿按人计数的 24 小时窗口（docs/spec/member-contribute/plan.md D10）
+     */
+    public ArticleArgs geCreated(@Nullable OffsetDateTime created) {
+        if (created != null) {
+            queryMap.put("GE_created_DateTime", created);
+        }
+        return this;
+    }
+
+    public ArticleArgs inputType(@Nullable Short inputType) {
+        if (inputType != null) {
+            queryMap.put("EQ_inputType_Short", inputType);
+        }
+        return this;
+    }
+
+    /**
+     * 没有流程实例的文章：待审核而未进入审批流程的（会员投稿到无流程栏目，docs/spec/member-contribute/plan.md）
+     */
+    public ArticleArgs withoutProcessInstance() {
+        queryMap.put("IsNull_@articleExt-processInstanceId", null);
+        return this;
+    }
+
     public ArticleArgs orderById() {
         queryMap.put("OrderBy", "id");
         return this;

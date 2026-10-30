@@ -15,7 +15,7 @@
 <script src="${assets}/js/theme.js?v=${v}" defer></script>
 [#--
   captcha.js 是全部主题共用的人机验证组件（滑块 / 字符 / 静默工作量证明 / 第三方厂商），由 Spring 从 /static/captcha.js 提供，
-  用法见 docs/guide/captcha.zh.md。须先于 alpine.min.js：表单的 x-init 调用 window.UjcmsCaptcha.mount。
+  用法见 docs/guide/captcha.zh.md。须先于 alpine.min.js：表单在 x-init（评论框在首次聚焦）时调用 window.UjcmsCaptcha.mount。
   本主题文案为中文，data-lang="zh" 把组件文案钉为中文：组件文案与主题文案同处一屏，跟主题走，不跟站点语言（<html lang>）走。
 --]
 <script src="${ctx}/static/captcha.js?v=${v}" data-lang="zh" defer></script>

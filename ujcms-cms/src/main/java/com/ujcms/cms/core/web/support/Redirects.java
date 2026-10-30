@@ -20,7 +20,7 @@ public final class Redirects {
      * 若浏览器缓存了先前的 301，两条缓存记录会互相跳转形成环。Location 原样写入（{@code getUrl()} 已含上下文路径），
      * 不经 {@code redirect:} 前缀的上下文相对处理。
      * Cache-Control 直接写在 Servlet 响应上（setHeader 覆盖）：SecurityHeadersFilter 在进入控制器前已给前台页写入
-     * {@code public, max-age=300}，而 ResponseEntity 的头以 addHeader 追加，会得到两条 Cache-Control
+     * {@code private, max-age=300}，而 ResponseEntity 的头以 addHeader 追加，会得到两条 Cache-Control
      */
     public static ResponseEntity<Void> permanent(HttpServletResponse response, String url) {
         response.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue());

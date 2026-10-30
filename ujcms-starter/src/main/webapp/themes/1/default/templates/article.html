@@ -224,7 +224,6 @@
         items: [], page: 1, totalPages: 1, total: null, loading: false,
         text: '', cap: null,
         submitting: false,
-        canPost: [#if user?? || !site.comment.loginRequired]true[#else]false[/#if],
         [#if user??]
         mentionOpen: false, friendNames: null,
         commentUsernames: [],
@@ -258,8 +257,10 @@
           } catch (e) { /* 静默 */ } finally { this.loading = false; }
         },
         initCaptcha() {
-          // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明
-          this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'comment' });
+          // 人机验证组件（${ctx}/static/captcha.js，用法见 docs/guide/captcha.zh.md）：带 scope 时先问服务端是否需要可见验证，不需要时静默做工作量证明；
+          // 弹层模式，需要时点击“发表评论”才弹出题目。评论框首次聚焦时才挂载：文章页的读者多数不评论，不为每次浏览探测、算题
+          if (this.cap) return;
+          this.cap = window.UjcmsCaptcha.mount(this.$refs.captcha, { api: '${api}', scope: 'comment', popup: true });
         },
         [#if user??]
         async toggleMention() {
@@ -324,6 +325,7 @@
           if (!text || this.submitting) return;
           this.submitting = true;
           try {
+            this.initCaptcha();
             await window.fetchCsrf();
             const answer = await this.cap.answer();
             const body = {
@@ -358,7 +360,7 @@
           } finally { this.submitting = false; }
         }
       }"
-      x-init="load(1); if (canPost) initCaptcha()"
+      x-init="load(1)"
     >
       <h2 class="flex items-baseline gap-2 pb-2 border-b border-slate-200 font-semibold">
         <span>评论</span>
@@ -385,7 +387,7 @@
 
         <label for="commentText" class="sr-only">发表评论</label>
         <textarea id="commentText" x-ref="commentText" rows="3" maxlength="2000" required x-model="text"
-                  placeholder="发表评论"
+                  @focus.once="initCaptcha()" placeholder="发表评论"
                   class="block w-full rounded-md border border-slate-300 px-3 py-2.5 text-base sm:text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"></textarea>
 
         [#if user?? && site.comment.imageEnabled]
@@ -403,7 +405,8 @@
         [/#if]
 
         <div class="flex flex-wrap items-center gap-2">
-          <div x-ref="captcha" data-captcha class="w-full"></div>
+          [#-- 人机验证宿主：挂载前与答题前为空（主题样式折叠空宿主），答完在同一行显示“已验证” --]
+          <div x-ref="captcha" data-captcha></div>
           <input type="text" name="website" x-ref="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
           [#if user?? && site.comment.imageEnabled]
           <button type="button" @click="$refs.commentImageInput.click()"

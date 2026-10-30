@@ -41,6 +41,9 @@ spring.config.import: optional:configtree:/run/secrets/
 #   UJCMS_INSTALL_SITES_0_THEME_REF=...         来源引用（library 名称[@版本] / marketplace slug[@版本]）
 #   UJCMS_INSTALL_SITES_0_THEME_SEED=all        种子范围 all|none（none 得到空站）
 #   UJCMS_INSTALL_LIBRARYDIR=/ujcms/theme-packages  挂载 ZIP 目录，启动时摄取入主题包库
+#   UJCMS_THEME_SYNC=true                       非清单键，由容器入口脚本处理：换镜像后的首次启动把镜像内置的主题目录与
+#                                               LIBRARYDIR 下主题包覆盖到各站点已安装的同名主题实例，模板随发版更新（仅演示站；
+#                                               控制台里改过的模板会被覆盖。详见 Dockerfile 注释）
 # 多站点（第 2 条起走 T2 建站复制路径，商业版 T2 起）：UJCMS_INSTALL_SITES_1_NAME 等依次类推，例如
 #   UJCMS_INSTALL_SITES_1_THEME_SOURCE=library  第 2 站主题来源（library 取包库存量，含 LIBRARYDIR 摄取件）
 #   UJCMS_INSTALL_SITES_1_THEME_REF=journal     包内 theme.manifest.json 的 themeName[@版本]

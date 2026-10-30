@@ -5,6 +5,7 @@ import com.ujcms.cms.core.domain.GroupAccess;
 import com.ujcms.cms.core.domain.generated.GeneratedGroup;
 import com.ujcms.cms.core.listener.GroupDeleteListener;
 import com.ujcms.cms.core.mapper.GroupAccessMapper;
+import com.ujcms.cms.core.mapper.GroupContributeMapper;
 import com.ujcms.cms.core.mapper.GroupMapper;
 import com.ujcms.cms.core.service.args.GroupArgs;
 import com.ujcms.common.db.identifier.SnowflakeSequence;
@@ -29,11 +30,14 @@ import java.util.Objects;
 @Service
 public class GroupService {
     private final GroupAccessMapper groupAccessMapper;
+    private final GroupContributeMapper groupContributeMapper;
     private final GroupMapper mapper;
     private final SnowflakeSequence snowflakeSequence;
 
-    public GroupService(GroupAccessMapper groupAccessMapper, GroupMapper mapper, SnowflakeSequence snowflakeSequence) {
+    public GroupService(GroupAccessMapper groupAccessMapper, GroupContributeMapper groupContributeMapper,
+                        GroupMapper mapper, SnowflakeSequence snowflakeSequence) {
         this.groupAccessMapper = groupAccessMapper;
+        this.groupContributeMapper = groupContributeMapper;
         this.mapper = mapper;
         this.snowflakeSequence = snowflakeSequence;
     }
@@ -75,6 +79,8 @@ public class GroupService {
     @Transactional(rollbackFor = Exception.class)
     public int delete(Long id) {
         deleteListeners.forEach(it -> it.preGroupDelete(id));
+        // 投稿用户组行随用户组删除（栏目侧配置，无监听器）
+        groupContributeMapper.deleteByGroupId(id);
         return mapper.delete(id);
     }
 

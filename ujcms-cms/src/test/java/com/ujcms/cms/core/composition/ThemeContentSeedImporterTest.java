@@ -134,7 +134,7 @@ class ThemeContentSeedImporterTest {
             Channel c = inv.getArgument(0);
             c.setId(idSeq.incrementAndGet());
             return null;
-        }).when(channelService).insert(any(Channel.class), anyList(), anyList(), anyList());
+        }).when(channelService).insert(any(Channel.class), any(ChannelService.Grants.class));
         doAnswer(inv -> {
             Article a = inv.getArgument(0);
             a.setId(idSeq.incrementAndGet());
@@ -263,7 +263,7 @@ class ThemeContentSeedImporterTest {
 
         ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
         verify(channelService, org.mockito.Mockito.times(2))
-                .insert(channelCaptor.capture(), anyList(), anyList(), anyList());
+                .insert(channelCaptor.capture(), any(ChannelService.Grants.class));
         Channel news = channelCaptor.getAllValues().get(0);
         assertEquals(ORIGIN, news.getOrigin());
         assertEquals("news", news.getOriginId());
@@ -352,7 +352,7 @@ class ThemeContentSeedImporterTest {
         assertEquals(1, result.articles().skipped());
         assertEquals(1, result.topics().skipped());
         assertEquals(1, result.blockItems().skipped());
-        verify(channelService, never()).insert(any(), anyList(), anyList(), anyList());
+        verify(channelService, never()).insert(any(), any(ChannelService.Grants.class));
         verify(articleService, never()).insert(any(), anyLong(), anyList(), anyBoolean());
         verify(topicService, never()).insert(any());
         verify(blockItemService, never()).insert(any());
@@ -373,7 +373,7 @@ class ThemeContentSeedImporterTest {
         assertEquals(1, result.channels().imported());
         // linked 栏目不被收编：不插入、不打来源标记
         ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
-        verify(channelService).insert(channelCaptor.capture(), anyList(), anyList(), anyList());
+        verify(channelService).insert(channelCaptor.capture(), any(ChannelService.Grants.class));
         assertEquals("news-sub", channelCaptor.getValue().getOriginId());
         // 子栏目/文章的引用解析指向既有操作员栏目
         assertEquals(900L, channelCaptor.getValue().getParentId());
@@ -392,7 +392,7 @@ class ThemeContentSeedImporterTest {
 
         ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
         verify(channelService, org.mockito.Mockito.times(2))
-                .insert(channelCaptor.capture(), anyList(), anyList(), anyList());
+                .insert(channelCaptor.capture(), any(ChannelService.Grants.class));
         Channel seeded = channelCaptor.getAllValues().get(1);
         assertEquals("channel_video", seeded.getChannelTemplate());
     }
@@ -417,7 +417,7 @@ class ThemeContentSeedImporterTest {
         assertEquals(3, result.channels().imported());
         ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
         verify(channelService, org.mockito.Mockito.times(3))
-                .insert(channelCaptor.capture(), anyList(), anyList(), anyList());
+                .insert(channelCaptor.capture(), any(ChannelService.Grants.class));
         Channel link = channelCaptor.getAllValues().get(0);
         assertEquals(Channel.TYPE_LINK, link.getType());
         assertEquals("/message-board", link.getLinkUrl());
@@ -851,7 +851,8 @@ class ThemeContentSeedImporterTest {
 
         assertEquals(1, result.channels().updated());
         verify(channelService).update(eq(existing), org.mockito.ArgumentMatchers.isNull(),
-                org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull());
+                org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull());
         // 刷新只写投影字段：树位置/模型绑定不动；散列按最终状态重落
         verify(channelMapper).updateOriginHash(500L, SeedHash.channelHash(existing));
         assertEquals("新闻", existing.getName());
@@ -867,7 +868,7 @@ class ThemeContentSeedImporterTest {
 
         assertEquals(0, result.channels().updated());
         assertEquals(1, result.channels().skipped());
-        verify(channelService, never()).update(any(Channel.class), any(), any(), any());
+        verify(channelService, never()).update(any(Channel.class), any(), any(), any(), any());
     }
 
     @Test
@@ -884,8 +885,8 @@ class ThemeContentSeedImporterTest {
 
         assertEquals(1, result.channels().updated());
         assertEquals(1, result.channels().linked());
-        verify(channelService).update(eq(edited), any(), any(), any());
-        verify(channelService, never()).update(eq(operatorChannel), any(), any(), any());
+        verify(channelService).update(eq(edited), any(), any(), any(), any());
+        verify(channelService, never()).update(eq(operatorChannel), any(), any(), any(), any());
     }
 
     @Test
