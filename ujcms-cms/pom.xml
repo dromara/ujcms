@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.ujcms</groupId>
 		<artifactId>ujcms</artifactId>
-		<version>13.2.1</version>
+		<version>13.2.2</version>
 	</parent>
 
 	<artifactId>ujcms-cms</artifactId>
@@ -307,6 +307,12 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- 内存库跑 Liquibase 变更日志：升级路径（12.x 存量数据 → 13.x）与全新建库路径的回归测试（UpgradeChangelogTest） -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

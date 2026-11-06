@@ -2,6 +2,7 @@
 import { ref, watch, computed, type PropType, toRefs } from 'vue';
 import { Folder } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
+import { maxPageSize } from '@/utils/common';
 
 defineOptions({
   name: 'WebFileBatch',
@@ -29,11 +30,14 @@ const parents = computed(() =>
     .split('/')
     .filter((it: string) => it !== ''),
 );
+// 面包屑只显示根以内的段，点击时要把根拼回去（根为 / 时不拼，否则得到 //image）
+const basePrefix = computed(() => (baseId.value === '/' ? '' : baseId.value));
 
 const fetchWebFileList = async () => {
   loading.value = true;
   try {
-    data.value = await props.queryWebFileList({ parentId: parentId.value, isDir: true });
+    // 只列子目录，一层不会超过最大每页条数：整层一次取回
+    data.value = (await props.queryWebFileList({ parentId: parentId.value, isDir: true, pageSize: maxPageSize })).content;
   } finally {
     loading.value = false;
   }
@@ -72,7 +76,14 @@ const handleSubmit = async () => {
   <el-dialog :title="$t(`webFile.op.${type}`)" :model-value="modelValue" top="5vh" :width="768" append-to-body @update:model-value="(e) => $emit('update:modelValue', e)">
     <div class="mt-2">
       <el-button type="primary" size="small" plain @click="() => changeParentId(baseId)">{{ baseId }}</el-button>
-      <el-button v-for="(item, index) in parents" :key="item" type="primary" size="small" plain @click="() => changeParentId('/' + parents.slice(0, index + 1).join('/'))">
+      <el-button
+        v-for="(item, index) in parents"
+        :key="item"
+        type="primary"
+        size="small"
+        plain
+        @click="() => changeParentId(`${basePrefix}/${parents.slice(0, index + 1).join('/')}`)"
+      >
         {{ item }}
       </el-button>
     </div>

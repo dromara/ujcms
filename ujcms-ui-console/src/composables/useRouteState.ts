@@ -85,6 +85,9 @@ const firstValue = (value: LocationQueryValue | LocationQueryValue[] | undefined
   return first == null || first === '' ? undefined : first;
 };
 
+/** 读取目标地址 query 中某键的首个值（缺省、空串、数组归一为 string | undefined）：视图在 beforeRouteUpdate 里据此解析目标状态 */
+export const queryValue = (query: LocationQuery, key: string): string | undefined => firstValue(query[key]);
+
 export function useRouteState<S extends Record<string, RouteParam<any>>>(schema: S): StateRefs<S> {
   const route = useRoute();
   const router = useRouter();

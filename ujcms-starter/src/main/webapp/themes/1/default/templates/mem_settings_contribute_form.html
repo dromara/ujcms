@@ -216,7 +216,7 @@
           <input id="tags" x-ref="tags" type="text" list="tag-options" autocomplete="off" value="[#if isEdit][#list article.tags as tag]${tag.name}[#sep],[/#list][/#if]"
                  class="block w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
           <datalist id="tag-options">
-            [@TagList siteId=site.id limit=100; tag]<option value="${tag.name}"></option>[/@TagList]
+            [@TagList siteId=site.id limit=100; tagList][#list tagList as tag]<option value="${tag.name}"></option>[/#list][/@TagList]
           </datalist>
         </div>
         <div>

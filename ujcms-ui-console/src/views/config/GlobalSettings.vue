@@ -3,6 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { CopyDocument, TopRight } from '@element-plus/icons-vue';
+import { cloneDeep } from 'lodash-es';
 import { toTree } from '@/utils/tree';
 import { lockedTip } from '@/utils/commercial';
 import { querySiteList } from '@/api/system';
@@ -48,7 +49,8 @@ import FieldItem from '@/views/config/components/FieldItem.vue';
 import OauthProviderCard from '@/views/config/components/OauthProviderCard.vue';
 import CaptchaWidget from '@/components/CaptchaWidget.vue';
 import ThemeColorSwatches from '@/components/ThemeColorSwatches.vue';
-import { enumParam, useRouteState } from '@/composables/useRouteState';
+import { enumParam, queryValue, useRouteState } from '@/composables/useRouteState';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import { useSettingsFieldFocus } from './settingsFocus';
 
 defineOptions({
@@ -105,9 +107,33 @@ const navs = [...new Set(types.map(toNav))];
 const lockedTiers = Object.fromEntries(navs.map((nav) => [nav, lockedSettingsTier(GLOBAL_SETTINGS_TABS, nav)]));
 // 当前设置页存于 query.type（docs/spec/console-view-state）：刷新或重访页签时停留在原设置页，也可深链
 // （站点设置“AI功能”页的“前往全局设置”直达“AI服务商”页签）；非法值、无权限的设置页回落到首个页签
-const { type } = useRouteState({ type: enumParam(types[0] ?? '', types) });
+const typeParam = enumParam(types[0] ?? '', types);
+const { type } = useRouteState({ type: typeParam });
 // 命令面板选中某个设置项后：打开本视图对应页签、数据就绪后滚动到该项（settingsFocus.ts）
 useSettingsFieldFocus('GlobalSettings', type, loading, form);
+// 未保存守卫（docs/spec/console-view-state C13）：离开视图、F5、外部改写 ?type= 之前先确认；左侧页签（before-leave）
+// 与页内切换（switchTo）自行确认。values 永远是 config 的副本：放弃的改动不会留在 config 里、切回来时不会复现
+const { unsaved, markSaved, confirmDiscard } = useUnsavedGuard(values, {
+  loading,
+  isExternalUpdate: (to) => typeParam.parse(queryValue(to.query, 'type')) !== type.value,
+});
+// 凭据目的地的已保存值（邮件服务器、对象存储 endpoint、FTP 主机），与 markSaved 一同刷新：后端只把已存密码/密钥沿用到
+// 同一目的地（Config.Email / Config.Storage 的 fillStoredSecrets），目的地改动后密码框提示须重新填写
+const savedDestinations = ref<Record<string, string | undefined>>({});
+const markDestinationsSaved = () => {
+  savedDestinations.value = { host: values.value?.host, endpoint: values.value?.endpoint, hostname: values.value?.hostname };
+};
+// 与后端 Config.sameDestination 一致：忽略首尾空白、末尾斜杠与大小写
+const sameDestination = (a?: string, b?: string) => {
+  const normalize = (s?: string) => (s ?? '').trim().replace(/\/$/, '').toLowerCase();
+  return normalize(a) === normalize(b);
+};
+const secretPlaceholder = (destination: 'host' | 'endpoint' | 'hostname') =>
+  sameDestination(values.value[destination], savedDestinations.value[destination]) ? t('config.secretKeepBlank') : t('config.secretRebind');
+// 页内切换设置页（存储点分段按钮、第三方登录页里的“注册设置”链接）
+const switchTo = async (next: string) => {
+  if (next !== type.value && (await confirmDiscard())) type.value = next;
+};
 const nav = computed<string>({
   get: () => toNav(type.value),
   set: (value) => {
@@ -117,20 +143,20 @@ const nav = computed<string>({
 
 const switchType = async () => {
   if (type.value === 'upload') {
-    values.value = config.value.upload;
+    values.value = cloneDeep(config.value.upload);
   } else if (type.value === 'register') {
-    values.value = config.value.register;
+    values.value = cloneDeep(config.value.register);
   } else if (type.value === 'security') {
-    values.value = config.value.security;
+    values.value = cloneDeep(config.value.security);
   } else if (type.value === 'customs') {
-    values.value = config.value.customs;
+    values.value = cloneDeep(config.value.customs);
   } else if (type.value === 'sms') {
     values.value = await queryConfigSms();
   } else if (type.value === 'email') {
     values.value = await queryConfigEmail();
   } else if (type.value === 'ai') {
     values.value = await fetchConfigAi();
-    savedProviderCodes.value = new Set((values.value.providers ?? []).map((item: any) => item.code));
+    savedProviderUrls.value = toSavedProviderUrls(values.value.providers);
   } else if (type.value === 'grey') {
     values.value = await queryConfigGrey();
   } else if (type.value === 'oauth') {
@@ -146,8 +172,10 @@ const switchType = async () => {
   } else if (type.value === 'packageStorage') {
     values.value = await queryPackageStorage();
   } else {
-    values.value = config.value;
+    values.value = cloneDeep(config.value);
   }
+  markSaved();
+  markDestinationsSaved();
 };
 
 watch(type, () => switchType());
@@ -198,7 +226,7 @@ const handleSubmit = () => {
       } else if (type.value === 'ai') {
         await updateConfigAi(values.value);
         values.value = await fetchConfigAi();
-        savedProviderCodes.value = new Set((values.value.providers ?? []).map((item: any) => item.code));
+        savedProviderUrls.value = toSavedProviderUrls(values.value.providers);
       } else if (type.value === 'grey') {
         await updateConfigGrey(values.value);
         // 置灰样式写在首页模板里：保存后重新生成所有站点的首页静态页（与原“生成管理”页内保存的行为一致）。
@@ -227,6 +255,8 @@ const handleSubmit = () => {
         await updateConfigBase(values.value);
       }
       sysConfig.initConfig();
+      markSaved();
+      markDestinationsSaved();
       ElMessage.success(t('success'));
     } finally {
       buttonLoading.value = false;
@@ -332,8 +362,14 @@ const providerVisible = ref<boolean>(false);
 const providerForm = ref<any>();
 const providerIndex = ref<number>(-1);
 const provider = ref<any>({});
-// 已持久化的服务商标识：密钥输入框据此区分“留空表示不修改”与“可为空”
-const savedProviderCodes = ref<Set<string>>(new Set());
+// 已持久化的服务商：标识 → 接口地址。密钥输入框据此区分“留空表示不修改”“可为空”与“地址已变更须重填”：
+// 后端只把已存密钥沿用到同代码、同接口地址的服务商（Config.Ai#fillStoredApiKey）
+const savedProviderUrls = ref<Map<string, string>>(new Map());
+const toSavedProviderUrls = (providers?: any[]) => new Map<string, string>((providers ?? []).map((item: any) => [item.code, item.baseUrl]));
+const apiKeyPlaceholder = (p: { code?: string; baseUrl?: string }) => {
+  if (!savedProviderUrls.value.has(p.code ?? '')) return t('config.ai.provider.apiKey.optional');
+  return sameDestination(savedProviderUrls.value.get(p.code ?? ''), p.baseUrl) ? t('config.secretKeepBlank') : t('config.ai.provider.apiKey.rebind');
+};
 // 服务商内部标识：自动生成、不向运营者展示；作为默认/写作/审核服务商的引用键及日志、密钥合并的匹配键
 // 机器翻译引擎（后端 Config.Ai 的 mt:* 保留代码，仅翻译服务商可选）
 const mtEngines = [
@@ -349,29 +385,54 @@ const newProviderCode = (): string => {
     if (!existing.has(code)) return code;
   }
 };
-// 请求附加参数预设：各厂商关闭深度思考的字段。思考 token 计入生成预算，会耗尽元信息、AI 标题、审核等小预算 JSON 调用
+// 请求附加参数预设：各厂商控制深度思考的字段。思考 token 计入生成预算，会耗尽元信息、AI 标题、审核等小预算 JSON 调用。
+// reduceOnly：这类模型始终思考、无法关闭，预设只把思考强度调至最低（测试仍会报告思考，属正常）。
 // key 为稳定标识（按接口地址推断时据此匹配），显示名随控制台语言
 const extraParamsPresets = computed(() =>
   [
-    { key: 'glm', value: '{"thinking": {"type": "disabled"}}' },
-    { key: 'qwen', value: '{"enable_thinking": false}' },
-    { key: 'ollama', value: '{"think": false}' },
-    { key: 'vllm', value: '{"chat_template_kwargs": {"enable_thinking": false}}' },
-    { key: 'openai', value: '{"reasoning_effort": "low"}' },
+    { key: 'glm', value: '{"thinking": {"type": "disabled"}}', reduceOnly: false },
+    // GLM-5.3 系列拒绝 disabled：通用接口报 400（错误码 1210），Coding Plan 接口静默忽略、照常思考
+    { key: 'glm53', value: '{"thinking": {"type": "enabled"}, "reasoning_effort": "low"}', reduceOnly: true },
+    { key: 'qwen', value: '{"enable_thinking": false}', reduceOnly: false },
+    { key: 'ollama', value: '{"think": false}', reduceOnly: false },
+    { key: 'vllm', value: '{"chat_template_kwargs": {"enable_thinking": false}}', reduceOnly: false },
+    { key: 'openai', value: '{"reasoning_effort": "low"}', reduceOnly: true },
   ].map((preset) => ({ ...preset, label: t(`config.ai.provider.extraParams.preset.${preset.key}`) })),
 );
-// 按接口地址推断厂商的关闭深度思考预设（编辑表单的建议、测试检测到思考后的一键应用）。只认主机名——按模型名猜会把
-// 经 vLLM 部署的 GLM/Qwen 指向厂商云端字段；识别不出时返回 undefined，由操作者在预设中自选
-const suggestExtraParamsPreset = (p: { baseUrl?: string }) => {
+// 按接口地址推断厂商的深度思考预设（编辑表单的建议、测试检测到思考后的一键应用）。厂商只认主机名——按模型名猜会把
+// 经 vLLM 部署的 GLM/Qwen 指向厂商云端字段；主机认定为智谱云端后，再按模型名分出始终思考的 GLM-5.3 系列。
+// 识别不出时返回 undefined，由操作者在预设中自选
+const suggestExtraParamsPreset = (p: { baseUrl?: string; model?: string }) => {
   const url = (p.baseUrl ?? '').toLowerCase();
   const byKey = (key: string) => extraParamsPresets.value.find((preset) => preset.key === key);
-  if (url.includes('bigmodel.cn') || url.includes('volces.com')) return byKey('glm');
+  if (url.includes('bigmodel.cn')) return byKey(/^glm-5\.3/i.test(p.model ?? '') ? 'glm53' : 'glm');
+  if (url.includes('volces.com')) return byKey('glm');
   if (url.includes('dashscope.aliyuncs.com')) return byKey('qwen');
   if (url.includes(':11434') || url.includes('ollama')) return byKey('ollama');
   if (url.includes('api.openai.com')) return byKey('openai');
   return undefined;
 };
-const suggestedPreset = computed(() => (provider.value?.extraParams ? undefined : suggestExtraParamsPreset(provider.value ?? {})));
+const normalizeJson = (text?: string) => {
+  if (!text?.trim()) return undefined;
+  try {
+    return JSON.stringify(JSON.parse(text));
+  } catch {
+    return undefined;
+  }
+};
+// 附加参数恰为某个预设（忽略空白差异）时返回该预设；为空或手写的参数返回 undefined
+const matchExtraParamsPreset = (extraParams?: string) => {
+  const normalized = normalizeJson(extraParams);
+  return normalized == null ? undefined : extraParamsPresets.value.find((preset) => normalizeJson(preset.value) === normalized);
+};
+// 应建议的预设：附加参数为空，或恰为另一个预设（如 GLM-5.3 填了 disabled）时给出；手写的参数从不覆盖
+const suggestPresetFor = (p: { baseUrl?: string; model?: string; extraParams?: string }) => {
+  const preset = suggestExtraParamsPreset(p);
+  if (preset == null || !p.extraParams?.trim()) return preset;
+  const current = matchExtraParamsPreset(p.extraParams);
+  return current != null && current.key !== preset.key ? preset : undefined;
+};
+const suggestedPreset = computed(() => suggestPresetFor(provider.value ?? {}));
 const handleProviderAdd = () => {
   providerIndex.value = -1;
   provider.value = { code: newProviderCode(), name: '', baseUrl: '', apiKey: '', model: '', timeoutSeconds: 60, temperature: undefined, extraParams: '' };
@@ -396,47 +457,71 @@ const handleProviderSubmit = () => {
     providerVisible.value = false;
   });
 };
-// 连通性测试。以表格中的当前配置发起测试，无需先保存；密钥留空时服务端沿用同代码服务商的已存密钥。
-// 服务端在响应中检测到深度思考（thinking）时：附加参数为空 → 按接口地址推荐预设，一键填入并重测；
-// 已填参数仍在思考 → 提示核对字段名。否则短输出调用会在编辑器里报“返回为空”，操作者却想不到是这里
+// 连通性测试。以表格中的当前配置发起测试，无需先保存；密钥留空时服务端沿用同代码、同接口地址服务商的已存密钥
+// （地址改过则直接返回失败，提示重新填写密钥）。
+// 服务端在响应中检测到深度思考（thinking）时：已是“只能调低”的预设 → 说明思考无法关闭、已调至最低；
+// 附加参数为空或是不适用的预设 → 按接口地址与应答的模型推荐预设，一键填入并重测；
+// 手写参数仍在思考 → 提示核对字段名，或模型本就始终思考。否则短输出调用会在编辑器里报“返回为空”，操作者却想不到是这里。
+// 同一时间只跑一轮（请求、对话框、填入预设后的重测）：思考模型一次要等十几秒，等待中重复点击会叠出多个相同的
+// 对话框，关一个又冒一个。加载状态只覆盖请求本身，弹框前即解除，不在对话框背后留着保存行的加载遮罩
+const aiTestRequesting = ref<boolean>(false);
+let aiTestRunning = false;
 const handleTestAi = async (index: number) => {
-  const row = values.value.providers[index];
-  buttonLoading.value = true;
+  if (aiTestRunning) return;
+  aiTestRunning = true;
   try {
-    const { ok, latencyMs, model, error, thinking } = await testConfigAi({ provider: row });
-    if (!ok) {
-      ElMessageBox.alert(error, t('config.ai.test.failure'));
-      return;
+    while (await testAiOnce(index)) {
+      // 已填入推荐的预设，按新参数重测
     }
-    if (!thinking) {
-      ElMessage.success(`${t('config.ai.test.success')}: ${model}, ${latencyMs}ms`);
-      return;
-    }
-    const summary = t('config.ai.test.thinking', [model, latencyMs]);
-    if (row.extraParams) {
-      ElMessageBox.alert(`${summary}${t('config.ai.test.thinking.stillOn')}`, t('config.ai.test.thinking.title'), { type: 'warning' });
-      return;
-    }
-    const preset = suggestExtraParamsPreset(row);
-    if (preset == null) {
-      ElMessageBox.alert(`${summary}${t('config.ai.test.thinking.pick')}`, t('config.ai.test.thinking.title'), { type: 'warning' });
-      return;
-    }
-    try {
-      await ElMessageBox.confirm(`${summary}${t('config.ai.test.thinking.suggest', [preset.label])}`, t('config.ai.test.thinking.title'), {
-        type: 'warning',
-        confirmButtonText: t('config.ai.test.thinking.apply'),
-        cancelButtonText: t('cancel'),
-      });
-    } catch {
-      return;
-    }
-    row.extraParams = preset.value;
-    buttonLoading.value = false;
-    await handleTestAi(index);
   } finally {
+    aiTestRunning = false;
+  }
+};
+// 测试一次并按结果提示。返回 true 表示操作者确认填入了推荐的预设，需要重测
+const testAiOnce = async (index: number): Promise<boolean> => {
+  const row = values.value.providers[index];
+  aiTestRequesting.value = true;
+  buttonLoading.value = true;
+  let result;
+  try {
+    result = await testConfigAi({ provider: row });
+  } finally {
+    aiTestRequesting.value = false;
     buttonLoading.value = false;
   }
+  const { ok, latencyMs, model, error, thinking } = result;
+  if (!ok) {
+    ElMessageBox.alert(error, t('config.ai.test.failure'));
+    return false;
+  }
+  if (!thinking) {
+    ElMessage.success(`${t('config.ai.test.success')}: ${model}, ${latencyMs}ms`);
+    return false;
+  }
+  const summary = t('config.ai.test.thinking', [model, latencyMs]);
+  if (matchExtraParamsPreset(row.extraParams)?.reduceOnly) {
+    ElMessageBox.alert(`${summary}${t('config.ai.test.thinking.reduced')}`, t('config.ai.test.thinking.title'), { type: 'warning' });
+    return false;
+  }
+  // 按应答中的模型推荐：Coding Plan 等接口会换掉请求的模型（2026-11-03 请求 glm-4.6，应答为 glm-5.3-flash）
+  const preset = suggestPresetFor({ baseUrl: row.baseUrl, model: model || row.model, extraParams: row.extraParams });
+  if (preset == null) {
+    const hint = row.extraParams?.trim() ? 'config.ai.test.thinking.stillOn' : 'config.ai.test.thinking.pick';
+    ElMessageBox.alert(`${summary}${t(hint)}`, t('config.ai.test.thinking.title'), { type: 'warning' });
+    return false;
+  }
+  try {
+    const ask = row.extraParams?.trim() ? 'config.ai.test.thinking.replace' : 'config.ai.test.thinking.suggest';
+    await ElMessageBox.confirm(`${summary}${t(ask, [preset.label])}`, t('config.ai.test.thinking.title'), {
+      type: 'warning',
+      confirmButtonText: t('config.ai.test.thinking.apply'),
+      cancelButtonText: t('cancel'),
+    });
+  } catch {
+    return false;
+  }
+  row.extraParams = preset.value;
+  return true;
 };
 // 机器翻译引擎连通性测试（按引擎逐个测试）。以表单当前凭证将“你好”翻译为英文，无需先保存；密钥留空时服务端沿用已存密钥
 const handleTestMt = async (engine: string) => {
@@ -457,7 +542,7 @@ const handleTestMt = async (engine: string) => {
 <template>
   <el-container>
     <el-aside width="180px" class="pr-3">
-      <el-tabs v-model="nav" tab-position="left" stretch class="bg-white sidebar-tabs">
+      <el-tabs v-model="nav" tab-position="left" stretch class="bg-white sidebar-tabs" :before-leave="() => confirmDiscard()">
         <el-tab-pane v-for="item in navs" :key="item" :name="item">
           <template #label>
             {{ $t(`config.settings.${item}`) }}<commercial-badge v-if="lockedTiers[item]" :tier="lockedTiers[item]" class="ml-1" />
@@ -1021,7 +1106,7 @@ const handleTestMt = async (engine: string) => {
             <el-alert v-if="registerDisabled" type="warning" :closable="false" show-icon class="mb-4">
               <template #title>
                 {{ $t('config.oauth.registerDisabled') }}
-                <el-button v-if="hasPermission('config:register:update')" type="primary" link size="small" @click="() => (type = 'register')">
+                <el-button v-if="hasPermission('config:register:update')" type="primary" link size="small" @click="() => switchTo('register')">
                   {{ $t('config.settings.register') }}
                 </el-button>
               </template>
@@ -1283,7 +1368,7 @@ const handleTestMt = async (engine: string) => {
             <el-col :span="12">
               <el-form-item prop="password">
                 <template #label><label-tip message="config.email.password" help /></template>
-                <el-input v-model="values.password" maxlength="50" show-password :placeholder="$t('config.secretKeepBlank')"></el-input>
+                <el-input v-model="values.password" maxlength="50" show-password :placeholder="secretPlaceholder('host')"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -1384,7 +1469,8 @@ const handleTestMt = async (engine: string) => {
                     <el-table-column property="model" :label="$t('config.ai.provider.model')" width="150" show-overflow-tooltip></el-table-column>
                     <el-table-column :label="$t('table.action')" width="150">
                       <template #default="{ $index }">
-                        <el-button type="primary" :disabled="perm('config:ai:update')" size="small" link @click="() => handleTestAi($index)">
+                        <!-- 测试中只禁用、不加 loading 图标：图标会把按钮撑宽，“删除”折到第二行，行高变化引起页面滚动条闪现 -->
+                        <el-button type="primary" :disabled="perm('config:ai:update') || aiTestRequesting" size="small" link @click="() => handleTestAi($index)">
                           {{ $t('config.ai.op.test') }}
                         </el-button>
                         <el-button type="primary" :disabled="perm('config:ai:update')" size="small" link @click="() => handleProviderEdit($index)">
@@ -1534,12 +1620,7 @@ const handleTestMt = async (engine: string) => {
               </el-form-item>
               <el-form-item prop="apiKey">
                 <template #label><label-tip message="config.ai.provider.apiKey" help /></template>
-                <el-input
-                  v-model="provider.apiKey"
-                  maxlength="256"
-                  show-password
-                  :placeholder="savedProviderCodes.has(provider.code) ? $t('config.secretKeepBlank') : $t('config.ai.provider.apiKey.optional')"
-                ></el-input>
+                <el-input v-model="provider.apiKey" maxlength="256" show-password :placeholder="apiKeyPlaceholder(provider)"></el-input>
               </el-form-item>
               <el-form-item prop="model" :rules="{ required: true, message: () => $t('v.required') }">
                 <template #label><label-tip message="config.ai.provider.model" /></template>
@@ -1577,10 +1658,10 @@ const handleTestMt = async (engine: string) => {
               >
                 <template #label><label-tip message="config.ai.provider.extraParams" help /></template>
                 <el-input v-model="provider.extraParams" type="textarea" :rows="2" maxlength="1000" placeholder='{"thinking": {"type": "disabled"}}'></el-input>
-                <!-- 按接口地址识别出厂商且附加参数为空：主动建议，而不是等到编辑器里报“返回为空” -->
+                <!-- 按接口地址识别出厂商，且附加参数为空或是不适用的预设：主动建议，而不是等到编辑器里报“返回为空” -->
                 <el-alert v-if="suggestedPreset" type="warning" :closable="false" show-icon class="mt-1">
                   <template #title>
-                    {{ $t('config.ai.provider.extraParams.suggest', [suggestedPreset.label]) }}
+                    {{ $t(provider.extraParams?.trim() ? 'config.ai.provider.extraParams.replace' : 'config.ai.provider.extraParams.suggest', [suggestedPreset.label]) }}
                     <el-button link type="primary" size="small" @click="() => (provider.extraParams = suggestedPreset!.value)">
                       {{ $t('config.ai.provider.extraParams.apply') }}
                     </el-button>
@@ -1601,7 +1682,7 @@ const handleTestMt = async (engine: string) => {
           </el-dialog>
         </template>
         <template v-else-if="STORAGE_TYPES.includes(type)">
-          <el-radio-group v-model="type" class="mb-4">
+          <el-radio-group :model-value="type" class="mb-4" @change="(tp: string | number | boolean | undefined) => switchTo(String(tp))">
             <el-radio-button v-for="tp in storageTypes" :key="tp" :value="tp">{{ $t(`config.settings.${tp}`) }}</el-radio-button>
           </el-radio-group>
           <el-row>
@@ -1682,7 +1763,7 @@ const handleTestMt = async (engine: string) => {
               <el-col :span="12">
                 <el-form-item prop="password">
                   <template #label><label-tip message="config.storage.password" /></template>
-                  <el-input v-model="values.password" type="password" show-password maxlength="160" :disabled="currentUser.commercialTier < 1" :placeholder="$t('config.secretKeepBlank')"></el-input>
+                  <el-input v-model="values.password" type="password" show-password maxlength="160" :disabled="currentUser.commercialTier < 1" :placeholder="secretPlaceholder('hostname')"></el-input>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -1728,13 +1809,13 @@ const handleTestMt = async (engine: string) => {
               <el-col :span="24">
                 <el-form-item prop="accessKey">
                   <template #label><label-tip message="config.storage.accessKey" /></template>
-                  <el-input v-model="values.accessKey" type="password" show-password maxlength="160" :disabled="currentUser.commercialTier < 1" :placeholder="$t('config.secretKeepBlank')"></el-input>
+                  <el-input v-model="values.accessKey" type="password" show-password maxlength="160" :disabled="currentUser.commercialTier < 1" :placeholder="secretPlaceholder('endpoint')"></el-input>
                 </el-form-item>
               </el-col>
               <el-col :span="24">
                 <el-form-item prop="secretKey">
                   <template #label><label-tip message="config.storage.secretKey" /></template>
-                  <el-input v-model="values.secretKey" type="password" show-password maxlength="160" :disabled="currentUser.commercialTier < 1" :placeholder="$t('config.secretKeepBlank')"></el-input>
+                  <el-input v-model="values.secretKey" type="password" show-password maxlength="160" :disabled="currentUser.commercialTier < 1" :placeholder="secretPlaceholder('endpoint')"></el-input>
                 </el-form-item>
               </el-col>
             </template>
@@ -1848,6 +1929,7 @@ const handleTestMt = async (engine: string) => {
             (type !== 'customs' || fields.length > 0)
           "
           v-loading="buttonLoading"
+          class="form-actions"
         >
           <el-button :disabled="perm(`config:${type}:update`)" type="primary" native-type="submit" @click.prevent="() => handleSubmit()">
             {{ $t('save') }}
@@ -1861,6 +1943,7 @@ const handleTestMt = async (engine: string) => {
           <el-button v-if="type === 'security'" :disabled="perm('config:security:update')" @click="() => handleApplyL3()">
             {{ $t('config.security.applyL3') }}
           </el-button>
+          <el-tag v-if="unsaved" type="danger" class="ml-3">{{ $t('form.unsaved') }}</el-tag>
         </div>
       </el-form>
     </el-main>
@@ -1868,6 +1951,10 @@ const handleTestMt = async (engine: string) => {
 </template>
 
 <style lang="scss" scoped>
+// 保存行的加载遮罩：默认 42px 的转圈比 32px 高的按钮行还高，探出 el-main 底边，保存、测试时右侧滚动条一闪一闪
+.form-actions {
+  --el-loading-spinner-size: 24px;
+}
 .el-tabs {
   :deep(.el-tabs__header) {
     margin-right: 1px;

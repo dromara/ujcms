@@ -150,6 +150,18 @@ const wechatPushIds = ref<string[]>([]);
 const modelList = ref<any[]>([]);
 const model = computed(() => modelList.value.find((item: any) => item.id === channel.value?.articleModelId));
 const fields = computed(() => JSON.parse(model.value?.customs || '[]'));
+// 导出对话框可选的自定义字段：选了栏目就是该栏目模型的字段；没选栏目（全站）时是本站各文章模型字段的并集（按代码去重），
+// 导出时每一行按自己栏目的模型取值，模型没有这个字段的行该列留空。并集里的字段不按“列表显示”默认勾选
+const exportFields = computed(() => {
+  if (channel.value != null) {
+    return fields.value;
+  }
+  const seen = new Set<string>();
+  return modelList.value
+    .flatMap((item: any) => JSON.parse(item.customs || '[]'))
+    .filter((field: any) => !seen.has(field.code) && seen.add(field.code))
+    .map((field: any) => ({ ...field, showInList: false }));
+});
 const dictListMap = ref<Record<string, any[]>>({});
 
 watch(fields, async () => {
@@ -1023,7 +1035,7 @@ const selectedIds = computed<string[]>(() => selection.value.map((row: any) => r
       <article-translate-batch v-model="translateBatchVisible" @finished="refresh" />
       <article-push-form v-model="pushFormVisible" :bean-id="beanId" :type="pushType" @finished="refresh" />
       <article-move-form v-model="moveVisible" :ids="moveIds" @finished="refresh" />
-      <article-export-dialog v-model="exportVisible" :params="appliedQuery" :total="total" :selected-ids="selectedIds" :fields="fields" />
+      <article-export-dialog v-model="exportVisible" :params="appliedQuery" :total="total" :selected-ids="selectedIds" :fields="exportFields" />
       <article-import-dialog v-model="importVisible" :channel-id="channelId" @finished="refresh" />
       <wechat-push-form v-model="wechatPushVisible" :bean-ids="wechatPushIds" @finished="fetchData" />
       <block-item-form

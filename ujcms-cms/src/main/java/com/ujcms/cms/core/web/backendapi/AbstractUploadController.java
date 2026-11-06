@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import static com.ujcms.common.file.FilesEx.SLASH;
 import static com.ujcms.common.web.Uploads.*;
@@ -116,8 +115,8 @@ public abstract class AbstractUploadController {
             // 获得存储路径和显示路径
             String pathname;
             if (AVATAR_TYPE.equalsIgnoreCase(type)) {
-                pathname = SLASH + AVATAR_TYPE + SLASH + user.getId() + SLASH +
-                        StringUtils.remove(UUID.randomUUID().toString(), '-') + "." + extension;
+                // 头像按用户归档（裁剪、会员中心保存头像都校验 /avatar/{userId}/ 前缀），文件名与其它上传同一套
+                pathname = SLASH + AVATAR_TYPE + SLASH + user.getId() + SLASH + getRandomName(extension);
             } else {
                 pathname = site.getBasePath(SLASH + type) + Uploads.getRandomFilename(extension);
             }
@@ -158,7 +157,7 @@ public abstract class AbstractUploadController {
         File tempFile = null;
         try {
             // 复制图片
-            String filename = prefix + StringUtils.remove(UUID.randomUUID().toString(), '-') + "." + extension;
+            String filename = prefix + getRandomName(extension);
             String url = fileHandler.getDisplayPrefix() + filename;
             fileHandler.store(filename, file);
             attachmentService.insert(new Attachment(Contexts.getCurrentSiteId(), user.getId(),

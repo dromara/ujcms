@@ -4,6 +4,7 @@ import { Plus, Delete } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { cloneDeep, isEqual } from 'lodash-es';
 import { perm } from '@/stores/useCurrentUser';
+import { confirmDiscardChanges } from '@/composables/useUnsavedGuard';
 
 const CONTINUOUS_SETTINGS = 'ujcms_continuous_settings';
 function fetchContinuous(): Record<string, boolean> {
@@ -159,17 +160,11 @@ const confirmDiscard = async (): Promise<boolean> => {
   if (!unsaved.value) {
     return true;
   }
-  try {
-    await ElMessageBox.confirm(t('form.unsaved.confirm'), t('form.unsaved'), {
-      type: 'warning',
-      confirmButtonText: t('form.unsaved.discard'),
-      cancelButtonText: t('form.unsaved.keep'),
-    });
-    emit('discard');
-    return true;
-  } catch {
+  if (!(await confirmDiscardChanges(t))) {
     return false;
   }
+  emit('discard');
+  return true;
 };
 const leave = async (proceed: () => void) => {
   if (await confirmDiscard()) {

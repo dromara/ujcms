@@ -10,6 +10,7 @@ import com.ujcms.common.file.WebFile;
 import com.ujcms.common.web.PathResolver;
 import com.ujcms.common.web.Responses;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -50,12 +51,14 @@ public class WebFileHtmlController extends AbstractWebFileController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('webFileHtml:list','*')")
-    public List<WebFile> list(@RequestParam(defaultValue = "/") String parentId,
+    public Page<WebFile> list(@RequestParam(defaultValue = "/") String parentId,
                               @RequestParam(defaultValue = "false") boolean isDir,
                               @RequestParam(required = false) String name,
-                              @RequestParam(defaultValue = "name") String sort) {
+                              @RequestParam(defaultValue = "name") String sort,
+                              @RequestParam(required = false) Integer page,
+                              @RequestParam(required = false) Integer pageSize) {
         Site site = Contexts.getCurrentSite();
-        return super.list(parentId, isDir, name, sort, site.getConfig().getHtmlStorage());
+        return super.list(parentId, isDir, name, sort, page, pageSize, site.getConfig().getHtmlStorage());
     }
 
     @GetMapping("show")

@@ -40,6 +40,9 @@ import java.util.regex.Pattern;
  * <p>
  * 流式写出：按列表的顺序分批取 ID，每批再用一条关联语句取出要导出的列，写完一批即刷出，不在内存里攒下整张表，
  * 也不为每一行加载整张对象图。
+ * <p>
+ * 日期写成 Excel 的日期单元格（带 {@code yyyy-mm-dd hh:mm:ss} 格式），在 Excel 里可以按日期排序、筛选；导入时日期
+ * 单元格按序号换算，与文字写法一样认。表头一行带自动筛选。
  *
  * @author PONY
  */
@@ -63,13 +66,17 @@ public class ArticleExportService {
      */
     public static final Set<String> SYSTEM_COLUMNS = Set.of("id", "title", "subtitle", "fullTitle", "slug", "channel",
             "status", "type", "sticky", "publishDate", "onlineDate", "offlineDate", "author", "editor", "source",
-            "description", "seoKeywords", "tags", "linkUrl", "url", "org", "user", "created", "modifiedUser",
+            "description", "seoKeywords", "tags", "image", "linkUrl", "url", "org", "user", "created", "modifiedUser",
             "modified", "views", "comments", "ups", "downs");
     private static final Pattern CUSTOM_CODE = Pattern.compile("^[a-zA-Z0-9]+$");
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    /**
+     * 日期单元格的显示格式（Excel 的格式代码）
+     */
+    static final String DATE_FORMAT = "yyyy-mm-dd hh:mm:ss";
     private static final String LIST_SEPARATOR = ", ";
     private static final String PATH_SEPARATOR = " / ";
-    private static final Set<String> WIDE_COLUMNS = Set.of("title", "fullTitle", "description", "url", "linkUrl");
+    private static final Set<String> WIDE_COLUMNS = Set.of("title", "fullTitle", "description", "url", "linkUrl", "image");
 
     private final ArticleService articleService;
     private final ChannelService channelService;
@@ -108,6 +115,8 @@ public class ArticleExportService {
             channels.put(channel.getId(), channel);
         }
         boolean withTags = columns.stream().anyMatch(column -> "tags".equals(column.key()));
+        // 没有要自定义字段列，就不解析每一行的自定义字段 JSON
+        boolean withCustoms = columns.stream().anyMatch(column -> column.key().startsWith(CUSTOM_PREFIX));
         int written = 0;
         try (Workbook workbook = new Workbook(out, "UJCMS", null)) {
             Worksheet sheet = workbook.newWorksheet("Articles");
@@ -139,7 +148,7 @@ public class ArticleExportService {
                     }
                     written++;
                     Channel channel = channels.get(row.getChannelId());
-                    Map<String, Object> customs = customs(row, channel);
+                    Map<String, Object> customs = withCustoms ? customs(row, channel) : Collections.emptyMap();
                     for (int i = 0; i < columns.size(); i++) {
                         writeCell(sheet, written, i, value(columns.get(i).key(), row, channel, channels, customs,
                                 tags, labels, site));
@@ -150,6 +159,8 @@ public class ArticleExportService {
                     break;
                 }
             }
+            // 表头带自动筛选（范围在写完所有行之后才知道；它在工作表 XML 的末尾，关闭工作簿时才写出）
+            sheet.setAutoFilter(0, 0, written, columns.size() - 1);
         }
         return written;
     }
@@ -206,6 +217,8 @@ public class ArticleExportService {
             case "description" -> row.getSeoDescription();
             case "seoKeywords" -> row.getSeoKeywords();
             case "tags" -> tags.get(row.getId());
+            // 标题图是路径，导入时照样认（docs/spec/article-management/plan.md 5a, 2026-11-05）
+            case "image" -> row.getImage();
             case "linkUrl" -> row.getLinkUrl();
             case "url" -> url(row, channel, site);
             case "org" -> row.getOrgName();
@@ -273,6 +286,10 @@ public class ArticleExportService {
         }
         if (value instanceof Number number) {
             sheet.value(row, column, number);
+        } else if (value instanceof OffsetDateTime dateTime) {
+            // 日期单元格：按服务器时区换成本地时间写成日期序号，并给单元格一个日期格式。同一个格式在工作簿里只记一份样式
+            sheet.value(row, column, dateTime.atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
+            sheet.style(row, column).format(DATE_FORMAT).set();
         } else {
             String text = text(value);
             if (!text.isEmpty()) {

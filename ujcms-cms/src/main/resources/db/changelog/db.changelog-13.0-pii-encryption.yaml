@@ -15,14 +15,161 @@ databaseChangeLog:
   #      NULL；SQL Server 的 UNIQUE 索引只允许单个 NULL——若部署于 SQL Server，需改为
   #      过滤索引（WHERE col IS NOT NULL），本仓库主库为 MySQL，迁移须在目标库上验证。
   #
-  # 类型转换取"删列-重加"而非 modifyDataType：Oracle 系（达梦）禁止 VARCHAR2→CLOB 直接
-  # ALTER（ORA-22858）；变更日志仅服务全新建库（引导数据脚本在其后执行，表恒为空），
-  # 无数据可保全（详见 db.changelog-13.0-config.yaml 的说明）。
+  # 类型转换不用 modifyDataType：Oracle 系（达梦）禁止 VARCHAR2→CLOB 直接 ALTER（ORA-22858）。
+  # 与 db.changelog-13.0-config.yaml 同样按"表里有没有数据"分两条互斥路径：全新建库（表为空）
+  # 删列重建；从 12.x 及更早版本升级（表已有行）走 13.0-upgrade-* 逐列"加列-拷贝-删列-改名"
+  # 保全留言联系方式与用户手机号/邮箱（即原 11.6 / 11.7 的做法），随后删列重建的变更集 MARK_RAN。
   # 引导脚本以明文写入 mobile_/email_ 属预期：历史明文在下次保存时透明转为密文（懒迁移）。
+  # 升级后存量用户的 mobile_/email_ 仍是明文、盲索引列为空：按手机号/邮箱登录、找回密码、查重
+  # 都走盲索引，须在升级后调用 POST /api/backend/core/user/rebuild-pii-index 一次性回填
+  # （docs/guide/pii-backfill.zh.md），回填前这些功能找不到老用户。
 
+  # ---- 留言板，升级路径（表已有行）：逐列搬移 ----
+  - changeSet:
+      id: 13.0-upgrade-message-board-contact-to-mediumtext
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_message_board
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-message-board-contact-to-mediumtext
+                author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_message_board
+            columns:
+              - column:
+                  name: contact_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 联系人
+        - sql:
+            sql: update ujcms_message_board set contact_tmp_ = contact_
+        - dropColumn:
+            tableName: ujcms_message_board
+            columnName: contact_
+        - renameColumn:
+            tableName: ujcms_message_board
+            oldColumnName: contact_tmp_
+            newColumnName: contact_
+            columnDataType: MEDIUMTEXT
+            remarks: 联系人
+
+  - changeSet:
+      id: 13.0-upgrade-message-board-phone-to-mediumtext
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_message_board
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-message-board-contact-to-mediumtext
+                author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_message_board
+            columns:
+              - column:
+                  name: phone_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 电话号码
+        - sql:
+            sql: update ujcms_message_board set phone_tmp_ = phone_
+        - dropColumn:
+            tableName: ujcms_message_board
+            columnName: phone_
+        - renameColumn:
+            tableName: ujcms_message_board
+            oldColumnName: phone_tmp_
+            newColumnName: phone_
+            columnDataType: MEDIUMTEXT
+            remarks: 电话号码
+
+  - changeSet:
+      id: 13.0-upgrade-message-board-email-to-mediumtext
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_message_board
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-message-board-contact-to-mediumtext
+                author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_message_board
+            columns:
+              - column:
+                  name: email_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 电子邮箱
+        - sql:
+            sql: update ujcms_message_board set email_tmp_ = email_
+        - dropColumn:
+            tableName: ujcms_message_board
+            columnName: email_
+        - renameColumn:
+            tableName: ujcms_message_board
+            oldColumnName: email_tmp_
+            newColumnName: email_
+            columnDataType: MEDIUMTEXT
+            remarks: 电子邮箱
+
+  - changeSet:
+      id: 13.0-upgrade-message-board-address-to-mediumtext
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_message_board
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-message-board-contact-to-mediumtext
+                author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_message_board
+            columns:
+              - column:
+                  name: address_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 联系地址
+        - sql:
+            sql: update ujcms_message_board set address_tmp_ = address_
+        - dropColumn:
+            tableName: ujcms_message_board
+            columnName: address_
+        - renameColumn:
+            tableName: ujcms_message_board
+            oldColumnName: address_tmp_
+            newColumnName: address_
+            columnDataType: MEDIUMTEXT
+            remarks: 联系地址
+
+  # ---- 留言板，全新建库路径（表为空）：删列重建。已发布变更集，只加前置条件、不改 changes ----
   - changeSet:
       id: 13.0-message-board-contact-to-mediumtext
       author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: select count(*) from ujcms_message_board
       changes:
         - dropColumn:
             tableName: ujcms_message_board
@@ -51,9 +198,157 @@ databaseChangeLog:
                   remarks: 联系地址
                   type: MEDIUMTEXT
 
+  # ---- 用户，升级路径（表已有行，至少有管理员）：逐列搬移，再加盲索引列与唯一索引 ----
+  - changeSet:
+      id: 13.0-upgrade-user-mobile-to-mediumtext
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_user
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-user-pii-encryption
+                author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_user
+            columns:
+              - column:
+                  name: mobile_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 手机号码
+        - sql:
+            sql: update ujcms_user set mobile_tmp_ = mobile_
+        - dropColumn:
+            tableName: ujcms_user
+            columnName: mobile_
+        - renameColumn:
+            tableName: ujcms_user
+            oldColumnName: mobile_tmp_
+            newColumnName: mobile_
+            columnDataType: MEDIUMTEXT
+            remarks: 手机号码
+
+  - changeSet:
+      id: 13.0-upgrade-user-email-to-mediumtext
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_user
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-user-pii-encryption
+                author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_user
+            columns:
+              - column:
+                  name: email_tmp_
+                  type: MEDIUMTEXT
+                  remarks: 电子邮箱
+        - sql:
+            sql: update ujcms_user set email_tmp_ = email_
+        - dropColumn:
+            tableName: ujcms_user
+            columnName: email_
+        - renameColumn:
+            tableName: ujcms_user
+            oldColumnName: email_tmp_
+            newColumnName: email_
+            columnDataType: MEDIUMTEXT
+            remarks: 电子邮箱
+
+  - changeSet:
+      id: 13.0-upgrade-user-pii-index-columns
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_user
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-user-pii-encryption
+                author: PONY
+      changes:
+        - addColumn:
+            tableName: ujcms_user
+            columns:
+              - column:
+                  name: mobile_index_
+                  type: VARCHAR(64)
+                  remarks: 手机号盲索引(HMAC-SM3)
+              - column:
+                  name: email_index_
+                  type: VARCHAR(64)
+                  remarks: 邮箱盲索引(HMAC-SM3)
+
+  - changeSet:
+      id: 13.0-upgrade-user-mobile-index-unique
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_user
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-user-pii-encryption
+                author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: mobile_index_
+            indexName: uk_user_mobile_index
+            tableName: ujcms_user
+            unique: true
+
+  - changeSet:
+      id: 13.0-upgrade-user-email-index-unique
+      author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sqlCheck:
+                expectedResult: 0
+                sql: select count(*) from ujcms_user
+        - not:
+            - changeSetExecuted:
+                changeLogFile: db/changelog/db.changelog-13.0-pii-encryption.yaml
+                id: 13.0-user-pii-encryption
+                author: PONY
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: email_index_
+            indexName: uk_user_email_index
+            tableName: ujcms_user
+            unique: true
+
+  # ---- 用户，全新建库路径（表为空）：删列重建。已发布变更集，只加前置条件、不改 changes ----
   - changeSet:
       id: 13.0-user-pii-encryption
       author: PONY
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: select count(*) from ujcms_user
       changes:
         - dropColumn:
             tableName: ujcms_user

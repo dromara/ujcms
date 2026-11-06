@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, toRefs, watch, onMounted, onBeforeUnmount, type PropType } from 'vue';
-import { Finished, Box, DocumentRemove, Delete, CircleCheck, CircleClose, View, Back, SetUp, Compass, RefreshLeft } from '@element-plus/icons-vue';
+import { Finished, Box, DocumentRemove, Delete, CircleCheck, CircleClose, View, Back, SetUp, Compass, RefreshLeft, UploadFilled } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import * as htmlparser2 from 'htmlparser2';
 import * as domutils from 'domutils';
@@ -519,16 +519,23 @@ const titleSimilarity = async (title: string, excludeId?: string) => {
 };
 
 // 筛查（docs/spec/ai/screening.md §6、docs/spec/word-dictionaries/plan.md Phase 5）。结果抽屉由两处打开：
-// 'ai' = AI 筛查按钮（词库 + 语义，仅正文；词库结果始终返回，语义结果依站点开关与服务商可用性）；
+// 'ai' = AI 筛查按钮（词库 + 语义，仅正文；词库结果始终返回，语义结果与错别字依站点开关与服务商可用性）；
 // 'save' = 保存前的词库检查（全部筛查字段），底部多“返回修改 / 忽略并保存”
 const aiScreenVisible = ref<boolean>(false);
 const aiScreenMode = ref<'ai' | 'save'>('ai');
 const aiScreenLoading = ref<boolean>(false);
 const aiScreenFindings = ref<any[]>([]);
 const aiScreenSemanticError = ref<string | null>(null);
+// 语义筛查没有执行（全局 AI 关闭或没有默认服务商）：没有日志也没有错误码，只有词库结果，须告诉编辑未查错别字
+const aiScreenDictionaryOnly = ref<boolean>(false);
+// 语义筛查的 AI 日志：修正了一处模型给出的错别字即记为采纳，只发送一次
+let aiScreenLogId: string | null = null;
+let aiScreenAcceptFired = false;
 const aiScreenAvailable = computed(() => currentUser.commercialTier >= 2 && currentSiteStore.currentSite?.ai?.screening === true && !perm('ai:assist'));
 const aiScreenGroups = computed(() =>
-  ['sensitive', 'error', 'semantic'].map((key) => ({ key, findings: aiScreenFindings.value.filter((it: any) => it.type === key) })).filter((group) => group.findings.length > 0),
+  ['sensitive', 'error', 'typo', 'semantic']
+    .map((key) => ({ key, findings: aiScreenFindings.value.filter((it: any) => it.type === key) }))
+    .filter((group) => group.findings.length > 0),
 );
 const aiScreenBlockCount = computed(() => aiScreenFindings.value.filter((it: any) => it.severity === 'block').length);
 
@@ -615,6 +622,9 @@ const handleAiScreen = async () => {
     const data = await aiScreen({ text });
     aiScreenFindings.value = data.findings ?? [];
     aiScreenSemanticError.value = data.semanticError ?? null;
+    aiScreenLogId = data.logId ?? null;
+    aiScreenAcceptFired = false;
+    aiScreenDictionaryOnly.value = aiScreenLogId == null && aiScreenSemanticError.value == null;
     aiScreenMode.value = 'ai';
     aiScreenVisible.value = true;
   } finally {
@@ -654,9 +664,13 @@ const locateFinding = (finding: any) => {
   selectFinding(finding);
 };
 
-// 修正：仅易错词有词库修正词。正文须能在富文本中定位（Markdown 正文只列出，不自动改）；标题、摘要等字段直接改字符串
-const canFixFinding = (finding: any): boolean => finding.type === 'error' && !!finding.suggestion && (findingField(finding) !== 'text' || canLocateFinding(finding));
-const aiScreenFixableCount = computed(() => aiScreenFindings.value.filter(canFixFinding).length);
+// 修正：易错词带词库修正词，错别字带模型给出的改正写法。正文须能在富文本中定位（Markdown 正文只列出，不自动改）；
+// 标题、摘要等字段直接改字符串
+const canFixFinding = (finding: any): boolean =>
+  (finding.type === 'error' || finding.type === 'typo') && !!finding.suggestion && (findingField(finding) !== 'text' || canLocateFinding(finding));
+// “全部修正”只改词库易错词：模型给出的错别字可能误报，逐条核对后再改
+const canFixAllFinding = (finding: any): boolean => finding.type === 'error' && canFixFinding(finding);
+const aiScreenFixableCount = computed(() => aiScreenFindings.value.filter(canFixAllFinding).length);
 
 const applyFix = (finding: any): boolean => {
   const field = findingField(finding);
@@ -696,15 +710,17 @@ const settleFixed = (fixed: any[]) => {
 
 const fixFinding = (finding: any) => {
   if (canFixFinding(finding) && applyFix(finding)) {
+    if (finding.type === 'typo' && aiScreenLogId != null && !aiScreenAcceptFired) {
+      aiScreenAcceptFired = true;
+      updateAiLogAccepted(aiScreenLogId).catch(() => undefined);
+    }
     settleFixed([finding]);
   }
 };
 
 const fixAllFindings = () => {
   // 重叠的命中取最左、同起点取最长（如“帐号”与“登陆帐号”同时命中，只改后者）
-  const sorted = aiScreenFindings.value
-    .filter(canFixFinding)
-    .sort((a: any, b: any) => findingField(a).localeCompare(findingField(b)) || a.start - b.start || b.end - a.end);
+  const sorted = aiScreenFindings.value.filter(canFixAllFinding).sort((a: any, b: any) => findingField(a).localeCompare(findingField(b)) || a.start - b.start || b.end - a.end);
   const picked: any[] = [];
   for (const finding of sorted) {
     const last = picked[picked.length - 1];
@@ -1554,31 +1570,30 @@ const handleAiGeneratedChange = (checked: boolean) => {
                   :rules="mains['text'].required ? { required: true, message: () => $t('v.required') } : undefined"
                 >
                   <div class="w-full">
-                    <el-radio-group v-if="mains['text'].editorSwitch" :model-value="values.editorType" class="mr-6" @change="onEditorTypeChange">
-                      <el-radio v-for="n in [1, 2]" :key="n" :value="n">{{ $t(`model.field.editorType.${n}`) }}</el-radio>
-                    </el-radio-group>
-                    <!-- .docx/.doc/.wps 由内置引擎读取，按钮总是可用；LibreOffice 没开时悬停说明哪些格式读不了 -->
-                    <div
-                      v-if="values.editorType === 1 && currentUser.commercialTier > 0"
-                      class="inline-flex mb-1"
-                      :title="docImport.office ? undefined : $t('article.docImport.officeOff')"
-                    >
+                    <!-- 编辑器工具条：切换编辑器、DOC导入、AI 筛查并排在一行，统一高度和间距 -->
+                    <div v-if="mains['text'].editorSwitch || values.editorType === 1 || aiScreenAvailable" class="flex flex-wrap items-center gap-2 mb-1">
+                      <el-radio-group v-if="mains['text'].editorSwitch" :model-value="values.editorType" class="mr-4" @change="onEditorTypeChange">
+                        <el-radio v-for="n in [1, 2]" :key="n" :value="n">{{ $t(`model.field.editorType.${n}`) }}</el-radio>
+                      </el-radio-group>
+                      <!-- .docx/.doc/.wps 由内置引擎读取，按钮总是可用；LibreOffice 没开时悬停说明哪些格式读不了 -->
                       <base-upload
+                        v-if="values.editorType === 1 && currentUser.commercialTier > 0"
                         type="doc"
+                        inline
                         :file-accept="docImportAccept"
                         :disabled="perm('jodConvert:doc') || docImport.extensions.length === 0 || disabled"
                         :upload-action="jodConvertDocUrl"
                         :on-success="(res: DocImportResult) => handleDocImported(res)"
                         :button="$t('article.op.docImport')"
+                        :title="docImport.office ? undefined : $t('article.docImport.officeOff')"
                       ></base-upload>
-                    </div>
-                    <div v-if="values.editorType === 1 && currentUser.commercialTier === 0" class="inline-flex mb-1">
-                      <el-button @click="() => showCommercialNotice(1, $t('commercial.feature.docImport'))">
-                        {{ $t('article.op.docImport') }}<commercial-badge :tier="1" class="ml-1" />
-                      </el-button>
-                    </div>
-                    <div v-if="aiScreenAvailable" class="inline-flex mb-1 ml-1">
-                      <el-button :loading="aiScreenLoading" @click="() => handleAiScreen()">{{ $t('article.op.aiScreen') }}</el-button>
+                      <!-- 包一层 div，避免 EP 相邻按钮自带的 margin 与 gap 叠加 -->
+                      <div v-if="values.editorType === 1 && currentUser.commercialTier === 0">
+                        <el-button :icon="UploadFilled" @click="() => showCommercialNotice(1, $t('commercial.feature.docImport'))">
+                          {{ $t('article.op.docImport') }}<commercial-badge :tier="1" class="ml-1" />
+                        </el-button>
+                      </div>
+                      <el-button v-if="aiScreenAvailable" :loading="aiScreenLoading" @click="() => handleAiScreen()">{{ $t('article.op.aiScreen') }}</el-button>
                     </div>
                     <markdown-editor v-if="values.editorType === 2" v-model="values.markdown" v-model:html="values.text" :disabled="disabled" class="leading-6" @keydown="handleSaveShortcut" />
                     <Tinymce
@@ -1875,6 +1890,7 @@ const handleAiGeneratedChange = (checked: boolean) => {
         :title="$t('article.wordCheck.errorSummary', { count: aiScreenFindings.length })"
       />
       <el-alert v-if="aiScreenSemanticError" type="warning" :closable="false" class="mb-3" :title="$t('article.ai.screen.semanticError', { error: aiScreenSemanticError })" />
+      <el-alert v-else-if="aiScreenMode === 'ai' && aiScreenDictionaryOnly" type="info" :closable="false" class="mb-3" :title="$t('article.ai.screen.dictionaryOnly')" />
       <el-empty v-if="aiScreenFindings.length === 0" :description="$t('article.ai.screen.clean')" />
       <div v-for="group in aiScreenGroups" :key="group.key" class="mb-4">
         <div class="mb-2 font-bold">{{ $t(`article.ai.screen.group.${group.key}`) }}（{{ group.findings.length }}）</div>

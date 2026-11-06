@@ -104,21 +104,38 @@ export const downloadArticleImportTemplate = async (channelId?: string): Promise
   const filename = parseAttachmentFilename(response.headers?.['content-disposition'] ?? '') ?? 'article-import-template.xlsx';
   return { blob: response.data, filename };
 };
-const articleImportForm = (file: File, channelId: string | undefined, skipDuplicates: boolean): FormData => {
+/**
+ * 导入选项：新建模式的默认栏目、同标题的处置、导入后是否提交（提交须另有 article:submit）；
+ * 更新模式（mode = update，须另有 article:update）按表格的 ID 列更新已有文章，blankCells 决定空单元格保留原值还是清空
+ */
+export interface ArticleImportOptions {
+  channelId?: string;
+  skipDuplicates: boolean;
+  submit: boolean;
+  mode: 'create' | 'update';
+  blankCells: 'keep' | 'clear';
+}
+const articleImportForm = (file: File, options: ArticleImportOptions): FormData => {
   const form = new FormData();
   form.append('file', file);
-  if (channelId != null) {
-    form.append('channelId', channelId);
+  form.append('mode', options.mode);
+  if (options.mode === 'update') {
+    form.append('blankCells', options.blankCells);
+    return form;
   }
-  form.append('skipDuplicates', String(skipDuplicates));
+  if (options.channelId != null) {
+    form.append('channelId', options.channelId);
+  }
+  form.append('skipDuplicates', String(options.skipDuplicates));
+  form.append('submit', String(options.submit));
   return form;
 };
 /** 预检：只读，返回可导入的行数与有问题的行 */
-export const previewArticleImport = async (file: File, channelId: string | undefined, skipDuplicates: boolean): Promise<any> =>
-  (await axios.post('/backend/core/article-import/preview', articleImportForm(file, channelId, skipDuplicates), { timeout: 120000 })).data;
+export const previewArticleImport = async (file: File, options: ArticleImportOptions): Promise<any> =>
+  (await axios.post('/backend/core/article-import/preview', articleImportForm(file, options), { timeout: 120000 })).data;
 /** 执行：启动后台任务，返回 { taskId } */
-export const startArticleImport = async (file: File, channelId: string | undefined, skipDuplicates: boolean): Promise<any> =>
-  (await axios.post('/backend/core/article-import', articleImportForm(file, channelId, skipDuplicates), { timeout: 120000 })).data;
+export const startArticleImport = async (file: File, options: ArticleImportOptions): Promise<any> =>
+  (await axios.post('/backend/core/article-import', articleImportForm(file, options), { timeout: 120000 })).data;
 export const queryArticleImportTask = async (taskId: string): Promise<any> => (await axios.get(`/backend/core/article-import/task/${taskId}`)).data;
 export const stopArticleImportTask = async (taskId: string): Promise<any> => (await axios.post(`/backend/core/article-import/task/${taskId}/stop`)).data;
 /** 各状态的文章数（状态页签上的计数）：参数与列表相同，服务端忽略其中的状态条件与排序。静默失败——计数出不来不该挡住列表 */
@@ -168,8 +185,17 @@ export const queryArticleI18nCandidates = async (params: Record<string, any>): P
   (await axios.get('/backend/core/article-i18n/candidates', { params })).data;
 export const createArticleTranslation = async (articleId: string, data: Record<string, any>): Promise<any> =>
   (await axios.post(`/backend/core/article-i18n/${articleId}/translation`, data)).data;
-export const queryArticleI18nStatus = async (ids: string[]): Promise<any> =>
-  (await axios.get('/backend/core/article-i18n/status', { params: { ids: ids.join(',') } })).data;
+/** 翻译状态接口的单次请求上限（服务端 ArticleI18nController.MAX_STATUS_IDS） */
+const ARTICLE_I18N_STATUS_MAX = 200;
+export const queryArticleI18nStatus = async (ids: string[]): Promise<any[]> => {
+  // 列表页大小可达 800，须按服务端上限分批请求：既守住服务端上限，也避免 GET 的 ids 超出 Tomcat 8KB 请求行限制
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += ARTICLE_I18N_STATUS_MAX) {
+    chunks.push(ids.slice(i, i + ARTICLE_I18N_STATUS_MAX));
+  }
+  const results = await Promise.all(chunks.map(async (part) => (await axios.get('/backend/core/article-i18n/status', { params: { ids: part.join(',') } })).data));
+  return results.flat();
+};
 
 // 批量新增译文（商业版 T2，docs/spec/ai/article-translate.md §7；控制台原“批量翻译”）：预览计数 → 提交后台任务 → 轮询进度/停止
 export const previewArticleTranslateBatch = async (params: Record<string, any>): Promise<any> =>

@@ -80,7 +80,7 @@ public class MarketplaceClient {
     @Autowired
     public MarketplaceClient(RestClient.Builder restClientBuilder, Props props,
                              @Value("${ujcms.marketplace.enabled:true}") boolean enabled,
-                             @Value("${ujcms.marketplace.base-url:https://marketplace.ujcms.com}") String baseUrl,
+                             @Value("${ujcms.marketplace.base-url:https://market.ujcms.com}") String baseUrl,
                              @Value("${ujcms.marketplace.cache-ttl-seconds:60}") long cacheTtlSeconds) {
         this(buildClient(restClientBuilder, baseUrl, CATALOG_READ_TIMEOUT_MILLIS),
                 buildClient(restClientBuilder, baseUrl, DOWNLOAD_READ_TIMEOUT_MILLIS),

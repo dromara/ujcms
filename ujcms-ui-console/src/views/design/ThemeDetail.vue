@@ -7,7 +7,8 @@ import { currentUser, isCommercialLocked, isShowPerm, perm } from '@/stores/useC
 import { useCurrentSiteStore } from '@/stores/currentSiteStore';
 import { handleError } from '@/utils/request';
 import { toTree } from '@/utils/tree';
-import { enumParam, useRouteState } from '@/composables/useRouteState';
+import { enumParam, queryValue, useRouteState } from '@/composables/useRouteState';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import { resumePath } from '@/layout/components/useViewTabs';
 import ShapeFieldItem from '@/views/design/fields/ShapeFieldItem.vue';
 import { queryPanelsByOrigin } from '@/api/composition';
@@ -87,7 +88,8 @@ const siteMatchesContext = computed<boolean>(() => {
 });
 
 // 当前页签存于 query.tab（docs/spec/console-view-state）；site / theme 是视图的身份键，不属于状态
-const { tab: activeTab } = useRouteState({ tab: enumParam('overview', ['overview', 'settings', 'demo', 'export', 'pages']) });
+const tabParam = enumParam('overview', ['overview', 'settings', 'demo', 'export', 'pages']);
+const { tab: activeTab } = useRouteState({ tab: tabParam });
 const theme = ref<ThemeInfo>();
 // 本站全部主题（激活影响预演的缺省槽位口径需要知道两槽位现状，见 defaultActivateTarget）
 const siteThemes = ref<ThemeInfo[]>([]);
@@ -173,6 +175,13 @@ const settingsPageValues = ref<Record<string, Record<string, Record<string, any>
 const settingsVariantValues = ref<Record<string, Record<string, Record<string, any>>>>({});
 const settingsLoading = ref<boolean>(false);
 const settingsSaving = ref<boolean>(false);
+// 未保存守卫（docs/spec/console-view-state C13）：三个作用域的编辑值合为一份快照判定。页签在视图内切换不丢编辑
+// （设置只加载一次），故只守离开、F5 与外部改写 ?tab=（视图重建）
+const settingsSnapshot = computed(() => ({ values: settingsValues.value, pages: settingsPageValues.value, variants: settingsVariantValues.value }));
+const { unsaved: settingsUnsaved, markSaved: markSettingsSaved } = useUnsavedGuard(settingsSnapshot, {
+  loading: settingsLoading,
+  isExternalUpdate: (to) => tabParam.parse(queryValue(to.query, 'tab')) !== activeTab.value,
+});
 
 const hasAnySettings = computed<boolean>(() => settingsGroups.value.length > 0 || settingsPages.value.length > 0 || settingsVariants.value.length > 0);
 const variantKey = (v: ThemeVariantSettings) => `${v.surface}:${v.value}`;
@@ -188,6 +197,7 @@ const fetchSettings = async () => {
     settingsPageValues.value = Object.fromEntries((result.pages ?? []).map((p) => [p.name, p.values ?? {}]));
     settingsVariantValues.value = Object.fromEntries((result.variants ?? []).map((v) => [variantKey(v), v.values ?? {}]));
     settingsLoaded.value = true;
+    markSettingsSaved();
   } finally {
     settingsLoading.value = false;
   }
@@ -212,6 +222,7 @@ const handleSaveSettings = async () => {
     if (result.dropped?.length) {
       ElMessage.warning(t('theme.settings.droppedWarning', { keys: result.dropped.join(t('punct.enum')) }));
     }
+    markSettingsSaved();
     ElMessage.success(t('success'));
   } finally {
     settingsSaving.value = false;
@@ -1012,6 +1023,7 @@ onMounted(async () => {
             <el-button v-if="hasAnySettings" type="primary" :loading="settingsSaving" :disabled="perm('theme:settings')" @click="handleSaveSettings">
               {{ $t('save') }}
             </el-button>
+            <el-tag v-if="settingsUnsaved" type="danger" class="ml-3">{{ $t('form.unsaved') }}</el-tag>
           </el-form>
         </div>
       </el-tab-pane>

@@ -19,6 +19,7 @@ import com.ujcms.common.web.exception.Http400Exception;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.Strings;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -76,12 +77,14 @@ public class WebFileTemplateController extends AbstractWebFileController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('webFileTemplate:list','*')")
-    public List<WebFile> list(@RequestParam(defaultValue = "/") String parentId,
+    public Page<WebFile> list(@RequestParam(defaultValue = "/") String parentId,
                               @RequestParam(defaultValue = "false") boolean isDir,
                               @RequestParam(required = false) String name,
-                              @RequestParam(defaultValue = "name") String sort) {
+                              @RequestParam(defaultValue = "name") String sort,
+                              @RequestParam(required = false) Integer page,
+                              @RequestParam(required = false) Integer pageSize) {
         Site site = Contexts.getCurrentSite();
-        return super.list(parentId, isDir, name, sort, site.getConfig().getTemplateStorage());
+        return super.list(parentId, isDir, name, sort, page, pageSize, site.getConfig().getTemplateStorage());
     }
 
     /**

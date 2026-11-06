@@ -19,7 +19,7 @@ const props = defineProps({
   total: { type: Number, required: true },
   // 勾选的文章ID
   selectedIds: { type: Array as PropType<string[]>, default: () => [] },
-  // 所选栏目模型的自定义字段：[{ code, name, type }]
+  // 可选的自定义字段：所选栏目模型的，或没选栏目时本站各文章模型的并集（每行按自己栏目的模型取值）：[{ code, name, type, clob, showInList }]
   fields: { type: Array as PropType<any[]>, default: () => [] },
 });
 const emit = defineEmits({ 'update:modelValue': null });
@@ -46,6 +46,7 @@ const SYSTEM_COLUMNS: { key: string; labelKey: string }[] = [
   { key: 'description', labelKey: 'article.seoDescription' },
   { key: 'seoKeywords', labelKey: 'article.seoKeywords' },
   { key: 'tags', labelKey: 'article.tags' },
+  { key: 'image', labelKey: 'article.image' },
   { key: 'linkUrl', labelKey: 'article.linkUrl' },
   { key: 'url', labelKey: 'article.export.url' },
   { key: 'org', labelKey: 'article.org' },
@@ -59,8 +60,8 @@ const SYSTEM_COLUMNS: { key: string; labelKey: string }[] = [
   { key: 'downs', labelKey: 'article.downs' },
 ];
 const DEFAULT_COLUMNS = ['id', 'title', 'channel', 'status', 'publishDate', 'author', 'source', 'tags', 'views', 'url'];
-// 文件上传、富文本这类字段没有适合放进单元格的值
-const EXPORTABLE_FIELD_TYPES = ['text', 'textarea', 'number', 'date', 'color', 'slider', 'switch', 'radio', 'checkbox', 'select', 'multipleSelect'];
+// 富文本这类字段没有适合放进单元格的值；上传类字段导出的是路径，与导入时的填法一致
+const EXPORTABLE_FIELD_TYPES = ['text', 'textarea', 'number', 'date', 'color', 'slider', 'switch', 'radio', 'checkbox', 'select', 'multipleSelect', 'imageUpload', 'videoUpload', 'audioUpload', 'fileUpload'];
 
 const { modelValue: visible, total, selectedIds, fields } = toRefs(props);
 const { t } = useI18n();

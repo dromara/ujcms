@@ -348,12 +348,12 @@ ujcms.uploads-location: /uploads
 # 是否启用应用市场。默认启用；内网/离线部署设为 false 时控制台隐藏「应用市场」页签，其余功能不受影响。
 #ujcms.marketplace.enabled: true
 # 应用市场地址。默认官方市场；本地联调可指向 http://localhost:8090（ujcms-marketplace dev profile）。
-#ujcms.marketplace.base-url: https://marketplace.ujcms.com
+#ujcms.marketplace.base-url: https://market.ujcms.com
 # 目录读取缓存写后过期秒数（列表/详情/版本）。默认 60。
 #ujcms.marketplace.cache-ttl-seconds: 60
 # 店面站点地址（购买深链与设备授权批准页所在的网站）。默认随 base-url（生产环境店面与 API 同域）；
 # 本地联调指向店面 dev server（http://localhost:3000）。
-#ujcms.marketplace.storefront-url: https://marketplace.ujcms.com
+#ujcms.marketplace.storefront-url: https://market.ujcms.com
 
 # JWT密钥。单机环境可以不设置，会默认生成一个64位的随机密钥。在集群环境下，为保持各机器密钥一致，必须手动设置一个长度不少于64位的随机密钥。密钥和普通密码一样，可使用大写字母、小写字母、数字、特殊字符。
 #jwt.secret:

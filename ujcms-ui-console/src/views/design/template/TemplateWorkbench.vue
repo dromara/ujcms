@@ -13,6 +13,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { perm } from '@/stores/useCurrentUser';
 import { queryWebFileTemplate, queryWebFileTemplateList, updateWebFileTemplate, queryWebFileTemplateHistoryDetail, restoreWebFileTemplateHistory } from '@/api/file';
+import { maxPageSize } from '@/utils/common';
 import WebFileHistoryDrawer from '@/views/file/WebFileHistoryDrawer.vue';
 import MergeDiff from './MergeDiff.vue';
 import { freemarker } from './freemarker';
@@ -146,7 +147,8 @@ const initialExpandedKeys = (() => {
 })();
 const loadNode = async (node: any, resolve: (rows: any[]) => void) => {
   const parentId = node.level === 0 ? props.root : node.data.id;
-  const rows = await queryWebFileTemplateList({ parentId });
+  // 模板目录天然有界，一层一次取回
+  const { content: rows } = await queryWebFileTemplateList({ parentId, pageSize: maxPageSize });
   resolve([...rows.filter((row: any) => row.directory), ...rows.filter((row: any) => !row.directory)]);
   // 当前文件所在层加载完成后补一次高亮：current-node-key 在异步分层加载下不保证回填
   if (rows.some((row: any) => String(row.id) === String(currentRow.value?.id))) {

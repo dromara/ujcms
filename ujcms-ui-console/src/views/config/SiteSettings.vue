@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { WarningFilled } from '@element-plus/icons-vue';
+import { cloneDeep } from 'lodash-es';
 import { toTree } from '@/utils/tree';
 import { useCurrentSiteStore } from '@/stores/currentSiteStore';
 import {
@@ -38,7 +39,8 @@ import { SITE_SETTINGS_TABS, lockedSettingsTier, visibleSettingsTypes } from './
 import LabelTip from '@/components/LabelTip.vue';
 import { ImageUpload } from '@/components/Upload';
 import FieldItem from '@/views/config/components/FieldItem.vue';
-import { enumParam, useRouteState } from '@/composables/useRouteState';
+import { enumParam, queryValue, useRouteState } from '@/composables/useRouteState';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import { useSettingsFieldFocus } from './settingsFocus';
 
 defineOptions({
@@ -148,9 +150,16 @@ const types: string[] = visibleSettingsTypes(SITE_SETTINGS_TABS);
 const lockedTiers = Object.fromEntries(types.map((tp) => [tp, lockedSettingsTier(SITE_SETTINGS_TABS, tp)]));
 // 当前设置页存于 query.type（docs/spec/console-view-state）：刷新或重访页签时停留在原设置页，也可深链
 // （全局设置“AI服务商”页的“前往站点设置”直达“AI功能”页签）；非法值、无权限的设置页回落到首个页签
-const { type } = useRouteState({ type: enumParam(types[0] ?? '', types) });
+const typeParam = enumParam(types[0] ?? '', types);
+const { type } = useRouteState({ type: typeParam });
 // 命令面板选中某个设置项后：打开本视图对应页签、数据就绪后滚动到该项（settingsFocus.ts）
 useSettingsFieldFocus('SiteSettings', type, loading, form);
+// 未保存守卫（docs/spec/console-view-state C13）：离开视图、F5、外部改写 ?type= 之前先确认，左侧页签经 before-leave 确认。
+// values 永远是 site 各块的副本：放弃的改动不会留在 site 里、切回来时不会复现
+const { unsaved, markSaved, confirmDiscard } = useUnsavedGuard(values, {
+  loading,
+  isExternalUpdate: (to) => typeParam.parse(queryValue(to.query, 'type')) !== type.value,
+});
 
 // 全局 AI 就绪状态（全局开关、各功能服务商是否可解析）。站点管理员多半没有 config:ai:show、看不到全局设置，
 // 本页据此说明哪些开关不生效；读取失败不阻断页面，只是不显示提示
@@ -195,13 +204,13 @@ const htmlListPagesOptions = computed(() => [
 
 const switchType = () => {
   if (type.value === 'watermark') {
-    values.value = site.value.watermark;
+    values.value = cloneDeep(site.value.watermark);
   } else if (type.value === 'permalink') {
-    values.value = site.value.permalink ?? { article: 'id-slug', pinyin: false };
+    values.value = cloneDeep(site.value.permalink ?? { article: 'id-slug', pinyin: false });
   } else if (type.value === 'html') {
-    values.value = site.value.html;
+    values.value = cloneDeep(site.value.html);
   } else if (type.value === 'editor') {
-    values.value = site.value.editor;
+    values.value = cloneDeep(site.value.editor);
     if (values.value.typesetting == null) {
       values.value.typesetting = {
         fontFamily: '',
@@ -215,38 +224,39 @@ const switchType = () => {
       };
     }
   } else if (type.value === 'messageBoard') {
-    values.value = site.value.messageBoard;
+    values.value = cloneDeep(site.value.messageBoard);
   } else if (type.value === 'comment') {
-    values.value = site.value.comment;
+    values.value = cloneDeep(site.value.comment);
   } else if (type.value === 'contribute') {
-    values.value = site.value.contribute;
+    values.value = cloneDeep(site.value.contribute);
   } else if (type.value === 'disclosure') {
-    values.value = site.value.disclosure;
+    values.value = cloneDeep(site.value.disclosure);
   } else if (type.value === 'mailbox') {
-    values.value = site.value.mailbox;
+    values.value = cloneDeep(site.value.mailbox);
   } else if (type.value === 'interview') {
-    values.value = site.value.interview;
+    values.value = cloneDeep(site.value.interview);
   } else if (type.value === 'census') {
-    values.value = site.value.census;
+    values.value = cloneDeep(site.value.census);
   } else if (type.value === 'accessibility') {
-    values.value = site.value.accessibility;
+    values.value = cloneDeep(site.value.accessibility);
   } else if (type.value === 'ai') {
-    values.value = site.value.ai;
+    values.value = cloneDeep(site.value.ai);
     // Long 字段序列化为字符串，el-input-number 需要数字
     values.value.dailyTokenQuota = Number(values.value.dailyTokenQuota ?? 0);
     fetchAiReadiness();
   } else if (type.value === 'geo') {
-    values.value = site.value.geo;
+    values.value = cloneDeep(site.value.geo);
     // null 代表默认取前两级导航栏目，树选择器需要数组
     values.value.llmsTxtChannelIds = values.value.llmsTxtChannelIds ?? [];
     values.value.disallowedAiAgents = values.value.disallowedAiAgents ?? [];
     fetchChannelList();
     fetchPushStatus();
   } else if (type.value === 'customs') {
-    values.value = site.value.customs;
+    values.value = cloneDeep(site.value.customs);
   } else {
-    values.value = site.value;
+    values.value = cloneDeep(site.value);
   }
+  markSaved();
 };
 
 watch(type, () => switchType());
@@ -376,6 +386,7 @@ const handleSubmit = () => {
         await updateSiteBaseSettings(values.value);
       }
       currentSiteStore.currentSite = await querySiteSettings();
+      markSaved();
       ElMessage.success(htmlGenerating ? t('site.html.generating', { menu: t('menu.system.generator') }) : t('success'));
     } finally {
       buttonLoading.value = false;
@@ -388,7 +399,7 @@ const handleSubmit = () => {
 <template>
   <el-container>
     <el-aside width="180px" class="pr-3">
-      <el-tabs v-model="type" tab-position="left" stretch class="bg-white sidebar-tabs">
+      <el-tabs v-model="type" tab-position="left" stretch class="bg-white sidebar-tabs" :before-leave="() => confirmDiscard()">
         <el-tab-pane v-for="tp in types" :key="tp" :name="tp">
           <template #label>
             {{ $t(`site.settings.${tp}`) }}<commercial-badge v-if="lockedTiers[tp]" :tier="lockedTiers[tp]" class="ml-1" />
@@ -1284,6 +1295,7 @@ const handleSubmit = () => {
           <el-button :disabled="perm(`siteSettings:${type}:update`)" :loading="buttonLoading" type="primary" native-type="submit" @click.prevent="handleSubmit">
             {{ $t('save') }}
           </el-button>
+          <el-tag v-if="unsaved" type="danger" class="ml-3">{{ $t('form.unsaved') }}</el-tag>
         </div>
       </el-form>
     </el-main>

@@ -1808,16 +1808,26 @@ public class Config extends GeneratedConfig {
 
         /**
          * 密钥留空的服务商沿用本配置中同代码服务商的已存密钥（配合后台“只写不回显”脱敏）。
-         * 仅按代码精确匹配，不回退到默认服务商
+         * 仅按代码精确匹配，不回退到默认服务商；且接口地址须与已存的一致：已存密钥只发往它所属的接口地址，
+         * 否则改一下地址再测试（或保存后任一调用）就能把已存密钥送到任意主机。地址变更后须重新填写密钥
          *
          * @param provider 表单提交的服务商配置
+         * @return 已存密钥因接口地址变更而未沿用时为 true（provider 的密钥保持为空）
          */
-        public void fillStoredApiKey(Provider provider) {
+        public boolean fillStoredApiKey(Provider provider) {
             if (StringUtils.isNotBlank(provider.getApiKey()) || StringUtils.isBlank(provider.getCode())) {
-                return;
+                return false;
             }
-            providers.stream().filter(p -> provider.getCode().equals(p.getCode())).findFirst()
-                    .ifPresent(stored -> provider.setApiKey(stored.getApiKey()));
+            Provider stored = providers.stream().filter(p -> provider.getCode().equals(p.getCode())).findFirst()
+                    .orElse(null);
+            if (stored == null || StringUtils.isBlank(stored.getApiKey())) {
+                return false;
+            }
+            if (!sameDestination(stored.getBaseUrl(), provider.getBaseUrl())) {
+                return true;
+            }
+            provider.setApiKey(stored.getApiKey());
+            return false;
         }
 
         public boolean isEnabled() {
@@ -1947,7 +1957,9 @@ public class Config extends GeneratedConfig {
              * 因此只能补充服务商特有参数。最常见用途是关闭推理模型的深度思考：思考 token 计入 max_tokens，会耗尽元信息、
              * 候选标题、审核等小预算 JSON 调用（2026-09-05 glm-5.3-flash 实测返回空内容）。各家字段不同：
              * 智谱/火山方舟 {"thinking":{"type":"disabled"}}、阿里云百炼 {"enable_thinking":false}、Ollama {"think":false}、
-             * vLLM/SGLang {"chat_template_kwargs":{"enable_thinking":false}}，控制台提供预设
+             * vLLM/SGLang {"chat_template_kwargs":{"enable_thinking":false}}，控制台提供预设。
+             * 部分模型始终思考、只能调低强度：智谱 GLM-5.3 系列拒绝 disabled（通用接口 400/1210，Coding Plan 接口静默忽略），
+             * 须用 {"thinking":{"type":"enabled"},"reasoning_effort":"low"}（2026-11-03 实测审核类调用思考降至 0-8 token）
              */
             @Length(max = 1000)
             private String extraParams = "";
@@ -2385,6 +2397,24 @@ public class Config extends GeneratedConfig {
             mailSender.send(msg);
         }
 
+        /**
+         * 密码留空时沿用已存密码（配合后台“只写不回显”脱敏），且仅当邮件服务器地址未变：已存密码只发往它所属的服务器，
+         * 否则改一下地址再发送测试邮件（或保存后的任一发信），SMTP 认证就会把已存密码交给任意主机。地址变更后须重新填写密码
+         *
+         * @param stored 库中的邮件设置
+         * @return 已存密码因服务器地址变更而未沿用时为 true（密码保持为空）
+         */
+        public boolean fillStoredSecrets(Email stored) {
+            if (StringUtils.isNotBlank(password) || StringUtils.isBlank(stored.getPassword())) {
+                return false;
+            }
+            if (!sameDestination(host, stored.getHost())) {
+                return true;
+            }
+            password = stored.getPassword();
+            return false;
+        }
+
         @Nullable
         public String getHost() {
             return host;
@@ -2493,6 +2523,16 @@ public class Config extends GeneratedConfig {
         }
     }
 
+    /**
+     * 两个凭据目的地（主机名或接口地址）是否相同：忽略首尾空白、末尾斜杠与大小写。
+     * 已存密码/密钥只沿用到同一目的地（{@link Ai#fillStoredApiKey}、{@link Email#fillStoredSecrets}、
+     * {@link Storage#fillStoredSecrets}）
+     */
+    static boolean sameDestination(@Nullable String a, @Nullable String b) {
+        return Strings.CS.removeEnd(StringUtils.trimToEmpty(a), "/")
+                .equalsIgnoreCase(Strings.CS.removeEnd(StringUtils.trimToEmpty(b), "/"));
+    }
+
     @Schema(name = "Config.Storage", description = "存储点配置")
     public static class Storage implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -2554,6 +2594,26 @@ public class Config extends GeneratedConfig {
                 return new FtpFileHandler(properties, path, url);
             }
             return new LocalFileHandler(pathResolver, path, url);
+        }
+
+        /**
+         * 留空的密钥/密码沿用已存值（配合后台“只写不回显”脱敏），且只沿用到它所发往的同一目的地：对象存储的
+         * accessKey/secretKey 属于 endpoint，FTP 密码属于 hostname。目的地一变就不沿用，否则改一下地址再保存，
+         * 之后每次上传、生成都会把已存凭据交给任意主机（FTP 登录直接送出密码，对象存储送出 accessKey 与签名请求）
+         *
+         * @param stored 库中的存储设置
+         */
+        public void fillStoredSecrets(Storage stored) {
+            boolean sameEndpoint = sameDestination(endpoint, stored.getEndpoint());
+            if (StringUtils.isBlank(accessKey) && sameEndpoint) {
+                accessKey = stored.getAccessKey();
+            }
+            if (StringUtils.isBlank(secretKey) && sameEndpoint) {
+                secretKey = stored.getSecretKey();
+            }
+            if (StringUtils.isBlank(password) && sameDestination(hostname, stored.getHostname())) {
+                password = stored.getPassword();
+            }
         }
 
         public int getType() {

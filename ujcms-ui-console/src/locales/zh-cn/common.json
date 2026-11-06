@@ -271,6 +271,7 @@
   "app.title": "UJCMS后台管理",
   "punct.enum": "、",
   "punct.colon": "：",
+  "punct.period": "。",
   "login.demo.starLogin": "Gitee Star 后，免密登录",
   "login.demo.notice": "为避免数据被删改，演示用户登录后只拥有浏览后台功能，操作数据会显示无权访问（403）",
 

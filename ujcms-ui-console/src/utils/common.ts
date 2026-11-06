@@ -16,6 +16,8 @@ export const getSiteHeaders = (): any => {
 };
 
 export const pageSizes = [10, 20, 50, 100, 200, 400, 800];
+// 后端 Constants.MAX_PAGE_SIZE：要整个（天然有界的）列表时传它，如目录树的一层、模板文件树
+export const maxPageSize = 1000;
 export const pageLayout = 'total, sizes, prev, pager, next, jumper';
 
 export const toParams = (params: Record<string, any>): any => {

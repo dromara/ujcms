@@ -428,6 +428,7 @@
         <result column="link_url_" jdbcType="VARCHAR" property="linkUrl" />
         <result column="seo_keywords_" jdbcType="VARCHAR" property="seoKeywords" />
         <result column="seo_description_" jdbcType="VARCHAR" property="seoDescription" />
+        <result column="image_" jdbcType="VARCHAR" property="image" />
         <result column="author_" jdbcType="VARCHAR" property="author" />
         <result column="editor_" jdbcType="VARCHAR" property="editor" />
         <result column="source_" jdbcType="VARCHAR" property="source" />
@@ -445,7 +446,7 @@
     <select id="listForExport" resultMap="ExportResultMap" useCache="false">
         select t.id_, t.channel_id_, t.created_, t.modified_, t.publish_date_, t.online_date_, t.offline_date_,
                t.sticky_, t.with_image_, t.type_, t.status_, t.slug_,
-               e.title_, e.subtitle_, e.full_title_, e.link_url_, e.seo_keywords_, e.seo_description_,
+               e.title_, e.subtitle_, e.full_title_, e.link_url_, e.seo_keywords_, e.seo_description_, e.image_,
                e.author_, e.editor_, e.source_, e.article_static_path_, e.comments_, e.ups_, e.downs_, e.views_, e.mains_json_,
                o.name_ as org_name_, u.username_ as user_username_, mu.username_ as modified_user_username_
         from ujcms_article t

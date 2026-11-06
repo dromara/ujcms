@@ -271,6 +271,7 @@
   "app.title": "UJCMS Console",
   "punct.enum": ", ",
   "punct.colon": ": ",
+  "punct.period": ". ",
   "login.demo.starLogin": "Star on Gitee to log in without a password",
   "login.demo.notice": "To keep the data intact, the demo user can only browse the console after logging in; any attempt to change data returns access denied (403)",
 

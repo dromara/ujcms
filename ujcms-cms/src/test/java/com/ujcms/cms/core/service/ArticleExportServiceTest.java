@@ -16,13 +16,17 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -96,6 +100,7 @@ class ArticleExportServiceTest {
         row.setCreated(OffsetDateTime.parse("2026-10-06T08:30:00+08:00"));
         row.setPublishDate(OffsetDateTime.parse("2026-10-06T09:00:00+08:00"));
         row.setMainsJson("{\"price\":12.5,\"city\":\"Paris\",\"featured\":true}");
+        row.setImage("/uploads/1/image/2026/cover.jpg");
         return row;
     }
 
@@ -137,8 +142,8 @@ class ArticleExportServiceTest {
         when(articleService.listTagNames(any())).thenReturn(List.of(first, second));
         List<Column> columns = List.of(new Column("id", "ID"), new Column("title", "标题"), new Column("channel", "栏目"),
                 new Column("status", "状态"), new Column("publishDate", "发布日期"), new Column("views", "浏览量"),
-                new Column("tags", "TAG"), new Column("slug", "别名"), new Column("url", "地址"),
-                new Column("custom.price", "价格"), new Column("custom.city", "城市"),
+                new Column("tags", "TAG"), new Column("image", "标题图"), new Column("slug", "别名"),
+                new Column("url", "地址"), new Column("custom.price", "价格"), new Column("custom.city", "城市"),
                 new Column("custom.featured", "精选"));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -157,10 +162,19 @@ class ArticleExportServiceTest {
         assertTrue(xml.contains("<t>News / World</t>"), xml);
         assertTrue(xml.contains("<t>已发布</t>"), xml);
         assertTrue(xml.contains("<t>alpha, beta</t>"), xml);
-        // 日期按服务器时区写成文字
-        String published = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(
-                OffsetDateTime.parse("2026-10-06T09:00:00+08:00").atZoneSameInstant(ZoneId.systemDefault()));
-        assertTrue(xml.contains("<t>" + published + "</t>"), xml);
+        // 标题图写的是路径，导入时照样认
+        assertTrue(xml.contains("<t>/uploads/1/image/2026/cover.jpg</t>"), xml);
+        // 日期是带样式的日期单元格（序号按服务器时区换算），不是文字：Excel 里可以按日期排序、筛选
+        LocalDateTime published = OffsetDateTime.parse("2026-10-06T09:00:00+08:00")
+                .atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        double serial = ChronoUnit.DAYS.between(LocalDate.of(1899, 12, 30), published.toLocalDate())
+                + published.toLocalTime().toSecondOfDay() / 86400.0;
+        Matcher dateCell = Pattern.compile("<c r=\"E2\"[^>]*\\bs=\"\\d+\"[^>]*><v>([^<]+)</v>").matcher(xml);
+        assertTrue(dateCell.find(), xml);
+        assertEquals(serial, Double.parseDouble(dateCell.group(1)), 1e-6);
+        assertFalse(xml.contains("<t>" + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(published) + "</t>"), xml);
+        // 表头一行带自动筛选，范围覆盖写出的行
+        assertTrue(xml.contains("<autoFilter ref=\"A1:M2\""), xml);
         // 浏览量、自定义的数字字段是数字单元格
         assertTrue(xml.contains("<v>42</v>"), xml);
         assertTrue(xml.contains("<v>12.5</v>"), xml);
@@ -211,8 +225,33 @@ class ArticleExportServiceTest {
     }
 
     @Test
+    void customFieldsAreParsedOnlyWhenACustomColumnIsExported() throws IOException {
+        // 栏目模型的 assembleMap 一被调用就抛错：没有要自定义字段列时它不该被调用
+        Model broken = mock(Model.class);
+        when(broken.assembleMap(any(String.class))).thenThrow(new IllegalArgumentException("not parsed"));
+        Channel world = channel(WORLD, NEWS, "World", broken);
+        when(channelService.selectList(any())).thenReturn(List.of(channel(NEWS, null, "News", broken), world));
+        long id = 1L;
+        when(articleService.selectIds(any(), eq(0), anyInt())).thenReturn(List.of(id));
+        when(articleService.listForExport(any())).thenReturn(List.of(row(id, "plain")));
+
+        service.write(args, List.of(new Column("title", "Title"), new Column("publishDate", "Date")), Map.of(), site,
+                new ByteArrayOutputStream());
+        verify(broken, never()).assembleMap(any(String.class));
+
+        // 要了自定义字段列才解析；坏掉的 JSON 只让这一列空着，不让整张表导不出来
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int written = service.write(args, List.of(new Column("title", "Title"), new Column("custom.price", "Price")),
+                Map.of(), site, out);
+        verify(broken).assembleMap(any(String.class));
+        assertEquals(1, written);
+        assertTrue(sheetXml(out.toByteArray()).contains("<t>plain</t>"));
+    }
+
+    @Test
     void onlyKnownColumnsAndWellFormedCustomCodesAreAccepted() {
         assertTrue(ArticleExportService.isValidColumn("title"));
+        assertTrue(ArticleExportService.isValidColumn("image"));
         assertTrue(ArticleExportService.isValidColumn("custom.price"));
         assertFalse(ArticleExportService.isValidColumn("text"));
         assertFalse(ArticleExportService.isValidColumn("custom."));

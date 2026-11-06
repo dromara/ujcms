@@ -1,0 +1,17 @@
+databaseChangeLog:
+  # 站点主题列改存裸主题名（theme-marketplace A0 R2，原 11.9-site-theme-bare-name——13.0 重整时
+  # 当作"仅服务全新建库"删掉了，这里为升级路径补回）：
+  #   13.0 起 ujcms_site.theme_ / mobile_theme_ 只存裸主题名（如 default），/{siteId}/ 前缀由
+  #   Site.getThemeKey() 拼装；12.x 及更早版本存的是 /{siteId}/{themeName}（如 /1/default），
+  #   不转换则 13.x 按 /1//1/default 找主题目录，整站 500。
+  #   前缀是本行自身的 id_，去掉它即得裸名。只处理以 / 开头的行，幂等；全新建库表为空，
+  #   已是裸名的库无行匹配，都不需要前置条件。concat 取两参数嵌套写法，与 13.1-slug 同，
+  #   MySQL / MariaDB / PostgreSQL / Oracle 系 / SQL Server / H2 通用（数值 id_ 隐式转字符串）。
+  - changeSet:
+      id: 13.0-upgrade-site-theme-bare-name
+      author: PONY
+      changes:
+        - sql:
+            sql: update ujcms_site set theme_ = replace(theme_, concat(concat('/', id_), '/'), '') where theme_ like '/%'
+        - sql:
+            sql: update ujcms_site set mobile_theme_ = replace(mobile_theme_, concat(concat('/', id_), '/'), '') where mobile_theme_ like '/%'

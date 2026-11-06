@@ -65,17 +65,38 @@ public class Uploads {
     }
 
     /**
-     * 获得上传文件名。格式为 /yyyy/MM/yyyyMMddHHmmssSSS_12Random.extension
+     * 获得上传文件名（含按月归档的目录）。格式为 /yyyy/MM/yyyyMMddHHmmssSSS_12Random.extension
+     * <p>
+     * 目录只为了目录整洁（附件表存完整路径，删除按路径走），没有代码解析 yyyy/MM 段；按年/月/日归档不做配置项：
+     * 切换后新旧文件散在两种布局里，谁也清不掉。
      *
      * @param extension 文件扩展名
      * @return 文件名
      */
     public static String getRandomFilename(@Nullable String extension) {
-        String filename = FORMATTER.format(LocalDateTime.now()) + Secures.randomLowerCaseAlphanumeric(12);
+        LocalDateTime now = LocalDateTime.now();
+        return DIR_FORMATTER.format(now) + randomName(now, extension);
+    }
+
+    /**
+     * 获得不含目录的上传文件名。格式为 yyyyMMddHHmmssSSS_12Random.extension
+     * <p>
+     * 供自带目录的上传使用（如头像按 /avatar/{userId}/ 归档），与 {@link #getRandomFilename} 同一套命名：
+     * 时间戳前缀使目录列表按上传时间排序，12 位安全随机数在同一毫秒内也不会重名，不含原始文件名。
+     *
+     * @param extension 文件扩展名
+     * @return 文件名
+     */
+    public static String getRandomName(@Nullable String extension) {
+        return randomName(LocalDateTime.now(), extension);
+    }
+
+    private static String randomName(LocalDateTime now, @Nullable String extension) {
+        String name = NAME_FORMATTER.format(now) + Secures.randomLowerCaseAlphanumeric(RANDOM_LENGTH);
         if (StringUtils.isNotBlank(extension)) {
-            filename += "." + extension;
+            name += "." + extension;
         }
-        return filename;
+        return name;
     }
 
     public static void validateLimit(long limit, long fileSize) {
@@ -96,7 +117,9 @@ public class Uploads {
         return Arrays.asList(types.toLowerCase().split(",")).contains(StringUtils.lowerCase(type));
     }
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("/yyyy/MM/yyyyMMddHHmmssSSS_");
+    private static final DateTimeFormatter DIR_FORMATTER = DateTimeFormatter.ofPattern("/yyyy/MM/");
+    private static final DateTimeFormatter NAME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS_");
+    private static final int RANDOM_LENGTH = 12;
 
     public static final String IMAGE_TYPE = "image";
     public static final String VIDEO_TYPE = "video";

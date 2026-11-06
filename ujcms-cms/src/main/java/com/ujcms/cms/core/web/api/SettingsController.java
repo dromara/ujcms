@@ -253,8 +253,11 @@ public class SettingsController {
 
     @Schema(name = "SettingsController.AvatarParams", description = "头像参数")
     public static class AvatarParams {
+        /**
+         * 头像目录 /avatar/{userId}/ 下的裸文件名（{@code Uploads#getRandomName} 生成）：只允许一段主名加一段扩展名，不含路径分隔符
+         */
         @Schema(description = "图片名")
-        @Pattern(regexp = "[\\w.]{32,38}")
+        @Pattern(regexp = "^\\w{1,64}\\.\\w{1,16}$")
         public String image;
     }
 }

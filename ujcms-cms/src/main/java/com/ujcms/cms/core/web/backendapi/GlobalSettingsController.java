@@ -227,7 +227,8 @@ public class GlobalSettingsController {
             } catch (IllegalArgumentException e) {
                 throw new Http400Exception("Provider '" + provider.getName() + "': " + e.getMessage());
             }
-            // 写时合并：表单留空的密钥沿用库中同代码服务商的原值（配合 showAi 的“只写不回显”脱敏）
+            // 写时合并：表单留空的密钥沿用库中同代码、同接口地址服务商的原值（配合 showAi 的“只写不回显”脱敏）；
+            // 地址已变更则不沿用、以空密钥保存，否则改地址即可让之后的每次调用把已存密钥发往新主机
             config.getAi().fillStoredApiKey(provider);
         }
         // getMt 对显式 null 兜底返回新实例：先回填字段再合并密钥，避免存入 null 丢失已存凭证
@@ -264,8 +265,8 @@ public class GlobalSettingsController {
     @OperationLog(module = "config", operation = "updateEmail", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateEmail(@RequestBody @Valid Config.Email bean) {
         Config config = service.getUnique();
-        // 写时合并：表单留空的邮箱密码沿用库中原值（配合 showEmail 的“只写不回显”脱敏）
-        mergeEmailSecrets(bean, config.getEmail());
+        // 写时合并：表单留空的邮箱密码沿用库中原值（配合 showEmail 的“只写不回显”脱敏）；服务器地址已变更则不沿用、以空密码保存
+        bean.fillStoredSecrets(config.getEmail());
         config.setEmail(bean);
         service.update(config);
         return Responses.ok();
@@ -274,9 +275,11 @@ public class GlobalSettingsController {
     @PostMapping("email/send")
     @PreAuthorize("hasAnyAuthority('config:email:update','*')")
     @OperationLog(module = "config", operation = "sendEmail", type = OperationType.CREATE)
-    public ResponseEntity<Body> sendEmail(@RequestBody @Valid Config.Email bean) {
-        // 表单未重新录入密码时，测试发送沿用库中原值
-        mergeEmailSecrets(bean, service.getUnique().getEmail());
+    public ResponseEntity<Body> sendEmail(@RequestBody @Valid Config.Email bean, HttpServletRequest request) {
+        // 表单未重新录入密码时，测试发送沿用库中原值；服务器地址改过则不沿用、不发信，直接提示重新填写
+        if (bean.fillStoredSecrets(service.getUnique().getEmail())) {
+            return Responses.failure(request, "error.emailPasswordRebind");
+        }
         String code = Secures.randomNumeric(6);
         shortMessageService.sendEmailMessage(bean.getTestTo(), code, bean);
         return Responses.ok();
@@ -294,7 +297,7 @@ public class GlobalSettingsController {
     @OperationLog(module = "config", operation = "updateUploadStorage", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateUploadStorage(@RequestBody @Valid Config.Storage bean) {
         Config config = service.getUnique();
-        mergeStorageSecrets(bean, config.getUploadStorage());
+        bean.fillStoredSecrets(config.getUploadStorage());
         config.setUploadStorage(bean);
         validateStoragePath(bean.getPath());
         service.update(config);
@@ -313,7 +316,7 @@ public class GlobalSettingsController {
     @OperationLog(module = "config", operation = "updateHtmlStorage", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateHtmlStorage(@RequestBody @Valid Config.Storage bean) {
         Config config = service.getUnique();
-        mergeStorageSecrets(bean, config.getHtmlStorage());
+        bean.fillStoredSecrets(config.getHtmlStorage());
         config.setHtmlStorage(bean);
         validateStoragePath(bean.getPath());
         service.update(config);
@@ -332,7 +335,7 @@ public class GlobalSettingsController {
     @OperationLog(module = "config", operation = "updateTemplateStorage", type = OperationType.UPDATE)
     public ResponseEntity<Body> updateTemplateStorage(@RequestBody @Valid Config.Storage bean) {
         Config config = service.getUnique();
-        mergeStorageSecrets(bean, config.getTemplateStorage());
+        bean.fillStoredSecrets(config.getTemplateStorage());
         config.setTemplateStorage(bean);
         validateStoragePath(bean.getPath());
         service.update(config);
@@ -351,7 +354,7 @@ public class GlobalSettingsController {
     @OperationLog(module = "config", operation = "updatePackageStorage", type = OperationType.UPDATE)
     public ResponseEntity<Body> updatePackageStorage(@RequestBody @Valid Config.Storage bean) {
         Config config = service.getUnique();
-        mergeStorageSecrets(bean, config.getPackageStorage());
+        bean.fillStoredSecrets(config.getPackageStorage());
         config.setPackageStorage(bean);
         validateStoragePath(bean.getPath());
         service.update(config);
@@ -360,6 +363,8 @@ public class GlobalSettingsController {
 
     // region 凭据“只写不回显”脱敏与写时合并
     // 读取时密钥置空（不回传浏览器），保存/测试发送时若表单留空则沿用库中原值。
+    // 目的地可由表单填写的凭据（AI 接口地址、邮件服务器、存储 endpoint/FTP 主机）只沿用到原目的地，
+    // 规则在各配置类的 fillStored* 中；短信、验证码、第三方登录、机器翻译的服务端地址固定，不受此限。
     // 标识类字段（accessKeyId/secretId/sdkAppId）非密钥，保留可见，便于管理员确认配置。
 
     private Config.Sms maskSms(Config.Sms src) {
@@ -386,12 +391,6 @@ public class GlobalSettingsController {
         return masked;
     }
 
-    private void mergeEmailSecrets(Config.Email bean, Config.Email current) {
-        if (StringUtils.isBlank(bean.getPassword())) {
-            bean.setPassword(current.getPassword());
-        }
-    }
-
     private Config.Storage maskStorage(Config.Storage src) {
         Config.Storage masked = new Config.Storage();
         Entities.copy(src, masked);
@@ -399,18 +398,6 @@ public class GlobalSettingsController {
         masked.setSecretKey("");
         masked.setPassword("");
         return masked;
-    }
-
-    private void mergeStorageSecrets(Config.Storage bean, Config.Storage current) {
-        if (StringUtils.isBlank(bean.getAccessKey())) {
-            bean.setAccessKey(current.getAccessKey());
-        }
-        if (StringUtils.isBlank(bean.getSecretKey())) {
-            bean.setSecretKey(current.getSecretKey());
-        }
-        if (StringUtils.isBlank(bean.getPassword())) {
-            bean.setPassword(current.getPassword());
-        }
     }
 
     private Config.Ai maskAi(Config.Ai src) {

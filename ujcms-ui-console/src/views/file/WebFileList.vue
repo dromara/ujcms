@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import dayjs from 'dayjs';
 import { saveAs } from 'file-saver';
 import { currentUser, perm } from '@/stores/useCurrentUser';
-import { toParams, resetParams } from '@/utils/common';
+import { toParams, resetParams, pageSizes, pageLayout } from '@/utils/common';
 import { isAcceptedExtension } from '@/utils/upload';
 import { queryCurrentSite } from '@/api/system';
 import { ColumnList, ColumnSetting } from '@/components/TableList';
@@ -69,6 +69,10 @@ const table = ref<any>();
 const data = ref<any[]>([]);
 const selection = ref<any[]>([]);
 const loading = ref<boolean>(false);
+// 分页是工作状态，不进路由（console-view-state）：换目录、查询、排序、换根都回到第 1 页，每页条数随会话
+const currentPage = ref<number>(1);
+const pageSize = ref<number>(10);
+const total = ref<number>(0);
 const downloadLoading = ref<boolean>(false);
 const formVisible = ref<boolean>(false);
 const beanId = ref<string>();
@@ -111,10 +115,20 @@ const fetchData = async (showLoading?: boolean) => {
     loading.value = true;
   }
   try {
-    const rows = await props.queryWebFileList({ ...toParams(params.value), parentId: parentId.value, sort: sort.value });
+    const {
+      content,
+      page: { totalElements },
+    } = await props.queryWebFileList({ ...toParams(params.value), parentId: parentId.value, sort: sort.value, page: currentPage.value, pageSize: pageSize.value });
+    // 删掉末页仅剩的几行后页码越界：退回最后一页重取（第 1 页为空即目录为空，不再退）
+    if (content.length === 0 && currentPage.value > 1) {
+      currentPage.value = Math.max(1, Math.ceil(Number(totalElements) / pageSize.value));
+      await fetchData(false);
+      return;
+    }
     // 先算出需排除的文件，再赋值 data，避免已登记文件“先显示后消失”的闪烁
-    excludedUrls.value = props.pick && props.pickFilter ? new Set(await props.pickFilter(rows)) : new Set();
-    data.value = rows;
+    excludedUrls.value = props.pick && props.pickFilter ? new Set(await props.pickFilter(content)) : new Set();
+    data.value = content;
+    total.value = Number(totalElements);
     filtered.value = Object.values(params.value).filter((v) => v !== undefined && v !== '').length > 0 || sort.value !== undefined;
   } finally {
     if (showLoading == null || showLoading) {
@@ -143,6 +157,7 @@ const computeBase = () => {
 const handleShowGlobalChange = () => {
   computeBase();
   parentId.value = internalBaseId.value;
+  currentPage.value = 1;
   fetchData();
 };
 // 初始目录须位于浏览根之内（与后端的路径校验同口径）：地址可能来自其它站点（切换站点后整页重载而地址不变）或被手改
@@ -181,6 +196,7 @@ watch(
       resetParams(params.value);
       sort.value = undefined;
       parentId.value = value;
+      currentPage.value = 1;
       fetchData();
     }
   },
@@ -192,18 +208,24 @@ const handleSort = ({ column, prop, order }: { column: any; prop: string | null;
   } else {
     sort.value = undefined;
   }
+  currentPage.value = 1;
   fetchData();
 };
-const handleSearch = () => fetchData();
+const handleSearch = () => {
+  currentPage.value = 1;
+  fetchData();
+};
 const handleReset = () => {
   table.value.clearSort();
   resetParams(params.value);
   sort.value = undefined;
+  currentPage.value = 1;
   fetchData();
 };
 const changeParentId = (id: string) => {
   parentId.value = id;
   params.value = {};
+  currentPage.value = 1;
   fetchData();
 };
 const handleAdd = () => {
@@ -475,6 +497,18 @@ const uploadSuccess = async () => {
           </el-table-column>
         </column-list>
       </el-table>
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :total="total"
+        :page-sizes="pageSizes"
+        :layout="pageLayout"
+        size="small"
+        background
+        class="justify-end px-3 py-2"
+        @size-change="() => fetchData()"
+        @current-change="() => fetchData()"
+      ></el-pagination>
     </div>
     <web-file-form
       v-model="formVisible"

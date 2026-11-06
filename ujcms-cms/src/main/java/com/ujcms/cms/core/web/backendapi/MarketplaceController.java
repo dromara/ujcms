@@ -79,7 +79,7 @@ public class MarketplaceController {
     public MarketplaceController(MarketplaceClient client, MarketplaceInstallService installService,
                                  MarketplaceConnectionService connectionService, Props props,
                                  @org.springframework.beans.factory.annotation.Value(
-                                         "${ujcms.marketplace.storefront-url:${ujcms.marketplace.base-url:https://marketplace.ujcms.com}}")
+                                         "${ujcms.marketplace.storefront-url:${ujcms.marketplace.base-url:https://market.ujcms.com}}")
                                  String storefrontUrl) {
         this.client = client;
         this.installService = installService;

@@ -99,6 +99,11 @@ public class ArticleExportRow implements Serializable {
     @Nullable
     private String seoDescription;
     /**
+     * 标题图
+     */
+    @Nullable
+    private String image;
+    /**
      * 作者
      */
     @Nullable
@@ -307,6 +312,15 @@ public class ArticleExportRow implements Serializable {
 
     public void setSeoDescription(@Nullable String seoDescription) {
         this.seoDescription = seoDescription;
+    }
+
+    @Nullable
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(@Nullable String image) {
+        this.image = image;
     }
 
     @Nullable

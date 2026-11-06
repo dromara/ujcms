@@ -2,10 +2,16 @@ package com.ujcms.cms.core.web.backendapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.security.HtmlSanitizeService;
@@ -15,10 +21,11 @@ import com.ujcms.cms.core.service.ShortMessageService;
 import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.common.captcha.CaptchaTokenService;
+import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.exception.LogicException;
 
 /**
- * 验证管理端凭据“只写不回显”：读取脱敏、保存时表单留空则沿用库中原值。
+ * 验证管理端凭据“只写不回显”：读取脱敏、保存时表单留空则沿用库中原值；目的地可填的凭据只沿用到原目的地。
  */
 class GlobalSettingsControllerSecretTest {
 
@@ -101,6 +108,51 @@ class GlobalSettingsControllerSecretTest {
         newController(config).updateSms(bean);
 
         assertEquals("AKSECRET-new", config.getSms().getAccessKeySecret(), "提供新值时覆盖原密钥");
+    }
+
+    private static Config.Email email(String host, String password) {
+        Config.Email email = new Config.Email();
+        email.setHost(host);
+        email.setUsername("notify@example.com");
+        email.setPassword(password);
+        email.setTestTo("ops@example.com");
+        return email;
+    }
+
+    @Test
+    void updateEmailKeepsStoredPasswordOnlyForTheSameHost() {
+        Config config = new Config();
+        config.setEmail(email("smtp.example.com", "smtp-secret"));
+
+        newController(config).updateEmail(email(" SMTP.example.com ", ""));
+        assertEquals("smtp-secret", config.getEmail().getPassword(), "同一服务器留空沿用原密码");
+
+        newController(config).updateEmail(email("smtp.attacker.example", ""));
+        assertEquals("", config.getEmail().getPassword(), "换了服务器不得沿用原密码，以空密码保存");
+    }
+
+    @Test
+    void sendEmailToChangedHostWithBlankPasswordIsRefusedWithoutSending() {
+        Config config = new Config();
+        config.setEmail(email("smtp.example.com", "smtp-secret"));
+        ShortMessageService shortMessageService = mock(ShortMessageService.class);
+        ConfigService service = mock(ConfigService.class);
+        when(service.getUnique()).thenReturn(config);
+        GlobalSettingsController controller = new GlobalSettingsController(mock(HtmlSanitizeService.class),
+                mock(ModelService.class), shortMessageService, service, mock(CaptchaTokenService.class),
+                mock(Props.class));
+
+        // 把服务器改成自己的主机再点“发送测试邮件”，SMTP 认证就会交出已存密码
+        Responses.Body body = controller.sendEmail(email("smtp.attacker.example", ""),
+                new MockHttpServletRequest()).getBody();
+        assertEquals(Responses.Body.FAILURE, body.getStatus());
+        assertEquals("error.emailPasswordRebind", body.getMessage());
+        verify(shortMessageService, never()).sendEmailMessage(any(), any(), any());
+
+        controller.sendEmail(email("smtp.example.com", ""), new MockHttpServletRequest());
+        ArgumentCaptor<Config.Email> sent = ArgumentCaptor.forClass(Config.Email.class);
+        verify(shortMessageService).sendEmailMessage(eq("ops@example.com"), any(), sent.capture());
+        assertEquals("smtp-secret", sent.getValue().getPassword(), "同一服务器仍沿用已存密码");
     }
 
     @Test

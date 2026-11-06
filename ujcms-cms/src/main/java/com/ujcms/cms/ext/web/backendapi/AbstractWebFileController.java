@@ -4,6 +4,7 @@ import com.ujcms.cms.core.domain.Config;
 import com.ujcms.cms.core.support.Contexts;
 import com.ujcms.cms.core.support.Props;
 import com.ujcms.common.file.*;
+import com.ujcms.common.web.Pages;
 import com.ujcms.common.web.PathResolver;
 import com.ujcms.common.web.Responses;
 import com.ujcms.common.web.Servlets;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +26,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import static com.ujcms.cms.core.support.Constants.validPage;
+import static com.ujcms.cms.core.support.Constants.validPageSize;
 import static com.ujcms.common.file.FilesEx.SLASH;
 import static com.ujcms.common.file.WebFile.TEXT_EXTENSIONS;
 
@@ -58,7 +63,14 @@ public abstract class AbstractWebFileController {
     public static final String EXCLUDES_THEMES = "/themes";
     public static final String EXCLUDES_UPLOADS = "/uploads";
 
-    protected List<WebFile> list(String parentId, boolean isDir, String name, String sort, Config.Storage storage) {
+    /**
+     * 目录列表。存储点不支持下推分页，整个目录读出、过滤、排序后在内存中切页：服务端仍按目录大小开销，
+     * 但响应和表格只承载一页——按月归档的上传目录动辄上万个文件，整表返回时浏览器先于磁盘倒下。
+     * 页码、每页条数的校验与其它列表接口相同（{@code validPage} / {@code validPageSize}）；
+     * 要整个目录的调用方（复制/移动的目标目录树、模板工作台的文件树）传最大每页条数。
+     */
+    protected Page<WebFile> list(String parentId, boolean isDir, @Nullable String name, String sort,
+                                 @Nullable Integer page, @Nullable Integer pageSize, Config.Storage storage) {
         checkFilesManagementEnabled();
         checkId(parentId);
         FileHandler fileHandler = storage.getFileHandler(pathResolver);
@@ -71,7 +83,7 @@ public abstract class AbstractWebFileController {
         List<WebFile> list = fileHandler.listFiles(parentId, filter);
         String[] pair = sort.split("_");
         WebFile.sort(list, pair[0], pair.length > 1 ? pair[1] : "asc");
-        return list;
+        return Pages.of(list, validPage(page), validPageSize(pageSize));
     }
 
     protected WebFile show(String id, Config.Storage storage) {

@@ -96,6 +96,10 @@ databaseChangeLog:
   - include:
       file: db.changelog-13.0-composition.yaml
       relativeToChangelogFile: true
+  # 升级路径补丁：12.x 及更早版本的 /{siteId}/{theme} 改裸主题名（全新建库空操作）
+  - include:
+      file: db.changelog-13.0-upgrade-site-theme.yaml
+      relativeToChangelogFile: true
   - include:
       file: db.changelog-13.0-seed-origin.yaml
       relativeToChangelogFile: true

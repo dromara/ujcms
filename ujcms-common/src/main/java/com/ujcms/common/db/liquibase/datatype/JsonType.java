@@ -2,6 +2,7 @@ package com.ujcms.common.db.liquibase.datatype;
 
 import liquibase.change.core.LoadDataChange;
 import liquibase.database.Database;
+import liquibase.database.core.H2Database;
 import liquibase.database.core.MSSQLDatabase;
 import liquibase.database.core.MySQLDatabase;
 import liquibase.database.core.OracleDatabase;
@@ -44,7 +45,8 @@ public class JsonType extends LiquibaseDataType {
 
     @Override
     public DatabaseDataType toDatabaseDataType(Database database) {
-        if (database instanceof MySQLDatabase) {
+        if (database instanceof MySQLDatabase || database instanceof H2Database) {
+            // H2 2.x 原生 JSON 类型（内存库跑变更日志的测试用；H2 没有 jsonb）
             return new DatabaseDataType("JSON");
         }
         if (database instanceof OracleDatabase) {

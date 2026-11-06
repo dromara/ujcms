@@ -28,6 +28,8 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
   // 是否显示“从资源库选择”入口
   pickable: { type: Boolean, default: false },
+  // 内联：不画拖拽区的虚线框，只呈现一个与相邻 el-button 同形同高的普通按钮；仍可把文件拖到按钮上上传
+  inline: { type: Boolean, default: false },
   onSuccess: { type: Function as PropType<((response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => void) | undefined>, default: null },
 });
 
@@ -150,7 +152,7 @@ const handlePick = (items: any) => {
 </script>
 
 <template>
-  <div :class="{ 'w-full': pickable }">
+  <div :class="{ 'w-full': pickable, 'inline-upload': inline }">
     <el-upload
       :action="action"
       :headers="{ ...getAuthHeaders(), ...getSiteHeaders(), ...getLocaleHeaders() }"
@@ -166,8 +168,10 @@ const handlePick = (items: any) => {
       drag
     >
       <slot>
+        <!-- 内联：普通按钮，拖拽区的样式在下面去掉 -->
+        <el-button v-if="inline" :icon="UploadFilled" :disabled="disabled">{{ button ?? $t('upload') }}</el-button>
         <!-- 拖拽区内放两个明确按钮：上传（点击冒泡触发文件选择）、从资源库选择（.stop 阻止冒泡，改为打开选择器）；整框仍可拖拽 -->
-        <div class="dropzone">
+        <div v-else class="dropzone">
           <el-button type="primary" :icon="UploadFilled" :disabled="disabled">{{ button ?? $t('upload') }}</el-button>
           <el-button v-if="pickable" :icon="FolderOpened" :disabled="disabled" @click.stop="pickerVisible = true">
             {{ $t('resource.library') }}
@@ -204,5 +208,19 @@ const handlePick = (items: any) => {
 /* 由 flex gap 统一控制间距，去掉 EP 相邻按钮自带的 margin 以免双倍间隔 */
 .dropzone :deep(.el-button + .el-button) {
   margin-left: 0;
+}
+/* inline：拖拽区不画框、不留内边距，只剩按钮本身；dragger 改为 flex，否则块级容器里的 inline-flex 按钮会撑出行框，高出相邻 el-button 2px */
+.inline-upload :deep(.el-upload-dragger),
+.inline-upload :deep(.el-upload-dragger.is-dragover) {
+  display: flex;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  overflow: visible;
+}
+/* 拖文件到按钮上时，把 EP 原本画在拖拽区上的虚线高亮画在按钮上 */
+.inline-upload :deep(.el-upload-dragger.is-dragover .el-button) {
+  border-style: dashed;
+  @apply border-primary text-primary bg-primary-lighter;
 }
 </style>

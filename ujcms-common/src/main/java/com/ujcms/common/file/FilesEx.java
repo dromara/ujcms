@@ -19,7 +19,6 @@ import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.jspecify.annotations.Nullable;
@@ -118,18 +117,6 @@ public class FilesEx {
         } else {
             return format0.format(lengthTb) + " TB";
         }
-    }
-
-    public static String randomName(String extension) {
-        StringBuilder name = new StringBuilder();
-        name.append(System.currentTimeMillis());
-        String random = RandomStringUtils.secure().next(8, '0', 'Z', true, true).toLowerCase();
-        name.append(random);
-        if (StringUtils.isNotBlank(extension)) {
-            name.append(".");
-            name.append(extension);
-        }
-        return name.toString();
     }
 
     /**
