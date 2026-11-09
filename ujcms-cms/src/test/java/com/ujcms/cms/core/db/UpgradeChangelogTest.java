@@ -1,6 +1,9 @@
 package com.ujcms.cms.core.db;
 
-import liquibase.Liquibase;
+import liquibase.Scope;
+import liquibase.command.CommandScope;
+import liquibase.command.core.UpdateCommandStep;
+import liquibase.command.core.helpers.DbUrlConnectionCommandStep;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
@@ -22,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,7 +71,7 @@ class UpgradeChangelogTest {
 
     @Test
     void upgradeFromPre13KeepsExistingData() throws Exception {
-        Path pre13 = writePre13Master(tempDir);
+        writePre13Master(tempDir);
         ResourceAccessor accessor = new CompositeResourceAccessor(new DirectoryResourceAccessor(tempDir),
                 new ClassLoaderResourceAccessor());
         try (Connection conn = openH2("upgrade")) {
@@ -83,7 +87,7 @@ class UpgradeChangelogTest {
                         + "upload_storage_settings_, html_storage_settings_, template_storage_settings_) values "
                         + "(1, 1, '{\"k\":\"upload\"}', '{\"k\":\"grey\"}', '{\"k\":\"security\"}', '{\"k\":\"register\"}', "
                         + "'{\"k\":\"sms\"}', '{\"k\":\"email\"}', '{\"k\":\"upload_storage\"}', '{\"k\":\"html_storage\"}', "
-                        + "'{\"k\":\"template_storage\"}')");
+                        + "'{\"k\":\"template_storage\",\"path\":\"/templates\",\"url\":\"/templates\"}')");
                 st.execute("insert into ujcms_site (id_, org_id_, model_id_, name_, protocol_, domain_, theme_, "
                         + "mobile_theme_, max_date_) values (1, 1, 1, 'UJCMS', 'https', 'www.example.test', "
                         + "'/1/default', '/1/mobile', now())");
@@ -99,10 +103,13 @@ class UpgradeChangelogTest {
 
             update(conn, MASTER, accessor);
 
-            // 设置列：值原样保留，类型已是大文本，临时列不残留
+            // 设置列：值原样保留，类型已是大文本，临时列不残留（模板存储的 /templates 默认值例外：改指向 13.0 的 /themes 目录）
             for (String column : CONFIG_SETTINGS) {
                 String key = column.substring(0, column.length() - "_settings_".length());
-                assertEquals("{\"k\":\"" + key + "\"}", scalar(conn, "select " + column + " from ujcms_config where id_ = 1"),
+                String expected = "template_storage".equals(key)
+                        ? "{\"k\":\"template_storage\",\"path\":\"/themes\",\"url\":\"/themes\"}"
+                        : "{\"k\":\"" + key + "\"}";
+                assertEquals(expected, scalar(conn, "select " + column + " from ujcms_config where id_ = 1"),
                         column + " 的存量值丢了");
                 assertEquals(CLOB, columnType(conn, "ujcms_config", column), column);
                 assertNull(columnType(conn, "ujcms_config", column.replace("_settings_", "_settings_tmp_")), "临时列残留");
@@ -140,7 +147,7 @@ class UpgradeChangelogTest {
             assertExecType(conn, "EXECUTED", CONFIG_UPGRADE_IDS);
             assertExecType(conn, "EXECUTED", MESSAGE_BOARD_UPGRADE_IDS);
             assertExecType(conn, "EXECUTED", USER_UPGRADE_IDS);
-            assertExecType(conn, "EXECUTED", "13.0-upgrade-site-theme-bare-name");
+            assertExecType(conn, "EXECUTED", "13.0-upgrade-site-theme-bare-name", "13.0-upgrade-template-storage-themes");
 
             // 再跑一遍：无事可做（校验和与前置条件都稳定）
             int ran = ranChangeSets(conn);
@@ -156,7 +163,7 @@ class UpgradeChangelogTest {
             update(conn, MASTER, accessor);
             assertExecType(conn, "EXECUTED", "13.0-config-settings-to-mediumtext",
                     "13.0-message-board-contact-to-mediumtext", "13.0-user-pii-encryption",
-                    "13.0-upgrade-site-theme-bare-name");
+                    "13.0-upgrade-site-theme-bare-name", "13.0-upgrade-template-storage-themes");
             assertExecType(conn, "MARK_RAN", CONFIG_UPGRADE_IDS);
             assertExecType(conn, "MARK_RAN", MESSAGE_BOARD_UPGRADE_IDS);
             assertExecType(conn, "MARK_RAN", USER_UPGRADE_IDS);
@@ -211,13 +218,18 @@ class UpgradeChangelogTest {
 
     private static void update(Connection conn, String changeLog, ResourceAccessor accessor) throws Exception {
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn));
-        // 不 close：Liquibase.close 会把底层 JDBC 连接一起关掉
-        Liquibase liquibase = new Liquibase(changeLog, accessor, database);
-        liquibase.update("");
+        // 直接跑 update 命令（Liquibase.update 内部就是这样做的）：命令只关它自己建的库连接，传进去的 Database 不关，
+        // 同一个 H2 连接才能接着跑下一份变更日志
+        Scope.child(Map.of(Scope.Attr.database.name(), database, Scope.Attr.resourceAccessor.name(), accessor), () -> {
+            new CommandScope(UpdateCommandStep.COMMAND_NAME)
+                    .addArgumentValue(DbUrlConnectionCommandStep.DATABASE_ARG, database)
+                    .addArgumentValue(UpdateCommandStep.CHANGELOG_FILE_ARG, changeLog)
+                    .execute();
+        });
     }
 
     /** 主变更日志里 13.0 之前的 include（10.0 整库、Quartz、12.x）另存一份，模拟 12.x 的库 */
-    private static Path writePre13Master(Path dir) throws Exception {
+    private static void writePre13Master(Path dir) throws Exception {
         String master;
         try (InputStream in = Objects.requireNonNull(
                 UpgradeChangelogTest.class.getClassLoader().getResourceAsStream(MASTER), MASTER)) {
@@ -247,7 +259,6 @@ class UpgradeChangelogTest {
         Path file = dir.resolve(PRE_13_MASTER);
         Files.createDirectories(file.getParent());
         Files.writeString(file, String.join("\n", kept) + "\n", StandardCharsets.UTF_8);
-        return file;
     }
 
     private static String scalar(Connection conn, String sql) throws SQLException {

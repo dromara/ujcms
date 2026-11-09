@@ -29,10 +29,12 @@ import com.ujcms.cms.core.marketplace.MarketplaceClient.Me;
 import com.ujcms.cms.core.marketplace.MarketplaceClient.MeAccount;
 import com.ujcms.cms.core.marketplace.MarketplaceClient.MeInstance;
 import com.ujcms.cms.core.marketplace.MarketplaceClient.OAuthTokens;
+import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.ConnectionStatus;
 import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.DeviceStart;
 import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.EntitlementsSnapshot;
 import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.PollResult;
 import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.PollStatus;
+import com.ujcms.cms.core.support.Constants;
 import com.ujcms.cms.core.support.Props;
 
 /**
@@ -84,7 +86,7 @@ class MarketplaceConnectionServiceTest {
 
     private MarketplaceConnection connection(String accessToken, long expiresAtSeconds, String refreshToken) {
         return new MarketplaceConnection(accessToken, expiresAtSeconds, refreshToken, "catalog:read",
-                "dev@ujcms.com", "Dev", "inst-1", "UJCMS 11.0.2", "2026-07-18T10:00:00+08:00", false);
+                "dev@ujcms.com", null, "Dev", "inst-1", "UJCMS 11.0.2", "2026-07-18T10:00:00+08:00", false);
     }
 
     // ----- 设备授权流 -----
@@ -138,22 +140,145 @@ class MarketplaceConnectionServiceTest {
         when(client.pollDeviceToken("device-1")).thenReturn(new OAuthTokens(
                 "access-1", "Bearer", 900, "refresh-1", "catalog:read entitlements:read download"));
         when(client.getMe("access-1")).thenReturn(new Me(
-                new MeAccount("acc-1", "dev@ujcms.com", "Dev"),
+                new MeAccount("acc-1", "dev@ujcms.com", "+8613800000000", "Dev"),
                 new MeInstance("inst-1", "UJCMS 11.0.2", null, "11.0.2", null)));
         advanceSeconds(5);
         PollResult result = service.pollConnect();
         assertEquals(PollStatus.CONNECTED, result.status());
-        assertEquals("dev@ujcms.com", result.accountEmail());
+        // 投影脱敏（C4a / C4c）：轮询结果与状态投影只见 dev***@ujcms.com / 138****0000
+        assertEquals("d***@ujcms.com", result.accountEmail());
+        assertEquals("138****0000", result.accountPhone());
 
         MarketplaceConnection saved = stored.get();
         assertNotNull(saved);
         assertEquals("access-1", saved.accessToken());
         assertEquals("refresh-1", saved.refreshToken());
         assertEquals(nowSeconds() + 900, saved.accessTokenExpiresAt());
+        // 行里存 /me 返回的原值
         assertEquals("dev@ujcms.com", saved.accountEmail());
+        assertEquals("+8613800000000", saved.accountPhone());
         assertFalse(saved.reconnectRequired());
         // 挂起流已消费：再轮询 → NONE
         assertEquals(PollStatus.NONE, service.pollConnect().status());
+    }
+
+    @Test
+    void phoneOnlyAccountIsStoredRawAndProjectedMasked() {
+        // 生产账号多为仅手机号（市场 D-M9-7）：email 为 null，控制台芯片回退到脱敏手机号（C4a）
+        startFlow();
+        when(client.pollDeviceToken("device-1")).thenReturn(new OAuthTokens(
+                "access-1", "Bearer", 900, "refresh-1", "catalog:read entitlements:read download"));
+        when(client.getMe("access-1")).thenReturn(new Me(
+                new MeAccount("acc-2", null, "+8613912345678", "微信用户"), null));
+        advanceSeconds(5);
+        PollResult result = service.pollConnect();
+        assertEquals(PollStatus.CONNECTED, result.status());
+        assertNull(result.accountEmail());
+        assertEquals("139****5678", result.accountPhone());
+        assertEquals("微信用户", result.accountName());
+
+        assertEquals("+8613912345678", stored.get().accountPhone());
+        ConnectionStatus status = service.getStatus();
+        assertTrue(status.connected());
+        assertNull(status.accountEmail());
+        assertEquals("139****5678", status.accountPhone());
+        assertEquals("微信用户", status.accountName());
+    }
+
+    @Test
+    void storedConnectionWithoutPhoneFieldStillDeserializes() throws Exception {
+        // C4a 之前落库的 JSON 没有 accountPhone：缺失组件填 null，其余字段照旧（无迁移）
+        String legacy = """
+                {"accessToken":"access-1","accessTokenExpiresAt":1700000000,"refreshToken":"refresh-1",
+                 "scope":"catalog:read","accountEmail":"dev@ujcms.com","accountName":"Dev",
+                 "instanceId":"inst-1","instanceName":"UJCMS 11.0.2",
+                 "connectedAt":"2026-07-18T10:00:00+08:00","reconnectRequired":false}
+                """;
+        MarketplaceConnection connection = Constants.MAPPER.readValue(legacy, MarketplaceConnection.class);
+        assertEquals("dev@ujcms.com", connection.accountEmail());
+        assertNull(connection.accountPhone());
+        assertEquals("Dev", connection.accountName());
+        assertEquals("refresh-1", connection.refreshToken());
+        assertFalse(connection.reconnectRequired());
+
+        stored.set(connection);
+        ConnectionStatus status = service.getStatus();
+        assertEquals("d***@ujcms.com", status.accountEmail());
+        assertNull(status.accountPhone());
+
+        // 新行往返：手机号原值落库、读回不变
+        MarketplaceConnection withPhone = new MarketplaceConnection("a", 1L, "r", null, null, "+8613800000000",
+                "微信用户", null, null, null, false);
+        MarketplaceConnection roundTrip = Constants.MAPPER.readValue(
+                Constants.MAPPER.writeValueAsString(withPhone), MarketplaceConnection.class);
+        assertEquals("+8613800000000", roundTrip.accountPhone());
+        assertEquals("+8613800000000", roundTrip.asReconnectRequired().accountPhone());
+        assertEquals("+8613800000000", roundTrip.withTokens("a2", 2L, "r2").accountPhone());
+    }
+
+    @Test
+    void purchaseEnabledFollowsThePersistedScope() throws Exception {
+        // C4b / D-C4-4：C4b 之前落库的连接（三个 scope）照常反序列化，但 purchaseEnabled=false——购买对话框提示重新连接
+        String legacy = """
+                {"accessToken":"access-1","accessTokenExpiresAt":1700000000,"refreshToken":"refresh-1",
+                 "scope":"download entitlements:read catalog:read","accountEmail":"dev@ujcms.com",
+                 "accountName":"Dev","instanceId":"inst-1","instanceName":"UJCMS 11.0.2",
+                 "connectedAt":"2026-07-18T10:00:00+08:00","reconnectRequired":false}
+                """;
+        stored.set(Constants.MAPPER.readValue(legacy, MarketplaceConnection.class));
+        ConnectionStatus legacyStatus = service.getStatus();
+        assertTrue(legacyStatus.connected());
+        assertFalse(legacyStatus.reconnectRequired());
+        assertFalse(legacyStatus.purchaseEnabled());
+        assertFalse(service.isPurchaseEnabled());
+
+        // 新连接（C4b 起请求四个 scope；服务端返回不保序）→ true
+        startFlow();
+        when(client.pollDeviceToken("device-1")).thenReturn(new OAuthTokens(
+                "access-2", "Bearer", 900, "refresh-2", "download entitlements:read orders:write catalog:read"));
+        when(client.getMe("access-2")).thenReturn(new Me(new MeAccount("acc-1", "dev@ujcms.com", null, "Dev"), null));
+        advanceSeconds(5);
+        assertEquals(PollStatus.CONNECTED, service.pollConnect().status());
+        assertTrue(service.getStatus().purchaseEnabled());
+        assertTrue(service.isPurchaseEnabled());
+        // 令牌轮换不改变 scope 判定；失效标记保留 scope（重连提示优先于购买提示由调用方决定）
+        stored.set(stored.get().withTokens("access-3", nowSeconds() + 900, "refresh-3"));
+        assertTrue(service.isPurchaseEnabled());
+
+        // 未连接 → false
+        stored.set(null);
+        assertFalse(service.getStatus().purchaseEnabled());
+        assertFalse(service.isPurchaseEnabled());
+    }
+
+    @Test
+    void hasOrdersWriteScopeIsTokenExactAndOrderInsensitive() {
+        assertTrue(MarketplaceConnectionService.hasOrdersWriteScope("orders:write"));
+        assertTrue(MarketplaceConnectionService.hasOrdersWriteScope("catalog:read  orders:write download"));
+        assertFalse(MarketplaceConnectionService.hasOrdersWriteScope("catalog:read entitlements:read download"));
+        assertFalse(MarketplaceConnectionService.hasOrdersWriteScope("orders:writer"));
+        assertFalse(MarketplaceConnectionService.hasOrdersWriteScope(null));
+        assertFalse(MarketplaceConnectionService.hasOrdersWriteScope("  "));
+    }
+
+    @Test
+    void maskPhoneFollowsTheStorefrontRule() {
+        assertEquals("138****0000", MarketplaceConnectionService.maskPhone("+8613800000000"));
+        assertEquals("+44****0123", MarketplaceConnectionService.maskPhone("+447700900123"));
+        assertEquals("+1****4567", MarketplaceConnectionService.maskPhone("+1234567"));
+        assertEquals("*******", MarketplaceConnectionService.maskPhone("1234567"));
+        assertNull(MarketplaceConnectionService.maskPhone(null));
+        assertNull(MarketplaceConnectionService.maskPhone("  "));
+    }
+
+    @Test
+    void maskEmailKeepsTheDomain() {
+        assertEquals("122***@qq.com", MarketplaceConnectionService.maskEmail("122513110@qq.com"));
+        assertEquals("d***@ujcms.com", MarketplaceConnectionService.maskEmail("dev@ujcms.com"));
+        assertEquals("a***@ujcms.com", MarketplaceConnectionService.maskEmail("ab@ujcms.com"));
+        assertEquals("*****", MarketplaceConnectionService.maskEmail("noat!"));
+        assertNull(MarketplaceConnectionService.maskEmail(null));
+        assertNull(MarketplaceConnectionService.maskEmail("  "));
     }
 
     @Test

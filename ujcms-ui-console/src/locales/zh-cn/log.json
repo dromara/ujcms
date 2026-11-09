@@ -472,6 +472,8 @@
   "log.marketplace.disconnect": "断开应用市场账号",
   "log.marketplace.install": "从应用市场安装主题",
   "log.marketplace.update": "从应用市场更新主题",
+  "log.marketplace.purchase": "控制台内购买主题",
+  "log.marketplace.purchaseCancel": "取消控制台内购买订单",
 
   "log.themeSandbox": "主题沙箱",
   "log.themeSandbox.create": "创建主题沙箱",

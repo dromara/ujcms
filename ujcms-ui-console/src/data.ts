@@ -719,6 +719,8 @@ export function getPermsTreeData(): any[] {
             { label: t('marketplace.op.browse'), key: 'marketplace:browse' },
             { label: t('marketplace.op.install'), key: 'marketplace:install', perms: ['marketplace:install'] },
             { label: t('marketplace.op.connect'), key: 'marketplace:connect', perms: ['marketplace:connect'] },
+            // C4b：购买是花账号的钱——既非浏览、安装，也非连接（一次性管理动作），第四权（D-C4-2）
+            { label: t('marketplace.op.purchase'), key: 'marketplace:purchase', perms: ['marketplace:purchase'] },
           ],
         },
         {
@@ -1784,6 +1786,8 @@ export const logNames = [
   'marketplace.disconnect',
   'marketplace.install',
   'marketplace.update',
+  'marketplace.purchase',
+  'marketplace.purchaseCancel',
 
   'themeSandbox.create',
   'themeSandbox.createFromStore',

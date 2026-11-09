@@ -472,6 +472,8 @@
   "log.marketplace.disconnect": "Disconnect marketplace account",
   "log.marketplace.install": "Install theme from marketplace",
   "log.marketplace.update": "Update theme from marketplace",
+  "log.marketplace.purchase": "Buy theme in console",
+  "log.marketplace.purchaseCancel": "Cancel in-console purchase order",
 
   "log.themeSandbox": "Theme Sandbox",
   "log.themeSandbox.create": "Create theme sandbox",

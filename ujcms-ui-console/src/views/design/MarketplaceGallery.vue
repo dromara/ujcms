@@ -20,11 +20,15 @@ import {
   disconnectMarketplace,
   queryMarketplaceEntitlements,
   marketplaceUpdateCheck,
+  startMarketplacePurchase,
+  pollMarketplacePurchase,
+  cancelMarketplacePurchase,
   type MarketItem,
   type MarketItemDetail,
   type MarketItemVersion,
   type MarketConnection,
   type MarketDeviceStart,
+  type MarketPurchaseStart,
   type MarketUpdateCheckResult,
   type StoreResult,
 } from '@/api/marketplace';
@@ -34,6 +38,8 @@ import {
 // 相同的确认要素（seedScope 三态 / 激活开关）与安装后 UX（SHA-256 通知、种子失败明细）。
 // C2：设备授权流连接账号（令牌只存服务端，D-K3/D-C1-1）；付费条目按授权塑形（购买深链 D-K5，
 // 已购解锁安装）；更新检查角标 + 市场更新（落到既有更新管线，origin_hash_ 报告原样）。
+// C4b：有 marketplace:purchase 权限时「购买」在控制台内就地付款（D-C4-2/3）——对话框与连接对话框同形
+// start → 轮询 → 终态；钱不经 CMS，只渲染渠道二维码或新标签页打开渠道页面；付款后授权与更新检查自动重取。
 defineOptions({
   name: 'MarketplaceGallery',
 });
@@ -155,7 +161,20 @@ const handleRefreshEntitlements = async () => {
   ElMessage.success(t('success'));
 };
 
-// ----- 连接对话框（code + 二维码 + 链接 + 轮询态；后端按服务端 interval 节流真实轮询） -----
+// ----- 连接对话框（二维码在前 + code + 链接 + 轮询态，C4a / D-C4-1；后端按服务端 interval 节流真实轮询） -----
+/**
+ * 账号展示（C4c）：显示名在前、脱敏联系方式在后（`张三（138****1234）`），联系方式手机号优先于邮箱（两者后端投影均已脱敏）。
+ * 显示名是账号主人自己认得最快的名字，但不唯一、不可核验，所以只作主体，由脱敏联系方式消歧；显示名缺失或只是市场为短信
+ * 注册自动生成的「用户 + 尾 4 位」（与手机号重复）时，只显示联系方式。完整联系方式只在店面的账号安全页可见。
+ */
+const accountLabel = (account?: Pick<MarketConnection, 'accountEmail' | 'accountPhone' | 'accountName'> | null): string => {
+  const contact = account?.accountPhone ?? account?.accountEmail ?? '';
+  const name = account?.accountName?.trim() ?? '';
+  if (!name) return contact;
+  if (!contact) return name;
+  if (/^用户\d{4}$/.test(name) && contact.endsWith(name.slice(-4))) return contact;
+  return t('marketplace.connection.accountLabel', { name, contact });
+};
 const connectVisible = ref<boolean>(false);
 const connectStatus = ref<'starting' | 'waiting' | 'connected' | 'denied' | 'expired' | 'offline'>('starting');
 const connectStart = ref<MarketDeviceStart>();
@@ -177,7 +196,7 @@ const pollOnce = async () => {
     stopPolling();
     if (result.status === 'CONNECTED') {
       connectStatus.value = 'connected';
-      connectAccount.value = result.accountEmail ?? result.accountName ?? '';
+      connectAccount.value = accountLabel(result);
       await fetchConnection();
       await fetchEntitlements();
       await runUpdateCheck();
@@ -236,12 +255,192 @@ const handleDisconnect = async () => {
   await fetchConnection();
 };
 
-// ----- 购买深链（D-K5：购买只在店面网站发生；付费条目未购时引导到店面条目页） -----
-const openBuy = (item: MarketItem) => {
-  const base = props.storefrontUrl?.replace(/\/$/, '');
-  if (!base) return;
-  window.open(`${base}/items/${encodeURIComponent(item.slug)}`, '_blank');
+// ----- 购买（D-K5 经市场 D-M14-5 修订：结账可从已连接实例发起；协议、发票、退款、订单历史仍在店面） -----
+// 有 marketplace:purchase 权限且账号已连接 → 控制台内购买对话框；否则店面条目页深链（C2 行为）——按钮从不失效（D-C4-2）
+const storefrontBase = computed<string | undefined>(() => props.storefrontUrl?.replace(/\/$/, '') || undefined);
+const storefrontItemUrl = (item?: MarketItem): string | undefined => (item && storefrontBase.value ? `${storefrontBase.value}/items/${encodeURIComponent(item.slug)}` : undefined);
+const canPurchase = computed<boolean>(() => !perm('marketplace:purchase'));
+
+const openStorefrontItem = (item?: MarketItem) => {
+  const url = storefrontItemUrl(item);
+  if (url) window.open(url, '_blank', 'noopener');
 };
+
+const openBuy = (item: MarketItem) => {
+  if (canPurchase.value && connection.value?.connected === true) {
+    openPurchase(item);
+    return;
+  }
+  openStorefrontItem(item);
+};
+
+// ----- 控制台内购买对话框（C4b / D-C4-3）：start → 2 秒轮询 → PAID / CANCELLED / EXPIRED；
+// 订单号不是凭据，经控制台往返，CMS 不持有挂起购买（后端对同一订单最多 5 秒问一次市场）；
+// C4b 之前的连接（scope 缺 orders:write）→ 「重新连接以启用控制台内购买」（D-C4-4） -----
+type PurchaseStatus = 'starting' | 'waiting' | 'paid' | 'cancelled' | 'expired' | 'reconnect' | 'offline' | 'failed';
+const purchaseVisible = ref<boolean>(false);
+const purchaseStatus = ref<PurchaseStatus>('starting');
+const purchaseItem = ref<MarketItem>();
+const purchaseStart = ref<MarketPurchaseStart>();
+const purchaseProvider = ref<string>();
+const purchaseQr = ref<string>();
+/** 失败 / 重连 / 「订单保留」的说明文案（后端解析后的 message，或本地缺省） */
+const purchaseMessage = ref<string>();
+const purchaseCancelling = ref<boolean>(false);
+let purchaseTimer: number | undefined;
+
+const stopPurchasePolling = () => {
+  if (purchaseTimer != null) {
+    window.clearInterval(purchaseTimer);
+    purchaseTimer = undefined;
+  }
+};
+
+/** 支付方式展示名：有翻译用翻译，否则原样线值（扁平键不能用 te()，按 t(key) !== key 判断） */
+const providerLabel = (provider: string): string => {
+  const key = `marketplace.purchase.provider.${provider}`;
+  const label = t(key);
+  return label === key ? provider : label;
+};
+
+const formatAmount = (cents: number): string => t('marketplace.price', { price: (cents / 100).toFixed(2) });
+const formatExpiry = (value?: string | null): string => (value ? new Date(value).toLocaleString() : '');
+const responseMessage = (e: any, fallback: string): string => e?.response?.data?.message ?? fallback;
+
+/** 付款到账：与连接对话框 CONNECTED 分支同口径重取授权信封与更新检查——卡片翻为「已购买」，安装解锁，无需「刷新授权」 */
+const onPurchasePaid = async () => {
+  purchaseStatus.value = 'paid';
+  await fetchEntitlements();
+  await runUpdateCheck();
+};
+
+const pollPurchaseOnce = async () => {
+  const start = purchaseStart.value;
+  if (!start) return;
+  try {
+    const result = await pollMarketplacePurchase({ orderNo: start.orderNo, provider: start.provider, expiresAt: start.expiresAt });
+    if (result.status === 'PENDING') return;
+    stopPurchasePolling();
+    if (result.status === 'PAID') {
+      await onPurchasePaid();
+    } else if (result.status === 'CANCELLED') {
+      purchaseStatus.value = 'cancelled';
+    } else {
+      // EXPIRED：支付载荷过期而订单仍未付——重新发起折叠回同一订单并拿到新载荷
+      purchaseStatus.value = 'expired';
+    }
+  } catch (e: any) {
+    const status: number | undefined = e?.response?.status;
+    if (status != null && status < 500) {
+      // 4xx 是终态（连接失效 / 订单不存在…）；网络与 5xx 保留轮询，下一轮再试
+      stopPurchasePolling();
+      purchaseStatus.value = status === 409 ? 'reconnect' : 'failed';
+      purchaseMessage.value = responseMessage(e, t('marketplace.purchase.failed'));
+    }
+  }
+};
+
+/** 发起 / 更换支付方式 / 重新发起都走这里：同条目再次 start 折叠回同一张未付订单（市场 D-M14-3），每次都是新的支付载荷 */
+const startPurchase = async (provider?: string) => {
+  const item = purchaseItem.value;
+  if (!item) return;
+  stopPurchasePolling();
+  purchaseStatus.value = 'starting';
+  purchaseStart.value = undefined;
+  purchaseQr.value = undefined;
+  purchaseMessage.value = undefined;
+  let result: StoreResult<MarketPurchaseStart>;
+  try {
+    result = await startMarketplacePurchase({ slug: item.slug, provider });
+  } catch (e: any) {
+    if (e?.response?.status === 409) {
+      // C4b 之前的连接缺 orders:write，或连接已失效（D-C4-4）
+      purchaseStatus.value = 'reconnect';
+      purchaseMessage.value = responseMessage(e, t('marketplace.purchase.reconnectRequired.tip'));
+    } else {
+      purchaseStatus.value = 'failed';
+      purchaseMessage.value = responseMessage(e, t('marketplace.purchase.failed'));
+    }
+    return;
+  }
+  if (!result.available || !result.data) {
+    purchaseStatus.value = 'offline';
+    return;
+  }
+  purchaseStart.value = result.data;
+  purchaseProvider.value = result.data.provider;
+  if (result.data.kind === 'qrcode' && result.data.qrContent) {
+    try {
+      purchaseQr.value = await QRCode.toDataURL(result.data.qrContent, { width: 180, margin: 1 });
+    } catch {
+      purchaseQr.value = undefined; // weixin:// 码无法在桌面打开：对话框提示更换支付方式或在网站购买
+    }
+  }
+  purchaseStatus.value = 'waiting';
+  // 控制台每 2 秒问一次 CMS 后端；后端对同一订单最多每 5 秒问一次市场 …/sync（D-C2-2 纪律）
+  purchaseTimer = window.setInterval(pollPurchaseOnce, 2000);
+};
+
+const openPurchase = (item: MarketItem) => {
+  purchaseItem.value = item;
+  purchaseVisible.value = true;
+  if (connection.value?.reconnectRequired || connection.value?.purchaseEnabled === false) {
+    // 不打后端也知道要重连：持久化 scope 缺 orders:write（C4b 之前的连接）或连接已失效
+    stopPurchasePolling();
+    purchaseStart.value = undefined;
+    purchaseMessage.value = undefined;
+    purchaseStatus.value = 'reconnect';
+    return;
+  }
+  startPurchase();
+};
+
+const handleProviderChange = (provider: string | number | boolean | undefined) => {
+  if (typeof provider === 'string' && provider !== purchaseProvider.value) startPurchase(provider);
+};
+
+const openPaymentPage = () => {
+  const url = purchaseStart.value?.url;
+  if (url) window.open(url, '_blank', 'noopener');
+};
+
+const handlePurchaseCancel = async () => {
+  const start = purchaseStart.value;
+  if (!start) return;
+  purchaseCancelling.value = true;
+  try {
+    const result = await cancelMarketplacePurchase(start.orderNo);
+    if (result.status === 'PAID') {
+      stopPurchasePolling();
+      await onPurchasePaid();
+    } else if (result.status === 'CANCELLED') {
+      stopPurchasePolling();
+      purchaseStatus.value = 'cancelled';
+    } else {
+      // 渠道暂时无法确认关单：订单保留 created，仍可付——继续轮询（市场 D-M12-5）
+      purchaseMessage.value = t('marketplace.purchase.unconfirmed');
+    }
+  } finally {
+    purchaseCancelling.value = false;
+  }
+};
+
+/** 重新连接：关闭购买对话框、运行连接对话框；连接后再次点「购买」即可在此付款 */
+const openReconnectFromPurchase = () => {
+  purchaseVisible.value = false;
+  openConnect();
+};
+
+const handlePurchaseInstall = () => {
+  const item = purchaseItem.value;
+  purchaseVisible.value = false;
+  if (item) openInstall(item);
+};
+
+watch(purchaseVisible, (visible) => {
+  if (!visible) stopPurchasePolling();
+});
+onUnmounted(stopPurchasePolling);
 
 // ----- 更新检查（C2 画廊角标：送已装 名称/版本 对，服务端按 slug 匹配兼容新版本） -----
 const updateResults = ref<Record<string, MarketUpdateCheckResult>>({});
@@ -461,7 +660,7 @@ const handleMarketUpdateConfirm = async () => {
       <template v-else-if="isConnected">
         <el-tooltip :content="connection?.instanceName ?? ''" :disabled="!connection?.instanceName">
           <el-tag type="success" size="small">
-            {{ $t('marketplace.connection.connected', { account: connection?.accountEmail ?? connection?.accountName ?? '' }) }}
+            {{ $t('marketplace.connection.connected', { account: accountLabel(connection) }) }}
           </el-tag>
         </el-tooltip>
         <el-button size="small" :icon="Refresh" @click="handleRefreshEntitlements">{{ $t('marketplace.op.refreshEntitlements') }}</el-button>
@@ -719,7 +918,8 @@ const handleMarketUpdateConfirm = async () => {
       </template>
     </el-dialog>
 
-    <!-- 连接对话框（C2 / D-K4）：user_code + 二维码 + 批准页链接 + 轮询态；device_code 永不出服务端 -->
+    <!-- 连接对话框（C2 / D-K4；C4a / D-C4-1 手机优先）：二维码「微信扫一扫」在前，user_code + 批准页链接是电脑端备选，
+         二维码生成失败时 code + 链接独立成立；文案不依赖市场有无微信登录（CMS 从不调用 /api/auth/**）；device_code 永不出服务端 -->
     <el-dialog v-model="connectVisible" :title="$t('marketplace.connect.title')" width="440" :close-on-click-modal="false">
       <div v-if="connectStatus === 'starting'" v-loading="true" class="h-40" />
       <el-empty v-else-if="connectStatus === 'offline'" :description="$t('marketplace.unavailable.offline')">
@@ -727,15 +927,16 @@ const handleMarketUpdateConfirm = async () => {
       </el-empty>
       <template v-else-if="connectStatus === 'waiting'">
         <div class="text-center">
-          <div class="text-xs text-gray-500">{{ $t('marketplace.connect.userCode') }}</div>
+          <template v-if="qrDataUrl">
+            <div class="text-xs text-gray-500">{{ $t('marketplace.connect.scanQr') }}</div>
+            <img :src="qrDataUrl" alt="QR" class="mx-auto mt-1 h-44 w-44" />
+            <div class="mt-3 text-xs text-gray-500">{{ $t('marketplace.connect.orDesktop') }}</div>
+          </template>
+          <div v-else class="text-xs text-gray-500">{{ $t('marketplace.connect.userCode') }}</div>
           <div class="mt-1 select-all font-mono text-3xl font-semibold tracking-widest">{{ connectStart?.userCode }}</div>
           <div class="mt-3">
             <el-button type="primary" :icon="Link" @click="openVerification">{{ $t('marketplace.connect.openLink') }}</el-button>
           </div>
-          <template v-if="qrDataUrl">
-            <div class="mt-3 text-xs text-gray-500">{{ $t('marketplace.connect.scanQr') }}</div>
-            <img :src="qrDataUrl" alt="QR" class="mx-auto mt-1 h-44 w-44" />
-          </template>
           <div class="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
             <el-icon class="is-loading"><Refresh /></el-icon>
             {{ $t('marketplace.connect.waiting') }}
@@ -755,6 +956,117 @@ const handleMarketUpdateConfirm = async () => {
       </el-result>
       <template #footer>
         <el-button @click="connectVisible = false">{{ connectStatus === 'connected' ? $t('ok') : $t('cancel') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 购买对话框（C4b / D-C4-3；市场 D-M14-5）：与连接对话框同形 start → 轮询 → 终态。qrcode 就地渲染（微信支付），
+         redirect 新标签页打开渠道页面；多支付方式可更换；协议、发票、支付宝（上线前）、对公转账仍在店面——「在网站购买」；
+         付款后授权与更新检查自动重取，卡片翻为「已购买」，此处直接「安装」；C4b 之前的连接提示重新连接（D-C4-4） -->
+    <el-dialog v-model="purchaseVisible" :title="$t('marketplace.purchase.title')" width="440" :close-on-click-modal="false">
+      <div v-if="purchaseStatus === 'starting'" v-loading="true" class="h-40" />
+      <el-empty v-else-if="purchaseStatus === 'offline'" :description="$t('marketplace.unavailable.offline')">
+        <el-button type="primary" @click="() => startPurchase(purchaseProvider)">{{ $t('marketplace.op.retry') }}</el-button>
+      </el-empty>
+      <el-result
+        v-else-if="purchaseStatus === 'reconnect'"
+        icon="warning"
+        :title="$t('marketplace.purchase.reconnectRequired')"
+        :sub-title="purchaseMessage ?? $t('marketplace.purchase.reconnectRequired.tip')"
+      >
+        <template #extra>
+          <el-button type="primary" :disabled="!canConnect" @click="openReconnectFromPurchase">{{ $t('marketplace.op.reconnect') }}</el-button>
+          <el-button v-if="storefrontItemUrl(purchaseItem)" @click="() => openStorefrontItem(purchaseItem)">{{ $t('marketplace.purchase.onStorefront.link') }}</el-button>
+        </template>
+      </el-result>
+      <template v-else-if="purchaseStatus === 'waiting' && purchaseStart">
+        <el-descriptions :column="1" size="small" border>
+          <el-descriptions-item :label="$t('marketplace.purchase.item')">
+            {{ purchaseStart.itemName }}
+            <span class="ml-1 text-xs text-gray-400">{{ purchaseItem?.slug }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="$t('marketplace.purchase.amount')">
+            <span class="font-medium text-orange-600">{{ formatAmount(purchaseStart.amountCents) }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="$t('marketplace.purchase.orderNo')">
+            <span class="font-mono text-xs">{{ purchaseStart.orderNo }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="$t('marketplace.purchase.provider')">
+            <!-- 多于一种支付方式才提供更换；切换 = 同一订单再次发起支付（新载荷） -->
+            <el-radio-group v-if="purchaseStart.providers.length > 1" :model-value="purchaseProvider" size="small" @change="handleProviderChange">
+              <el-radio-button v-for="providerId in purchaseStart.providers" :key="providerId" :value="providerId">{{ providerLabel(providerId) }}</el-radio-button>
+            </el-radio-group>
+            <span v-else>{{ providerLabel(purchaseStart.provider) }}</span>
+          </el-descriptions-item>
+        </el-descriptions>
+        <div class="mt-3 text-center">
+          <template v-if="purchaseStart.kind === 'qrcode'">
+            <template v-if="purchaseQr">
+              <div class="text-xs text-gray-500">{{ $t('marketplace.purchase.scanQr') }}</div>
+              <img :src="purchaseQr" alt="QR" class="mx-auto mt-1 h-44 w-44" />
+              <div v-if="purchaseStart.expiresAt" class="mt-1 text-xs text-gray-400">
+                {{ $t('marketplace.purchase.expiresAt', { time: formatExpiry(purchaseStart.expiresAt) }) }}
+              </div>
+            </template>
+            <div v-else class="text-xs text-red-500">{{ $t('marketplace.purchase.qrFailed') }}</div>
+          </template>
+          <template v-else>
+            <el-button type="primary" :icon="Link" @click="openPaymentPage">{{ $t('marketplace.purchase.goPay') }}</el-button>
+            <div class="mt-2 text-xs text-gray-500">{{ $t('marketplace.purchase.goPay.tip') }}</div>
+          </template>
+          <div class="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
+            <el-icon class="is-loading"><Refresh /></el-icon>
+            {{ $t('marketplace.purchase.waiting') }}
+          </div>
+          <div v-if="purchaseMessage" class="mt-2 text-xs text-orange-600">{{ purchaseMessage }}</div>
+        </div>
+        <div class="mt-3 text-xs text-gray-500">
+          {{ $t('marketplace.purchase.agreement') }}
+          <a v-if="storefrontItemUrl(purchaseItem)" :href="storefrontItemUrl(purchaseItem)" target="_blank" rel="noopener" class="text-primary">
+            {{ $t('marketplace.purchase.agreement.link') }}
+          </a>
+        </div>
+        <div class="mt-1 text-xs text-gray-500">
+          {{ $t('marketplace.purchase.onStorefront') }}
+          <a v-if="storefrontItemUrl(purchaseItem)" :href="storefrontItemUrl(purchaseItem)" target="_blank" rel="noopener" class="text-primary">
+            {{ $t('marketplace.purchase.onStorefront.link') }}
+          </a>
+        </div>
+      </template>
+      <el-result v-else-if="purchaseStatus === 'paid'" icon="success" :title="$t('marketplace.purchase.paid', { name: purchaseStart?.itemName ?? purchaseItem?.name ?? '' })">
+        <template #sub-title>
+          <span>{{ $t('marketplace.purchase.paid.tip') }}</span>
+          <a v-if="purchaseStart?.storefrontOrderUrl" :href="purchaseStart.storefrontOrderUrl" target="_blank" rel="noopener" class="ml-1 text-primary">
+            {{ $t('marketplace.purchase.paid.orders') }}
+          </a>
+        </template>
+      </el-result>
+      <el-result v-else-if="purchaseStatus === 'cancelled'" icon="info" :title="$t('marketplace.purchase.cancelled')">
+        <template #extra>
+          <el-button type="primary" @click="() => startPurchase(purchaseProvider)">{{ $t('marketplace.purchase.restart') }}</el-button>
+        </template>
+      </el-result>
+      <el-result v-else-if="purchaseStatus === 'expired'" icon="warning" :title="$t('marketplace.purchase.expired')">
+        <template #extra>
+          <el-button type="primary" @click="() => startPurchase(purchaseProvider)">{{ $t('marketplace.purchase.restart') }}</el-button>
+        </template>
+      </el-result>
+      <el-result v-else icon="error" :title="$t('marketplace.purchase.failed')" :sub-title="purchaseMessage">
+        <template #extra>
+          <el-button type="primary" @click="() => startPurchase(purchaseProvider)">{{ $t('marketplace.purchase.restart') }}</el-button>
+          <el-button v-if="storefrontItemUrl(purchaseItem)" @click="() => openStorefrontItem(purchaseItem)">{{ $t('marketplace.purchase.onStorefront.link') }}</el-button>
+        </template>
+      </el-result>
+      <template #footer>
+        <el-button v-if="purchaseStatus === 'waiting'" :loading="purchaseCancelling" @click="handlePurchaseCancel">{{ $t('marketplace.purchase.cancelOrder') }}</el-button>
+        <el-button @click="purchaseVisible = false">{{ purchaseStatus === 'paid' ? $t('ok') : $t('cancel') }}</el-button>
+        <el-button
+          v-if="purchaseStatus === 'paid'"
+          type="primary"
+          :disabled="!canInstall || (purchaseItem != null && isInstalled(purchaseItem))"
+          @click="handlePurchaseInstall"
+        >
+          {{ $t('marketplace.op.install') }}
+        </el-button>
       </template>
     </el-dialog>
   </div>

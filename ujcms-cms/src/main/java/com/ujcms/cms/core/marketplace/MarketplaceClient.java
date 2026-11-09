@@ -34,6 +34,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriBuilder;
@@ -330,8 +331,13 @@ public class MarketplaceClient {
 
     /** 注册在市场授权服务器上的唯一公共客户端（服务端 M4） */
     public static final String OAUTH_CLIENT_ID = "ujcms-instance";
-    /** 实例连接请求的 scope 集合（D-K4） */
-    public static final String OAUTH_SCOPES = "catalog:read entitlements:read download";
+    /**
+     * 控制台内购买所需的第四个 scope（C4b / 市场 D-M14-1）：以账号名义下单并发起支付——付款仍由买家在支付渠道
+     * 确认。C4b 之前批准的连接没有它，持久化的 {@code scope} 缺此值即「须重连以启用控制台内购买」（D-C4-4）。
+     */
+    public static final String SCOPE_ORDERS_WRITE = "orders:write";
+    /** 实例连接请求的 scope 集合（D-K4；C4b 起含 {@link #SCOPE_ORDERS_WRITE}） */
+    public static final String OAUTH_SCOPES = "catalog:read entitlements:read download " + SCOPE_ORDERS_WRITE;
     private static final String GRANT_TYPE_DEVICE_CODE = "urn:ietf:params:oauth:grant-type:device_code";
 
     /**
@@ -410,6 +416,138 @@ public class MarketplaceClient {
                 accessToken, EntitlementPage.class), "/api/v1/me/entitlements");
     }
 
+    // ----- orders / purchase（C4b：控制台内购买，scope orders:write；市场 D-M14-2 实例订单面） ------
+
+    /**
+     * 以账号名义下单（{@code POST /api/v1/orders}，D-C4-3）。201 = 新订单；200 = 该账号对同一条目已有的
+     * 未支付订单（市场 D-M14-3 折叠）——两者都是「要付的那张单」，{@link OrderCreation#created()} 只作记录。
+     * 409 {@code already_owned} / 422（免费条目）/ 404（未发布）→ {@link MarketplaceOrderException}。
+     */
+    public OrderCreation createOrder(String accessToken, String item) {
+        return orderCall("/api/v1/orders", () -> {
+            var entity = catalogClient.post()
+                    .uri("/api/v1/orders")
+                    .header(HEADER_UJCMS_VERSION, props.getVersion())
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .body(new CreateOrderRequest(item))
+                    .retrieve()
+                    .toEntity(StoreOrder.class);
+            StoreOrder order = requireBody(entity.getBody(), "/api/v1/orders");
+            return new OrderCreation(order, entity.getStatusCode() == HttpStatus.CREATED);
+        });
+    }
+
+    /** 令牌账号的一张订单（{@code GET /api/v1/orders/{orderNo}}；他人的订单与不存在的订单同为 404） */
+    public StoreOrder getOrder(String accessToken, String orderNo) {
+        String path = "/api/v1/orders/" + orderNo;
+        return orderCall(path, () -> requireBody(catalogClient.get()
+                .uri(path)
+                .header(HEADER_UJCMS_VERSION, props.getVersion())
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .retrieve()
+                .body(StoreOrder.class), path));
+    }
+
+    /**
+     * 为订单发起支付（{@code POST /api/v1/orders/{orderNo}/pay}）：{@code kind=qrcode}（微信 Native，控制台就地渲染
+     * 二维码）或 {@code kind=redirect}（dev 的 MockPay / 支付宝网页支付，控制台新标签页打开 {@code url}）。
+     * 同一订单可反复发起（更换支付方式 / 码过期后重新发起），每次都是新的支付载荷。
+     */
+    public PaymentInitiation payOrder(String accessToken, String orderNo, String provider) {
+        String path = "/api/v1/orders/" + orderNo + "/pay";
+        return orderCall(path, () -> requireBody(catalogClient.post()
+                .uri(path)
+                .header(HEADER_UJCMS_VERSION, props.getVersion())
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .body(new PaymentRequest(provider))
+                .retrieve()
+                .body(PaymentInitiation.class), path));
+    }
+
+    /**
+     * 问过支付渠道后的订单（{@code POST /api/v1/orders/{orderNo}/sync}，市场 D-M12-4）：服务端按订单节流
+     * 渠道查询；本方法由 {@link MarketplacePurchaseService} 再按每订单 5 秒节流调用。渠道故障不使本调用失败。
+     */
+    public StoreOrder syncOrder(String accessToken, String orderNo, String provider) {
+        String path = "/api/v1/orders/" + orderNo + "/sync";
+        return orderCall(path, () -> requireBody(catalogClient.post()
+                .uri(path)
+                .header(HEADER_UJCMS_VERSION, props.getVersion())
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .body(new PaymentRequest(provider))
+                .retrieve()
+                .body(StoreOrder.class), path));
+    }
+
+    /**
+     * 取消未支付订单（{@code POST /api/v1/orders/{orderNo}/cancel}，市场 D-M12-5 先关单后取消）：应答
+     * {@code cancelled}，或买家已付款时的 {@code paid}；渠道无法确认关单 → 503 {@code payment_unavailable}
+     * （订单保留 created）→ {@link MarketplaceOrderException.Kind#PAYMENT_UNAVAILABLE}。
+     */
+    public StoreOrder cancelOrder(String accessToken, String orderNo) {
+        String path = "/api/v1/orders/" + orderNo + "/cancel";
+        return orderCall(path, () -> requireBody(catalogClient.post()
+                .uri(path)
+                .header(HEADER_UJCMS_VERSION, props.getVersion())
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .retrieve()
+                .body(StoreOrder.class), path));
+    }
+
+    /** 部署接受的支付方式线值（{@code GET /api/v1/payment-providers}），展示序；可能为空 */
+    public List<String> listPaymentProviders(String accessToken) {
+        String path = "/api/v1/payment-providers";
+        PaymentProviderList list = orderCall(path, () -> requireBody(catalogClient.get()
+                .uri(path)
+                .header(HEADER_UJCMS_VERSION, props.getVersion())
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .retrieve()
+                .body(PaymentProviderList.class), path));
+        return list.providers() == null ? List.of() : list.providers();
+    }
+
+    /**
+     * 订单面调用的统一错误映射：401 → UNAUTHORIZED（刷新重试）；403 {@code insufficient_scope} → 须重连
+     * （C4b 之前的连接）；404 / 409 / 422 / 400 与 503 {@code payment_unavailable} → 类型化的
+     * {@link MarketplaceOrderException}；其余网络 / 5xx / 429 走统一不可用映射。
+     */
+    private <T> T orderCall(String path, Supplier<T> call) {
+        try {
+            return call.get();
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new MarketplaceAuthException(MarketplaceAuthException.Kind.UNAUTHORIZED,
+                    "Marketplace rejected the access token for " + path);
+        } catch (HttpClientErrorException.Forbidden e) {
+            if (isInsufficientScope(e)) {
+                throw new MarketplaceAuthException(MarketplaceAuthException.Kind.INSUFFICIENT_SCOPE,
+                        "Marketplace token lacks the orders:write scope for " + path);
+            }
+            throw e;
+        } catch (HttpClientErrorException.NotFound e) {
+            throw orderException(MarketplaceOrderException.Kind.NOT_FOUND, e, path);
+        } catch (HttpClientErrorException.Conflict e) {
+            throw orderException(MarketplaceOrderException.Kind.ALREADY_OWNED, e, path);
+        } catch (HttpClientErrorException.UnprocessableEntity e) {
+            throw orderException(MarketplaceOrderException.Kind.INVARIANT_VIOLATION, e, path);
+        } catch (HttpClientErrorException.BadRequest e) {
+            throw orderException(MarketplaceOrderException.Kind.BAD_REQUEST, e, path);
+        } catch (HttpServerErrorException.ServiceUnavailable e) {
+            if ("payment_unavailable".equals(problemCode(e))) {
+                throw orderException(MarketplaceOrderException.Kind.PAYMENT_UNAVAILABLE, e, path);
+            }
+            throw mapUnavailable(e);
+        } catch (RuntimeException e) {
+            throw mapUnavailable(e);
+        }
+    }
+
+    private static MarketplaceOrderException orderException(MarketplaceOrderException.Kind kind,
+                                                            HttpStatusCodeException e, String path) {
+        return new MarketplaceOrderException(kind, problemCode(e),
+                "Marketplace order call " + path + " responded " + e.getStatusCode()
+                        + (problemDetail(e) == null ? "" : ": " + problemDetail(e)));
+    }
+
     /** OAuth 表单请求：400 解析 RFC 错误 JSON 上抛 {@link MarketplaceOAuthException}，网络/5xx/429 走统一不可用映射 */
     @Nullable
     private <T> T postOAuthForm(String path, MultiValueMap<String, String> form, Class<T> type) {
@@ -484,11 +622,28 @@ public class MarketplaceClient {
 
     /** 403 problem+json 的 {@code code} 判别：{@code insufficient_scope} 与业务性拒绝（如 not_entitled）分流 */
     private static boolean isInsufficientScope(HttpClientErrorException e) {
+        return "insufficient_scope".equals(problemCode(e));
+    }
+
+    /** problem+json 的 {@code code}；非 problem 体 / 不可解析 → {@code null} */
+    @Nullable
+    private static String problemCode(HttpStatusCodeException e) {
+        return problemField(e, "code");
+    }
+
+    /** problem+json 的 {@code detail}（人类可读的英文说明，仅入日志 / 异常消息） */
+    @Nullable
+    private static String problemDetail(HttpStatusCodeException e) {
+        return problemField(e, "detail");
+    }
+
+    @Nullable
+    private static String problemField(HttpStatusCodeException e, String field) {
         try {
             JsonNode node = Constants.MAPPER.readTree(e.getResponseBodyAsByteArray());
-            return "insufficient_scope".equals(node.path("code").asText(null));
+            return node.path(field).asText(null);
         } catch (IOException | RuntimeException ignored) {
-            return false;
+            return null;
         }
     }
 
@@ -669,9 +824,13 @@ public class MarketplaceClient {
     public record Me(MeAccount account, @Nullable MeInstance instance) {
     }
 
-    /** 账号（contract {@code Account}） */
+    /**
+     * 账号（contract {@code Account}）。M9 起 {@code email} 与 {@code phone} 是同一账号的两个标识——
+     * 可任缺其一、至少有一个；{@code phone} 为 E.164（{@code +8613800000000}），生产账号多为仅手机号
+     * （C4a 起读取；行里存原值，控制台投影脱敏——见 {@code MarketplaceConnectionService#maskPhone}）。
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record MeAccount(String id, String email, @Nullable String displayName) {
+    public record MeAccount(String id, @Nullable String email, @Nullable String phone, @Nullable String displayName) {
     }
 
     /** 已连接实例（contract {@code Instance}） */
@@ -703,5 +862,67 @@ public class MarketplaceClient {
 
     /** 目录资产字节 + 透传头（资产代理响应用，D-C1-4） */
     public record Asset(byte[] bytes, @Nullable String contentType, @Nullable String cacheControl) {
+    }
+
+    // ----- 订单 DTO（C4b；contract 1.16.0 instance-orders：与店面同一线形状，D-M14-2） -----
+
+    /** 下单请求（contract {@code CreateOrderRequest}：单条目，一次性购买 D-K6） */
+    public record CreateOrderRequest(String item) {
+    }
+
+    /** 支付方式请求（contract {@code PaymentRequest}；provider 取自 {@code /api/v1/payment-providers}） */
+    public record PaymentRequest(String provider) {
+    }
+
+    /** 订单行（contract {@code OrderLine}：下单时的条目快照） */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record OrderLine(String item, @Nullable String name, long priceCents) {
+    }
+
+    /** 发起订单的实例（contract {@code OrderInstance}，D-M14-4；即本部署——客户端可忽略） */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record OrderInstance(String id, @Nullable String name, @Nullable String domain) {
+    }
+
+    /**
+     * 订单（contract {@code StoreOrder}）。状态机 created → paid | cancelled；paid → refunded。
+     * 服务端没有「过期」状态：二维码过期后未付的订单仍是 created（EXPIRED 由 CMS 按 expiresAt 推导，D-C4-3）。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record StoreOrder(String orderNo, String status, long amountCents, @Nullable String createdAt,
+                             @Nullable String paidAt, @Nullable String cancelledAt, @Nullable String refundedAt,
+                             @Nullable List<OrderLine> items, @Nullable OrderInstance instance) {
+        public static final String STATUS_CREATED = "created";
+        public static final String STATUS_PAID = "paid";
+        public static final String STATUS_CANCELLED = "cancelled";
+        public static final String STATUS_REFUNDED = "refunded";
+
+        public boolean isCreated() {
+            return STATUS_CREATED.equals(status);
+        }
+
+        public boolean isPaid() {
+            return STATUS_PAID.equals(status);
+        }
+    }
+
+    /** 下单结果：{@code created}=true 为 201 新订单，false 为 200 折叠回的已有未付订单（D-M14-3）——都要付这张 */
+    public record OrderCreation(StoreOrder order, boolean created) {
+    }
+
+    /**
+     * 支付发起载荷（contract {@code PaymentInitiation}）：{@code kind=redirect} → {@code url}（相对市场 base-url 的
+     * 引用或绝对地址）；{@code kind=qrcode} → {@code qrContent}（{@code weixin://…}）+ {@code expiresAt}（约 2 小时）。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record PaymentInitiation(String provider, String orderNo, String kind, @Nullable String url,
+                                    @Nullable String qrContent, @Nullable String expiresAt) {
+        public static final String KIND_REDIRECT = "redirect";
+        public static final String KIND_QRCODE = "qrcode";
+    }
+
+    /** 支付方式列表（contract {@code PaymentProviderList}；展示序，dev 为 mockpay 在前） */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record PaymentProviderList(@Nullable List<String> providers) {
     }
 }

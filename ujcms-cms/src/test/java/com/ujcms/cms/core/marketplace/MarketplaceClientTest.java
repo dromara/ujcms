@@ -1,6 +1,8 @@
 package com.ujcms.cms.core.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -222,8 +224,9 @@ class MarketplaceClientTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(header(MarketplaceClient.HEADER_UJCMS_VERSION, "11.0.2"))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("client_id=ujcms-instance")))
+                // C4b 起请求第四个 scope orders:write（控制台内购买，市场 D-M14-1）
                 .andExpect(content().string(org.hamcrest.Matchers.containsString(
-                        "scope=catalog%3Aread+entitlements%3Aread+download")))
+                        "scope=catalog%3Aread+entitlements%3Aread+download+orders%3Awrite")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("instance_name=My+CMS")))
                 .andRespond(withSuccess("""
                         {"device_code":"dev-1","user_code":"ABCD-EFGH",
@@ -382,6 +385,237 @@ class MarketplaceClientTest {
                         """, MediaType.APPLICATION_JSON));
         var me = client.getMe("at-1");
         assertEquals("dev@ujcms.com", me.account().email());
+        assertNull(me.account().phone());
         assertEquals("inst-1", me.instance().id());
+    }
+
+    @Test
+    void getMeParsesPhoneOnlyAccount() {
+        // M9 起 email / phone 二者任缺其一（contract Account）：生产账号多为仅手机号，显示名常是微信昵称（C4a）
+        server.expect(once(), requestTo(BASE + "/api/v1/me"))
+                .andRespond(withSuccess("""
+                        {"account":{"id":"acc-2","email":null,"phone":"+8613800000000",
+                                    "displayName":"微信用户","hasPassword":false},
+                         "instance":null}
+                        """, MediaType.APPLICATION_JSON));
+        var me = client.getMe("at-2");
+        assertNull(me.account().email());
+        assertEquals("+8613800000000", me.account().phone());
+        assertEquals("微信用户", me.account().displayName());
+        assertNull(me.instance());
+    }
+
+    // ----- orders / purchase（C4b：实例订单面 contract 1.16.0，scope orders:write） -----
+
+    private static final String ORDER_NO = "MP20261109114545467355";
+    private static final String ORDER_JSON = """
+            {"orderNo":"%s","status":"%s","amountCents":29900,"createdAt":"2026-11-09T11:45:45.024919Z",
+             "paidAt":%s,"cancelledAt":null,"refundedAt":null,
+             "items":[{"item":"edu-campus","name":"智慧校园","priceCents":29900}],
+             "instance":{"id":"1","name":"M14 直播验证站点","domain":"live.example.com"}}
+            """;
+
+    private static String order(String status) {
+        return ORDER_JSON.formatted(ORDER_NO, status, "paid".equals(status) ? "\"2026-11-09T11:45:45.225750Z\"" : "null");
+    }
+
+    @Test
+    void createOrderParses201AsCreated() {
+        server.expect(once(), requestTo(BASE + "/api/v1/orders"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer at-1"))
+                .andExpect(header(MarketplaceClient.HEADER_UJCMS_VERSION, "11.0.2"))
+                .andExpect(content().json("{\"item\":\"edu-campus\"}"))
+                .andRespond(withStatus(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(order("created")));
+        var creation = client.createOrder("at-1", "edu-campus");
+        assertTrue(creation.created());
+        assertEquals(ORDER_NO, creation.order().orderNo());
+        assertTrue(creation.order().isCreated());
+        assertEquals(29900, creation.order().amountCents());
+        assertEquals("智慧校园", creation.order().items().get(0).name());
+        assertEquals("M14 直播验证站点", creation.order().instance().name());
+        server.verify();
+    }
+
+    @Test
+    void createOrderParses200AsFoldedOpenOrder() {
+        // 市场 D-M14-3：同账号同条目已有未付订单 → 200 折叠回那张单——客户端同样当作「要付的那张」
+        server.expect(once(), requestTo(BASE + "/api/v1/orders"))
+                .andRespond(withSuccess(order("created"), MediaType.APPLICATION_JSON));
+        var creation = client.createOrder("at-1", "edu-campus");
+        assertFalse(creation.created());
+        assertEquals(ORDER_NO, creation.order().orderNo());
+    }
+
+    @Test
+    void createOrderMapsBusinessRejectionsToTypedKinds() {
+        record Case(HttpStatus status, String code, MarketplaceOrderException.Kind kind) {
+        }
+        for (Case c : new Case[]{
+                new Case(HttpStatus.CONFLICT, "already_owned", MarketplaceOrderException.Kind.ALREADY_OWNED),
+                new Case(HttpStatus.UNPROCESSABLE_ENTITY, "invariant_violation", MarketplaceOrderException.Kind.INVARIANT_VIOLATION),
+                new Case(HttpStatus.NOT_FOUND, "not_found", MarketplaceOrderException.Kind.NOT_FOUND)}) {
+            server.reset();
+            server.expect(once(), requestTo(BASE + "/api/v1/orders"))
+                    .andRespond(withStatus(c.status()).contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                            .body("{\"status\":" + c.status().value() + ",\"code\":\"" + c.code()
+                                    + "\",\"detail\":\"d\"}"));
+            MarketplaceOrderException e = assertThrows(MarketplaceOrderException.class,
+                    () -> client.createOrder("at-1", "edu-campus"), c.code());
+            assertEquals(c.kind(), e.getKind(), c.code());
+            assertEquals(c.code(), e.getCode());
+        }
+    }
+
+    @Test
+    void getOrderParsesOrder() {
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer at-1"))
+                .andRespond(withSuccess(order("paid"), MediaType.APPLICATION_JSON));
+        var fetched = client.getOrder("at-1", ORDER_NO);
+        assertTrue(fetched.isPaid());
+        assertEquals("2026-11-09T11:45:45.225750Z", fetched.paidAt());
+    }
+
+    @Test
+    void payOrderParsesRedirectAndQrcodeKinds() {
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/pay"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("{\"provider\":\"mockpay\"}"))
+                .andRespond(withSuccess("""
+                        {"provider":"mockpay","orderNo":"%s","kind":"redirect",
+                         "url":"/api/pay/mockpay/%s/succeed","qrContent":null,"expiresAt":null}
+                        """.formatted(ORDER_NO, ORDER_NO), MediaType.APPLICATION_JSON));
+        var redirect = client.payOrder("at-1", ORDER_NO, "mockpay");
+        assertEquals(MarketplaceClient.PaymentInitiation.KIND_REDIRECT, redirect.kind());
+        assertEquals("/api/pay/mockpay/" + ORDER_NO + "/succeed", redirect.url());
+        assertNull(redirect.qrContent());
+
+        server.reset();
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/pay"))
+                .andExpect(content().json("{\"provider\":\"wechatpay\"}"))
+                .andRespond(withSuccess("""
+                        {"provider":"wechatpay","orderNo":"%s","kind":"qrcode","url":null,
+                         "qrContent":"weixin://wxpay/bizpayurl?pr=abc123","expiresAt":"2026-11-09T13:45:45Z"}
+                        """.formatted(ORDER_NO), MediaType.APPLICATION_JSON));
+        var qr = client.payOrder("at-1", ORDER_NO, "wechatpay");
+        assertEquals(MarketplaceClient.PaymentInitiation.KIND_QRCODE, qr.kind());
+        assertEquals("weixin://wxpay/bizpayurl?pr=abc123", qr.qrContent());
+        assertEquals("2026-11-09T13:45:45Z", qr.expiresAt());
+    }
+
+    @Test
+    void payOrderUnknownProviderAndUnavailableProviderAreTyped() {
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/pay"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                        .body("{\"status\":400,\"detail\":\"unknown provider; available: mockpay, wechatpay\"}"));
+        MarketplaceOrderException bad = assertThrows(MarketplaceOrderException.class,
+                () -> client.payOrder("at-1", ORDER_NO, "nopay"));
+        assertEquals(MarketplaceOrderException.Kind.BAD_REQUEST, bad.getKind());
+        assertNull(bad.getCode());
+
+        server.reset();
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/pay"))
+                .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                        .body("{\"status\":503,\"code\":\"payment_unavailable\"}"));
+        MarketplaceOrderException unavailable = assertThrows(MarketplaceOrderException.class,
+                () -> client.payOrder("at-1", ORDER_NO, "wechatpay"));
+        assertEquals(MarketplaceOrderException.Kind.PAYMENT_UNAVAILABLE, unavailable.getKind());
+    }
+
+    @Test
+    void syncOrderPostsProviderAndParsesOrder() {
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/sync"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("{\"provider\":\"mockpay\"}"))
+                .andRespond(withSuccess(order("created"), MediaType.APPLICATION_JSON));
+        var synced = client.syncOrder("at-1", ORDER_NO, "mockpay");
+        assertTrue(synced.isCreated());
+        server.verify();
+    }
+
+    @Test
+    void cancelOrderParsesCancelledAndPaidAnswers() {
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/cancel"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess(order("cancelled"), MediaType.APPLICATION_JSON));
+        assertEquals("cancelled", client.cancelOrder("at-1", ORDER_NO).status());
+
+        // 买家已付款（市场 D-M12-5：关单前查到已支付 → 结算为 paid，取消应答 paid）
+        server.reset();
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/cancel"))
+                .andRespond(withSuccess(order("paid"), MediaType.APPLICATION_JSON));
+        assertTrue(client.cancelOrder("at-1", ORDER_NO).isPaid());
+    }
+
+    @Test
+    void cancelOrder503SplitsPaymentUnavailableFromOutage() {
+        // 渠道无法确认关单：503 problem code=payment_unavailable → 类型化（订单保留），不是「市场离线」
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/cancel"))
+                .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                        .body("{\"status\":503,\"code\":\"payment_unavailable\",\"detail\":\"close not confirmed\"}"));
+        MarketplaceOrderException e = assertThrows(MarketplaceOrderException.class,
+                () -> client.cancelOrder("at-1", ORDER_NO));
+        assertEquals(MarketplaceOrderException.Kind.PAYMENT_UNAVAILABLE, e.getKind());
+        assertEquals("payment_unavailable", e.getCode());
+
+        // 无 problem code 的 503（网关/宕机）仍是统一不可用映射
+        server.reset();
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/cancel"))
+                .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+        MarketplaceUnavailableException outage = assertThrows(MarketplaceUnavailableException.class,
+                () -> client.cancelOrder("at-1", ORDER_NO));
+        assertEquals(MarketplaceUnavailableException.Reason.OFFLINE, outage.getReason());
+
+        // 422：订单已不在 created（已取消 / 刚被结算为 paid，D-M12-6）
+        server.reset();
+        server.expect(once(), requestTo(BASE + "/api/v1/orders/" + ORDER_NO + "/cancel"))
+                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY).contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                        .body("{\"status\":422,\"code\":\"invariant_violation\"}"));
+        assertEquals(MarketplaceOrderException.Kind.INVARIANT_VIOLATION,
+                assertThrows(MarketplaceOrderException.class, () -> client.cancelOrder("at-1", ORDER_NO)).getKind());
+    }
+
+    @Test
+    void listPaymentProvidersParsesDisplayOrder() {
+        server.expect(once(), requestTo(BASE + "/api/v1/payment-providers"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer at-1"))
+                .andRespond(withSuccess("{\"providers\":[\"mockpay\",\"wechatpay\"]}", MediaType.APPLICATION_JSON));
+        assertEquals(List.of("mockpay", "wechatpay"), client.listPaymentProviders("at-1"));
+
+        server.reset();
+        server.expect(once(), requestTo(BASE + "/api/v1/payment-providers"))
+                .andRespond(withSuccess("{\"providers\":[]}", MediaType.APPLICATION_JSON));
+        assertTrue(client.listPaymentProviders("at-1").isEmpty());
+    }
+
+    @Test
+    void orderCallsMapAuthFailuresOnEveryEndpoint() {
+        // 403 insufficient_scope（C4b 之前批准的连接缺 orders:write，市场 D-M14-1）→ 须重连；401 → 刷新重试
+        record Call(String path, Runnable run) {
+        }
+        List<Call> calls = List.of(
+                new Call("/api/v1/orders", () -> client.createOrder("at-1", "edu-campus")),
+                new Call("/api/v1/orders/" + ORDER_NO, () -> client.getOrder("at-1", ORDER_NO)),
+                new Call("/api/v1/orders/" + ORDER_NO + "/pay", () -> client.payOrder("at-1", ORDER_NO, "mockpay")),
+                new Call("/api/v1/orders/" + ORDER_NO + "/sync", () -> client.syncOrder("at-1", ORDER_NO, "mockpay")),
+                new Call("/api/v1/orders/" + ORDER_NO + "/cancel", () -> client.cancelOrder("at-1", ORDER_NO)),
+                new Call("/api/v1/payment-providers", () -> client.listPaymentProviders("at-1")));
+        for (Call call : calls) {
+            server.reset();
+            server.expect(once(), requestTo(BASE + call.path()))
+                    .andRespond(withStatus(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                            .body("{\"title\":\"Forbidden\",\"status\":403,\"code\":\"insufficient_scope\"}"));
+            MarketplaceAuthException scope = assertThrows(MarketplaceAuthException.class, call.run()::run, call.path());
+            assertEquals(MarketplaceAuthException.Kind.INSUFFICIENT_SCOPE, scope.getKind(), call.path());
+
+            server.reset();
+            server.expect(once(), requestTo(BASE + call.path()))
+                    .andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+            MarketplaceAuthException unauthorized = assertThrows(MarketplaceAuthException.class, call.run()::run, call.path());
+            assertEquals(MarketplaceAuthException.Kind.UNAUTHORIZED, unauthorized.getKind(), call.path());
+        }
     }
 }

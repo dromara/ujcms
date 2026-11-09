@@ -8,7 +8,11 @@ import org.jspecify.annotations.Nullable;
  * 应用市场账号连接（remote-marketplace C2 / D-C1-1）：部署级唯一，序列化为 JSON 存于
  * {@code ujcms_config.marketplace_settings_}（整列 SM4 加密，config-secrets 约定）。
  * 令牌永不出服务端（D-K3）——本对象只在后端流转，绝不进任何 API 响应
- * （控制台只见 {@code accountEmail} 等展示字段的投影）。
+ * （控制台只见 {@code accountEmail} 等展示字段的投影；{@code accountPhone} 存 {@code /me} 返回的 E.164 原值，
+ * 投影时脱敏为 {@code 138****0000}——C4a）。
+ *
+ * <p>C4a 之前落库的行没有 {@code accountPhone} 字段：Jackson 对缺失的 record 组件填 {@code null}，
+ * 旧行照常反序列化，手机号回退为空（不做迁移）。
  *
  * <p>{@code refreshToken} 单次有效（服务端每次刷新轮换）：新令牌对必须先落库、再作废旧令牌。
  * {@code reconnectRequired} 在刷新遭 {@code invalid_grant} 或资源调用遭
@@ -22,6 +26,8 @@ public record MarketplaceConnection(
         String refreshToken,
         @Nullable String scope,
         @Nullable String accountEmail,
+        /* 账号手机号（E.164 原值，{@code /me} 所返回；仅手机号账号的展示回退——C4a） */
+        @Nullable String accountPhone,
         @Nullable String accountName,
         @Nullable String instanceId,
         @Nullable String instanceName,
@@ -32,12 +38,12 @@ public record MarketplaceConnection(
     /** 轮换令牌对（其余连接信息不变） */
     public MarketplaceConnection withTokens(String accessToken, long accessTokenExpiresAt, String refreshToken) {
         return new MarketplaceConnection(accessToken, accessTokenExpiresAt, refreshToken, scope,
-                accountEmail, accountName, instanceId, instanceName, connectedAt, false);
+                accountEmail, accountPhone, accountName, instanceId, instanceName, connectedAt, false);
     }
 
     /** 标记连接失效（保留账号展示信息供控制台提示「重新连接」） */
     public MarketplaceConnection asReconnectRequired() {
         return new MarketplaceConnection(accessToken, accessTokenExpiresAt, refreshToken, scope,
-                accountEmail, accountName, instanceId, instanceName, connectedAt, true);
+                accountEmail, accountPhone, accountName, instanceId, instanceName, connectedAt, true);
     }
 }

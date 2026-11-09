@@ -15,3 +15,14 @@ databaseChangeLog:
             sql: update ujcms_site set theme_ = replace(theme_, concat(concat('/', id_), '/'), '') where theme_ like '/%'
         - sql:
             sql: update ujcms_site set mobile_theme_ = replace(mobile_theme_, concat(concat('/', id_), '/'), '') where mobile_theme_ like '/%'
+  # 模板存储设置（全局设置 › 模板存储）的路径 / URL：12.x 默认 /templates，13.0 起主题目录改为 /themes（全新建库此列为空，
+  # Config.getTemplateStorage 对空值的默认即 /themes）。存量库不改则 ${assets} 拼出 /templates/{站点}/{主题}/assets（404，
+  # 动态页全部没样式），控制台的模板管理也仍指向旧目录。只替换默认值 "path":"/templates" 与 "url":"/templates" 两个精确片段
+  #（Jackson 序列化无空格，片段写法与之一致），改过默认值的（如 URL 指向 CDN 域名）原样保留，由部署方自行核对。
+  # 全新建库表为空，已是 /themes 的库无行匹配，幂等；replace / like 在 MySQL / MariaDB / PostgreSQL / Oracle 系 / SQL Server / H2 通用。
+  - changeSet:
+      id: 13.0-upgrade-template-storage-themes
+      author: PONY
+      changes:
+        - sql:
+            sql: update ujcms_config set template_storage_settings_ = replace(replace(template_storage_settings_, '"path":"/templates"', '"path":"/themes"'), '"url":"/templates"', '"url":"/themes"') where template_storage_settings_ like '%/templates%'

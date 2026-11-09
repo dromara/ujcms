@@ -8,7 +8,8 @@ import type { ActivateTarget, ThemeInstallReport, ThemeUpdateReport, SeedScope }
  * 控制台唯一的商店通道（D-K3）：目录浏览走后端代理，安装/更新在服务端完成（下载 + sha256 校验 +
  * 既有安装管线）；图片经带鉴权的资产代理以 blob 加载（D-C1-4）；账号连接走设备授权流（D-K4），
  * 令牌只存服务端（加密落库，D-C1-1）。
- * 权限：`marketplace:browse` / `marketplace:install` / `marketplace:connect`（`*` 均可越过）。
+ * 权限：`marketplace:browse` / `marketplace:install` / `marketplace:connect` / `marketplace:purchase`（`*` 均可越过）。
+ * C4b：控制台内购买 `purchase/start|poll|cancel`——钱不经 CMS，控制台只渲染渠道二维码或新标签页打开渠道页面（D-C4-3）。
  */
 
 export interface MarketplaceState {
@@ -119,7 +120,13 @@ export const installMarketplaceItem = async (params: MarketInstallParams): Promi
 export interface MarketConnection {
   connected: boolean;
   reconnectRequired: boolean;
+  /** 持久化 scope 含 orders:write（C4b）；已连接但为 false = C4b 之前的连接，购买对话框提示重新连接（D-C4-4） */
+  purchaseEnabled?: boolean;
+  /** 账号邮箱——服务端已脱敏（122***@qq.com，C4c） */
   accountEmail?: string | null;
+  /** 账号手机号——服务端已脱敏（138****0000，C4a）；生产账号多为仅手机号 */
+  accountPhone?: string | null;
+  /** 显示名（常为微信昵称）；芯片显示 显示名（脱敏手机号 | 脱敏邮箱），见 MarketplaceGallery accountLabel（C4c） */
   accountName?: string | null;
   instanceName?: string | null;
   connectedAt?: string | null;
@@ -138,7 +145,10 @@ export type MarketPollStatus = 'PENDING' | 'CONNECTED' | 'DENIED' | 'EXPIRED' | 
 
 export interface MarketPollResult {
   status: MarketPollStatus;
+  /** 已脱敏，同 MarketConnection.accountEmail */
   accountEmail?: string | null;
+  /** 已脱敏，同 MarketConnection.accountPhone */
+  accountPhone?: string | null;
   accountName?: string | null;
 }
 
@@ -196,3 +206,62 @@ export const marketplaceUpdateCheck = async (entries: MarketUpdateCheckEntry[]):
   (await axios.post('/backend/core/marketplace/update-check', entries)).data;
 
 export const updateMarketplaceItem = async (params: MarketUpdateParams): Promise<ThemeUpdateReport> => (await axios.post('/backend/core/marketplace/update', params)).data;
+
+// ----- C4b：控制台内购买（start → poll → 终态；订单号不是凭据，经控制台往返，CMS 不持有挂起购买） -----
+
+/**
+ * 购买发起结果：`kind=qrcode` → 就地渲染 qrContent（微信支付 Native）；`kind=redirect` → 「前往支付」新标签页打开 url
+ * （已解析为绝对地址）；providers 多于一项时提供「更换支付方式」；expiresAt 原样带回 poll 供过期推导。
+ */
+export interface MarketPurchaseStart {
+  orderNo: string;
+  itemName: string;
+  amountCents: number;
+  provider: string;
+  providers: string[];
+  kind: 'redirect' | 'qrcode';
+  qrContent?: string | null;
+  url?: string | null;
+  expiresAt?: string | null;
+  /** 店面「我的订单」地址（订单与发票在应用市场网站查看，D-M14-5） */
+  storefrontOrderUrl: string;
+}
+
+/** EXPIRED 为 CMS 推导：支付载荷过期而订单仍未付（服务端没有过期状态） */
+export type MarketPurchaseStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED';
+
+export interface MarketPurchasePoll {
+  status: MarketPurchaseStatus;
+}
+
+/** UNCONFIRMED：支付渠道暂时无法确认关单，订单保留（仍可付 / 稍后再取消） */
+export type MarketPurchaseCancelStatus = 'CANCELLED' | 'PAID' | 'UNCONFIRMED';
+
+export interface MarketPurchaseCancel {
+  status: MarketPurchaseCancelStatus;
+}
+
+export interface MarketPurchaseStartParams {
+  slug: string;
+  /** 缺省取支付方式列表首项；「更换支付方式」/「重新发起」带上所选项 */
+  provider?: string;
+}
+
+export interface MarketPurchasePollParams {
+  orderNo: string;
+  provider: string;
+  expiresAt?: string | null;
+}
+
+/**
+ * 发起购买。调用方自行处理错误（skipErrorHandler）：409 = 连接须重连（C4b 之前的连接缺 orders:write，或连接已失效）→
+ * 对话框显示「重新连接以启用控制台内购买」；400 = 可诉业务错误（已购买 / 订单状态已变 / 无可用支付方式…）→ 对话框显示文案。
+ */
+export const startMarketplacePurchase = async (params: MarketPurchaseStartParams): Promise<StoreResult<MarketPurchaseStart>> =>
+  (await axios.post('/backend/core/marketplace/purchase/start', params, { skipErrorHandler: true } as any)).data;
+
+export const pollMarketplacePurchase = async (params: MarketPurchasePollParams): Promise<MarketPurchasePoll> =>
+  (await axios.post('/backend/core/marketplace/purchase/poll', params, { skipErrorHandler: true } as any)).data;
+
+export const cancelMarketplacePurchase = async (orderNo: string): Promise<MarketPurchaseCancel> =>
+  (await axios.post('/backend/core/marketplace/purchase/cancel', { orderNo })).data;

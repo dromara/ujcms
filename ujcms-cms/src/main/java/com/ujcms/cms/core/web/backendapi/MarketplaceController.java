@@ -34,6 +34,10 @@ import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.DisconnectRes
 import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.EntitlementsSnapshot;
 import com.ujcms.cms.core.marketplace.MarketplaceConnectionService.PollResult;
 import com.ujcms.cms.core.marketplace.MarketplaceInstallService;
+import com.ujcms.cms.core.marketplace.MarketplacePurchaseService;
+import com.ujcms.cms.core.marketplace.MarketplacePurchaseService.PurchaseCancel;
+import com.ujcms.cms.core.marketplace.MarketplacePurchaseService.PurchasePoll;
+import com.ujcms.cms.core.marketplace.MarketplacePurchaseService.PurchaseStart;
 import com.ujcms.cms.core.marketplace.MarketplaceUnavailableException;
 import com.ujcms.cms.core.service.ThemeInstallService.ActivateTarget;
 import com.ujcms.cms.core.service.ThemeInstallService.SeedScope;
@@ -45,6 +49,7 @@ import com.ujcms.common.web.exception.Http400Exception;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -57,6 +62,7 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@code GET  /api/backend/core/marketplace/items/{slug}/versions} — 版本列表（信封）</li>
  *   <li>{@code GET  /api/backend/core/marketplace/asset?path=…}          — 资产代理（预览图/截图，D-C1-4）</li>
  *   <li>{@code POST /api/backend/core/marketplace/install}               — 下载 + sha256 校验 + 既有安装管线</li>
+ *   <li>{@code POST /api/backend/core/marketplace/purchase/start|poll|cancel} — 控制台内购买（C4b，{@code marketplace:purchase}）</li>
  * </ul>
  *
  * <p>目录读取的降级契约（D-C1-3）：商店不可达/限流不报错，应答
@@ -72,18 +78,21 @@ public class MarketplaceController {
     private final MarketplaceClient client;
     private final MarketplaceInstallService installService;
     private final MarketplaceConnectionService connectionService;
+    private final MarketplacePurchaseService purchaseService;
     private final Props props;
     /** 店面站点地址（购买深链 D-K5 的基址；缺省随 base-url——生产环境店面与 API 同域） */
     private final String storefrontUrl;
 
     public MarketplaceController(MarketplaceClient client, MarketplaceInstallService installService,
-                                 MarketplaceConnectionService connectionService, Props props,
+                                 MarketplaceConnectionService connectionService,
+                                 MarketplacePurchaseService purchaseService, Props props,
                                  @org.springframework.beans.factory.annotation.Value(
                                          "${ujcms.marketplace.storefront-url:${ujcms.marketplace.base-url:https://market.ujcms.com}}")
                                  String storefrontUrl) {
         this.client = client;
         this.installService = installService;
         this.connectionService = connectionService;
+        this.purchaseService = purchaseService;
         this.props = props;
         this.storefrontUrl = storefrontUrl.endsWith("/")
                 ? storefrontUrl.substring(0, storefrontUrl.length() - 1) : storefrontUrl;
@@ -242,6 +251,40 @@ public class MarketplaceController {
         return guarded(connectionService::listEntitlements);
     }
 
+    // ----- 控制台内购买（C4b：marketplace:purchase 与浏览/安装/连接分权，D-C4-2；start → poll → 终态，D-C4-3） -----
+
+    /**
+     * 发起购买：下单（201 新单 / 200 折叠回同条目未付单）→ 支付方式（首项预选；多项时对话框可更换）→ 发起支付，
+     * 应答 {@code PurchaseStart}（二维码内容或已解析为绝对地址的支付页 url）。C4b 之前的连接（持久化 scope 缺
+     * {@code orders:write}）或已失效的连接 → 409（对话框提示重新连接，D-C4-4）；市场不可达走可用性信封。
+     * 遥测边界（D-C3-1 (d)）：本调用只向市场携带条目 slug 与 Bearer 令牌。
+     */
+    @PostMapping("purchase/start")
+    @PreAuthorize("hasAnyAuthority('marketplace:purchase','*')")
+    @OperationLog(module = "marketplace", operation = "purchase", type = OperationType.CREATE)
+    public StoreResult<PurchaseStart> purchaseStart(@RequestBody @Valid PurchaseStartParams params) {
+        return guarded(() -> purchaseService.start(params.slug(), params.provider()));
+    }
+
+    /**
+     * 轮询订单。控制台 2 秒一问；CMS 对同一订单最多每 5 秒问一次市场 …/sync（D-C2-2 纪律）。{@code expiresAt}
+     * 是 start 应答里的支付载荷过期时刻，由控制台原样带回——过期而订单仍未付即 EXPIRED（服务端无过期状态）。
+     * 无操作日志：这是对话框的心跳，与 connection/poll 同口径。
+     */
+    @PostMapping("purchase/poll")
+    @PreAuthorize("hasAnyAuthority('marketplace:purchase','*')")
+    public PurchasePoll purchasePoll(@RequestBody @Valid PurchasePollParams params) {
+        return purchaseService.poll(params.orderNo(), params.provider(), params.expiresAt());
+    }
+
+    /** 取消未支付订单：CANCELLED；买家已付 → PAID；渠道暂时无法确认关单 → UNCONFIRMED（订单保留） */
+    @PostMapping("purchase/cancel")
+    @PreAuthorize("hasAnyAuthority('marketplace:purchase','*')")
+    @OperationLog(module = "marketplace", operation = "purchaseCancel", type = OperationType.DELETE)
+    public PurchaseCancel purchaseCancel(@RequestBody @Valid PurchaseCancelParams params) {
+        return purchaseService.cancel(params.orderNo());
+    }
+
     private <T> StoreResult<T> guarded(Supplier<T> loader) {
         if (!client.isEnabled()) {
             return new StoreResult<>(false, "disabled", null, null);
@@ -292,6 +335,26 @@ public class MarketplaceController {
     /** 连接发起请求体（实例名在批准页展示；缺省「UJCMS {版本}」） */
     public record StartParams(@Nullable String instanceName) {
     }
+
+    /** 购买发起请求体（C4b）：条目 slug；provider 缺省取支付方式列表首项，「更换支付方式」/「重新发起」带上所选项再次发起 */
+    public record PurchaseStartParams(@NotBlank String slug,
+                                      @Nullable @Pattern(regexp = PROVIDER_PATTERN) String provider) {
+    }
+
+    /** 购买轮询请求体：订单号（契约形态 MP + 20 位数字）、发起支付的方式、start 应答里的 expiresAt 原样带回 */
+    public record PurchasePollParams(@NotBlank @Pattern(regexp = ORDER_NO_PATTERN) String orderNo,
+                                     @NotBlank @Pattern(regexp = PROVIDER_PATTERN) String provider,
+                                     @Nullable String expiresAt) {
+    }
+
+    /** 购买取消请求体 */
+    public record PurchaseCancelParams(@NotBlank @Pattern(regexp = ORDER_NO_PATTERN) String orderNo) {
+    }
+
+    /** 订单号线形态（contract {@code StoreOrder.orderNo}）——订单号进入上游 URL 路径，只放行契约形态 */
+    private static final String ORDER_NO_PATTERN = "^MP[0-9]{20}$";
+    /** 支付方式线值（{@code mockpay} / {@code wechatpay} / {@code alipay}…） */
+    private static final String PROVIDER_PATTERN = "^[a-z][a-z0-9_-]{0,31}$";
 
     /** 市场启用状态 + 后端运行版本（D-C1-6）+ 店面地址（购买深链基址，D-K5） */
     public record StateResult(boolean enabled, String backendVersion, String storefrontUrl) {

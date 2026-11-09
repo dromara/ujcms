@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -49,6 +50,8 @@ public class MarketplaceConnectionService {
     private static final long EXPIRY_SKEW_SECONDS = 30;
     /** 授权分页拉取的页数上限（官方目录小体量，防御性封顶） */
     private static final int MAX_ENTITLEMENT_PAGES = 10;
+    /** 大陆手机号的 E.164 形态（与市场服务端 {@code Phones} / 店面 {@code maskPhone} 同一规则） */
+    private static final Pattern CN_MOBILE_E164 = Pattern.compile("^\\+861[3-9]\\d{9}$");
 
     private final MarketplaceClient client;
     private final MarketplaceConnectionStore store;
@@ -133,7 +136,8 @@ public class MarketplaceConnectionService {
         }
         MarketplaceConnection connection = establishConnection(tokens);
         pending.compareAndSet(auth, null);
-        return new PollResult(PollStatus.CONNECTED, connection.accountEmail(), connection.accountName());
+        return new PollResult(PollStatus.CONNECTED, maskEmail(connection.accountEmail()),
+                maskPhone(connection.accountPhone()), connection.accountName());
     }
 
     private MarketplaceConnection establishConnection(OAuthTokens tokens) {
@@ -145,12 +149,14 @@ public class MarketplaceConnectionService {
                     "Marketplace token response carries no refresh token");
         }
         String accountEmail = null;
+        String accountPhone = null;
         String accountName = null;
         String instanceId = null;
         String instanceName = null;
         try {
             Me me = client.getMe(tokens.accessToken());
             accountEmail = me.account().email();
+            accountPhone = me.account().phone();
             accountName = me.account().displayName();
             if (me.instance() != null) {
                 instanceId = me.instance().id();
@@ -160,10 +166,11 @@ public class MarketplaceConnectionService {
             logger.warn("Marketplace /me lookup failed right after connect (connection kept): {}", e.getMessage());
         }
         MarketplaceConnection connection = new MarketplaceConnection(tokens.accessToken(), expiresAt,
-                refreshToken, tokens.scope(), accountEmail, accountName, instanceId, instanceName,
+                refreshToken, tokens.scope(), accountEmail, accountPhone, accountName, instanceId, instanceName,
                 OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), false);
         store.save(connection);
-        logger.info("Marketplace account connected: account={} instance={}", accountEmail, instanceName);
+        logger.info("Marketplace account connected: account={} instance={}",
+                accountEmail != null ? maskEmail(accountEmail) : maskPhone(accountPhone), instanceName);
         return connection;
     }
 
@@ -188,7 +195,8 @@ public class MarketplaceConnectionService {
         }
         store.clear();
         logger.info("Marketplace account disconnected: account={} remoteRevoked={}",
-                connection.accountEmail(), remoteRevoked);
+                connection.accountEmail() != null ? maskEmail(connection.accountEmail())
+                        : maskPhone(connection.accountPhone()), remoteRevoked);
         return new DisconnectResult(remoteRevoked);
     }
 
@@ -198,10 +206,75 @@ public class MarketplaceConnectionService {
     public ConnectionStatus getStatus() {
         MarketplaceConnection connection = store.load();
         if (connection == null) {
-            return new ConnectionStatus(false, false, null, null, null, null);
+            return new ConnectionStatus(false, false, false, null, null, null, null, null);
         }
-        return new ConnectionStatus(true, connection.reconnectRequired(), connection.accountEmail(),
-                connection.accountName(), connection.instanceName(), connection.connectedAt());
+        return new ConnectionStatus(true, connection.reconnectRequired(), hasOrdersWriteScope(connection.scope()),
+                maskEmail(connection.accountEmail()), maskPhone(connection.accountPhone()), connection.accountName(),
+                connection.instanceName(), connection.connectedAt());
+    }
+
+    /**
+     * 控制台内购买是否可用（C4b / D-C4-4）：由持久化的 {@code scope} 判定——C4b 之前批准的连接没有
+     * {@code orders:write}，其令牌打到订单面即 403；不强迫升级即重连，由购买对话框提示「重新连接以启用控制台内购买」，
+     * 购买按钮在此之前保持店面深链。
+     */
+    public boolean isPurchaseEnabled() {
+        MarketplaceConnection connection = store.load();
+        return connection != null && hasOrdersWriteScope(connection.scope());
+    }
+
+    /** 令牌 scope 串（空白分隔、服务端不保序）是否含 {@code orders:write} */
+    static boolean hasOrdersWriteScope(@Nullable String scope) {
+        if (scope == null || scope.isBlank()) {
+            return false;
+        }
+        for (String token : scope.trim().split("\\s+")) {
+            if (MarketplaceClient.SCOPE_ORDERS_WRITE.equals(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 手机号脱敏投影（C4a）：行里存 {@code /me} 返回的 E.164 原值，只有控制台投影脱敏——大陆手机号去掉
+     * {@code +86}、保留国内号码首 3 位尾 4 位（{@code 138****0000}）；其它号码保留首 3 位（不足 11 位保留 2 位）
+     * 尾 4 位（{@code +44****0123}），与店面 {@code maskPhone} 同规则；8 位以下全部遮盖。空白 → {@code null}。
+     */
+    @Nullable
+    static String maskPhone(@Nullable String phone) {
+        if (phone == null || phone.isBlank()) {
+            return null;
+        }
+        if (CN_MOBILE_E164.matcher(phone).matches()) {
+            String national = phone.substring(3);
+            return national.substring(0, 3) + "****" + national.substring(national.length() - 4);
+        }
+        int length = phone.length();
+        if (length < 8) {
+            return "*".repeat(length);
+        }
+        int head = length >= 11 ? 3 : 2;
+        return phone.substring(0, head) + "****" + phone.substring(length - 4);
+    }
+
+    /**
+     * 邮箱脱敏投影（C4c）：与手机号同理，行里存原值，只有控制台投影、日志脱敏——本地部分保留前 3 位（不足 3 位保留
+     * 1 位）后接 {@code ***}，域名完整保留（{@code 122***@qq.com}），域名才是操作员认出地址的依据；没有 {@code @}
+     * 的异常值全部遮盖。空白 → {@code null}。
+     */
+    @Nullable
+    static String maskEmail(@Nullable String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        int at = email.indexOf('@');
+        if (at <= 0) {
+            return "*".repeat(email.length());
+        }
+        String local = email.substring(0, at);
+        int head = local.length() > 3 ? 3 : 1;
+        return local.substring(0, head) + "***" + email.substring(at);
     }
 
     public boolean isConnected() {
@@ -359,10 +432,11 @@ public class MarketplaceConnectionService {
         NONE
     }
 
-    /** 轮询结果（CONNECTED 时携带账号展示信息） */
-    public record PollResult(PollStatus status, @Nullable String accountEmail, @Nullable String accountName) {
+    /** 轮询结果（CONNECTED 时携带账号展示信息；{@code accountEmail} / {@code accountPhone} 已脱敏，C4a / C4c） */
+    public record PollResult(PollStatus status, @Nullable String accountEmail, @Nullable String accountPhone,
+                             @Nullable String accountName) {
         static PollResult of(PollStatus status) {
-            return new PollResult(status, null, null);
+            return new PollResult(status, null, null, null);
         }
     }
 
@@ -370,10 +444,14 @@ public class MarketplaceConnectionService {
     public record DisconnectResult(boolean remoteRevoked) {
     }
 
-    /** 连接状态投影（不含令牌） */
-    public record ConnectionStatus(boolean connected, boolean reconnectRequired,
-                                   @Nullable String accountEmail, @Nullable String accountName,
-                                   @Nullable String instanceName, @Nullable String connectedAt) {
+    /**
+     * 连接状态投影（不含令牌；{@code accountEmail} / {@code accountPhone} 已脱敏，C4a / C4c）。{@code purchaseEnabled}（C4b）= 持久化 scope 含
+     * {@code orders:write}：为 false 的已连接状态即「须重连以启用控制台内购买」（D-C4-4），购买按钮保持店面深链。
+     */
+    public record ConnectionStatus(boolean connected, boolean reconnectRequired, boolean purchaseEnabled,
+                                   @Nullable String accountEmail, @Nullable String accountPhone,
+                                   @Nullable String accountName, @Nullable String instanceName,
+                                   @Nullable String connectedAt) {
     }
 
     /** 授权快照：{@code connected}/{@code reconnectRequired} + 有效授权条目（slug 列表的数据源） */
